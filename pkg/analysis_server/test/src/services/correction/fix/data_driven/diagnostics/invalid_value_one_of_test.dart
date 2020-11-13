@@ -27,7 +27,7 @@ transforms:
   changes:
     - kind: 'invalid'
 ''', [
-      error(TransformSetErrorCode.invalidValueOneOf, 129, 16),
+      error(TransformSetErrorCode.invalidValueOneOf, 135, 9),
     ]);
   }
 
@@ -50,7 +50,7 @@ transforms:
           x:
             kind: 'invalid'
 ''', [
-      error(TransformSetErrorCode.invalidValueOneOf, 274, 16),
+      error(TransformSetErrorCode.invalidValueOneOf, 280, 9),
     ]);
   }
 }

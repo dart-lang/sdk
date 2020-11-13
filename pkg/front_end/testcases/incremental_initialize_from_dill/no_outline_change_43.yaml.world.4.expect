@@ -1,0 +1,28 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "org-dartlang-test:///libExporter.dart";
+
+  static field dart.core::int* libField = 42;
+  static method requireStuffFromLibExporter() → void {
+    dart.core::print(lib2::fromLibExporter);
+  }
+}
+library from "org-dartlang-test:///libExporter.dart" as lib2 {
+additionalExports = (lib::libField,
+  lib::libField,
+  lib::requireStuffFromLibExporter)
+
+  export "org-dartlang-test:///lib.dart";
+
+  static field dart.core::String* fromLibExporter = "hello";
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///libExporter.dart";
+
+  static method foo() → void {
+    dart.core::int* value = lib::libField;
+    lib::libField = value.{dart.core::num::+}(1);
+  }
+}

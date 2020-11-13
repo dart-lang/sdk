@@ -149,7 +149,7 @@ class EdgeBuilderTestBase extends MigrationVisitorTestBase {
     var unit = await super.analyze(code);
     decoratedClassHierarchy = DecoratedClassHierarchy(variables, graph);
     unit.accept(EdgeBuilder(typeProvider, typeSystem, variables, graph,
-        testSource, null, decoratedClassHierarchy));
+        testSource, null, decoratedClassHierarchy, true));
     return unit;
   }
 }
@@ -236,7 +236,7 @@ mixin EdgeTester {
   void assertNoEdge(Object source, Object destination) {
     var edges = getEdges(source, destination);
     if (edges.isNotEmpty) {
-      fail('Expected no edge $source -> $destination, found ${edges.length}');
+      fail('Expected no edge $source -> $destination, found $edges');
     }
   }
 

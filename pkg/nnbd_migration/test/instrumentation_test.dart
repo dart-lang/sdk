@@ -140,7 +140,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   Future<void> analyze(String content,
       {bool removeViaComments = false, bool warnOnWeakCode = true}) async {
-    var sourcePath = convertPath('/home/test/lib/test.dart');
+    var sourcePath = convertPath('$testsPath/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener, getLineInfo,
@@ -151,6 +151,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
     migration.prepareInput(result);
+    expect(migration.unmigratedDependencies, isEmpty);
     migration.processInput(result);
     migration.finalizeInput(result);
     migration.finish();

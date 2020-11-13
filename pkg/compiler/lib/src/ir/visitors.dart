@@ -181,6 +181,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   DartType visitNeverType(ir.NeverType node) {
     return _convertNullability(_dartTypes.neverType(), node.nullability);
   }
+
+  @override
+  DartType visitNullType(ir.NullType node) {
+    return elementMap.commonElements.nullType;
+  }
 }
 
 class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {

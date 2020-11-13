@@ -220,7 +220,7 @@ const char* TestCase::GetTestLib(const char* url) {
 }
 
 bool TestCase::IsNNBD() {
-  return KernelIsolate::GetExperimentalFlag("non-nullable");
+  return !KernelIsolate::GetExperimentalFlag("no-non-nullable");
 }
 
 #ifndef PRODUCT

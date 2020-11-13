@@ -148,11 +148,27 @@ void f(A<int> a) {
 }
 ''');
     var propertyAccess = findNode.prefixed('.foo =');
-    assertMember(
-      propertyAccess,
-      findElement.setter('foo', of: 'E'),
-      {'T': 'int'},
+
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('foo', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertMember(
+        propertyAccess,
+        findElement.setter('foo', of: 'E'),
+        {'T': 'int'},
+      );
+    }
   }
 
   test_implicit_targetTypeParameter_hasBound_methodInvocation() async {
@@ -237,28 +253,58 @@ void f<S extends num>(S x) {
 ''');
 
     if (result.libraryElement.isNonNullableByDefault) {
-      assertPropertyAccess2(
-        findNode.propertyAccess('.test'),
-        element: elementMatcher(
+      assertAssignment(
+        findNode.assignment('(x).test'),
+        readElement: null,
+        readType: null,
+        writeElement: elementMatcher(
           findElement.setter('test'),
           substitution: {'T': 'S'},
         ),
+        writeType: 'S',
+        operatorElement: null,
         type: 'S',
       );
+
+      if (hasAssignmentLeftResolution) {
+        assertPropertyAccess2(
+          findNode.propertyAccess('.test'),
+          element: elementMatcher(
+            findElement.setter('test'),
+            substitution: {'T': 'S'},
+          ),
+          type: 'S',
+        );
+      }
 
       assertTypeArgumentTypes(
         findNode.methodInvocation('g()'),
         ['S'],
       );
     } else {
-      assertPropertyAccess2(
-        findNode.propertyAccess('.test'),
-        element: elementMatcher(
+      assertAssignment(
+        findNode.assignment('(x).test'),
+        readElement: null,
+        readType: null,
+        writeElement: elementMatcher(
           findElement.setter('test'),
           substitution: {'T': 'num'},
         ),
+        writeType: 'num',
+        operatorElement: null,
         type: 'num',
       );
+
+      if (hasAssignmentLeftResolution) {
+        assertPropertyAccess2(
+          findNode.propertyAccess('.test'),
+          element: elementMatcher(
+            findElement.setter('test'),
+            substitution: {'T': 'num'},
+          ),
+          type: 'num',
+        );
+      }
 
       assertTypeArgumentTypes(
         findNode.methodInvocation('g()'),
@@ -408,12 +454,27 @@ void f(A<int> a) {
     assertElementTypeStrings(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'A<num>');
 
-    var propertyAccess = findNode.propertyAccess('.foo =');
-    assertMember(
-      propertyAccess,
-      findElement.setter('foo', of: 'E'),
-      {'T': 'num'},
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('foo', of: 'E'),
+        substitution: {'T': 'num'},
+      ),
+      writeType: 'num',
+      operatorElement: null,
+      type: 'double',
     );
+
+    if (hasAssignmentLeftResolution) {
+      var propertyAccess = findNode.propertyAccess('.foo =');
+      assertMember(
+        propertyAccess,
+        findElement.setter('foo', of: 'E'),
+        {'T': 'num'},
+      );
+    }
   }
 
   test_override_inferTypeArguments_error_couldNotInfer() async {
@@ -534,12 +595,27 @@ void f(A<int> a) {
     assertElementTypeStrings(override.typeArgumentTypes, ['int']);
     assertType(override.extendedType, 'A<int>');
 
-    var propertyAccess = findNode.propertyAccess('.foo =');
-    assertMember(
-      propertyAccess,
-      findElement.setter('foo', of: 'E'),
-      {'T': 'int'},
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('foo', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      var propertyAccess = findNode.propertyAccess('.foo =');
+      assertMember(
+        propertyAccess,
+        findElement.setter('foo', of: 'E'),
+        {'T': 'int'},
+      );
+    }
   }
 }
 

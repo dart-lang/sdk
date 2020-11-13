@@ -17,8 +17,10 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -28,6 +30,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../src/utilities/mock_packages.dart';
 
 const dartLanguageId = 'dart';
 
@@ -43,7 +46,8 @@ abstract class AbstractLspAnalysisServerTest
     with
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
-        LspAnalysisServerTestMixin {
+        LspAnalysisServerTestMixin,
+        ConfigurationFilesMixin {
   MockLspServerChannel channel;
   TestPluginManager pluginManager;
   LspAnalysisServer server;
@@ -143,6 +147,7 @@ abstract class AbstractLspAnalysisServerTest
     pubspecFileUri = Uri.file(pubspecFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     analysisOptionsUri = Uri.file(analysisOptionsPath);
+    writePackageConfig(projectFolderPath);
   }
 
   Future tearDown() async {
@@ -386,6 +391,66 @@ mixin ClientCapabilitiesHelperMixin {
   ClientCapabilitiesWindow withWorkDoneProgressSupport(
       ClientCapabilitiesWindow source) {
     return extendWindowCapabilities(source, {'workDoneProgress': true});
+  }
+}
+
+mixin ConfigurationFilesMixin on ResourceProviderMixin {
+  String get latestLanguageVersion =>
+      '${ExperimentStatus.currentVersion.major}.'
+      '${ExperimentStatus.currentVersion.minor}';
+
+  String get testPackageLanguageVersion => '2.9';
+
+  void writePackageConfig(
+    String projectFolderPath, {
+    PackageConfigFileBuilder config,
+    String languageVersion,
+    bool flutter = false,
+    bool meta = false,
+    bool pedantic = false,
+    bool vector_math = false,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootPath: projectFolderPath,
+      languageVersion: languageVersion ?? testPackageLanguageVersion,
+    );
+
+    if (meta || flutter) {
+      var libFolder = MockPackages.instance.addMeta(resourceProvider);
+      config.add(name: 'meta', rootPath: libFolder.parent.path);
+    }
+
+    if (flutter) {
+      {
+        var libFolder = MockPackages.instance.addUI(resourceProvider);
+        config.add(name: 'ui', rootPath: libFolder.parent.path);
+      }
+      {
+        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
+        config.add(name: 'flutter', rootPath: libFolder.parent.path);
+      }
+    }
+
+    if (pedantic) {
+      var libFolder = MockPackages.instance.addPedantic(resourceProvider);
+      config.add(name: 'pedantic', rootPath: libFolder.parent.path);
+    }
+
+    if (vector_math) {
+      var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
+      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
+    }
+
+    var path = '$projectFolderPath/.dart_tool/package_config.json';
+    var content = config.toContent(toUriStr: toUriStr);
+    newFile(path, content: content);
   }
 }
 

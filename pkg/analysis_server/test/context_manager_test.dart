@@ -1591,11 +1591,11 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     MockSdk(resourceProvider: resourceProvider);
     var sdkManager = DartSdkManager(convertPath(sdkRoot));
     manager = ContextManagerImpl(
-        resourceProvider,
-        sdkManager,
-        analysisFilesGlobs,
-        InstrumentationService.NULL_SERVICE,
-        AnalysisOptionsImpl());
+      resourceProvider,
+      sdkManager,
+      analysisFilesGlobs,
+      InstrumentationService.NULL_SERVICE,
+    );
     var logger = PerformanceLog(NullStringSink());
     var scheduler = AnalysisDriverScheduler(logger);
     callbacks = TestContextManagerCallbacks(
@@ -2280,15 +2280,14 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   SourceFactory get sourceFactory => currentDriver?.sourceFactory;
 
   @override
-  AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
+  AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
     var path = folder.path;
     expect(currentContextRoots, isNot(contains(path)));
     expect(contextRoot, isNotNull);
     expect(contextRoot.root, path);
     currentContextTimestamps[path] = now;
 
-    var builder = createContextBuilder(folder, options);
+    var builder = createContextBuilder(folder);
     builder.analysisDriverScheduler = scheduler;
     builder.byteStore = MemoryByteStore();
     builder.performanceLog = logger;
@@ -2345,9 +2344,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+  ContextBuilder createContextBuilder(Folder folder) {
     var builderOptions = ContextBuilderOptions();
-    builderOptions.defaultOptions = options;
     var builder = ContextBuilder(resourceProvider, sdkManager, null,
         options: builderOptions);
     return builder;

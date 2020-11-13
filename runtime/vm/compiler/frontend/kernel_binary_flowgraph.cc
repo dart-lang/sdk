@@ -5,8 +5,6 @@
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
 #include "vm/compiler/ffi/callback.h"
-#include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -15,9 +13,6 @@
 #include "vm/stack_frame.h"
 
 namespace dart {
-
-DECLARE_FLAG(bool, enable_interpreter);
-
 namespace kernel {
 
 #define Z (zone_)
@@ -38,6 +33,17 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   FieldHelper field_helper(this);
   field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
 
+  // Constants are directly accessed at use sites of Dart code. In C++ - if
+  // we need to access static constants - we do so directly using the kernel
+  // evaluation instead of invoking the initializer function in Dart code.
+  //
+  // If the field is marked as @pragma('vm:entry-point') then the embedder might
+  // invoke the getter, so we'll generate the initializer function.
+  ASSERT(!field_helper.IsConst() ||
+         Field::Handle(Z, parsed_function()->function().accessor_field())
+                 .VerifyEntryPoint(EntryPointPragma::kGetterOnly) ==
+             Error::null());
+
   Tag initializer_tag = ReadTag();  // read first part of initializer.
   if (initializer_tag != kSomething) {
     UNREACHABLE();
@@ -50,14 +56,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
 
   Fragment body(normal_entry);
   body += B->CheckStackOverflowInPrologue(field_helper.position_);
-  if (field_helper.IsConst()) {
-    // This will read the initializer.
-    body += Constant(
-        Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression()));
-  } else {
-    body += SetupCapturedParameters(parsed_function()->function());
-    body += BuildExpression();  // read initializer.
-  }
+  body += SetupCapturedParameters(parsed_function()->function());
+  body += BuildExpression();  // read initializer.
   body += Return(TokenPosition::kNoSource);
 
   PrologueInfo prologue_info(-1, -1);
@@ -457,32 +457,6 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   return instructions;
 }
 
-void StreamingFlowGraphBuilder::ReadDefaultFunctionTypeArguments(
-    const Function& function) {
-  if (!function.IsGeneric()) {
-    return;
-  }
-  AlternativeReadingScope alt(&reader_);
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  intptr_t num_type_params = ReadListLength();
-  ASSERT(num_type_params == function.NumTypeParameters());
-  TypeArguments& default_types =
-      TypeArguments::Handle(Z, TypeArguments::New(num_type_params));
-  for (intptr_t i = 0; i < num_type_params; ++i) {
-    TypeParameterHelper helper(this);
-    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
-    if (ReadTag() == kSomething) {
-      default_types.SetTypeAt(i, T.BuildType());
-    } else {
-      default_types.SetTypeAt(i, Object::dynamic_type());
-    }
-    helper.Finish();
-  }
-  default_types = default_types.Canonicalize(thread(), nullptr);
-  parsed_function()->SetDefaultFunctionTypeArguments(default_types);
-}
-
 Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
     const Function& dart_function,
     TokenPosition position) {
@@ -535,7 +509,7 @@ Fragment StreamingFlowGraphBuilder::SetAsyncStackTrace(
 
   Fragment code;
   code += LoadLocal(async_stack_trace_var);
-  // Call _asyncSetThreadStackTrace
+  // Call _setAsyncThreadStackTrace
   code += StaticCall(TokenPosition::kNoSource, target,
                      /* argument_count = */ 1, ICData::kStatic);
   code += Drop();
@@ -568,12 +542,8 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
       prologue += IntConstant(dart_function.NumTypeParameters() +
                               dart_function.NumParentTypeParameters());
 
-      const Library& dart_internal =
-          Library::Handle(Z, Library::InternalLibrary());
-      const Function& prepend_function =
-          Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
-                                      Symbols::PrependTypeArguments()));
-      ASSERT(!prepend_function.IsNull());
+      const auto& prepend_function =
+          flow_graph_builder_->PrependTypeArgumentsFunction();
 
       prologue += StaticCall(TokenPosition::kNoSource, prepend_function, 4,
                              ICData::kStatic);
@@ -764,20 +734,17 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
     Fragment* explicit_checks,
     Fragment* implicit_checks,
     Fragment* implicit_redefinitions) {
-  if (!dart_function.NeedsArgumentTypeChecks()) return;
-
-  // Check if parent function was annotated with no-dynamic-invocations.
-  const ProcedureAttributesMetadata attrs =
-      procedure_attributes_metadata_helper_.GetProcedureAttributes(
-          dart_function.kernel_offset());
-
-  AlternativeReadingScope _(&reader_);
-  SetOffset(type_parameters_offset);
-  B->BuildArgumentTypeChecks(
-      MethodCanSkipTypeChecksForNonCovariantArguments(dart_function, attrs)
-          ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
-          : TypeChecksToBuild::kCheckAllTypeParameterBounds,
-      explicit_checks, implicit_checks, implicit_redefinitions);
+  if (dart_function.NeedsTypeArgumentTypeChecks()) {
+    B->BuildTypeArgumentTypeChecks(
+        MethodCanSkipTypeChecksForNonCovariantTypeArguments(dart_function)
+            ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
+            : TypeChecksToBuild::kCheckAllTypeParameterBounds,
+        implicit_checks);
+  }
+  if (dart_function.NeedsArgumentTypeChecks()) {
+    B->BuildArgumentTypeChecks(explicit_checks, implicit_checks,
+                               implicit_redefinitions);
+  }
 }
 
 Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
@@ -1088,55 +1055,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   ActiveMemberScope active_member(active_class(), &outermost_function);
   ActiveTypeParametersScope active_type_params(active_class(), function, Z);
 
-  if (function.is_declared_in_bytecode()) {
-    bytecode_metadata_helper_.ParseBytecodeFunction(parsed_function());
-
-    switch (function.kind()) {
-      case FunctionLayout::kImplicitClosureFunction:
-        return B->BuildGraphOfImplicitClosureFunction(function);
-      case FunctionLayout::kImplicitGetter:
-      case FunctionLayout::kImplicitSetter:
-        return B->BuildGraphOfFieldAccessor(function);
-      case FunctionLayout::kImplicitStaticGetter: {
-        if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
-          break;
-        }
-        return B->BuildGraphOfFieldAccessor(function);
-      }
-      case FunctionLayout::kDynamicInvocationForwarder:
-        return B->BuildGraphOfDynamicInvocationForwarder(function);
-      case FunctionLayout::kMethodExtractor:
-        return B->BuildGraphOfMethodExtractor(function);
-      case FunctionLayout::kNoSuchMethodDispatcher:
-        return B->BuildGraphOfNoSuchMethodDispatcher(function);
-      default:
-        break;
-    }
-
-    ASSERT(function.HasBytecode());
-
-    BytecodeFlowGraphBuilder bytecode_compiler(
-        flow_graph_builder_, parsed_function(),
-        &(flow_graph_builder_->ic_data_array_));
-
-    if (B->IsRecognizedMethodForFlowGraph(function)) {
-      bytecode_compiler.CreateParameterVariables();
-      return B->BuildGraphOfRecognizedMethod(function);
-    }
-
-    return bytecode_compiler.BuildGraph();
-  }
-
-  // Certain special functions could have a VM-internal bytecode
-  // attached to them.
-  ASSERT((!function.HasBytecode()) ||
-         (function.kind() == FunctionLayout::kImplicitGetter) ||
-         (function.kind() == FunctionLayout::kImplicitSetter) ||
-         (function.kind() == FunctionLayout::kImplicitStaticGetter) ||
-         (function.kind() == FunctionLayout::kMethodExtractor) ||
-         (function.kind() == FunctionLayout::kInvokeFieldDispatcher) ||
-         (function.kind() == FunctionLayout::kNoSuchMethodDispatcher));
-
   ParseKernelASTFunction();
 
   switch (function.kind()) {
@@ -1215,7 +1133,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case FunctionLayout::kImplicitClosureFunction:
       ReadUntilFunctionNode();
       SetupDefaultParameterValues();
-      ReadDefaultFunctionTypeArguments(function);
       break;
     case FunctionLayout::kImplicitGetter:
     case FunctionLayout::kImplicitStaticGetter:
@@ -1230,7 +1147,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
       if (PeekTag() != kField) {
         ReadUntilFunctionNode();
         SetupDefaultParameterValues();
-        ReadDefaultFunctionTypeArguments(function);
       }
       break;
     case FunctionLayout::kSignatureFunction:
@@ -1632,10 +1548,9 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
   ArgumentsDescriptor args_desc(
       Array::Handle(Z, ArgumentsDescriptor::NewBoxed(
                            type_args_len, argument_count, argument_names)));
-  Function& function =
-      Function::Handle(Z, Resolver::ResolveDynamicForReceiverClassAllowPrivate(
+  return Function::Handle(Z,
+                          Resolver::ResolveDynamicForReceiverClassAllowPrivate(
                               klass, name, args_desc, /*allow_add=*/false));
-  return function;
 }
 
 bool StreamingFlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
@@ -2453,16 +2368,17 @@ static Function& GetNoSuchMethodOrDie(Thread* thread,
                                       const Class& klass) {
   Function& nsm_function = Function::Handle(zone);
   Class& iterate_klass = Class::Handle(zone, klass.raw());
-  while (!iterate_klass.IsNull()) {
-    if (iterate_klass.EnsureIsFinalized(thread) == Error::null()) {
-      nsm_function =
-          iterate_klass.LookupDynamicFunction(Symbols::NoSuchMethod());
+  if (!iterate_klass.IsNull() &&
+      iterate_klass.EnsureIsFinalized(thread) == Error::null()) {
+    while (!iterate_klass.IsNull()) {
+      nsm_function = Resolver::ResolveDynamicFunction(zone, iterate_klass,
+                                                      Symbols::NoSuchMethod());
+      if (!nsm_function.IsNull() && nsm_function.NumParameters() == 2 &&
+          nsm_function.NumTypeParameters() == 0) {
+        break;
+      }
+      iterate_klass = iterate_klass.SuperClass();
     }
-    if (!nsm_function.IsNull() && nsm_function.NumParameters() == 2 &&
-        nsm_function.NumTypeParameters() == 0) {
-      break;
-    }
-    iterate_klass = iterate_klass.SuperClass();
   }
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!nsm_function.IsNull());
@@ -2544,9 +2460,9 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
   // Search the superclass chain for the selector looking for either getter or
   // method.
   Function& function = Function::Handle(Z);
-  while (!klass.IsNull()) {
-    if (klass.EnsureIsFinalized(thread()) == Error::null()) {
-      function = klass.LookupDynamicFunction(method_name);
+  if (!klass.IsNull() && klass.EnsureIsFinalized(thread()) == Error::null()) {
+    while (!klass.IsNull()) {
+      function = Resolver::ResolveDynamicFunction(Z, klass, method_name);
       if (!function.IsNull()) {
         Function& target =
             Function::ZoneHandle(Z, function.ImplicitClosureFunction());
@@ -2555,10 +2471,10 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         // which captures `this`.
         return BuildImplicitClosureCreation(target);
       }
-      function = klass.LookupDynamicFunction(getter_name);
+      function = Resolver::ResolveDynamicFunction(Z, klass, getter_name);
       if (!function.IsNull()) break;
+      klass = klass.SuperClass();
     }
-    klass = klass.SuperClass();
   }
 
   Fragment instructions;
@@ -2608,7 +2524,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
   Function& function = Function::Handle(Z);
   if (klass.EnsureIsFinalized(thread()) == Error::null()) {
-    function = H.LookupDynamicFunction(klass, setter_name);
+    function = Resolver::ResolveDynamicFunction(Z, klass, setter_name);
   }
 
   Fragment instructions(MakeTemp());
@@ -2771,6 +2687,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
+  ReadFlags();                                    // read flags.
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
@@ -3209,8 +3126,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
                                   NULL));
 
   // Special case identical(x, y) call.
-  // Note: similar optimization is performed in bytecode flow graph builder -
-  // see BytecodeFlowGraphBuilder::BuildDirectCall().
   // TODO(27590) consider moving this into the inliner and force inline it
   // there.
   if (special_case_identical) {
@@ -3254,8 +3169,7 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
 
       // TODO(27590): Can we move this code into [ReceiverType]?
-      type ^= ClassFinalizer::FinalizeType(*active_class()->klass, type,
-                                           ClassFinalizer::kFinalize);
+      type ^= ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize);
       TypeArguments& canonicalized_type_arguments =
           TypeArguments::ZoneHandle(Z, type.arguments());
       canonicalized_type_arguments =
@@ -3874,8 +3788,8 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
   ASSERT(!future.IsNull());
   const auto& error = future.EnsureIsFinalized(thread());
   ASSERT(error == Error::null());
-  const Function& constructor =
-      Function::ZoneHandle(Z, future.LookupFunction(Symbols::FutureValue()));
+  Function& constructor = Function::ZoneHandle(
+      Z, Resolver::ResolveFunction(Z, future, Symbols::FutureValue()));
   ASSERT(!constructor.IsNull());
 
   Fragment instructions;
@@ -4014,6 +3928,8 @@ Fragment StreamingFlowGraphBuilder::BuildBlock() {
   Fragment instructions;
 
   instructions += EnterScope(offset);
+  ReadPosition();                           // read file offset.
+  ReadPosition();                           // read file end offset.
   intptr_t list_length = ReadListLength();  // read number of statements.
   for (intptr_t i = 0; i < list_length; ++i) {
     if (instructions.is_open()) {
@@ -4878,13 +4794,19 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 
   Fragment continuation(instructions.entry, anchor);
 
-  if (parsed_function()->function().IsAsyncClosure() ||
-      parsed_function()->function().IsAsyncGenClosure()) {
-    // If function is async closure or async gen closure it takes three
+  RELEASE_ASSERT(parsed_function()->function().IsAsyncClosure() ||
+                 parsed_function()->function().IsAsyncGenClosure() ||
+                 parsed_function()->function().IsSyncGenClosure());
+
+  // TODO(43900): Only emit this when needed.
+  {
+    // If function is {async, async gen, sync yielding} closure it takes three
     // parameters where the second and the third are exception and stack_trace.
     // Check if exception is non-null and rethrow it.
     //
-    //   :async_op([:result, :exception, :stack_trace]) {
+    //   :sync_op(:iterator, [:exception, :stack_trace]) {
+    // or:
+    //   :async_op(:result, [:exception, :stack_trace]) {
     //     ...
     //     Continuation<index>:
     //       if (:exception != null) rethrow(:exception, :stack_trace);
@@ -4903,13 +4825,15 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
     continuation += LoadLocal(exception_var);
     continuation += BranchIfNull(&no_error, &error);
 
-    Fragment rethrow(error);
+    Fragment rethrow(/*instruction=*/error);
     rethrow += LoadLocal(exception_var);
     rethrow += LoadLocal(stack_trace_var);
+
     rethrow += RethrowException(position, kInvalidTryIndex);
     Drop();
 
-    continuation = Fragment(continuation.entry, no_error);
+    // Set current to the end of the no_error branch.
+    continuation = Fragment(/*entry=*/continuation.entry, /*current=*/no_error);
   }
 
   return continuation;
@@ -5040,6 +4964,16 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       }
       function.set_is_generated_body(function_node_helper.async_marker_ ==
                                      FunctionNodeHelper::kSyncYielding);
+      // sync* functions contain two nested synthetic functions, the first of
+      // which (sync_op_gen) is a regular sync function so we need to manually
+      // label it generated:
+      if (function.parent_function() != Function::null()) {
+        const auto& parent = Function::Handle(function.parent_function());
+        if (parent.IsSyncGenerator()) {
+          function.set_is_generated_body(true);
+        }
+      }
+      // Note: Is..() methods use the modifiers set above, so order matters.
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
         function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                   !FLAG_lazy_async_stacks);
@@ -5061,8 +4995,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
       // Finalize function type.
       Type& signature_type = Type::Handle(Z, function.SignatureType());
-      signature_type ^=
-          ClassFinalizer::FinalizeType(*active_class()->klass, signature_type);
+      signature_type ^= ClassFinalizer::FinalizeType(signature_type);
       function.SetSignatureType(signature_type);
 
       I->AddClosureFunction(function);

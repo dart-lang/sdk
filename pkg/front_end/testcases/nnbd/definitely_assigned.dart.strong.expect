@@ -63,7 +63,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect = <T extends core::Object? = dynamic>(T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T extends core::Object? = dynamic>(T% value) → Null {
   late final T% local2;
   late final core::int local4;
   late final FutureOr<core::int>local6;
@@ -80,7 +80,7 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   local6 = 0; // error
   ^^^^^^" in local6 = 0;
 };
-static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null? fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → Null {
   late final T% local2;
   late final core::int local4;
   late final FutureOr<core::int>local6;
@@ -102,7 +102,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   local6 = 0; // error
   ^^^^^^" in local6 = 0;
 };
-static field () → core::Null? fieldCompound = () → core::Null? {
+static field () → Null fieldCompound = () → Null {
   late final core::int local4;
   local4 = 0;
   let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.

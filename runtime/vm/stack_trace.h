@@ -14,8 +14,59 @@
 
 namespace dart {
 
+// Helper class for finding the closure of the caller.
+class CallerClosureFinder {
+ public:
+  explicit CallerClosureFinder(Zone* zone);
+
+  ClosurePtr GetCallerInFutureImpl(const Object& future_);
+
+  ClosurePtr FindCallerInAsyncClosure(const Context& receiver_context);
+
+  ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
+
+  ClosurePtr FindCaller(const Closure& receiver_closure);
+
+  static bool IsRunningAsync(const Closure& receiver_closure);
+
+ private:
+  Context& receiver_context_;
+  Function& receiver_function_;
+  Function& parent_function_;
+
+  Object& context_entry_;
+  Object& future_;
+  Object& listener_;
+  Object& callback_;
+  Object& controller_;
+  Object& state_;
+  Object& var_data_;
+  Object& callback_instance_;
+
+  Class& future_impl_class;
+  Class& future_listener_class;
+  Class& async_start_stream_controller_class;
+  Class& stream_controller_class;
+  Class& async_stream_controller_class;
+  Class& controller_subscription_class;
+  Class& buffering_stream_subscription_class;
+  Class& stream_iterator_class;
+
+  Field& future_result_or_listeners_field;
+  Field& callback_field;
+  Field& controller_controller_field;
+  Field& var_data_field;
+  Field& state_field;
+  Field& on_data_field;
+  Field& state_data_field;
+};
+
 class StackTraceUtils : public AllStatic {
  public:
+  // Find the async_op closure from the stack frame.
+  static ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
+                                       const Function& function);
+
   /// Collects all frames on the current stack until an async/async* frame is
   /// hit which has yielded before (i.e. is not in sync-async case).
   ///
@@ -71,41 +122,6 @@ class StackTraceUtils : public AllStatic {
                                              StackTrace* async_stack_trace,
                                              Array* async_code_array,
                                              Array* async_pc_offset_array);
-
-  // The number of frames involved in a "sync-async" gap: a synchronous initial
-  // invocation of an asynchronous function. See CheckAndSkipAsync.
-  static constexpr intptr_t kSyncAsyncFrameGap = 2;
-
-  // A synchronous invocation of an async function involves the following
-  // frames:
-  //   <async function>__<anonymous_closure>    (0)
-  //   _Closure.call                            (1)
-  //   _AsyncAwaitCompleter.start               (2)
-  //   <async_function>                         (3)
-  //
-  // Alternatively, for bytecode or optimized frames, we may see:
-  //   <async function>__<anonymous_closure>    (0)
-  //   _AsyncAwaitCompleter.start               (1)
-  //   <async_function>                         (2)
-  static bool CheckAndSkipAsync(int* skip_sync_async_frames_count,
-                                const String& function_name) {
-    ASSERT(*skip_sync_async_frames_count > 0);
-    // Make sure any function objects for methods used here are marked for
-    // retention by the precompiler, even if otherwise not needed at runtime.
-    //
-    // _AsyncAwaitCompleter.start is marked with the vm:entry-point pragma.
-    if (function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
-      *skip_sync_async_frames_count = 0;
-      return true;
-    }
-    // _Closure.call is explicitly checked in Precompiler::MustRetainFunction.
-    if (function_name.Equals(Symbols::_ClosureCall()) &&
-        *skip_sync_async_frames_count == 2) {
-      (*skip_sync_async_frames_count)--;
-      return true;
-    }
-    return false;
-  }
 };
 
 }  // namespace dart

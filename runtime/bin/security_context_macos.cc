@@ -260,6 +260,12 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
 
   SecTrustResultType trust_result;
 
+  // This is used for testing to confirm that trust evaluation doesn't block
+  // dart isolate.
+  if (SSLCertContext::long_ssl_cert_evaluation()) {
+    usleep(1000 * 1000 /*1 s*/);
+  }
+
   // Perform the certificate verification.
 #if ((defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && defined(__MAC_10_14_0) &&    \
       __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_14_0) ||                     \

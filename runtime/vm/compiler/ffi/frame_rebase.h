@@ -31,24 +31,24 @@ namespace ffi {
 // This class can be used to rebase both Locations and NativeLocations.
 class FrameRebase : public ValueObject {
  public:
-  FrameRebase(const Register old_base,
+  FrameRebase(Zone* zone,
+              const Register old_base,
               const Register new_base,
-              intptr_t stack_delta_in_bytes,
-              Zone* zone)
-      : old_base_(old_base),
+              intptr_t stack_delta_in_bytes)
+      : zone_(zone),
+        old_base_(old_base),
         new_base_(new_base),
-        stack_delta_in_bytes_(stack_delta_in_bytes),
-        zone_(zone) {}
+        stack_delta_in_bytes_(stack_delta_in_bytes) {}
 
   const NativeLocation& Rebase(const NativeLocation& loc) const;
 
   Location Rebase(const Location loc) const;
 
  private:
+  Zone* zone_;
   const Register old_base_;
   const Register new_base_;
   const intptr_t stack_delta_in_bytes_;
-  Zone* zone_;
 };
 
 }  // namespace ffi

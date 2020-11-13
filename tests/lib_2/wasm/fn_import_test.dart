@@ -5,7 +5,7 @@
 // Test that we can load a wasm module, find a function, and call it.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
@@ -25,13 +25,13 @@ void main() {
   int report_x = -1;
   int report_y = -1;
 
-  var inst = WasmModule(data).instantiate(WasmImports()
-    ..addFunction<Void Function(Int64, Int64)>("env", "report", (int x, int y) {
+  var inst = WasmModule(data).instantiate()
+    .addFunction("env", "report", (int x, int y) {
       report_x = x;
       report_y = y;
-    }));
-  var fn = inst.lookupFunction<Void Function()>("reportStuff");
-  fn.call([]);
+    }).build();
+  var fn = inst.lookupFunction("reportStuff");
+  fn();
   Expect.equals(report_x, 123);
   Expect.equals(report_y, 456);
 }

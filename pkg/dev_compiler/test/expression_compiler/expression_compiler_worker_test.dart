@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform, Process, stderr, stdout;
@@ -100,17 +102,26 @@ _testPackage:lib/
     File.fromUri(main)
       ..createSync(recursive: true)
       ..writeAsStringSync('''
+// @dart = 2.9
 import 'package:_testPackage/test_library.dart';
 
 var global = 0;
 
 void main() {
   var count = 0;
-  // line 7
+  // line 8
   print('Global is: \${++global}');
   print('Count is: \${++count}');
 
   B b = new B();
+}
+
+extension NumberParsing on String {
+  int parseInt() {
+    var ret = int.parse(this);
+    // line 17
+    return ret;
+  }
 }
 ''');
 
@@ -118,10 +129,11 @@ void main() {
     File.fromUri(testLibrary)
       ..createSync()
       ..writeAsStringSync('''
+// @dart = 2.9
 import 'package:_testPackage/test_library2.dart';
 
 int testLibraryFunction(int formal) {
-  return formal; // line 4
+  return formal; // line 5
 }
 
 int callLibraryFunction2(int formal) {
@@ -137,8 +149,9 @@ class B {
     File.fromUri(testLibrary2)
       ..createSync()
       ..writeAsStringSync('''
+// @dart = 2.9
 int testLibraryFunction2(int formal) {
-  return formal; // line 2
+  return formal; // line 3
 }
 
 class C {
@@ -257,7 +270,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'formal',
-        'line': 4,
+        'line': 5,
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
@@ -289,7 +302,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'count',
-        'line': 7,
+        'line': 8,
         'column': 1,
         'jsModules': {},
         'jsScope': {'count': 'count'},
@@ -312,6 +325,40 @@ void main() async {
           ]));
     });
 
+    test(
+        'can load dependencies and compile expressions in main (extension method)',
+        () async {
+      requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': inputs,
+      });
+
+      requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'ret',
+        'line': 17,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {'ret': 'ret'},
+        'libraryUri': config.mainModule.libraryUri,
+        'moduleName': config.mainModule.moduleName,
+      });
+
+      expect(
+          responseController.stream,
+          emitsInOrder([
+            equals({
+              'succeeded': true,
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'compiledProcedure': contains('return ret;'),
+            })
+          ]));
+    });
+
     test('can load dependencies and compile transitive expressions in main',
         () async {
       requestController.add({
@@ -322,7 +369,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'B().c().getNumber()',
-        'line': 7,
+        'line': 8,
         'column': 1,
         'jsModules': {},
         'jsScope': {},
@@ -443,7 +490,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'formal',
-        'line': 4,
+        'line': 5,
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
@@ -475,7 +522,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'count',
-        'line': 7,
+        'line': 8,
         'column': 1,
         'jsModules': {},
         'jsScope': {'count': 'count'},

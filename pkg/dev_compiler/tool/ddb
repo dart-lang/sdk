@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 //
 // Compiles code with DDC and runs the resulting code with either node or
 // chrome.
@@ -207,7 +209,7 @@ void main(List<String> args) async {
       break;
     case 'd8':
       d8 = true;
-      mod = 'es6';
+      mod = 'legacy';
       break;
     case 'chrome':
       chrome = true;
@@ -215,24 +217,14 @@ void main(List<String> args) async {
       break;
   }
 
-  String ddcSdk;
-  String sdkJsPath;
-  String requirePath;
+  var sdkRoot = p.dirname(p.dirname(ddcPath));
+  var buildDir =
+      p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
+  var requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
+  var sdkOutlineDill = p.join(buildDir,
+      soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
   var suffix = soundNullSafety ? p.join('sound', mod) : p.join('kernel', mod);
-  if (debug) {
-    var sdkRoot = p.dirname(p.dirname(ddcPath));
-    var buildDir =
-        p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
-    dartSdk = p.join(buildDir, 'dart-sdk');
-    ddcSdk = p.join(buildDir,
-        soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
-    sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
-    requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
-  } else {
-    ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
-    sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
-    requirePath = sdkJsPath;
-  }
+  var sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
 
   // Print an initial empty line to separate the invocation from the output.
   if (verbose) {
@@ -243,7 +235,7 @@ void main(List<String> args) async {
     var ddcArgs = [
       if (summarizeText) '--summarize-text',
       '--modules=$mod',
-      '--dart-sdk-summary=$ddcSdk',
+      '--dart-sdk-summary=$sdkOutlineDill',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
       if (soundNullSafety) '--sound-null-safety',
@@ -350,18 +342,19 @@ try {
       jsFile.writeAsStringSync(jsContents);
 
       var runjs = '''
-import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
-import { $libname } from '$basename.js';
+load("$ddcPath/lib/js/legacy/dart_library.js");
+load("$sdkJsPath/dart_sdk.js");
+load("$out");
+
+let dart_sdk = dart_library.import('dart_sdk');
 // Create a self reference for JS interop tests that set fields on self.
-dart.global.self = dart.global;
-let main = $libname.main;
+dart_sdk.dart.global.self = dart_sdk.dart.global;
 if ($nnbd) {
-  dart.weakNullSafetyWarnings(!$soundNullSafety);
-  dart.nonNullAsserts($nonNullAsserts);
-  dart.nativeNonNullAsserts($nativeNonNullAsserts);
+  dart_sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
+  dart_sdk.dart.nonNullAsserts($nonNullAsserts);
+  dart_sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
 }
-_isolate_helper.startRootIsolate(() => {}, []);
-main([]);
+dart_library.start('$basename', '$libname');
 ''';
       var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);

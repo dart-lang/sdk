@@ -121,7 +121,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitNullLiteral(ir.NullLiteral node) => typeEnvironment.nullType;
+  ir.DartType visitNullLiteral(ir.NullLiteral node) => const ir.NullType();
 
   @override
   ir.DartType visitIntLiteral(ir.IntLiteral node) =>

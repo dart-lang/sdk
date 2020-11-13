@@ -180,7 +180,7 @@ template("gen_vm_platform") {
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
     ]
     args = [ "dart:core" ]
-    allow_causal_async_stacks = !is_product_flag
+    allow_causal_async_stacks = false
     args += [
       "-Ddart.vm.product=$is_product_flag",
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
@@ -190,9 +190,6 @@ template("gen_vm_platform") {
     ]
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
-    }
-    if (defined(invoker.bytecode) && invoker.bytecode) {
-      args += [ "--bytecode" ]
     }
     outline = "vm_outline" + output_postfix + ".dill"
   }
@@ -218,10 +215,6 @@ gen_vm_platform("vm_platform_stripped") {
   add_implicit_vm_platform_dependency = false
   exclude_source = true
   output_postfix = "_strong_stripped"
-
-  if (dart_platform_bytecode) {
-    bytecode = true
-  }
 }
 
 group("kernel_platform_files") {

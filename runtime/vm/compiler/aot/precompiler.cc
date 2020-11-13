@@ -278,7 +278,7 @@ void Precompiler::DoCompileAll() {
       if (FLAG_use_bare_instructions) {
         // We use any stub here to get it's object pool (all stubs share the
         // same object pool in bare instructions mode).
-        const Code& code = StubCode::InterpretCall();
+        const Code& code = StubCode::LazyCompile();
         const ObjectPool& stub_pool = ObjectPool::Handle(code.object_pool());
 
         global_object_pool_builder()->Reset();
@@ -420,7 +420,6 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
-      I->object_store()->set_bytecode_attributes(Array::null_array());
       DropMetadata();
       DropLibraryEntries();
     }
@@ -796,6 +795,14 @@ void Precompiler::AddTypesOf(const Function& function) {
     type = function.ParameterTypeAt(i);
     AddType(type);
   }
+  // At this point, ensure any cached default type arguments are canonicalized.
+  function.UpdateCachedDefaultTypeArguments(thread());
+  if (function.CachesDefaultTypeArguments()) {
+    const auto& defaults = TypeArguments::Handle(
+        Z, function.default_type_arguments(/*kind_out=*/nullptr));
+    ASSERT(defaults.IsCanonical());
+    AddTypeArguments(defaults);
+  }
   Code& code = Code::Handle(Z, function.CurrentCode());
   if (code.IsNull()) {
     ASSERT(function.kind() == FunctionLayout::kSignatureFunction);
@@ -834,18 +841,17 @@ void Precompiler::AddType(const AbstractType& abstype) {
   if (abstype.IsNull()) return;
 
   if (abstype.IsTypeParameter()) {
-    if (typeparams_to_retain_.HasKey(&TypeParameter::Cast(abstype))) return;
-    typeparams_to_retain_.Insert(
-        &TypeParameter::ZoneHandle(Z, TypeParameter::Cast(abstype).raw()));
+    const auto& param = TypeParameter::Cast(abstype);
+    if (typeparams_to_retain_.HasKey(&param)) return;
+    typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.raw()));
 
-    const AbstractType& type =
-        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
+    auto& type = AbstractType::Handle(Z, param.bound());
     AddType(type);
-    const auto& function = Function::Handle(
-        Z, TypeParameter::Cast(abstype).parameterized_function());
+    type = param.default_argument();
+    AddType(type);
+    const auto& function = Function::Handle(Z, param.parameterized_function());
     AddTypesOf(function);
-    const Class& cls =
-        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
+    const Class& cls = Class::Handle(Z, param.parameterized_class());
     AddTypesOf(cls);
     return;
   }
@@ -1203,7 +1209,7 @@ void Precompiler::AddAnnotatedRoots() {
       }
 
       // Check for @pragma on any functions in the class.
-      members = cls.functions();
+      members = cls.current_functions();
       for (intptr_t k = 0; k < members.Length(); k++) {
         function ^= members.At(k);
         if (function.has_pragma()) {
@@ -1285,7 +1291,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
       if (!cls.is_allocated()) continue;
 
-      functions = cls.functions();
+      functions = cls.current_functions();
       for (intptr_t k = 0; k < functions.Length(); k++) {
         function ^= functions.At(k);
 
@@ -1452,7 +1458,7 @@ void Precompiler::CollectDynamicFunctionNames() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      functions = cls.functions();
+      functions = cls.current_functions();
 
       const intptr_t length = functions.Length();
       for (intptr_t j = 0; j < length; j++) {
@@ -1555,7 +1561,7 @@ void Precompiler::TraceForRetainedFunctions() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      functions = cls.functions();
+      functions = cls.current_functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
         bool retain = possibly_retained_functions_.ContainsKey(function);
@@ -1724,6 +1730,7 @@ void Precompiler::DropFunctions() {
     }
   };
 
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   auto& dispatchers_array = Array::Handle(Z);
   auto& name = String::Handle(Z);
   auto& desc = Array::Handle(Z);
@@ -1737,7 +1744,6 @@ void Precompiler::DropFunctions() {
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
         function.DropUncompiledImplicitClosureFunction();
-        function.ClearBytecode();
         if (functions_to_retain_.ContainsKey(function)) {
           retained_functions.Add(function);
         } else {
@@ -1787,7 +1793,6 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    function.ClearBytecode();
     if (functions_to_retain_.ContainsKey(function)) {
       retained_functions.Add(function);
     } else {
@@ -1804,8 +1809,8 @@ void Precompiler::DropFields() {
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
-  Function& initializer_function = Function::Handle(Z);
 
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
@@ -1816,10 +1821,6 @@ void Precompiler::DropFields() {
       for (intptr_t j = 0; j < fields.Length(); j++) {
         field ^= fields.At(j);
         bool retain = fields_to_retain_.HasKey(&field);
-        if (field.HasInitializerFunction()) {
-          initializer_function = field.InitializerFunction();
-          initializer_function.ClearBytecode();
-        }
 #if !defined(PRODUCT)
         if (field.is_instance() && cls.is_allocated()) {
           // Keep instance fields so their names are available to graph tools.
@@ -2043,6 +2044,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
   auto& retained_constants = GrowableObjectArray::Handle(Z);
   auto& constant = Instance::Handle(Z);
 
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
@@ -2058,7 +2060,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
       if (members.Length() > 0) {
         retain = true;
       }
-      members = cls.functions();
+      members = cls.current_functions();
       if (members.Length() > 0) {
         retain = true;
       }
@@ -2218,7 +2220,6 @@ void Precompiler::DropLibraryEntries() {
           program_info.set_scripts(Array::null_array());
           program_info.set_libraries_cache(Array::null_array());
           program_info.set_classes_cache(Array::null_array());
-          program_info.set_bytecode_component(Array::null_array());
         }
         script.set_resolved_url(String::null_string());
         script.set_compile_time_constants(Array::null_array());

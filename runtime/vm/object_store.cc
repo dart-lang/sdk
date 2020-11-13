@@ -182,9 +182,11 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   const Library& core_lib = Library::Handle(core_library());
   const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
   const Class& cls = Class::Handle(object_class());
-  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  Thread* thread = Thread::Current();
+  const auto& error = cls.EnsureIsFinalized(thread);
   ASSERT(error == Error::null());
-  const Function& result = Function::Handle(cls.LookupDynamicFunction(mangled));
+  const Function& result = Function::Handle(
+      Resolver::ResolveDynamicFunction(thread->zone(), cls, mangled));
   ASSERT(!result.IsNull());
   return result.raw();
 }
@@ -240,11 +242,23 @@ void ObjectStore::InitKnownObjects() {
   function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
   ASSERT(!function_name.IsNull());
   function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 2, Object::null_array());
+                                     function_name, 0, 3, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
   if (FLAG_async_debugger) {
     // Disable debugging and inlining the _CompleteOnAsyncReturn function.
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
+  }
+
+  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncError());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 4, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_on_async_error(function);
+  if (FLAG_async_debugger) {
+    // Disable debugging and inlining the _CompleteOnAsyncError function.
     function.set_is_debuggable(false);
     function.set_is_inlinable(false);
   }
@@ -257,7 +271,7 @@ void ObjectStore::InitKnownObjects() {
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
     // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(zone, cls.functions());
+    const Array& functions = Array::Handle(zone, cls.current_functions());
     for (intptr_t i = 0; i < functions.Length(); i++) {
       function ^= functions.At(i);
       if (function.IsNull()) {

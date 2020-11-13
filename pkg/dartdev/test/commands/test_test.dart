@@ -69,7 +69,11 @@ void defineTest() {
 
   test('no package:test dependency', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    p.file('pubspec.yaml', 'name: ${p.name}\n');
+    p.file('pubspec.yaml', '''
+name: ${p.name}
+environment:
+  sdk: '>=2.10.0 <3.0.0'
+''');
 
     var result = p.runSync('pub', ['get']);
     expect(result.exitCode, 0);
@@ -85,6 +89,8 @@ void defineTest() {
   test('has package:test dependency', () {
     p = project(mainSrc: 'int get foo => 1;\n');
     p.file('test/foo_test.dart', '''
+$dartVersionFilePrefix2_9
+
 import 'package:test/test.dart';
 
 void main() {

@@ -54,7 +54,8 @@ import "dart:async" show FutureOr;
 import "dart:collection" show LinkedHashMap, LinkedHashSet;
 
 static method main() → dynamic /* originally async */ {
-  final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
+  core::bool* :is_sync = false;
   FutureOr<dynamic>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
@@ -67,14 +68,20 @@ static method main() → dynamic /* originally async */ {
       #L1:
       {
         core::Map<core::int*, core::bool*>* m = <core::int*, core::bool*>{};
-        core::Set<core::int*>* s = let final core::Set<core::int*>* #t1 = new col::_CompactLinkedHashSet::•<core::int*>() in #t1;
-        core::Iterable<core::int*>* i = let final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>() in #t2;
+        core::Set<core::int*>* s = block {
+          final core::Set<core::int*>* #t1 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t1;
+        core::Iterable<core::int*>* i = block {
+          final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t2;
         col::LinkedHashSet<core::int*>* lhs = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:13:28: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 Change the type of the set literal or the context in which it is used.
   LinkedHashSet<int> lhs = {};
-                           ^" in let final core::Set<dynamic>* #t4 = new col::_CompactLinkedHashSet::•<dynamic>() in #t4;
+                           ^" in block {
+          final core::Set<dynamic>* #t4 = new col::_CompactLinkedHashSet::•<dynamic>();
+        } =>#t4;
         col::LinkedHashMap<core::int*, core::bool*>* lhm = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
@@ -102,20 +109,22 @@ Change the type of the map literal or the context in which it is used.
         [yield] let dynamic #t15 = asy::_awaitHelper(self::lhmfun2(), :async_op_then, :async_op_error, :async_op) in null;
         col::LinkedHashMap<core::int*, core::bool*>* flhm2 = _in::unsafeCast<col::LinkedHashMap<core::int*, core::bool*>*>(:result);
       }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
-  return :async_completer.{asy::Completer::future};
+  :async_op.call();
+  :is_sync = true;
+  return :async_future;
 }
 static method mapfun() → asy::Future<core::Map<core::int*, core::bool*>*>* /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::Map<core::int*, core::bool*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::Map<core::int*, core::bool*>*>();
+  final asy::_Future<core::Map<core::int*, core::bool*>*>* :async_future = new asy::_Future::•<core::Map<core::int*, core::bool*>*>();
+  core::bool* :is_sync = false;
   FutureOr<core::Map<core::int*, core::bool*>*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
@@ -129,20 +138,22 @@ static method mapfun() → asy::Future<core::Map<core::int*, core::bool*>*>* /* 
         :return_value = <core::int*, core::bool*>{};
         break #L2;
       }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
-  return :async_completer.{asy::Completer::future};
+  :async_op.call();
+  :is_sync = true;
+  return :async_future;
 }
 static method setfun() → asy::Future<core::Set<core::int*>*>* /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::Set<core::int*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::Set<core::int*>*>();
+  final asy::_Future<core::Set<core::int*>*>* :async_future = new asy::_Future::•<core::Set<core::int*>*>();
+  core::bool* :is_sync = false;
   FutureOr<core::Set<core::int*>*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
@@ -153,23 +164,27 @@ static method setfun() → asy::Future<core::Set<core::int*>*>* /* originally as
     try {
       #L3:
       {
-        :return_value = let final core::Set<core::int*>* #t16 = new col::_CompactLinkedHashSet::•<core::int*>() in #t16;
+        :return_value = block {
+          final core::Set<core::int*>* #t16 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t16;
         break #L3;
       }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
-  return :async_completer.{asy::Completer::future};
+  :async_op.call();
+  :is_sync = true;
+  return :async_future;
 }
 static method iterablefun() → asy::Future<core::Iterable<core::int*>*>* /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::Iterable<core::int*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::Iterable<core::int*>*>();
+  final asy::_Future<core::Iterable<core::int*>*>* :async_future = new asy::_Future::•<core::Iterable<core::int*>*>();
+  core::bool* :is_sync = false;
   FutureOr<core::Iterable<core::int*>*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
@@ -180,23 +195,27 @@ static method iterablefun() → asy::Future<core::Iterable<core::int*>*>* /* ori
     try {
       #L4:
       {
-        :return_value = let final core::Set<core::int*>* #t17 = new col::_CompactLinkedHashSet::•<core::int*>() in #t17;
+        :return_value = block {
+          final core::Set<core::int*>* #t17 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t17;
         break #L4;
       }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
-  return :async_completer.{asy::Completer::future};
+  :async_op.call();
+  :is_sync = true;
+  return :async_future;
 }
 static method lhsfun() → asy::Future<col::LinkedHashSet<core::int*>*>* /* originally async */ {
-  final asy::_AsyncAwaitCompleter<col::LinkedHashSet<core::int*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<col::LinkedHashSet<core::int*>*>();
+  final asy::_Future<col::LinkedHashSet<core::int*>*>* :async_future = new asy::_Future::•<col::LinkedHashSet<core::int*>*>();
+  core::bool* :is_sync = false;
   FutureOr<col::LinkedHashSet<core::int*>*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
@@ -213,23 +232,27 @@ static method lhsfun() → asy::Future<col::LinkedHashSet<core::int*>*>* /* orig
  - 'LinkedHashSet' is from 'dart:collection'.
 Change the type of the set literal or the context in which it is used.
 Future<LinkedHashSet<int>> lhsfun() async => {};
-                                             ^" in let final core::Set<dynamic>* #t19 = new col::_CompactLinkedHashSet::•<dynamic>() in #t19;
+                                             ^" in block {
+          final core::Set<dynamic>* #t19 = new col::_CompactLinkedHashSet::•<dynamic>();
+        } =>#t19;
         break #L5;
       }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
-  return :async_completer.{asy::Completer::future};
+  :async_op.call();
+  :is_sync = true;
+  return :async_future;
 }
 static method lhmfun() → asy::Future<col::LinkedHashMap<core::int*, core::bool*>*>* /* originally async */ {
-  final asy::_AsyncAwaitCompleter<col::LinkedHashMap<core::int*, core::bool*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<col::LinkedHashMap<core::int*, core::bool*>*>();
+  final asy::_Future<col::LinkedHashMap<core::int*, core::bool*>*>* :async_future = new asy::_Future::•<col::LinkedHashMap<core::int*, core::bool*>*>();
+  core::bool* :is_sync = false;
   FutureOr<col::LinkedHashMap<core::int*, core::bool*>*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
@@ -249,30 +272,37 @@ Future<LinkedHashMap<int, bool>> lhmfun() async => {};
                                                    ^" in <dynamic, dynamic>{};
         break #L6;
       }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
     }
     on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
-  return :async_completer.{asy::Completer::future};
+  :async_op.call();
+  :is_sync = true;
+  return :async_future;
 }
 static method mapfun2() → FutureOr<core::Map<core::int*, core::bool*>*>*
   return <core::int*, core::bool*>{};
 static method setfun2() → FutureOr<core::Set<core::int*>*>*
-  return let final core::Set<core::int*>* #t21 = new col::_CompactLinkedHashSet::•<core::int*>() in #t21;
+  return block {
+    final core::Set<core::int*>* #t21 = new col::_CompactLinkedHashSet::•<core::int*>();
+  } =>#t21;
 static method iterablefun2() → FutureOr<core::Iterable<core::int*>*>*
-  return let final core::Set<core::int*>* #t22 = new col::_CompactLinkedHashSet::•<core::int*>() in #t22;
+  return block {
+    final core::Set<core::int*>* #t22 = new col::_CompactLinkedHashSet::•<core::int*>();
+  } =>#t22;
 static method lhsfun2() → FutureOr<col::LinkedHashSet<core::int*>*>*
   return let final<BottomType> #t23 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:38:43: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashSet<int>>'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 FutureOr<LinkedHashSet<int>> lhsfun2() => {};
-                                          ^" in (let final core::Set<dynamic>* #t24 = new col::_CompactLinkedHashSet::•<dynamic>() in #t24) as{TypeError} FutureOr<col::LinkedHashSet<core::int*>*>*;
+                                          ^" in ( block {
+    final core::Set<dynamic>* #t24 = new col::_CompactLinkedHashSet::•<dynamic>();
+  } =>#t24) as{TypeError} FutureOr<col::LinkedHashSet<core::int*>*>*;
 static method lhmfun2() → FutureOr<col::LinkedHashMap<core::int*, core::bool*>*>*
   return let final<BottomType> #t25 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashMap<int, bool>>'.
  - 'Map' is from 'dart:core'.

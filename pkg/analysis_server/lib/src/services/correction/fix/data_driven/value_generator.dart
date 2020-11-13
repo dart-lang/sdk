@@ -2,64 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Use a specified argument from an invocation as the value of a template
 /// variable.
-class ArgumentExpression extends ValueGenerator {
-  /// The parameter corresponding to the argument from the original invocation,
-  /// or `null` if the value of the argument can't be taken from the original
-  /// invocation.
-  final ParameterReference parameter;
+class CodeFragment extends ValueGenerator {
+  /// The accessor used to access the code fragment.
+  final List<Accessor> accessors;
 
-  /// Initialize a newly created extractor to extract the argument that
-  /// corresponds to the given [parameter].
-  ArgumentExpression(this.parameter) : assert(parameter != null);
+  /// Initialize a newly created extractor to extract a code fragment.
+  CodeFragment(this.accessors);
 
   @override
   bool validate(TemplateContext context) {
-    var argumentList = _getArgumentList(context.node);
-    if (argumentList == null) {
-      return false;
-    }
-    var expression = parameter.argumentFrom(argumentList);
-    if (expression != null) {
-      return false;
+    Object target = context.node;
+    for (var accessor in accessors) {
+      var result = accessor.getValue(target);
+      if (!result.isValid) {
+        return false;
+      }
+      target = result.result;
     }
     return true;
   }
 
   @override
   void writeOn(DartEditBuilder builder, TemplateContext context) {
-    var argumentList = _getArgumentList(context.node);
-    if (argumentList != null) {
-      var expression = parameter.argumentFrom(argumentList);
-      if (expression != null) {
-        builder.write(context.utils.getNodeText(expression));
-      }
+    Object target = context.node;
+    for (var accessor in accessors) {
+      target = accessor.getValue(target).result;
     }
-  }
-
-  /// Return the argument list associated with the given [node].
-  ArgumentList _getArgumentList(AstNode node) {
-    if (node is ArgumentList) {
-      return node;
-    } else if (node is InvocationExpression) {
-      return node.argumentList;
-    } else if (node is InstanceCreationExpression) {
-      return node.argumentList;
-    } else if (node is TypeArgumentList) {
-      var parent = node.parent;
-      if (parent is InvocationExpression) {
-        return parent.argumentList;
-      } else if (parent is ExtensionOverride) {
-        return parent.argumentList;
-      }
+    if (target is AstNode) {
+      builder.write(context.utils.getRangeText(range.node(target)));
+    } else if (target is DartType) {
+      builder.writeType(target);
+    } else {
+      throw UnsupportedError('Unexpected result of ${target.runtimeType}');
     }
-    return null;
   }
 }
 

@@ -550,7 +550,7 @@ CompilerContext setupCompilerContext() {
   CompilerOptions options = getOptions();
 
   if (nnbd) {
-    options.experimentalFlags = {ExperimentalFlag.nonNullable: true};
+    options.explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
   }
 
   TargetFlags targetFlags = new TargetFlags(

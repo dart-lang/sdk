@@ -490,7 +490,7 @@ class MethodInvocationResolver {
 
   void _resolveReceiverNull(
       MethodInvocation node, SimpleIdentifier nameNode, String name) {
-    var element = nameScope.lookup2(name).getter;
+    var element = nameScope.lookup(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -557,7 +557,7 @@ class MethodInvocationResolver {
       }
     }
 
-    var element = prefix.scope.lookup2(name).getter;
+    var element = prefix.scope.lookup(name).getter;
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 

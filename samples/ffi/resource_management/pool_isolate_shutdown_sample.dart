@@ -4,6 +4,8 @@
 //
 // Sample illustrating resources are not cleaned up when isolate is shutdown.
 
+// @dart = 2.9
+
 import 'dart:io';
 import "dart:isolate";
 import 'dart:ffi';

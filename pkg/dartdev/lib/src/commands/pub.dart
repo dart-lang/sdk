@@ -5,15 +5,13 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 
 import '../core.dart';
-import '../events.dart';
 import '../experiments.dart';
 import '../sdk.dart';
 import '../vm_interop_handler.dart';
 
-class PubCommand extends DartdevCommand<int> {
+class PubCommand extends DartdevCommand {
   static const String cmdName = 'pub';
 
   PubCommand() : super(cmdName, 'Work with packages.');
@@ -57,26 +55,8 @@ class PubCommand extends DartdevCommand<int> {
     VmInteropHandler.run(command, args);
   }
 
-  /// Since the pub subcommands are not subclasses of DartdevCommand, we
-  /// override [usagePath] here as a special case to cover the first subcommand
-  /// under pub, i.e. we will have the path pub/cache
   @override
-  String get usagePath {
-    if (argResults == null) {
-      return name;
-    }
-    var args = argResults.arguments;
-    var cmdIndex = args.indexOf(name) ?? 0;
-    for (int i = cmdIndex + 1; i < args.length; i++) {
-      if (pubSubcommands.contains(args[i])) {
-        return '$name/${args[i]}';
-      }
-    }
-    return name;
-  }
-
-  @override
-  FutureOr<int> runImpl() async {
+  FutureOr<int> run() async {
     if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
       return 255;
     }
@@ -106,26 +86,4 @@ class PubCommand extends DartdevCommand<int> {
     VmInteropHandler.run(command, args);
     return 0;
   }
-
-  @override
-  UsageEvent createUsageEvent(int exitCode) => PubUsageEvent(
-        usagePath,
-        exitCode: exitCode,
-        specifiedExperiments: specifiedExperiments,
-        args: argResults.arguments,
-      );
-}
-
-/// The [UsageEvent] for the pub command.
-class PubUsageEvent extends UsageEvent {
-  PubUsageEvent(String usagePath,
-      {String label,
-      @required int exitCode,
-      @required List<String> specifiedExperiments,
-      @required List<String> args})
-      : super(PubCommand.cmdName, usagePath,
-            label: label,
-            exitCode: exitCode,
-            specifiedExperiments: specifiedExperiments,
-            args: args);
 }

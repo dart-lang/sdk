@@ -102,6 +102,13 @@ class DiagnosticInformation {
   /// Return `true` if this diagnostic has documentation.
   bool get hasDocumentation => documentation != null;
 
+  /// Add the [message] to the list of messages associated with the diagnostic.
+  void addMessage(String message) {
+    if (!messages.contains(message)) {
+      messages.add(message);
+    }
+  }
+
   /// Return the full documentation for this diagnostic.
   void writeOn(StringSink sink) {
     messages.sort();
@@ -170,8 +177,9 @@ class DocumentationGenerator {
     List<String> includedPaths = [];
     for (CodePath codePath in codePaths) {
       includedPaths.add(codePath.documentationPath);
-      if (codePath.declarationPath != null) {
-        includedPaths.add(codePath.declarationPath);
+      var declarationPath = codePath.declarationPath;
+      if (declarationPath != null) {
+        includedPaths.add(declarationPath);
       }
     }
     AnalysisContextCollection collection = AnalysisContextCollection(
@@ -217,7 +225,7 @@ class DocumentationGenerator {
         info = DiagnosticInformation(name, message);
         infoByName[name] = info;
       } else {
-        info.messages.add(message);
+        info.addMessage(message);
       }
       return info;
     }

@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../abstract_context.dart';
+import '../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -96,7 +96,7 @@ class ElementKindTest {
 }
 
 @reflectiveTest
-class ElementTest extends AbstractContextTest {
+class ElementTest extends AbstractSingleUnitTest {
   engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
       [engine.ElementKind kind]) {
     return findElementsByName(unit, name)
@@ -105,13 +105,12 @@ class ElementTest extends AbstractContextTest {
   }
 
   Future<void> test_fromElement_CLASS() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
-    var unit = await resolveLibraryUnit(source);
     {
-      engine.ClassElement engineElement = findElementInUnit(unit, '_A');
+      engine.ClassElement engineElement = findElementInUnit(testUnit, '_A');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.CLASS);
@@ -119,7 +118,7 @@ class B<K, V> {}''');
       expect(element.typeParameters, isNull);
       {
         var location = element.location;
-        expect(location.file, convertPath('/test.dart'));
+        expect(location.file, testFile);
         expect(location.offset, 27);
         expect(location.length, '_A'.length);
         expect(location.startLine, 2);
@@ -133,7 +132,7 @@ class B<K, V> {}''');
               Element.FLAG_PRIVATE);
     }
     {
-      engine.ClassElement engineElement = findElementInUnit(unit, 'B');
+      engine.ClassElement engineElement = findElementInUnit(testUnit, 'B');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.CLASS);
@@ -144,13 +143,12 @@ class B<K, V> {}''');
   }
 
   Future<void> test_fromElement_CONSTRUCTOR() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
-    var unit = await resolveLibraryUnit(source);
     engine.ConstructorElement engineElement =
-        findElementInUnit(unit, 'myConstructor');
+        findElementInUnit(testUnit, 'myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
@@ -158,7 +156,7 @@ class A {
     expect(element.typeParameters, isNull);
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 20);
       expect(location.length, 'myConstructor'.length);
       expect(location.startLine, 2);
@@ -170,16 +168,15 @@ class A {
   }
 
   Future<void> test_fromElement_CONSTRUCTOR_required_parameters_1() async {
-    addMetaPackage();
-    var source = addSource('/test.dart', '''
+    writeTestPackageConfig(meta: true);
+    await resolveTestCode('''
 import 'package:meta/meta.dart';    
 class A {
   const A.myConstructor(int a, {int b, @required int c});
 }''');
 
-    var unit = await resolveLibraryUnit(source);
     engine.ConstructorElement engineElement =
-        findElementInUnit(unit, 'myConstructor');
+        findElementInUnit(testUnit, 'myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.parameters, '(int a, {@required int c, int b})');
@@ -187,16 +184,15 @@ class A {
 
   /// Verify parameter re-ordering for required params
   Future<void> test_fromElement_CONSTRUCTOR_required_parameters_2() async {
-    addMetaPackage();
-    var source = addSource('/test.dart', '''
+    writeTestPackageConfig(meta: true);
+    await resolveTestCode('''
 import 'package:meta/meta.dart';    
 class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c});
 }''');
 
-    var unit = await resolveLibraryUnit(source);
     engine.ConstructorElement engineElement =
-        findElementInUnit(unit, 'myConstructor');
+        findElementInUnit(testUnit, 'myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.parameters,
@@ -205,16 +201,16 @@ class A {
 
   /// Verify parameter re-ordering for required params
   Future<void> test_fromElement_CONSTRUCTOR_required_parameters_3() async {
-    addMetaPackage();
-    var source = addSource('/test.dart', '''
+    writeTestPackageConfig(meta: true);
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
 import 'package:meta/meta.dart';    
 class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c, int a});
 }''');
 
-    var unit = await resolveLibraryUnit(source);
     engine.ConstructorElement engineElement =
-        findElementInUnit(unit, 'myConstructor');
+        findElementInUnit(testUnit, 'myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.parameters,
@@ -234,13 +230,12 @@ class A {
   }
 
   Future<void> test_fromElement_ENUM() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
-    var unit = await resolveLibraryUnit(source);
     {
-      engine.ClassElement engineElement = findElementInUnit(unit, '_E1');
+      engine.ClassElement engineElement = findElementInUnit(testUnit, '_E1');
       expect(engineElement.hasDeprecated, isTrue);
       // create notification Element
       var element = convertElement(engineElement);
@@ -249,7 +244,7 @@ enum E2 { three, four }''');
       expect(element.typeParameters, isNull);
       {
         var location = element.location;
-        expect(location.file, convertPath('/test.dart'));
+        expect(location.file, testFile);
         expect(location.offset, 17);
         expect(location.length, '_E1'.length);
         expect(location.startLine, 2);
@@ -262,7 +257,7 @@ enum E2 { three, four }''');
               Element.FLAG_PRIVATE);
     }
     {
-      engine.ClassElement engineElement = findElementInUnit(unit, 'E2');
+      engine.ClassElement engineElement = findElementInUnit(testUnit, 'E2');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -273,20 +268,19 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_fromElement_ENUM_CONSTANT() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
-    var unit = await resolveLibraryUnit(source);
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'one');
+      engine.FieldElement engineElement = findElementInUnit(testUnit, 'one');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'one');
       {
         var location = element.location;
-        expect(location.file, convertPath('/test.dart'));
+        expect(location.file, testFile);
         expect(location.offset, 23);
         expect(location.length, 'one'.length);
         expect(location.startLine, 2);
@@ -303,14 +297,14 @@ enum E2 { three, four }''');
           Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'three');
+      engine.FieldElement engineElement = findElementInUnit(testUnit, 'three');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'three');
       {
         var location = element.location;
-        expect(location.file, convertPath('/test.dart'));
+        expect(location.file, testFile);
         expect(location.offset, 44);
         expect(location.length, 'three'.length);
         expect(location.startLine, 3);
@@ -321,14 +315,14 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      var engineElement = unit.declaredElement.enums[1].getField('index');
+      var engineElement = testUnit.declaredElement.enums[1].getField('index');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'index');
       {
         var location = element.location;
-        expect(location.file, convertPath('/test.dart'));
+        expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'index'.length);
         expect(location.startLine, 1);
@@ -339,14 +333,14 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_FINAL);
     }
     {
-      var engineElement = unit.declaredElement.enums[1].getField('values');
+      var engineElement = testUnit.declaredElement.enums[1].getField('values');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'values');
       {
         var location = element.location;
-        expect(location.file, convertPath('/test.dart'));
+        expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'values'.length);
         expect(location.startLine, 1);
@@ -359,19 +353,18 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_fromElement_FIELD() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 class A {
   static const myField = 42;
 }''');
-    var unit = await resolveLibraryUnit(source);
-    engine.FieldElement engineElement = findElementInUnit(unit, 'myField');
+    engine.FieldElement engineElement = findElementInUnit(testUnit, 'myField');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FIELD);
     expect(element.name, 'myField');
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 25);
       expect(location.length, 'myField'.length);
       expect(location.startLine, 2);
@@ -383,12 +376,11 @@ class A {
   }
 
   Future<void> test_fromElement_FUNCTION_TYPE_ALIAS() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 typedef int F<T>(String x);
 ''');
-    var unit = await resolveLibraryUnit(source);
     engine.FunctionTypeAliasElement engineElement =
-        findElementInUnit(unit, 'F');
+        findElementInUnit(testUnit, 'F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
@@ -396,7 +388,7 @@ typedef int F<T>(String x);
     expect(element.typeParameters, '<T>');
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 12);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
@@ -408,11 +400,11 @@ typedef int F<T>(String x);
   }
 
   Future<void> test_fromElement_FUNCTION_TYPE_ALIAS_genericTypeAlias() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 typedef F<T> = int Function(String x);
 ''');
-    var unit = await resolveLibraryUnit(source);
-    engine.GenericTypeAliasElement engineElement = findElementInUnit(unit, 'F');
+    engine.FunctionTypeAliasElement engineElement =
+        findElementInUnit(testUnit, 'F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
@@ -420,7 +412,7 @@ typedef F<T> = int Function(String x);
     expect(element.typeParameters, '<T>');
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 8);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
@@ -432,20 +424,20 @@ typedef F<T> = int Function(String x);
   }
 
   Future<void> test_fromElement_GETTER() async {
-    var source = addSource('/test.dart', '''
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
 class A {
   String get myGetter => 42;
 }''');
-    var unit = await resolveLibraryUnit(source);
     engine.PropertyAccessorElement engineElement =
-        findElementInUnit(unit, 'myGetter', engine.ElementKind.GETTER);
+        findElementInUnit(testUnit, 'myGetter', engine.ElementKind.GETTER);
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.GETTER);
     expect(element.name, 'myGetter');
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 23);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -457,22 +449,21 @@ class A {
   }
 
   Future<void> test_fromElement_LABEL() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 main() {
 myLabel:
   while (true) {
     break myLabel;
   }
 }''');
-    var unit = await resolveLibraryUnit(source);
-    engine.LabelElement engineElement = findElementInUnit(unit, 'myLabel');
+    engine.LabelElement engineElement = findElementInUnit(testUnit, 'myLabel');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.LABEL);
     expect(element.name, 'myLabel');
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 9);
       expect(location.length, 'myLabel'.length);
       expect(location.startLine, 2);
@@ -484,21 +475,21 @@ myLabel:
   }
 
   Future<void> test_fromElement_METHOD() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
     return null;
   }
 }''');
-    var unit = await resolveLibraryUnit(source);
-    engine.MethodElement engineElement = findElementInUnit(unit, 'myMethod');
+    engine.MethodElement engineElement =
+        findElementInUnit(testUnit, 'myMethod');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.METHOD);
     expect(element.name, 'myMethod');
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -510,12 +501,11 @@ class A {
   }
 
   Future<void> test_fromElement_MIXIN() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 mixin A {}
 ''');
-    var unit = await resolveLibraryUnit(source);
     {
-      engine.ClassElement engineElement = findElementInUnit(unit, 'A');
+      engine.ClassElement engineElement = findElementInUnit(testUnit, 'A');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.MIXIN);
@@ -523,7 +513,7 @@ mixin A {}
       expect(element.typeParameters, isNull);
       {
         var location = element.location;
-        expect(location.file, convertPath('/test.dart'));
+        expect(location.file, testFile);
         expect(location.offset, 6);
         expect(location.length, 'A'.length);
         expect(location.startLine, 1);
@@ -535,20 +525,19 @@ mixin A {}
   }
 
   Future<void> test_fromElement_SETTER() async {
-    var source = addSource('/test.dart', '''
+    await resolveTestCode('''
 class A {
   set mySetter(String x) {}
 }''');
-    var unit = await resolveLibraryUnit(source);
     engine.PropertyAccessorElement engineElement =
-        findElementInUnit(unit, 'mySetter', engine.ElementKind.SETTER);
+        findElementInUnit(testUnit, 'mySetter', engine.ElementKind.SETTER);
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.SETTER);
     expect(element.name, 'mySetter');
     {
       var location = element.location;
-      expect(location.file, convertPath('/test.dart'));
+      expect(location.file, testFile);
       expect(location.offset, 16);
       expect(location.length, 'mySetter'.length);
       expect(location.startLine, 2);

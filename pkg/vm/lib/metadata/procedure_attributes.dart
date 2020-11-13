@@ -122,13 +122,4 @@ class ProcedureAttributesMetadataRepository
         methodOrSetterSelectorId: methodOrSetterSelectorId,
         getterSelectorId: getterSelectorId);
   }
-
-  /// Converts [metadata] into a bytecode attribute.
-  Constant getBytecodeAttribute(ProcedureAttributesMetadata metadata) {
-    return ListConstant(const DynamicType(), [
-      IntConstant(_getFlags(metadata)),
-      IntConstant(metadata.methodOrSetterSelectorId),
-      IntConstant(metadata.getterSelectorId),
-    ]);
-  }
 }

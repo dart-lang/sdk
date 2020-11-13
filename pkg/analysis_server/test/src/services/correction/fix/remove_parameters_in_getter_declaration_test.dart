@@ -20,7 +20,7 @@ class RemoveParametersInGetterDeclarationTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION;
 
   Future<void> test_emptyList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo() => 0;
 }
@@ -33,7 +33,7 @@ class A {
   }
 
   Future<void> test_nonEmptyList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo(int a) => 0;
 }

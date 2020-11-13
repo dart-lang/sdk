@@ -663,93 +663,13 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   __ Bind(&done);
 }
 
-// Optimize assignable type check by adding inlined tests for:
-// - NULL -> return NULL.
-// - Smi -> compile time subtype check (only if dst class is not parameterized).
-// - Class equality (only if class is not parameterized).
-// Inputs:
-// - RAX: object.
-// - RBX: destination type (if non-constant).
-// - RDX: instantiator type arguments or raw_null.
-// - RCX: function type arguments or raw_null.
-// Returns:
-// - object in RAX for successful assignable check (or throws TypeError).
-// Performance notes: positive checks must be quick, negative checks can be slow
-// as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
-                                                 TokenPosition token_pos,
-                                                 intptr_t deopt_id,
-                                                 const String& dst_name,
-                                                 LocationSummary* locs) {
-  ASSERT(!token_pos.IsClassifying());
-  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
-
-  if (locs->in(1).IsConstant()) {
-    const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
-    ASSERT(dst_type.IsFinalized());
-
-    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
-
-    GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
-                                               deopt_id, dst_name, locs);
-    return;
-  } else {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
-  }
-}
-
-void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
-    CompileType* receiver_type,
-    TokenPosition token_pos,
-    intptr_t deopt_id,
-    const String& dst_name,
-    LocationSummary* locs) {
-  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
-  // We must have a constant dst_type for generating a call to the stub.
-  ASSERT(locs->in(1).IsConstant());
-  const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
-
-  // If the dst_type is instantiated we know the target TTS stub at
-  // compile-time and can therefore use a pc-relative call.
-  const bool use_pc_relative_call =
-      dst_type.IsInstantiated() && CanPcRelativeCall(dst_type);
-  const Register kScratchReg =
-      dst_type.IsTypeParameter() ? RSI : TypeTestABI::kDstTypeReg;
-
-  const Register kRegToCall = use_pc_relative_call ? kNoRegister : kScratchReg;
-
-  compiler::Label done;
-
-  GenerateAssertAssignableViaTypeTestingStub(receiver_type, dst_type, dst_name,
-                                             kRegToCall, kScratchReg, &done);
-
-  // We use 2 consecutive entries in the pool for the subtype cache and the
-  // destination name.  The second entry, namely [dst_name] seems to be unused,
-  // but it will be used by the code throwing a TypeError if the type test fails
-  // (see runtime/vm/runtime_entry.cc:TypeCheck).  It will use pattern matching
-  // on the call site to find out at which pool index the destination name is
-  // located.
-  const intptr_t sub_type_cache_index = __ object_pool_builder().AddObject(
-      Object::null_object(), compiler::ObjectPoolBuilderEntry::kPatchable);
-  const intptr_t sub_type_cache_offset =
-      ObjectPool::element_offset(sub_type_cache_index) - kHeapObjectTag;
-  const intptr_t dst_name_index = __ object_pool_builder().AddObject(
-      dst_name, compiler::ObjectPoolBuilderEntry::kPatchable);
-  ASSERT((sub_type_cache_index + 1) == dst_name_index);
-  ASSERT(__ constant_pool_allowed());
-
-  __ movq(TypeTestABI::kSubtypeTestCacheReg,
-          compiler::Address(PP, sub_type_cache_offset));
-  if (use_pc_relative_call) {
-    __ GenerateUnRelocatedPcRelativeCall();
-    AddPcRelativeTTSCallTypeTarget(dst_type);
-  } else {
-    __ call(compiler::FieldAddress(
-        kRegToCall, AbstractType::type_test_stub_entry_point_offset()));
-  }
-  EmitCallsiteMetadata(token_pos, deopt_id, PcDescriptorsLayout::kOther, locs);
-  __ Bind(&done);
+void FlowGraphCompiler::GenerateIndirectTTSCall(Register reg_to_call,
+                                                intptr_t sub_type_cache_index) {
+  __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
+                           sub_type_cache_index);
+  __ Call(compiler::FieldAddress(
+      reg_to_call,
+      compiler::target::AbstractType::type_test_stub_entry_point_offset()));
 }
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
@@ -1434,8 +1354,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   ASSERT(src_type.IsFloat() == dst_type.IsFloat());
   ASSERT(src_type.IsInt() == dst_type.IsInt());
   ASSERT(src_type.IsSigned() == dst_type.IsSigned());
-  ASSERT(src_type.IsFundamental());
-  ASSERT(dst_type.IsFundamental());
+  ASSERT(src_type.IsPrimitive());
+  ASSERT(dst_type.IsPrimitive());
   const intptr_t src_size = src_type.SizeInBytes();
   const intptr_t dst_size = dst_type.SizeInBytes();
   const bool sign_or_zero_extend = dst_size > src_size;
@@ -1461,7 +1381,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
             UNIMPLEMENTED();
         }
       } else {
-        switch (src_type.AsFundamental().representation()) {
+        switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
             __ movsxb(dst_reg, src_reg);
             return;
@@ -1559,7 +1479,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
             UNIMPLEMENTED();
         }
       } else {
-        switch (src_type.AsFundamental().representation()) {
+        switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
             __ movsxb(dst_reg, src_addr);
             return;

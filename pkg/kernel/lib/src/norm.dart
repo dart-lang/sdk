@@ -132,7 +132,7 @@ class _Norm extends ReplacementVisitor {
 
   @override
   DartType visitNeverType(NeverType node) {
-    if (node.nullability == Nullability.nullable) return coreTypes.nullType;
+    if (node.nullability == Nullability.nullable) return const NullType();
     return null;
   }
 

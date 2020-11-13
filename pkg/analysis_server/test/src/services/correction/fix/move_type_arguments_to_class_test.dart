@@ -20,7 +20,7 @@ class MoveTypeArgumentsToClassTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS;
 
   Future<void> test_explicitConst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   const C.named<int>();
 }
@@ -39,7 +39,7 @@ class C<E> {
   }
 
   Future<void> test_explicitNew() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   new C.named<int>();
 }
@@ -58,7 +58,7 @@ class C<E> {
   }
 
   Future<void> test_explicitNew_alreadyThere() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   new C<String>.named<int>();
 }
@@ -70,7 +70,7 @@ class C<E> {
   }
 
   Future<void> test_explicitNew_wrongNumber() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   new C.named<int, String>();
 }
@@ -82,7 +82,7 @@ class C<E> {
   }
 
   Future<void> test_implicitConst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   const C c = C.named<int>();
   print(c);
@@ -103,7 +103,7 @@ class C<E> {
   }
 
   Future<void> test_implicitNew() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   C.named<int>();
 }

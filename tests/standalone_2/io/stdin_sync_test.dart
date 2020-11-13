@@ -7,7 +7,6 @@
 import "dart:convert";
 import "dart:io";
 
-import "package:path/path.dart";
 import "package:expect/expect.dart";
 
 void testReadByte() {

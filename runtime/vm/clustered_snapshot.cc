@@ -250,7 +250,7 @@ class ClassSerializationCluster : public SerializationCluster {
       s->UnexpectedObject(cls, "Class with non mode agnostic constants");
     }
     if (s->kind() != Snapshot::kFullAOT) {
-      s->Write<uint32_t>(cls->ptr()->binary_declaration_);
+      s->Write<uint32_t>(cls->ptr()->kernel_offset_);
     }
     s->Write<int32_t>(Class::target_instance_size_in_words(cls));
     s->Write<int32_t>(Class::target_next_field_offset_in_words(cls));
@@ -289,7 +289,7 @@ class ClassSerializationCluster : public SerializationCluster {
 
 class ClassDeserializationCluster : public DeserializationCluster {
  public:
-  ClassDeserializationCluster() {}
+  ClassDeserializationCluster() : DeserializationCluster("Class") {}
   ~ClassDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -325,7 +325,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->id_ = class_id;
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
-        cls->ptr()->binary_declaration_ = d->Read<uint32_t>();
+        cls->ptr()->kernel_offset_ = d->Read<uint32_t>();
       }
 #endif
       if (!IsInternalVMdefinedClassId(class_id)) {
@@ -372,7 +372,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
-        cls->ptr()->binary_declaration_ = d->Read<uint32_t>();
+        cls->ptr()->kernel_offset_ = d->Read<uint32_t>();
       }
 #endif
       cls->ptr()->host_instance_size_in_words_ = d->Read<int32_t>();
@@ -463,7 +463,8 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
 
 class TypeArgumentsDeserializationCluster : public DeserializationCluster {
  public:
-  TypeArgumentsDeserializationCluster() {}
+  TypeArgumentsDeserializationCluster()
+      : DeserializationCluster("TypeArguments") {}
   ~TypeArgumentsDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -556,7 +557,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
 
 class PatchClassDeserializationCluster : public DeserializationCluster {
  public:
-  PatchClassDeserializationCluster() {}
+  PatchClassDeserializationCluster() : DeserializationCluster("PatchClass") {}
   ~PatchClassDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -597,13 +598,10 @@ class FunctionSerializationCluster : public SerializationCluster {
     objects_.Add(func);
 
     PushFromTo(func);
-    if ((kind == Snapshot::kFull) || (kind == Snapshot::kFullCore)) {
-      NOT_IN_PRECOMPILED(s->Push(func->ptr()->bytecode_));
-    } else if (kind == Snapshot::kFullAOT) {
+    if (kind == Snapshot::kFullAOT) {
       s->Push(func->ptr()->code_);
     } else if (kind == Snapshot::kFullJIT) {
       NOT_IN_PRECOMPILED(s->Push(func->ptr()->unoptimized_code_));
-      NOT_IN_PRECOMPILED(s->Push(func->ptr()->bytecode_));
       s->Push(func->ptr()->code_);
       s->Push(func->ptr()->ic_data_array_);
     }
@@ -626,13 +624,10 @@ class FunctionSerializationCluster : public SerializationCluster {
       FunctionPtr func = objects_[i];
       AutoTraceObjectName(func, MakeDisambiguatedFunctionName(s, func));
       WriteFromTo(func);
-      if ((kind == Snapshot::kFull) || (kind == Snapshot::kFullCore)) {
-        NOT_IN_PRECOMPILED(WriteField(func, bytecode_));
-      } else if (kind == Snapshot::kFullAOT) {
+      if (kind == Snapshot::kFullAOT) {
         WriteField(func, code_);
       } else if (s->kind() == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(WriteField(func, unoptimized_code_));
-        NOT_IN_PRECOMPILED(WriteField(func, bytecode_));
         WriteField(func, code_);
         WriteField(func, ic_data_array_);
       }
@@ -640,7 +635,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(func->ptr()->token_pos_);
         s->WriteTokenPosition(func->ptr()->end_token_pos_);
-        s->Write<uint32_t>(func->ptr()->binary_declaration_);
+        s->Write<uint32_t>(func->ptr()->kernel_offset_);
       }
 
       s->Write<uint32_t>(func->ptr()->packed_fields_);
@@ -671,7 +666,7 @@ class FunctionSerializationCluster : public SerializationCluster {
 
 class FunctionDeserializationCluster : public DeserializationCluster {
  public:
-  FunctionDeserializationCluster() {}
+  FunctionDeserializationCluster() : DeserializationCluster("Function") {}
   ~FunctionDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -693,16 +688,11 @@ class FunctionDeserializationCluster : public DeserializationCluster {
                                      Function::InstanceSize());
       ReadFromTo(func);
 
-      if ((kind == Snapshot::kFull) || (kind == Snapshot::kFullCore)) {
-        NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
-                               static_cast<BytecodePtr>(d->ReadRef()));
-      } else if (kind == Snapshot::kFullAOT) {
+      if (kind == Snapshot::kFullAOT) {
         func->ptr()->code_ = static_cast<CodePtr>(d->ReadRef());
       } else if (kind == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(func->ptr()->unoptimized_code_ =
                                static_cast<CodePtr>(d->ReadRef()));
-        NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
-                               static_cast<BytecodePtr>(d->ReadRef()));
         func->ptr()->code_ = static_cast<CodePtr>(d->ReadRef());
         func->ptr()->ic_data_array_ = static_cast<ArrayPtr>(d->ReadRef());
       }
@@ -716,7 +706,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind != Snapshot::kFullAOT) {
         func->ptr()->token_pos_ = d->ReadTokenPosition();
         func->ptr()->end_token_pos_ = d->ReadTokenPosition();
-        func->ptr()->binary_declaration_ = d->Read<uint32_t>();
+        func->ptr()->kernel_offset_ = d->Read<uint32_t>();
       }
       func->ptr()->unboxed_parameters_info_.Reset();
 #endif
@@ -790,6 +780,8 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     s->Push(data->ptr()->parent_function_);
     s->Push(data->ptr()->signature_type_);
     s->Push(data->ptr()->closure_);
+    s->Push(data->ptr()->default_type_arguments_);
+    s->Push(data->ptr()->default_type_arguments_info_);
   }
 
   void WriteAlloc(Serializer* s) {
@@ -813,6 +805,8 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       WriteField(data, parent_function_);
       WriteField(data, signature_type_);
       WriteField(data, closure_);
+      WriteField(data, default_type_arguments_);
+      WriteField(data, default_type_arguments_info_);
     }
   }
 
@@ -823,7 +817,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
 
 class ClosureDataDeserializationCluster : public DeserializationCluster {
  public:
-  ClosureDataDeserializationCluster() {}
+  ClosureDataDeserializationCluster() : DeserializationCluster("ClosureData") {}
   ~ClosureDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -851,6 +845,10 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       data->ptr()->parent_function_ = static_cast<FunctionPtr>(d->ReadRef());
       data->ptr()->signature_type_ = static_cast<TypePtr>(d->ReadRef());
       data->ptr()->closure_ = static_cast<InstancePtr>(d->ReadRef());
+      data->ptr()->default_type_arguments_ =
+          static_cast<TypeArgumentsPtr>(d->ReadRef());
+      data->ptr()->default_type_arguments_info_ =
+          static_cast<SmiPtr>(d->ReadRef());
     }
   }
 };
@@ -893,7 +891,8 @@ class SignatureDataSerializationCluster : public SerializationCluster {
 
 class SignatureDataDeserializationCluster : public DeserializationCluster {
  public:
-  SignatureDataDeserializationCluster() {}
+  SignatureDataDeserializationCluster()
+      : DeserializationCluster("SignatureData") {}
   ~SignatureDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -962,7 +961,8 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
 
 class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
  public:
-  FfiTrampolineDataDeserializationCluster() {}
+  FfiTrampolineDataDeserializationCluster()
+      : DeserializationCluster("FfiTrampolineData") {}
   ~FfiTrampolineDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1027,7 +1027,8 @@ class RedirectionDataSerializationCluster : public SerializationCluster {
 
 class RedirectionDataDeserializationCluster : public DeserializationCluster {
  public:
-  RedirectionDataDeserializationCluster() {}
+  RedirectionDataDeserializationCluster()
+      : DeserializationCluster("RedirectionData") {}
   ~RedirectionDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1131,7 +1132,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
         s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
-        s->Write<uint32_t>(field->ptr()->binary_declaration_);
+        s->Write<uint32_t>(field->ptr()->kernel_offset_);
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
 
@@ -1164,7 +1165,7 @@ class FieldSerializationCluster : public SerializationCluster {
 
 class FieldDeserializationCluster : public DeserializationCluster {
  public:
-  FieldDeserializationCluster() {}
+  FieldDeserializationCluster() : DeserializationCluster("Field") {}
   ~FieldDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1201,7 +1202,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->is_nullable_ = d->ReadCid();
         field->ptr()->static_type_exactness_state_ = d->Read<int8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        field->ptr()->binary_declaration_ = d->Read<uint32_t>();
+        field->ptr()->kernel_offset_ = d->Read<uint32_t>();
 #endif
       }
       field->ptr()->kind_bits_ = d->Read<uint16_t>();
@@ -1286,7 +1287,7 @@ class ScriptSerializationCluster : public SerializationCluster {
 
 class ScriptDeserializationCluster : public DeserializationCluster {
  public:
-  ScriptDeserializationCluster() {}
+  ScriptDeserializationCluster() : DeserializationCluster("Script") {}
   ~ScriptDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1347,7 +1348,7 @@ class LibrarySerializationCluster : public SerializationCluster {
       s->Write<int8_t>(lib->ptr()->load_state_);
       s->Write<uint8_t>(lib->ptr()->flags_);
       if (s->kind() != Snapshot::kFullAOT) {
-        s->Write<uint32_t>(lib->ptr()->binary_declaration_);
+        s->Write<uint32_t>(lib->ptr()->kernel_offset_);
       }
     }
   }
@@ -1359,7 +1360,7 @@ class LibrarySerializationCluster : public SerializationCluster {
 
 class LibraryDeserializationCluster : public DeserializationCluster {
  public:
-  LibraryDeserializationCluster() {}
+  LibraryDeserializationCluster() : DeserializationCluster("Library") {}
   ~LibraryDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1386,7 +1387,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
           LibraryLayout::InFullSnapshotBit::update(true, d->Read<uint8_t>());
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
-        lib->ptr()->binary_declaration_ = d->Read<uint32_t>();
+        lib->ptr()->kernel_offset_ = d->Read<uint32_t>();
       }
 #endif
     }
@@ -1431,7 +1432,7 @@ class NamespaceSerializationCluster : public SerializationCluster {
 
 class NamespaceDeserializationCluster : public DeserializationCluster {
  public:
-  NamespaceDeserializationCluster() {}
+  NamespaceDeserializationCluster() : DeserializationCluster("Namespace") {}
   ~NamespaceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1496,7 +1497,8 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
 // one will never need to read them from a full AOT snapshot.
 class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
  public:
-  KernelProgramInfoDeserializationCluster() {}
+  KernelProgramInfoDeserializationCluster()
+      : DeserializationCluster("KernelProgramInfo") {}
   ~KernelProgramInfoDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1857,7 +1859,7 @@ class CodeSerializationCluster : public SerializationCluster {
 
 class CodeDeserializationCluster : public DeserializationCluster {
  public:
-  CodeDeserializationCluster() {}
+  CodeDeserializationCluster() : DeserializationCluster("Code") {}
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1969,88 +1971,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class BytecodeSerializationCluster : public SerializationCluster {
- public:
-  BytecodeSerializationCluster() : SerializationCluster("Bytecode") {}
-  virtual ~BytecodeSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    BytecodePtr bytecode = Bytecode::RawCast(object);
-    objects_.Add(bytecode);
-    PushFromTo(bytecode);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kBytecodeCid);
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      BytecodePtr bytecode = objects_[i];
-      s->AssignRef(bytecode);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    ASSERT(s->kind() != Snapshot::kFullAOT);
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      BytecodePtr bytecode = objects_[i];
-      s->Write<int32_t>(bytecode->ptr()->instructions_size_);
-      WriteFromTo(bytecode);
-      s->Write<int32_t>(bytecode->ptr()->instructions_binary_offset_);
-      s->Write<int32_t>(bytecode->ptr()->source_positions_binary_offset_);
-      s->Write<int32_t>(bytecode->ptr()->local_variables_binary_offset_);
-    }
-  }
-
- private:
-  GrowableArray<BytecodePtr> objects_;
-};
-
-class BytecodeDeserializationCluster : public DeserializationCluster {
- public:
-  BytecodeDeserializationCluster() {}
-  virtual ~BytecodeDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d, bool is_canonical) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(AllocateUninitialized(old_space, Bytecode::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d, bool is_canonical) {
-    ASSERT(d->kind() != Snapshot::kFullAOT);
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      BytecodePtr bytecode = static_cast<BytecodePtr>(d->Ref(id));
-      Deserializer::InitializeHeader(bytecode, kBytecodeCid,
-                                     Bytecode::InstanceSize());
-      bytecode->ptr()->instructions_ = 0;
-      bytecode->ptr()->instructions_size_ = d->Read<int32_t>();
-      ReadFromTo(bytecode);
-      bytecode->ptr()->instructions_binary_offset_ = d->Read<int32_t>();
-      bytecode->ptr()->source_positions_binary_offset_ = d->Read<int32_t>();
-      bytecode->ptr()->local_variables_binary_offset_ = d->Read<int32_t>();
-    }
-  }
-
-  void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    Bytecode& bytecode = Bytecode::Handle(d->zone());
-    ExternalTypedData& binary = ExternalTypedData::Handle(d->zone());
-
-    for (intptr_t i = start_index_; i < stop_index_; i++) {
-      bytecode ^= refs.At(i);
-      binary = bytecode.GetBinary(d->zone());
-      bytecode.set_instructions(reinterpret_cast<uword>(
-          binary.DataAddr(bytecode.instructions_binary_offset())));
-    }
-  }
-};
-
 class ObjectPoolSerializationCluster : public SerializationCluster {
  public:
   ObjectPoolSerializationCluster() : SerializationCluster("ObjectPool") {}
@@ -2064,8 +1984,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     uint8_t* entry_bits = pool->ptr()->entry_bits();
     for (intptr_t i = 0; i < length; i++) {
       auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
-      if ((entry_type == ObjectPool::EntryType::kTaggedObject) ||
-          (entry_type == ObjectPool::EntryType::kNativeEntryData)) {
+      if (entry_type == ObjectPool::EntryType::kTaggedObject) {
         s->Push(pool->ptr()->data()[i].raw_obj_);
       }
     }
@@ -2112,22 +2031,6 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             s->Write<intptr_t>(entry.raw_value_);
             break;
           }
-          case ObjectPool::EntryType::kNativeEntryData: {
-            ObjectPtr raw = entry.raw_obj_;
-            TypedDataPtr raw_data = static_cast<TypedDataPtr>(raw);
-            // kNativeEntryData object pool entries are for linking natives for
-            // the interpreter. Before writing these entries into the snapshot,
-            // we need to unlink them by nulling out the 'trampoline' and
-            // 'native_function' fields.
-            NativeEntryData::Payload* payload =
-                NativeEntryData::FromTypedArray(raw_data);
-            if (payload->kind == MethodRecognizer::kUnknown) {
-              payload->trampoline = NULL;
-              payload->native_function = NULL;
-            }
-            s->WriteElementRef(raw, j);
-            break;
-          }
           case ObjectPool::EntryType::kNativeFunction:
           case ObjectPool::EntryType::kNativeFunctionWrapper: {
             // Write nothing. Will initialize with the lazy link entry.
@@ -2147,7 +2050,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
 
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
  public:
-  ObjectPoolDeserializationCluster() {}
+  ObjectPoolDeserializationCluster() : DeserializationCluster("ObjectPool") {}
   ~ObjectPoolDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2174,7 +2077,6 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
         pool->ptr()->entry_bits()[j] = entry_bits;
         ObjectPoolLayout::Entry& entry = pool->ptr()->data()[j];
         switch (ObjectPool::TypeBits::decode(entry_bits)) {
-          case ObjectPool::EntryType::kNativeEntryData:
           case ObjectPool::EntryType::kTaggedObject:
             entry.raw_obj_ = d->ReadRef();
             break;
@@ -2311,7 +2213,8 @@ class WeakSerializationReferenceSerializationCluster
 class WeakSerializationReferenceDeserializationCluster
     : public DeserializationCluster {
  public:
-  WeakSerializationReferenceDeserializationCluster() {}
+  WeakSerializationReferenceDeserializationCluster()
+      : DeserializationCluster("WeakSerializationReference") {}
   ~WeakSerializationReferenceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2383,7 +2286,8 @@ class PcDescriptorsSerializationCluster : public SerializationCluster {
 
 class PcDescriptorsDeserializationCluster : public DeserializationCluster {
  public:
-  PcDescriptorsDeserializationCluster() {}
+  PcDescriptorsDeserializationCluster()
+      : DeserializationCluster("PcDescriptors") {}
   ~PcDescriptorsDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2476,21 +2380,43 @@ class RODataSerializationCluster : public SerializationCluster {
 
 class RODataDeserializationCluster : public DeserializationCluster {
  public:
-  RODataDeserializationCluster() {}
+  explicit RODataDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("ROData"), cid_(cid) {}
   ~RODataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
+    start_index_ = d->next_index();
     intptr_t count = d->ReadUnsigned();
     uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
       running_offset += d->ReadUnsigned() << kObjectAlignmentLog2;
       d->AssignRef(d->GetObjectAt(running_offset));
     }
+    stop_index_ = d->next_index();
   }
 
   void ReadFill(Deserializer* d, bool is_canonical) {
     // No-op.
   }
+
+  void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
+    if (is_canonical && IsStringClassId(cid_) &&
+        (d->isolate() != Dart::vm_isolate())) {
+      CanonicalStringSet table(d->zone(),
+                               d->isolate()->object_store()->symbol_table());
+      String& str = String::Handle(d->zone());
+      for (intptr_t i = start_index_; i < stop_index_; i++) {
+        str ^= refs.At(i);
+        ASSERT(str.IsCanonical());
+        bool present = table.Insert(str);
+        ASSERT(!present);
+      }
+      d->isolate()->object_store()->set_symbol_table(table.Release());
+    }
+  }
+
+ private:
+  const intptr_t cid_;
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2546,7 +2472,8 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
 
 class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
  public:
-  ExceptionHandlersDeserializationCluster() {}
+  ExceptionHandlersDeserializationCluster()
+      : DeserializationCluster("ExceptionHandlers") {}
   ~ExceptionHandlersDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2634,7 +2561,7 @@ class ContextSerializationCluster : public SerializationCluster {
 
 class ContextDeserializationCluster : public DeserializationCluster {
  public:
-  ContextDeserializationCluster() {}
+  ContextDeserializationCluster() : DeserializationCluster("Context") {}
   ~ContextDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2710,7 +2637,8 @@ class ContextScopeSerializationCluster : public SerializationCluster {
 
 class ContextScopeDeserializationCluster : public DeserializationCluster {
  public:
-  ContextScopeDeserializationCluster() {}
+  ContextScopeDeserializationCluster()
+      : DeserializationCluster("ContextScope") {}
   ~ContextScopeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2734,71 +2662,6 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
       scope->ptr()->num_variables_ = length;
       scope->ptr()->is_implicit_ = d->Read<bool>();
       ReadFromTo(scope, length);
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class ParameterTypeCheckSerializationCluster : public SerializationCluster {
- public:
-  ParameterTypeCheckSerializationCluster()
-      : SerializationCluster("ParameterTypeCheck") {}
-  ~ParameterTypeCheckSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    ParameterTypeCheckPtr unlinked = ParameterTypeCheck::RawCast(object);
-    objects_.Add(unlinked);
-    PushFromTo(unlinked);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kParameterTypeCheckCid);
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      ParameterTypeCheckPtr check = objects_[i];
-      s->AssignRef(check);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      ParameterTypeCheckPtr check = objects_[i];
-      s->Write<intptr_t>(check->ptr()->index_);
-      WriteFromTo(check);
-    }
-  }
-
- private:
-  GrowableArray<ParameterTypeCheckPtr> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class ParameterTypeCheckDeserializationCluster : public DeserializationCluster {
- public:
-  ParameterTypeCheckDeserializationCluster() {}
-  ~ParameterTypeCheckDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d, bool is_canonical) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, ParameterTypeCheck::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d, bool is_canonical) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      ParameterTypeCheckPtr check =
-          static_cast<ParameterTypeCheckPtr>(d->Ref(id));
-      Deserializer::InitializeHeader(check, kParameterTypeCheckCid,
-                                     ParameterTypeCheck::InstanceSize());
-      check->ptr()->index_ = d->Read<intptr_t>();
-      ReadFromTo(check);
     }
   }
 };
@@ -2842,7 +2705,8 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
 
 class UnlinkedCallDeserializationCluster : public DeserializationCluster {
  public:
-  UnlinkedCallDeserializationCluster() {}
+  UnlinkedCallDeserializationCluster()
+      : DeserializationCluster("UnlinkedCall") {}
   ~UnlinkedCallDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2910,7 +2774,7 @@ class ICDataSerializationCluster : public SerializationCluster {
 
 class ICDataDeserializationCluster : public DeserializationCluster {
  public:
-  ICDataDeserializationCluster() {}
+  ICDataDeserializationCluster() : DeserializationCluster("ICData") {}
   ~ICDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2974,7 +2838,8 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
 
 class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
  public:
-  MegamorphicCacheDeserializationCluster() {}
+  MegamorphicCacheDeserializationCluster()
+      : DeserializationCluster("MegamorphicCache") {}
   ~MegamorphicCacheDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3064,7 +2929,8 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
 
 class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
  public:
-  SubtypeTestCacheDeserializationCluster() {}
+  SubtypeTestCacheDeserializationCluster()
+      : DeserializationCluster("SubtypeTestCache") {}
   ~SubtypeTestCacheDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3127,7 +2993,7 @@ class LoadingUnitSerializationCluster : public SerializationCluster {
 
 class LoadingUnitDeserializationCluster : public DeserializationCluster {
  public:
-  LoadingUnitDeserializationCluster() {}
+  LoadingUnitDeserializationCluster() : DeserializationCluster("LoadingUnit") {}
   ~LoadingUnitDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3196,7 +3062,8 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
 
 class LanguageErrorDeserializationCluster : public DeserializationCluster {
  public:
-  LanguageErrorDeserializationCluster() {}
+  LanguageErrorDeserializationCluster()
+      : DeserializationCluster("LanguageError") {}
   ~LanguageErrorDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3262,7 +3129,8 @@ class UnhandledExceptionSerializationCluster : public SerializationCluster {
 
 class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
  public:
-  UnhandledExceptionDeserializationCluster() {}
+  UnhandledExceptionDeserializationCluster()
+      : DeserializationCluster("UnhandledException") {}
   ~UnhandledExceptionDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3386,7 +3254,8 @@ class InstanceSerializationCluster : public SerializationCluster {
 
 class InstanceDeserializationCluster : public DeserializationCluster {
  public:
-  explicit InstanceDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit InstanceDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("Instance"), cid_(cid) {}
   ~InstanceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3483,7 +3352,8 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
 
 class LibraryPrefixDeserializationCluster : public DeserializationCluster {
  public:
-  LibraryPrefixDeserializationCluster() {}
+  LibraryPrefixDeserializationCluster()
+      : DeserializationCluster("LibraryPrefix") {}
   ~LibraryPrefixDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3577,7 +3447,7 @@ class TypeSerializationCluster : public SerializationCluster {
 
 class TypeDeserializationCluster : public DeserializationCluster {
  public:
-  TypeDeserializationCluster() {}
+  TypeDeserializationCluster() : DeserializationCluster("Type") {}
   ~TypeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3676,7 +3546,7 @@ class TypeRefSerializationCluster : public SerializationCluster {
 
 class TypeRefDeserializationCluster : public DeserializationCluster {
  public:
-  TypeRefDeserializationCluster() {}
+  TypeRefDeserializationCluster() : DeserializationCluster("TypeRef") {}
   ~TypeRefDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3774,7 +3644,8 @@ class TypeParameterSerializationCluster : public SerializationCluster {
 
 class TypeParameterDeserializationCluster : public DeserializationCluster {
  public:
-  TypeParameterDeserializationCluster() {}
+  TypeParameterDeserializationCluster()
+      : DeserializationCluster("TypeParameter") {}
   ~TypeParameterDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3878,7 +3749,7 @@ class ClosureSerializationCluster : public SerializationCluster {
 
 class ClosureDeserializationCluster : public DeserializationCluster {
  public:
-  ClosureDeserializationCluster() {}
+  ClosureDeserializationCluster() : DeserializationCluster("Closure") {}
   ~ClosureDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3945,7 +3816,7 @@ class MintSerializationCluster : public SerializationCluster {
 
 class MintDeserializationCluster : public DeserializationCluster {
  public:
-  MintDeserializationCluster() {}
+  MintDeserializationCluster() : DeserializationCluster("int") {}
   ~MintDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4025,7 +3896,7 @@ class DoubleSerializationCluster : public SerializationCluster {
 
 class DoubleDeserializationCluster : public DeserializationCluster {
  public:
-  DoubleDeserializationCluster() {}
+  DoubleDeserializationCluster() : DeserializationCluster("double") {}
   ~DoubleDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4088,7 +3959,8 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
 class GrowableObjectArrayDeserializationCluster
     : public DeserializationCluster {
  public:
-  GrowableObjectArrayDeserializationCluster() {}
+  GrowableObjectArrayDeserializationCluster()
+      : DeserializationCluster("GrowableObjectArray") {}
   ~GrowableObjectArrayDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4160,7 +4032,8 @@ class TypedDataSerializationCluster : public SerializationCluster {
 
 class TypedDataDeserializationCluster : public DeserializationCluster {
  public:
-  explicit TypedDataDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit TypedDataDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("TypedData"), cid_(cid) {}
   ~TypedDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4237,7 +4110,8 @@ class TypedDataViewSerializationCluster : public SerializationCluster {
 
 class TypedDataViewDeserializationCluster : public DeserializationCluster {
  public:
-  explicit TypedDataViewDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit TypedDataViewDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("TypedDataView"), cid_(cid) {}
   ~TypedDataViewDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4316,7 +4190,8 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
 
 class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
  public:
-  explicit ExternalTypedDataDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit ExternalTypedDataDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("ExternalTypedData"), cid_(cid) {}
   ~ExternalTypedDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4388,7 +4263,7 @@ class StackTraceSerializationCluster : public SerializationCluster {
 
 class StackTraceDeserializationCluster : public DeserializationCluster {
  public:
-  StackTraceDeserializationCluster() {}
+  StackTraceDeserializationCluster() : DeserializationCluster("StackTrace") {}
   ~StackTraceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4453,7 +4328,7 @@ class RegExpSerializationCluster : public SerializationCluster {
 
 class RegExpDeserializationCluster : public DeserializationCluster {
  public:
-  RegExpDeserializationCluster() {}
+  RegExpDeserializationCluster() : DeserializationCluster("RegExp") {}
   ~RegExpDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4517,7 +4392,8 @@ class WeakPropertySerializationCluster : public SerializationCluster {
 
 class WeakPropertyDeserializationCluster : public DeserializationCluster {
  public:
-  WeakPropertyDeserializationCluster() {}
+  WeakPropertyDeserializationCluster()
+      : DeserializationCluster("WeakProperty") {}
   ~WeakPropertyDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4611,7 +4487,8 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
 
 class LinkedHashMapDeserializationCluster : public DeserializationCluster {
  public:
-  LinkedHashMapDeserializationCluster() {}
+  LinkedHashMapDeserializationCluster()
+      : DeserializationCluster("LinkedHashMap") {}
   ~LinkedHashMapDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4716,7 +4593,8 @@ class ArraySerializationCluster : public SerializationCluster {
 
 class ArrayDeserializationCluster : public DeserializationCluster {
  public:
-  explicit ArrayDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit ArrayDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("Array"), cid_(cid) {}
   ~ArrayDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4793,7 +4671,8 @@ class OneByteStringSerializationCluster : public SerializationCluster {
 
 class OneByteStringDeserializationCluster : public DeserializationCluster {
  public:
-  OneByteStringDeserializationCluster() {}
+  OneByteStringDeserializationCluster()
+      : DeserializationCluster("OneByteString") {}
   ~OneByteStringDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4885,7 +4764,8 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
 
 class TwoByteStringDeserializationCluster : public DeserializationCluster {
  public:
-  TwoByteStringDeserializationCluster() {}
+  TwoByteStringDeserializationCluster()
+      : DeserializationCluster("TwoByteString") {}
   ~TwoByteStringDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4983,28 +4863,16 @@ class VMSerializationRoots : public SerializationRoots {
                      "<extractor parameter names>");
     s->AddBaseObject(Object::empty_context_scope().raw(), "ContextScope",
                      "<empty>");
+    s->AddBaseObject(Object::empty_object_pool().raw(), "ObjectPool",
+                     "<empty>");
+    s->AddBaseObject(Object::empty_compressed_stackmaps().raw(),
+                     "CompressedStackMaps", "<empty>");
     s->AddBaseObject(Object::empty_descriptors().raw(), "PcDescriptors",
                      "<empty>");
     s->AddBaseObject(Object::empty_var_descriptors().raw(),
                      "LocalVarDescriptors", "<empty>");
     s->AddBaseObject(Object::empty_exception_handlers().raw(),
                      "ExceptionHandlers", "<empty>");
-    s->AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
-                     "<implicit getter>");
-    s->AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
-                     "<implicit setter>");
-    s->AddBaseObject(Object::implicit_static_getter_bytecode().raw(),
-                     "Bytecode", "<implicit static getter>");
-    s->AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
-                     "<method extractor>");
-    s->AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
-                     "<invoke closure>");
-    s->AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
-                     "<invoke field>");
-    s->AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
-                     "<nsm dispatcher>");
-    s->AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw(),
-                     "Bytecode", "<dyn forwarder>");
 
     for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
       s->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -5083,17 +4951,11 @@ class VMDeserializationRoots : public DeserializationRoots {
     ASSERT(Object::extractor_parameter_names().raw() != Object::null());
     d->AddBaseObject(Object::extractor_parameter_names().raw());
     d->AddBaseObject(Object::empty_context_scope().raw());
+    d->AddBaseObject(Object::empty_object_pool().raw());
+    d->AddBaseObject(Object::empty_compressed_stackmaps().raw());
     d->AddBaseObject(Object::empty_descriptors().raw());
     d->AddBaseObject(Object::empty_var_descriptors().raw());
     d->AddBaseObject(Object::empty_exception_handlers().raw());
-    d->AddBaseObject(Object::implicit_getter_bytecode().raw());
-    d->AddBaseObject(Object::implicit_setter_bytecode().raw());
-    d->AddBaseObject(Object::implicit_static_getter_bytecode().raw());
-    d->AddBaseObject(Object::method_extractor_bytecode().raw());
-    d->AddBaseObject(Object::invoke_closure_bytecode().raw());
-    d->AddBaseObject(Object::invoke_field_bytecode().raw());
-    d->AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
-    d->AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw());
 
     for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
       d->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
@@ -5491,25 +5353,12 @@ void Serializer::AddBaseObject(ObjectPtr base_object,
 
 intptr_t Serializer::AssignRef(ObjectPtr object) {
   ASSERT(IsAllocatedReference(next_ref_index_));
-  if (object->IsHeapObject()) {
-    // The object id weak table holds image offsets for Instructions instead
-    // of ref indices.
-    ASSERT(!object->IsInstructions());
-    heap_->SetObjectId(object, next_ref_index_);
-    ASSERT(heap_->GetObjectId(object) == next_ref_index_);
-  } else {
-    SmiPtr smi = Smi::RawCast(object);
-    SmiObjectIdPair* existing_pair = smi_ids_.Lookup(smi);
-    if (existing_pair != NULL) {
-      ASSERT(existing_pair->id_ == kUnallocatedReference);
-      existing_pair->id_ = next_ref_index_;
-    } else {
-      SmiObjectIdPair new_pair;
-      new_pair.smi_ = smi;
-      new_pair.id_ = next_ref_index_;
-      smi_ids_.Insert(new_pair);
-    }
-  }
+
+  // The object id weak table holds image offsets for Instructions instead
+  // of ref indices.
+  ASSERT(!object->IsHeapObject() || !object->IsInstructions());
+  heap_->SetObjectId(object, next_ref_index_);
+  ASSERT(heap_->GetObjectId(object) == next_ref_index_);
 
   objects_->Add(&Object::ZoneHandle(object));
 
@@ -5559,15 +5408,8 @@ void Serializer::TraceStartWritingObject(const char* type,
                                          const char* name) {
   if (profile_writer_ == nullptr) return;
 
-  intptr_t cid = -1;
-  intptr_t id = 0;
-  if (obj->IsHeapObject()) {
-    id = heap_->GetObjectId(obj);
-    cid = obj->GetClassId();
-  } else {
-    id = smi_ids_.Lookup(Smi::RawCast(obj))->id_;
-    cid = Smi::kClassId;
-  }
+  intptr_t id = heap_->GetObjectId(obj);
+  intptr_t cid = obj->GetClassIdMayBeSmi();
   if (IsArtificialReference(id)) {
     id = -id;
   }
@@ -5679,6 +5521,14 @@ const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
       return "CodeSourceMap";
     case kCompressedStackMapsCid:
       return "CompressedStackMaps";
+    case kOneByteStringCid:
+      return current_loading_unit_id_ <= LoadingUnit::kRootId
+                 ? "OneByteStringCid"
+                 : nullptr;
+    case kTwoByteStringCid:
+      return current_loading_unit_id_ <= LoadingUnit::kRootId
+                 ? "TwoByteStringCid"
+                 : nullptr;
     default:
       return nullptr;
   }
@@ -5739,8 +5589,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) KernelProgramInfoSerializationCluster();
     case kCodeCid:
       return new (Z) CodeSerializationCluster(heap_);
-    case kBytecodeCid:
-      return new (Z) BytecodeSerializationCluster();
     case kObjectPoolCid:
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
@@ -5751,8 +5599,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ContextSerializationCluster();
     case kContextScopeCid:
       return new (Z) ContextScopeSerializationCluster();
-    case kParameterTypeCheckCid:
-      return new (Z) ParameterTypeCheckSerializationCluster();
     case kUnlinkedCallCid:
       return new (Z) UnlinkedCallSerializationCluster();
     case kICDataCid:
@@ -5915,27 +5761,10 @@ intptr_t Serializer::GetDataSize() const {
 #endif
 
 void Serializer::Push(ObjectPtr object) {
-  if (!object->IsHeapObject()) {
-    SmiPtr smi = Smi::RawCast(object);
-    if (smi_ids_.Lookup(smi) == NULL) {
-      SmiObjectIdPair pair;
-      pair.smi_ = smi;
-      pair.id_ = kUnallocatedReference;
-      smi_ids_.Insert(pair);
-      stack_.Add(object);
-      num_written_objects_++;
-    }
-    return;
-  }
-
-  if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+  if (object->IsHeapObject() && object->IsCode() &&
+      !Snapshot::IncludesCode(kind_)) {
     return;  // Do not trace, will write null.
   }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-    return;  // Do not trace, will write null.
-  }
-#endif  // !DART_PRECOMPILED_RUNTIME
 
   intptr_t id = heap_->GetObjectId(object);
   if (id == kUnreachableReference) {
@@ -5943,7 +5772,7 @@ void Serializer::Push(ObjectPtr object) {
     // roots we do not trace references, e.g. inside [RawCode], to
     // [RawInstructions], since [RawInstructions] doesn't contain any references
     // and the serialization code uses an [ImageWriter] for those.
-    if (object->IsInstructions()) {
+    if (object->IsHeapObject() && object->IsInstructions()) {
       UnexpectedObject(object,
                        "Instructions should only be reachable from Code");
     }
@@ -5972,19 +5801,15 @@ void Serializer::Trace(ObjectPtr object) {
     is_canonical = object->ptr()->IsCanonical();
   }
 
-  SerializationCluster* cluster =
-      is_canonical ? canonical_clusters_by_cid_[cid] : clusters_by_cid_[cid];
-  if (cluster == nullptr) {
-    cluster = NewClusterForClass(cid);
-    if (cluster == nullptr) {
+  SerializationCluster** cluster_ref =
+      is_canonical ? &canonical_clusters_by_cid_[cid] : &clusters_by_cid_[cid];
+  if (*cluster_ref == nullptr) {
+    *cluster_ref = NewClusterForClass(cid);
+    if (*cluster_ref == nullptr) {
       UnexpectedObject(object, "No serialization cluster defined");
     }
-    if (is_canonical) {
-      canonical_clusters_by_cid_[cid] = cluster;
-    } else {
-      clusters_by_cid_[cid] = cluster;
-    }
   }
+  SerializationCluster* cluster = *cluster_ref;
   ASSERT(cluster != nullptr);
 
 #if defined(SNAPSHOT_BACKTRACE)
@@ -6372,6 +6197,7 @@ Deserializer::Deserializer(Thread* thread,
                            intptr_t size,
                            const uint8_t* data_buffer,
                            const uint8_t* instructions_buffer,
+                           bool is_non_root_unit,
                            intptr_t offset)
     : ThreadStackResource(thread),
       heap_(thread->isolate()->heap()),
@@ -6384,7 +6210,8 @@ Deserializer::Deserializer(Thread* thread,
       previous_text_offset_(0),
       canonical_clusters_(nullptr),
       clusters_(nullptr),
-      field_table_(thread->isolate()->field_table()) {
+      field_table_(thread->isolate()->field_table()),
+      is_non_root_unit_(is_non_root_unit) {
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != nullptr);
     ASSERT(data_buffer != nullptr);
@@ -6419,7 +6246,13 @@ DeserializationCluster* Deserializer::ReadCluster() {
       case kPcDescriptorsCid:
       case kCodeSourceMapCid:
       case kCompressedStackMapsCid:
-        return new (Z) RODataDeserializationCluster();
+        return new (Z) RODataDeserializationCluster(cid);
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+        if (!is_non_root_unit_) {
+          return new (Z) RODataDeserializationCluster(cid);
+        }
+        break;
     }
   }
 
@@ -6454,10 +6287,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
 #endif  // !DART_PRECOMPILED_RUNTIME
     case kCodeCid:
       return new (Z) CodeDeserializationCluster();
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    case kBytecodeCid:
-      return new (Z) BytecodeDeserializationCluster();
-#endif  // !DART_PRECOMPILED_RUNTIME
     case kObjectPoolCid:
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:
@@ -6468,8 +6297,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ContextDeserializationCluster();
     case kContextScopeCid:
       return new (Z) ContextScopeDeserializationCluster();
-    case kParameterTypeCheckCid:
-      return new (Z) ParameterTypeCheckDeserializationCluster();
     case kUnlinkedCallCid:
       return new (Z) UnlinkedCallDeserializationCluster();
     case kICDataCid:
@@ -7283,7 +7110,8 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   }
 
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, offset);
+                            instructions_image_, /*is_non_root_unit=*/false,
+                            offset);
   ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;
@@ -7323,7 +7151,8 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   }
 
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, offset);
+                            instructions_image_, /*is_non_root_unit=*/false,
+                            offset);
   ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;
@@ -7356,8 +7185,9 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
     return ConvertToApiError(error);
   }
 
-  Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, offset);
+  Deserializer deserializer(
+      thread_, kind_, buffer_, size_, data_image_, instructions_image_,
+      /*is_non_root_unit=*/unit.id() != LoadingUnit::kRootId, offset);
   ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
@@ -45,8 +46,8 @@ transforms:
         expression: '{% p %}'
         variables:
           p:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -63,8 +64,7 @@ transforms:
     expect(modification.isPositional, false);
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -117,8 +117,8 @@ transforms:
         expression: '{% p %}'
         variables:
           p:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -135,8 +135,7 @@ transforms:
     expect(modification.isPositional, false);
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -159,8 +158,8 @@ transforms:
         expression: '{% p %}'
         variables:
           p:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -177,8 +176,7 @@ transforms:
     expect(modification.isPositional, true);
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -201,11 +199,11 @@ transforms:
         expression: '{% a %}({% b %})'
         variables:
           a:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
           b:
-            kind: 'argument'
-            index: 2
+            kind: 'fragment'
+            value: 'arguments[2]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -222,13 +220,11 @@ transforms:
     expect(modification.isPositional, true);
     var components = modification.argumentValue.components;
     expect(components, hasLength(4));
-    var extractorA =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var extractorA = _accessor(components[0]) as ArgumentAccessor;
     var parameterA = extractorA.parameter as PositionalParameterReference;
     expect(parameterA.index, 1);
     expect((components[1] as TemplateText).text, '(');
-    var extractorB =
-        (components[2] as TemplateVariable).generator as ArgumentExpression;
+    var extractorB = _accessor(components[2]) as ArgumentAccessor;
     var parameterB = extractorB.parameter as PositionalParameterReference;
     expect(parameterB.index, 2);
     expect((components[3] as TemplateText).text, ')');
@@ -289,8 +285,8 @@ transforms:
         expression: '{% t %}'
         variables:
           t:
-            kind: 'argument'
-            name: 'p'
+            kind: 'fragment'
+            value: 'arguments[p]'
 ''');
     var transforms = _transforms('A');
     expect(transforms, hasLength(1));
@@ -304,8 +300,7 @@ transforms:
 
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as NamedParameterReference;
     expect(parameter.name, 'p');
   }
@@ -330,8 +325,8 @@ transforms:
         expression: '{% t %}'
         variables:
           t:
-            kind: 'argument'
-            index: 2
+            kind: 'fragment'
+            value: 'arguments[2]'
 ''');
     var transforms = _transforms('A');
     expect(transforms, hasLength(1));
@@ -348,10 +343,56 @@ transforms:
 
     var argumentComponents = change.argumentValue.components;
     expect(argumentComponents, hasLength(1));
-    var value = (argumentComponents[0] as TemplateVariable).generator
-        as ArgumentExpression;
+    var value = _accessor(argumentComponents[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
+  }
+
+  void test_bulkApply() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  bulkApply: false
+  element:
+    uris: ['test.dart']
+    getter: 'g'
+  changes: []
+''');
+    var transforms = _transforms('g');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename g');
+    expect(transform.bulkApply, false);
+    expect(transform.changes, isEmpty);
+  }
+
+  void test_correctOffsetForPlainStrings() {
+    assertErrors('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-03
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      extends:
+        expression: 'Object'
+      argumentValue:
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'fragment'
+            value: args
+''', [
+      error(TransformSetErrorCode.unknownAccessor, 361, 4),
+    ]);
   }
 
   void test_date() {
@@ -542,9 +583,13 @@ transforms:
     expect(rename.newName, 'B');
   }
 
+  /// Return the first accessor from the given [component].
+  Accessor _accessor(TemplateComponent component) =>
+      ((component as TemplateVariable).generator as CodeFragment).accessors[0];
+
   ElementMatcher _matcher(String name) =>
       ElementMatcher(importedUris: uris, name: name);
 
   List<Transform> _transforms(String name) =>
-      result.transformsFor(_matcher(name));
+      result.transformsFor(_matcher(name), applyingBulkFixes: false);
 }

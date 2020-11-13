@@ -19,7 +19,7 @@ class RemoveInitializerTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.avoid_init_to_null;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class T {
   int x = null;
 }

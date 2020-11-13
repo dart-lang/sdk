@@ -65,7 +65,8 @@ library /*isNonNullableByDefault*/;
 //
 import self as self4;
 import "main_declaration_field_lib.dart" as mai4;
-additionalExports = (mai4::main)
+additionalExports = (mai4::main,
+  mai4::main)
 
 export "org-dartlang-testcase:///main_declaration_field_lib.dart";
 
@@ -286,9 +287,8 @@ library /*isNonNullableByDefault*/;
 //                 ^^^^
 //
 import self as mai4;
-import "dart:core" as core;
 
-static field () → void main = () → core::Null? {};
+static field () → void main = () → void {};
 
 library /*isNonNullableByDefault*/;
 //
@@ -299,10 +299,9 @@ library /*isNonNullableByDefault*/;
 //                     ^^^^
 //
 import self as mai5;
-import "dart:core" as core;
 
 static get main() → () → void
-  return () → core::Null? {};
+  return () → void {};
 
 library /*isNonNullableByDefault*/;
 import self as mai6;

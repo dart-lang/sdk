@@ -50,8 +50,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const intptr_t stub_index =
       op.AddObject(stub, ObjectPool::Patchability::kPatchable);
   ASSERT((ic_data_index + 1) == stub_index);
-  __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
-                                  ObjectPool::element_offset(ic_data_index));
+  __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, ic_data_index);
   __ ldr(LR, compiler::FieldAddress(
                  CODE_REG,
                  Code::entry_point_offset(Code::EntryKind::kMonomorphic)));

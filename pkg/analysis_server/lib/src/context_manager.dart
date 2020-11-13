@@ -294,10 +294,8 @@ abstract class ContextManagerCallbacks {
   /// Return the notification manager associated with the server.
   AbstractNotificationManager get notificationManager;
 
-  /// Create and return a new analysis driver rooted at the given [folder], with
-  /// the given analysis [options].
-  AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options);
+  /// Create and return a new analysis driver rooted at the given [folder].
+  AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot);
 
   /// An [event] was processed, so analysis state might be different now.
   void afterWatchEvent(WatchEvent event);
@@ -318,9 +316,8 @@ abstract class ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event);
 
   /// Create and return a context builder that can be used to create a context
-  /// for the files in the given [folder] when analyzed using the given
-  /// [options].
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options);
+  /// for the files in the given [folder].
+  ContextBuilder createContextBuilder(Folder folder);
 
   /// Remove the context associated with the given [folder].  [flushedFiles] is
   /// a list of the files which will be "orphaned" by removing this context
@@ -377,9 +374,6 @@ class ContextManagerImpl implements ContextManager {
   /// A list of the globs used to determine which files should be analyzed.
   final List<Glob> analyzedFilesGlobs;
 
-  /// The default options used to create new analysis contexts.
-  final AnalysisOptionsImpl defaultContextOptions;
-
   /// The instrumentation service used to report instrumentation data.
   final InstrumentationService _instrumentationService;
 
@@ -400,11 +394,11 @@ class ContextManagerImpl implements ContextManager {
       <Folder, StreamSubscription<WatchEvent>>{};
 
   ContextManagerImpl(
-      this.resourceProvider,
-      this.sdkManager,
-      this.analyzedFilesGlobs,
-      this._instrumentationService,
-      this.defaultContextOptions) {
+    this.resourceProvider,
+    this.sdkManager,
+    this.analyzedFilesGlobs,
+    this._instrumentationService,
+  ) {
     pathContext = resourceProvider.pathContext;
   }
 
@@ -818,29 +812,27 @@ class ContextManagerImpl implements ContextManager {
               }
             }
           }
-          // todo (pq): re-enable once `sort_pub_dependencies` is fixed
-          // see: https://github.com/dart-lang/linter/issues/2271
-          // see: See: https://github.com/dart-lang/sdk/issues/43529
-          //   if (visitors.isNotEmpty) {
-          //     var sourceUri = resourceProvider.pathContext.toUri(path);
-          //     var pubspecAst = Pubspec.parse(content,
-          //         sourceUrl: sourceUri, resourceProvider: resourceProvider);
-          //     var listener = RecordingErrorListener();
-          //     var reporter = ErrorReporter(listener,
-          //         resourceProvider.getFile(path).createSource(sourceUri),
-          //         isNonNullableByDefault: false);
-          //     for (var entry in visitors.entries) {
-          //       entry.key.reporter = reporter;
-          //       pubspecAst.accept(entry.value);
-          //     }
-          //     if (listener.errors.isNotEmpty) {
-          //       convertedErrors ??= <protocol.AnalysisError>[];
-          //       convertedErrors.addAll(converter.convertAnalysisErrors(
-          //           listener.errors,
-          //           lineInfo: lineInfo,
-          //           options: driver.analysisOptions));
-          //     }
-          //   }
+
+          if (visitors.isNotEmpty) {
+            var sourceUri = resourceProvider.pathContext.toUri(path);
+            var pubspecAst = Pubspec.parse(content,
+                sourceUrl: sourceUri, resourceProvider: resourceProvider);
+            var listener = RecordingErrorListener();
+            var reporter = ErrorReporter(listener,
+                resourceProvider.getFile(path).createSource(sourceUri),
+                isNonNullableByDefault: false);
+            for (var entry in visitors.entries) {
+              entry.key.reporter = reporter;
+              pubspecAst.accept(entry.value);
+            }
+            if (listener.errors.isNotEmpty) {
+              convertedErrors ??= <protocol.AnalysisError>[];
+              convertedErrors.addAll(converter.convertAnalysisErrors(
+                  listener.errors,
+                  lineInfo: lineInfo,
+                  options: driver.analysisOptions));
+            }
+          }
         }
       }
     } catch (exception) {
@@ -1008,7 +1000,7 @@ class ContextManagerImpl implements ContextManager {
     } catch (_) {
       // Parse errors are reported elsewhere.
     }
-    AnalysisOptions options = AnalysisOptionsImpl.from(defaultContextOptions);
+    var options = AnalysisOptionsImpl();
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
@@ -1023,8 +1015,7 @@ class ContextManagerImpl implements ContextManager {
     if (optionsFile != null) {
       contextRoot.optionsFilePath = optionsFile.path;
     }
-    info.analysisDriver =
-        callbacks.addAnalysisDriver(folder, contextRoot, options);
+    info.analysisDriver = callbacks.addAnalysisDriver(folder, contextRoot);
     if (optionsFile != null) {
       _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
     }
@@ -1117,8 +1108,8 @@ class ContextManagerImpl implements ContextManager {
 
   /// Set up a [SourceFactory] that resolves packages as appropriate for the
   /// given [folder].
-  SourceFactory _createSourceFactory(AnalysisOptions options, Folder folder) {
-    var builder = callbacks.createContextBuilder(folder, options);
+  SourceFactory _createSourceFactory(Folder folder) {
+    var builder = callbacks.createContextBuilder(folder);
     return builder.createSourceFactory(folder.path);
   }
 
@@ -1483,8 +1474,7 @@ class ContextManagerImpl implements ContextManager {
   void _updateAnalysisOptions(ContextInfo info) {
     var driver = info.analysisDriver;
     var contextRoot = info.folder.path;
-    var builder =
-        callbacks.createContextBuilder(info.folder, defaultContextOptions);
+    var builder = callbacks.createContextBuilder(info.folder);
     var options = builder.getAnalysisOptions(contextRoot,
         contextRoot: driver.contextRoot);
     var factory = builder.createSourceFactory(contextRoot);
@@ -1495,8 +1485,7 @@ class ContextManagerImpl implements ContextManager {
   void _updateContextPackageUriResolver(Folder contextFolder) {
     var info = getContextInfoFor(contextFolder);
     var driver = info.analysisDriver;
-    var sourceFactory =
-        _createSourceFactory(driver.analysisOptions, contextFolder);
+    var sourceFactory = _createSourceFactory(contextFolder);
     driver.configure(sourceFactory: sourceFactory);
   }
 

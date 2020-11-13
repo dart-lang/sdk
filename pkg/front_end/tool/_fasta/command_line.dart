@@ -4,8 +4,6 @@
 
 library fasta.tool.command_line;
 
-import 'dart:async' show Future;
-
 import 'dart:io' show exit;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -18,7 +16,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
@@ -171,7 +169,6 @@ class ParsedArguments {
 //  * Get an explicit approval from the front-end team.
 const Map<String, ValueSpecification> optionSpecification =
     const <String, ValueSpecification>{
-  Flags.bytecode: const BoolValue(false),
   Flags.compileSdk: const UriValue(),
   Flags.dumpIr: const BoolValue(false),
   Flags.enableExperiment: const StringListValue(),
@@ -197,6 +194,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.target: const StringValue(),
   Flags.verbose: const BoolValue(false),
   Flags.verify: const BoolValue(false),
+  Flags.verifySkipPlatform: const BoolValue(false),
   Flags.warnOnReachabilityCheck: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
   Flags.noDeps: const BoolValue(false),
@@ -237,10 +235,11 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final String targetName = options[Flags.target] ?? "vm";
 
-  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(options[Flags.enableExperiment]),
-      onError: throwCommandLineProblem,
-      onWarning: print);
+  Map<ExperimentalFlag, bool> explicitExperimentalFlags =
+      parseExperimentalFlags(
+          parseExperimentalArguments(options[Flags.enableExperiment]),
+          onError: throwCommandLineProblem,
+          onWarning: print);
 
   final TargetFlags flags = new TargetFlags(
       forceLateLoweringForTesting: options[Flags.forceLateLowering],
@@ -248,9 +247,8 @@ ProcessedOptions analyzeCommandLine(String programName,
           options[Flags.forceStaticFieldLowering],
       forceNoExplicitGetterCallsForTesting:
           options[Flags.forceNoExplicitGetterCalls],
-      enableNullSafety:
-          experimentalFlags.containsKey(ExperimentalFlag.nonNullable) &&
-              experimentalFlags[ExperimentalFlag.nonNullable]);
+      enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
+          explicitExperimentalFlags: explicitExperimentalFlags));
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -264,6 +262,8 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool noDeps = options[Flags.noDeps];
 
   final bool verify = options[Flags.verify];
+
+  final bool verifySkipPlatform = options[Flags.verifySkipPlatform];
 
   final bool dumpIr = options[Flags.dumpIr];
 
@@ -281,8 +281,6 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool warningsAreFatal = fatal.contains("warnings");
 
   final int fatalSkip = int.tryParse(options[Flags.fatalSkip] ?? "0") ?? -1;
-
-  final bool bytecode = options[Flags.bytecode];
 
   final bool compileSdk = options.containsKey(Flags.compileSdk);
 
@@ -347,7 +345,8 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify
-    ..experimentalFlags = experimentalFlags
+    ..verifySkipPlatform = verifySkipPlatform
+    ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies
@@ -372,8 +371,7 @@ ProcessedOptions analyzeCommandLine(String programName,
         options: compilerOptions
           ..sdkSummary = options[Flags.platform]
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
-          ..setExitCodeOnProblem = true
-          ..bytecode = bytecode,
+          ..setExitCodeOnProblem = true,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {

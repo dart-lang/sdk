@@ -1,4 +1,4 @@
-# Dart VM Service Protocol Extension 1.4
+# Dart VM Service Protocol Extension 1.5
 
 This protocol describes service extensions that are made available through
 the Dart core libraries, but are not part of the core
@@ -10,7 +10,7 @@ invoked by prepending the service extension name (e.g.,
 
 ## dart:io Extensions
 
-This section describes _version 1.4_ of the dart:io service protocol extensions.
+This section describes _version 1.5_ of the dart:io service protocol extensions.
 
 ### getVersion
 
@@ -22,9 +22,25 @@ The _getVersion_ RPC returns the available version of the dart:io service protoc
 
 See [Version](#version).
 
+### socketProfilingEnabled
+
+```
+SocketProfilingState socketProfilingEnabled(string isolateId, bool enabled [optional])
+```
+
+The _socketProfilingEnabled_ RPC is used to enable/disable the socket profiler
+and query its current state. If `enabled` is provided, the profiler state will
+be updated to reflect the value of `enabled`.
+
+If the state of the socket profiler is changed, a `SocketProfilingStateChange`
+event will be sent on the `Extension` stream.
+
+See [SocketProfilingState](#socketprofilingstate).
+
 ### startSocketProfiling
 
 ```
+@Deprecated
 Success startSocketProfiling(string isolateId)
 ```
 
@@ -35,6 +51,7 @@ See [Success](#success).
 ### pauseSocketProfiling
 
 ```
+@Deprecated
 Success pauseSocketProfiling(string isolateId)
 ```
 
@@ -196,6 +213,17 @@ class OpenFile extends Response {
 
 A _OpenFile_ contains information about reads and writes to a currently opened file.
 
+### HttpTimelineLoggingState
+
+```
+class HttpTimelineLoggingState extends Response {
+  // Whether Http timeline logging is enabled.
+  bool enabled;
+}
+```
+
+See [httpEnableTimelineLogging](#httpenabletimelinelogging).
+
 ### OpenFileList
 
 ```
@@ -204,6 +232,17 @@ class OpenFileList extends Response {
   @OpenFile[] files;
 }
 ```
+
+### SocketProfilingState
+
+```
+class SocketProfilingState extends Response {
+  // Whether socket profiling is enabled.
+  bool enabled;
+}
+```
+
+See [socketProfilingEnabled](#socketProfilingEnabled).
 
 ### SpawnedProcess
 
@@ -345,3 +384,4 @@ version | comments
 1.2 | Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs and added `OpenFile` and `SpawnedProcess` objects.
 1.3 | Added `httpEnableTimelineLogging` RPC and `HttpTimelineLoggingStateChange` event, deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.
 1.4 | Updated `httpEnableTimelineLogging` parameter `enable` to `enabled`. `enable` will continue to be accepted.
+1.5 | Added `socketProfilingEnabled` RPC and `SocketProfilingStateChanged` event, deprecated `startSocketProfiling` and `pauseSocketProfiling`.

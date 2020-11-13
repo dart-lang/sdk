@@ -165,7 +165,6 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
   void AllocateIrregexpVariables(intptr_t num_stack_locals);
-  void AllocateBytecodeVariables(intptr_t num_stack_locals);
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
@@ -213,14 +212,6 @@ class ParsedFunction : public ZoneAllocated {
     return scope()->VariableAt(i);
   }
 
-  void SetDefaultFunctionTypeArguments(const TypeArguments& value) {
-    default_function_type_arguments_ = value.raw();
-  }
-
-  const TypeArguments& DefaultFunctionTypeArguments() const {
-    return default_function_type_arguments_;
-  }
-
   // Remembers the set of covariant parameters.
   // [covariant_parameters] is a bitvector of function.NumParameters() length.
   void SetCovariantParameters(const BitVector* covariant_parameters);
@@ -247,8 +238,10 @@ class ParsedFunction : public ZoneAllocated {
   // because they are both read and written to by the builders.
   struct DynamicClosureCallVars : ZoneAllocated {
 #define FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(V)                              \
+  V(current_function, Function, CurrentFunction)                               \
   V(current_num_processed, Smi, CurrentNumProcessed)                           \
-  V(current_param_index, Smi, CurrentParamIndex)
+  V(current_param_index, Smi, CurrentParamIndex)                               \
+  V(function_type_args, Dynamic, FunctionTypeArgs)
 
 #define DEFINE_FIELD(Name, _, __) LocalVariable* Name = nullptr;
     FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(DEFINE_FIELD)
@@ -287,8 +280,6 @@ class ParsedFunction : public ZoneAllocated {
 
   const Function* forwarding_stub_super_target_ = nullptr;
   kernel::ScopeBuildingResult* kernel_scopes_;
-
-  TypeArguments& default_function_type_arguments_;
 
   const BitVector* covariant_parameters_ = nullptr;
   const BitVector* generic_covariant_impl_parameters_ = nullptr;

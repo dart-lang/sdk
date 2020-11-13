@@ -56,6 +56,8 @@ class ParsedFunction;
   V(Closure, ClosureLayout, instantiator_type_arguments, TypeArguments, FINAL) \
   V(Closure, ClosureLayout, delayed_type_arguments, TypeArguments, FINAL)      \
   V(Closure, ClosureLayout, function_type_arguments, TypeArguments, FINAL)     \
+  V(ClosureData, ClosureDataLayout, default_type_arguments, TypeArguments,     \
+    FINAL)                                                                     \
   V(Function, FunctionLayout, type_parameters, TypeArguments, FINAL)           \
   V(Type, TypeLayout, arguments, TypeArguments, FINAL)
 
@@ -77,6 +79,8 @@ class ParsedFunction;
   V(Closure, ClosureLayout, function, Function, FINAL)                         \
   V(Closure, ClosureLayout, context, Context, FINAL)                           \
   V(Closure, ClosureLayout, hash, Context, VAR)                                \
+  V(ClosureData, ClosureDataLayout, default_type_arguments_info, Smi, FINAL)   \
+  V(Function, FunctionLayout, data, Dynamic, FINAL)                            \
   V(Function, FunctionLayout, parameter_names, Array, FINAL)                   \
   V(Function, FunctionLayout, parameter_types, Array, FINAL)                   \
   V(GrowableObjectArray, GrowableObjectArrayLayout, length, Smi, VAR)          \
@@ -96,6 +100,8 @@ class ParsedFunction;
   V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
   V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
   V(TypeArguments, TypeArgumentsLayout, length, Smi, FINAL)                    \
+  V(TypeParameter, TypeParameterLayout, bound, Dynamic, FINAL)                 \
+  V(TypeParameter, TypeParameterLayout, name, Dynamic, FINAL)                  \
   V(UnhandledException, UnhandledExceptionLayout, exception, Dynamic, FINAL)   \
   V(UnhandledException, UnhandledExceptionLayout, stacktrace, Dynamic, FINAL)
 
@@ -115,7 +121,9 @@ class ParsedFunction;
 //
 // Note: As the underlying field is unboxed, these slots cannot be nullable.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
-  V(Function, FunctionLayout, packed_fields, Uint32, FINAL)
+  V(Function, FunctionLayout, kind_tag, Uint32, FINAL)                         \
+  V(Function, FunctionLayout, packed_fields, Uint32, FINAL)                    \
+  V(TypeParameter, TypeParameterLayout, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
 // or whether a boxed native slot is nullable. (Generally, such users only need
@@ -148,6 +156,10 @@ class Slot : public ZoneAllocated {
     // A slot at a specific [index] in a [RawTypeArgument] vector.
     kTypeArgumentsIndex,
 
+    // A slot corresponding to an array element at given offset.
+    // Only used during allocation sinking and in MaterializeObjectInstr.
+    kArrayElement,
+
     // A slot within a Context object that contains a value of a captured
     // local variable.
     kCapturedVariable,
@@ -176,6 +188,10 @@ class Slot : public ZoneAllocated {
   // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
   static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
 
+  // Returns a slot corresponding to an array element at [offset_in_bytes].
+  static const Slot& GetArrayElementSlot(Thread* thread,
+                                         intptr_t offset_in_bytes);
+
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
                                                const LocalVariable& var);
@@ -198,6 +214,7 @@ class Slot : public ZoneAllocated {
   bool IsLocalVariable() const { return kind() == Kind::kCapturedVariable; }
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
+  bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
 
   const char* Name() const;
 

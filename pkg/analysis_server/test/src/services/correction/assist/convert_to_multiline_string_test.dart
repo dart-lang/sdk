@@ -20,7 +20,7 @@ class ConvertToMultilineStringTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
 
   Future<void> test_doubleQuoted() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("abc");
 }
@@ -34,7 +34,7 @@ abc""");
   }
 
   Future<void> test_doubleQuoted_alreadyMultiline() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("""abc""");
 }
@@ -43,7 +43,7 @@ main() {
   }
 
   Future<void> test_doubleQuoted_interpolation_expressionElement() async {
-    await resolveTestUnit(r"""
+    await resolveTestCode(r"""
 main() {
   var b = 'b';
   var c = 'c';
@@ -54,7 +54,7 @@ main() {
   }
 
   Future<void> test_doubleQuoted_interpolation_stringElement_begin() async {
-    await resolveTestUnit(r"""
+    await resolveTestCode(r"""
 main() {
   var b = 'b';
   var c = 'c';
@@ -72,7 +72,7 @@ a $b - ${c} d""");
   }
 
   Future<void> test_doubleQuoted_interpolation_stringElement_middle() async {
-    await resolveTestUnit(r"""
+    await resolveTestCode(r"""
 main() {
   var b = 'b';
   var c = 'c';
@@ -90,7 +90,7 @@ a $b - ${c} d""");
   }
 
   Future<void> test_doubleQuoted_raw() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(r"abc");
 }
@@ -104,7 +104,7 @@ abc""");
   }
 
   Future<void> test_singleQuoted() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print('abc');
 }
@@ -118,7 +118,7 @@ abc''');
   }
 
   Future<void> test_singleQuoted_interpolation_expressionElement() async {
-    await resolveTestUnit(r"""
+    await resolveTestCode(r"""
 main() {
   var b = 'b';
   var c = 'c';
@@ -129,7 +129,7 @@ main() {
   }
 
   Future<void> test_singleQuoted_interpolation_stringElement_begin() async {
-    await resolveTestUnit(r"""
+    await resolveTestCode(r"""
 main() {
   var b = 'b';
   var c = 'c';
@@ -147,7 +147,7 @@ a $b - ${c} d''');
   }
 
   Future<void> test_singleQuoted_interpolation_stringElement_middle() async {
-    await resolveTestUnit(r"""
+    await resolveTestCode(r"""
 main() {
   var b = 'b';
   var c = 'c';
@@ -165,7 +165,7 @@ a $b - ${c} d''');
   }
 
   Future<void> test_singleQuoted_raw() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(r'abc');
 }

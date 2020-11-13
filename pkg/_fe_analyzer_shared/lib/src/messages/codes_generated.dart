@@ -162,6 +162,26 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAgnosticWithStrongDillLibrary =
+    messageAgnosticWithStrongDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAgnosticWithStrongDillLibrary = const MessageCode(
+    "AgnosticWithStrongDillLibrary",
+    message:
+        r"""Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAgnosticWithWeakDillLibrary =
+    messageAgnosticWithWeakDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAgnosticWithWeakDillLibrary = const MessageCode(
+    "AgnosticWithWeakDillLibrary",
+    message:
+        r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -489,15 +509,6 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
       message: """Can't use '${lexeme}' as a name here.""",
       arguments: {'token': token});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeBytecodeLimitExceededTooManyArguments =
-    messageBytecodeLimitExceededTooManyArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageBytecodeLimitExceededTooManyArguments =
-    const MessageCode("BytecodeLimitExceededTooManyArguments",
-        message: r"""Dart bytecode limit exceeded: too many arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCandidateFound = messageCandidateFound;
@@ -958,6 +969,29 @@ const MessageCode messageClassInClass = const MessageCode("ClassInClass",
     index: 53,
     message: r"""Classes can't be declared inside other classes.""",
     tip: r"""Try moving the class to the top-level.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateClassInNullAwareReceiver =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""The class '#name' cannot be null.""",
+        tipTemplate: r"""Try replacing '?.' with '.'""",
+        withArguments: _withArgumentsClassInNullAwareReceiver);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeClassInNullAwareReceiver =
+    const Code<Message Function(String name)>(
+        "ClassInNullAwareReceiver", templateClassInNullAwareReceiver,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassInNullAwareReceiver(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeClassInNullAwareReceiver,
+      message: """The class '${name}' cannot be null.""",
+      tip: """Try replacing '?.' with '.'""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
@@ -3069,6 +3103,60 @@ const MessageCode messageExpectedUri =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String
+            string)> templateExperimentDisabled = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""This requires the '#string' language feature to be enabled.""",
+    tipTemplate:
+        r"""The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed.""",
+    withArguments: _withArgumentsExperimentDisabled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExperimentDisabled =
+    const Code<Message Function(String string)>(
+        "ExperimentDisabled", templateExperimentDisabled,
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentDisabled(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentDisabled,
+      message:
+          """This requires the '${string}' language feature to be enabled.""",
+      tip:
+          """The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-${string}' command line option is passed.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateExperimentDisabledInvalidLanguageVersion =
+    const Template<Message Function(String string2)>(
+        messageTemplate:
+            r"""This requires the null safety language feature, which requires language version of #string2 or higher.""",
+        withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeExperimentDisabledInvalidLanguageVersion =
+    const Code<Message Function(String string2)>(
+        "ExperimentDisabledInvalidLanguageVersion",
+        templateExperimentDisabledInvalidLanguageVersion,
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentDisabledInvalidLanguageVersion(String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentDisabledInvalidLanguageVersion,
+      message:
+          """This requires the null safety language feature, which requires language version of ${string2} or higher.""",
+      arguments: {'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         String
             string2)> templateExperimentNotEnabled = const Template<
@@ -3666,9 +3754,6 @@ const MessageCode messageFastaUsageLong =
 
   --omit-platform
     Exclude the platform from the serialized dill file.
-
-  --bytecode
-    Generate bytecode. Supported only for SDK platform compilation.
 
   --exclude-source
     Do not include source code in the dill file.
@@ -4583,6 +4668,58 @@ const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
     "IncorrectTypeArgumentVariable",
     severity: Severity.context,
     message: r"""This is the type variable whose bound isn't conformed to.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateIncrementalCompilerIllegalParameter = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Illegal parameter name '#string' found during expression compilation.""",
+    withArguments: _withArgumentsIncrementalCompilerIllegalParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeIncrementalCompilerIllegalParameter =
+    const Code<Message Function(String string)>(
+  "IncrementalCompilerIllegalParameter",
+  templateIncrementalCompilerIllegalParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncrementalCompilerIllegalParameter(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeIncrementalCompilerIllegalParameter,
+      message:
+          """Illegal parameter name '${string}' found during expression compilation.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateIncrementalCompilerIllegalTypeParameter =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Illegal type parameter name '#string' found during expression compilation.""",
+        withArguments: _withArgumentsIncrementalCompilerIllegalTypeParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeIncrementalCompilerIllegalTypeParameter =
+    const Code<Message Function(String string)>(
+  "IncrementalCompilerIllegalTypeParameter",
+  templateIncrementalCompilerIllegalTypeParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncrementalCompilerIllegalTypeParameter(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeIncrementalCompilerIllegalTypeParameter,
+      message:
+          """Illegal type parameter name '${string}' found during expression compilation.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInferredPackageUri =
@@ -5506,6 +5643,14 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidNnbdDillLibrary = const MessageCode(
+    "InvalidNnbdDillLibrary",
+    message: r"""Trying to use library with invalid null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateInvalidOperator =
     const Template<Message Function(Token token)>(
         messageTemplate:
@@ -5785,6 +5930,42 @@ const MessageCode messageJsInteropAnonymousFactoryPositionalParameters =
         tip: r"""Try replacing them with named parameters instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateJsInteropDartClassExtendsJSClass = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""Dart class '#name' cannot extend JS interop class '#name2'.""",
+    tipTemplate:
+        r"""Try adding the JS interop annotation or removing it from the parent class.""",
+    withArguments: _withArgumentsJsInteropDartClassExtendsJSClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropDartClassExtendsJSClass =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropDartClassExtendsJSClass",
+  templateJsInteropDartClassExtendsJSClass,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropDartClassExtendsJSClass(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropDartClassExtendsJSClass,
+      message:
+          """Dart class '${name}' cannot extend JS interop class '${name2}'.""",
+      tip:
+          """Try adding the JS interop annotation or removing it from the parent class.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
     messageJsInteropEnclosingClassJSAnnotation;
 
@@ -5815,6 +5996,42 @@ const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
     message:
         r"""JS interop classes do not support [] and []= operator methods.""",
     tip: r"""Try replacing with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateJsInteropJSClassExtendsDartClass = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""JS interop class '#name' cannot extend Dart class '#name2'.""",
+    tipTemplate:
+        r"""Try removing the JS interop annotation or adding it to the parent class.""",
+    withArguments: _withArgumentsJsInteropJSClassExtendsDartClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropJSClassExtendsDartClass =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropJSClassExtendsDartClass",
+  templateJsInteropJSClassExtendsDartClass,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropJSClassExtendsDartClass(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropJSClassExtendsDartClass,
+      message:
+          """JS interop class '${name}' cannot extend Dart class '${name2}'.""",
+      tip:
+          """Try removing the JS interop annotation or adding it to the parent class.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropNamedParameters = messageJsInteropNamedParameters;
@@ -8497,7 +8714,7 @@ const Template<
             _names)> templateStrongModeNNBDPackageOptOut = const Template<
         Message Function(List<String> _names)>(
     messageTemplate:
-        r"""Cannot run with sound null safety as one or more dependencies do not
+        r"""This project cannot run with sound null safety, because one or more project dependencies do not
 support null safety:
 
 #names
@@ -8520,7 +8737,7 @@ Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
   String names = itemizeNames(_names);
   return new Message(codeStrongModeNNBDPackageOptOut,
       message:
-          """Cannot run with sound null safety as one or more dependencies do not
+          """This project cannot run with sound null safety, because one or more project dependencies do not
 support null safety:
 
 ${names}
@@ -8529,6 +8746,16 @@ Run 'pub outdated --mode=null-safety' to determine if versions of your
 dependencies supporting null safety are available.""",
       arguments: {'names': _names});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStrongWithWeakDillLibrary =
+    messageStrongWithWeakDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStrongWithWeakDillLibrary = const MessageCode(
+    "StrongWithWeakDillLibrary",
+    message:
+        r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
@@ -8844,6 +9071,16 @@ const MessageCode messageThisAsIdentifier = const MessageCode(
     "ThisAsIdentifier",
     analyzerCodes: <String>["INVALID_REFERENCE_TO_THIS"],
     message: r"""Expected identifier, but got 'this'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeThisInNullAwareReceiver = messageThisInNullAwareReceiver;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageThisInNullAwareReceiver = const MessageCode(
+    "ThisInNullAwareReceiver",
+    severity: Severity.warning,
+    message: r"""The receiver 'this' cannot be null.""",
+    tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
@@ -9488,6 +9725,16 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
     index: 100,
     message: r"""Type 'void' can't have type arguments.""",
     tip: r"""Try removing the type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakWithStrongDillLibrary =
+    messageWeakWithStrongDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakWithStrongDillLibrary = const MessageCode(
+    "WeakWithStrongDillLibrary",
+    message:
+        r"""Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

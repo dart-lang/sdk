@@ -255,7 +255,7 @@ DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
-  return Object::null();
+  UNREACHABLE();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
@@ -385,7 +385,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
     args.SetAt(1, extract);
   }
   const Object& result =
-      Object::Handle(zone, DartEntry::InvokeClosure(args, args_desc));
+      Object::Handle(zone, DartEntry::InvokeClosure(thread, args, args_desc));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();

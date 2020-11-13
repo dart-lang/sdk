@@ -444,6 +444,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::data_offset();
+    case kTypeArgumentsCid:
+      return TypeArguments::types_offset();
     case kOneByteStringCid:
       return OneByteString::data_offset();
     case kTwoByteStringCid:
@@ -462,6 +464,7 @@ word Instance::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kTypeArgumentsCid:
       return kWordSize;
     case kOneByteStringCid:
       return dart::OneByteString::kBytesPerElement;
@@ -724,8 +727,8 @@ uword Thread::vm_execution_state() {
   return dart::Thread::ExecutionState::kThreadInVM;
 }
 
-uword Thread::vm_tag_compiled_id() {
-  return dart::VMTag::kDartCompiledTagId;
+uword Thread::vm_tag_dart_id() {
+  return dart::VMTag::kDartTagId;
 }
 
 uword Thread::exit_through_runtime_call() {
@@ -882,6 +885,11 @@ word Array::NextFieldOffset() {
   return -kWordSize;
 }
 
+intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
+  return dart::Array::index_at_offset(
+      TranslateOffsetInWordsToHost(offset_in_bytes));
+}
+
 word GrowableObjectArray::NextFieldOffset() {
   return -kWordSize;
 }
@@ -924,6 +932,10 @@ word Mint::NextFieldOffset() {
 
 word String::NextFieldOffset() {
   return -kWordSize;
+}
+
+word String::InstanceSize(word payload_size) {
+  return RoundedAllocationSize(String::InstanceSize() + payload_size);
 }
 
 word OneByteString::NextFieldOffset() {
@@ -990,10 +1002,6 @@ word KernelProgramInfo::NextFieldOffset() {
   return -kWordSize;
 }
 
-word Bytecode::NextFieldOffset() {
-  return -kWordSize;
-}
-
 word PcDescriptors::NextFieldOffset() {
   return -kWordSize;
 }
@@ -1015,10 +1023,6 @@ word ExceptionHandlers::NextFieldOffset() {
 }
 
 word ContextScope::NextFieldOffset() {
-  return -kWordSize;
-}
-
-word ParameterTypeCheck::NextFieldOffset() {
   return -kWordSize;
 }
 

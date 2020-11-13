@@ -5,6 +5,8 @@
 
 // Find the newest commit that has a full set of results on the bots.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

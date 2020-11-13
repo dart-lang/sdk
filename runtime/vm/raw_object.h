@@ -92,8 +92,6 @@ enum TypedDataElementType {
   friend class object;                                                         \
   friend class ObjectLayout;                                                   \
   friend class Heap;                                                           \
-  friend class Interpreter;                                                    \
-  friend class InterpreterHelpers;                                             \
   friend class Simulator;                                                      \
   friend class SimulatorHelpers;                                               \
   friend class OffsetsTable;                                                   \
@@ -694,8 +692,6 @@ class ObjectLayout {
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
-  friend class Interpreter;
-  friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   friend class ObjectLocator;
@@ -804,9 +800,7 @@ class ClassLayout : public ObjectLayout {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
-  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
-  uint32_t binary_declaration_;
+  uint32_t kernel_offset_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Instance;
@@ -943,7 +937,7 @@ class FunctionLayout : public ObjectLayout {
   // an integer or a double. It includes the two bits for the receiver, even
   // though currently we do not have information from TFA that allows the
   // receiver to be unboxed.
-  class UnboxedParameterBitmap {
+  class alignas(8) UnboxedParameterBitmap {
    public:
     static constexpr intptr_t kBitsPerParameter = 2;
     static constexpr intptr_t kParameterBitmask = (1 << kBitsPerParameter) - 1;
@@ -1044,7 +1038,6 @@ class FunctionLayout : public ObjectLayout {
     return reinterpret_cast<ObjectPtr*>(&ic_data_array_);
   }
   CodePtr code_;  // Currently active code. Accessed from generated code.
-  NOT_IN_PRECOMPILED(BytecodePtr bytecode_);
   NOT_IN_PRECOMPILED(CodePtr unoptimized_code_);  // Unoptimized code, keep it
                                                   // after optimization.
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1053,6 +1046,7 @@ class FunctionLayout : public ObjectLayout {
   VISIT_TO(ObjectPtr, unoptimized_code_);
 #endif
 
+  NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
   uint32_t kind_tag_;  // See Function::KindTagBits.
@@ -1093,17 +1087,13 @@ class FunctionLayout : public ObjectLayout {
   F(int, int8_t, inlining_depth)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
-  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
-  uint32_t binary_declaration_;
+  uint32_t kernel_offset_;
 
 #define DECLARE(return_type, type, name) type name##_;
   JIT_FUNCTION_COUNTERS(DECLARE)
 #undef DECLARE
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-  NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
 };
 
 class ClosureDataLayout : public ObjectLayout {
@@ -1115,7 +1105,11 @@ class ClosureDataLayout : public ObjectLayout {
   FunctionPtr parent_function_;  // Enclosing function of this local function.
   TypePtr signature_type_;
   InstancePtr closure_;  // Closure object for static implicit closures.
-  VISIT_TO(ObjectPtr, closure_);
+  // Instantiate-to-bounds TAV for use when no TAV is provided.
+  TypeArgumentsPtr default_type_arguments_;
+  // Additional information about the instantiate-to-bounds TAV.
+  SmiPtr default_type_arguments_info_;
+  VISIT_TO(ObjectPtr, default_type_arguments_info_);
 
   friend class Function;
 };
@@ -1222,9 +1216,7 @@ class FieldLayout : public ObjectLayout {
                                 // kInvalidCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
-  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
-  uint32_t binary_declaration_;
+  uint32_t kernel_offset_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Offset to the guarded length field inside an instance of class matching
@@ -1372,9 +1364,7 @@ class LibraryLayout : public ObjectLayout {
   uint8_t flags_;         // BitField for LibraryFlags.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
-  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
-  uint32_t binary_declaration_;
+  uint32_t kernel_offset_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Class;
@@ -1405,7 +1395,6 @@ class KernelProgramInfoLayout : public ObjectLayout {
   ExternalTypedDataPtr metadata_mappings_;
   ArrayPtr scripts_;
   ArrayPtr constants_;
-  ArrayPtr bytecode_component_;
   GrowableObjectArrayPtr potential_natives_;
   GrowableObjectArrayPtr potential_pragma_functions_;
   ExternalTypedDataPtr constants_table_;
@@ -1547,39 +1536,6 @@ class CodeLayout : public ObjectLayout {
   friend class UnitSerializationRoots;
   friend class UnitDeserializationRoots;
   friend class CallSiteResetter;
-};
-
-class BytecodeLayout : public ObjectLayout {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
-
-  uword instructions_;
-  intptr_t instructions_size_;
-
-  VISIT_FROM(ObjectPtr, object_pool_);
-  ObjectPoolPtr object_pool_;
-  FunctionPtr function_;
-  ArrayPtr closures_;
-  ExceptionHandlersPtr exception_handlers_;
-  PcDescriptorsPtr pc_descriptors_;
-  NOT_IN_PRODUCT(LocalVarDescriptorsPtr var_descriptors_);
-#if defined(PRODUCT)
-  VISIT_TO(ObjectPtr, pc_descriptors_);
-#else
-  VISIT_TO(ObjectPtr, var_descriptors_);
-#endif
-
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<ObjectPtr*>(&pc_descriptors_);
-  }
-
-  int32_t instructions_binary_offset_;
-  int32_t source_positions_binary_offset_;
-  int32_t local_variables_binary_offset_;
-
-  static bool ContainsPC(ObjectPtr raw_obj, uword pc);
-
-  friend class Function;
-  friend class StackFrame;
 };
 
 class ObjectPoolLayout : public ObjectLayout {
@@ -2010,18 +1966,6 @@ class ContextScopeLayout : public ObjectLayout {
   friend class SnapshotReader;
 };
 
-class ParameterTypeCheckLayout : public ObjectLayout {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ParameterTypeCheck);
-  intptr_t index_;
-  VISIT_FROM(ObjectPtr, param_);
-  AbstractTypePtr param_;
-  AbstractTypePtr type_or_bound_;
-  StringPtr name_;
-  SubtypeTestCachePtr cache_;
-  VISIT_TO(ObjectPtr, cache_);
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
 class SingleTargetCacheLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
   VISIT_FROM(ObjectPtr, target_);
@@ -2289,6 +2233,11 @@ class TypeParameterLayout : public AbstractTypeLayout {
   StringPtr name_;
   SmiPtr hash_;
   AbstractTypePtr bound_;  // ObjectType if no explicit bound specified.
+  // The instantiation to bounds of this parameter as calculated by the CFE.
+  //
+  // TODO(dartbug.com/43901): Once a separate TypeParameters class has been
+  // added, move these there and remove them from TypeParameter objects.
+  AbstractTypePtr default_argument_;
   FunctionPtr parameterized_function_;
   VISIT_TO(ObjectPtr, parameterized_function_)
   ClassIdTagType parameterized_class_id_;
@@ -2297,6 +2246,7 @@ class TypeParameterLayout : public AbstractTypeLayout {
   uint8_t flags_;
   int8_t nullability_;
 
+ public:
   using FinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
   using GenericCovariantImplBit =
       BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
@@ -2304,6 +2254,7 @@ class TypeParameterLayout : public AbstractTypeLayout {
       BitField<decltype(flags_), bool, GenericCovariantImplBit::kNextBit, 1>;
   static constexpr intptr_t kFlagsBitSize = DeclarationBit::kNextBit;
 
+ private:
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
@@ -2733,8 +2684,6 @@ class ExternalTypedDataLayout : public TypedDataBaseLayout {
  protected:
   VISIT_FROM(RawCompressed, length_)
   VISIT_TO(RawCompressed, length_)
-
-  friend class BytecodeLayout;
 };
 
 class PointerLayout : public PointerBaseLayout {
@@ -2777,7 +2726,13 @@ class ReceivePortLayout : public InstanceLayout {
   VISIT_FROM(ObjectPtr, send_port_)
   SendPortPtr send_port_;
   InstancePtr handler_;
-  VISIT_TO(ObjectPtr, handler_)
+#if !defined(PRODUCT)
+  StringPtr debug_name_;
+  StackTracePtr allocation_location_;
+  VISIT_TO(ObjectPtr, allocation_location_)
+#else
+  VISIT_TO(ObjectPtr, handler_);
+#endif  // !defined(PRODUCT)
 };
 
 class TransferableTypedDataLayout : public InstanceLayout {

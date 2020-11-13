@@ -1,7 +1,7 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return () → dart.core::Null? {
+  return () → Null {
     new main::A::•<dynamic>();
     #C2;
   };

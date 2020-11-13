@@ -10,11 +10,11 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class ViewFooterElement extends CustomElement implements Renderable {
-  RenderingScheduler<ViewFooterElement> _r;
+  late RenderingScheduler<ViewFooterElement> _r;
 
   Stream<RenderedEvent<ViewFooterElement>> get onRendered => _r.onRendered;
 
-  factory ViewFooterElement({RenderingQueue queue}) {
+  factory ViewFooterElement({RenderingQueue? queue}) {
     ViewFooterElement e = new ViewFooterElement.created();
     e._r = new RenderingScheduler<ViewFooterElement>(e, queue: queue);
     return e;

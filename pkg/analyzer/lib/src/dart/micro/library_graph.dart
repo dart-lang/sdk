@@ -90,6 +90,9 @@ class FileState {
   UnlinkedUnit2 unlinked2;
   LibraryCycle _libraryCycle;
 
+  /// id of the cache entry.
+  int id;
+
   FileState._(
     this._fsState,
     this.path,
@@ -219,7 +222,8 @@ class FileState {
     // Prepare bytes of the unlinked bundle - existing or new.
     List<int> bytes;
     {
-      bytes = _fsState._byteStore.get(unlinkedKey, _digest);
+      var cacheData = _fsState._byteStore.get(unlinkedKey, _digest);
+      bytes = cacheData?.bytes;
 
       if (bytes == null || bytes.isEmpty) {
         var content = performance.run('content', (_) {
@@ -236,7 +240,8 @@ class FileState {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
           performance.getDataInt('length').add(bytes.length);
-          _fsState._byteStore.put(unlinkedKey, _digest, bytes);
+          cacheData = _fsState._byteStore.putGet(unlinkedKey, _digest, bytes);
+          bytes = cacheData.bytes;
         });
 
         performance.run('prefetch', (_) {
@@ -244,6 +249,7 @@ class FileState {
           _prefetchDirectReferences(unlinked2);
         });
       }
+      id = cacheData.id;
     }
 
     // Read the unlinked bundle.
@@ -515,6 +521,19 @@ class FileSystemState {
     return featureSetProvider.getFeatureSet(path, uri);
   }
 
+  Version contextLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspaceLanguageVersion = workspacePackage?.languageVersion;
+    if (workspaceLanguageVersion != null) {
+      return workspaceLanguageVersion;
+    }
+
+    return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
   FileState getFileForPath({
     @required String path,
     @required OperationPerformanceImpl performance,
@@ -530,7 +549,7 @@ class FileSystemState {
       var workspacePackage = _workspace?.findPackageFor(path);
       var featureSet = contextFeatureSet(path, uri, workspacePackage);
       var packageLanguageVersion =
-          featureSetProvider.getLanguageVersion(path, uri);
+          contextLanguageVersion(path, uri, workspacePackage);
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,
           packageLanguageVersion);
 
@@ -561,7 +580,7 @@ class FileSystemState {
       var workspacePackage = _workspace?.findPackageFor(path);
       var featureSet = contextFeatureSet(path, uri, workspacePackage);
       var packageLanguageVersion =
-          featureSetProvider.getLanguageVersion(path, uri);
+          contextLanguageVersion(path, uri, workspacePackage);
 
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,
           packageLanguageVersion);
@@ -644,6 +663,9 @@ class LibraryCycle {
 
   /// The hash of all the paths of the files in this cycle.
   String cyclePathsHash;
+
+  /// id of the cache entry.
+  int id;
 
   LibraryCycle();
 

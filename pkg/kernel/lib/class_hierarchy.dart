@@ -29,8 +29,8 @@ abstract class ClassHierarchyBase {
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes);
+  InterfaceType getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, Library clientLibrary);
 
   /// Returns the type arguments of the instantiation of [superclass] that is
   /// implemented by [type], or `null` if [type] does not implement [superclass]
@@ -163,6 +163,16 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
   /// True if the given class is used as the right-hand operand to a
   /// mixin application (i.e. [Class.mixedInType]).
   bool isUsedAsMixin(Class class_);
+
+  /// True if the given class is extended by another class using `extends`.
+  bool isExtended(Class class_);
+
+  /// Returns the set of libraries for which this class hierarchy can be
+  /// queried.
+  ///
+  /// Classes outside the set of known libraries are not part of the internal
+  /// model and queries about such classes will fail.
+  Iterable<Library> get knownLibraries;
 
   /// Invokes [callback] for every member declared in or inherited by [class_]
   /// that overrides or implements a member in a supertype of [class_]
@@ -547,6 +557,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return infoFor(class_).directMixers.isNotEmpty;
   }
 
+  @override
+  bool isExtended(Class class_) {
+    return infoFor(class_).directExtenders.isNotEmpty;
+  }
+
   List<_ClassInfo> _getRankedSuperclassInfos(_ClassInfo info) {
     if (info.leastUpperBoundInfos != null) return info.leastUpperBoundInfos;
     var heap = new _LubHeap()..add(info);
@@ -598,8 +613,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-in libraries the
     // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
     if (!clientLibrary.isNonNullableByDefault) {
-      if (type1 == coreTypes.nullType) return type2;
-      if (type2 == coreTypes.nullType) return type1;
+      if (type1 is NullType) return type2;
+      if (type2 is NullType) return type1;
     }
 
     _ClassInfo info1 = infoFor(type1.classNode);
@@ -707,16 +722,15 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
+  InterfaceType getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, Library clientLibrary) {
     List<DartType> typeArguments =
         getTypeArgumentsAsInstanceOf(type, superclass);
     if (typeArguments == null) return null;
     // The return value should be a legacy type if it's computed for an
     // opted-out library, unless the return value is Null? which is always
     // nullable.
-    Nullability nullability = superclass == coreTypes.nullClass ||
-            clientLibrary.isNonNullableByDefault
+    Nullability nullability = clientLibrary.isNonNullableByDefault
         ? type.nullability
         : Nullability.legacy;
     return new InterfaceType(superclass, nullability, typeArguments);
@@ -750,7 +764,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
     List<Member> list =
         _buildImplementedMembers(class_, infoFor(class_), setters: setter);
-    return ClassHierarchy.findMemberByName(list, name);
+    Member member = ClassHierarchy.findMemberByName(list, name);
+    assert(
+        member == null || !member.isAbstract,
+        "Abstract member $member found as dispatch target "
+        "for $name on $class_");
+    return member;
   }
 
   @override

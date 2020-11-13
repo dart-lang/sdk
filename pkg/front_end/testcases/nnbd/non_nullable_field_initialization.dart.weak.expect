@@ -93,7 +93,7 @@ class C<X extends core::Object? = core::Object?, Y extends core::Object = core::
   generic-covariant-impl field self::C::X? fieldOfX = null;
   field core::int? fieldOfX2 = null;
   field dynamic fieldOfX3 = null;
-  field core::Null? fieldOfX4 = null;
+  field Null fieldOfX4 = null;
   field () →? core::int fieldOfX5 = null;
   generic-covariant-impl field self::C::Y? fieldOfX6 = null;
   late static field core::int lateStaticFieldOfC;
@@ -114,7 +114,7 @@ abstract class L<X extends core::Object? = core::Object?, Y extends core::Object
   generic-covariant-impl field self::L::X? fieldOfL = null;
   field core::int? fieldOfL2 = null;
   field dynamic fieldOfL3 = null;
-  field core::Null? fieldOfL4 = null;
+  field Null fieldOfL4 = null;
   field () →? core::int fieldOfL5 = null;
   generic-covariant-impl field self::L::Y? fieldOfL6 = null;
   late static field core::int lateStaticFieldOfM;

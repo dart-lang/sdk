@@ -57,7 +57,7 @@ static method nullableFunctionContext(() →? core::int f) → dynamic {}
 static method foo<T extends self::C? = self::C?>(self::C? c, self::foo::T% t, self::foo::T? nt) → dynamic {
   self::functionContext(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:14:24: Error: Can't tear off method 'call' from a potentially null value.
   functionContext(null as C?); // Error.
-                       ^" in let core::Null? #t2 = null in #t2.==(null) ?{() → core::int} #t2 as{TypeError} () → core::int : #t2{() → core::int});
+                       ^" in let Null #t2 = null in #t2.==(null) ?{() → core::int} #t2 as{TypeError} () → core::int : #t2{() → core::int});
   self::nullableFunctionContext(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:15:32: Error: Can't tear off method 'call' from a potentially null value.
   nullableFunctionContext(null as C?); // Error.
                                ^" in null);

@@ -48,7 +48,10 @@ void nonNullAsserts(bool enable) {
 bool _nativeNonNullAsserts = false;
 
 /// Enables null assertions on native APIs to make sure value returned from the
-/// browser is sound. These apply to dart:html and similar web libraries.
+/// browser is sound.
+///
+/// These apply to dart:html and similar web libraries. Note that these only are
+/// added in sound null-safety only.
 void nativeNonNullAsserts(bool enable) {
   _nativeNonNullAsserts = enable;
 }
@@ -932,11 +935,11 @@ class GenericFunctionType extends AbstractFunctionType {
   List<TypeVariable> get typeFormals => _typeFormals;
 
   /// `true` if there are bounds on any of the generic type parameters.
-  get hasTypeBounds => _instantiateTypeBounds != null;
+  bool get hasTypeBounds => _instantiateTypeBounds != null;
 
   /// Checks that [typeArgs] satisfies the upper bounds of the [typeFormals],
   /// and throws a [TypeError] if they do not.
-  void checkBounds(List typeArgs) {
+  void checkBounds(List<Object> typeArgs) {
     // If we don't have explicit type parameter bounds, the bounds default to
     // a top type, so there's nothing to check here.
     if (!hasTypeBounds) return;
@@ -1290,7 +1293,7 @@ _isFunctionSubtype(ft1, ft2, @notNull bool strictMode) => JS('', '''(() => {
 
 /// Returns true if [t1] <: [t2].
 @notNull
-bool isSubtypeOf(@notNull Object t1, @notNull Object t2) {
+bool isSubtypeOf(@notNull t1, @notNull t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
   var map = JS<Object>('!', '#[#]', t1, _subtypeCache);
@@ -2042,7 +2045,7 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
   // Check interfaces.
   var getInterfaces = getImplements(subtype);
   if (getInterfaces != null) {
-    for (var iface in getInterfaces()!) {
+    for (var iface in getInterfaces()) {
       result = _getMatchingSupertype(iface, supertype);
       if (result != null) return result;
     }

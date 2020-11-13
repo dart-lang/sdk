@@ -158,7 +158,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitMethodInvocation(MethodInvocation node) {
     return new MethodInvocation.byReference(clone(node.receiver), node.name,
-        clone(node.arguments), node.interfaceTargetReference);
+        clone(node.arguments), node.interfaceTargetReference)
+      ..flags = node.flags;
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
@@ -330,7 +331,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitBlock(Block node) {
-    return new Block(node.statements.map(clone).toList());
+    return new Block(node.statements.map(clone).toList())
+      ..fileOffset = _cloneFileOffset(node.fileOffset);
   }
 
   visitAssertBlock(AssertBlock node) {
@@ -639,7 +641,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  cloneProcedure(Procedure node, Procedure referenceFrom) {
+  Procedure cloneProcedure(Procedure node, Procedure referenceFrom) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
@@ -663,7 +665,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  cloneField(Field node, Field referenceFrom) {
+  Field cloneField(Field node, Field referenceFrom) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
@@ -679,7 +681,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,
-        reference: referenceFrom?.reference)
+        getterReference: referenceFrom?.getterReference,
+        setterReference: referenceFrom?.setterReference)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]
@@ -691,7 +694,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  cloneRedirectingFactoryConstructor(RedirectingFactoryConstructor node,
+  RedirectingFactoryConstructor cloneRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor node,
       RedirectingFactoryConstructor referenceFrom) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;

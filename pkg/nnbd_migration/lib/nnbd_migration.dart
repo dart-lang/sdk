@@ -17,6 +17,11 @@ export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
 
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
+  /// An import was added to the library.
+  static const addImport = NullabilityFixDescription._(
+      appliedMessage: 'Added import for use in migrated code',
+      kind: NullabilityFixKind.addImport);
+
   /// A variable declaration needs to be marked as "late".
   static const addLate = NullabilityFixDescription._(
       appliedMessage: 'Added a late keyword', kind: NullabilityFixKind.addLate);
@@ -32,6 +37,12 @@ class NullabilityFixDescription {
   static const addLateDueToTestSetup = NullabilityFixDescription._(
       appliedMessage: 'Added a late keyword, due to assignment in `setUp`',
       kind: NullabilityFixKind.addLateDueToTestSetup);
+
+  /// A variable declaration needs to be marked as "late" and "final" due to the
+  /// presence of a `/*late final*/` hint.
+  static const addLateFinalDueToHint = NullabilityFixDescription._(
+      appliedMessage: 'Added late and final keywords, due to a hint',
+      kind: NullabilityFixKind.addLateFinalDueToHint);
 
   /// An expression's value needs to be null-checked.
   static const checkExpression = NullabilityFixDescription._(
@@ -106,6 +117,12 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.downcastExpression,
   );
 
+  /// Informative message: there is no valid migration for `null` in a
+  /// non-nullable context.
+  static const noValidMigrationForNull = NullabilityFixDescription._(
+      appliedMessage: 'No valid migration for `null` in a non-nullable context',
+      kind: NullabilityFixKind.noValidMigrationForNull);
+
   /// Informative message: a null-aware access won't be necessary in strong
   /// checking mode.
   static const nullAwarenessUnnecessaryInStrongMode =
@@ -175,6 +192,13 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.replaceVar,
       );
 
+  /// A method call was changed from calling one method to another.
+  factory NullabilityFixDescription.changeMethodName(
+          String oldName, String newName) =>
+      NullabilityFixDescription._(
+          appliedMessage: "Changed method '$oldName' to '$newName'",
+          kind: NullabilityFixKind.changeMethodName);
+
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
@@ -216,7 +240,9 @@ class NullabilityFixDescription {
       );
 
   const NullabilityFixDescription._(
-      {@required this.appliedMessage, @required this.kind});
+      {@required this.appliedMessage, @required this.kind})
+      : assert(appliedMessage != null),
+        assert(kind != null);
 
   @override
   int get hashCode {
@@ -239,11 +265,14 @@ class NullabilityFixDescription {
 
 /// An enumeration of the various kinds of nullability fixes.
 enum NullabilityFixKind {
+  addImport,
   addLate,
   addLateDueToHint,
   addLateDueToTestSetup,
+  addLateFinalDueToHint,
   addRequired,
   addType,
+  changeMethodName,
   checkExpression,
   checkExpressionDueToHint,
   compoundAssignmentHasNullableSource,
@@ -253,6 +282,7 @@ enum NullabilityFixKind {
   downcastExpression,
   makeTypeNullable,
   makeTypeNullableDueToHint,
+  noValidMigrationForNull,
   nullAwarenessUnnecessaryInStrongMode,
   nullAwareAssignmentUnnecessaryInStrongMode,
   otherCastExpression,
@@ -284,12 +314,18 @@ abstract class NullabilityMigration {
   /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
+  ///
+  /// Optional parameter [transformWhereOrNull] indicates whether Iterable
+  /// methods should be transformed to their "OrNull" equivalents when possible.
+  /// This feature is a work in progress, so by default they are not
+  /// transformed.
   factory NullabilityMigration(NullabilityMigrationListener listener,
       LineInfo Function(String) getLineInfo,
       {bool permissive,
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments,
-      bool warnOnWeakCode}) = NullabilityMigrationImpl;
+      bool warnOnWeakCode,
+      bool transformWhereOrNull}) = NullabilityMigrationImpl;
 
   /// Check if this migration is being run permissively.
   bool get isPermissive;
@@ -297,6 +333,11 @@ abstract class NullabilityMigration {
   void finalizeInput(ResolvedUnitResult result);
 
   void finish();
+
+  /// Use this getter after any calls to [prepareInput] to obtain a list of URIs
+  /// of unmigrated dependencies.  Ideally, this list should be empty before the
+  /// user tries to migrate their package.
+  List<String> get unmigratedDependencies;
 
   void prepareInput(ResolvedUnitResult result);
 

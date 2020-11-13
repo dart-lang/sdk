@@ -13,6 +13,7 @@ import 'package:kernel/type_algebra.dart';
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
+import '../kernel/member_covariance.dart';
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -81,6 +82,8 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   Procedure get actualProcedure => _procedure;
 
+  final bool isExtensionInstanceMember;
+
   ProcedureBuilderImpl(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -95,8 +98,10 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
       this.charOpenParenOffset,
       int charEndOffset,
       Procedure referenceFrom,
+      this.isExtensionInstanceMember,
       [String nativeMethodName])
-      : _procedure = new Procedure(null, kind, null,
+      : _procedure = new Procedure(
+            null, isExtensionInstanceMember ? ProcedureKind.Method : kind, null,
             fileUri: compilationUnit.fileUri,
             reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
@@ -227,6 +232,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       Procedure referenceFrom,
       this._tearOffReferenceFrom,
       AsyncMarker asyncModifier,
+      bool isExtensionInstanceMember,
       [String nativeMethodName])
       : super(
             metadata,
@@ -242,6 +248,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
             charOpenParenOffset,
             charEndOffset,
             referenceFrom,
+            isExtensionInstanceMember,
             nativeMethodName) {
     this.asyncModifier = asyncModifier;
   }
@@ -317,6 +324,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   }
 
   @override
+  Iterable<Member> get exportedMembers => [procedure];
+
+  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
@@ -362,7 +372,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         _procedure.isExtensionMember = true;
         _procedure.isStatic = true;
         if (isExtensionInstanceMember) {
-          _procedure.kind = ProcedureKind.Method;
+          assert(_procedure.kind == ProcedureKind.Method);
         }
         _procedure.name = new Name(
             createProcedureName(true, !isExtensionInstanceMember, kind,
@@ -524,24 +534,29 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
 
-    FunctionExpression closure = new FunctionExpression(new FunctionNode(
-        closureBody,
-        typeParameters: closureTypeParameters,
-        positionalParameters: closurePositionalParameters,
-        namedParameters: closureNamedParameters,
-        requiredParameterCount: _procedure.function.requiredParameterCount - 1,
-        returnType: closureReturnType))
+    FunctionExpression closure = new FunctionExpression(
+        new FunctionNode(closureBody,
+            typeParameters: closureTypeParameters,
+            positionalParameters: closurePositionalParameters,
+            namedParameters: closureNamedParameters,
+            requiredParameterCount:
+                _procedure.function.requiredParameterCount - 1,
+            returnType: closureReturnType)
+          ..fileOffset = fileOffset
+          ..fileEndOffset = fileEndOffset)
       ..fileOffset = fileOffset;
 
     _extensionTearOff
       ..name = new Name(
           '${extensionBuilder.name}|get#${name}', libraryBuilder.library)
-      ..function = new FunctionNode(
+      ..function = (new FunctionNode(
           new ReturnStatement(closure)..fileOffset = fileOffset,
           typeParameters: tearOffTypeParameters,
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
           returnType: closure.function.computeFunctionType(library.nonNullable))
+        ..fileOffset = fileOffset
+        ..fileEndOffset = fileEndOffset)
       ..fileUri = fileUri
       ..fileOffset = fileOffset
       ..fileEndOffset = fileEndOffset;
@@ -585,6 +600,8 @@ class SourceProcedureMember extends BuilderClassMember {
   @override
   final SourceProcedureBuilder memberBuilder;
 
+  Covariance _covariance;
+
   SourceProcedureMember(this.memberBuilder);
 
   @override
@@ -604,6 +621,12 @@ class SourceProcedureMember extends BuilderClassMember {
   Member getMember(ClassHierarchyBuilder hierarchy) {
     memberBuilder._ensureTypes(hierarchy);
     return memberBuilder.member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??=
+        new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter);
   }
 
   @override
@@ -657,6 +680,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             charOpenParenOffset,
             charEndOffset,
             referenceFrom,
+            /* isExtensionInstanceMember = */ false,
             nativeMethodName);
 
   @override
@@ -667,6 +691,9 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  Iterable<Member> get exportedMembers => [procedure];
 
   @override
   Statement get body => bodyInternal;
@@ -742,7 +769,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     super.buildOutlineExpressions(library, coreTypes);
     LibraryBuilder thisLibrary = this.library;
     if (thisLibrary is SourceLibraryBuilder) {
-      RedirectingFactoryBody redirectingFactoryBody = member.function.body;
+      RedirectingFactoryBody redirectingFactoryBody = procedure.function.body;
       if (redirectingFactoryBody.typeArguments != null &&
           redirectingFactoryBody.typeArguments.any((t) => t is UnknownType)) {
         TypeInferrerImpl inferrer = thisLibrary.loader.typeInferenceEngine
@@ -766,6 +793,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           List<Expression> positionalArguments = <Expression>[];
           for (VariableDeclaration parameter
               in member.function.positionalParameters) {
+            inferrer.flowAnalysis?.declare(parameter, true);
             positionalArguments.add(new VariableGetImpl(
                 parameter,
                 inferrer.typePromoter.getFactForAccess(parameter, 0),
@@ -775,6 +803,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           List<NamedExpression> namedArguments = <NamedExpression>[];
           for (VariableDeclaration parameter
               in member.function.namedParameters) {
+            inferrer.flowAnalysis?.declare(parameter, true);
             namedArguments.add(new NamedExpression(
                 parameter.name,
                 new VariableGetImpl(

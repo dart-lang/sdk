@@ -705,6 +705,9 @@ class Assembler : public AssemblerBase {
   void AddImmediate(Register reg,
                     const Immediate& imm,
                     OperandWidth width = k64Bit);
+  void AddImmediate(Register reg, int32_t value, OperandWidth width = k64Bit) {
+    AddImmediate(reg, Immediate(value), width);
+  }
   void AddImmediate(const Address& address, const Immediate& imm);
   void SubImmediate(Register reg,
                     const Immediate& imm,
@@ -826,9 +829,9 @@ class Assembler : public AssemblerBase {
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   // Call runtime function. Reserves shadow space on the stack before calling
-  // if platform ABI requires that. Does not restore RSP after the call itself.
-  void CallCFunction(Register reg);
-  void CallCFunction(Address address);
+  // if platform ABI requires that.
+  void CallCFunction(Register reg, bool restore_rsp = false);
+  void CallCFunction(Address address, bool restore_rsp = false);
 
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
@@ -1030,7 +1033,7 @@ class Assembler : public AssemblerBase {
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
-  void LoadWordFromPoolOffset(Register dst, int32_t offset);
+  void LoadWordFromPoolIndex(Register dst, intptr_t index);
 
   void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void AluB(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);

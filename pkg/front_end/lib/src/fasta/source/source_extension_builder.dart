@@ -146,10 +146,20 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
                   break;
               }
               assert(kind != null);
-              libraryBuilder.library.addMember(member);
+              Reference memberReference;
+              if (member is Field) {
+                libraryBuilder.library.addField(member);
+                memberReference = member.getterReference;
+              } else if (member is Procedure) {
+                libraryBuilder.library.addProcedure(member);
+                memberReference = member.reference;
+              } else {
+                unhandled("${member.runtimeType}", "buildBuilders",
+                    member.fileOffset, member.fileUri);
+              }
               extension.members.add(new ExtensionMemberDescriptor(
                   name: new Name(memberBuilder.name, libraryBuilder.library),
-                  member: member.reference,
+                  member: memberReference,
                   isStatic: declaration.isStatic,
                   kind: kind));
             }

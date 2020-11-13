@@ -259,7 +259,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var element = node.declaredElement as GenericTypeAliasElementImpl;
+    var element = node.declaredElement as FunctionTypeAliasElementImpl;
     reference = element.reference;
 
     _createTypeParameterElements(node.typeParameters);
@@ -340,7 +340,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var element = node.declaredElement as GenericTypeAliasElementImpl;
+    var element = node.declaredElement as FunctionTypeAliasElementImpl;
     reference = element.reference;
 
     _createTypeParameterElements(node.typeParameters);
@@ -443,14 +443,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     if (typeIdentifier is PrefixedIdentifier) {
       var prefix = typeIdentifier.prefix;
       var prefixName = prefix.name;
-      var prefixElement = scope.lookup2(prefixName).getter;
+      var prefixElement = scope.lookup(prefixName).getter;
       prefix.staticElement = prefixElement;
 
       if (prefixElement is PrefixElement) {
         var nameNode = typeIdentifier.identifier;
         var name = nameNode.name;
 
-        element = prefixElement.scope.lookup2(name).getter;
+        element = prefixElement.scope.lookup(name).getter;
         nameNode.staticElement = element;
       }
     } else {
@@ -462,7 +462,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         return;
       }
 
-      element = scope.lookup2(name).getter;
+      element = scope.lookup(name).getter;
       nameNode.staticElement = element;
     }
 

@@ -15,7 +15,6 @@
 /// outlines).
 library front_end.tool.perf;
 
-import 'dart:async';
 import 'dart:io' show Directory, File, Platform, exit;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';

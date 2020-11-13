@@ -210,7 +210,6 @@ KernelLoader::KernelLoader(Program* program,
                        &active_class_,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
-      bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -450,8 +449,6 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
     script = LoadScriptAt(index, uri_to_source_table);
     scripts.SetAt(index, script);
   }
-
-  bytecode_metadata_helper_.ReadBytecodeComponent();
 }
 
 KernelLoader::KernelLoader(const Script& script,
@@ -478,7 +475,6 @@ KernelLoader::KernelLoader(const Script& script,
                        &active_class_,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
-      bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -653,64 +649,49 @@ void KernelLoader::LoadNativeExtensionLibraries() {
   for (intptr_t i = 0; i < length; ++i) {
     library ^= potential_extension_libraries.At(i);
 
-    if (library.is_declared_in_bytecode()) {
-      const auto& imports = Array::Handle(Z, library.imports());
-      auto& ns = Namespace::Handle(Z);
-      auto& importee = Library::Handle(Z);
-      for (intptr_t j = 0; j < imports.Length(); ++j) {
-        ns ^= imports.At(j);
-        if (ns.IsNull()) continue;
-        importee = ns.library();
-        uri_path = importee.url();
-        if (uri_path.StartsWith(Symbols::DartExtensionScheme())) {
-          LoadNativeExtension(library, uri_path);
+    helper_.SetOffset(library.kernel_offset());
+
+    LibraryHelper library_helper(&helper_, kernel_binary_version_);
+    library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
+
+    const intptr_t annotation_count = helper_.ReadListLength();
+    for (intptr_t j = 0; j < annotation_count; ++j) {
+      uri_path = String::null();
+
+      const intptr_t tag = helper_.PeekTag();
+      if (tag == kConstantExpression) {
+        helper_.ReadByte();      // Skip the tag.
+        helper_.ReadPosition();  // Skip fileOffset.
+        helper_.SkipDartType();  // Skip type.
+
+        // We have a candidate. Let's look if it's an instance of the
+        // ExternalName class.
+        const intptr_t constant_table_offset = helper_.ReadUInt();
+        if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                               external_name_class_)) {
+          constant = constant_reader.ReadConstant(constant_table_offset);
+          ASSERT(constant.clazz() == external_name_class_.raw());
+          uri_path ^= constant.GetField(external_name_field_);
         }
+      } else if (tag == kConstructorInvocation ||
+                 tag == kConstConstructorInvocation) {
+        uri_path = DetectExternalNameCtor();
+      } else {
+        helper_.SkipExpression();
       }
-    } else {
-      helper_.SetOffset(library.kernel_offset());
 
-      LibraryHelper library_helper(&helper_, kernel_binary_version_);
-      library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
+      if (uri_path.IsNull()) continue;
 
-      const intptr_t annotation_count = helper_.ReadListLength();
-      for (intptr_t j = 0; j < annotation_count; ++j) {
-        uri_path = String::null();
+      LoadNativeExtension(library, uri_path);
 
-        const intptr_t tag = helper_.PeekTag();
-        if (tag == kConstantExpression) {
-          helper_.ReadByte();      // Skip the tag.
-          helper_.ReadPosition();  // Skip fileOffset.
-          helper_.SkipDartType();  // Skip type.
-
-          // We have a candidate. Let's look if it's an instance of the
-          // ExternalName class.
-          const intptr_t constant_table_offset = helper_.ReadUInt();
-          if (constant_reader.IsInstanceConstant(constant_table_offset,
-                                                 external_name_class_)) {
-            constant = constant_reader.ReadConstant(constant_table_offset);
-            ASSERT(constant.clazz() == external_name_class_.raw());
-            uri_path ^= constant.GetField(external_name_field_);
-          }
-        } else if (tag == kConstructorInvocation ||
-                   tag == kConstConstructorInvocation) {
-          uri_path = DetectExternalNameCtor();
-        } else {
-          helper_.SkipExpression();
-        }
-
-        if (uri_path.IsNull()) continue;
-
-        LoadNativeExtension(library, uri_path);
-
-        // Create a dummy library and add it as an import to the current
-        // library. This allows later to discover and reload this native
-        // extension, e.g. when running from an app-jit snapshot.
-        // See Loader::ReloadNativeExtensions(...) which relies on
-        // Dart_GetImportsOfScheme('dart-ext').
-        const auto& native_library = Library::Handle(Library::New(uri_path));
-        library.AddImport(Namespace::Handle(Namespace::New(
-            native_library, Array::null_array(), Array::null_array())));
-      }
+      // Create a dummy library and add it as an import to the current
+      // library. This allows later to discover and reload this native
+      // extension, e.g. when running from an app-jit snapshot.
+      // See Loader::ReloadNativeExtensions(...) which relies on
+      // Dart_GetImportsOfScheme('dart-ext').
+      const auto& native_library = Library::Handle(Library::New(uri_path));
+      library.AddImport(Namespace::Handle(Namespace::New(
+          native_library, Array::null_array(), Array::null_array())));
     }
   }
 }
@@ -734,6 +715,7 @@ void KernelLoader::LoadNativeExtension(const Library& library,
 }
 
 ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
+  SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   ASSERT(kernel_program_info_.constants() == Array::null());
 
   if (!program_->is_single_program()) {
@@ -744,12 +726,10 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    if (!bytecode_metadata_helper_.ReadLibraries()) {
-      // Note that `problemsAsJson` on Component is implicitly skipped.
-      const intptr_t length = program_->library_count();
-      for (intptr_t i = 0; i < length; i++) {
-        LoadLibrary(i);
-      }
+    // Note that `problemsAsJson` on Component is implicitly skipped.
+    const intptr_t length = program_->library_count();
+    for (intptr_t i = 0; i < length; i++) {
+      LoadLibrary(i);
     }
 
     // Finalize still pending classes if requested.
@@ -779,7 +759,7 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
       return LookupLibrary(main_library);
     }
 
-    return bytecode_metadata_helper_.GetMainLibrary();
+    return Library::null();
   }
 
   // Either class finalization failed or we caught a compile error.
@@ -790,10 +770,6 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 void KernelLoader::LoadLibrary(const Library& library) {
   ASSERT(!library.Loaded());
 
-  bytecode_metadata_helper_.ReadLibrary(library);
-  if (library.Loaded()) {
-    return;
-  }
   const auto& uri = String::Handle(Z, library.url());
   const intptr_t num_libraries = program_->library_count();
   for (intptr_t i = 0; i < num_libraries; ++i) {
@@ -839,13 +815,10 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
   // Make the expression evaluation function have the right script,
   // kernel data and parent.
   const auto& eval_script = Script::Handle(Z, function.script());
-  auto& kernel_data = ExternalTypedData::Handle(Z);
-  intptr_t kernel_offset = -1;
-  if (!function.is_declared_in_bytecode()) {
-    ASSERT(!expression_evaluation_library_.IsNull());
-    kernel_data = expression_evaluation_library_.kernel_data();
-    kernel_offset = expression_evaluation_library_.kernel_offset();
-  }
+  ASSERT(!expression_evaluation_library_.IsNull());
+  auto& kernel_data = ExternalTypedData::Handle(
+      Z, expression_evaluation_library_.kernel_data());
+  intptr_t kernel_offset = expression_evaluation_library_.kernel_offset();
   function.SetKernelDataAndScript(eval_script, kernel_data, kernel_offset);
 
   function.set_owner(real_class);
@@ -923,10 +896,6 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
                                            bool* is_empty_program,
                                            intptr_t* p_num_classes,
                                            intptr_t* p_num_procedures) {
-  if (bytecode_metadata_helper_.FindModifiedLibrariesForHotReload(
-          modified_libs, is_empty_program, p_num_classes, p_num_procedures)) {
-    return;
-  }
   intptr_t length = program_->library_count();
   *is_empty_program = *is_empty_program && (length == 0);
   bool collect_library_stats =
@@ -1039,13 +1008,17 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   Library& library =
       Library::Handle(Z, LookupLibrary(library_helper.canonical_name_));
 
-  // The Kernel library is external implies that it is already loaded.
-  ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return library.raw();
 
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
   const NNBDCompiledMode mode =
       library_helper.GetNonNullableByDefaultCompiledMode();
+  if (mode == NNBDCompiledMode::kInvalid) {
+    H.ReportError(
+        "Library '%s' was compiled in an unsupported mixed mode between sound "
+        "null safety and not sound null safety.",
+        String::Handle(library.url()).ToCString());
+  }
   if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
         "Library '%s' was compiled with sound null safety (in strong mode) and "
@@ -1053,8 +1026,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
         "requires --sound-null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
-  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
-                           mode == NNBDCompiledMode::kDisabled)) {
+  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak)) {
     H.ReportError(
         "Library '%s' was compiled without sound null safety (in weak mode) "
         "and it "
@@ -1148,7 +1120,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   if (FLAG_enable_mirrors && annotation_count > 0) {
     ASSERT(annotations_kernel_offset > 0);
     library.AddLibraryMetadata(toplevel_class, TokenPosition::kNoSource,
-                               annotations_kernel_offset, 0);
+                               annotations_kernel_offset);
   }
 
   if (register_class) {
@@ -1269,8 +1241,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     }
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
-      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
-                               0);
+      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
     }
     fields_.Add(&field);
   }
@@ -1535,7 +1506,7 @@ void KernelLoader::LoadClass(const Library& library,
   if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
     library.AddClassMetadata(*out_class, toplevel_class,
                              TokenPosition::kNoSource,
-                             class_offset - correction_offset_, 0);
+                             class_offset - correction_offset_);
   }
 
   // We do not register expression evaluation classes with the VM:
@@ -1642,8 +1613,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       }
       if ((FLAG_enable_mirrors || has_pragma_annotation) &&
           annotation_count > 0) {
-        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
-                                 0);
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
       }
       fields_.Add(&field);
     }
@@ -1742,7 +1712,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                  constructor_offset, 0);
+                                  constructor_offset);
     }
   }
 
@@ -1781,7 +1751,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 }
 
 void KernelLoader::FinishLoading(const Class& klass) {
-  ASSERT(!klass.is_declared_in_bytecode());
   ASSERT(klass.IsTopLevel() || (klass.kernel_offset() > 0));
 
   Zone* zone = Thread::Current()->zone();
@@ -2019,29 +1988,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
-
-  const bool is_async_await_completer_owner =
-      Symbols::_AsyncAwaitCompleter().Equals(
-          String::Handle(Z, owner.ScrubbedName()));
-
-  // _AsyncAwaitCompleter.future should be made non-debuggable, otherwise
-  // stepping out of async methods will keep hitting breakpoint resulting in
-  // infinite loop.
-  const bool is_async_await_completer_future =
-      is_async_await_completer_owner &&
-      Symbols::CompleterGetFuture().Equals(name);
   function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                                 FunctionNodeHelper::kSync &&
-                             !is_async_await_completer_future);
-
-  // _AsyncAwaitCompleter.start should be made non-visible in stack traces,
-  // since it is an implementation detail of our await/async desugaring.
-  if (is_async_await_completer_owner &&
-      Symbols::_AsyncAwaitStart().Equals(name)) {
-    function.set_is_visible(!FLAG_causal_async_stacks &&
-                            !FLAG_lazy_async_stacks);
-  }
-
+                             FunctionNodeHelper::kSync);
   switch (function_node_helper.dart_async_marker_) {
     case FunctionNodeHelper::kSyncStar:
       function.set_modifier(FunctionLayout::kSyncGen);
@@ -2089,7 +2037,7 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   if (annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                procedure_offset, 0);
+                                procedure_offset);
   }
 
   if (has_pragma_annotation) {
@@ -2227,7 +2175,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
   ASSERT(field.NeedsGetter());
 
-  const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
+  const String& getter_name =
+      H.DartGetterName(field_helper->canonical_name_getter_);
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
   Function& getter = Function::ZoneHandle(
@@ -2260,7 +2209,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   if (field.NeedsSetter()) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
-    const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
+    const String& setter_name =
+        H.DartSetterName(field_helper->canonical_name_setter_);
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, FunctionLayout::kImplicitSetter,
                          field_helper->IsStatic(),
@@ -2412,11 +2362,9 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   const PatchClass& initializer_owner =
       PatchClass::Handle(zone, PatchClass::New(field_owner, script));
   const Library& lib = Library::Handle(zone, field_owner.library());
-  if (!lib.is_declared_in_bytecode()) {
-    initializer_owner.set_library_kernel_data(
-        ExternalTypedData::Handle(zone, lib.kernel_data()));
-    initializer_owner.set_library_kernel_offset(lib.kernel_offset());
-  }
+  initializer_owner.set_library_kernel_data(
+      ExternalTypedData::Handle(zone, lib.kernel_data()));
+  initializer_owner.set_library_kernel_offset(lib.kernel_offset());
 
   // Create a static initializer.
   const Function& initializer_fun = Function::Handle(
@@ -2443,7 +2391,7 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_token_pos(field.token_pos());
   initializer_fun.set_end_token_pos(field.end_token_pos());
   initializer_fun.set_accessor_field(field);
-  initializer_fun.InheritBinaryDeclarationFrom(field);
+  initializer_fun.InheritKernelOffsetFrom(field);
   initializer_fun.set_is_extension_member(field.is_extension_member());
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();

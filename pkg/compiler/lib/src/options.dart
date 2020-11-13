@@ -105,14 +105,22 @@ class CompilerOptions implements DiagnosticOptions {
   Map<String, String> environment = const <String, String>{};
 
   /// Flags enabling language experiments.
-  Map<fe.ExperimentalFlag, bool> languageExperiments = {};
+  Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags = {};
 
   /// `true` if variance is enabled.
-  bool get enableVariance => languageExperiments[fe.ExperimentalFlag.variance];
+  bool get enableVariance =>
+      fe.isExperimentEnabled(fe.ExperimentalFlag.variance,
+          explicitExperimentalFlags: explicitExperimentalFlags);
 
   /// Whether `--enable-experiment=non-nullable` is provided.
   bool get enableNonNullable =>
-      languageExperiments[fe.ExperimentalFlag.nonNullable];
+      fe.isExperimentEnabled(fe.ExperimentalFlag.nonNullable,
+          explicitExperimentalFlags: explicitExperimentalFlags);
+
+  /// Whether `--enable-experiment=triple-shift` is provided.
+  bool get enableTripleShift =>
+      fe.isExperimentEnabled(fe.ExperimentalFlag.tripleShift,
+          explicitExperimentalFlags: explicitExperimentalFlags);
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
@@ -232,7 +240,9 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code asserting that non-nullable return values of
   /// `@Native` methods or `JS()` invocations are checked for being non-null.
-  bool enableNativeNullAssertions = false;
+  /// Emits checks only in sound null-safety.
+  bool nativeNullAssertions = false;
+  bool _noNativeNullAssertions = false;
 
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
@@ -399,7 +409,7 @@ class CompilerOptions implements DiagnosticOptions {
       Uri platformBinaries,
       void Function(String) onError,
       void Function(String) onWarning}) {
-    Map<fe.ExperimentalFlag, bool> languageExperiments =
+    Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
 
     // The null safety experiment can result in requiring different experiments
@@ -423,7 +433,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
-      ..languageExperiments = languageExperiments
+      ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
@@ -446,8 +456,9 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.enableAsserts)
       ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableNullAssertions)
-      ..enableNativeNullAssertions =
-          _hasOption(options, Flags.enableNativeNullAssertions)
+      ..nativeNullAssertions = _hasOption(options, Flags.nativeNullAssertions)
+      .._noNativeNullAssertions =
+          _hasOption(options, Flags.noNativeNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
@@ -507,8 +518,11 @@ class CompilerOptions implements DiagnosticOptions {
       throw new ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
+    Map<fe.ExperimentalFlag, bool> experimentalFlags =
+        new Map.from(fe.defaultExperimentalFlags);
+    experimentalFlags.addAll(explicitExperimentalFlags);
     if (platformBinaries == null &&
-        equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
+        equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
     if (_legacyJavaScript && _noLegacyJavaScript) {
@@ -523,6 +537,10 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.soundNullSafety}' requires the "
           "'non-nullable' experiment to be enabled");
     }
+    if (nativeNullAssertions && _noNativeNullAssertions) {
+      throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "
+          "'${Flags.noNativeNullAssertions}'");
+    }
   }
 
   void deriveOptions() {
@@ -534,6 +552,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
       // TODO(sra): Use this for some NNBD variant.
+      useContentSecurityPolicy = true;
     }
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
@@ -579,6 +598,10 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_disableMinification) {
       enableMinification = false;
+    }
+
+    if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {
+      nativeNullAssertions = false;
     }
   }
 

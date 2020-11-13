@@ -25,6 +25,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a field that has the `abstract`
+  // modifier also has an initializer.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `f` is marked as
+  // `abstract` and has an initializer:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // abstract class C {
+  //   abstract int [!f!] = 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `f` is marked as
+  // `abstract` and there's an initializer in the constructor:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // abstract class C {
+  //   abstract int f;
+  //
+  //   C() : [!f!] = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field must be abstract, then remove the initializer:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // abstract class C {
+  //   abstract int f;
+  // }
+  // ```
+  //
+  // If the field isn't required to be abstract, then remove the keyword:
+  //
+  // ```dart
+  // abstract class C {
+  //   int f = 0;
+  // }
+  // ```
   static const CompileTimeErrorCode ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCodeWithUniqueName(
           'ABSTRACT_FIELD_INITIALIZER',
@@ -80,26 +127,56 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * Enum proposal: It is also a compile-time error to explicitly instantiate an
-   * enum via 'new' or 'const' or to access its private fields.
-   */
-  static const CompileTimeErrorCode ACCESS_PRIVATE_ENUM_FIELD =
-      CompileTimeErrorCode(
-          'ACCESS_PRIVATE_ENUM_FIELD',
-          "The private fields of an enum can't be accessed, even within the "
-              "same library.");
-
-  /**
-   * 14.2 Exports: It is a compile-time error if a name <i>N</i> is re-exported
-   * by a library <i>L</i> and <i>N</i> is introduced into the export namespace
-   * of <i>L</i> by more than one export, unless each all exports refer to same
-   * declaration for the name N.
-   *
    * Parameters:
    * 0: the name of the ambiguous element
    * 1: the name of the first library in which the type is found
    * 2: the name of the second library in which the type is found
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when two or more export directives
+  // cause the same name to be exported from multiple libraries.
+  //
+  // #### Example
+  //
+  // Given a file named `a.dart` containing
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // class C {}
+  // ```
+  //
+  // And a file named `b.dart` containing
+  //
+  // ```dart
+  // %uri="lib/b.dart"
+  // class C {}
+  // ```
+  //
+  // The following code produces this diagnostic because the name `C` is being
+  // exported from both `a.dart` and `b.dart`:
+  //
+  // ```dart
+  // export 'a.dart';
+  // export [!'b.dart'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If none of the names in one of the libraries needs to be exported, then
+  // remove the unnecessary export directives:
+  //
+  // ```dart
+  // export 'a.dart';
+  // ```
+  //
+  // If all of the export directives are needed, then hide the name in all
+  // except one of the directives:
+  //
+  // ```dart
+  // export 'a.dart';
+  // export 'b.dart' hide C;
+  // ```
   static const CompileTimeErrorCode AMBIGUOUS_EXPORT = CompileTimeErrorCode(
       'AMBIGUOUS_EXPORT',
       "The name '{0}' is defined in the libraries '{1}' and '{2}'.",
@@ -482,17 +559,103 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "'{1}'.",
           hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a redirecting constructor (a
+  // constructor that redirects to another constructor in the same class) has an
+  // assert in the initializer list.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the unnamed constructor
+  // is a redirecting constructor and also has an assert in the initializer
+  // list:
+  //
+  // ```dart
+  // class C {
+  //   C(int x) : [!assert(x > 0)!], this.name();
+  //   C.name() {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the assert isn't needed, then remove it:
+  //
+  // ```dart
+  // class C {
+  //   C(int x) : this.name();
+  //   C.name() {}
+  // }
+  // ```
+  //
+  // If the assert is needed, then convert the constructor into a factory
+  // constructor:
+  //
+  // ```dart
+  // class C {
+  //   factory C(int x) {
+  //     assert(x > 0);
+  //     return C.name();
+  //   }
+  //   C.name() {}
+  // }
+  // ```
   static const CompileTimeErrorCode ASSERT_IN_REDIRECTING_CONSTRUCTOR =
       CompileTimeErrorCode('ASSERT_IN_REDIRECTING_CONSTRUCTOR',
           "A redirecting constructor can't have an 'assert' initializer.");
 
   /**
-   * 5 Variables: Attempting to assign to a final variable elsewhere will cause
-   * a NoSuchMethodError to be thrown, because no setter is defined for it. The
-   * assignment will also give rise to a static warning for the same reason.
-   *
-   * A constant variable is always implicitly final.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds an assignment to a
+  // top-level variable, a static field, or a local variable that has the
+  // `const` modifier. The value of a compile-time constant can't be changed at
+  // runtime.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `c` is being assigned a
+  // value even though it has the `const` modifier:
+  //
+  // ```dart
+  // const c = 0;
+  //
+  // void f() {
+  //   [!c!] = 1;
+  //   print(c);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the variable must be assignable, then remove the `const` modifier:
+  //
+  // ```dart
+  // var c = 0;
+  //
+  // void f() {
+  //   c = 1;
+  //   print(c);
+  // }
+  // ```
+  //
+  // If the constant shouldn't be changed, then either remove the assignment or
+  // use a local variable in place of references to the constant:
+  //
+  // ```dart
+  // const c = 0;
+  //
+  // void f() {
+  //   var v = 1;
+  //   print(v);
+  // }
+  // ```
   static const CompileTimeErrorCode ASSIGNMENT_TO_CONST = CompileTimeErrorCode(
       'ASSIGNMENT_TO_CONST', "Constant variables can't be assigned a value.",
       correction: "Try removing the assignment, or "
@@ -720,7 +883,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // %experiments=non-nullable
   // Future<int> f() async {
-  //   late v = [!await!] 42;
+  //   late var v = [!await!] 42;
   //   return v;
   // }
   // ```
@@ -732,7 +895,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // %experiments=non-nullable
   // Future<int> f() async {
-  //   late v = 42;
+  //   late var v = 42;
   //   return v;
   // }
   // ```
@@ -1685,15 +1848,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
-   * declared as a constant variable.
-   */
-  static const CompileTimeErrorCode CONST_FORMAL_PARAMETER =
-      CompileTimeErrorCode(
-          'CONST_FORMAL_PARAMETER', "Parameters can't be const.",
-          correction: "Try removing the 'const' keyword.");
-
-  /**
    * No parameters.
    */
   // #### Description
@@ -2020,9 +2174,51 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           isUnresolvedIdentifier: true);
 
   /**
-   * 16.12.2 Const: If <i>T</i> is a parameterized type, it is a compile-time
-   * error if <i>T</i> includes a type variable among its type arguments.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a type parameter is used as a
+  // type argument in a `const` invocation of a constructor. This isn't allowed
+  // because the value of the type parameter (the actual type that will be used
+  // at runtime) can't be known at compile time.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type parameter `T`
+  // is being used as a type argument when creating a constant:
+  //
+  // ```dart
+  // class C<T> {
+  //   const C();
+  // }
+  //
+  // C<T> newC<T>() => const C<[!T!]>();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type that will be used for the type parameter can be known at
+  // compile time, then remove the use of the type parameter:
+  //
+  // ```dart
+  // class C<T> {
+  //   const C();
+  // }
+  //
+  // C<int> newC() => const C<int>();
+  // ```
+  //
+  // If the type that will be used for the type parameter can't be known until
+  // runtime, then remove the keyword `const`:
+  //
+  // ```dart
+  // class C<T> {
+  //   const C();
+  // }
+  //
+  // C<T> newC<T>() => C<T>();
+  // ```
   static const CompileTimeErrorCode CONST_WITH_TYPE_PARAMETERS =
       CompileTimeErrorCode('CONST_WITH_TYPE_PARAMETERS',
           "A constant creation can't use a type parameter as a type argument.",
@@ -2398,17 +2594,47 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 18.3 Parts: It's a compile-time error if the same library contains two part
-   * directives with the same URI.
-   *
    * Parameters:
    * 0: the URI of the duplicate part
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a single file is referenced in
+  // multiple part directives.
+  //
+  // #### Example
+  //
+  // Given a file named `part.dart` containing
+  //
+  // ```dart
+  // %uri="lib/part.dart"
+  // part of lib;
+  // ```
+  //
+  // The following code produces this diagnostic because the file `part.dart` is
+  // included multiple times:
+  //
+  // ```dart
+  // library lib;
+  //
+  // part 'part.dart';
+  // part [!'part.dart'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove all except the first of the duplicated part directives:
+  //
+  // ```dart
+  // library lib;
+  //
+  // part 'part.dart';
+  // ```
   static const CompileTimeErrorCode DUPLICATE_PART = CompileTimeErrorCode(
       'DUPLICATE_PART',
-      "The library already contains a part with the uri '{0}'.",
+      "The library already contains a part with the URI '{0}'.",
       correction:
-          "Try removing all but one of the duplicated part directives.");
+          "Try removing all except one of the duplicated part directives.");
 
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode('ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
@@ -2495,42 +2721,93 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose
-   * class implements the built-in class <i>List&lt;E></i> is allocated.
-   *
    * Parameters:
    * 0: the number of provided type arguments
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a list literal has more than one
+  // type argument.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the list literal has
+  // two type arguments when it can have at most one:
+  //
+  // ```dart
+  // var l = [!<int, int>!][];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove all except one of the type arguments:
+  //
+  // ```dart
+  // var l = <int>[];
+  // ```
   static const CompileTimeErrorCode EXPECTED_ONE_LIST_TYPE_ARGUMENTS =
-      CompileTimeErrorCode(
-          'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
-          "List literals require exactly one type argument or none, "
-              "but {0} found.",
+      CompileTimeErrorCode('EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
+          "List literals require one type argument or none, but {0} found.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
    * Parameters:
    * 0: the number of provided type arguments
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a set literal has more than one
+  // type argument.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the set literal has
+  // three type arguments when it can have at most one:
+  //
+  // ```dart
+  // var s = [!<int, String, int>!]{0, 'a', 1};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove all except one of the type arguments:
+  //
+  // ```dart
+  // var s = <int>{0, 1};
+  // ```
   static const CompileTimeErrorCode EXPECTED_ONE_SET_TYPE_ARGUMENTS =
-      CompileTimeErrorCode(
-          'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
-          "Set literals require exactly one type argument or none, "
-              "but {0} found.",
+      CompileTimeErrorCode('EXPECTED_ONE_SET_TYPE_ARGUMENTS',
+          "Set literals require one type argument or none, but {0} were found.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
-   * 12.8 Maps: A fresh instance (7.6.1) <i>m</i>, of size <i>n</i>, whose class
-   * implements the built-in class <i>Map&lt;K, V></i> is allocated.
-   *
    * Parameters:
    * 0: the number of provided type arguments
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a map literal has either one or
+  // more than two type arguments.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the map literal has
+  // three type arguments when it can have either two or zero:
+  //
+  // ```dart
+  // var m = [!<int, String, int>!]{};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove all except two of the type arguments:
+  //
+  // ```dart
+  // var m = <int, String>{};
+  // ```
   static const CompileTimeErrorCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS =
-      CompileTimeErrorCode(
-          'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
-          "Map literals require exactly two type arguments or none, "
-              "but {0} found.",
+      CompileTimeErrorCode('EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
+          "Map literals require two type arguments or none, but {0} found.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -2602,12 +2879,36 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 14.2 Exports: It is a compile-time error if the compilation unit found at
-   * the specified URI is not a library declaration.
-   *
    * Parameters:
    * 0: the uri pointing to a non-library declaration
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an export directive references a
+  // part rather than a library.
+  //
+  // #### Example
+  //
+  // Given a file named `part.dart` containing
+  //
+  // ```dart
+  // %uri="lib/part.dart"
+  // part of lib;
+  // ```
+  //
+  // The following code produces this diagnostic because the file `part.dart` is
+  // a part, and only libraries can be exported:
+  //
+  // ```dart
+  // library lib;
+  //
+  // export [!'part.dart'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Either remove the export directive, or change the URI to be the URI of the
+  // library containing the part.
   static const CompileTimeErrorCode EXPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode('EXPORT_OF_NON_LIBRARY',
           "The exported library '{0}' can't have a part-of directive.",
@@ -3762,9 +4063,38 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try making the deferred import non-deferred.");
 
   /**
-   * It is a compile-time error if the declared return type of a function marked
-   * 'async*' is not a supertype of 'Stream<T>' for some type 'T'.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the body of a function has the
+  // `async*` modifier even though the return type of the function isn't either
+  // `Stream` or a supertype of `Stream`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the body of the
+  // function `f` has the 'async*' modifier even though the return type `int`
+  // isn't a supertype of `Stream`:
+  //
+  // ```dart
+  // [!int!] f() async* {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function should be asynchronous, then change the return type to be
+  // either `Stream` or a supertype of `Stream`:
+  //
+  // ```dart
+  // Stream<int> f() async* {}
+  // ```
+  //
+  // If the function should be synchronous, then remove the `async*` modifier:
+  //
+  // ```dart
+  // int f() => 0;
+  // ```
   static const CompileTimeErrorCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
       CompileTimeErrorCode(
           'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
@@ -3808,9 +4138,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the function should be synchronous, then remove the `async` modifier:
   //
   // ```dart
-  // int f() {
-  //   return 0;
-  // }
+  // int f() => 0;
   // ```
   static const CompileTimeErrorCode ILLEGAL_ASYNC_RETURN_TYPE =
       CompileTimeErrorCode(
@@ -3822,9 +4150,39 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * It is a compile-time error if the declared return type of a function marked
-   * 'sync*' is not a supertype of 'Iterable<T>' for some type 'T'.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the body of a function has the
+  // `sync*` modifier even though the return type of the function isn't either
+  // `Iterable` or a supertype of `Iterable`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the body of the
+  // function `f` has the 'sync*' modifier even though the return type `int`
+  // isn't a supertype of `Iterable`:
+  //
+  // ```dart
+  // [!int!] f() sync* {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function should return an iterable, then change the return type to
+  // be either `Iterable` or a supertype of `Iterable`:
+  //
+  // ```dart
+  // Iterable<int> f() sync* {}
+  // ```
+  //
+  // If the function should return a single value, then remove the `sync*`
+  // modifier:
+  //
+  // ```dart
+  // int f() => 0;
+  // ```
   static const CompileTimeErrorCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
       CompileTimeErrorCode(
           'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
@@ -3934,16 +4292,48 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 7.10 Superinterfaces: It is a compile-time error if the superclass of a
-   * class <i>C</i> appears in the implements clause of <i>C</i>.
-   *
    * Parameters:
    * 0: the name of the class that appears in both "extends" and "implements"
    *    clauses
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when one class is listed in both the
+  // `extends` and `implements` clauses of another class.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the class `A` is used
+  // in both the `extends` and `implements` clauses for the class `B`:
+  //
+  // ```dart
+  // class A {}
+  //
+  // class B extends A implements [!A!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you want to inherit the implementation from the class, then remove the
+  // class from the `implements` clause:
+  //
+  // ```dart
+  // class A {}
+  //
+  // class B extends A {}
+  // ```
+  //
+  // If you don't want to inherit the implementation from the class, then remove
+  // the `extends` clause:
+  //
+  // ```dart
+  // class A {}
+  //
+  // class B implements A {}
+  // ```
   static const CompileTimeErrorCode IMPLEMENTS_SUPER_CLASS =
       CompileTimeErrorCode('IMPLEMENTS_SUPER_CLASS',
-          "'{0}' can't be used in both 'extends' and 'implements' clauses.",
+          "'{0}' can't be used in both the 'extends' and 'implements' clauses.",
           correction: "Try removing one of the occurrences.");
 
   /**
@@ -4519,11 +4909,37 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try using the BigInt class, or switch to the closest valid "
               "double: {1}");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an integer literal has a value
+  // that is too large (positive) or too small (negative) to be represented in a
+  // 64-bit word.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the value can't be
+  // represented in 64 bits:
+  //
+  // ```dart
+  // var x = [!9223372036854775810!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you need to represent the current value, then wrap it in an instance of
+  // the class `BigInt`:
+  //
+  // ```dart
+  // var x = BigInt.parse('9223372036854775810');
+  // ```
   static const CompileTimeErrorCode INTEGER_LITERAL_OUT_OF_RANGE =
       CompileTimeErrorCode('INTEGER_LITERAL_OUT_OF_RANGE',
           "The integer literal {0} can't be represented in 64 bits.",
           correction:
-              "Try using the BigInt class if you need an integer larger than "
+              "Try using the 'BigInt' class if you need an integer larger than "
               "9,223,372,036,854,775,807 or less than "
               "-9,223,372,036,854,775,808.");
 
@@ -5037,19 +5453,100 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Invalid reference to 'this' expression.",
           hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the initializer list of a
+  // constructor contains an invocation of a constructor in the superclass, but
+  // the invocation isn't the last item in the initializer list.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the invocation of the
+  // superclass' constructor isn't the last item in the initializer list:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B(int x) : [!super!](x), assert(x >= 0);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Move the invocation of the superclass' constructor to the end of the
+  // initializer list:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B(int x) : assert(x >= 0), super(x);
+  // }
+  // ```
   static const CompileTimeErrorCode INVALID_SUPER_INVOCATION =
       CompileTimeErrorCode('INVALID_SUPER_INVOCATION',
-          "The super call must be last in an initializer list: '{0}'.");
+          "The superclass call must be last in an initializer list: '{0}'.");
 
   /**
-   * 12.6 Lists: It is a compile time error if the type argument of a constant
-   * list literal includes a type parameter.
-   *
    * Parameters:
    * 0: the name of the type parameter
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a type parameter is used as a
+  // type argument in a list, map, or set literal that is prefixed by `const`.
+  // This isn't allowed because the value of the type parameter (the actual type
+  // that will be used at runtime) can't be known at compile time.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type parameter `T`
+  // is being used as a type argument when creating a constant list:
+  //
+  // ```dart
+  // List<T> newList<T>() => const <[!T!]>[];
+  // ```
+  //
+  // The following code produces this diagnostic because the type parameter `T`
+  // is being used as a type argument when creating a constant map:
+  //
+  // ```dart
+  // Map<String, T> newSet<T>() => const <String, [!T!]>{};
+  // ```
+  //
+  // The following code produces this diagnostic because the type parameter `T`
+  // is being used as a type argument when creating a constant set:
+  //
+  // ```dart
+  // Set<T> newSet<T>() => const <[!T!]>{};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type that will be used for the type parameter can be known at
+  // compile time, then remove the type parameter:
+  //
+  // ```dart
+  // List<int> newList() => const <int>[];
+  // ```
+  //
+  // If the type that will be used for the type parameter can't be known until
+  // runtime, then remove the keyword `const`:
+  //
+  // ```dart
+  // List<T> newList<T>() => <T>[];
+  // ```
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
           'INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
           "Constant list literals can't include a type parameter as a type "
               "argument, such as '{0}'.",
@@ -5057,22 +5554,25 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try replacing the type parameter with a different type.");
 
   /**
-   * 12.7 Maps: It is a compile time error if the type arguments of a constant
-   * map literal include a type parameter.
-   *
    * Parameters:
    * 0: the name of the type parameter
    */
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
           'INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
           "Constant map literals can't include a type parameter as a type "
               "argument, such as '{0}'.",
           correction:
               "Try replacing the type parameter with a different type.");
 
+  /**
+   * Parameters:
+   * 0: the name of the type parameter
+   */
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_SET =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
           'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
           "Constant set literals can't include a type parameter as a type "
               "argument, such as '{0}'.",
@@ -5288,17 +5788,67 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 13.13 Break: It is a compile-time error if no such statement
-   * <i>s<sub>E</sub></i> exists within the innermost function in which
-   * <i>s<sub>b</sub></i> occurs.
-   *
-   * 13.14 Continue: It is a compile-time error if no such statement or case
-   * clause <i>s<sub>E</sub></i> exists within the innermost function in which
-   * <i>s<sub>c</sub></i> occurs.
-   *
    * Parameters:
    * 0: the name of the unresolvable label
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a `break` or `continue`
+  // statement references a label that is declared in a method or function
+  // containing the function in which the `break` or `continue` statement
+  // appears. The `break` and `continue` statements can't be used to transfer
+  // control outside the function that contains them.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the label `loop` is
+  // declared outside the local function `g`:
+  //
+  // ```dart
+  // void f() {
+  //   loop:
+  //   while (true) {
+  //     void g() {
+  //       break [!loop!];
+  //     }
+  //
+  //     g();
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Try rewriting the code so that it isn't necessary to transfer control
+  // outside the local function, possibly by inlining the local function:
+  //
+  // ```dart
+  // void f() {
+  //   loop:
+  //   while (true) {
+  //     break loop;
+  //   }
+  // }
+  // ```
+  //
+  // If that isn't possible, then try rewriting the local function so that a
+  // value returned by the function can be used to determine whether control is
+  // transferred:
+  //
+  // ```dart
+  // void f() {
+  //   loop:
+  //   while (true) {
+  //     bool g() {
+  //       return true;
+  //     }
+  //
+  //     if (g()) {
+  //       break loop;
+  //     }
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode LABEL_IN_OUTER_SCOPE = CompileTimeErrorCode(
       'LABEL_IN_OUTER_SCOPE',
       "Can't reference label '{0}' declared in an outer method.");
@@ -5478,6 +6028,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The element type '{0}' can't be assigned to the list type '{1}'.",
           hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode MAIN_FIRST_POSITIONAL_PARAMETER_TYPE =
       CompileTimeErrorCode(
     'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
@@ -5486,6 +6039,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correction: "Try changing the type of the parameter.",
   );
 
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode MAIN_HAS_REQUIRED_NAMED_PARAMETERS =
       CompileTimeErrorCode(
     'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
@@ -5494,6 +6050,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "or removing the 'required' modifier.",
   );
 
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode
       MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS = CompileTimeErrorCode(
     'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
@@ -5502,6 +6061,32 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "or removing extra parameters.",
   );
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a library contains a declaration
+  // of the name `main` that isn't the declaration of a top-level function.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the name `main` is
+  // being used to declare a top-level variable:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // var [!main!] = 3;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Use a different name for the declaration:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // var mainIndex = 3;
+  // ```
   static const CompileTimeErrorCode MAIN_IS_NOT_FUNCTION = CompileTimeErrorCode(
     'MAIN_IS_NOT_FUNCTION',
     "The declaration named 'main' must be a function.",
@@ -11076,8 +11661,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
   // `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
   // `length` can't return a `null` value. Either way, `isEven` can't be invoked
-  // on a `null` value, so the null-aware operator is neither necessary nor
-  // allowed. See
+  // on a `null` value, so the null-aware operator is not necessary. See
   // [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
   // for more details.
   //
@@ -11098,8 +11682,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode INVALID_NULL_AWARE_OPERATOR =
       StaticWarningCode(
           'INVALID_NULL_AWARE_OPERATOR',
-          "The receiver can't be null, so the null-aware operator '{0}' can't "
-              "be used.",
+          "The receiver can't be null, so the null-aware operator '{0}' is "
+              "unnecessary.",
           correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 

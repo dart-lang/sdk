@@ -19,7 +19,7 @@ class Class extends core::Object {
     : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int
-    return this.{self::Class::_#Class#field#isSet} ?{core::int} let final core::int? #t1 = this.{self::Class::_#Class#field} in #t1{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.");
+    return this.{self::Class::_#Class#field#isSet} ?{core::int} let final core::int? #t1 = this.{self::Class::_#Class#field} in #t1{core::int} : throw new _in::LateError::fieldNI("field");
   set field(core::int #t2) → void {
     this.{self::Class::_#Class#field#isSet} = true;
     this.{self::Class::_#Class#field} = #t2;

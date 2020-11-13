@@ -9,19 +9,13 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
-import 'package:analyzer/dart/ast/visitor.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
-import 'package:analyzer/src/error/codes.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
-import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';

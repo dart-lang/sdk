@@ -127,13 +127,6 @@ template("_application_snapshot") {
       # "kernel_snapshot" passes this if needed, we always pass it)
       "-Dsdk_hash=$sdk_hash",
     ]
-    if (dart_platform_bytecode) {
-      args += [
-        "--gen-bytecode",
-        "--drop-ast",
-        "--bytecode-options=source-positions",
-      ]
-    }
     args += [ rebase_path(main_dart) ]
   }
 

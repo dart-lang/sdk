@@ -38,10 +38,10 @@ transforms:
         expression: '{% y %}'
         variables:
           y:
-            kind: 'argument'
-            index: 0
+            kind: 'fragment'
+            value: 'arguments[0]'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -81,10 +81,10 @@ transforms:
         expression: '{% t %}'
         variables:
           t:
-            kind: 'argument'
-            index: 0
+            kind: 'fragment'
+            value: 'arguments[0]'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -119,7 +119,7 @@ transforms:
     - kind: 'removeParameter'
       index: 1
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -152,7 +152,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}

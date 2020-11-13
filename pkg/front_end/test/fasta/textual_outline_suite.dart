@@ -4,7 +4,6 @@
 
 library fasta.test.textual_outline_test;
 
-import 'dart:async' show Future;
 import 'dart:io';
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
@@ -81,8 +80,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           performModelling: modelled,
           addMarkerForUnknownForTest: modelled);
       if (result == null) {
-        return new Result(null, context.expectationSet["EmptyOutput"],
-            description.uri, StackTrace.current);
+        return new Result(
+            null, context.expectationSet["EmptyOutput"], description.uri);
       }
 
       // In an attempt to make it less sensitive to formatting first remove
@@ -122,8 +121,9 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (expectMatch.outcome != Expectation.Pass) return expectMatch;
 
       if (formatterException != null) {
-        return new Result(null, context.expectationSet["FormatterCrash"],
-            formatterException, formatterExceptionSt);
+        return new Result(
+            null, context.expectationSet["FormatterCrash"], formatterException,
+            trace: formatterExceptionSt);
       }
     }
 

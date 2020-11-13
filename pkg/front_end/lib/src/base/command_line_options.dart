@@ -20,7 +20,6 @@ class Flags {
 
   static const String linkDependencies = "--link-dependencies";
 
-  static const String bytecode = "--bytecode";
   static const String compileSdk = "--compile-sdk";
   static const String dumpIr = "--dump-ir";
   static const String enableExperiment = "--enable-experiment";
@@ -40,5 +39,6 @@ class Flags {
   static const String singleRootScheme = "--single-root-scheme";
   static const String verbose = "--verbose";
   static const String verify = "--verify";
+  static const String verifySkipPlatform = "--verify-skip-platform";
   static const String warnOnReachabilityCheck = "--warn-on-reachability-check";
 }

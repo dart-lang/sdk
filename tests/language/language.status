@@ -6,7 +6,6 @@
 switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
 [ $compiler != fasta ]
-nonfunction_type_aliases/*: Skip # github.com/dart-lang/language/issues/115
 value_class/*: Skip # Internship, jlcontreras
 
 [ $compiler == none ]

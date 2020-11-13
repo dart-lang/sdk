@@ -66,8 +66,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       first_parameter_index_(),
       num_stack_locals_(0),
       have_seen_await_expr_(false),
-      kernel_scopes_(NULL),
-      default_function_type_arguments_(TypeArguments::ZoneHandle(zone())) {
+      kernel_scopes_(NULL) {
   ASSERT(function.IsZoneHandle());
   // Every function has a local variable for the current context.
   LocalVariable* temp = new (zone())
@@ -309,12 +308,6 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
   num_stack_locals_ = num_stack_locals;
 }
 
-void ParsedFunction::AllocateBytecodeVariables(intptr_t num_stack_locals) {
-  ASSERT(!function().IsIrregexpFunction());
-  first_parameter_index_ = VariableIndex(function().num_fixed_parameters());
-  num_stack_locals_ = num_stack_locals;
-}
-
 void ParsedFunction::SetCovariantParameters(
     const BitVector* covariant_parameters) {
   ASSERT(covariant_parameters_ == nullptr);
@@ -348,6 +341,9 @@ ParsedFunction::EnsureDynamicClosureCallVars() {
   if (dynamic_closure_call_vars_ != nullptr) return dynamic_closure_call_vars_;
   dynamic_closure_call_vars_ = new (zone()) DynamicClosureCallVars();
 
+  const auto& type_Dynamic = Object::dynamic_type();
+  const auto& type_Function =
+      Type::ZoneHandle(zone(), Type::DartFunctionType());
   const auto& type_Smi = Type::ZoneHandle(zone(), Type::SmiType());
 #define INIT_FIELD(Name, TypeName, Symbol)                                     \
   dynamic_closure_call_vars_->Name = new (zone())                              \

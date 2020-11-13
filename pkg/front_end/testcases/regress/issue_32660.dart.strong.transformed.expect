@@ -67,7 +67,7 @@ class C extends self::A implements self::B {
     core::print("No such method!");
     return 42;
   }
-  abstract forwarding-stub method foo(core::int* x, {core::int* y = #C1}) → dynamic;
+  abstract member-signature method foo(core::int* x, {core::int* y = #C1}) → dynamic; -> self::B::foo
 }
 class D extends core::Object {
   synthetic constructor •() → self::D*

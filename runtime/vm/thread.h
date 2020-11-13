@@ -32,7 +32,6 @@ class Array;
 class CompilerState;
 class Class;
 class Code;
-class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -43,7 +42,6 @@ class HandleScope;
 class Heap;
 class HierarchyInfo;
 class Instance;
-class Interpreter;
 class Isolate;
 class IsolateGroup;
 class Library;
@@ -73,7 +71,6 @@ class Thread;
   V(Array)                                                                     \
   V(Class)                                                                     \
   V(Code)                                                                      \
-  V(Bytecode)                                                                  \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \
   V(Field)                                                                     \
@@ -98,9 +95,11 @@ class Thread;
     StubCode::FixAllocationStubTarget().raw(), nullptr)                        \
   V(CodePtr, invoke_dart_code_stub_, StubCode::InvokeDartCode().raw(),         \
     nullptr)                                                                   \
-  V(CodePtr, invoke_dart_code_from_bytecode_stub_,                             \
-    StubCode::InvokeDartCodeFromBytecode().raw(), nullptr)                     \
   V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().raw(), nullptr)  \
+  V(CodePtr, late_initialization_error_shared_without_fpu_regs_stub_,          \
+    StubCode::LateInitializationErrorSharedWithoutFPURegs().raw(), nullptr)    \
+  V(CodePtr, late_initialization_error_shared_with_fpu_regs_stub_,             \
+    StubCode::LateInitializationErrorSharedWithFPURegs().raw(), nullptr)       \
   V(CodePtr, null_error_shared_without_fpu_regs_stub_,                         \
     StubCode::NullErrorSharedWithoutFPURegs().raw(), nullptr)                  \
   V(CodePtr, null_error_shared_with_fpu_regs_stub_,                            \
@@ -206,7 +205,6 @@ class Thread;
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
-  V(uword, interpret_call_entry_point_, RuntimeEntry::InterpretCallEntry(), 0) \
   V(StringPtr*, predefined_symbols_address_, Symbols::PredefinedAddress(),     \
     NULL)                                                                      \
   V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
@@ -468,11 +466,6 @@ class Thread : public ThreadState {
     type_usage_info_ = value;
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Interpreter* interpreter() const { return interpreter_; }
-  void set_interpreter(Interpreter* value) { interpreter_ = value; }
-#endif
-
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
 
   void IncrementNoCallbackScopeDepth() {
@@ -666,7 +659,6 @@ class Thread : public ThreadState {
 
   StackTracePtr async_stack_trace() const;
   void set_async_stack_trace(const StackTrace& stack_trace);
-  void set_raw_async_stack_trace(StackTracePtr raw_stack_trace);
   void clear_async_stack_trace();
   static intptr_t async_stack_trace_offset() {
     return OFFSET_OF(Thread, async_stack_trace_);
@@ -1027,10 +1019,6 @@ class Thread : public ThreadState {
   uword saved_safestack_limit_;
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Interpreter* interpreter_;
-#endif
-
   Thread* next_;  // Used to chain the thread structures in an isolate.
   bool is_mutator_thread_ = false;
 
@@ -1064,7 +1052,6 @@ class Thread : public ThreadState {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
-  friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;

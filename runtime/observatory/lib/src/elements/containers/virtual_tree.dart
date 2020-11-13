@@ -27,13 +27,13 @@ void virtualTreeUpdateLines(SpanElement element, int n) {
 }
 
 class VirtualTreeElement extends CustomElement implements Renderable {
-  RenderingScheduler<VirtualTreeElement> _r;
+  late RenderingScheduler<VirtualTreeElement> _r;
 
   Stream<RenderedEvent<VirtualTreeElement>> get onRendered => _r.onRendered;
 
-  VritualTreeGetChildrenCallback _children;
-  List _items;
-  List _depths;
+  late VritualTreeGetChildrenCallback _children;
+  late List _items;
+  late List _depths;
   final Set _expanded = new Set();
 
   List get items => _items;
@@ -47,8 +47,8 @@ class VirtualTreeElement extends CustomElement implements Renderable {
   factory VirtualTreeElement(VirtualTreeCreateCallback create,
       VirtualTreeUpdateCallback update, VritualTreeGetChildrenCallback children,
       {Iterable items: const [],
-      VirtualTreeSearchCallback search,
-      RenderingQueue queue}) {
+      VirtualTreeSearchCallback? search,
+      RenderingQueue? queue}) {
     assert(create != null);
     assert(update != null);
     assert(children != null);
@@ -61,7 +61,7 @@ class VirtualTreeElement extends CustomElement implements Renderable {
       return element = create((
           {bool autoToggleSingleChildNodes: false,
           bool autoToggleWholeTree: false}) {
-        var item = e._collection.getItemFromElement(element);
+        var item = e._collection!.getItemFromElement(element);
         if (e.isExpanded(item)) {
           e.collapse(item,
               autoCollapseWholeTree: autoToggleWholeTree,
@@ -144,11 +144,11 @@ class VirtualTreeElement extends CustomElement implements Renderable {
     children = const [];
   }
 
-  VirtualCollectionElement _collection;
+  VirtualCollectionElement? _collection;
 
   void render() {
     if (children.length == 0) {
-      children = <Element>[_collection.element];
+      children = <Element>[_collection!.element];
     }
 
     final items = [];
@@ -176,8 +176,8 @@ class VirtualTreeElement extends CustomElement implements Renderable {
     }
 
     _depths = depths;
-    _collection.items = items;
+    _collection!.items = items;
 
-    _r.waitFor([_collection.onRendered.first]);
+    _r.waitFor([_collection!.onRendered.first]);
   }
 }

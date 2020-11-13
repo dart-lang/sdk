@@ -22,7 +22,7 @@ class CreateSetterMixinTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_SETTER;
 
   Future<void> test_qualified_instance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {
 }
 
@@ -42,7 +42,7 @@ main(M m) {
   }
 
   Future<void> test_unqualified_instance_assignmentLhs() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {
   main() {
     test = 0;
@@ -61,7 +61,7 @@ mixin M {
   }
 
   Future<void> test_unqualified_instance_assignmentRhs() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {
   main() {
     test;
@@ -78,7 +78,7 @@ class CreateSetterTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_SETTER;
 
   Future<void> test_getterContext() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
 }
 main(A a) {
@@ -89,7 +89,7 @@ main(A a) {
   }
 
   Future<void> test_inferredTargetType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
 }
 main(A a) {
@@ -109,7 +109,7 @@ main(A a) {
   }
 
   Future<void> test_inSDK() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List p) {
   p.foo = 0;
 }
@@ -118,7 +118,7 @@ main(List p) {
   }
 
   Future<void> test_internal_instance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
   int m(int x) => s = x;
 }
@@ -133,7 +133,7 @@ extension E on String {
   }
 
   Future<void> test_internal_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
   static int m(int x) => s = x;
 }
@@ -148,7 +148,7 @@ extension E on String {
   }
 
   Future<void> test_location_afterLastAccessor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int existingField;
 
@@ -177,7 +177,7 @@ main(A a) {
   }
 
   Future<void> test_multiLevel() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
 }
 class B {
@@ -207,7 +207,7 @@ main(C c) {
   }
 
   Future<void> test_override() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
 }
 
@@ -227,7 +227,7 @@ main(String s) {
   }
 
   Future<void> test_qualified_instance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
 }
 main(A a) {
@@ -256,7 +256,7 @@ class A {
 }
 ''');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/other.dart';
 
 main(A a) {
@@ -278,7 +278,7 @@ class A {
   }
 
   Future<void> test_qualified_instance_dynamicType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   B b;
   void f(p) {
@@ -308,7 +308,7 @@ part of lib;
 class A {}
 ''');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main(A a) {
@@ -321,7 +321,7 @@ main(A a) {
   }
 
   Future<void> test_qualified_instance_inPart_self() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 part of lib;
 
 class A {
@@ -335,7 +335,7 @@ main(A a) {
   }
 
   Future<void> test_qualified_propagatedType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A get self => this;
 }
@@ -358,7 +358,7 @@ main() {
   }
 
   Future<void> test_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
 }
 
@@ -378,7 +378,7 @@ main(String s) {
   }
 
   Future<void> test_unqualified_instance_assignmentLhs() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main() {
     test = 0;
@@ -397,7 +397,7 @@ class A {
   }
 
   Future<void> test_unqualified_instance_assignmentRhs() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main() {
     test;

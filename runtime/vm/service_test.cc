@@ -18,6 +18,7 @@
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/resolver.h"
 #include "vm/service.h"
 #include "vm/unit_test.h"
 
@@ -119,8 +120,8 @@ static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
 }
 
 static FunctionPtr GetFunction(const Class& cls, const char* name) {
-  const Function& result = Function::Handle(
-      cls.LookupDynamicFunction(String::Handle(String::New(name))));
+  const Function& result = Function::Handle(Resolver::ResolveDynamicFunction(
+      Thread::Current()->zone(), cls, String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
@@ -484,9 +485,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
 
-static void WeakHandleFinalizer(void* isolate_callback_data,
-                                Dart_WeakPersistentHandle handle,
-                                void* peer) {}
+static void WeakHandleFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   const char* kScript =

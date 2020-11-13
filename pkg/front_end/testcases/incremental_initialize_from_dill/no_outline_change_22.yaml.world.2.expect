@@ -322,14 +322,14 @@ library from "org-dartlang-test:///main.dart" as main {
           dart.core::Iterator<dart.core::int*> :sync-for-iterator = this.{dart.core::Iterable::iterator};
           for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
             final dart.core::int* #t6 = :sync-for-iterator.{dart.core::Iterator::current};
-            #t5.{dart.core::List::add}(#t6);
+            #t5.{dart.core::List::add}{Invariant}(#t6);
           }
         }
         {
           dart.core::Iterator<dart.core::int*> :sync-for-iterator = other.{dart.core::Iterable::iterator};
           for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
             final dart.core::int* #t7 = :sync-for-iterator.{dart.core::Iterator::current};
-            #t5.{dart.core::List::add}(#t7);
+            #t5.{dart.core::List::add}{Invariant}(#t7);
           }
         }
       } =>#t5;

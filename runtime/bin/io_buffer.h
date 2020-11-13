@@ -25,9 +25,7 @@ class IOBuffer {
   static void Free(void* buffer) { free(buffer); }
 
   // Function for finalizing external byte arrays used as IO buffers.
-  static void Finalizer(void* isolate_callback_data,
-                        Dart_WeakPersistentHandle handle,
-                        void* buffer) {
+  static void Finalizer(void* isolate_callback_data, void* buffer) {
     Free(buffer);
   }
 

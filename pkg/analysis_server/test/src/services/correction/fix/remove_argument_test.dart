@@ -24,7 +24,7 @@ class RemoveArgumentTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_redundant_argument_values;
 
   Future<void> test_named_param() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({bool valWithDefault = true, bool val}) {}
 
 void main() {
@@ -41,7 +41,7 @@ void main() {
   }
 
   Future<void> test_named_param_2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({bool valWithDefault = true, bool val}) {}
 
 void main() {
@@ -58,7 +58,7 @@ void main() {
   }
 
   Future<void> test_optional_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void g(int x, [int y = 0]) {}
 
 void main() {

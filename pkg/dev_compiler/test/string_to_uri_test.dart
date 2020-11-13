@@ -1,3 +1,5 @@
+// @dart = 2.9
+
 import 'dart:io';
 import 'package:dev_compiler/src/compiler/shared_command.dart';
 import 'package:test/test.dart';

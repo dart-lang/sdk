@@ -69,7 +69,7 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
            compiler::Address(THR, Thread::OffsetFromThread(runtime_entry)));
     __ str(TMP, compiler::Address(THR, Thread::vm_tag_offset()));
     __ blr(TMP);
-    __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
+    __ LoadImmediate(TMP, VMTag::kDartTagId);
     __ str(TMP, compiler::Address(THR, Thread::vm_tag_offset()));
     __ mov(SP, kCallLeafRuntimeCalleeSaveScratch2);
     __ mov(CSP, kCallLeafRuntimeCalleeSaveScratch1);

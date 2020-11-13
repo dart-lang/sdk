@@ -19,7 +19,7 @@ class RemoveArgumentTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.avoid_redundant_argument_values;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({bool valWithDefault = true, bool val}) {}
 void f2({bool valWithDefault = true, bool val}) {}
 

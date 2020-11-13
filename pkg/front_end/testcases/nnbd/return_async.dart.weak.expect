@@ -22,10 +22,10 @@ static method allYield3() → asy::Future<void> async {
 }
 static method customErrorZone() → asy::Future<void> async {
   final asy::Completer<void> completer = asy::Completer::•<void>();
-  asy::runZonedGuarded<asy::Future<core::Null?>>(() → asy::Future<core::Null?> async {
+  asy::runZonedGuarded<asy::Future<Null>>(() → asy::Future<Null> async {
     await self::allYield();
     completer.{asy::Completer::complete}(null);
-  }, (core::Object e, core::StackTrace s) → core::Null? {
+  }, (core::Object e, core::StackTrace s) → void {
     completer.{asy::Completer::completeError}(e, s);
   });
   return completer.{asy::Completer::future};

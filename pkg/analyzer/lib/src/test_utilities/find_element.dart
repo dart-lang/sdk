@@ -220,9 +220,7 @@ class FindElement extends _FindElementBase {
 
     for (var type in unitElement.functionTypeAliases) {
       findIn(type.typeParameters);
-      if (type is GenericTypeAliasElement) {
-        findIn(type.function.typeParameters);
-      }
+      findIn(type.function.typeParameters);
     }
 
     for (var class_ in unitElement.types) {
@@ -371,7 +369,7 @@ abstract class _FindElementBase {
 
   FunctionTypeAliasElement functionTypeAlias(String name) {
     for (var element in unitElement.functionTypeAliases) {
-      if (element is GenericTypeAliasElement && element.name == name) {
+      if (element.name == name) {
         return element;
       }
     }

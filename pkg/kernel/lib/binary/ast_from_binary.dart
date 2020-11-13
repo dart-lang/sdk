@@ -614,6 +614,7 @@ class BinaryBuilder {
         if (child.name != '@methods' &&
             child.name != '@typedefs' &&
             child.name != '@fields' &&
+            child.name != '@=fields' &&
             child.name != '@getters' &&
             child.name != '@setters' &&
             child.name != '@factories' &&
@@ -755,32 +756,8 @@ class BinaryBuilder {
     if (compilationMode == null) {
       compilationMode = component.modeRaw;
     }
-    if (compilationMode == null) {
-      compilationMode = index.compiledMode;
-    } else if (compilationMode != index.compiledMode) {
-      if (compilationMode == NonNullableByDefaultCompiledMode.Agnostic) {
-        compilationMode = index.compiledMode;
-      } else if (index.compiledMode ==
-          NonNullableByDefaultCompiledMode.Agnostic) {
-        // Keep as-is.
-      } else {
-        if ((compilationMode == NonNullableByDefaultCompiledMode.Disabled ||
-                index.compiledMode ==
-                    NonNullableByDefaultCompiledMode.Disabled) &&
-            (compilationMode == NonNullableByDefaultCompiledMode.Weak ||
-                index.compiledMode == NonNullableByDefaultCompiledMode.Weak)) {
-          // One is disabled and one is weak.
-          // => We allow that and "merge" them as disabled.
-          compilationMode = NonNullableByDefaultCompiledMode.Disabled;
-        } else {
-          // Mixed mode where agnostic isn't involved and it's not
-          // disabled + weak.
-          throw new CompilationModeError(
-              "Mixed compilation mode found: $compilationMode "
-              "and ${index.compiledMode}.");
-        }
-      }
-    }
+    compilationMode =
+        mergeCompilationModeOrThrow(compilationMode, index.compiledMode);
 
     _byteOffset = index.binaryOffsetForStringTable;
     readStringTable(_stringTable);
@@ -1014,6 +991,13 @@ class BinaryBuilder {
     library.fileUri = fileUri;
     library.problemsAsJson = problemsAsJson;
 
+    assert(
+        mergeCompilationModeOrThrow(
+                compilationMode, library.nonNullableByDefaultCompiledMode) ==
+            compilationMode,
+        "Cannot load ${library.nonNullableByDefaultCompiledMode} "
+        "into component with mode $compilationMode");
+
     assert(() {
       debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
       return true;
@@ -1166,9 +1150,7 @@ class BinaryBuilder {
       node = null;
     }
     if (node == null) {
-      node = new Class(reference: reference)
-        ..level = ClassLevel.Temporary
-        ..dirty = false;
+      node = new Class(reference: reference)..dirty = false;
     }
 
     var fileUri = readUriReference();
@@ -1176,12 +1158,7 @@ class BinaryBuilder {
     node.fileOffset = readOffset();
     node.fileEndOffset = readOffset();
     int flags = readByte();
-    node.flags = flags & ~Class.LevelMask;
-    int levelIndex = flags & Class.LevelMask;
-    var level = ClassLevel.values[levelIndex + 1];
-    if (level.index >= node.level.index) {
-      node.level = level;
-    }
+    node.flags = flags;
     var name = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -1308,14 +1285,17 @@ class BinaryBuilder {
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
-    var canonicalName = readCanonicalNameReference();
-    var reference = canonicalName.getReference();
-    Field node = reference.node;
+    CanonicalName getterCanonicalName = readCanonicalNameReference();
+    Reference getterReference = getterCanonicalName.getReference();
+    CanonicalName setterCanonicalName = readCanonicalNameReference();
+    Reference setterReference = setterCanonicalName.getReference();
+    Field node = getterReference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
-      node = new Field(null, reference: reference);
+      node = new Field(null,
+          getterReference: getterReference, setterReference: setterReference);
     }
     var fileUri = readUriReference();
     int fileOffset = readOffset();
@@ -1395,15 +1375,17 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new Procedure(null, null, null, reference: reference);
-    }
     var fileUri = readUriReference();
     var startFileOffset = readOffset();
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
+    if (node == null) {
+      node = new Procedure(null, kind, null, reference: reference);
+    } else {
+      assert(node.kind == kind);
+    }
     var flags = readUInt();
     var name = readName();
     var annotations = readAnnotationList(node);
@@ -1427,7 +1409,6 @@ class BinaryBuilder {
     node.startFileOffset = startFileOffset;
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
-    node.kind = kind;
     node.flags = flags;
     node.name = name;
     node.fileUri = fileUri;
@@ -1730,10 +1711,12 @@ class BinaryBuilder {
             readMemberReference(), readExpression())
           ..fileOffset = offset;
       case Tag.MethodInvocation:
+        int flags = readByte();
         int offset = readOffset();
         return new MethodInvocation.byReference(readExpression(), readName(),
             readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -2124,9 +2107,13 @@ class BinaryBuilder {
 
   Block readBlock() {
     int stackHeight = variableStack.length;
+    var offset = readOffset();
+    var endOffset = readOffset();
     var body = readStatementList();
     variableStack.length = stackHeight;
-    return new Block(body);
+    return new Block(body)
+      ..fileOffset = offset
+      ..fileEndOffset = endOffset;
   }
 
   AssertBlock readAssertBlock() {
@@ -2137,7 +2124,7 @@ class BinaryBuilder {
   }
 
   Supertype readSupertype() {
-    InterfaceType type = readDartType();
+    InterfaceType type = readDartType(forSupertype: true);
     assert(
         type.nullability == _currentLibrary.nonNullable,
         "In serialized form supertypes should have Nullability.legacy if they "
@@ -2192,7 +2179,7 @@ class BinaryBuilder {
     return readAndCheckOptionTag() ? readDartType() : null;
   }
 
-  DartType readDartType() {
+  DartType readDartType({bool forSupertype: false}) {
     int tag = readByte();
     switch (tag) {
       case Tag.TypedefType:
@@ -2229,7 +2216,18 @@ class BinaryBuilder {
             reference, Nullability.values[nullabilityIndex], typeArguments);
       case Tag.SimpleInterfaceType:
         int nullabilityIndex = readByte();
-        return new InterfaceType.byReference(readClassReference(),
+        Reference classReference = readClassReference();
+        {
+          CanonicalName canonicalName = classReference.canonicalName;
+          if (canonicalName != null &&
+              !forSupertype &&
+              canonicalName.name == "Null" &&
+              canonicalName.parent?.name == "dart:core" &&
+              (canonicalName.parent?.parent?.isRoot ?? false)) {
+            return const NullType();
+          }
+        }
+        return new InterfaceType.byReference(classReference,
             Nullability.values[nullabilityIndex], const <DartType>[]);
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
@@ -2473,9 +2471,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  DartType readDartType() {
+  DartType readDartType({bool forSupertype = false}) {
     final nodeOffset = _byteOffset;
-    final result = super.readDartType();
+    final result = super.readDartType(forSupertype: forSupertype);
     return _associateMetadata(result, nodeOffset);
   }
 
@@ -2651,4 +2649,31 @@ class _MetadataSubsection {
   final Map<int, int> mapping;
 
   _MetadataSubsection(this.repository, this.mapping);
+}
+
+/// Merges two compilation modes or throws if they are not compatible.
+NonNullableByDefaultCompiledMode mergeCompilationModeOrThrow(
+    NonNullableByDefaultCompiledMode a, NonNullableByDefaultCompiledMode b) {
+  if (a == null || a == b) {
+    return b;
+  }
+
+  // If something is invalid, it should always merge as invalid.
+  if (a == NonNullableByDefaultCompiledMode.Invalid) {
+    return a;
+  }
+  if (b == NonNullableByDefaultCompiledMode.Invalid) {
+    return b;
+  }
+
+  if (a == NonNullableByDefaultCompiledMode.Agnostic) {
+    return b;
+  }
+  if (b == NonNullableByDefaultCompiledMode.Agnostic) {
+    // Keep as-is.
+    return a;
+  }
+
+  // Mixed mode where agnostic isn't involved.
+  throw new CompilationModeError("Mixed compilation mode found: $a and $b");
 }

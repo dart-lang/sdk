@@ -63,30 +63,30 @@ static method main() → dynamic {
   self::expect(null, self::test1(null));
   self::expect(0, self::test2(new self::A::•(0, 0)));
   self::expect(null, self::test2(null));
-  self::throws(() → core::int? => self::test2(new self::A::•(0, null)));
+  self::throws(() → void => self::test2(new self::A::•(0, null)));
   self::expect(true, self::test3(new self::A::•(0)));
   self::expect(null, self::test3(null));
   self::expect(true, self::test4(new self::A::•(0, 0)));
   self::expect(null, self::test4(null));
-  self::throws(() → core::bool? => self::test4(new self::A::•(0, null)));
+  self::throws(() → void => self::test4(new self::A::•(0, null)));
   self::expect(new self::Bar::•(0), self::test5(new self::Foo::•(new self::Bar::•(0))));
   self::expect(null, self::test5(null));
-  self::throws(() → self::Bar? => self::test5(new self::Foo::•(null)));
+  self::throws(() → void => self::test5(new self::Foo::•(null)));
   self::expect(0, self::test6(new self::Foo::•(new self::Bar::•(0))));
   self::expect(null, self::test6(null));
-  self::throws(() → core::int? => self::test6(new self::Foo::•(null)));
+  self::throws(() → void => self::test6(new self::Foo::•(null)));
   self::expect(42, self::test7(new self::Foo::•(new self::Bar::•(0)), 42));
   self::expect(null, self::test7(null, 42));
-  self::throws(() → core::int? => self::test7(new self::Foo::•(null), 42));
+  self::throws(() → void => self::test7(new self::Foo::•(null), 42));
   self::expect(new self::Bar::•(42), self::test8(new self::Foo::•(new self::Bar::•(0)), 42));
   self::expect(null, self::test8(null, 42));
-  self::throws(() → self::Bar? => self::test8(new self::Foo::•(new self::Bar::•(0)), null));
+  self::throws(() → void => self::test8(new self::Foo::•(new self::Bar::•(0)), null));
   self::expect(42, self::test9(new self::Foo::•(new self::Bar::•(0)), 42));
   self::expect(null, self::test9(null, 42));
-  self::throws(() → core::int? => self::test9(new self::Foo::•(new self::Bar::•(0)), null));
+  self::throws(() → void => self::test9(new self::Foo::•(new self::Bar::•(0)), null));
   self::expect(87, self::test10(new self::Foo::•(new self::Bar::•(0)), 42, 87));
   self::expect(null, self::test10(null, 42, 87));
-  self::throws(() → dynamic => self::test10(new self::Foo::•(new self::Bar::•(0)), null, 87));
+  self::throws(() → void => self::test10(new self::Foo::•(new self::Bar::•(0)), null, 87));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

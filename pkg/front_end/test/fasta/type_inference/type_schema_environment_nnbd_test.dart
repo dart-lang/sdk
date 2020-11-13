@@ -386,6 +386,27 @@ class TypeSchemaEnvironmentTest {
     }
   }
 
+  void test_lower_bound_object() {
+    _initialize("");
+
+    testLower("Object", "FutureOr<Null>", "FutureOr<Never>");
+    testLower("FutureOr<Null>", "Object", "FutureOr<Never>");
+
+    // FutureOr<dynamic> is top.
+    testLower("Object", "FutureOr<dynamic>", "Object");
+    testLower("FutureOr<dynamic>", "Object", "Object");
+
+    // FutureOr<X> is not top and cannot be made non-nullable.
+    testLower("Object", "FutureOr<X>", "Never",
+        typeParameters: 'X extends dynamic');
+    testLower("FutureOr<X>", "Object", "Never",
+        typeParameters: 'X extends dynamic');
+
+    // FutureOr<void> is top.
+    testLower("Object", "FutureOr<void>", "Object");
+    testLower("FutureOr<void>", "Object", "Object");
+  }
+
   void test_lower_bound_function() {
     const String testSdk = """
       class A;
@@ -637,7 +658,7 @@ class TypeSchemaEnvironmentTest {
           [
             coreTypes.intNonNullableRawType,
             coreTypes.doubleNonNullableRawType,
-            coreTypes.nullType
+            const NullType()
           ],
           null,
           inferredTypes,
@@ -775,6 +796,13 @@ class TypeSchemaEnvironmentTest {
 
     testUpper("List<int*>", "List<double*>", "List<num*>");
     testUpper("List<int?>", "List<double>", "List<num?>");
+  }
+
+  void test_upper_bound_object() {
+    _initialize("");
+
+    testUpper("Object", "FutureOr<Function?>", "Object?");
+    testUpper("FutureOr<Function?>", "Object", "Object?");
   }
 
   void test_upper_bound_function() {

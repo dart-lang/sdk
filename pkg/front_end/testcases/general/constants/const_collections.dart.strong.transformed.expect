@@ -410,10 +410,10 @@ static field core::List<core::String*>* barAsVar = block {
     core::Iterator<core::String*>* :sync-for-iterator = (#C8).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final core::String* #t2 = :sync-for-iterator.{core::Iterator::current};
-      #t1.{core::List::add}(#t2);
+      #t1.{core::List::add}{Invariant}(#t2);
     }
   }
-  #t1.{core::List::add}("!");
+  #t1.{core::List::add}{Invariant}("!");
 } =>#t1;
 static const field core::List<core::String*>* barWithNullSpread = invalid-expression "Null value during constant evaluation.";
 static const field core::List<core::String*>* barWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
@@ -485,7 +485,10 @@ static method main() → dynamic {
   core::print(#C10);
   core::print(#C17);
   core::print(#C22);
-  core::print(let final core::Set<core::String*>* #t3 = new col::_CompactLinkedHashSet::•<core::String*>() in let final core::bool #t4 = #t3.{core::Set::add}("hello") in #t3);
+  core::print( block {
+    final core::Set<core::String*>* #t3 = new col::_CompactLinkedHashSet::•<core::String*>();
+    #t3.{core::Set::add}{Invariant}("hello");
+  } =>#t3);
   core::print(#C26);
 }
 
@@ -502,10 +505,10 @@ constants  {
   #C10 = <core::String*>[#C6, #C7, #C9]
   #C11 = self::CustomIterable {}
   #C12 = <dynamic>[#C6, #C3, #C7, #C3]
-  #C13 = core::_ImmutableMap<core::String*, core::Null?> {_kvPairs:#C12}
+  #C13 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C12}
   #C14 = col::_UnmodifiableSet<core::String*> {_map:#C13}
   #C15 = <dynamic>[#C6, #C3, #C7, #C3, #C9, #C3]
-  #C16 = core::_ImmutableMap<core::String*, core::Null?> {_kvPairs:#C15}
+  #C16 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C15}
   #C17 = col::_UnmodifiableSet<core::String*> {_map:#C16}
   #C18 = <dynamic>[#C6, #C7]
   #C19 = core::_ImmutableMap<core::String*, core::String*> {_kvPairs:#C18}
@@ -514,6 +517,6 @@ constants  {
   #C22 = core::_ImmutableMap<core::String*, core::String*> {_kvPairs:#C21}
   #C23 = self::CustomMap {}
   #C24 = <dynamic>[#C6, #C3]
-  #C25 = core::_ImmutableMap<core::String*, core::Null?> {_kvPairs:#C24}
+  #C25 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C24}
   #C26 = col::_UnmodifiableSet<core::String*> {_map:#C25}
 }

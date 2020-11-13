@@ -20,7 +20,7 @@ class SurroundWithForInTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.SURROUND_WITH_FOR_IN;
 
   Future<void> test_twoStatements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
 // start
   print(0);

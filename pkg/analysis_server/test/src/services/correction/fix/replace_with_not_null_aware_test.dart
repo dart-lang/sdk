@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -15,15 +16,13 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithNotNullAwareTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => ['non-nullable'];
-
+class ReplaceWithNotNullAwareTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.REPLACE_WITH_NOT_NULL_AWARE;
 
   Future<void> test_getter_cascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s?..length;
 }
@@ -36,7 +35,7 @@ void f(String s) {
   }
 
   Future<void> test_getter_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s?.length;
 }
@@ -49,7 +48,7 @@ void f(String s) {
   }
 
   Future<void> test_index_cascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> x) {
   x?..[0];
 }
@@ -62,7 +61,7 @@ void f(List<int> x) {
   }
 
   Future<void> test_index_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> x) {
   x?[0];
 }
@@ -75,7 +74,7 @@ void f(List<int> x) {
   }
 
   Future<void> test_method_cascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s?..indexOf('a');
 }
@@ -88,7 +87,7 @@ void f(String s) {
   }
 
   Future<void> test_method_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s?.indexOf('a');
 }
@@ -101,7 +100,7 @@ void f(String s) {
   }
 
   Future<void> test_setter_cascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(C c) {
   c?..s = 0;
 }
@@ -120,7 +119,7 @@ class C {
   }
 
   Future<void> test_setter_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(C c) {
   c?.s = 0;
 }
@@ -139,7 +138,7 @@ class C {
   }
 
   Future<void> test_spread() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> x) {
   [...?x];
 }

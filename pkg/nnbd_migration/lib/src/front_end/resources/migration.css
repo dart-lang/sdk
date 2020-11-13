@@ -229,6 +229,7 @@ footer .sdk-version {
 
 .nav-inner li {
   list-style-type: none;
+  white-space: nowrap;
 }
 
 .nav-inner li:not(.dir) {
@@ -249,7 +250,7 @@ footer .sdk-version {
 }
 
 .nav-inner ul {
-  max-height: 2000px;
+  /* a max-height is added to each element at runtime. */
   transition: max-height 0.5s ease-out;
 }
 
@@ -386,7 +387,6 @@ footer .sdk-version {
   display: inline-block;
   height: 15px;
   position: relative;
-  top: 2px;
 }
 
 .target {

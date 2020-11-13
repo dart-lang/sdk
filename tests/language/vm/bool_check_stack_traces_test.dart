@@ -81,7 +81,7 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
     print(stacktrace);
     print('-----------------------------');
 
-    if (isStrongMode) {
+    if (hasSoundNullSafety) {
       Expect.isTrue(e is TypeError);
       Expect.equals(
           "type 'Null' is not a subtype of type 'bool'", e.toString());

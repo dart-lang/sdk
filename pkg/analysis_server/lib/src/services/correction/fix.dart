@@ -365,6 +365,8 @@ class DartFixKind {
       'dart.fix.remove.methodDeclaration', 50, 'Remove method declaration');
   static const REMOVE_NAME_FROM_COMBINATOR = FixKind(
       'dart.fix.remove.nameFromCombinator', 50, "Remove name from '{0}'");
+  static const REMOVE_NON_NULL_ASSERTION =
+      FixKind('dart.fix.remove.nonNullAssertion', 50, "Remove the '!'");
   static const REMOVE_OPERATOR =
       FixKind('dart.fix.remove.operator', 50, 'Remove the operator');
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = FixKind(

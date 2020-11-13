@@ -5,11 +5,11 @@
 part of models;
 
 abstract class SingleTargetCacheRef extends ObjectRef {
-  Code get target;
+  Code? get target;
 }
 
 abstract class SingleTargetCache extends Object
     implements SingleTargetCacheRef {
-  int get lowerLimit;
-  int get upperLimit;
+  int? get lowerLimit;
+  int? get upperLimit;
 }

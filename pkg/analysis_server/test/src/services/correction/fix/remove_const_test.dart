@@ -21,7 +21,7 @@ class RemoveConstTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_CONST;
 
   Future<void> test_explicitConst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A();
 }
@@ -42,7 +42,7 @@ void f() {
   }
 
   Future<void> test_implicitConst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A();
 }

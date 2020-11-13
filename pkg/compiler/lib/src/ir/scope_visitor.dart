@@ -701,6 +701,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       const EvaluationComplexity.lazy();
 
   @override
+  EvaluationComplexity visitNullType(ir.NullType node) =>
+      const EvaluationComplexity.lazy();
+
+  @override
   EvaluationComplexity visitInvalidType(ir.InvalidType node) =>
       const EvaluationComplexity.lazy();
 

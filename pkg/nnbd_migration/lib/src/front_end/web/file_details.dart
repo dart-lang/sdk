@@ -38,6 +38,9 @@ class FileDetails {
   /// HTML representation of the source file with links added to allow
   /// navigation through source files.
   ///
+  /// Also contains line number text and the anchors targeted by links that link
+  /// to a specific line number.
+  ///
   /// TODO(paulberry): this should be replaced by a more neutral data structure.
   final String navigationContent;
 

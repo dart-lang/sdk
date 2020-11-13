@@ -132,6 +132,11 @@ const Register kWriteBarrierSlotReg = R13;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = RDX;
 
+// Common ABI for shared slow path stubs.
+struct SharedSlowPathStubABI {
+  static const Register kResultReg = RAX;
+};
+
 // ABI for instantiation stubs.
 struct InstantiationABI {
   static const Register kUninstantiatedTypeArgumentsReg = RBX;
@@ -159,6 +164,23 @@ struct TypeTestABI {
   static const Register kResultReg = RAX;
 };
 
+// Calling convention when calling AssertSubtypeStub.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = RAX;
+  static const Register kSuperTypeReg = RBX;
+  static const Register kInstantiatorTypeArgumentsReg = RDX;
+  static const Register kFunctionTypeArgumentsReg = RCX;
+  static const Register kDstNameReg = R9;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kDstNameReg);
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
+};
+
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = RAX;
@@ -177,6 +199,11 @@ struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = RAX;
   static const Register kAddressReg = RCX;
   static const Register kScratchReg = RSI;
+};
+
+// ABI for LateInitializationError stubs.
+struct LateInitializationErrorABI {
+  static const Register kFieldReg = RSI;
 };
 
 // ABI for ThrowStub.
@@ -277,6 +304,16 @@ class CallingConventions {
   // same time? (Windows no, rest yes)
   static const bool kArgumentIntRegXorFpuReg = true;
 
+  // > The x64 Application Binary Interface (ABI) uses a four-register
+  // > fast-call calling convention by default. Space is allocated on the call
+  // > stack as a shadow store for callees to save those registers.
+  // https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-160
+  //
+  // The caller allocates this space. The caller should also reclaim this space
+  // after the call to restore the stack to its original state if needed.
+  //
+  // This is also known as home space.
+  // https://devblogs.microsoft.com/oldnewthing/20160623-00/?p=93735
   static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =

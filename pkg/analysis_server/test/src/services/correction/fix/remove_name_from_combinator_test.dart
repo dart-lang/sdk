@@ -20,7 +20,7 @@ class RemoveNameFromCombinatorTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;
 
   Future<void> test_duplicateHiddenName_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos, sin, sin;
 
 main() {
@@ -37,7 +37,7 @@ main() {
   }
 
   Future<void> test_duplicateHiddenName_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos, cos, sin;
 
 main() {
@@ -57,7 +57,7 @@ main() {
   Future<void> test_duplicateHiddenName_only_last() async {
     // It appears that the hint does not detect names that are duplicated across
     // multiple combinators.
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos, sin hide sin;
 
 main() {
@@ -77,7 +77,7 @@ main() {
   Future<void> test_duplicateHiddenName_only_middle() async {
     // It appears that the hint does not detect names that are duplicated across
     // multiple combinators.
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos hide cos hide sin;
 
 main() {
@@ -94,7 +94,7 @@ main() {
   }
 
   Future<void> test_duplicateShownName_last() async {
-    await resolveTestUnit(
+    await resolveTestCode(
       '''
 import 'dart:math' show cos, sin, sin;
 
@@ -113,7 +113,7 @@ f(x) {
   }
 
   Future<void> test_duplicateShownName_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show cos, cos, sin;
 
 f(x) {
@@ -130,7 +130,7 @@ f(x) {
   }
 
   Future<void> test_undefinedHiddenName_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide aaa, sin, tan;
 
 f(x) {
@@ -147,7 +147,7 @@ f(x) {
   }
 
   Future<void> test_undefinedHiddenName_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos, sin, xxx;
 
 f(x) {
@@ -164,7 +164,7 @@ f(x) {
   }
 
   Future<void> test_undefinedHiddenName_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos, mmm, tan;
 
 f(x) {
@@ -181,7 +181,7 @@ f(x) {
   }
 
   Future<void> test_undefinedHiddenName_only_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide aaa hide cos, sin;
 
 main() {
@@ -198,7 +198,7 @@ main() {
   }
 
   Future<void> test_undefinedHiddenName_only_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos, sin hide aaa;
 
 main() {
@@ -215,7 +215,7 @@ main() {
   }
 
   Future<void> test_undefinedHiddenName_only_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide cos hide aaa hide sin;
 
 main() {
@@ -232,7 +232,7 @@ main() {
   }
 
   Future<void> test_undefinedHiddenName_only_only() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' hide aaa;
 var c = sin(0.3);
 ''');
@@ -243,7 +243,7 @@ var c = sin(0.3);
   }
 
   Future<void> test_undefinedHiddenName_only_only_withAs() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' as math hide aaa;
 var c = math.sin(0.3);
 ''');
@@ -254,7 +254,7 @@ var c = math.sin(0.3);
   }
 
   Future<void> test_undefinedShownName_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show aaa, sin, tan;
 
 f(x) {
@@ -271,7 +271,7 @@ f(x) {
   }
 
   Future<void> test_undefinedShownName_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show cos, sin, xxx;
 
 f(x) {
@@ -288,7 +288,7 @@ f(x) {
   }
 
   Future<void> test_undefinedShownName_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show cos, mmm, tan;
 
 f(x) {
@@ -305,7 +305,7 @@ f(x) {
   }
 
   Future<void> test_unusedShownName_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show cos, sin, tan;
 
 f(x) {
@@ -322,7 +322,7 @@ f(x) {
   }
 
   Future<void> test_unusedShownName_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show cos, sin, tan;
 
 f(x) {
@@ -339,7 +339,7 @@ f(x) {
   }
 
   Future<void> test_unusedShownName_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show cos, sin, tan;
 
 f(x) {

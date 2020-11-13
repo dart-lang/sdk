@@ -112,8 +112,8 @@ static const field core::Object maybeInt2 = self::z ?{core::Object} 42 : true;
 static const field core::bool isItInt2 = self::maybeInt2 is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
 static const field core::int? maybeInt3 = self::z ?{core::int?} 42 : null;
 static const field core::bool isItInt3 = self::maybeInt3 is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
-static const field dynamic listOfNull = const <core::Null?>[null];
-static const field core::bool isListOfNull = self::listOfNull is{ForNonNullableByDefault} core::List<core::Null?>;
+static const field dynamic listOfNull = const <Null>[null];
+static const field core::bool isListOfNull = self::listOfNull is{ForNonNullableByDefault} core::List<Null>;
 static const field dynamic listOfInt = const <core::int>[42];
 static const field core::bool isListOfInt = self::listOfInt is{ForNonNullableByDefault} core::List<core::int>;
 static const field core::bool isList = self::listOfInt is{ForNonNullableByDefault} core::List<dynamic>;
@@ -180,7 +180,7 @@ Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:44:21 -
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:45:40 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:46:21 -> NullConstant(null)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:47:40 -> BoolConstant(false)
-Evaluated: ListLiteral @ org-dartlang-testcase:///various.dart:49:28 -> ListConstant(const <Null?>[null])
+Evaluated: ListLiteral @ org-dartlang-testcase:///various.dart:49:28 -> ListConstant(const <Null>[null])
 Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:50:38 -> BoolConstant(true)
 Evaluated: ListLiteral @ org-dartlang-testcase:///various.dart:51:27 -> ListConstant(const <int>[42])
 Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:52:36 -> BoolConstant(true)

@@ -19,7 +19,7 @@ class RemoveEmptyCatchTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.empty_catches;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   try {
     try {

@@ -30,6 +30,30 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_commitCharacter_completionItem() async {
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withAllSupportedDynamicRegistrations(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'previewCommitCharacters': true},
+    );
+
+    final content = '''
+main() {
+  pri^
+}
+    ''';
+
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final print = res.singleWhere((c) => c.label == 'print(…)');
+    expect(print.commitCharacters, equals(dartCompletionCommitCharacters));
+  }
+
   Future<void> test_commitCharacter_config() async {
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
@@ -744,26 +768,26 @@ main() {
 
   Future<void> test_suggestionSets_enumValuesAlreadyImported() async {
     newFile(
-      join(projectFolderPath, 'source_file.dart'),
+      join(projectFolderPath, 'lib', 'source_file.dart'),
       content: '''
       enum MyExportedEnum { One, Two }
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport1.dart'),
+      join(projectFolderPath, 'lib', 'reexport1.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport2.dart'),
+      join(projectFolderPath, 'lib', 'reexport2.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
 
     final content = '''
-import '../reexport1.dart';
+import 'reexport1.dart';
 
 main() {
   var a = MyExported^
@@ -788,26 +812,26 @@ main() {
 
   Future<void> test_suggestionSets_filtersOutAlreadyImportedSymbols() async {
     newFile(
-      join(projectFolderPath, 'source_file.dart'),
+      join(projectFolderPath, 'lib', 'source_file.dart'),
       content: '''
       class MyExportedClass {}
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport1.dart'),
+      join(projectFolderPath, 'lib', 'reexport1.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport2.dart'),
+      join(projectFolderPath, 'lib', 'reexport2.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
 
     final content = '''
-import '../reexport1.dart';
+import 'reexport1.dart';
 
 main() {
   MyExported^

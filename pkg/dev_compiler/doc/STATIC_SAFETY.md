@@ -54,7 +54,7 @@ analyzer:
 
 With strong mode, we want to provide stronger typing while preserving the
 terseness of Dart. [Idiomatic Dart
-code](https://www.dartlang.org/effective-dart/) discourages type annotations
+code](https://dart.dev/guides/language/effective-dart) discourages type annotations
 outside of API boundaries, and user shouldn't have to add more types to get
 better checking. Instead, strong mode uses type inference.
 
@@ -443,7 +443,7 @@ main() {
 }
 ```
 
-This option is experimental and may be changed or removed in the future. Feedback is appreciated! Contact us at our [mailing list](https://groups.google.com/a/dartlang.org/forum/#!forum/dev-compiler).
+This option is experimental and may be changed or removed in the future.
 Try it out in your project by editing .analysis_options:
 
 ```yaml
@@ -505,7 +505,7 @@ class C extends Iterable<dynamic> { /* ... */ }
 
 This feature is to prevent accidental use of `dynamic` in code that does not intend to use it.
 
-This option is experimental and may be changed or removed in the future. Feedback is appreciated! Contact us at our [mailing list](https://groups.google.com/a/dartlang.org/forum/#!forum/dev-compiler).
+This option is experimental and may be changed or removed in the future.
 Try it out in your project by editing .analysis_options:
 
 ```yaml
@@ -527,4 +527,4 @@ dartanalyzer --strong --no-implicit-dynamic my_app.dart
 `is` and `as` checks trigger runtime errors.  We are considering introducing static
 errors for these cases.
 
-[dartspec]: https://www.dartlang.org/docs/spec/ "Dart Language Spec"
+[dartspec]: https://dart.dev/guides/language/spec "Dart Language Spec"

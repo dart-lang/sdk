@@ -47,7 +47,8 @@ namespace bin {
   V(preview_dart_2, nop_option)                                                \
   V(suppress_core_dump, suppress_core_dump)                                    \
   V(enable_service_port_fallback, enable_service_port_fallback)                \
-  V(disable_dart_dev, disable_dart_dev)
+  V(disable_dart_dev, disable_dart_dev)                                        \
+  V(long_ssl_cert_evaluation, long_ssl_cert_evaluation)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -69,7 +70,6 @@ namespace bin {
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
-  V(ProcessEnableExperimentOption)                                             \
   V(ProcessVMDebuggingOptions)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
@@ -177,8 +177,6 @@ class Options {
                                     const char** out_ip,
                                     int default_port,
                                     const char* default_ip);
-
-  static MallocGrowableArray<const char*> enabled_experiments_;
 
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)

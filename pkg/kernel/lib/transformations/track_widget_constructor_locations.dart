@@ -379,10 +379,10 @@ class WidgetCreatorTracker {
         type:
             new InterfaceType(_locationClass, clazz.enclosingLibrary.nullable),
         isFinal: true,
-        reference: clazz.reference.canonicalName
+        getterReference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
             ?.reference);
-    clazz.addMember(locationField);
+    clazz.addField(locationField);
 
     final Set<Constructor> _handledConstructors =
         new Set<Constructor>.identity();

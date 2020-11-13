@@ -11,6 +11,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../abstract_context.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
@@ -457,7 +458,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   /// Return `true` if the given [feature] is enabled.
   bool isEnabled(Feature feature) =>
-      driver.analysisOptions.contextFeatures.isEnabled(feature);
+      result.libraryElement.featureSet.isEnabled(feature);
 
   Future<void> test_after_class_noPrefix() async {
     addTestSource('class A {} ^');
@@ -2267,10 +2268,5 @@ f() => [...^];
 }
 
 @reflectiveTest
-class KeywordContributorWithNullSafetyTest extends KeywordContributorTest {
-  @override
-  void setupResourceProvider() {
-    super.setupResourceProvider();
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-  }
-}
+class KeywordContributorWithNullSafetyTest extends KeywordContributorTest
+    with WithNullSafetyMixin {}

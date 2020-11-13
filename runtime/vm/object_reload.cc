@@ -176,57 +176,6 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
 }
 
-void CallSiteResetter::RebindStaticTargets(const Bytecode& bytecode) {
-  // Iterate over the Bytecode's object pool and reset all ICDatas.
-  pool_ = bytecode.object_pool();
-  ASSERT(!pool_.IsNull());
-
-  for (intptr_t i = 0; i < pool_.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool_.TypeAt(i);
-    if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-      continue;
-    }
-    object_ = pool_.ObjectAt(i);
-    if (object_.IsFunction()) {
-      const Function& old_function = Function::Cast(object_);
-      if (old_function.IsClosureFunction()) {
-        continue;
-      }
-      name_ = old_function.name();
-      new_cls_ = old_function.Owner();
-      if (new_cls_.IsTopLevel()) {
-        new_lib_ = new_cls_.library();
-        new_function_ = new_lib_.LookupLocalFunction(name_);
-      } else {
-        new_function_ = new_cls_.LookupFunction(name_);
-      }
-      if (!new_function_.IsNull() &&
-          (new_function_.is_static() == old_function.is_static()) &&
-          (new_function_.kind() == old_function.kind())) {
-        pool_.SetObjectAt(i, new_function_);
-      } else {
-        VTIR_Print("Cannot rebind function %s\n", old_function.ToCString());
-      }
-    } else if (object_.IsField()) {
-      const Field& old_field = Field::Cast(object_);
-      name_ = old_field.name();
-      new_cls_ = old_field.Owner();
-      if (new_cls_.IsTopLevel()) {
-        new_lib_ = new_cls_.library();
-        new_field_ = new_lib_.LookupLocalField(name_);
-      } else {
-        new_field_ = new_cls_.LookupField(name_);
-      }
-      if (!new_field_.IsNull() &&
-          (new_field_.is_static() == old_field.is_static())) {
-        pool_.SetObjectAt(i, new_field_);
-      } else {
-        VTIR_Print("Cannot rebind field %s\n", old_field.ToCString());
-      }
-    }
-  }
-}
-
 void CallSiteResetter::ResetCaches(const ObjectPool& pool) {
   for (intptr_t i = 0; i < pool.Length(); i++) {
     ObjectPool::EntryType entry_type = pool.TypeAt(i);
@@ -493,12 +442,10 @@ void Class::PatchFieldsAndFunctions() const {
       PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  if (!lib.is_declared_in_bytecode()) {
-    patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
-    patch.set_library_kernel_offset(lib.kernel_offset());
-  }
+  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
+  patch.set_library_kernel_offset(lib.kernel_offset());
 
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
   Function& func = Function::Handle();
   Object& owner = Object::Handle();
   for (intptr_t i = 0; i < funcs.Length(); i++) {
@@ -537,7 +484,8 @@ void Class::PatchFieldsAndFunctions() const {
 
 void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
                                           const Class& new_cls) const {
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
+  Thread* thread = Thread::Current();
   Function& old_func = Function::Handle();
   String& selector = String::Handle();
   Function& new_func = Function::Handle();
@@ -547,7 +495,7 @@ void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
     old_func ^= funcs.At(i);
     if (old_func.is_static() && old_func.HasImplicitClosureFunction()) {
       selector = old_func.name();
-      new_func = new_cls.LookupFunction(selector);
+      new_func = Resolver::ResolveFunction(thread->zone(), new_cls, selector);
       if (!new_func.IsNull() && new_func.is_static()) {
         old_func = old_func.ImplicitClosureFunction();
         old_closure = old_func.ImplicitStaticClosure();
@@ -982,7 +930,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
              old_target_.kind() == FunctionLayout::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       new_cls_ = old_target_.Owner();
-      new_target_ = new_cls_.LookupFunction(name_);
+      new_target_ = Resolver::ResolveFunction(zone_, new_cls_, name_);
       if (new_target_.kind() != old_target_.kind()) {
         new_target_ = Function::null();
       }

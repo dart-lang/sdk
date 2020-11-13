@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43689.dart:6:17: Error: 'y' is already declared in this scope.
+// late final int? y;
+//                 ^
+// pkg/front_end/testcases/nnbd/issue43689.dart:5:16: Context: Previous declaration of 'y'.
+// late final int y;
+//                ^
+//
+// pkg/front_end/testcases/nnbd/issue43689.dart:10:19: Error: 'x' is already declared in this scope.
+//   late final int? x;
+//                   ^
+// pkg/front_end/testcases/nnbd/issue43689.dart:9:18: Context: Previous declaration of 'x'.
+//   late final int x;
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/issue43689.dart:12:8: Error: 'z' is already declared in this scope.
+//   int? z;
+//        ^
+// pkg/front_end/testcases/nnbd/issue43689.dart:11:7: Context: Previous declaration of 'z'.
+//   int z;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+late static final field core::int y;
+static method test() → dynamic {
+  late final core::int x;
+  late final core::int? x = invalid-expression "pkg/front_end/testcases/nnbd/issue43689.dart:10:19: Error: 'x' is already declared in this scope.
+  late final int? x;
+                  ^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  core::int z;
+  core::int? z = invalid-expression "pkg/front_end/testcases/nnbd/issue43689.dart:12:8: Error: 'z' is already declared in this scope.
+  int? z;
+       ^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+}
+static method main() → dynamic {}

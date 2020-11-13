@@ -24,7 +24,7 @@ class RemoveEmptyElseTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_empty_else;
 
   Future<void> test_newLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo(bool cond) {
   if (cond) {
     //
@@ -42,7 +42,7 @@ void foo(bool cond) {
   }
 
   Future<void> test_sameLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo(bool cond) {
   if (cond) {
     //

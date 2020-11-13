@@ -23,7 +23,7 @@ class AddMissingParameterRequiredTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
 
   Future<void> test_constructor_named_hasOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.named(int a) {}
 }
@@ -42,7 +42,7 @@ main() {
   }
 
   Future<void> test_constructor_unnamed_hasOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A(int a) {}
 }
@@ -61,7 +61,7 @@ main() {
   }
 
   Future<void> test_function_hasNamed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test({int a}) {}
 main() {
   test(1);
@@ -76,7 +76,7 @@ main() {
   }
 
   Future<void> test_function_hasOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test(int a) {}
 main() {
   test(1, 2.0);
@@ -91,7 +91,7 @@ main() {
   }
 
   Future<void> test_function_hasZero() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test() {}
 main() {
   test(1);
@@ -106,7 +106,7 @@ main() {
   }
 
   Future<void> test_method_hasOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   test(int a) {}
   main() {
@@ -125,7 +125,7 @@ class A {
   }
 
   Future<void> test_method_hasZero() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   test() {}
   main() {
@@ -156,14 +156,18 @@ class AddMissingParameterRequiredTest_Workspace
 
   Future<void> test_function_inPackage_inWorkspace() async {
     newFile('/home/aaa/lib/a.dart', content: 'void test() {}');
-    addTestPackageDependency('aaa', '/home/aaa');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
 
     _workspace = DartChangeWorkspace([
       session,
       getContext('/home/aaa').currentSession,
     ]);
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:aaa/a.dart';
 
 main() {
@@ -178,9 +182,14 @@ main() {
   }
 
   Future<void> test_function_inPackage_outsideWorkspace() async {
-    addPackageFile('bbb', 'b.dart', 'void test() {}');
+    newFile('/home/bbb/lib/b.dart', content: 'void test() {}');
 
-    await resolveTestUnit('''
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+    );
+
+    await resolveTestCode('''
 import 'package:bbb/b.dart';
 
 main() {
@@ -191,7 +200,7 @@ main() {
   }
 
   Future<void> test_method_inSdk() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   42.abs(true);
 }

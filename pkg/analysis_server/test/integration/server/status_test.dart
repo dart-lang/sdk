@@ -18,7 +18,7 @@ void main() {
 
 @reflectiveTest
 class StatusTest extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_status() {
+  Future<void> test_status() async {
     // After we kick off analysis, we should get one server.status message with
     // analyzing=true, and another server.status message after that with
     // analyzing=false.
@@ -42,9 +42,9 @@ main() {
     standardAnalysisSetup();
     expect(analysisBegun.isCompleted, isFalse);
     expect(analysisFinished.isCompleted, isFalse);
-    return analysisBegun.future.then((_) {
-      expect(analysisFinished.isCompleted, isFalse);
-      return analysisFinished.future;
-    });
+    await analysisBegun.future;
+
+    expect(analysisFinished.isCompleted, isFalse);
+    await analysisFinished.future;
   }
 }

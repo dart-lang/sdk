@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math' show max, min;
@@ -248,7 +250,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       types,
       hierarchy,
       jsTypeRep,
-      NullableInference(jsTypeRep, staticTypeContext),
+      NullableInference(jsTypeRep, staticTypeContext, options: options),
       staticTypeContext,
       options,
       importToSummary,
@@ -579,11 +581,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var finishGenericTypeTest = _emitClassTypeTests(c, className, body);
 
-    // Attach caches on all canonicalized types not in our runtime.
-    // Types in the runtime will have caches attached in their constructors.
-    if (!isSdkInternalRuntime(_currentLibrary)) {
-      body.add(runtimeStatement('addTypeCaches(#)', [className]));
-    }
+    // Attach caches on all canonicalized types.
+    body.add(runtimeStatement('addTypeCaches(#)', [className]));
 
     _emitVirtualFieldSymbols(c, body);
     _emitClassSignature(c, className, body);
@@ -1071,7 +1070,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             c == _coreTypes.stringClass ||
             c == _coreTypes.functionClass ||
             c == _coreTypes.intClass ||
-            c == _coreTypes.nullClass ||
+            c == _coreTypes.deprecatedNullClass ||
             c == _coreTypes.numClass ||
             c == _coreTypes.doubleClass ||
             c == _coreTypes.boolClass)) {
@@ -1080,29 +1079,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (c == _coreTypes.deprecatedFutureOrClass) {
-      // These methods are difficult to place in the runtime or patch files.
-      // * They need to be callable from the class but they can't be static
-      //   methods on the FutureOr class in Dart because they reference the
-      //   generic type parameter.
-      // * There isn't an obvious place in dart:_runtime were we could place a
-      //   method that adds these type tests (similar to addTypeTests()) because
-      //   in the bootstrap ordering the Future class hasn't been defined yet.
-      var typeParam =
-          TypeParameterType(c.typeParameters[0], Nullability.undetermined);
-      var typeT = visitTypeParameterType(typeParam);
-      var futureOfT = visitInterfaceType(InterfaceType(
-          _coreTypes.futureClass, currentLibrary.nonNullable, [typeParam]));
-      body.add(js.statement('''
-          #.is = function is_FutureOr(o) {
-            return #.is(o) || #.is(o);
-          }
-          ''', [className, typeT, futureOfT]));
-      body.add(js.statement('''
-          #.as = function as_FutureOr(o) {
-            if (#.is(o) || #.is(o)) return o;
-            return #.as(o, this);
-          }
-          ''', [className, typeT, futureOfT, runtimeModule]));
+      // Custom type tests for FutureOr types are attached when the type is
+      // constructed in the runtime normalizeFutureOr method.
       return null;
     }
 
@@ -1774,14 +1752,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Fun _emitNativeFunctionBody(Procedure node) {
     var name = _annotationName(node, isJSAnnotation) ?? node.name.text;
     if (node.isGetter) {
-      return js_ast.Fun([], js.block('{ return this.#; }', [name]));
+      var returnValue = js('this.#', [name]);
+      if (_isNullCheckableNative(node)) {
+        // Add a potential null-check on native getter if type is non-nullable.
+        returnValue = runtimeCall('checkNativeNonNull(#)', [returnValue]);
+      }
+      return js_ast.Fun([], js.block('{ return #; }', [returnValue]));
     } else if (node.isSetter) {
       var params = _emitParameters(node.function);
       return js_ast.Fun(
           params, js.block('{ this.# = #; }', [name, params.last]));
     } else {
-      return js.fun(
-          'function (...args) { return this.#.apply(this, args); }', name);
+      var returnValue = js('this.#.apply(this, args)', [name]);
+      if (_isNullCheckableNative(node)) {
+        // Add a potential null-check on return value if type is non-nullable.
+        returnValue = runtimeCall('checkNativeNonNull(#)', [returnValue]);
+      }
+      return js.fun('function (...args) { return #; }', [returnValue]);
     }
   }
 
@@ -2268,6 +2255,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Fields on a native class are implicitly native.
       // Methods/getters/setters are marked external/native.
       if (member is Field || _isExternal(member)) {
+        // If the native member needs to be null-checked and we're running in
+        // sound null-safety, we require symbolizing it in order to access the
+        // null-check at the member definition.
+        if (_isNullCheckableNative(member)) return true;
         var jsName = _annotationName(member, isJSName);
         return jsName != null && jsName != name;
       } else {
@@ -2576,12 +2567,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitBottomType(BottomType type) =>
-      _emitType(_types.nullType);
+      _emitType(const NullType());
+
+  @override
+  js_ast.Expression visitNullType(NullType type) =>
+      _emitInterfaceType(_coreTypes.deprecatedNullType);
 
   @override
   js_ast.Expression visitNeverType(NeverType type) =>
       type.nullability == Nullability.nullable
-          ? visitInterfaceType(_coreTypes.nullType)
+          ? visitNullType(const NullType())
           : _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
 
   /// Normalizes `FutureOr` types and emits the normalized version.
@@ -2614,8 +2609,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // FutureOr<Never> --> Future<Never>
       return _emitInterfaceType(InterfaceType(
           _coreTypes.futureClass, futureOr.nullability, [typeArgument]));
-    } else if (typeArgument is InterfaceType &&
-        typeArgument.classNode == _coreTypes.nullClass) {
+    } else if (typeArgument is NullType) {
       // FutureOr<Null> --> Future<Null>?
       return _emitInterfaceType(InterfaceType(
           _coreTypes.futureClass, Nullability.nullable, [typeArgument]));
@@ -2699,7 +2693,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // * The types were written in JS context or as part of the dart:_runtime
     //   library.
     if (!emitNullability ||
-        type == _coreTypes.nullType ||
+        type == _coreTypes.deprecatedNullType ||
         // TODO(38701) Remove these once the SDK has unforked and is running
         // "opted-in"
         !coreLibrary.isNonNullableByDefault &&
@@ -2987,10 +2981,47 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // size on expression evaluation is better.
     // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
-    var items = _typeTable?.discharge();
-    var body = js_ast.Block([...?items, ...fun.body.statements]);
 
+    var types = _typeTable.discharge();
+    var constants = _dischargeConstTable();
+
+    var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
     return js_ast.Fun(fun.params, body);
+  }
+
+  /// Emit all collected const symbols
+  ///
+  /// This is similar to how constants are emitted during
+  /// initial compilation in emitModule
+  ///
+  /// TODO: unify the code with emitModule.
+  List<js_ast.Statement> _dischargeConstTable() {
+    var items = <js_ast.Statement>[];
+
+    if (_constLazyAccessors.isNotEmpty) {
+      var constTableBody = runtimeStatement(
+          'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]);
+      items.add(constTableBody);
+      _constLazyAccessors.clear();
+    }
+
+    _copyAndFlattenBlocks(items, moduleItems);
+    moduleItems.clear();
+    return items;
+  }
+
+  /// Flattens blocks in [items] to a single list.
+  ///
+  /// This will not flatten blocks that are marked as being scopes.
+  void _copyAndFlattenBlocks(
+      List<js_ast.Statement> result, Iterable<js_ast.ModuleItem> items) {
+    for (var item in items) {
+      if (item is js_ast.Block && !item.isScope) {
+        _copyAndFlattenBlocks(result, item.statements);
+      } else {
+        result.add(item as js_ast.Statement);
+      }
+    }
   }
 
   js_ast.Fun _emitFunction(FunctionNode f, String name) {
@@ -4213,14 +4244,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitPropertyGet(PropertyGet node) {
-    var propertyGet =
-        _emitPropertyGet(node.receiver, node.interfaceTarget, node.name.text);
-    if (_isCheckableNative(node.interfaceTarget)) {
-      // If target is a native getter with a non-nullable type, add a null check
-      // for soundness.
-      return runtimeCall('checkNativeNonNull(#)', [propertyGet]);
-    }
-    return propertyGet;
+    return _emitPropertyGet(
+        node.receiver, node.interfaceTarget, node.name.text);
   }
 
   @override
@@ -4263,9 +4288,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (_reifyTearoff(member)) {
       return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
-    } else if (isJsMember(member) &&
-        member is Procedure &&
-        !member.isAccessor) {
+    } else if (member is Procedure &&
+        !member.isAccessor &&
+        isJsMember(member)) {
       return runtimeCall(
           'tearoffInterop(#)', [js_ast.PropertyAccess(jsReceiver, jsName)]);
     } else {
@@ -4274,14 +4299,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Return whether [member] returns a native object whose type needs to be
-  /// checked.
-  bool _isCheckableNative(Member member) =>
+  /// null-checked in sound null-safety.
+  ///
+  /// This is true for non-nullable native return types.
+  bool _isNullCheckableNative(Member member) =>
+      _options.soundNullSafety &&
       member != null &&
       member.isExternal &&
       _extensionTypes.isNativeClass(member.enclosingClass) &&
       member is Procedure &&
       member.function != null &&
-      member.function.returnType.isPotentiallyNonNullable;
+      member.function.returnType.isPotentiallyNonNullable &&
+      _isWebLibrary(member.enclosingLibrary?.importUri);
 
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have
@@ -4353,14 +4382,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitMethodInvocation(MethodInvocation node) {
-    var methodCall = _emitMethodCall(
+    return _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
-    if (_isCheckableNative(node.interfaceTarget)) {
-      // If target is a native method with a non-nullable type, add a null check
-      // for soundness.
-      return runtimeCall('checkNativeNonNull(#)', [methodCall]);
-    }
-    return methodCall;
   }
 
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
@@ -4470,7 +4493,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isDynamicOrFunction(DartType t) =>
-      t == _coreTypes.functionLegacyRawType || t == const DynamicType();
+      DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+          .areEqual(t, _coreTypes.functionNonNullableRawType) ||
+      t == const DynamicType();
 
   js_ast.Expression _emitUnaryOperator(
       Expression expr, Member target, InvocationExpression node) {
@@ -5087,8 +5112,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var result = js.parseForeignJS(source).instantiate(jsArgs);
 
     // Add a check to make sure any JS() values from a native type are typed
-    // properly.
-    if (_isWebLibrary(_currentLibrary.importUri)) {
+    // properly in sound null-safety.
+    if (_isWebLibrary(_currentLibrary.importUri) && _options.soundNullSafety) {
       var type = node.getStaticType(_staticTypeContext);
       if (type.isPotentiallyNonNullable) {
         result = runtimeCall('checkNativeNonNull(#)', [result]);
@@ -5101,6 +5126,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isWebLibrary(Uri importUri) =>
+      importUri != null &&
       importUri.scheme == 'dart' &&
       (importUri.path == 'html' ||
           importUri.path == 'svg' ||
@@ -5111,8 +5137,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           importUri.path == 'html_common');
 
   bool _isNull(Expression expr) =>
-      expr is NullLiteral ||
-      expr.getStaticType(_staticTypeContext) == _coreTypes.nullType;
+      expr is NullLiteral || expr.getStaticType(_staticTypeContext) is NullType;
 
   bool _doubleEqIsIdentity(Expression left, Expression right) {
     // If we statically know LHS or RHS is null we can use ==.
@@ -5327,8 +5352,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (jsExpr is js_ast.LiteralString && jsExpr.valueWithoutQuotes.isEmpty) {
         continue;
       }
-      parts.add(e.getStaticType(_staticTypeContext) ==
-                  _types.coreTypes.stringLegacyRawType &&
+      var type = e.getStaticType(_staticTypeContext);
+      parts.add(DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+                  .areEqual(type, _coreTypes.stringNonNullableRawType) &&
               !isNullable(e)
           ? jsExpr
           : runtimeCall('str(#)', [jsExpr]));

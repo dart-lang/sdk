@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/resolver.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -455,76 +456,6 @@ static InstancePtr CreateLibraryDependencyMirror(Thread* thread,
                                        prefix_name, is_import, is_deferred);
 }
 
-static GrowableObjectArrayPtr CreateBytecodeLibraryDependencies(
-    Thread* thread,
-    const Library& lib,
-    const Instance& lib_mirror) {
-  ASSERT(lib.is_declared_in_bytecode());
-
-  // Make sure top level class (containing annotations) is fully loaded.
-  lib.EnsureTopLevelClassIsFinalized();
-
-  const auto& deps = GrowableObjectArray::Handle(GrowableObjectArray::New());
-  Array& metadata = Array::Handle(lib.GetExtendedMetadata(lib, 1));
-  if (metadata.Length() == 0) {
-    return deps.raw();
-  }
-
-  // Library has the only element in the extended metadata.
-  metadata ^= metadata.At(0);
-  if (metadata.IsNull()) {
-    return deps.raw();
-  }
-
-  auto& desc = Array::Handle();
-  auto& target_uri = String::Handle();
-  auto& importee = Library::Handle();
-  auto& is_export = Bool::Handle();
-  auto& is_deferred = Bool::Handle();
-  auto& prefix_name = String::Handle();
-  auto& show_names = Array::Handle();
-  auto& hide_names = Array::Handle();
-  auto& dep_metadata = Instance::Handle();
-  auto& dep = Instance::Handle();
-  const auto& no_prefix = LibraryPrefix::Handle();
-
-  for (intptr_t i = 0, n = metadata.Length(); i < n; ++i) {
-    desc ^= metadata.At(i);
-    // Each dependency is represented as an array with the following layout:
-    //  [0] = target library URI (String)
-    //  [1] = is_export (bool)
-    //  [2] = is_deferred (bool)
-    //  [3] = prefix (String or null)
-    //  [4] = list of show names (List<String>)
-    //  [5] = list of hide names (List<String>)
-    //  [6] = annotations
-    // The library dependencies are encoded by getLibraryAnnotations(),
-    // pkg/vm/lib/bytecode/gen_bytecode.dart.
-    target_uri ^= desc.At(0);
-    is_export ^= desc.At(1);
-    is_deferred ^= desc.At(2);
-    prefix_name ^= desc.At(3);
-    show_names ^= desc.At(4);
-    hide_names ^= desc.At(5);
-    dep_metadata ^= desc.At(6);
-
-    importee = Library::LookupLibrary(thread, target_uri);
-    if (importee.IsNull()) {
-      continue;
-    }
-    ASSERT(importee.Loaded());
-
-    dep = CreateLibraryDependencyMirror(
-        thread, lib_mirror, importee, show_names, hide_names, dep_metadata,
-        no_prefix, prefix_name, !is_export.value(), is_deferred.value());
-    if (!dep.IsNull()) {
-      deps.Add(dep);
-    }
-  }
-
-  return deps.raw();
-}
-
 DEFINE_NATIVE_ENTRY(LibraryMirror_fromPrefix, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(LibraryPrefix, prefix,
                                arguments->NativeArgAt(0));
@@ -539,10 +470,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, lib_mirror, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Library& lib = Library::Handle(ref.GetLibraryReferent());
-
-  if (lib.is_declared_in_bytecode()) {
-    return CreateBytecodeLibraryDependencies(thread, lib, lib_mirror);
-  }
 
   Array& ports = Array::Handle();
   Namespace& ns = Namespace::Handle();
@@ -900,7 +827,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 0, 2) {
 
   Type& instantiated_type =
       Type::Handle(Type::New(clz, type_args_obj, TokenPosition::kNoSource));
-  instantiated_type ^= ClassFinalizer::FinalizeType(clz, instantiated_type);
+  instantiated_type ^= ClassFinalizer::FinalizeType(instantiated_type);
   return instantiated_type.raw();
 }
 
@@ -1094,7 +1021,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 0, 3) {
   const Array& fields = Array::Handle(klass.fields());
   const intptr_t num_fields = fields.Length();
 
-  const Array& functions = Array::Handle(klass.functions());
+  const Array& functions = Array::Handle(klass.current_functions());
   const intptr_t num_functions = functions.Length();
 
   Instance& member_mirror = Instance::Handle();
@@ -1139,7 +1066,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 0, 3) {
     Exceptions::PropagateError(error);
   }
 
-  const Array& functions = Array::Handle(klass.functions());
+  const Array& functions = Array::Handle(klass.current_functions());
   const intptr_t num_functions = functions.Length();
 
   Instance& constructor_mirror = Instance::Handle();
@@ -1442,8 +1369,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
     external_constructor_name = internal_constructor_name.raw();
   }
 
-  Function& lookup_constructor =
-      Function::Handle(klass.LookupFunction(internal_constructor_name));
+  Function& lookup_constructor = Function::Handle(
+      Resolver::ResolveFunction(zone, klass, internal_constructor_name));
 
   if (lookup_constructor.IsNull() ||
       (lookup_constructor.kind() != FunctionLayout::kConstructor) ||

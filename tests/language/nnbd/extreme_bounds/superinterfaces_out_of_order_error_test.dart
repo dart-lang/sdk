@@ -4,8 +4,6 @@
 
 // Requirements=nnbd-weak
 
-// @dart = 2.10
-
 // Test that upper bound computations which rely on the computations of the
 // cardinality of the superinterface sets define those sets without erasing or
 // modifying the superinterfaces.

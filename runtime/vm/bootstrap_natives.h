@@ -27,7 +27,6 @@ namespace dart {
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
   V(Closure_computeHash, 1)                                                    \
-  V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
   V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \
@@ -55,7 +54,7 @@ namespace dart {
   V(CapabilityImpl_factory, 1)                                                 \
   V(CapabilityImpl_equals, 2)                                                  \
   V(CapabilityImpl_get_hashcode, 1)                                            \
-  V(RawReceivePortImpl_factory, 1)                                             \
+  V(RawReceivePortImpl_factory, 2)                                             \
   V(RawReceivePortImpl_get_id, 1)                                              \
   V(RawReceivePortImpl_get_sendport, 1)                                        \
   V(RawReceivePortImpl_closeInternal, 1)                                       \

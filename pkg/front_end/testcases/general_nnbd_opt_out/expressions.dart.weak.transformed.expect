@@ -51,31 +51,31 @@ static method main() → dynamic {
   core::print(#C2);
   core::print(core::_List::•<core::String*>(2).{core::Object::runtimeType});
   self::foo(fisk: "Blorp gulp");
-  function f() → core::Null? {
+  function f() → Null {
     core::print("f was called");
   }
   self::caller(f);
-  self::caller(() → core::Null? {
+  self::caller(() → Null {
     core::print("<anon> was called");
   });
-  function g([dynamic message = #C1]) → core::Null? {
+  function g([dynamic message = #C1]) → Null {
     core::print(message);
   }
   g.call("Hello, World");
-  self::caller(([dynamic x = #C1]) → core::Null? {
+  self::caller(([dynamic x = #C1]) → Null {
     core::print("<anon> was called with ${x}");
   });
-  function h({dynamic message = #C1}) → core::Null? {
+  function h({dynamic message = #C1}) → Null {
     core::print(message);
   }
   h.call(message: "Hello, World");
-  self::caller(({dynamic x = #C1}) → core::Null? {
+  self::caller(({dynamic x = #C1}) → Null {
     core::print("<anon> was called with ${x}");
   });
-  core::print(core::int*.{core::Object::toString}());
+  core::print(core::int*.{core::Type::toString}());
   core::print(core::int*);
   core::print(let final core::Type* #t5 = core::int* in block {
-    #t5.{core::Object::toString}();
+    #t5.{core::Type::toString}();
   } =>#t5);
   try {
     core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/expressions.dart:76:16: Error: Method not found: 'int.toString'.

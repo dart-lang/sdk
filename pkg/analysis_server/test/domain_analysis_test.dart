@@ -323,7 +323,7 @@ class A {}
         content: 'pkgA:${toUriStr('/packages/pkgA')}');
     addTestFile('''
 import 'package:pkgA/libA.dart';
-main(A a) {
+void f(A a) {
 }
 ''');
     // create project and wait for analysis

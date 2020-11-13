@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -16,15 +16,12 @@ void main() {
 }
 
 @reflectiveTest
-class AddNullCheckTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class AddNullCheckTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_NULL_CHECK;
 
   Future<void> test_argument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(int x) {}
 void g(int? y) {
   f(y);
@@ -39,7 +36,7 @@ void g(int? y) {
   }
 
   Future<void> test_argument_differByMoreThanNullability() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(int x) {}
 void g(String y) {
   f(y);
@@ -49,7 +46,7 @@ void g(String y) {
   }
 
   Future<void> test_assignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(int x, int? y) {
   x = y;
 }
@@ -63,7 +60,7 @@ void f(int x, int? y) {
 
   Future<void>
       test_assignment_differByMoreThanNullability_nonNullableRight() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(int x, String y) {
   x = y;
 }
@@ -73,7 +70,7 @@ void f(int x, String y) {
 
   Future<void>
       test_assignment_differByMoreThanNullability_nullableRight() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(int x, String? y) {
   x = y;
 }
@@ -82,7 +79,7 @@ void f(int x, String? y) {
   }
 
   Future<void> test_assignment_needsParens() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(A x) {
   x = x + x;
 }
@@ -101,7 +98,7 @@ class A {
   }
 
   Future<void> test_initializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(int? x) {
   int y = x;
   print(y);
@@ -116,7 +113,7 @@ void f(int? x) {
   }
 
   Future<void> test_initializer_differByMoreThanNullability() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String x) {
   int y = x;
   print(y);

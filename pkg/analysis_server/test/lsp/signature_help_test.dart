@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -449,8 +448,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
 class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
     with SignatureHelpMixin {
   @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()..enabledExperiments = ['non-nullable'];
+  String get testPackageLanguageVersion => latestLanguageVersion;
 
   Future<void> test_params_requiredNamed() async {
     // This test requires support for the "required" keyword.

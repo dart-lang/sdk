@@ -1,4 +1,4 @@
-main = <No Member>;
+main = foo::main;
 library from "org-dartlang-test:///foo.dart" as foo {
 
   abstract class Key extends dart.core::Object /*hasConstConstructor*/  {

@@ -19,7 +19,7 @@ class ReplaceWithVarTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.omit_local_variable_types;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List f() {
   List<int> l = [];
   return l;

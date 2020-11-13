@@ -15,11 +15,26 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
+// Returns true if the given method can skip type checks for all type arguments
+// that are not covariant or generic covariant in its implementation.
+bool MethodCanSkipTypeChecksForNonCovariantTypeArguments(
+    const Function& method) {
+  // Dart 2 type system at non-dynamic call sites statically guarantees that
+  // argument values match declared parameter types for all non-covariant
+  // and non-generic-covariant parameters. The same applies to type parameters
+  // bounds for type parameters of generic functions.
+  //
+  // Normally dynamic call sites will call dyn:* forwarders which perform type
+  // checks.
+  //
+  // Though for some kinds of methods (e.g. ffi trampolines called from native
+  // code) we do have to perform type checks for all parameters.
+  return !method.CanReceiveDynamicInvocation();
+}
+
 // Returns true if the given method can skip type checks for all arguments
 // that are not covariant or generic covariant in its implementation.
-bool MethodCanSkipTypeChecksForNonCovariantArguments(
-    const Function& method,
-    const ProcedureAttributesMetadata& attrs) {
+bool MethodCanSkipTypeChecksForNonCovariantArguments(const Function& method) {
   // Dart 2 type system at non-dynamic call sites statically guarantees that
   // argument values match declarated parameter types for all non-covariant
   // and non-generic-covariant parameters. The same applies to type parameters
@@ -35,7 +50,7 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   // been fully moved out of closures.
   return !method.CanReceiveDynamicInvocation() &&
          !(method.IsClosureFunction() &&
-           Function::ClosureBodiesContainNonCovariantChecks());
+           Function::ClosureBodiesContainNonCovariantArgumentChecks());
 }
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
@@ -216,21 +231,23 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
 
       ParameterTypeCheckMode type_check_mode = kTypeCheckAllParameters;
-      if (function.IsSyncYielding()) {
+      if (function.IsSyncGenClosure()) {
         // Don't type check the parameter of sync-yielding since these calls are
         // all synthetic and types should always match.
         ASSERT((function.NumParameters() - function.NumImplicitParameters()) ==
-               1);
+               3);
         ASSERT(
             Class::Handle(
                 AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
-                .Name() == Symbols::_SyncIterator().raw());
+                .ScrubbedName() == Symbols::_SyncIterator().raw());
         type_check_mode = kTypeCheckForStaticFunction;
       } else if (function.IsNonImplicitClosureFunction()) {
         type_check_mode = kTypeCheckAllParameters;
       } else if (function.IsImplicitClosureFunction()) {
-        if (MethodCanSkipTypeChecksForNonCovariantArguments(
-                Function::Handle(Z, function.parent_function()), attrs)) {
+        if (MethodCanSkipTypeChecksForNonCovariantTypeArguments(
+                Function::Handle(Z, function.parent_function())) &&
+            MethodCanSkipTypeChecksForNonCovariantArguments(
+                Function::Handle(Z, function.parent_function()))) {
           // This is a tear-off of an instance method that can not be reached
           // from any dynamic invocation. The method would not check any
           // parameters except covariant ones and those annotated with
@@ -243,8 +260,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         if (function.is_static()) {
           // In static functions we don't check anything.
           type_check_mode = kTypeCheckForStaticFunction;
-        } else if (MethodCanSkipTypeChecksForNonCovariantArguments(function,
-                                                                   attrs)) {
+        } else if (MethodCanSkipTypeChecksForNonCovariantTypeArguments(
+                       function) &&
+                   MethodCanSkipTypeChecksForNonCovariantArguments(function)) {
           // If the current function is never a target of a dynamic invocation
           // and this parameter is not marked with generic-covariant-impl
           // (which means that among all super-interfaces no type parameters
@@ -319,7 +337,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         scope_->InsertParameterAt(pos++, result_->setter_value);
 
         if (is_method &&
-            MethodCanSkipTypeChecksForNonCovariantArguments(function, attrs)) {
+            MethodCanSkipTypeChecksForNonCovariantTypeArguments(function) &&
+            MethodCanSkipTypeChecksForNonCovariantArguments(function)) {
           if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
           } else if (!field.is_generic_covariant_impl() ||
@@ -589,10 +608,12 @@ void ScopeBuilder::VisitFunctionNode() {
     scope_->AddVariable(asyncStackTraceVar);
   }
 
+  // The :sync_op and :async_op continuations are called multiple times. So we
+  // don't want the parameters from the first invocation to get stored in the
+  // context and reused on later invocations with different parameters.
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    intptr_t offset = function.num_fixed_parameters();
-    for (intptr_t i = 0; i < function.NumOptionalPositionalParameters(); i++) {
-      parsed_function_->ParameterVariable(offset + i)->set_is_forced_stack();
+    for (intptr_t i = 0; i < function.NumParameters(); i++) {
+      parsed_function_->ParameterVariable(i)->set_is_forced_stack();
     }
   }
 
@@ -606,17 +627,17 @@ void ScopeBuilder::VisitFunctionNode() {
     first_body_token_position_ = helper_.reader_.min_position();
   }
 
-  // Ensure that :await_jump_var, :await_ctx_var, :async_op,
-  // :async_completer and :async_stack_trace are captured.
+  // Ensure that :await_jump_var, :await_ctx_var, :async_op, :is_sync,
+  // :async_future and :async_stack_trace are captured.
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     {
-      LocalVariable* temp = NULL;
+      LocalVariable* temp = nullptr;
       LookupCapturedVariableByName(
           (depth_.function_ == 0) ? &result_->yield_jump_variable : &temp,
           Symbols::AwaitJumpVar());
     }
     {
-      LocalVariable* temp = NULL;
+      LocalVariable* temp = nullptr;
       LookupCapturedVariableByName(
           (depth_.function_ == 0) ? &result_->yield_context_variable : &temp,
           Symbols::AwaitContextVar());
@@ -624,28 +645,34 @@ void ScopeBuilder::VisitFunctionNode() {
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncOperation(), true);
-      if (temp != NULL) {
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
     {
       LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncCompleter(), true);
-      if (temp != NULL) {
+          scope_->LookupVariable(Symbols::AsyncFuture(), true);
+      if (temp != nullptr) {
+        scope_->CaptureVariable(temp);
+      }
+    }
+    {
+      LocalVariable* temp = scope_->LookupVariable(Symbols::is_sync(), true);
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::ControllerStream(), true);
-      if (temp != NULL) {
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
     if (FLAG_causal_async_stacks) {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncStackTraceVar(), true);
-      if (temp != NULL) {
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
@@ -778,6 +805,7 @@ void ScopeBuilder::VisitExpression() {
       VisitExpression();                     // read expression.
       return;
     case kMethodInvocation:
+      helper_.ReadFlags();     // read flags.
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read receiver.
       helper_.SkipName();      // read name.
@@ -993,7 +1021,8 @@ void ScopeBuilder::VisitStatement() {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
 
       EnterScope(offset);
-
+      helper_.ReadPosition();  // read block start offset.
+      helper_.ReadPosition();  // read block end offset.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of statements.
       for (intptr_t i = 0; i < list_length; ++i) {
@@ -1333,7 +1362,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
   // This way we can allocate them in the outermost context at fixed indices,
   // allowing support for --lazy-async-stacks implementation to find awaiters.
   if (name.Equals(Symbols::AwaitJumpVar()) ||
-      name.Equals(Symbols::AsyncCompleter()) ||
+      name.Equals(Symbols::AsyncFuture()) || name.Equals(Symbols::is_sync()) ||
       name.Equals(Symbols::Controller())) {
     scope_->parent()->AddVariable(variable);
   } else {

@@ -91,7 +91,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
     Label ok;
     // Check that we are always entering from Dart code.
     __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
+    __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -154,7 +154,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
@@ -181,7 +181,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateSharedStubGeneric(
+void StubCodeCompiler::GenerateSharedStubGeneric(
     Assembler* assembler,
     bool save_fpu_registers,
     intptr_t self_code_stub_offset_from_thread,
@@ -209,24 +209,25 @@ static void GenerateSharedStubGeneric(
   __ ret(LR);
 }
 
-static void GenerateSharedStub(Assembler* assembler,
-                               bool save_fpu_registers,
-                               const RuntimeEntry* target,
-                               intptr_t self_code_stub_offset_from_thread,
-                               bool allow_return,
-                               bool store_runtime_result_in_r0 = false) {
-  ASSERT(!store_runtime_result_in_r0 || allow_return);
+void StubCodeCompiler::GenerateSharedStub(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    const RuntimeEntry* target,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    bool store_runtime_result_in_result_register) {
+  ASSERT(!store_runtime_result_in_result_register || allow_return);
   auto perform_runtime_call = [&]() {
-    if (store_runtime_result_in_r0) {
+    if (store_runtime_result_in_result_register) {
       __ PushRegister(NULL_REG);
     }
     __ CallRuntime(*target, /*argument_count=*/0);
-    if (store_runtime_result_in_r0) {
+    if (store_runtime_result_in_result_register) {
       __ PopRegister(R0);
-      __ str(
-          R0,
-          Address(FP, target::kWordSize *
-                          StubCodeCompiler::WordOffsetFromFpToCpuRegister(R0)));
+      __ str(R0,
+             Address(FP, target::kWordSize *
+                             StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                                 SharedSlowPathStubABI::kResultReg)));
     }
   };
   GenerateSharedStubGeneric(assembler, save_fpu_registers,
@@ -545,55 +546,8 @@ void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
-      target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
-      target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
-      target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
-      target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kNullCastErrorRuntimeEntry,
-      target::Thread::null_cast_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kNullCastErrorRuntimeEntry,
-      target::Thread::null_cast_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
+void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
+                                          bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     // If the generated code has unboxed index/length we need to box them before
     // calling the runtime entry.
@@ -640,32 +594,6 @@ static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
       /*allow_return=*/false, perform_runtime_call);
 }
 
-void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateRangeError(assembler, /*with_fpu_regs=*/false);
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateRangeError(assembler, /*with_fpu_regs=*/true);
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
-      target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
-      target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
-}
-
 // Input parameters:
 //   LR : return address.
 //   SP : address of return value.
@@ -694,7 +622,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     Label ok;
     // Check that we are always entering from Dart code.
     __ LoadFromOffset(R6, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R6, VMTag::kDartCompiledTagId);
+    __ CompareImmediate(R6, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -757,7 +685,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ RestorePinnedRegisters();
 
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
@@ -1334,12 +1262,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
 
     __ Bind(&slow_case);
   }
-  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
   GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
                      &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
                      /*allow_return=*/true,
-                     /*store_runtime_result_in_r0=*/true);
+                     /*store_runtime_result_in_result_register=*/true);
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
@@ -1353,12 +1282,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 
     __ Bind(&slow_case);
   }
-  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
       /*allow_return=*/true,
-      /*store_runtime_result_in_r0=*/true);
+      /*store_runtime_result_in_result_register=*/true);
 }
 
 // Called when invoking Dart code from C++ (VM code).
@@ -1428,7 +1358,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
-  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R6, VMTag::kDartTagId);
   __ StoreToOffset(R6, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -1476,157 +1406,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ blr(R0);  // R4 is the arguments descriptor array.
   __ Comment("InvokeDartCodeStub return");
-
-  // Get rid of arguments pushed on the stack.
-  __ AddImmediate(
-      SP, FP,
-      target::frame_layout.exit_link_slot_from_entry_fp * target::kWordSize);
-
-  // Restore the saved top exit frame info and top resource back into the
-  // Isolate structure. Uses R6 as a temporary register for this.
-  __ Pop(R6);
-  __ StoreToOffset(R6, THR, target::Thread::top_exit_frame_info_offset());
-  __ Pop(R6);
-  __ StoreToOffset(R6, THR, target::Thread::exit_through_ffi_offset());
-  __ Pop(R6);
-  __ StoreToOffset(R6, THR, target::Thread::top_resource_offset());
-
-  // Restore the current VMTag from the stack.
-  __ Pop(R4);
-  __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ mov(R3, THR);
-#endif
-
-  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  // Restore the frame pointer and C stack pointer and return.
-  __ LeaveFrame();
-  __ Drop(1);
-  __ RestoreCSP();
-  __ ret();
-}
-
-// Called when invoking compiled Dart code from interpreted Dart code.
-// Input parameters:
-//   LR : points to return address.
-//   R0 : raw code object of the Dart function to call.
-//   R1 : arguments raw descriptor array.
-//   R2 : address of first argument.
-//   R3 : current thread.
-void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
-    Assembler* assembler) {
-  if (FLAG_precompiled_mode) {
-    __ Stop("Not using interpreter");
-    return;
-  }
-
-  // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
-  // use to access the stack (SP/R15) and set the C stack pointer to near the
-  // stack limit, loaded from the Thread held in R3, to prevent signal handlers
-  // from over-writing Dart frames.
-  __ mov(SP, CSP);
-  __ SetupCSPFromThread(R3);
-  __ Push(LR);  // Marker for the profiler.
-  __ EnterFrame(0);
-
-  // Push code object to PC marker slot.
-  __ ldr(TMP,
-         Address(R3,
-                 target::Thread::invoke_dart_code_from_bytecode_stub_offset()));
-  __ Push(TMP);
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  __ PushNativeCalleeSavedRegisters();
-
-  // Set up THR, which caches the current thread in Dart code.
-  if (THR != R3) {
-    __ mov(THR, R3);
-  }
-
-  // Refresh pinned registers values (inc. write barrier mask and null object).
-  __ RestorePinnedRegisters();
-
-  // Save the current VMTag on the stack.
-  __ LoadFromOffset(R4, THR, target::Thread::vm_tag_offset());
-  __ Push(R4);
-
-  // Save top resource and top exit frame info. Use R6 as a temporary register.
-  // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(R6, THR, target::Thread::top_resource_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_resource_offset());
-  __ Push(R6);
-
-  __ LoadFromOffset(R6, THR, target::Thread::exit_through_ffi_offset());
-  __ Push(R6);
-  __ LoadImmediate(R6, 0);
-  __ StoreToOffset(R6, THR, target::Thread::exit_through_ffi_offset());
-
-  __ LoadFromOffset(R6, THR, target::Thread::top_exit_frame_info_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
-  // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
-  // with the code below.
-#if defined(TARGET_OS_FUCHSIA)
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -24);
-#else
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
-#endif
-  __ Push(R6);
-
-  // Mark that the thread is executing Dart code. Do this after initializing the
-  // exit link for the profiler.
-  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(R6, THR, target::Thread::vm_tag_offset());
-
-  // Load arguments descriptor array into R4, which is passed to Dart code.
-  __ mov(R4, R1);
-
-  // Load number of arguments into R5 and adjust count for type arguments.
-  __ LoadFieldFromOffset(R5, R4, target::ArgumentsDescriptor::count_offset());
-  __ LoadFieldFromOffset(R3, R4,
-                         target::ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R5, 1);  // Include the type arguments.
-  __ cmp(R3, Operand(0));
-  __ csinc(R5, R5, TMP, EQ);  // R5 <- (R3 == 0) ? R5 : TMP + 1 (R5 : R5 + 2).
-  __ SmiUntag(R5);
-
-  // R2 points to first argument.
-  // Set up arguments for the Dart call.
-  Label push_arguments;
-  Label done_push_arguments;
-  __ cmp(R5, Operand(0));
-  __ b(&done_push_arguments, EQ);  // check if there are arguments.
-  __ LoadImmediate(R1, 0);
-  __ Bind(&push_arguments);
-  __ ldr(R3, Address(R2));
-  __ Push(R3);
-  __ add(R1, R1, Operand(1));
-  __ add(R2, R2, Operand(target::kWordSize));
-  __ cmp(R1, Operand(R5));
-  __ b(&push_arguments, LT);
-  __ Bind(&done_push_arguments);
-
-  // We now load the pool pointer(PP) with a GC safe value as we are about to
-  // invoke dart code. We don't need a real object pool here.
-  // Smi zero does not work because ARM64 assumes PP to be untagged.
-  __ LoadObject(PP, NullObject());
-
-  // Call the Dart code entrypoint.
-  __ mov(CODE_REG, R0);
-  __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ blr(R0);  // R4 is the arguments descriptor array.
 
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(
@@ -1812,7 +1591,7 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     Label slow_case;
 
     // Load num. variable (int32) in the existing context.
-    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset()),
+    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset(), kWord),
            kWord);
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
@@ -2928,104 +2707,9 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ Pop(R4);  // Restore arg desc.
   __ LeaveStubFrame();
 
-  // When using the interpreter, the function's code may now point to the
-  // InterpretCall stub. Make sure R0, R4, and R5 are preserved.
   __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
   __ LoadFieldFromOffset(R2, R0, target::Function::entry_point_offset());
   __ br(R2);
-}
-
-// Stub for interpreting a function call.
-// R4: Arguments descriptor.
-// R0: Function.
-void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-  if (FLAG_precompiled_mode) {
-    __ Stop("Not using interpreter");
-    return;
-  }
-
-  __ SetPrologueOffset();
-  __ EnterStubFrame();
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
-    __ b(&ok, EQ);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Adjust arguments count for type arguments vector.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
-  __ SmiUntag(R2);
-  __ LoadFieldFromOffset(R1, R4,
-                         target::ArgumentsDescriptor::type_args_len_offset());
-  __ cmp(R1, Operand(0));
-  __ csinc(R2, R2, R2, EQ);  // R2 <- (R1 == 0) ? R2 : R2 + 1.
-
-  // Compute argv.
-  __ add(R3, ZR, Operand(R2, LSL, 3));
-  __ add(R3, FP, Operand(R3));
-  __ AddImmediate(R3,
-                  target::frame_layout.param_end_from_fp * target::kWordSize);
-
-  // Indicate decreasing memory addresses of arguments with negative argc.
-  __ neg(R2, R2);
-
-  // Align frame before entering C++ world. No shadow stack space required.
-  __ ReserveAlignedFrameSpace(0 * target::kWordSize);
-
-  // Pass arguments in registers.
-  // R0: Function.
-  __ mov(R1, R4);  // Arguments descriptor.
-  // R2: Negative argc.
-  // R3: Argv.
-  __ mov(R4, THR);  // Thread.
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ StoreToOffset(FP, THR, target::Thread::top_exit_frame_info_offset());
-
-  // Mark that the thread exited generated code through a runtime call.
-  __ LoadImmediate(R5, target::Thread::exit_through_runtime_call());
-  __ StoreToOffset(R5, THR, target::Thread::exit_through_ffi_offset());
-
-  // Mark that the thread is executing VM code.
-  __ LoadFromOffset(R5, THR,
-                    target::Thread::interpret_call_entry_point_offset());
-  __ StoreToOffset(R5, THR, target::Thread::vm_tag_offset());
-
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack. We cache the stack limit address
-  // in a callee-saved register.
-  __ mov(R25, CSP);
-  __ mov(CSP, SP);
-
-  __ blr(R5);
-
-  // Restore SP and CSP.
-  __ mov(SP, CSP);
-  __ mov(CSP, R25);
-
-  // Refresh pinned registers values (inc. write barrier mask and null object).
-  __ RestorePinnedRegisters();
-
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
-
-  // Mark that the thread has not exited generated Dart code.
-  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
-
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
-
-  __ LeaveStubFrame();
-  __ ret();
 }
 
 // R5: Contains an ICData.
@@ -3461,10 +3145,10 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is instantiated/uninstantiated.
-  __ ldr(
-      kTmp,
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::type_state_offset()),
-      kByte);
+  __ ldr(kTmp,
+         FieldAddress(TypeTestABI::kDstTypeReg,
+                      target::Type::type_state_offset(), kByte),
+         kByte);
   __ cmp(kTmp,
          Operand(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
@@ -3525,6 +3209,8 @@ void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: thread.
 // Does not return.
+//
+// Notice: We need to keep this in sync with `Simulator::JumpToFrame()`.
 void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
@@ -3552,7 +3238,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   // Refresh pinned registers values (inc. write barrier mask and null object).
   __ RestorePinnedRegisters();
   // Set the tag.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
   // Clear top exit frame.
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
@@ -3923,9 +3609,13 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
-  __ ldr(R2, FieldAddress(R5, target::SingleTargetCache::lower_limit_offset()),
+  __ ldr(R2,
+         FieldAddress(R5, target::SingleTargetCache::lower_limit_offset(),
+                      kHalfword),
          kUnsignedHalfword);
-  __ ldr(R3, FieldAddress(R5, target::SingleTargetCache::upper_limit_offset()),
+  __ ldr(R3,
+         FieldAddress(R5, target::SingleTargetCache::upper_limit_offset(),
+                      kHalfword),
          kUnsignedHalfword);
 
   __ cmp(R1, Operand(R2));

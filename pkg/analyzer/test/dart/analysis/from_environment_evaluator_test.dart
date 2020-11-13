@@ -22,8 +22,8 @@ void main() {
 class FromEnvironmentEvaluatorTest {
   static const String _defaultValue = 'defaultValue';
 
-  TypeProvider typeProvider;
-  TypeSystemImpl typeSystem;
+  /*late final*/ TypeProvider typeProvider;
+  /*late final*/ TypeSystemImpl typeSystem;
 
   DartObjectImpl get _boolValueFalse {
     return DartObjectImpl(

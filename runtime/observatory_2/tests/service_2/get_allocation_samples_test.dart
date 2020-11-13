@@ -56,7 +56,7 @@ var tests = <IsolateTest>[
     expect(fooClass.traceAllocations, isTrue);
     dynamic profileResponse = await fooClass.getAllocationSamples();
     expect(profileResponse, isNotNull);
-    expect(profileResponse['type'], equals('_CpuProfile'));
+    expect(profileResponse['type'], equals('CpuSamples'));
     await fooClass.setTraceAllocations(false);
     await fooClass.reload();
     expect(fooClass.traceAllocations, isFalse);
@@ -68,11 +68,10 @@ var tests = <IsolateTest>[
     var node = tree.root;
     var expected = [
       'Root',
-      'DRT_AllocateObject',
-      '[Stub] Allocate Foo',
-      'test',
-      'test',
-      '_Closure.call'
+      '[Unoptimized] test',
+      '[Unoptimized] test',
+      '[Unoptimized] _Closure.call',
+      '[Unoptimized] _ServiceTesteeRunner.run',
     ];
     for (var i = 0; i < expected.length; i++) {
       expect(node.profileCode.code.name, equals(expected[i]));

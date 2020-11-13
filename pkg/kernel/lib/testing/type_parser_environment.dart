@@ -16,6 +16,7 @@ import "package:kernel/ast.dart"
         NamedType,
         NeverType,
         Node,
+        NullType,
         Nullability,
         Supertype,
         TreeNode,
@@ -232,6 +233,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new NeverType(interpretParsedNullability(node.parsedNullability));
+    } else if (name == "Null") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new NullType();
     }
     TreeNode declaration = environment.lookupDeclaration(name);
     List<ParsedType> arguments = node.arguments;

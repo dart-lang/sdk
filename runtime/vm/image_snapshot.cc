@@ -271,6 +271,16 @@ intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
       return compiler::target::Instructions::InstanceSize(
           Instructions::Size(raw_insns));
     }
+    case kOneByteStringCid: {
+      auto raw_str = String::RawCast(raw_object);
+      return compiler::target::String::InstanceSize(
+          String::LengthOf(raw_str) * OneByteString::kBytesPerElement);
+    }
+    case kTwoByteStringCid: {
+      auto raw_str = String::RawCast(raw_object);
+      return compiler::target::String::InstanceSize(
+          String::LengthOf(raw_str) * TwoByteString::kBytesPerElement);
+    }
     default: {
       const Class& clazz = Class::Handle(Object::Handle(raw_object).clazz());
       FATAL("Unsupported class %s in rodata section.\n", clazz.ToCString());
@@ -520,6 +530,24 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::PcDescriptors::HeaderSize());
       stream->WriteBytes(desc.raw()->ptr()->data(), desc.Length());
+    } else if (obj.IsString()) {
+      const String& str = String::Cast(obj);
+      RELEASE_ASSERT(String::GetCachedHash(str.raw()) != 0);
+      RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
+
+      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->length_));
+#if !defined(HASH_IN_OBJECT_HEADER)
+      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->hash_));
+#endif
+      ASSERT_EQUAL(stream->Position() - object_start,
+                   compiler::target::String::InstanceSize());
+      stream->WriteBytes(
+          str.IsOneByteString()
+              ? static_cast<const void*>(OneByteString::DataStart(str))
+              : static_cast<const void*>(TwoByteString::DataStart(str)),
+          str.Length() * (str.IsOneByteString()
+                              ? OneByteString::kBytesPerElement
+                              : TwoByteString::kBytesPerElement));
     } else {
       const Class& clazz = Class::Handle(obj.clazz());
       FATAL("Unsupported class %s in rodata section.\n", clazz.ToCString());
@@ -535,7 +563,9 @@ static UNLESS_DEBUG(constexpr) const uword kReadOnlyGCBits =
     ObjectLayout::OldAndNotRememberedBit::encode(true) |
     ObjectLayout::NewBit::encode(false);
 
-uword ImageWriter::GetMarkedTags(classid_t cid, intptr_t size) {
+uword ImageWriter::GetMarkedTags(classid_t cid,
+                                 intptr_t size,
+                                 bool is_canonical /* = false */) {
   // ObjectLayout::SizeTag expects a size divisible by kObjectAlignment and
   // checks this in debug mode, but the size on the target machine may not be
   // divisible by the host machine's object alignment if they differ.
@@ -554,7 +584,8 @@ uword ImageWriter::GetMarkedTags(classid_t cid, intptr_t size) {
                compiler::target::ObjectAlignment::kObjectAlignmentLog2);
 
   return kReadOnlyGCBits | ObjectLayout::ClassIdTag::encode(cid) |
-         ObjectLayout::SizeTag::encode(adjusted_size);
+         ObjectLayout::SizeTag::encode(adjusted_size) |
+         ObjectLayout::CanonicalBit::encode(is_canonical);
 }
 
 uword ImageWriter::GetMarkedTags(const Object& obj) {
@@ -562,7 +593,8 @@ uword ImageWriter::GetMarkedTags(const Object& obj) {
 #if defined(HASH_IN_OBJECT_HEADER)
       static_cast<uword>(obj.raw()->ptr()->hash_) << kBitsPerInt32 |
 #endif
-      GetMarkedTags(obj.raw()->GetClassId(), SizeInSnapshot(obj));
+      GetMarkedTags(obj.raw()->GetClassId(), SizeInSnapshot(obj),
+                    obj.IsCanonical());
 }
 
 const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) const {

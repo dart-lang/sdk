@@ -18,17 +18,17 @@ main() {
 @reflectiveTest
 class ConstantEvaluatorTest extends ParseBase {
   void test_binary_bitAnd() {
-    int value = _getConstantValue("74 & 42");
+    var value = _getConstantValue("74 & 42") as int;
     expect(value, 74 & 42);
   }
 
   void test_binary_bitOr() {
-    int value = _getConstantValue("74 | 42");
+    var value = _getConstantValue("74 | 42") as int;
     expect(value, 74 | 42);
   }
 
   void test_binary_bitXor() {
-    int value = _getConstantValue("74 ^ 42");
+    var value = _getConstantValue("74 ^ 42") as int;
     expect(value, 74 ^ 42);
   }
 
@@ -78,7 +78,7 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_binary_leftShift() {
-    int value = _getConstantValue("16 << 2");
+    var value = _getConstantValue("16 << 2") as int;
     expect(value, 64);
   }
 
@@ -183,7 +183,7 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_binary_rightShift() {
-    int value = _getConstantValue("64 >> 2");
+    var value = _getConstantValue("64 >> 2") as int;
     expect(value, 16);
   }
 
@@ -198,12 +198,12 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_binary_truncatingDivide_double() {
-    int value = _getConstantValue("3.2 ~/ 2.3");
+    var value = _getConstantValue("3.2 ~/ 2.3") as int;
     expect(value, 1);
   }
 
   void test_binary_truncatingDivide_integer() {
-    int value = _getConstantValue("10 ~/ 3");
+    var value = _getConstantValue("10 ~/ 3") as int;
     expect(value, 3);
   }
 
@@ -260,7 +260,7 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_literal_list() {
-    List value = _getConstantValue("['a', 'b', 'c']");
+    var value = _getConstantValue("['a', 'b', 'c']") as List<Object>;
     expect(value.length, 3);
     expect(value[0], "a");
     expect(value[1], "b");
@@ -268,7 +268,8 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_literal_map() {
-    Map value = _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
+    var value = _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}")
+        as Map<Object, Object>;
     expect(value.length, 3);
     expect(value["a"], "m");
     expect(value["b"], "n");
@@ -316,7 +317,7 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_unary_bitNot() {
-    int value = _getConstantValue("~42");
+    var value = _getConstantValue("~42") as int;
     expect(value, ~42);
   }
 

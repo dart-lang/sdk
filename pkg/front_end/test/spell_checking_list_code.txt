@@ -20,6 +20,7 @@ accumulating
 acon
 acov
 across
+adi
 affecting
 afterwards
 agree
@@ -54,6 +55,7 @@ artifacts
 artificial
 asgerf
 askesc
+aspect
 aspx
 assigning
 assigns
@@ -91,6 +93,7 @@ batch
 baz
 bazel
 bb
+became
 beforehand
 behave
 bellow
@@ -124,6 +127,7 @@ bother
 boundness
 boxed
 breadcrumbs
+brevity
 brianwilkerson
 bs
 bsd
@@ -220,6 +224,7 @@ condensed
 config
 configs
 configured
+connectivity
 consideration
 constness
 consult
@@ -238,6 +243,7 @@ corrected
 corrections
 cosmetic
 counters
+covariances
 cr
 creator
 criterion
@@ -273,6 +279,7 @@ dec
 decl
 decoupled
 decreases
+deduplication
 deemed
 deepest
 deeply
@@ -300,6 +307,7 @@ destinations
 destroy
 deterministic
 dev
+device
 diff
 diffs
 digest
@@ -508,10 +516,12 @@ il
 imitate
 immutability
 impl
+impl+
 implementers
 imply
 implying
 importantly
+imprecise
 inapplicable
 inc
 incomparable
@@ -586,6 +596,7 @@ lacks
 lang
 largest
 lattice
+launcher
 layer
 layout
 lc
@@ -605,6 +616,7 @@ lifter
 linearized
 linebreak
 linter
+linux
 lives
 ll
 llub
@@ -627,11 +639,13 @@ lx
 ly
 lz
 m
+macos
 maintaining
 mangled
 manipulation
 markdown
 masking
+masks
 master
 mb
 mc
@@ -787,6 +801,7 @@ parenteses
 particularly
 patchup
 path
+patterns
 paulberry
 pay
 payload
@@ -800,6 +815,7 @@ permit
 pi
 picking
 pkg
+player
 plugin
 pm
 pn
@@ -1094,6 +1110,7 @@ tagger
 tags
 tailor
 taking
+talk
 talks
 tb
 team
@@ -1197,6 +1214,7 @@ unifiable
 unification
 unifier
 unify
+uninstantiable
 unions
 uniqueness
 unittest
@@ -1245,6 +1263,7 @@ vegorov
 verbosity
 versa
 vice
+video
 violated
 visit*
 visitors
@@ -1255,6 +1274,7 @@ vs
 vtab
 w
 waste
+wasted
 watch
 watcher
 wb

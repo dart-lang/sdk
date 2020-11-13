@@ -222,6 +222,9 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   bool visitNeverType(ir.NeverType node) => false;
 
   @override
+  bool visitNullType(ir.NullType node) => false;
+
+  @override
   bool visitVoidType(ir.VoidType node) => false;
 
   @override
@@ -242,3 +245,29 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
 /// and function type variables) are considered.
 bool containsFreeVariables(ir.DartType type) =>
     type.accept(const _FreeVariableVisitor());
+
+/// Returns true if [importUri] corresponds to dart:html and related libraries.
+bool _isWebLibrary(Uri importUri) =>
+    importUri.scheme == 'dart' &&
+        (importUri.path == 'html' ||
+            importUri.path == 'svg' ||
+            importUri.path == 'indexed_db' ||
+            importUri.path == 'web_audio' ||
+            importUri.path == 'web_gl' ||
+            importUri.path == 'web_sql' ||
+            importUri.path == 'html_common') ||
+    // Mock web library path for testing.
+    importUri.path
+        .contains('native_null_assertions/web_library_interfaces.dart');
+
+bool nodeIsInWebLibrary(ir.TreeNode node) {
+  if (node == null) return false;
+  if (node is ir.Library) return _isWebLibrary(node.importUri);
+  return nodeIsInWebLibrary(node.parent);
+}
+
+bool memberEntityIsInWebLibrary(MemberEntity entity) {
+  var importUri = entity?.library?.canonicalUri;
+  if (importUri == null) return false;
+  return _isWebLibrary(importUri);
+}

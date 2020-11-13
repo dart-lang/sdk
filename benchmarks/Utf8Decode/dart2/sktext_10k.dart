@@ -7,6 +7,8 @@
 // The material is licensed under the Creative Commons Attribution-Share-Alike
 // License 3.0: https://creativecommons.org/licenses/by-sa/3.0/
 
+// @dart=2.9
+
 const String sk = '''
 Esperanto (pôvodne Lingvo Internacia – „medzinárodný jazyk“) je najrozšírenejší medzinárodný plánový jazyk. Názov je odvodený od pseudonymu, pod ktorým v roku 1887 zverejnil lekár L. L. Zamenhof základy tohto jazyka. Zámerom tvorcu bolo vytvoriť ľahko naučiteľný a použiteľný neutrálny jazyk, vhodný na použitie v medzinárodnej komunikácii. Cieľom nebolo nahradiť národné jazyky, čo bolo neskôr aj deklarované v Boulonskej deklarácii.
 

@@ -6,7 +6,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/utilities/mock_packages.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -20,12 +19,7 @@ class FlutterOutlineTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-
-    final flutterLibFolder = MockPackages.instance.addFlutter(resourceProvider);
-    // Create .packages in the project.
-    newFile(join(projectFolderPath, '.packages'), content: '''
-flutter:${flutterLibFolder.toUri()}
-''');
+    writePackageConfig(projectFolderPath, flutter: true);
   }
 
   Future<void> test_afterChange() async {

@@ -20,7 +20,7 @@ class ConvertToIfElementTest extends BulkFixProcessorTest {
       LintNames.prefer_if_elements_to_conditional_expressions;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f(bool b) {
   return ['a', b ? 'c' : 'd', 'e'];
 }

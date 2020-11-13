@@ -4,8 +4,6 @@
 
 library fasta.source_loader;
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show utf8;
 
 import 'dart:typed_data' show Uint8List;
@@ -251,7 +249,7 @@ class SourceLoader extends Loader {
         configuration: new ScannerConfiguration(
             enableTripleShift: library.enableTripleShiftInLibrary,
             enableExtensionMethods: library.enableExtensionMethodsInLibrary,
-            enableNonNullable: library.isNonNullableByDefault),
+            enableNonNullable: library.enableNonNullableInLibrary),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
@@ -323,6 +321,18 @@ class SourceLoader extends Loader {
   void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
     _strongOptOutLibraries ??= {};
     _strongOptOutLibraries.add(libraryBuilder);
+    hasInvalidNnbdModeLibrary = true;
+  }
+
+  bool hasInvalidNnbdModeLibrary = false;
+
+  Map<LibraryBuilder, Message> _nnbdMismatchLibraries;
+
+  void registerNnbdMismatchLibrary(
+      LibraryBuilder libraryBuilder, Message message) {
+    _nnbdMismatchLibraries ??= {};
+    _nnbdMismatchLibraries[libraryBuilder] = message;
+    hasInvalidNnbdModeLibrary = true;
   }
 
   @override
@@ -345,52 +355,79 @@ class SourceLoader extends Loader {
       // config we include each library uri in the message. For non-package
       // libraries with no corresponding package config we generate a message
       // per library.
-      Map<String, List<LibraryBuilder>> libraryByPackage = {};
-      Version enableNonNullableVersion =
-          target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
-      for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
-        Package package =
-            target.uriTranslator.getPackage(libraryBuilder.importUri);
+      giveCombinedErrorForNonStrongLibraries(_strongOptOutLibraries,
+          emitNonPackageErrors: true);
+      _strongOptOutLibraries = null;
+    }
+    if (_nnbdMismatchLibraries != null) {
+      for (MapEntry<LibraryBuilder, Message> entry
+          in _nnbdMismatchLibraries.entries) {
+        addProblem(entry.value, -1, noLength, entry.key.fileUri);
+      }
+      _nnbdMismatchLibraries = null;
+    }
+  }
 
-        if (package != null &&
-            package.languageVersion != null &&
-            package.languageVersion is! InvalidLanguageVersion) {
-          Version version = new Version(
-              package.languageVersion.major, package.languageVersion.minor);
-          if (version < enableNonNullableVersion) {
-            (libraryByPackage[package?.name] ??= []).add(libraryBuilder);
-            continue;
-          }
+  FormattedMessage giveCombinedErrorForNonStrongLibraries(
+      Set<LibraryBuilder> libraries,
+      {bool emitNonPackageErrors}) {
+    Map<String, List<LibraryBuilder>> libraryByPackage = {};
+    Map<Package, Version> enableNonNullableVersionByPackage = {};
+    for (LibraryBuilder libraryBuilder in libraries) {
+      final Package package =
+          target.uriTranslator.getPackage(libraryBuilder.importUri);
+
+      if (package != null &&
+          package.languageVersion != null &&
+          package.languageVersion is! InvalidLanguageVersion) {
+        Version enableNonNullableVersion =
+            enableNonNullableVersionByPackage[package] ??=
+                target.getExperimentEnabledVersionInLibrary(
+                    ExperimentalFlag.nonNullable,
+                    new Uri(scheme: 'package', path: package.name));
+        Version version = new Version(
+            package.languageVersion.major, package.languageVersion.minor);
+        if (version < enableNonNullableVersion) {
+          (libraryByPackage[package.name] ??= []).add(libraryBuilder);
+          continue;
         }
-        if (libraryBuilder.importUri.scheme == 'package') {
-          (libraryByPackage[null] ??= []).add(libraryBuilder);
-        } else {
+      }
+      if (libraryBuilder.importUri.scheme == 'package') {
+        (libraryByPackage[null] ??= []).add(libraryBuilder);
+      } else {
+        if (emitNonPackageErrors) {
           // Emit a message that doesn't mention running 'pub'.
           addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
               libraryBuilder.fileUri);
         }
       }
-      if (libraryByPackage.isNotEmpty) {
-        List<String> dependencies = [];
-        libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
-          if (name != null) {
-            dependencies.add('package:$name');
-          } else {
-            for (LibraryBuilder libraryBuilder in libraries) {
-              dependencies.add(libraryBuilder.importUri.toString());
-            }
-          }
-        });
-        // Emit a message that suggests to run 'pub' to check for opted in
-        // versions of the packages.
-        addProblem(
-            templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
-            -1,
-            -1,
-            null);
-        _strongOptOutLibraries = null;
-      }
     }
+    if (libraryByPackage.isNotEmpty) {
+      List<Uri> involvedFiles = [];
+      List<String> dependencies = [];
+      libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
+        if (name != null) {
+          dependencies.add('package:$name');
+          for (LibraryBuilder libraryBuilder in libraries) {
+            involvedFiles.add(libraryBuilder.fileUri);
+          }
+        } else {
+          for (LibraryBuilder libraryBuilder in libraries) {
+            dependencies.add(libraryBuilder.importUri.toString());
+            involvedFiles.add(libraryBuilder.fileUri);
+          }
+        }
+      });
+      // Emit a message that suggests to run 'pub' to check for opted in
+      // versions of the packages.
+      return addProblem(
+          templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
+          -1,
+          -1,
+          null,
+          involvedFiles: involvedFiles);
+    }
+    return null;
   }
 
   List<int> getSource(List<int> bytes) {
@@ -470,7 +507,8 @@ class SourceLoader extends Loader {
         -1,
         null,
         null,
-        AsyncMarker.Sync)
+        AsyncMarker.Sync,
+        /* isExtensionInstanceMember = */ false)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -908,6 +946,7 @@ class SourceLoader extends Loader {
     return handleHierarchyCycles(objectClass);
   }
 
+  /// Builds the core AST structure needed for the outline of the component.
   void buildComponent() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
@@ -1506,8 +1545,6 @@ class Function {}
 const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 
-void _asyncStarListenHelper(var object, var awaiter) {}
-
 void _asyncStarMoveNextHelper(var stream) {}
 
 _asyncStackTraceHelper(async_op) {}
@@ -1516,7 +1553,9 @@ _asyncThenWrapperHelper(continuation) {}
 
 _awaitHelper(object, thenCallback, errorCallback, awaiter) {}
 
-_completeOnAsyncReturn(completer, value) {}
+_completeOnAsyncReturn(_future, value, async_jump_var) {}
+
+_completeOnAsyncError(_future, e, st, async_jump_var) {}
 
 class _AsyncStarStreamController {
   add(event) {}
@@ -1547,14 +1586,10 @@ class Future<T> {
 class FutureOr {
 }
 
-class _AsyncAwaitCompleter implements Completer {
-  get future => null;
+class _Future {
+  void _completeError(Object error, StackTrace stackTrace) {}
 
-  complete([value]) {}
-
-  completeError(error, [stackTrace]) {}
-
-  void start(void Function() f) {}
+  void _asyncCompleteError(Object error, StackTrace stackTrace) {}
 }
 
 class Stream {}

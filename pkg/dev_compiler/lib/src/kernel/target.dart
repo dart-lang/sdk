@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 import 'dart:core' hide MapEntry;
 
@@ -150,6 +152,7 @@ class DevCompilerTarget extends Target {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(
+              coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }
@@ -365,7 +368,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
 
   @override
   void visitProcedure(Procedure node) {
-    if (node.name.isPrivate && node.isInstanceMember && node.function != null) {
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        node.isInstanceMember &&
+        // No need to check abstract methods.
+        node.function.body != null) {
       _privateProcedures.add(node);
     }
     super.visitProcedure(node);
@@ -373,7 +383,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
 
   @override
   void visitField(Field node) {
-    if (node.name.isPrivate && isCovariantField(node)) _privateFields.add(node);
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        isCovariantField(node)) {
+      _privateFields.add(node);
+    }
     super.visitField(node);
   }
 

@@ -29,20 +29,20 @@ abstract class BaseTest extends FileSystemTestSupport {
 
   /// A temporary directory on disk. All files and folders created by the tests
   /// should be inside this directory.
-  io.Directory tempDirectory;
+  /*late*/ io.Directory tempDirectory;
 
   /// The absolute path to the [tempDirectory]. This path will contain a
   /// symbolic link on some operating systems.
   @override
-  String tempPath;
+  /*late*/ String tempPath;
 
   /// A path to a folder within the [tempDirectory] that can be used by tests.
   @override
-  String defaultFolderPath;
+  /*late*/ String defaultFolderPath;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
   @override
-  String defaultFilePath;
+  /*late*/ String defaultFilePath;
 
   /// The content used for the file at the [defaultFilePath] if it is created
   /// and no other content is provided.

@@ -38,7 +38,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart' show AuxiliaryElements;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -3235,23 +3234,6 @@ abstract class ImportDirective implements NamespaceDirective {
 /// Clients may not extend, implement or mix-in this class.
 abstract class IndexExpression
     implements NullShortableExpression, MethodReferenceExpression {
-  /// Return the auxiliary elements associated with this identifier, or `null`
-  /// if this identifier is not in both a getter and setter context.
-  ///
-  /// The auxiliary elements hold the static and propagated elements associated
-  /// with the getter context.
-  // TODO(brianwilkerson) Replace this API.
-  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-      'CompoundAssignmentExpression.writeElement')
-  AuxiliaryElements get auxiliaryElements;
-
-  /// Set the auxiliary elements associated with this identifier to the given
-  /// [elements].
-  // TODO(brianwilkerson) Replace this API.
-  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-      'CompoundAssignmentExpression.writeElement')
-  set auxiliaryElements(AuxiliaryElements elements);
-
   /// Return the expression used to compute the index.
   Expression get index;
 
@@ -4597,23 +4579,6 @@ abstract class SimpleFormalParameter implements NormalFormalParameter {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SimpleIdentifier implements Identifier {
-  /// Return the auxiliary elements associated with this identifier, or `null`
-  /// if this identifier is not in both a getter and setter context.
-  ///
-  /// The auxiliary elements hold the static and propagated elements associated
-  /// with the getter context.
-  // TODO(brianwilkerson) Replace this API.
-  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-      'CompoundAssignmentExpression.writeElement')
-  AuxiliaryElements get auxiliaryElements;
-
-  /// Set the auxiliary elements associated with this identifier to the given
-  /// [elements].
-  // TODO(brianwilkerson) Replace this API.
-  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-      'CompoundAssignmentExpression.writeElement')
-  set auxiliaryElements(AuxiliaryElements elements);
-
   /// Return `true` if this identifier is the "name" part of a prefixed
   /// identifier or a method invocation.
   bool get isQualified;

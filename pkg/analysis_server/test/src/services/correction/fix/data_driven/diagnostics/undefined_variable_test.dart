@@ -33,8 +33,8 @@ transforms:
         expression: '{%xyz%}'
         variables:
           zyx:
-            kind: 'argument'
-            index: 0
+            kind: 'fragment'
+            value: 'arguments[0]'
 ''', [
       error(TransformSetErrorCode.undefinedVariable, 253, 3),
     ]);

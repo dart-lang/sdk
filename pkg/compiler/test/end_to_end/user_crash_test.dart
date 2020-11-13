@@ -74,7 +74,8 @@ Future<RunResult> run(
       await runCompiler(
           entryPoint: entryPoint,
           memorySourceFiles: memorySourceFiles,
-          diagnosticHandler: diagnostics);
+          diagnosticHandler: diagnostics,
+          unsafeToTouchSourceFiles: true);
     } catch (e) {
       result.exceptions.add(e);
     }

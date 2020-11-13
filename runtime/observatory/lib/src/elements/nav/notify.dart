@@ -11,14 +11,14 @@ import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
 
 class NavNotifyElement extends CustomElement implements Renderable {
-  RenderingScheduler<NavNotifyElement> _r;
+  late RenderingScheduler<NavNotifyElement> _r;
 
   Stream<RenderedEvent<NavNotifyElement>> get onRendered => _r.onRendered;
 
-  M.NotificationRepository _repository;
-  StreamSubscription _subscription;
+  late M.NotificationRepository _repository;
+  StreamSubscription? _subscription;
 
-  bool _notifyOnPause;
+  late bool _notifyOnPause;
 
   bool get notifyOnPause => _notifyOnPause;
 
@@ -26,7 +26,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
       _notifyOnPause = _r.checkAndReact(_notifyOnPause, value);
 
   factory NavNotifyElement(M.NotificationRepository repository,
-      {bool notifyOnPause: true, RenderingQueue queue}) {
+      {bool notifyOnPause: true, RenderingQueue? queue}) {
     assert(repository != null);
     assert(notifyOnPause != null);
     NavNotifyElement e = new NavNotifyElement.created();
@@ -50,7 +50,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
     super.detached();
     children = <Element>[];
     _r.disable(notify: true);
-    _subscription.cancel();
+    _subscription!.cancel();
   }
 
   void render() {

@@ -68,12 +68,6 @@ class PrefixExpressionResolver {
       _resolver.migrationResolutionHooks
           ?.setCompoundAssignmentExpressionTypes(node);
 
-      _resolver.setAssignmentBackwardCompatibility(
-        assignment: node,
-        left: operand,
-        hasRead: true,
-      );
-
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {
       node.operand.accept(_resolver);
@@ -205,7 +199,7 @@ class PrefixExpressionResolver {
 
   void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
-    if (identical(node.operand.staticType, NeverTypeImpl.instance)) {
+    if (identical(node.readType, NeverTypeImpl.instance)) {
       _recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.

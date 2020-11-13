@@ -24,7 +24,7 @@ class AddAwaitTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unawaited_futures;
 
   Future<void> test_intLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future doSomething() => new Future.value('');
 
 void main() async {

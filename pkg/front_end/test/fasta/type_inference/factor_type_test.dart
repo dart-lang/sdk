@@ -63,7 +63,7 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
   DartType get intStar => coreTypes.intLegacyRawType;
 
   @override
-  DartType get nullNone => coreTypes.nullType;
+  DartType get nullNone => const NullType();
 
   @override
   DartType get numNone => coreTypes.numNonNullableRawType;
@@ -102,7 +102,7 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
 
 main() async {
   CompilerOptions options = new CompilerOptions()
-    ..experimentalFlags[ExperimentalFlag.nonNullable] = true;
+    ..explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
   InternalCompilerResult result = await compileScript('',
       options: options, requireMain: false, retainDataForTesting: true);
   new FactorTypeTest(

@@ -128,7 +128,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   Future<void> indexTestUnit(String code) async {
-    await resolveTestUnit(code);
+    await resolveTestCode(code);
   }
 
   Future<void> indexUnit(String file, String code) async {
@@ -136,10 +136,12 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   @override
-  void setUp() {
-    super.setUp();
+  void verifyCreatedCollection() {
+    super.verifyCreatedCollection();
     // TODO(dantup): Get these tests passing with either line ending and change this to true.
     useLineEndingsForPlatform = false;
-    searchEngine = SearchEngineImpl([driver]);
+    searchEngine = SearchEngineImpl([
+      driverFor(testPackageRootPath),
+    ]);
   }
 }

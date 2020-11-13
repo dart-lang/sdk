@@ -68,7 +68,9 @@ FlowGraphBuilder::FlowGraphBuilder(
       switch_block_(NULL),
       try_catch_block_(NULL),
       try_finally_block_(NULL),
-      catch_block_(NULL) {
+      catch_block_(NULL),
+      prepend_type_arguments_(Function::ZoneHandle(zone_)),
+      throw_new_null_assertion_(Function::ZoneHandle(zone_)) {
   const Script& script =
       Script::Handle(Z, parsed_function->function().script());
   H.InitFromScript(script);
@@ -741,15 +743,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
          info.potential_natives() == GrowableObjectArray::null());
 #endif
 
-  auto& kernel_data = ExternalTypedData::Handle(Z);
-  intptr_t kernel_data_program_offset = 0;
-  if (!function.is_declared_in_bytecode()) {
-    kernel_data = function.KernelData();
-    kernel_data_program_offset = function.KernelDataProgramOffset();
-  }
+  auto& kernel_data = ExternalTypedData::Handle(Z, function.KernelData());
+  intptr_t kernel_data_program_offset = function.KernelDataProgramOffset();
 
-  // TODO(alexmarkov): refactor this - StreamingFlowGraphBuilder should not be
-  //  used for bytecode functions.
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, kernel_data, kernel_data_program_offset);
   return streaming_flow_graph_builder.BuildGraph();
@@ -835,11 +831,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
-    // This list must be kept in sync with BytecodeReaderHelper::NativeEntry in
-    // runtime/vm/compiler/frontend/bytecode_reader.cc and implemented in the
-    // bytecode interpreter in runtime/vm/interpreter.cc. Alternatively, these
-    // methods must work in their original form (a Dart body or native entry) in
-    // the bytecode interpreter.
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
@@ -1264,7 +1255,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
-          ffi_type_arg_cid, zone_);
+          zone_, ffi_type_arg_cid);
 
       ASSERT(function.NumParameters() == 2);
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
@@ -1282,8 +1273,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadUntagged(compiler::target::PointerBase::data_field_offset());
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += LoadIndexedTypedData(typed_data_cid, /*index_scale=*/1,
-                                   /*index_unboxed=*/true);
+      body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
+                          /*index_unboxed=*/true);
       if (kind == MethodRecognizer::kFfiLoadFloat ||
           kind == MethodRecognizer::kFfiLoadDouble) {
         if (kind == MethodRecognizer::kFfiLoadFloat) {
@@ -1345,7 +1336,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
-          ffi_type_arg_cid, zone_);
+          zone_, ffi_type_arg_cid);
 
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
@@ -1705,14 +1696,21 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
 Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
                                          const AbstractType& sub_type_value,
                                          const AbstractType& super_type_value,
-                                         const String& dst_name) {
+                                         const String& dst_name_value) {
   Fragment instructions;
-
   instructions += LoadInstantiatorTypeArguments();
   instructions += LoadFunctionTypeArguments();
-  instructions += Constant(AbstractType::ZoneHandle(sub_type_value.raw()));
-  instructions += Constant(AbstractType::ZoneHandle(super_type_value.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(Z, sub_type_value.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(Z, super_type_value.raw()));
+  instructions += Constant(String::ZoneHandle(Z, dst_name_value.raw()));
+  instructions += AssertSubtype(position);
+  return instructions;
+}
 
+Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position) {
+  Fragment instructions;
+
+  Value* dst_name = Pop();
   Value* super_type = Pop();
   Value* sub_type = Pop();
   Value* function_type_args = Pop();
@@ -1726,11 +1724,8 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
   return instructions;
 }
 
-void FlowGraphBuilder::BuildArgumentTypeChecks(
-    TypeChecksToBuild mode,
-    Fragment* explicit_checks,
-    Fragment* implicit_checks,
-    Fragment* implicit_redefinitions) {
+void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
+                                                   Fragment* implicit_checks) {
   const Function& dart_function = parsed_function_->function();
 
   const Function* forwarding_target = nullptr;
@@ -1795,6 +1790,19 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
                                             /*absent=*/check_bounds);
   } else {
     *implicit_checks += check_bounds;
+  }
+}
+
+void FlowGraphBuilder::BuildArgumentTypeChecks(
+    Fragment* explicit_checks,
+    Fragment* implicit_checks,
+    Fragment* implicit_redefinitions) {
+  const Function& dart_function = parsed_function_->function();
+
+  const Function* forwarding_target = nullptr;
+  if (parsed_function_->is_forwarding_stub()) {
+    forwarding_target = parsed_function_->forwarding_stub_super_target();
+    ASSERT(!forwarding_target->IsNull());
   }
 
   const intptr_t num_params = dart_function.NumParameters();
@@ -2045,7 +2053,31 @@ struct FlowGraphBuilder::ClosureCallInfo {
   LocalVariable* has_named_params = nullptr;
   LocalVariable* parameter_names = nullptr;
   LocalVariable* type_parameters = nullptr;
+  LocalVariable* closure_data = nullptr;
+  LocalVariable* default_tav_info = nullptr;
+  LocalVariable* instantiator_type_args = nullptr;
+  LocalVariable* parent_function_type_args = nullptr;
 };
+
+Fragment FlowGraphBuilder::TestClosureFunctionGeneric(
+    const ClosureCallInfo& info,
+    Fragment generic,
+    Fragment not_generic) {
+  JoinEntryInstr* after_branch = BuildJoinEntry();
+
+  Fragment check;
+  check += LoadLocal(info.type_parameters);
+  TargetEntryInstr *is_not_generic, *is_generic;
+  check += BranchIfNull(&is_not_generic, &is_generic);
+
+  generic.Prepend(is_generic);
+  generic += Goto(after_branch);
+
+  not_generic.Prepend(is_not_generic);
+  not_generic += Goto(after_branch);
+
+  return Fragment(check.entry, after_branch);
+}
 
 Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
     const ClosureCallInfo& info,
@@ -2094,7 +2126,7 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   check_required.current = valid_index;
   check_required += LoadLocal(info.parameter_names);
   check_required += LoadLocal(flags_index);
-  check_required += LoadIndexed(compiler::target::kWordSize);
+  check_required += LoadIndexed(kArrayCid);
   check_required += LoadLocal(opt_index);
   check_required +=
       IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
@@ -2124,6 +2156,101 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   check_required += DropTemporary(&flags_index);
   check_required += DropTemporary(&opt_index);
   return check_required;
+}
+
+Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
+    const ClosureCallInfo& info) {
+  if (info.descriptor.TypeArgsLen() > 0) {
+    ASSERT(parsed_function_->function_type_arguments() != nullptr);
+    // A TAV was provided, so we don't need default type argument handling
+    // and can just take the arguments we were given.
+    Fragment store_provided;
+    store_provided += LoadLocal(parsed_function_->function_type_arguments());
+    store_provided += StoreLocal(info.vars->function_type_args);
+    store_provided += Drop();
+    return store_provided;
+  }
+
+  // Load the defaults, instantiating or replacing them with the other type
+  // arguments as appropriate.
+  Fragment store_default;
+  store_default += LoadLocal(info.default_tav_info);
+  static_assert(
+      Function::DefaultTypeArgumentsKindField::shift() == 0,
+      "Need to generate shift for DefaultTypeArgumentsKindField bit field");
+  store_default += IntConstant(Function::DefaultTypeArgumentsKindField::mask());
+  store_default += SmiBinaryOp(Token::kBIT_AND);
+  LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
+
+  // One read-only stack values (default_tav_kind) that must be dropped after
+  // rejoining at done.
+  JoinEntryInstr* done = BuildJoinEntry();
+
+  store_default += LoadLocal(default_tav_kind);
+  TargetEntryInstr *is_instantiated, *is_not_instantiated;
+  store_default += IntConstant(static_cast<intptr_t>(
+      Function::DefaultTypeArgumentsKind::kIsInstantiated));
+  store_default += BranchIfEqual(&is_instantiated, &is_not_instantiated);
+  store_default.current = is_not_instantiated;  // Check next case.
+  store_default += LoadLocal(default_tav_kind);
+  TargetEntryInstr *needs_instantiation, *can_share;
+  store_default += IntConstant(static_cast<intptr_t>(
+      Function::DefaultTypeArgumentsKind::kNeedsInstantiation));
+  store_default += BranchIfEqual(&needs_instantiation, &can_share);
+  store_default.current = can_share;  // Check next case.
+  store_default += LoadLocal(default_tav_kind);
+  TargetEntryInstr *can_share_instantiator, *can_share_function;
+  store_default += IntConstant(static_cast<intptr_t>(
+      Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
+  store_default += BranchIfEqual(&can_share_instantiator, &can_share_function);
+
+  Fragment instantiated(is_instantiated);
+  instantiated += LoadLocal(info.closure_data);
+  instantiated += LoadNativeField(Slot::ClosureData_default_type_arguments());
+  instantiated += StoreLocal(info.vars->function_type_args);
+  instantiated += Drop();
+  instantiated += Goto(done);
+
+  Fragment do_instantiation(needs_instantiation);
+  // Load the instantiator type arguments.
+  do_instantiation += LoadLocal(info.instantiator_type_args);
+  // Load the parent function type arguments. (No local function type arguments
+  // can be used within the defaults).
+  do_instantiation += LoadLocal(info.parent_function_type_args);
+  // Load the default type arguments to instantiate.
+  do_instantiation += LoadLocal(info.closure_data);
+  do_instantiation +=
+      LoadNativeField(Slot::ClosureData_default_type_arguments());
+  do_instantiation += InstantiateDynamicTypeArguments();
+  do_instantiation += StoreLocal(info.vars->function_type_args);
+  do_instantiation += Drop();
+  do_instantiation += Goto(done);
+
+  Fragment share_instantiator(can_share_instantiator);
+  share_instantiator += LoadLocal(info.instantiator_type_args);
+  share_instantiator += StoreLocal(info.vars->function_type_args);
+  share_instantiator += Drop();
+  share_instantiator += Goto(done);
+
+  Fragment share_function(can_share_function);
+  // Since the defaults won't have local type parameters, these must all be
+  // from the parent function type arguments, so we can just use it.
+  share_function += LoadLocal(info.parent_function_type_args);
+  share_function += StoreLocal(info.vars->function_type_args);
+  share_function += Drop();
+  share_function += Goto(done);
+
+  store_default.current = done;  // Return here after branching.
+  store_default += DropTemporary(&default_tav_kind);
+
+  Fragment store_delayed;
+  store_delayed += LoadLocal(info.closure);
+  store_delayed += LoadNativeField(Slot::Closure_delayed_type_arguments());
+  store_delayed += StoreLocal(info.vars->function_type_args);
+  store_delayed += Drop();
+
+  // Use the delayed type args if present, else the default ones.
+  return TestDelayedTypeArgs(info.closure, store_delayed, store_default);
 }
 
 Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
@@ -2189,7 +2316,7 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   // First load the name we need to check against.
   loop_body += LoadLocal(info.parameter_names);
   loop_body += LoadLocal(info.vars->current_param_index);
-  loop_body += LoadIndexed(compiler::target::kWordSize);
+  loop_body += LoadIndexed(kArrayCid);
   LocalVariable* param_name = MakeTemporary("param_name");  // Read only.
 
   // One additional local value on the stack within the loop body (param_name)
@@ -2349,15 +2476,84 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
   return check_entry;
 }
 
+Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
+    const ClosureCallInfo& info) {
+  JoinEntryInstr* done = BuildJoinEntry();
+  JoinEntryInstr* loop = BuildJoinEntry();
+
+  // We assume that the value stored in :t_type_parameters is not null (i.e.,
+  // the function stored in :t_function is generic).
+  Fragment loop_init;
+  // Loop over the type parameters array.
+  loop_init += IntConstant(0);
+  loop_init += StoreLocal(info.vars->current_param_index);
+  loop_init += Drop();
+  loop_init += Goto(loop);
+
+  Fragment loop_check(loop);
+  loop_check += LoadLocal(info.vars->current_param_index);
+  loop_check += LoadLocal(info.type_parameters);
+  loop_check += LoadNativeField(Slot::TypeArguments_length());
+  loop_check += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr *more, *no_more;
+  loop_check += BranchIfTrue(&more, &no_more);
+
+  Fragment(no_more) + Goto(done);
+
+  Fragment loop_body(more);
+  loop_body += LoadLocal(info.type_parameters);
+  loop_body += LoadLocal(info.vars->current_param_index);
+  loop_body += LoadIndexed(kTypeArgumentsCid);
+  LocalVariable* current_param = MakeTemporary("current_param");  // Read-only.
+
+  // One read-only local variable on stack (param) to drop after joining.
+  JoinEntryInstr* next = BuildJoinEntry();
+
+  loop_body += LoadLocal(current_param);
+  loop_body += LoadNativeField(Slot::TypeParameter_flags());
+  loop_body += Box(kUnboxedUint8);
+  loop_body += IntConstant(
+      TypeParameterLayout::GenericCovariantImplBit::mask_in_place());
+  loop_body += SmiBinaryOp(Token::kBIT_AND);
+  loop_body += IntConstant(0);
+  TargetEntryInstr *is_noncovariant, *is_covariant;
+  loop_body += BranchIfEqual(&is_noncovariant, &is_covariant);
+
+  Fragment(is_covariant) + Goto(next);  // Continue if covariant.
+
+  loop_body.current = is_noncovariant;  // Type check if non-covariant.
+  loop_body += LoadLocal(info.instantiator_type_args);
+  loop_body += LoadLocal(info.vars->function_type_args);
+  // Load parameter.
+  loop_body += LoadLocal(current_param);
+  // Load bounds from parameter.
+  loop_body += LoadLocal(current_param);
+  loop_body += LoadNativeField(Slot::TypeParameter_bound());
+  // Load name from parameter.
+  loop_body += LoadLocal(current_param);
+  loop_body += LoadNativeField(Slot::TypeParameter_name());
+  // Assert that the type the parameter is instantiated as is consistent with
+  // the bounds of the parameter.
+  loop_body += AssertSubtype(TokenPosition::kNoSource);
+  loop_body += Goto(next);
+
+  Fragment loop_incr(next);
+  loop_incr += DropTemporary(&current_param);
+  loop_incr += LoadLocal(info.vars->current_param_index);
+  loop_incr += IntConstant(1);
+  loop_incr += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
+  loop_incr += StoreLocal(info.vars->current_param_index);
+  loop_incr += Drop();
+  loop_incr += Goto(loop);
+
+  return Fragment(loop_init.entry, done);
+}
+
 Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
     LocalVariable* closure) {
   ClosureCallInfo info(closure, BuildThrowNoSuchMethod(),
                        saved_args_desc_array(),
                        parsed_function_->dynamic_closure_call_vars());
-
-  // We extract all the packed fields here so code generation that puts unboxed
-  // integers on the expression stack even in unoptimized code is in one place.
-  auto const rep = Slot::Function_packed_fields().representation();
 
   Fragment body;
   body += LoadLocal(info.closure);
@@ -2365,15 +2561,13 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   info.function = MakeTemporary("function");
 
   body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_packed_fields());
-  body +=
-      BuildExtractPackedFieldIntoSmi<Function::PackedNumFixedParameters>(rep);
+  body += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      Function::PackedNumFixedParameters>(Slot::Function_packed_fields());
   info.num_fixed_params = MakeTemporary("num_fixed_params");
 
   body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_packed_fields());
-  body += BuildExtractPackedFieldIntoSmi<Function::PackedNumOptionalParameters>(
-      rep);
+  body += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      Function::PackedNumOptionalParameters>(Slot::Function_packed_fields());
   info.num_opt_params = MakeTemporary("num_opt_params");
 
   body += LoadLocal(info.num_fixed_params);
@@ -2382,9 +2576,10 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   info.num_max_params = MakeTemporary("num_max_params");
 
   body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_packed_fields());
-  body += BuildExtractPackedFieldIntoSmi<
-      Function::PackedHasNamedOptionalParameters>(rep);
+  body += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      Function::PackedHasNamedOptionalParameters>(
+      Slot::Function_packed_fields());
+
   body += IntConstant(0);
   body += StrictCompare(Token::kNE_STRICT);
   info.has_named_params = MakeTemporary("has_named_params");
@@ -2395,21 +2590,86 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
     info.parameter_names = MakeTemporary("parameter_names");
   }
 
-  if (info.descriptor.TypeArgsLen() > 0) {
-    body += LoadLocal(info.function);
-    body += LoadNativeField(Slot::Function_type_parameters());
-    info.type_parameters = MakeTemporary("type_parameters");
-  }
+  body += LoadLocal(info.function);
+  body += LoadNativeField(Slot::Function_type_parameters());
+  info.type_parameters = MakeTemporary("type_parameters");
 
-  // Check that the shape of the arguments generally matches what the
-  // closure function expects. The only remaining non-type check after this
-  // is that the names for optional arguments are valid.
+  body += LoadLocal(info.closure);
+  body += LoadNativeField(Slot::Closure_instantiator_type_arguments());
+  info.instantiator_type_args = MakeTemporary("instantiator_type_args");
+
+  body += LoadLocal(info.closure);
+  body += LoadNativeField(Slot::Closure_function_type_arguments());
+  info.parent_function_type_args = MakeTemporary("parent_function_type_args");
+
+  // At this point, all the read-only temporaries stored in the ClosureCallInfo
+  // should be either loaded or still nullptr, if not needed for this function.
+  // Now we check that the arguments to the closure call have the right shape.
   body += BuildClosureCallArgumentsValidCheck(info);
 
-  // TODO(dartbug.com/40813): Move checks that are currently compiled
-  // in the closure body to here, using the dynamic versions of
-  // AssertSubtype to typecheck the type arguments using the runtime types
-  // available in the closure object.
+  // If the closure function is not generic, there are no local function type
+  // args. Thus, use whatever was stored for the parent function type arguments,
+  // which has already been checked against any parent type parameter bounds.
+  Fragment not_generic;
+  not_generic += LoadLocal(info.parent_function_type_args);
+  not_generic += StoreLocal(info.vars->function_type_args);
+  not_generic += Drop();
+
+  // If the closure function is generic, then we first need to calculate the
+  // full set of function type arguments, then check the local function type
+  // arguments against the closure function's type parameter bounds.
+  Fragment generic;
+  generic += LoadLocal(info.function);
+  generic += LoadNativeField(Slot::Function_data());
+  info.closure_data = MakeTemporary("closure_data");
+  generic += LoadLocal(info.closure_data);
+  generic += LoadNativeField(Slot::ClosureData_default_type_arguments_info());
+  info.default_tav_info = MakeTemporary("default_tav_info");
+  // Calculate the local function type arguments and store them in
+  // info.vars->function_type_args.
+  generic += BuildClosureCallDefaultTypeHandling(info);
+  // Load the local function type args.
+  generic += LoadLocal(info.vars->function_type_args);
+  // Load the parent function type args.
+  generic += LoadLocal(info.parent_function_type_args);
+  // Load the number of parent type parameters.
+  generic += LoadLocal(info.default_tav_info);
+  static_assert(Function::NumParentTypeParametersField::shift() > 0,
+                "No need to shift for NumParentTypeParametersField bit field");
+  generic += IntConstant(Function::NumParentTypeParametersField::shift());
+  generic += SmiBinaryOp(Token::kSHR);
+  generic += IntConstant(Function::NumParentTypeParametersField::mask());
+  generic += SmiBinaryOp(Token::kBIT_AND);
+  // Load the number of total type parameters.
+  LocalVariable* num_parents = MakeTemporary();
+  generic += LoadLocal(info.type_parameters);
+  generic += LoadNativeField(Slot::TypeArguments_length());
+  generic += LoadLocal(num_parents);
+  generic += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
+
+  // Call the static function for prepending type arguments.
+  generic += StaticCall(TokenPosition::kNoSource,
+                        PrependTypeArgumentsFunction(), 4, ICData::kStatic);
+  generic += StoreLocal(info.vars->function_type_args);
+  generic += Drop();
+  generic += DropTemporary(&info.default_tav_info);
+  generic += DropTemporary(&info.closure_data);
+
+  // Now that we have the full set of function type arguments, check them
+  // against the type parameter bounds. However, if the local function type
+  // arguments are delayed type arguments, they have already been checked by
+  // the type system and need not be checked again at the call site.
+  auto const check_bounds = BuildClosureCallTypeArgumentsTypeCheck(info);
+  if (FLAG_eliminate_type_checks) {
+    generic += TestDelayedTypeArgs(info.closure, /*present=*/{},
+                                   /*absent=*/check_bounds);
+  } else {
+    generic += check_bounds;
+  }
+
+  // Call the appropriate fragment for setting up the function type arguments
+  // and performing any needed type argument checking.
+  body += TestClosureFunctionGeneric(info, generic, not_generic);
 
   // TODO(dartbug.com/40813): Move checks that are currently compiled
   // in the closure body to here, using the dynamic versions of
@@ -2417,9 +2677,9 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // available in the closure object.
 
   // Drop all the read-only temporaries at the end of the fragment.
-  if (info.type_parameters != nullptr) {
-    body += DropTemporary(&info.type_parameters);
-  }
+  body += DropTemporary(&info.parent_function_type_args);
+  body += DropTemporary(&info.instantiator_type_args);
+  body += DropTemporary(&info.type_parameters);
   if (info.parameter_names != nullptr) {
     body += DropTemporary(&info.parameter_names);
   }
@@ -2579,9 +2839,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
         kWordSize * compiler::target::frame_layout.param_end_from_fp);
   }
 
+  if (function.NeedsTypeArgumentTypeChecks()) {
+    BuildTypeArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
+                                &body);
+  }
+
   if (function.NeedsArgumentTypeChecks()) {
-    BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
-                            &body, &body, nullptr);
+    BuildArgumentTypeChecks(&body, &body, nullptr);
   }
 
   body += MakeTemp();
@@ -2704,7 +2968,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
       type = Type::New(owner, TypeArguments::Handle(Z), owner.token_pos());
-      type = ClassFinalizer::FinalizeType(owner, type);
+      type = ClassFinalizer::FinalizeType(type);
       body += Constant(type);
     } else {
       body += LoadLocal(parsed_function_->current_context_var());
@@ -2816,8 +3080,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
 Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
   if (function.IsGeneric()) {
-    const TypeArguments& default_types =
-        parsed_function_->DefaultFunctionTypeArguments();
+    auto& default_types =
+        TypeArguments::ZoneHandle(Z, function.InstantiateToBounds(thread_));
 
     if (!default_types.IsNull()) {
       Fragment then;
@@ -2939,26 +3203,23 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   const Fragment default_type_handling = BuildDefaultTypeHandling(function);
 
-  // We're going to throw away the explicit checks because the target will
-  // always check them.
   Fragment implicit_checks;
-  if (function.NeedsArgumentTypeChecks()) {
+  if (function.NeedsTypeArgumentTypeChecks() &&
+      (target.is_static() ||
+       MethodCanSkipTypeChecksForNonCovariantTypeArguments(parent))) {
+    BuildTypeArgumentTypeChecks(
+        target.is_static()
+            ? TypeChecksToBuild::kCheckAllTypeParameterBounds
+            : TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds,
+        &implicit_checks);
+  }
+  if (function.NeedsArgumentTypeChecks() &&
+      (target.is_static() ||
+       MethodCanSkipTypeChecksForNonCovariantArguments(parent))) {
+    // We're going to throw away the explicit checks because the target will
+    // always check them.
     Fragment explicit_checks_unused;
-    if (target.is_static()) {
-      // Tearoffs of static methods needs to perform arguments checks since
-      // static methods they forward to don't do it themselves.
-      BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
-                              &explicit_checks_unused, &implicit_checks,
-                              nullptr);
-    } else {
-      if (MethodCanSkipTypeChecksForNonCovariantArguments(
-              parent, ProcedureAttributesMetadata())) {
-        // Generate checks that are skipped inside a body of a function.
-        BuildArgumentTypeChecks(
-            TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds,
-            &explicit_checks_unused, &implicit_checks, nullptr);
-      }
-    }
+    BuildArgumentTypeChecks(&explicit_checks_unused, &implicit_checks, nullptr);
   }
 
   Fragment body;
@@ -3187,9 +3448,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
 
   // Build argument type checks that complement those that are emitted in the
   // target.
-  BuildArgumentTypeChecks(
-      TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds, &body, &body,
-      nullptr);
+  BuildTypeArgumentTypeChecks(
+      TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds, &body);
+  BuildArgumentTypeChecks(&body, &body, nullptr);
 
   // Push all arguments and invoke the original method.
 
@@ -3315,8 +3576,7 @@ Fragment FlowGraphBuilder::UnwrapHandle() {
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
   code += IntConstant(compiler::target::LocalHandle::raw_offset());
   code += UnboxTruncate(kUnboxedIntPtr);
-  code += LoadIndexedTypedData(kArrayCid, /*index_scale=*/1,
-                               /*index_unboxed=*/true);
+  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
   return code;
 }
 
@@ -3477,8 +3737,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   const bool signature_contains_handles = marshaller.ContainsHandles();
 
-  BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
-                          &function_body, &function_body, &function_body);
+  ASSERT(function.CanReceiveDynamicInvocation());
+  BuildTypeArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
+                              &function_body);
+  BuildArgumentTypeChecks(&function_body, &function_body, &function_body);
 
   // Null check arguments before we go into the try catch, so that we don't
   // catch our own null errors.
@@ -3699,18 +3961,6 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
   code += NullConstant();
   code += BranchIfEqual(&then, &otherwise);
 
-  if (throw_new_null_assertion_ == nullptr) {
-    const Class& klass = Class::ZoneHandle(
-        Z, Library::LookupCoreClass(Symbols::AssertionError()));
-    ASSERT(!klass.IsNull());
-    const auto& error = klass.EnsureIsFinalized(H.thread());
-    ASSERT(error == Error::null());
-    throw_new_null_assertion_ =
-        &Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
-                                     Symbols::ThrowNewNullAssertion()));
-    ASSERT(!throw_new_null_assertion_->IsNull());
-  }
-
   const Script& script =
       Script::Handle(Z, parsed_function_->function().script());
   intptr_t line = -1;
@@ -3726,8 +3976,8 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
   null_code += Constant(variable->name());
   null_code += IntConstant(line);
   null_code += IntConstant(column);
-  null_code += StaticCall(variable->token_pos(), *throw_new_null_assertion_, 3,
-                          ICData::kStatic);
+  null_code += StaticCall(variable->token_pos(),
+                          ThrowNewNullAssertionFunction(), 3, ICData::kStatic);
   null_code += ThrowException(TokenPosition::kNoSource);
   null_code += Drop();
 
@@ -3748,6 +3998,30 @@ Fragment FlowGraphBuilder::BuildNullAssertions() {
     code += NullAssertion(variable);
   }
   return code;
+}
+
+const Function& FlowGraphBuilder::ThrowNewNullAssertionFunction() {
+  if (throw_new_null_assertion_.IsNull()) {
+    const Class& klass = Class::ZoneHandle(
+        Z, Library::LookupCoreClass(Symbols::AssertionError()));
+    ASSERT(!klass.IsNull());
+    const auto& error = klass.EnsureIsFinalized(H.thread());
+    ASSERT(error == Error::null());
+    throw_new_null_assertion_ = klass.LookupStaticFunctionAllowPrivate(
+        Symbols::ThrowNewNullAssertion());
+    ASSERT(!throw_new_null_assertion_.IsNull());
+  }
+  return throw_new_null_assertion_;
+}
+
+const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {
+  if (prepend_type_arguments_.IsNull()) {
+    const auto& dart_internal = Library::Handle(Z, Library::InternalLibrary());
+    prepend_type_arguments_ = dart_internal.LookupFunctionAllowPrivate(
+        Symbols::PrependTypeArguments());
+    ASSERT(!prepend_type_arguments_.IsNull());
+  }
+  return prepend_type_arguments_;
 }
 
 }  // namespace kernel

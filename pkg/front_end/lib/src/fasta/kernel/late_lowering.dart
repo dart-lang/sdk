@@ -126,28 +126,21 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
 /// which a `LateInitializationError` should be thrown. Late final locals
 /// cannot have writes during initialization since they are not in scope in
 /// their own initializer.
-Statement createGetterWithInitializerWithRecheck(
-    CoreTypes coreTypes,
-    int fileOffset,
-    String name,
-    DartType type,
-    String variableKindName,
-    Expression initializer,
+Statement createGetterWithInitializerWithRecheck(CoreTypes coreTypes,
+    int fileOffset, String name, DartType type, Expression initializer,
     {Expression createVariableRead({bool needsPromotion}),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value),
     IsSetEncoding isSetEncoding}) {
-  Expression exception = new Throw(new ConstructorInvocation(
-      coreTypes.lateInitializationErrorConstructor,
-      new Arguments(<Expression>[
-        new StringLiteral(
-            "$variableKindName '${name}' has been assigned during "
-            "initialization.")
-          ..fileOffset = fileOffset
-      ])
+  Expression exception = new Throw(
+      new ConstructorInvocation(
+          coreTypes
+              .lateInitializationFieldAssignedDuringInitializationConstructor,
+          new Arguments(
+              <Expression>[new StringLiteral(name)..fileOffset = fileOffset])
+            ..fileOffset = fileOffset)
         ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
   VariableDeclaration temp =
       new VariableDeclaration.forValue(initializer, type: type)
@@ -291,21 +284,23 @@ Statement createGetterWithInitializerWithRecheck(
 
 /// Creates the body for the synthesized getter used to encode the lowering
 /// of a late field or local without an initializer.
-Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
-    int fileOffset, String name, DartType type, String variableKindName,
+Statement createGetterBodyWithoutInitializer(
+    CoreTypes coreTypes, int fileOffset, String name, DartType type,
     {Expression createVariableRead({bool needsPromotion}),
     Expression createIsSetRead(),
-    IsSetEncoding isSetEncoding}) {
+    IsSetEncoding isSetEncoding,
+    bool forField}) {
+  assert(forField != null);
   assert(isSetEncoding != null);
-  Expression exception = new Throw(new ConstructorInvocation(
-      coreTypes.lateInitializationErrorConstructor,
-      new Arguments(<Expression>[
-        new StringLiteral(
-            "$variableKindName '${name}' has not been initialized.")
-          ..fileOffset = fileOffset
-      ])
+  Expression exception = new Throw(
+      new ConstructorInvocation(
+          forField
+              ? coreTypes.lateInitializationFieldNotInitializedConstructor
+              : coreTypes.lateInitializationLocalNotInitializedConstructor,
+          new Arguments(
+              <Expression>[new StringLiteral(name)..fileOffset = fileOffset])
+            ..fileOffset = fileOffset)
         ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
   switch (isSetEncoding) {
     case IsSetEncoding.useIsSetField:
@@ -425,29 +420,26 @@ Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
 
 /// Creates the body for the synthesized setter used to encode the lowering
 /// of a final late field or local.
-Statement createSetterBodyFinal(
-    CoreTypes coreTypes,
-    int fileOffset,
-    String name,
-    VariableDeclaration parameter,
-    DartType type,
-    String variableKindName,
+Statement createSetterBodyFinal(CoreTypes coreTypes, int fileOffset,
+    String name, VariableDeclaration parameter, DartType type,
     {bool shouldReturnValue,
     Expression createVariableRead(),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding}) {
+    IsSetEncoding isSetEncoding,
+    bool forField}) {
+  assert(forField != null);
   assert(isSetEncoding != null);
-  Expression exception = new Throw(new ConstructorInvocation(
-      coreTypes.lateInitializationErrorConstructor,
-      new Arguments(<Expression>[
-        new StringLiteral(
-            "${variableKindName} '${name}' has already been initialized.")
-          ..fileOffset = fileOffset
-      ])
+  Expression exception = new Throw(
+      new ConstructorInvocation(
+          forField
+              ? coreTypes.lateInitializationFieldAlreadyInitializedConstructor
+              : coreTypes.lateInitializationLocalAlreadyInitializedConstructor,
+          new Arguments(
+              <Expression>[new StringLiteral(name)..fileOffset = fileOffset])
+            ..fileOffset = fileOffset)
         ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
 
   Statement createReturn(Expression value) {

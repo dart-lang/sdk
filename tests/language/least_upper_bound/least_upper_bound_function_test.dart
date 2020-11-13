@@ -28,15 +28,19 @@ void main() {
 
   void f4(FutureOr<Function?> x, Function(int i, {int j}) y) {
     var z = condition ? x : y;
+    // Expecting `Object?`. Check that the type is a top type.
     z.expectStaticType<Exactly<Object?>>();
+    // Check that it is `Object?`.
+    if (z == null) throw 0;
+    z.expectStaticType<Exactly<Object>>();
   }
 
   void f5(Function Function<Y>([Y y]) x, dynamic y) {
     var z = condition ? x : y;
-    // Check that the type is a top type.
-    z.expectStaticType<Exactly<dynamic>>();
-    // Check that the type is `dynamic`.
-    z.unknownMember;
+    // Check that the type of `z` is `dynamic`.
+    Never n = z; // It is `dynamic` or `Never`.
+    z = 0; // It is a supertype of `int`.
+    z = false; // It is a supertype of `bool`.
   }
 
   void f6(Never x, Never Function() y) {

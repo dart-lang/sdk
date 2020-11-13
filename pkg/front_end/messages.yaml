@@ -265,6 +265,15 @@ ExperimentNotEnabledNoFlagInvalidLanguageVersion:
   tip: "You can enable the experiment using the '--enable-experiment=non-nullable' command line option."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
+ExperimentDisabled:
+  template: "This requires the '#string' language feature to be enabled."
+  tip: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentDisabledInvalidLanguageVersion:
+  template: "This requires the null safety language feature, which requires language version of #string2 or higher."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
 EmptyNamedParameterList:
   template: "Named parameter lists cannot be empty."
   tip: "Try adding a named parameter to the list."
@@ -1316,13 +1325,28 @@ StrongModeNNBDButOptOut:
 
 StrongModeNNBDPackageOptOut:
   template:  |
-    Cannot run with sound null safety as one or more dependencies do not
+    This project cannot run with sound null safety, because one or more project dependencies do not
     support null safety:
 
     #names
 
     Run 'pub outdated --mode=null-safety' to determine if versions of your
     dependencies supporting null safety are available.
+
+WeakWithStrongDillLibrary:
+  template: "Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety."
+
+StrongWithWeakDillLibrary:
+  template: "Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety."
+
+AgnosticWithStrongDillLibrary:
+  template: "Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety."
+
+AgnosticWithWeakDillLibrary:
+  template: "Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety."
+
+InvalidNnbdDillLibrary:
+  template: "Trying to use library with invalid null safety."
 
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
@@ -1738,9 +1762,6 @@ FastaUsageLong:
       --omit-platform
         Exclude the platform from the serialized dill file.
 
-      --bytecode
-        Generate bytecode. Supported only for SDK platform compilation.
-
       --exclude-source
         Do not include source code in the dill file.
 
@@ -1891,6 +1912,12 @@ InternalProblemUnfinishedTypeVariable:
 InternalProblemUnsupportedNullability:
   template: "Unsupported nullability value '#string' on type '#type'."
   severity: INTERNAL_PROBLEM
+
+IncrementalCompilerIllegalParameter:
+  template: "Illegal parameter name '#string' found during expression compilation."
+  
+IncrementalCompilerIllegalTypeParameter:
+  template: "Illegal type parameter name '#string' found during expression compilation."
 
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
@@ -3263,6 +3290,54 @@ ExternalFactoryRedirection:
 ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  script: >
+    method(int i) {}
+    main() {
+      method(1.5);
+    }
+
+ArgumentTypeNotAssignableNullability:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      int? j = null;
+      method(j);
+    }
+
+ArgumentTypeNotAssignablePartNullability:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(List<int> i) {}
+    main() {
+      List<int?> j = [null];
+      method(j);
+    }
+
+ArgumentTypeNotAssignableNullabilityNull:
+  template: "The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      method(null);
+    }
+
+ArgumentTypeNotAssignableNullabilityNullType:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      Null n;
+      method(n);
+    }
 
 InvalidAssignmentError:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
@@ -3271,6 +3346,49 @@ InvalidAssignmentError:
     main() {
       int i;
       i = 1.5;
+    }
+
+InvalidAssignmentErrorNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      int i = 0;
+      int? j;
+      i = j;
+    }
+
+InvalidAssignmentErrorPartNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<int> i = [];
+      List<int?> j = [null];
+      i = j;
+    }
+
+InvalidAssignmentErrorNullabilityNull:
+  template: "The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      int i = 0;
+      i = null;
+    }
+
+InvalidAssignmentErrorNullabilityNullType:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Null n;
+      int i = 0;
+      i = n;
     }
 
 PatchClassTypeVariablesMismatch:
@@ -3528,9 +3646,58 @@ ForInLoopElementTypeNotAssignable:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   tip: "Try changing the type of the variable."
   analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  script: |
+    method() {
+      List<String> list = [];
+      for (int i in list) {}
+    }
+
+ForInLoopElementTypeNotAssignableNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
+  tip: "Try changing the type of the variable."
+  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<int?> list = [];
+      for (int i in list) {}
+    }
+
+ForInLoopElementTypeNotAssignablePartNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  tip: "Try changing the type of the variable."
+  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<List<int?>> list = [[]];
+      for (List<int> i in list) {}
+    }
 
 ForInLoopTypeNotIterable:
   template: "The type '#type' used in the 'for' loop must implement '#type2'."
+  analyzerCode: FOR_IN_OF_INVALID_TYPE
+  script: |
+    method() {
+      String list = '';
+      for (int i in list) {}
+    }
+
+ForInLoopTypeNotIterableNullability:
+  template: "The type '#type' used in the 'for' loop must implement '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: FOR_IN_OF_INVALID_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<int>? list = null;
+      for (int i in list) {}
+    }
+
+# This cannot never occur since the iterable is checked to be assignable to `Iterable<dynamic>` so nullability can
+# only be a problem at the immediate level as in [ForInLoopTypeNotIterableNullability]. The message is needed for
+# symmetry in the call site.
+ForInLoopTypeNotIterablePartNullability:
+  template: "The type '#type' used in the 'for' loop must implement '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: FOR_IN_OF_INVALID_TYPE
 
 InitializingFormalTypeMismatch:
@@ -3747,10 +3914,50 @@ InvalidReturn:
   configuration: nnbd-strong
   declaration: "int foo() { return true; }"
 
+InvalidReturnNullability:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type' is nullable and '#type2' isn't."
+  configuration: nnbd-strong
+  declaration: "int foo(int? i) { return i; }"
+
+InvalidReturnPartNullability:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
+  configuration: nnbd-strong
+  declaration: "List<int> foo(List<int?> list) { return list; }"
+
+InvalidReturnNullabilityNull:
+  template: "The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable."
+  configuration: nnbd-strong
+  declaration: "int foo() { return null; }"
+
+InvalidReturnNullabilityNullType:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable."
+  configuration: nnbd-strong
+  declaration: "int foo(Null i) { return i; }"
+
 InvalidReturnAsync:
   template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
   configuration: nnbd-strong
   declaration: "Future<int> foo() async { return true; }"
+
+InvalidReturnAsyncNullability:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type' is nullable and '#type2' isn't."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo(int? i) async { return i; }"
+
+InvalidReturnAsyncPartNullability:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
+  configuration: nnbd-strong
+  declaration: "Future<List<int>> foo(List<int?> list) async { return list; }"
+
+InvalidReturnAsyncNullabilityNull:
+  template: "The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return null; }"
+
+InvalidReturnAsyncNullabilityNullType:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo(Null n) async { return n; }"
 
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
@@ -4107,6 +4314,26 @@ SpreadElementTypeMismatch:
       List<int> b = <int>[...a];
     }
 
+SpreadElementTypeMismatchNullability:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<int?> a = <int?>[0, null];
+      List<int> b = <int>[...a];
+    }
+
+SpreadElementTypeMismatchPartNullability:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<List<int?>> a = <List<int?>>[[0, null]];
+      List<List<int>> b = <List<int>>[...a];
+    }
+
 SpreadMapEntryTypeMismatch:
   template: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
   script:
@@ -4130,6 +4357,26 @@ SpreadMapEntryElementKeyTypeMismatch:
       Map<int, int> b = <int, int>{...a};
     }
 
+SpreadMapEntryElementKeyTypeMismatchNullability:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String?, int> a = <String?, int>{"foo": 42, null: 87};
+      Map<String, int> b = <String, int>{...a};
+    }
+
+SpreadMapEntryElementKeyTypeMismatchPartNullability:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<List<String?>, int> a = <List<String?>, int>{["foo"]: 42, [null]: 87};
+      Map<List<String>, int> b = <List<String>, int>{...a};
+    }
+
 SpreadMapEntryElementValueTypeMismatch:
   template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
@@ -4137,6 +4384,26 @@ SpreadMapEntryElementValueTypeMismatch:
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatchNullability:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String, int?> a = <String, int?>{"foo": 42, "bar": null};
+      Map<String, int> b = <String, int>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatchPartNullability:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String, List<int?>> a = <String, List<int?>>{"foo": [42], "bar": [null]};
+      Map<String, List<int>> b = <String, List<int>>{...a};
     }
 
 CantDisambiguateNotEnoughInformation:
@@ -4196,15 +4463,6 @@ InvalidTypeVariableVariancePositionInReturnType:
         return null;
       }
     }
-
-IllegalRecursiveType:
-  template: "Illegal recursive type '#type'."
-  script: >
-    class Base<T> {}
-    class Derived<T> extends Base<Derived<Derived<T>>> {}
-
-BytecodeLimitExceededTooManyArguments:
-  template: "Dart bytecode limit exceeded: too many arguments."
 
 CombinedMemberSignatureFailed:
   template: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."
@@ -4368,6 +4626,10 @@ JsInteropAnonymousFactoryPositionalParameters:
   template: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
   tip: "Try replacing them with named parameters instead."
 
+JsInteropDartClassExtendsJSClass:
+  template: "Dart class '#name' cannot extend JS interop class '#name2'."
+  tip: "Try adding the JS interop annotation or removing it from the parent class."
+
 JsInteropEnclosingClassJSAnnotation:
   template: "Member has a JS interop annotation but the enclosing class does not."
   tip: "Try adding the annotation to the enclosing class."
@@ -4379,6 +4641,10 @@ JsInteropEnclosingClassJSAnnotationContext:
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
+
+JsInteropJSClassExtendsDartClass:
+  template: "JS interop class '#name' cannot extend Dart class '#name2'."
+  tip: "Try removing the JS interop annotation or adding it to the parent class."
 
 JsInteropNamedParameters:
   template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
@@ -4399,6 +4665,32 @@ DefaultListConstructorError:
 NonNullableInNullAware:
   template: "Operand of null-aware operation '#name' has type '#type' which excludes null."
   severity: WARNING
+
+ThisInNullAwareReceiver:
+  template: "The receiver 'this' cannot be null."
+  tip: "Try replacing '?.' with '.'"
+  severity: WARNING
+  configuration: nnbd-strong
+  script: |
+    class C {
+      var field;
+      method() {
+        this?.field;
+      }
+    }
+
+ClassInNullAwareReceiver:
+  template: "The class '#name' cannot be null."
+  tip: "Try replacing '?.' with '.'"
+  severity: WARNING
+  configuration: nnbd-strong
+  script: |
+    class C {
+      static var field;
+    }
+    method() {
+      C?.field;
+    }
 
 NonNullableNotAssignedError:
   template: "Non-nullable variable '#name' must be assigned before it can be used."

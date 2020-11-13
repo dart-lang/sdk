@@ -20,7 +20,7 @@ class ReplaceWithExtensionNameTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REPLACE_WITH_EXTENSION_NAME;
 
   Future<void> test_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
   static int get g => 0;
 }
@@ -41,7 +41,7 @@ void f() {
   }
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
   static int m() => 0;
 }
@@ -67,7 +67,7 @@ extension E on String {
   static int m() => 0;
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'ext.dart' as ext;
 
 void f() {
@@ -84,7 +84,7 @@ void f() {
   }
 
   Future<void> test_setter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
   static set s(int i) {}
 }

@@ -6,7 +6,6 @@
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/dart_api_impl.h"
 #include "vm/heap/safepoint.h"
 #include "vm/kernel_isolate.h"
@@ -126,30 +125,8 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   Function& func =
       Function::Handle(cls.LookupStaticFunction(function_foo_name));
   EXPECT(!func.HasCode());
-  if (!FLAG_enable_interpreter) {
-    CompilerTest::TestCompileFunction(func);
-    EXPECT(func.HasCode());
-    return;
-  }
-  // Bytecode loading must happen on the main thread. Ensure the bytecode is
-  // loaded before asking for an unoptimized compile on a background thread.
-  kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
-#if !defined(PRODUCT)
-  // Constant in product mode.
-  FLAG_background_compilation = true;
-#endif
-  Isolate* isolate = thread->isolate();
-  BackgroundCompiler::Start(isolate);
-  isolate->background_compiler()->Compile(func);
-  Monitor* m = new Monitor();
-  {
-    MonitorLocker ml(m);
-    while (!func.HasCode()) {
-      ml.WaitWithSafepointCheck(thread, 1);
-    }
-  }
-  delete m;
-  BackgroundCompiler::Stop(isolate);
+  CompilerTest::TestCompileFunction(func);
+  EXPECT(func.HasCode());
 }
 
 ISOLATE_UNIT_TEST_CASE(RegenerateAllocStubs) {

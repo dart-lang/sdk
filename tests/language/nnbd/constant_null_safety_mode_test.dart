@@ -5,15 +5,15 @@
 import 'package:expect/expect.dart';
 
 main() {
-  const trueInWeakMode = <Null>[] is List<int>;
-  Expect.equals(isWeakMode, trueInWeakMode);
+  const trueInNoSoundMode = <Null>[] is List<int>;
+  Expect.equals(hasUnsoundNullSafety, trueInNoSoundMode);
 
   // The following tests use the Uri.pathSegments() to access a constant list
   // that is defined in the SDK and verify the type associated with it does not
   // allow null when running with sound null safety.
   var emptyUri = Uri(pathSegments: []);
   dynamic stringList = emptyUri.pathSegments.toList();
-  if (isStrongMode) {
+  if (hasSoundNullSafety) {
     Expect.throwsTypeError(() {
       stringList.add(null);
     });

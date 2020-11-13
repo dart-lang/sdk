@@ -35,7 +35,7 @@ Future checkSamples(Isolate isolate) async {
       reason: "Should have many code objects");
 
   final samples = result['samples'];
-  expect(samples.length, greaterThan(10), reason: "Should have many samples");
+  expect(samples.length, greaterThan(0), reason: "Should have samples");
   final sample = samples.first;
   expect(sample['tid'], isInt);
   expect(sample['timestamp'], isInt);

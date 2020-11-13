@@ -190,13 +190,13 @@ main() {
   Future<void> test_operator_index() async {
     addTestFile('''
 class A {
-  A operator [](index) => null;
-  operator []=(index, A value) {}
+  operator [](index) => 0;
+  operator []=(index, int value) {}
 }
-main() {
-  var a = new A();
-  a[0] // [];
-  a[1] = 1; // []=;
+
+void f(A a) {
+  a[0]; // []
+  a[1] = 1; // []=
   a[2] += 2;
 }
 ''');
@@ -207,7 +207,7 @@ main() {
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }
     {
-      var search = '] // []';
+      var search = ']; // []';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }

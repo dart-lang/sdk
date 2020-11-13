@@ -10,7 +10,6 @@ import 'abstract_field_constructor_initializer_test.dart'
 import 'abstract_field_initializer_test.dart' as abstract_field_initializer;
 import 'abstract_super_member_reference_test.dart'
     as abstract_super_member_reference;
-import 'access_private_enum_field_test.dart' as access_private_enum_field;
 import 'ambiguous_export_test.dart' as ambiguous_export;
 import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
@@ -87,7 +86,6 @@ import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
 import 'const_eval_type_num_test.dart' as const_eval_type_num;
 import 'const_field_initializer_not_assignable_test.dart'
     as const_field_initializer_not_assignable;
-import 'const_formal_parameter_test.dart' as const_formal_parameter;
 import 'const_initialized_with_non_constant_value_from_deferred_library_test.dart'
     as const_initialized_with_non_constant_value_from_deferred_library;
 import 'const_initialized_with_non_constant_value_test.dart'
@@ -129,11 +127,12 @@ import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
 import 'duplicate_definition_test.dart' as duplicate_definition;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
+import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
-import 'enum_constant_same_name_as_enclosing.dart'
+import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
@@ -465,6 +464,7 @@ import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
 import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
 import 'null_aware_in_logical_operator_test.dart'
     as null_aware_in_logical_operator;
+import 'null_check_always_fails_test.dart' as null_check_always_fails;
 import 'null_safety_read_write_test.dart' as null_safety_read_write;
 import 'nullable_type_in_catch_clause_test.dart'
     as nullable_type_in_catch_clause;
@@ -614,7 +614,9 @@ import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
+import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
+import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
@@ -658,7 +660,6 @@ main() {
     abstract_field_constructor_initializer.main();
     abstract_field_initializer.main();
     abstract_super_member_reference.main();
-    access_private_enum_field.main();
     ambiguous_export.main();
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
@@ -711,7 +712,6 @@ main() {
     const_eval_type_bool.main();
     const_eval_type_num.main();
     const_field_initializer_not_assignable.main();
-    const_formal_parameter.main();
     const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();
     const_instance_field.main();
@@ -741,6 +741,7 @@ main() {
     division_optimization.main();
     duplicate_definition.main();
     duplicate_hidden_name.main();
+    duplicate_ignore.main();
     duplicate_import.main();
     duplicate_named_argument.main();
     duplicate_part.main();
@@ -963,6 +964,7 @@ main() {
     null_aware_before_operator.main();
     null_aware_in_condition.main();
     null_aware_in_logical_operator.main();
+    null_check_always_fails.main();
     null_safety_read_write.main();
     nullable_type_in_catch_clause.main();
     nullable_type_in_extends_clause.main();
@@ -1064,7 +1066,9 @@ main() {
     undefined_prefixed_name.main();
     undefined_setter.main();
     undefined_shown_name.main();
+    unignorable_ignore.main();
     unnecessary_cast.main();
+    unnecessary_ignore.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
     unnecessary_null_comparison.main();

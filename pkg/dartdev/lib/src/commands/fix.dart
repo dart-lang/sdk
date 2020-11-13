@@ -6,33 +6,31 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
 import '../core.dart';
-import '../events.dart';
 import '../sdk.dart';
+import '../utils.dart';
 
-class FixCommand extends DartdevCommand<int> {
+class FixCommand extends DartdevCommand {
   static const String cmdName = 'fix';
 
   // This command is hidden as its currently experimental.
-  FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true);
+  FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true) {
+    argParser.addFlag('dry-run',
+        abbr: 'n',
+        defaultsTo: false,
+        help: 'Show which files would be modified but make no changes.');
+  }
 
   @override
-  UsageEvent createUsageEvent(int exitCode) => FixUsageEvent(
-        usagePath,
-        exitCode: exitCode,
-        args: argResults.arguments,
-      );
-
-  @override
-  FutureOr<int> runImpl() async {
+  FutureOr<int> run() async {
     log.stdout('\n*** The `fix` command is provisional and subject to change '
         'or removal in future releases. ***\n');
 
-    if (argResults.rest.length > 1) {
+    var dryRun = argResults['dry-run'];
+    if (argResults.rest.length - (dryRun ? 1 : 0) > 1) {
       usageException('Only one file or directory is expected.');
     }
 
@@ -43,8 +41,8 @@ class FixCommand extends DartdevCommand<int> {
       usageException("Directory doesn't exist: ${dir.path}");
     }
 
-    var progress =
-        log.progress('Computing fixes in ${path.basename(dir.path)}');
+    var progress = log.progress(
+        'Computing fixes in ${path.basename(path.canonicalize(dir.path))}');
 
     var server = AnalysisServer(
       io.Directory(sdk.sdkPath),
@@ -72,11 +70,25 @@ class FixCommand extends DartdevCommand<int> {
     if (edits.isEmpty) {
       log.stdout('Nothing to fix!');
     } else {
-      progress = log.progress('Applying fixes');
-      var fileCount = await _applyFixes(edits);
-      progress.finish(showTiming: true);
-      if (fileCount > 0) {
-        log.stdout('Fixed $fileCount files.');
+      if (dryRun) {
+        log.stdout("Running 'dart fix' without '--dry-run' would apply changes "
+            'in the following files:');
+        var files = <String>{};
+        for (var edit in edits) {
+          var file = edit.file;
+          files.add(path.relative(file, from: dir.path));
+        }
+        var paths = files.toList()..sort();
+        for (var path in paths) {
+          log.stdout(path);
+        }
+      } else {
+        progress = log.progress('Applying fixes');
+        var fileCount = await _applyFixes(edits);
+        progress.finish(showTiming: true);
+        if (fileCount > 0) {
+          log.stdout('Fixed $fileCount ${pluralize("file", fileCount)}.');
+        }
       }
     }
 
@@ -95,12 +107,4 @@ class FixCommand extends DartdevCommand<int> {
     }
     return files.length;
   }
-}
-
-/// The [UsageEvent] for the fix command.
-class FixUsageEvent extends UsageEvent {
-  FixUsageEvent(String usagePath,
-      {String label, @required int exitCode, @required List<String> args})
-      : super(FixCommand.cmdName, usagePath,
-            label: label, exitCode: exitCode, args: args);
 }

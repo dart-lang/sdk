@@ -19,7 +19,7 @@ class ConvertToContainsTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_contains;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return -1 != list.indexOf(value);
 }

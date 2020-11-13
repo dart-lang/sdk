@@ -93,7 +93,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -126,7 +126,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Mark that the thread has not exited generated Dart code.
   __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
@@ -298,61 +298,36 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 #endif
 }
 
-void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateSharedStubGeneric(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    std::function<void()> perform_runtime_call) {
   // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateSharedStub(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    const RuntimeEntry* target,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    bool store_runtime_result_in_result_register) {
+  // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
+                                          bool with_fpu_regs) {
+  // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
     Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
+  // Only used in AOT.
   __ Breakpoint();
 }
 
@@ -389,7 +364,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -425,7 +400,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ movl(Address(ESP, target::kWordSize), ECX);  // Function to call.
   __ call(wrapper_address);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Mark that the thread has not exited generated Dart code.
   __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
@@ -980,7 +955,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -1022,134 +997,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the dart code entrypoint.
   __ movl(EAX, Address(EBP, kTargetCodeOffset));
   __ movl(EAX, Address(EAX, VMHandles::kOffsetOfRawPtrInHandle));
-  __ call(FieldAddress(EAX, target::Code::entry_point_offset()));
-
-  // Read the saved number of passed arguments as Smi.
-  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
-  // Get rid of arguments pushed on the stack.
-  __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
-
-  // Restore the saved top exit frame info and top resource back into the
-  // Isolate structure.
-  __ popl(Address(THR, target::Thread::top_exit_frame_info_offset()));
-  __ popl(Address(THR, target::Thread::exit_through_ffi_offset()));
-  __ popl(Address(THR, target::Thread::top_resource_offset()));
-
-  // Restore the current VMTag from the stack.
-  __ popl(Assembler::VMTagAddress());
-
-#if defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  // Restore C++ ABI callee-saved registers.
-  __ popl(EDI);
-  __ popl(ESI);
-  __ popl(EBX);
-
-  // Restore the frame pointer.
-  __ LeaveFrame();
-  __ popl(ECX);
-
-  __ ret();
-}
-
-// Called when invoking compiled Dart code from interpreted Dart code.
-// Input parameters:
-//   ESP : points to return address.
-//   ESP + 4 : target raw code
-//   ESP + 8 : arguments raw descriptor array.
-//   ESP + 12: address of first argument.
-//   ESP + 16 : current thread.
-void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
-    Assembler* assembler) {
-  const intptr_t kTargetCodeOffset = 3 * target::kWordSize;
-  const intptr_t kArgumentsDescOffset = 4 * target::kWordSize;
-  const intptr_t kArgumentsOffset = 5 * target::kWordSize;
-  const intptr_t kThreadOffset = 6 * target::kWordSize;
-
-  __ pushl(Address(ESP, 0));  // Marker for the profiler.
-  __ EnterFrame(0);
-
-  // Push code object to PC marker slot.
-  __ movl(EAX, Address(EBP, kThreadOffset));
-  __ pushl(Address(EAX, target::Thread::invoke_dart_code_stub_offset()));
-
-  // Save C++ ABI callee-saved registers.
-  __ pushl(EBX);
-  __ pushl(ESI);
-  __ pushl(EDI);
-
-  // Set up THR, which caches the current thread in Dart code.
-  __ movl(THR, EAX);
-
-#if defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  // Save the current VMTag on the stack.
-  __ movl(ECX, Assembler::VMTagAddress());
-  __ pushl(ECX);
-
-  // Save top resource and top exit frame info. Use EDX as a temporary register.
-  // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ movl(EDX, Address(THR, target::Thread::top_resource_offset()));
-  __ pushl(EDX);
-  __ movl(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
-
-  __ movl(EAX, Address(THR, target::Thread::exit_through_ffi_offset()));
-  __ pushl(EAX);
-  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(0));
-
-  // The constant target::frame_layout.exit_link_slot_from_entry_fp must be
-  // kept in sync with the code below.
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -8);
-  __ movl(EDX, Address(THR, target::Thread::top_exit_frame_info_offset()));
-  __ pushl(EDX);
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
-          Immediate(0));
-
-  // Mark that the thread is executing Dart code. Do this after initializing the
-  // exit link for the profiler.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
-  // Load arguments descriptor array into EDX.
-  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
-
-  // Load number of arguments into EBX and adjust count for type arguments.
-  __ movl(EBX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
-  __ cmpl(
-      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
-      Immediate(0));
-  Label args_count_ok;
-  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ addl(EBX, Immediate(target::ToRawSmi(1)));  // Include the type arguments.
-  __ Bind(&args_count_ok);
-  // Save number of arguments as Smi on stack, replacing ArgumentsDesc.
-  __ movl(Address(EBP, kArgumentsDescOffset), EBX);
-  __ SmiUntag(EBX);
-
-  // Set up arguments for the dart call.
-  Label push_arguments;
-  Label done_push_arguments;
-  __ testl(EBX, EBX);  // check if there are arguments.
-  __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
-  __ movl(EAX, Immediate(0));
-
-  // Compute address of 'arguments array' data area into EDI.
-  __ movl(EDI, Address(EBP, kArgumentsOffset));
-
-  __ Bind(&push_arguments);
-  __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
-  __ pushl(ECX);
-  __ incl(EAX);
-  __ cmpl(EAX, EBX);
-  __ j(LESS, &push_arguments, Assembler::kNearJump);
-  __ Bind(&done_push_arguments);
-
-  // Call the dart code entrypoint.
-  __ movl(EAX, Address(EBP, kTargetCodeOffset));
   __ call(FieldAddress(EAX, target::Code::entry_point_offset()));
 
   // Read the saved number of passed arguments as Smi.
@@ -2256,83 +2103,7 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
 
-  // When using the interpreter, the function's code may now point to the
-  // InterpretCall stub. Make sure EAX, ECX, and EDX are preserved.
   __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
-}
-
-// Stub for interpreting a function call.
-// EDX: Arguments descriptor.
-// EAX: Function.
-void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-  __ EnterStubFrame();
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Adjust arguments count for type arguments vector.
-  __ movl(ECX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(ECX);
-  __ cmpl(
-      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
-      Immediate(0));
-  Label args_count_ok;
-  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ incl(ECX);
-  __ Bind(&args_count_ok);
-
-  // Compute argv.
-  __ leal(EBX,
-          Address(EBP, ECX, TIMES_4,
-                  target::frame_layout.param_end_from_fp * target::kWordSize));
-
-  // Indicate decreasing memory addresses of arguments with negative argc.
-  __ negl(ECX);
-
-  __ pushl(THR);  // Arg 4: Thread.
-  __ pushl(EBX);  // Arg 3: Argv.
-  __ pushl(ECX);  // Arg 2: Negative argc.
-  __ pushl(EDX);  // Arg 1: Arguments descriptor
-  __ pushl(EAX);  // Arg 0: Function
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
-
-  // Mark that the thread exited generated code through a runtime call.
-  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(target::Thread::exit_through_runtime_call()));
-
-  // Mark that the thread is executing VM code.
-  __ movl(EAX,
-          Address(THR, target::Thread::interpret_call_entry_point_offset()));
-  __ movl(Assembler::VMTagAddress(), EAX);
-
-  __ call(EAX);
-
-  __ Drop(5);
-
-  // Mark that the thread is executing Dart code.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
-  // Mark that the thread has not exited generated Dart code.
-  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(0));
-
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
-          Immediate(0));
-
-  __ LeaveFrame();
-  __ ret();
 }
 
 // ECX: Contains an ICData.
@@ -2683,7 +2454,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ Bind(&exit_through_non_ffi);
 
   // Set tag.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));

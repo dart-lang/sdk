@@ -77,9 +77,7 @@ ISOLATE_UNIT_TEST_CASE(AllocateScopeHandle) {
   EXPECT_EQ(handle_count, VMHandles::ScopedHandleCount());
 }
 
-static void NoopCallback(void* isolate_callback_data,
-                         Dart_WeakPersistentHandle handle,
-                         void* peer) {}
+static void NoopCallback(void* isolate_callback_data, void* peer) {}
 
 // Unit test for handle validity checks.
 TEST_CASE(CheckHandleValidity) {

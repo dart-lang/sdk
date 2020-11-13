@@ -505,7 +505,6 @@ bool ObjectLayout::FindObject(FindObjectVisitor* visitor) {
   }
 
 REGULAR_VISITOR(Class)
-REGULAR_VISITOR(Bytecode)
 REGULAR_VISITOR(Type)
 REGULAR_VISITOR(TypeRef)
 REGULAR_VISITOR(TypeParameter)
@@ -520,7 +519,6 @@ REGULAR_VISITOR(Script)
 REGULAR_VISITOR(Library)
 REGULAR_VISITOR(LibraryPrefix)
 REGULAR_VISITOR(Namespace)
-REGULAR_VISITOR(ParameterTypeCheck)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
 REGULAR_VISITOR(MonomorphicSmiableCall)
@@ -645,16 +643,6 @@ intptr_t CodeLayout::VisitCodePointers(CodePtr raw_obj,
 #endif
 }
 
-bool BytecodeLayout::ContainsPC(ObjectPtr raw_obj, uword pc) {
-  if (raw_obj->IsBytecode()) {
-    BytecodePtr raw_bytecode = static_cast<BytecodePtr>(raw_obj);
-    uword start = raw_bytecode->ptr()->instructions_;
-    uword size = raw_bytecode->ptr()->instructions_size_;
-    return (pc - start) <= size;  // pc may point past last instruction.
-  }
-  return false;
-}
-
 intptr_t ObjectPoolLayout::VisitObjectPoolPointers(
     ObjectPoolPtr raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -664,8 +652,7 @@ intptr_t ObjectPoolLayout::VisitObjectPoolPointers(
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
         ObjectPool::TypeBits::decode(entry_bits[i]);
-    if ((entry_type == ObjectPool::EntryType::kTaggedObject) ||
-        (entry_type == ObjectPool::EntryType::kNativeEntryData)) {
+    if (entry_type == ObjectPool::EntryType::kTaggedObject) {
       visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }

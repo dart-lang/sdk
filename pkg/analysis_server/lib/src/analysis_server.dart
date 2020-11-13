@@ -51,7 +51,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -627,10 +626,6 @@ class AnalysisServerOptions {
   /// generally used in specific SDKs (like the internal google3 one).
   SdkConfiguration configurationOverrides;
 
-  /// The list of the names of the experiments that should be enabled by
-  /// default, unless the analysis options file of a context overrides it.
-  List<String> enabledExperiments = const <String>[];
-
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
@@ -660,9 +655,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.notificationManager;
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    var builder = createContextBuilder(folder, options);
+  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
+    var builder = createContextBuilder(folder);
     var analysisDriver = builder.buildDriver(contextRoot);
     analysisDriver.results.listen((result) {
       var notificationManager = analysisServer.notificationManager;
@@ -815,9 +809,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+  ContextBuilder createContextBuilder(Folder folder) {
     var builderOptions = ContextBuilderOptions();
-    builderOptions.defaultOptions = options;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);

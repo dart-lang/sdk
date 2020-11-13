@@ -32,7 +32,7 @@ class AstRewriter {
         // This isn't a constructor invocation because it's in a cascade.
         return node;
       }
-      Element element = nameScope.lookup2(methodName.name).getter;
+      Element element = nameScope.lookup(methodName.name).getter;
       if (element is ClassElement) {
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         ConstructorName constructorName =
@@ -56,7 +56,7 @@ class AstRewriter {
         // This isn't a constructor invocation because a null aware operator is
         // being used.
       }
-      Element element = nameScope.lookup2(target.name).getter;
+      Element element = nameScope.lookup(target.name).getter;
       if (element is ClassElement) {
         // Possible case: C.n()
         var constructorElement = element.getNamedConstructor(methodName.name);
@@ -81,7 +81,7 @@ class AstRewriter {
         }
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
-        Element prefixedElement = element.scope.lookup2(methodName.name).getter;
+        Element prefixedElement = element.scope.lookup(methodName.name).getter;
         if (prefixedElement is ClassElement) {
           TypeName typeName = astFactory.typeName(
               astFactory.prefixedIdentifier(target, node.operator, methodName),
@@ -106,11 +106,11 @@ class AstRewriter {
       }
     } else if (target is PrefixedIdentifier) {
       // Possible case: p.C.n()
-      Element prefixElement = nameScope.lookup2(target.prefix.name).getter;
+      Element prefixElement = nameScope.lookup(target.prefix.name).getter;
       target.prefix.staticElement = prefixElement;
       if (prefixElement is PrefixElement) {
         Element element =
-            prefixElement.scope.lookup2(target.identifier.name).getter;
+            prefixElement.scope.lookup(target.identifier.name).getter;
         if (element is ClassElement) {
           var constructorElement = element.getNamedConstructor(methodName.name);
           if (constructorElement != null) {

@@ -878,9 +878,10 @@ linter:
     /// Lints should be enabled.
     expect(analysisOptions.lint, isTrue);
 
-    /// The analysis options file only specifies 'camel_case_types'.
+    /// The analysis options file specifies 'camel_case_types' and 'sort_pub_dependencies'.
     var lintNames = analysisOptions.lintRules.map((r) => r.name);
-    expect(lintNames, orderedEquals(['camel_case_types']));
+    expect(lintNames,
+        orderedEquals(['camel_case_types', 'sort_pub_dependencies']));
   }
 
   Future<void> test_noLints_lintsDisabled() async {
@@ -896,6 +897,12 @@ linter:
   Future<void> test_noLints_noRegisteredLints() async {
     await _runLinter_noLintsFlag();
     expect(analysisOptions.lintRules, isEmpty);
+  }
+
+  Future<void> test_pubspec_lintsInOptions_generatedLints() async {
+    await drive('data/linter_project/pubspec.yaml',
+        options: 'data/linter_project/$optionsFileName');
+    expect(bulletToDash(outSink), contains('lint - Sort pub dependencies'));
   }
 
   YamlMap _parseOptions(String src) =>
@@ -1065,8 +1072,7 @@ class OptionsTest extends BaseTest {
       options: path.join(testDir, 'analysis_options.yaml'),
     );
     expect(exitCode, 3);
-    expect(outSink.toString(),
-        contains('but doesn\'t end with a return statement'));
+    expect(outSink.toString(), contains('Unnecessary cast.'));
     expect(outSink.toString(), contains('isn\'t defined'));
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }

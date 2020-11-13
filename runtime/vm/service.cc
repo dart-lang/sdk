@@ -12,6 +12,7 @@
 #include "platform/globals.h"
 
 #include "platform/unicode.h"
+#include "platform/utils.h"
 #include "vm/base64.h"
 #include "vm/canonical_tables.h"
 #include "vm/compiler/jit/compiler.h"
@@ -39,6 +40,7 @@
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
+#include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
@@ -973,9 +975,7 @@ ErrorPtr Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   return MaybePause(isolate, error);
 }
 
-static void Finalizer(void* isolate_callback_data,
-                      Dart_WeakPersistentHandle handle,
-                      void* buffer) {
+static void Finalizer(void* isolate_callback_data, void* buffer) {
   free(buffer);
 }
 
@@ -1527,6 +1527,7 @@ static bool GetScripts(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* get_stack_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
+    new UIntParameter("limit", false),
     NULL,
 };
 
@@ -1534,7 +1535,15 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
-
+  intptr_t limit = 0;
+  bool has_limit = js->HasParam("limit");
+  if (has_limit) {
+    limit = UIntParameter::Parse(js->LookupParam("limit"));
+    if (limit < 0) {
+      PrintInvalidParamError(js, "limit");
+      return true;
+    }
+  }
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   DebuggerStackTrace* async_causal_stack =
@@ -1547,7 +1556,9 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   {
     JSONArray jsarr(&jsobj, "frames");
 
-    intptr_t num_frames = stack->Length();
+    intptr_t num_frames =
+        has_limit ? Utils::Minimum(stack->Length(), limit) : stack->Length();
+
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
@@ -1558,7 +1569,9 @@ static bool GetStack(Thread* thread, JSONStream* js) {
 
   if (async_causal_stack != NULL) {
     JSONArray jsarr(&jsobj, "asyncCausalFrames");
-    intptr_t num_frames = async_causal_stack->Length();
+    intptr_t num_frames =
+        has_limit ? Utils::Minimum(async_causal_stack->Length(), limit)
+                  : async_causal_stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = async_causal_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
@@ -1569,7 +1582,9 @@ static bool GetStack(Thread* thread, JSONStream* js) {
 
   if (awaiter_stack != NULL) {
     JSONArray jsarr(&jsobj, "awaiterFrames");
-    intptr_t num_frames = awaiter_stack->Length();
+    intptr_t num_frames = has_limit
+                              ? Utils::Minimum(awaiter_stack->Length(), limit)
+                              : awaiter_stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = awaiter_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
@@ -1577,6 +1592,14 @@ static bool GetStack(Thread* thread, JSONStream* js) {
       jsobj.AddProperty("index", i);
     }
   }
+
+  const bool truncated =
+      (has_limit &&
+       (limit < stack->Length() ||
+        (async_causal_stack != nullptr &&
+         limit < async_causal_stack->Length()) ||
+        (awaiter_stack != nullptr && limit < awaiter_stack->Length())));
+  jsobj.AddProperty("truncated", truncated);
 
   {
     MessageHandler::AcquiredQueues aq(isolate->message_handler());
@@ -1725,7 +1748,9 @@ static ObjectPtr LookupClassMembers(Thread* thread,
   }
   if (strcmp(parts[2], "functions") == 0) {
     // Function ids look like: "classes/17/functions/name"
-    const auto& function = Function::Handle(klass.LookupFunction(id));
+
+    const auto& function =
+        Function::Handle(Resolver::ResolveFunction(zone, klass, id));
     if (function.IsNull()) {
       return Object::sentinel().raw();
     }
@@ -1982,10 +2007,6 @@ static ObjectPtr LookupHeapObjectCode(Isolate* isolate,
   Code& code = Code::Handle(Code::FindCode(pc, timestamp));
   if (!code.IsNull()) {
     return code.raw();
-  }
-  Bytecode& bytecode = Bytecode::Handle(Bytecode::FindCode(pc));
-  if (!bytecode.IsNull()) {
-    return bytecode.raw();
   }
 
   // Not found.
@@ -3138,6 +3159,30 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
     JSONArray samples(&jsobj, "instances");
     for (int i = 0; (i < limit) && (i < count); i++) {
       samples.AddValue(storage.At(i));
+    }
+  }
+  return true;
+}
+
+static const MethodParameter* get_ports_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetPorts(Thread* thread, JSONStream* js) {
+  // Ensure the array and handles created below are promptly destroyed.
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+  const GrowableObjectArray& ports = GrowableObjectArray::Handle(
+      GrowableObjectArray::RawCast(DartLibraryCalls::LookupOpenPorts()));
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "PortList");
+  {
+    Instance& port = Instance::Handle(zone.GetZone());
+    JSONArray arr(&jsobj, "ports");
+    for (int i = 0; i < ports.Length(); ++i) {
+      port ^= ports.At(i);
+      arr.AddValue(port);
     }
   }
   return true;
@@ -4333,11 +4378,12 @@ class PersistentHandleVisitor : public HandleVisitor {
     obj.AddPropertyF(
         "peer", "0x%" Px "",
         reinterpret_cast<uintptr_t>(weak_persistent_handle->peer()));
-    obj.AddPropertyF("callbackAddress", "0x%" Px "",
-                     weak_persistent_handle->callback_address());
+    obj.AddPropertyF(
+        "callbackAddress", "0x%" Px "",
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
     // Attempt to include a native symbol name.
     char* name = NativeSymbolResolver::LookupSymbolName(
-        weak_persistent_handle->callback_address(), nullptr);
+        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
     obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
     if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);
@@ -4390,12 +4436,12 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_ports_params[] = {
+static const MethodParameter* get_ports_private_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
 };
 
-static bool GetPorts(Thread* thread, JSONStream* js) {
+static bool GetPortsPrivate(Thread* thread, JSONStream* js) {
   MessageHandler* message_handler = thread->isolate()->message_handler();
   PortMap::PrintPortsForMessageHandler(message_handler, js);
   return true;
@@ -5055,6 +5101,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
+  { "getPorts", GetPorts,
+    get_ports_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
   { "_getIsolateObjectStore", GetIsolateObjectStore,
@@ -5075,8 +5123,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_store_params },
   { "_getPersistentHandles", GetPersistentHandles,
       get_persistent_handles_params, },
-  { "_getPorts", GetPorts,
-    get_ports_params },
+  { "_getPorts", GetPortsPrivate,
+    get_ports_private_params },
   { "getProcessMemoryUsage", GetProcessMemoryUsage,
     get_process_memory_usage_params },
   { "_getReachableSize", GetReachableSize,

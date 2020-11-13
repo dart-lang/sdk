@@ -20,7 +20,7 @@ class SurroundWithIfTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.SURROUND_WITH_IF;
 
   Future<void> test_twoStatements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
 // start
   print(0);

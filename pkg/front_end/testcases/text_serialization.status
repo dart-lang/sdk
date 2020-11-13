@@ -25,7 +25,7 @@ general/callable_type_variable: TypeCheckError
 general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
 general/constants/with_unevaluated_agnostic/const_asserts: TextSerializationFailure
-general/constants/with_unevaluated_agnostic/const_collections: TextSerializationFailure
+general/constants/with_unevaluated_agnostic/const_collections_2: TextSerializationFailure
 general/constants/with_unevaluated_agnostic/various: TextSerializationFailure
 general/constants/with_unevaluated_agnostic/various_2: TextSerializationFailure
 general/constructor_initializer_invalid: RuntimeError
@@ -81,6 +81,7 @@ general/issue41210b/issue41210: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError
+general/mixin_covariant2: TypeCheckError
 general/operator_method_not_found: RuntimeError
 general/optional: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
@@ -90,11 +91,9 @@ general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
-general/reject_generic_function_types_in_bounds: RuntimeError
 general/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general/type_parameter_type_named_int: RuntimeError
 general/type_variable_as_super: RuntimeError
-general/type_variable_bound_access: TypeCheckError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
@@ -137,12 +136,10 @@ general_nnbd_opt_out/override_check_after_inference: TypeCheckError # Issue #316
 general_nnbd_opt_out/override_check_basic: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
-general_nnbd_opt_out/reject_generic_function_types_in_bounds: RuntimeError
 general_nnbd_opt_out/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general_nnbd_opt_out/statements: Crash
 general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError
 general_nnbd_opt_out/type_variable_as_super: RuntimeError
-general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
@@ -170,11 +167,7 @@ inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
-instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError
-instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError
 late_lowering/covariant_late_field: TypeCheckError
-late_lowering/initializer_rewrite_from_opt_out: RuntimeError # Test is inherently mixed mode
-late_lowering/non_nullable_from_opt_out: RuntimeError # Test is inherently mixed mode
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue41180: RuntimeError
@@ -184,8 +177,7 @@ nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
-nnbd/strong_lib_not_ok_from_dill/strong: RuntimeError
-nnbd/strong_package_not_ok_from_dill/strong: RuntimeError
+none/mixin_covariant: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

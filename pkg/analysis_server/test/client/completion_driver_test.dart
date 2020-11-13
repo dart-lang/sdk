@@ -351,7 +351,7 @@ enum E {
 extension Ex on A {}
 mixin M { }
 typedef T = Function(Object);
-int v;
+var v = 0;
 ''');
 
     await addTestFile('''

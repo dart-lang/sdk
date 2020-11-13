@@ -14,7 +14,7 @@ static method main() → dynamic {
   core::int? local1;
   core::bool #local1#isSet = false;
   function #local1#get() → core::int
-    return #local1#isSet ?{core::int} local1{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local1' has not been initialized.");
+    return #local1#isSet ?{core::int} local1{core::int} : throw new _in::LateError::localNI("local1");
   function #local1#set(core::int #t1) → dynamic {
     #local1#isSet = true;
     return local1 = #t1;
@@ -44,10 +44,10 @@ static method error() → dynamic {
   final core::int? local;
   core::bool #local#isSet = false;
   function #local#get() → core::int
-    return #local#isSet ?{core::int} local{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local' has not been initialized.");
+    return #local#isSet ?{core::int} local{core::int} : throw new _in::LateError::localNI("local");
   function #local#set(core::int #t3) → dynamic
     if(#local#isSet)
-      throw new _in::LateInitializationErrorImpl::•("Local 'local' has already been initialized.");
+      throw new _in::LateError::localAI("local");
     else {
       #local#isSet = true;
       return local = #t3;

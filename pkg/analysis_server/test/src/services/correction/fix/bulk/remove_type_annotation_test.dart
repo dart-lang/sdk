@@ -22,7 +22,7 @@ class RemoveDynamicTypeAnnotationTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.avoid_annotating_with_dynamic;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(void foo(dynamic x)) {
   return null;
 }
@@ -49,7 +49,7 @@ class RemoveSetterReturnTypeAnnotationTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.avoid_return_types_on_setters;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void set s(int s) {}
 void set s2(int s2) {}
 ''');
@@ -66,7 +66,7 @@ class RemoveTypeAnnotationOnClosureParamsTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.avoid_types_on_closure_parameters;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var x = ({Future<int> defaultValue}) => null;
 var y = (Future<int> defaultValue) => null;
 ''');
@@ -83,7 +83,7 @@ class TypeInitFormalsTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.type_init_formals;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int f;
   C(int this.f);

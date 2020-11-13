@@ -20,7 +20,7 @@ main() {
   T.test10(c, c); //# sh3: ok
   T.test11(c, c);
   T.test12(c, c);
-  T .test13(c, c);
+  T.test13(c, c);
   T.test14(c);
   T.test15(c, c);
   T.test16(c, c);

@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::String> listWithUnevaluatedUnevaluatedFirst = #C6;
+static const field core::List<core::String> listWithUnevaluatedUnevaluatedMiddle = #C14;
+static const field core::Set<core::String> setWithUnevaluatedUnevaluatedFirst = #C16;
+static const field core::Set<core::String> setWithUnevaluatedUnevaluatedMiddle = #C19;
+static const field core::Map<core::String, core::int> mapWithUnevaluatedUnevaluatedFirst = #C22;
+static const field core::Map<core::String, core::int> mapWithUnevaluatedUnevaluatedMiddle = #C25;
+
+constants  {
+  #C1 = "foo"
+  #C2 = "bar"
+  #C3 = "hello"
+  #C4 = "world"
+  #C5 = <core::String>[#C3, #C4]
+  #C6 = eval const <dynamic>[const core::String::fromEnvironment(#C1)] + const <dynamic>[const core::String::fromEnvironment(#C2)] + #C5
+  #C7 = "A"
+  #C8 = "few"
+  #C9 = "strings"
+  #C10 = <core::String>[#C7, #C8, #C9]
+  #C11 = "and"
+  #C12 = "more"
+  #C13 = <core::String>[#C3, #C4, #C11, #C12]
+  #C14 = eval #C10 + const <dynamic>[const core::String::fromEnvironment(#C1)] + const <dynamic>[const core::String::fromEnvironment(#C2)] + #C13
+  #C15 = <core::String>{#C3, #C4}
+  #C16 = eval const <dynamic>{const core::String::fromEnvironment(#C1)} + #C15
+  #C17 = <core::String>{#C7, #C8, #C9}
+  #C18 = <core::String>{#C3, #C4, #C11, #C12}
+  #C19 = eval #C17 + const <dynamic>{const core::String::fromEnvironment(#C1)} + #C18
+  #C20 = 42
+  #C21 = <core::String, core::int>{#C3:#C20, #C4:#C20)
+  #C22 = eval const <dynamic, dynamic>{const core::String::fromEnvironment(#C1): #C20} + #C21
+  #C23 = <core::String, core::int>{#C7:#C20, #C8:#C20, #C9:#C20)
+  #C24 = <core::String, core::int>{#C3:#C20, #C4:#C20, #C11:#C20, #C12:#C20)
+  #C25 = eval #C23 + const <dynamic, dynamic>{const core::String::fromEnvironment(#C1): #C20} + #C24
+}
+
+Extra constant evaluation status:
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections_2.dart:5:58 -> ListConstant(const <String>["", "", "hello", "world"])
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections_2.dart:12:59 -> ListConstant(const <String>["A", "few", "strings", "", "", "hello", "world", "and", "more"])
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections_2.dart:24:56 -> SetConstant(const <String>{"", "hello", "world"})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections_2.dart:32:57 -> SetConstant(const <String>{"A", "few", "strings", "", "hello", "world", "and", "more"})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections_2.dart:45:61 -> MapConstant(const <String, int>{"": 42, "hello": 42, "world": 42})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections_2.dart:53:62 -> MapConstant(const <String, int>{"A": 42, "few": 42, "strings": 42, "": 42, "hello": 42, "world": 42, "and": 42, "more": 42})
+Extra constant evaluation: evaluated: 6, effectively constant: 6

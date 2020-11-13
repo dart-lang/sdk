@@ -9,8 +9,7 @@ main() {
   /*1:main*/ test();
 }
 
-// TODO(34942): Step 2 should point to the body block.
 @pragma('dart2js:noInline')
-test /*2:test*/ () async {
+test() async /*2:test*/ {
   /*4:test*/ throw '>ExceptionMarker<';
 }

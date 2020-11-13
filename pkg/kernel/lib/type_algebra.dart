@@ -503,6 +503,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitVoidType(VoidType node) => node;
   DartType visitBottomType(BottomType node) => node;
   DartType visitNeverType(NeverType node) => node;
+  DartType visitNullType(NullType node) => node;
 
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
@@ -839,6 +840,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
 
   bool visitBottomType(BottomType node) => false;
   bool visitNeverType(NeverType node) => false;
+  bool visitNullType(NullType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;
@@ -891,6 +893,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   bool visitBottomType(BottomType node) => false;
   bool visitNeverType(NeverType node) => false;
+  bool visitNullType(NullType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;
@@ -1011,6 +1014,9 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   bool visitNeverType(NeverType node) => true;
 
   @override
+  bool visitNullType(NullType node) => true;
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return node.promotedBound == null;
   }
@@ -1067,9 +1073,7 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitInterfaceType(InterfaceType node, CoreTypes coreTypes) {
-    return node == coreTypes.nullType
-        ? node
-        : node.withDeclaredNullability(Nullability.nonNullable);
+    return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
@@ -1079,6 +1083,9 @@ class _NullabilityConstructorUnwrapper
   DartType visitNeverType(NeverType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
+
+  @override
+  DartType visitNullType(NullType node, CoreTypes coreTypes) => node;
 
   @override
   DartType visitTypeParameterType(TypeParameterType node, CoreTypes coreTypes) {
@@ -1197,9 +1204,7 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
 /// [TypeParameterType]s, the result may be either [Nullability.nonNullable] or
 /// [Nullability.undetermined], depending on the bound.
 DartType computeTypeWithoutNullabilityMarker(
-    DartType type, Library clientLibrary,
-    {DartType nullType}) {
-  assert(nullType != null);
+    DartType type, Library clientLibrary) {
   if (type is TypeParameterType) {
     if (type.promotedBound == null) {
       // The default nullability for library is used when there are no
@@ -1211,7 +1216,7 @@ DartType computeTypeWithoutNullabilityMarker(
       // type constructors, so nothing can be peeled off.
       return type;
     }
-  } else if (type == nullType) {
+  } else if (type is NullType) {
     return type;
   } else {
     // For most types, peeling off the nullability constructors means that
@@ -1244,12 +1249,11 @@ bool isTypeParameterTypeWithoutNullabilityMarker(
 /// String?, Object?, and T? where T is a type parameter.  Types dynamic, void,
 /// and Null are nullable, but aren't considered applications of the nullable
 /// type constructor.
-bool isNullableTypeConstructorApplication(DartType type, {DartType nullType}) {
-  assert(nullType != null);
+bool isNullableTypeConstructorApplication(DartType type) {
   return type.declaredNullability == Nullability.nullable &&
       type is! DynamicType &&
       type is! VoidType &&
-      type != nullType;
+      type is! NullType;
 }
 
 /// Returns true if [type] is an application of the legacy type constructor.

@@ -8,6 +8,8 @@
 //
 // TODO(dartbug.com/37022): Update this when we get real async callbacks.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 import 'dart:isolate';
 
@@ -26,8 +28,8 @@ main() async {
   print("C T2 = Some C thread executing C.");
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
-  Expect.isTrue(NativeApi.majorVersion == 1);
-  Expect.isTrue(NativeApi.minorVersion >= 1);
+  Expect.isTrue(NativeApi.majorVersion == 2);
+  Expect.isTrue(NativeApi.minorVersion >= 0);
   final initializeApi = dl.lookupFunction<IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);

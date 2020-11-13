@@ -319,7 +319,9 @@ class ImageWriter : public ValueObject {
   // shared by both.
   const char* SectionSymbol(ProgramSection section, bool vm) const;
 
-  static uword GetMarkedTags(classid_t cid, intptr_t size);
+  static uword GetMarkedTags(classid_t cid,
+                             intptr_t size,
+                             bool is_canonical = false);
   static uword GetMarkedTags(const Object& obj);
 
   void DumpInstructionStats();

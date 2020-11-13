@@ -142,9 +142,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   }
 }
 
-static void WeakHandleFinalizer(void* isolate_callback_data,
-                                Dart_WeakPersistentHandle handle,
-                                void* peer) {}
+static void WeakHandleFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(RetainingPathGCRoot) {
   Dart_PersistentHandle persistent_handle;

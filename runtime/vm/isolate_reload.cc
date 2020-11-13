@@ -857,9 +857,13 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // ValidateReload mutates the direct subclass information and does
     // not remove dead subclasses.  Rebuild the direct subclass
     // information from scratch.
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->reload_context()->RebuildDirectSubclasses();
-    });
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      ForEachIsolate([&](Isolate* isolate) {
+        isolate->reload_context()->RebuildDirectSubclasses();
+      });
+    }
     const intptr_t final_library_count =
         GrowableObjectArray::Handle(Z,
                                     first_isolate_->object_store()->libraries())
@@ -1217,7 +1221,7 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   Function& func = Function::Handle();
   while (it.HasNextFrame()) {
     StackFrame* frame = it.NextFrame();
-    if (frame->IsDartFrame() && !frame->is_interpreted()) {
+    if (frame->IsDartFrame()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
       // Force-optimized functions don't need unoptimized code because their
@@ -1941,31 +1945,25 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   Zone* zone = stack_zone.GetZone();
 
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   Function& function = Function::Handle(zone);
   CallSiteResetter resetter(zone);
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      resetter.RebindStaticTargets(bytecode);
+    code = frame->LookupDartCode();
+    if (code.is_optimized() && !code.is_force_optimized()) {
+      // If this code is optimized, we need to reset the ICs in the
+      // corresponding unoptimized code, which will be executed when the stack
+      // unwinds to the optimized code.
+      function = code.function();
+      code = function.unoptimized_code();
+      ASSERT(!code.IsNull());
+      resetter.ResetSwitchableCalls(code);
+      resetter.ResetCaches(code);
     } else {
-      code = frame->LookupDartCode();
-      if (code.is_optimized() && !code.is_force_optimized()) {
-        // If this code is optimized, we need to reset the ICs in the
-        // corresponding unoptimized code, which will be executed when the stack
-        // unwinds to the optimized code.
-        function = code.function();
-        code = function.unoptimized_code();
-        ASSERT(!code.IsNull());
-        resetter.ResetSwitchableCalls(code);
-        resetter.ResetCaches(code);
-      } else {
-        resetter.ResetSwitchableCalls(code);
-        resetter.ResetCaches(code);
-      }
+      resetter.ResetSwitchableCalls(code);
+      resetter.ResetCaches(code);
     }
     frame = iterator.NextFrame();
   }
@@ -2028,14 +2026,6 @@ void IsolateReloadContext::RunInvalidationVisitors() {
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
 
-  Thread* mutator_thread = I->mutator_thread();
-  if (mutator_thread != nullptr) {
-    Interpreter* interpreter = mutator_thread->interpreter();
-    if (interpreter != nullptr) {
-      interpreter->ClearLookupCache();
-    }
-  }
-
   GrowableArray<const Function*> functions(4 * KB);
   GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
   GrowableArray<const Field*> fields(4 * KB);
@@ -2080,10 +2070,6 @@ void IsolateReloadContext::InvalidateKernelInfos(
       table.Clear();
       info.set_classes_cache(table.Release());
     }
-    // Clear the bytecode object table.
-    if (info.bytecode_component() != Array::null()) {
-      kernel::BytecodeReader::ResetObjectTable(info);
-    }
   }
 }
 
@@ -2098,7 +2084,6 @@ void IsolateReloadContext::InvalidateFunctions(
   Class& owning_class = Class::Handle(zone);
   Library& owning_lib = Library::Handle(zone);
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
     if (func.IsSignatureFunction()) {
@@ -2111,7 +2096,6 @@ void IsolateReloadContext::InvalidateFunctions(
     // Grab the current code.
     code = func.CurrentCode();
     ASSERT(!code.IsNull());
-    bytecode = func.bytecode();
 
     owning_class = func.Owner();
     owning_lib = owning_class.library();
@@ -2121,10 +2105,6 @@ void IsolateReloadContext::InvalidateFunctions(
     // Zero edge counters, before clearing the ICDataArray, since that's where
     // they're held.
     resetter.ZeroEdgeCounters(func);
-
-    if (!bytecode.IsNull()) {
-      resetter.RebindStaticTargets(bytecode);
-    }
 
     if (stub_code) {
       // Nothing to reset.

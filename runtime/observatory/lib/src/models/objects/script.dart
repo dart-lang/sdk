@@ -6,23 +6,23 @@ part of models;
 
 abstract class ScriptRef extends ObjectRef {
   /// The uri from which this script was loaded.
-  String get uri;
+  String? get uri;
 }
 
 abstract class Script extends Object implements ScriptRef {
   /// The library which owns this script.
-  LibraryRef get library;
+  LibraryRef? get library;
 
   /// The source code for this script. For certain built-in scripts,
   /// this may be reconstructed without source comments.
-  String get source;
+  String? get source;
 
-  DateTime get loadTime;
-  int get firstTokenPos;
-  int get lastTokenPos;
-  int get lineOffset;
-  int get columnOffset;
+  DateTime? get loadTime;
+  int? get firstTokenPos;
+  int? get lastTokenPos;
+  int? get lineOffset;
+  int? get columnOffset;
 
-  int tokenToLine(int token);
-  int tokenToCol(int token);
+  int? tokenToLine(int? token);
+  int? tokenToCol(int? token);
 }

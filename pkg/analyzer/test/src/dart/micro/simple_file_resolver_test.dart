@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/dart/micro/libraries_log.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:matcher/matcher.dart';
@@ -25,67 +24,12 @@ class FileResolver_changeFile_Test extends FileResolutionTest {
   String bPath;
   String cPath;
 
-  String get _asyncLibraryPath => futureElement.library.source.fullName;
-
-  String get _coreLibraryPath => intElement.library.source.fullName;
-
   @override
   void setUp() {
     super.setUp();
     aPath = convertPath('/workspace/dart/test/lib/a.dart');
     bPath = convertPath('/workspace/dart/test/lib/b.dart');
     cPath = convertPath('/workspace/dart/test/lib/c.dart');
-  }
-
-  test_changeFile_log() async {
-    newFile(aPath, content: r'''
-class A {}
-''');
-
-    newFile(bPath, content: r'''
-import 'a.dart';
-A a;
-B b;
-''');
-
-    result = await resolveFile(bPath);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
-    ]);
-
-    newFile(aPath, content: r'''
-class A {}
-class B {}
-''');
-    fileResolver.changeFile(aPath);
-
-    result = await resolveFile(bPath);
-    assertErrorsInResolvedUnit(result, []);
-
-    // The failure of this check will be reported badly.
-    expect(fileResolver.librariesLogEntries, [
-      predicate((LoadLibrariesForTargetLogEntry entry) {
-        expect(entry.target.path, bPath);
-        var loadedPathSet = entry.loaded.map((f) => f.path).toSet();
-        expect(loadedPathSet, contains(aPath));
-        expect(loadedPathSet, contains(bPath));
-        expect(loadedPathSet, contains(_asyncLibraryPath));
-        expect(loadedPathSet, contains(_coreLibraryPath));
-        return true;
-      }),
-      predicate((ChangeFileLoadEntry entry) {
-        expect(entry.target, aPath);
-        var removedPathSet = entry.removed.map((f) => f.path).toSet();
-        expect(removedPathSet, {aPath, bPath});
-        return true;
-      }),
-      predicate((LoadLibrariesForTargetLogEntry entry) {
-        expect(entry.target.path, bPath);
-        var loadedPathSet = entry.loaded.map((f) => f.path).toSet();
-        expect(loadedPathSet, {aPath, bPath});
-        return true;
-      }),
-    ]);
   }
 
   test_changeFile_refreshedFiles() async {
@@ -464,6 +408,24 @@ import 'dart:math';
     ]);
   }
 
+  test_linkLibraries_getErrors() {
+    addTestFile(r'''
+var a = b;
+var foo = 0;
+''');
+
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
+    fileResolver.linkLibraries(path: path);
+
+    var result = getTestErrors();
+    expect(result.path, path);
+    expect(result.uri.toString(), 'package:dart.test/test.dart');
+    assertErrorsInList(result.errors, [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
+    ]);
+    expect(result.lineInfo.lineStarts, [0, 11, 24]);
+  }
+
   test_nullSafety_enabled() async {
     typeToStringWithNullability = true;
 
@@ -522,6 +484,9 @@ void func() {
   }
 
   test_reuse_compatibleOptions() async {
+    newFile('/workspace/dart/aaa/BUILD', content: '');
+    newFile('/workspace/dart/bbb/BUILD', content: '');
+
     var aPath = '/workspace/dart/aaa/lib/a.dart';
     var aResult = await assertErrorsInFile(aPath, r'''
 num a = 0;
@@ -543,12 +508,14 @@ int b = a;
   }
 
   test_reuse_incompatibleOptions_implicitCasts() async {
+    newFile('/workspace/dart/aaa/BUILD', content: '');
     newFile('/workspace/dart/aaa/analysis_options.yaml', content: r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
+    newFile('/workspace/dart/bbb/BUILD', content: '');
     newFile('/workspace/dart/bbb/analysis_options.yaml', content: r'''
 analyzer:
   strong-mode:

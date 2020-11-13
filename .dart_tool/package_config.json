@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-10-09T10:15:45.502457",
+  "generated": "2020-10-26T09:42:07.748397",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -124,7 +124,7 @@
       "name": "benchmark_harness",
       "rootUri": "../third_party/pkg/benchmark_harness",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "boolean_selector",
@@ -149,6 +149,12 @@
       "rootUri": "../third_party/pkg/cli_util",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "clock",
+      "rootUri": "../third_party/pkg/clock",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
     },
     {
       "name": "collection",
@@ -223,12 +229,6 @@
       "languageVersion": "2.10"
     },
     {
-      "name": "dartfix",
-      "rootUri": "../pkg/dartfix",
-      "packageUri": "lib/",
-      "languageVersion": "2.8"
-    },
-    {
       "name": "dds",
       "rootUri": "../pkg/dds",
       "packageUri": "lib/",
@@ -254,7 +254,8 @@
     {
       "name": "ffi",
       "rootUri": "../third_party/pkg/ffi",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "fixnum",
@@ -295,7 +296,7 @@
       "name": "http",
       "rootUri": "../third_party/pkg/http",
       "packageUri": "lib/",
-      "languageVersion": "2.4"
+      "languageVersion": "2.10"
     },
     {
       "name": "http_io",
@@ -313,7 +314,7 @@
       "name": "http_parser",
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.11"
     },
     {
       "name": "http_retry",
@@ -331,7 +332,7 @@
       "name": "intl",
       "rootUri": "../third_party/pkg/intl",
       "packageUri": "lib/",
-      "languageVersion": "2.5"
+      "languageVersion": "2.11"
     },
     {
       "name": "js",
@@ -377,7 +378,7 @@
       "name": "logging",
       "rootUri": "../third_party/pkg/logging",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "markdown",
@@ -443,7 +444,7 @@
       "name": "observatory",
       "rootUri": "../runtime/observatory",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.10"
     },
     {
       "name": "observatory_2",
@@ -454,7 +455,7 @@
     {
       "name": "observatory_test_package",
       "rootUri": "../runtime/observatory/tests/service/observatory_test_package",
-      "languageVersion": "2.7"
+      "languageVersion": "2.9"
     },
     {
       "name": "observatory_test_package_2",
@@ -466,6 +467,11 @@
       "rootUri": "../third_party/pkg_tested/package_config",
       "packageUri": "lib/",
       "languageVersion": "2.7"
+    },
+    {
+      "name": "package_deps",
+      "rootUri": "../tools/package_deps",
+      "languageVersion": "2.8"
     },
     {
       "name": "path",
@@ -495,7 +501,7 @@
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.11"
     },
     {
       "name": "pub_semver",
@@ -504,16 +510,16 @@
       "languageVersion": "2.0"
     },
     {
-      "name": "quiver",
-      "rootUri": "../third_party/pkg/quiver",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
-    },
-    {
       "name": "resource",
       "rootUri": "../third_party/pkg/resource",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "scrape",
+      "rootUri": "../pkg/scrape",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
     },
     {
       "name": "sdk_library_metadata",

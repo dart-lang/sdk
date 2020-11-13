@@ -21,7 +21,7 @@ class UseNotEqNullTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.USE_NOT_EQ_NULL;
 
   Future<void> test_isNotNull() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   p is! Null;
 }
@@ -34,7 +34,7 @@ main(p) {
   }
 
   Future<void> test_isNotNull_all() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p, q) {
   p is! Null;
   q is! Null;

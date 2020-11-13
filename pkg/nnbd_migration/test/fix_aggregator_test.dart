@@ -32,6 +32,209 @@ class FixAggregatorTest extends FixAggregatorTestBase {
       (testAnalysisResult.typeProvider as TypeProviderImpl)
           .asNonNullableByDefault;
 
+  Future<void> test_addImport_after_library() async {
+    await analyze('''
+library foo;
+
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:collection/collection.dart', 'IterableExtension')
+    });
+    expect(previewInfo.applyTo(code), '''
+library foo;
+
+import 'package:collection/collection.dart' show IterableExtension;
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_after_library_before_other() async {
+    addPackageFile('fixnum', 'fixnum.dart', '');
+    await analyze('''
+library foo;
+
+import 'package:fixnum/fixnum.dart';
+
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:collection/collection.dart', 'IterableExtension')
+    });
+    expect(previewInfo.applyTo(code), '''
+library foo;
+
+import 'package:collection/collection.dart' show IterableExtension;
+import 'package:fixnum/fixnum.dart';
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_atEnd_multiple() async {
+    addPackageFile('args', 'args.dart', '');
+    await analyze('''
+import 'package:args/args.dart';
+
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:fixnum/fixnum.dart', 'Int32')
+        ..addImport('package:collection/collection.dart', 'IterableExtension')
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:args/args.dart';
+import 'package:collection/collection.dart' show IterableExtension;
+import 'package:fixnum/fixnum.dart' show Int32;
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_atStart_multiple() async {
+    addPackageFile('fixnum', 'fixnum.dart', '');
+    await analyze('''
+import 'package:fixnum/fixnum.dart';
+
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:collection/collection.dart', 'IterableExtension')
+        ..addImport('package:args/args.dart', 'ArgParser')
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:args/args.dart' show ArgParser;
+import 'package:collection/collection.dart' show IterableExtension;
+import 'package:fixnum/fixnum.dart';
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_before_export() async {
+    await analyze('''
+export 'dart:async';
+
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:collection/collection.dart', 'IterableExtension')
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:collection/collection.dart' show IterableExtension;
+export 'dart:async';
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_no_previous_imports_multiple() async {
+    await analyze('''
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('dart:async', 'Future')
+        ..addImport('dart:math', 'sin')
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:async' show Future;
+import 'dart:math' show sin;
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_recursive() async {
+    addPackageFile('args', 'args.dart', '');
+    addPackageFile('fixnum', 'fixnum.dart', 'class Int32 {}');
+    await analyze('''
+import 'package:args/args.dart';
+import 'package:fixnum/fixnum.dart' show Int32;
+
+main() => null;
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:collection/collection.dart', 'IterableExtension'),
+      findNode.import('package:fixnum').combinators[0]:
+          NodeChangeForShowCombinator()..addName('Int64'),
+      findNode.expression('null'): NodeChangeForExpression()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:args/args.dart';
+import 'package:collection/collection.dart' show IterableExtension;
+import 'package:fixnum/fixnum.dart' show Int32, Int64;
+
+main() => null!;
+''');
+  }
+
+  Future<void> test_addImport_sort_shown_names() async {
+    await analyze('''
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('dart:async', 'Stream')
+        ..addImport('dart:async', 'Future')
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:async' show Future, Stream;
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_sorted() async {
+    addPackageFile('args', 'args.dart', '');
+    addPackageFile('fixnum', 'fixnum.dart', '');
+    await analyze('''
+import 'package:args/args.dart';
+import 'package:fixnum/fixnum.dart';
+
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:collection/collection.dart', 'IterableExtension')
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:args/args.dart';
+import 'package:collection/collection.dart' show IterableExtension;
+import 'package:fixnum/fixnum.dart';
+
+main() {}
+''');
+  }
+
+  Future<void> test_addImport_sorted_multiple() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await analyze('''
+import 'package:collection/collection.dart';
+
+main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..addImport('package:fixnum/fixnum.dart', 'Int32')
+        ..addImport('package:args/args.dart', 'ArgParser')
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:args/args.dart' show ArgParser;
+import 'package:collection/collection.dart';
+import 'package:fixnum/fixnum.dart' show Int32;
+
+main() {}
+''');
+  }
+
   Future<void> test_addRequired() async {
     await analyze('f({int x}) => 0;');
     var previewInfo = run({
@@ -39,6 +242,99 @@ class FixAggregatorTest extends FixAggregatorTestBase {
         ..addRequiredKeyword = true
     });
     expect(previewInfo.applyTo(code), 'f({required int x}) => 0;');
+  }
+
+  Future<void> test_addRequired_afterMetadata() async {
+    await analyze('f({@deprecated int x}) => 0;');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+    });
+    expect(previewInfo.applyTo(code), 'f({@deprecated required int x}) => 0;');
+  }
+
+  Future<void> test_addRequired_afterMetadata_andRequiredAnnotation() async {
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+f({@required @deprecated int x}) {}
+''';
+    await analyze(content);
+    var annotation = findNode.annotation('required');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+        ..annotationToRemove = annotation
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({@deprecated required int x}) {}
+''');
+    expect(previewInfo.values, hasLength(2));
+
+    expect(previewInfo[content.indexOf('int ')], hasLength(1));
+    expect(previewInfo[content.indexOf('int ')].single.isInsertion, true);
+    expect(previewInfo[content.indexOf('@required')], isNotNull);
+    expect(previewInfo[content.indexOf('@required')].single.isDeletion, true);
+  }
+
+  Future<void> test_addRequired_afterMetadata_beforeFinal() async {
+    await analyze('f({@deprecated final int x}) => 0;');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+    });
+    expect(previewInfo.applyTo(code),
+        'f({@deprecated required final int x}) => 0;');
+  }
+
+  Future<void> test_addRequired_afterMetadata_beforeFunctionTyped() async {
+    await analyze('f({@deprecated int x()}) => 0;');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+    });
+    expect(
+        previewInfo.applyTo(code), 'f({@deprecated required int x()}) => 0;');
+  }
+
+  Future<void> test_addShownName_atEnd_multiple() async {
+    await analyze("import 'dart:math' show cos;");
+    var previewInfo = run({
+      findNode.import('dart:math').combinators[0]: NodeChangeForShowCombinator()
+        ..addName('tan')
+        ..addName('sin')
+    });
+    expect(previewInfo.applyTo(code), "import 'dart:math' show cos, sin, tan;");
+  }
+
+  Future<void> test_addShownName_atStart_multiple() async {
+    await analyze("import 'dart:math' show tan;");
+    var previewInfo = run({
+      findNode.import('dart:math').combinators[0]: NodeChangeForShowCombinator()
+        ..addName('sin')
+        ..addName('cos')
+    });
+    expect(previewInfo.applyTo(code), "import 'dart:math' show cos, sin, tan;");
+  }
+
+  Future<void> test_addShownName_sorted() async {
+    await analyze("import 'dart:math' show cos, tan;");
+    var previewInfo = run({
+      findNode.import('dart:math').combinators[0]: NodeChangeForShowCombinator()
+        ..addName('sin')
+    });
+    expect(previewInfo.applyTo(code), "import 'dart:math' show cos, sin, tan;");
+  }
+
+  Future<void> test_addShownName_sorted_multiple() async {
+    await analyze("import 'dart:math' show sin;");
+    var previewInfo = run({
+      findNode.import('dart:math').combinators[0]: NodeChangeForShowCombinator()
+        ..addName('tan')
+        ..addName('cos')
+    });
+    expect(previewInfo.applyTo(code), "import 'dart:math' show cos, sin, tan;");
   }
 
   Future<void> test_adjacentFixes() async {
@@ -52,6 +348,56 @@ class FixAggregatorTest extends FixAggregatorTestBase {
         ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
+  }
+
+  Future<void> test_argument_list_drop_all_arguments() async {
+    var content = '''
+f([int x, int y]) => null;
+g(int x, int y) => f(x, y);
+''';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.methodInvocation('f(x').argumentList: NodeChangeForArgumentList()
+        ..dropArgument(findNode.simple('y);'), null)
+        ..dropArgument(findNode.simple('x, y'), null)
+    });
+    expect(previewInfo.applyTo(code), '''
+f([int x, int y]) => null;
+g(int x, int y) => f();
+''');
+  }
+
+  Future<void> test_argument_list_drop_one_argument() async {
+    var content = '''
+f([int x, int y]) => null;
+g(int x, int y) => f(x, y);
+''';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.methodInvocation('f(x').argumentList: NodeChangeForArgumentList()
+        ..dropArgument(findNode.simple('y);'), null)
+    });
+    expect(previewInfo.applyTo(code), '''
+f([int x, int y]) => null;
+g(int x, int y) => f(x);
+''');
+  }
+
+  Future<void> test_argument_list_recursive_changes() async {
+    var content = '''
+f([int x, int y]) => null;
+g(int x, int y) => f(x, y);
+''';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.methodInvocation('f(x').argumentList: NodeChangeForArgumentList()
+        ..dropArgument(findNode.simple('y);'), null),
+      findNode.simple('x, y'): NodeChangeForExpression()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), '''
+f([int x, int y]) => null;
+g(int x, int y) => f(x!);
+''');
   }
 
   Future<void> test_assignment_add_null_check() async {
@@ -802,6 +1148,23 @@ f(Object o) => o as a.Future<Null>;
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
 
+  Future<void> test_methodName_change() async {
+    await analyze('f() => f();');
+    var previewInfo = run({
+      findNode.methodInvocation('f();').methodName: NodeChangeForMethodName()
+        ..replaceWith('g', null)
+    });
+    expect(previewInfo.applyTo(code), 'f() => g();');
+  }
+
+  Future<void> test_methodName_no_change() async {
+    await analyze('f() => f();');
+    var previewInfo = run({
+      findNode.methodInvocation('f();').methodName: NodeChangeForMethodName()
+    });
+    expect(previewInfo, isNull);
+  }
+
   Future<void> test_noChangeToTypeAnnotation() async {
     await analyze('int x = 0;');
     var typeName = findNode.typeName('int');
@@ -823,6 +1186,16 @@ f(Object o) => o as a.Future<Null>;
     var typeName = findNode.typeName('int');
     var previewInfo = run({typeName: NodeChangeForTypeAnnotation()});
     expect(previewInfo, null);
+  }
+
+  Future<void> test_noValidMigration() async {
+    await analyze('f(a) => null;');
+    var literal = findNode.nullLiteral('null');
+    var previewInfo = run(
+        {literal: NodeChangeForExpression()..addNoValidMigration(_MockInfo())});
+    expect(previewInfo.applyTo(code), code);
+    expect(previewInfo.applyTo(code, includeInformative: true),
+        'f(a) => null /* no valid migration */;');
   }
 
   Future<void> test_nullCheck_index_cascadeResult() async {
@@ -1407,6 +1780,24 @@ int f() => null;
       cast: NodeChangeForAsExpression()..removeAs = true
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.y;');
+  }
+
+  Future<void>
+      test_requiredAnnotationToRequiredKeyword_leadingAnnotations() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+f({@deprecated @required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo = run({
+      annotation: NodeChangeForAnnotation()..changeToRequiredKeyword = true
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({@deprecated required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
   }
 
   Future<void> test_requiredAnnotationToRequiredKeyword_prefixed() async {

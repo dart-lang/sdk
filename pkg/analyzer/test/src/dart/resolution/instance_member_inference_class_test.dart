@@ -869,6 +869,19 @@ class C implements A, B {
     _assertSetterTypeDynamic(foo);
   }
 
+  test_setter_single_setter_withoutParameter() async {
+    await resolveTestCode('''
+class A {
+  set foo() {}
+}
+class B implements A {
+  set foo(x) {}
+}
+''');
+    var foo = findElement.setter('foo', of: 'B');
+    _assertSetterType(foo, 'dynamic');
+  }
+
   void _assertFieldType(
     FieldElement field,
     String type, {

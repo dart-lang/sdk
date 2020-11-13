@@ -164,11 +164,10 @@ class BaseFlowGraphBuilder {
   Fragment LoadField(const Field& field, bool calls_initializer);
   Fragment LoadNativeField(const Slot& native_field,
                            bool calls_initializer = false);
-  Fragment LoadIndexed(intptr_t index_scale);
-  // Takes a [class_id] valid for StoreIndexed.
-  Fragment LoadIndexedTypedData(classid_t class_id,
-                                intptr_t index_scale,
-                                bool index_unboxed);
+  // Pass true for index_unboxed if indexing into external typed data.
+  Fragment LoadIndexed(classid_t class_id,
+                       intptr_t index_scale = compiler::target::kWordSize,
+                       bool index_unboxed = false);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
@@ -339,6 +338,7 @@ class BaseFlowGraphBuilder {
   Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
+  Fragment InstantiateDynamicTypeArguments();
   Fragment LoadClassId();
 
   // Returns true if we are building a graph for inlining of a call site that
@@ -465,7 +465,6 @@ class BaseFlowGraphBuilder {
   const Array& saved_args_desc_array_;
 
   friend class StreamingFlowGraphBuilder;
-  friend class BytecodeFlowGraphBuilder;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseFlowGraphBuilder);

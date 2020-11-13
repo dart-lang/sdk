@@ -139,7 +139,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypedElement get element {
     var element = super.element;
     // TODO(scheglov) Can we just construct it with the right element?
-    if (element is GenericTypeAliasElement) {
+    if (element is FunctionTypeAliasElement) {
       return element.function;
     }
     return element;
@@ -1602,12 +1602,18 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 /// The abstract class `TypeImpl` implements the behavior common to objects
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
+  @override
+  final List<DartType> aliasArguments;
+
+  @override
+  final TypeAliasElement aliasElement;
+
   /// The element representing the declaration of this type, or `null` if the
   /// type has not, or cannot, be associated with an element.
   final Element _element;
 
   /// Initialize a newly created type to be declared by the given [element].
-  TypeImpl(this._element);
+  TypeImpl(this._element, {this.aliasElement, this.aliasArguments});
 
   @deprecated
   @override

@@ -52,9 +52,6 @@ ArgResults parseArgs(List<String> args) {
         help: 'If set, produces kernel file for AOT compilation (enables '
             'global transformations). Otherwise, writes regular dill.',
         defaultsTo: false)
-    ..addFlag('gen-bytecode',
-        help:
-            'If true, the kernel file will be output in bytecode format. Defaults to true if --aot, false otherwise')
     ..addFlag('write-txt',
         help: 'Also write the result in kernel-text format as <out.dill>.txt',
         defaultsTo: false)

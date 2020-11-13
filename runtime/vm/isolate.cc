@@ -26,7 +26,6 @@
 #include "vm/heap/safepoint.h"
 #include "vm/heap/verifier.h"
 #include "vm/image_snapshot.h"
-#include "vm/interpreter.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
@@ -374,6 +373,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
       type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
           "IsolateGroup::type_arguments_canonicalization_mutex_")),
+      program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
@@ -426,7 +426,7 @@ void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
 }
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   return isolate_count_ == 0;
 }
 
@@ -448,7 +448,7 @@ bool IsolateGroup::UnregisterIsolateDecrementCount(Isolate* isolate) {
 
 void IsolateGroup::CreateHeap(bool is_vm_isolate,
                               bool is_service_or_kernel_isolate) {
-  Heap::Init(this,
+  Heap::Init(this, is_vm_isolate,
              is_vm_isolate
                  ? 0  // New gen size 0; VM isolate should only allocate in old.
                  : FLAG_new_gen_semi_max_size * MBInWords,
@@ -1680,10 +1680,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
         "         See dartbug.com/30524 for more information.\n");
   }
 
-  if (FLAG_enable_interpreter) {
-    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(
-                           this, /* optimizing = */ false));
-  }
   NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
                          new BackgroundCompiler(this, /* optimizing = */ true));
 }
@@ -1696,11 +1692,6 @@ Isolate::~Isolate() {
   // TODO(32796): Re-enable assertion.
   // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  if (FLAG_enable_interpreter) {
-    delete background_compiler_;
-    background_compiler_ = nullptr;
-  }
 
   delete optimizing_background_compiler_;
   optimizing_background_compiler_ = nullptr;
@@ -2394,8 +2385,9 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     args.SetAt(2, Instance::Handle(state->BuildArgs(thread)));
     args.SetAt(3, Instance::Handle(state->BuildMessage(thread)));
     args.SetAt(4, is_spawn_uri ? Bool::True() : Bool::False());
-    args.SetAt(5, ReceivePort::Handle(ReceivePort::New(
-                      isolate->main_port(), true /* control port */)));
+    args.SetAt(5, ReceivePort::Handle(
+                      ReceivePort::New(isolate->main_port(), Symbols::Empty(),
+                                       true /* control port */)));
     args.SetAt(6, capabilities);
 
     const Library& lib = Library::Handle(Library::IsolateLibrary());
@@ -2601,10 +2593,6 @@ void Isolate::set_forward_table_old(WeakTable* table) {
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   BackgroundCompiler::Stop(this);
-  if (FLAG_enable_interpreter) {
-    delete background_compiler_;
-    background_compiler_ = nullptr;
-  }
   delete optimizing_background_compiler_;
   optimizing_background_compiler_ = nullptr;
 

@@ -18,7 +18,6 @@
 #include "platform/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
-#include "vm/constants_kbc.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
 #include "vm/field_table.h"
@@ -56,9 +55,6 @@ class HandleScope;
 class HandleVisitor;
 class Heap;
 class ICData;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class Interpreter;
-#endif
 class IsolateObjectStore;
 class IsolateProfilerData;
 class IsolateReloadContext;
@@ -435,6 +431,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  SafepointRwLock* program_lock() { return program_lock_.get(); }
+
   static inline IsolateGroup* Current() {
     Thread* thread = Thread::Current();
     return thread == nullptr ? nullptr : thread->isolate_group();
@@ -724,6 +722,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Mutex initializer_functions_mutex_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  // Ensures synchronized access to classes functions, fields and other
+  // program structure elements to accommodate concurrent modification done
+  // by multiple isolates and background compiler.
+  std::unique_ptr<SafepointRwLock> program_lock_;
 
   // Allow us to ensure the number of active mutators is limited by a maximum.
   std::unique_ptr<Monitor> active_mutators_monitor_;

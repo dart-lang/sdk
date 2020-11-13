@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +26,7 @@ class ReplaceCascadeWithDotTest extends FixProcessorLintTest {
       LintNames.avoid_single_cascade_in_expression_statements;
 
   Future<void> test_assignment_index_normalCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> l) {
   l..[0] = 0;
 }
@@ -40,7 +39,7 @@ void f(List<int> l) {
   }
 
   Future<void> test_assignment_index_propertyAccess_normalCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void foo() {
     0..bar[1] = 2;
@@ -60,7 +59,7 @@ class A {
   }
 
   Future<void> test_assignment_property_normalCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(C c) {
   c..s = 0;
 }
@@ -79,7 +78,7 @@ class C {
   }
 
   Future<void> test_getter_normalCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s..length;
 }
@@ -92,7 +91,7 @@ void f(String s) {
   }
 
   Future<void> test_index_normalCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s..[0];
 }
@@ -105,7 +104,7 @@ void f(String s) {
   }
 
   Future<void> test_method_normalCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s..substring(0, 3);
 }
@@ -119,13 +118,10 @@ void f(String s) {
 }
 
 @reflectiveTest
-class ReplaceCascadeWithDotWithNullSafetyTest
-    extends ReplaceCascadeWithDotTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class ReplaceCascadeWithDotWithNullSafetyTest extends ReplaceCascadeWithDotTest
+    with WithNullSafetyLintMixin {
   Future<void> test_assignment_index_nullAwareCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int>? l) {
   l?..[0] = 0;
 }
@@ -138,7 +134,7 @@ void f(List<int>? l) {
   }
 
   Future<void> test_assignment_property_nullAwareCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(C? c) {
   c?..s = 0;
 }
@@ -157,7 +153,7 @@ class C {
   }
 
   Future<void> test_getter_nullAwareCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String? s) {
   s?..length;
 }
@@ -170,7 +166,7 @@ void f(String? s) {
   }
 
   Future<void> test_index_nullAwareCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String? s) {
   s?..[0];
 }
@@ -183,7 +179,7 @@ void f(String? s) {
   }
 
   Future<void> test_method_nullAwareCascade() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String? s) {
   s?..substring(0, 3);
 }

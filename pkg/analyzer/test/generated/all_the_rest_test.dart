@@ -392,7 +392,7 @@ class UriKindTest {
 }
 
 class _SimpleDartSdkTest with ResourceProviderMixin {
-  DartSdk sdk;
+  /*late*/ DartSdk sdk;
 
   void setUp() {
     newFile('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',

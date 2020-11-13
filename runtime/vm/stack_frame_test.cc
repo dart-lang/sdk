@@ -259,45 +259,7 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
   // The true stack depends on which strategy we are using for noSuchMethod. The
   // stacktrace as seen by Dart is the same either way because dispatcher
   // methods are marked invisible.
-  if (FLAG_enable_interpreter) {
-    kScriptChars =
-        "class StackFrame {"
-        "  static equals(var obj1, var obj2) native \"StackFrame_equals\";"
-        "  static int frameCount() native \"StackFrame_frameCount\";"
-        "  static int dartFrameCount() native \"StackFrame_dartFrameCount\";"
-        "  static validateFrame(int index,"
-        "                       String name) native "
-        "\"StackFrame_validateFrame\";"
-        "} "
-        "class StackFrame2Test {"
-        "  StackFrame2Test() {}"
-        "  noSuchMethod(Invocation im) {"
-        "    /* We should have 8 general frames and 4 dart frames as follows:"
-        "     * exit frame"
-        "     * dart frame corresponding to StackFrame.frameCount"
-        "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
-        "     * entry frame"
-        "     * exit frame"
-        "     * dart frame for noSuchMethod dispatcher"
-        "     * dart frame corresponding to StackFrame2Test.testMain"
-        "     * entry frame"
-        "     */"
-        "    StackFrame.equals(8, StackFrame.frameCount());"
-        "    StackFrame.equals(4, StackFrame.dartFrameCount());"
-        "    StackFrame.validateFrame(0, \"StackFrame_validateFrame\");"
-        "    StackFrame.validateFrame(1, \"StackFrame2Test_noSuchMethod\");"
-        "    StackFrame.validateFrame(2, \"StackFrame2Test_foo\");"
-        "    StackFrame.validateFrame(3, \"StackFrame2Test_testMain\");"
-        "    return 5;"
-        "  }"
-        "  static testMain() {"
-        "    /* Declare |obj| dynamic so that noSuchMethod can be"
-        "     * called in strong mode. */"
-        "    dynamic obj = new StackFrame2Test();"
-        "    StackFrame.equals(5, obj.foo(101, 202));"
-        "  }"
-        "}";
-  } else if (FLAG_lazy_dispatchers) {
+  if (FLAG_lazy_dispatchers) {
     kScriptChars =
         "class StackFrame {"
         "  static equals(var obj1, var obj2) native \"StackFrame_equals\";"

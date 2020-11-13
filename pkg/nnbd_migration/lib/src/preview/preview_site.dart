@@ -315,7 +315,7 @@ class PreviewSite extends Site
     unitInfo.diskContent = newContent;
   }
 
-  /// Perform the edit indicated by the [uri].
+  /// Perform the hint edit indicated by the [hintAction].
   Future<void> performHintAction(HintAction hintAction) async {
     final node = migrationState.nodeMapper.nodeForId(hintAction.nodeId);
     final edits = node.hintActions[hintAction.kind];

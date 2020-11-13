@@ -24,7 +24,7 @@ class ConvertToSingleQuotedStringTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_single_quotes;
 
   Future<void> test_one_interpolation() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 main() {
   var b = 'b';
   var c = 'c';
@@ -42,7 +42,7 @@ main() {
 
   /// More coverage in the `convert_to_single_quoted_string_test.dart` assist test.
   Future<void> test_one_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("abc");
 }

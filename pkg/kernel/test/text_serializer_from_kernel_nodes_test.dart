@@ -148,7 +148,7 @@ void test() {
               new ExpressionStatement(new StaticSet(field, new IntLiteral(1))),
           expectation: ''
               '(expr'
-              ' (set-static "package:foo/bar.dart::@fields::field" (int 1)))',
+              ' (set-static "package:foo/bar.dart::@=fields::field" (int 1)))',
           makeSerializationState: () => new SerializationState(null),
           makeDeserializationState: () =>
               new DeserializationState(null, component.root),
@@ -221,7 +221,7 @@ void test() {
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
           node: new ExpressionStatement(new PropertyGet.byReference(
-              new VariableGet(x), field.name, field.reference)),
+              new VariableGet(x), field.name, field.getterReference)),
           expectation: ''
               '(expr (get-prop (get-var "x^0" _) (public "field")))',
           makeSerializationState: () =>
@@ -252,7 +252,7 @@ void test() {
               new VariableGet(x),
               field.name,
               new IntLiteral(42),
-              field.reference)),
+              field.setterReference)),
           expectation: ''
               '(expr (set-prop (get-var "x^0" _) (public "field") (int 42)))',
           makeSerializationState: () =>

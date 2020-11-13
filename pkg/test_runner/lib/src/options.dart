@@ -106,8 +106,6 @@ dartdevk:             Compile to JavaScript using dartdevk.
 app_jitk:             Compile the Dart code into Kernel and then into an app
                       snapshot.
 dartk:                Compile the Dart code into Kernel before running test.
-dartkb:               Compile the Dart code into Kernel with bytecode before
-                      running test.
 dartkp:               Compile the Dart code into Kernel and then Kernel into
                       AOT snapshot before running the test.
 spec_parser:          Parse Dart code using the specification parser.
@@ -293,6 +291,8 @@ settings.''',
         '''If we see a crash that we did not expect, copy the core dumps to
 "/tmp".''',
         hide: true),
+    _Option.bool('rr', '''Run VM tests under rr and save traces from crashes''',
+        hide: true),
     _Option(
         'local_ip',
         '''IP address the HTTP servers should listen on. This address is also
@@ -385,12 +385,31 @@ compiler.''',
   };
 
   /// The set of objects which the named configuration should imply.
-  static final _namedConfigurationOptions = {
+  static const _namedConfigurationOptions = {
     'system',
     'arch',
     'mode',
     'compiler',
     'runtime',
+    'timeout',
+    'nnbd',
+    'sanitizer',
+    'enable_asserts',
+    'use_cfe',
+    'analyzer_use_fasta_parser',
+    'use_elf',
+    'use_sdk',
+    'hot_reload',
+    'hot_reload_rollback',
+    'host_checked',
+    'csp',
+    'minified',
+    'vm_options',
+    'dart2js_options',
+    'experiments',
+    'babel',
+    'builder_tag',
+    'use_qemu'
   };
 
   /// Parses a list of strings as test options.
@@ -555,8 +574,8 @@ compiler.''',
       for (var optionName in _namedConfigurationOptions) {
         if (options.containsKey(optionName)) {
           var namedConfig = options['named_configuration'];
-          _fail("The named configuration '$namedConfig' implies "
-              "'$optionName'. Try removing '$optionName'.");
+          _fail("Can't pass '--$optionName' since it is determined by the "
+              "named configuration '$namedConfig'.");
         }
       }
     }
@@ -735,6 +754,7 @@ compiler.''',
           batch: !(data["noBatch"] as bool),
           batchDart2JS: data["dart2js_batch"] as bool,
           copyCoreDumps: data["copy_coredumps"] as bool,
+          rr: data["rr"] as bool,
           isVerbose: data["verbose"] as bool,
           listTests: data["list"] as bool,
           listStatusFiles: data["list_status_files"] as bool,

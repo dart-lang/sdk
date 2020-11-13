@@ -65,7 +65,8 @@ library /*isNonNullableByDefault*/;
 //
 import self as self4;
 import "main_declaration_field_lib.dart" as mai4;
-additionalExports = (mai4::main)
+additionalExports = (mai4::main,
+  mai4::main)
 
 export "org-dartlang-testcase:///main_declaration_field_lib.dart";
 

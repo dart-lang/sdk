@@ -8,10 +8,26 @@ class C<X extends core::Object? = core::Object?, Y extends core::Object = core::
     : super core::Object::•()
     ;
   method test(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y? y) → dynamic {
-    core::Set<core::Object?> v = let final core::Set<core::Object?> #t1 = new col::_CompactLinkedHashSet::•<core::Object?>() in let final core::bool #t2 = #t1.{core::Set::add}(x) in let final core::bool #t3 = #t1.{core::Set::add}(42) in #t1;
-    core::Set<core::Object?> w = let final core::Set<core::Object?> #t4 = new col::_CompactLinkedHashSet::•<core::Object?>() in let final core::bool #t5 = #t4.{core::Set::add}(42) in let final core::bool #t6 = #t4.{core::Set::add}(x) in #t4;
-    core::Set<core::Object?> p = let final core::Set<core::Object?> #t7 = new col::_CompactLinkedHashSet::•<core::Object?>() in let final core::bool #t8 = #t7.{core::Set::add}(y) in let final core::bool #t9 = #t7.{core::Set::add}(42) in #t7;
-    core::Set<core::Object?> q = let final core::Set<core::Object?> #t10 = new col::_CompactLinkedHashSet::•<core::Object?>() in let final core::bool #t11 = #t10.{core::Set::add}(42) in let final core::bool #t12 = #t10.{core::Set::add}(y) in #t10;
+    core::Set<core::Object?> v = block {
+      final core::Set<core::Object?> #t1 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t1.{core::Set::add}{Invariant}(x);
+      #t1.{core::Set::add}{Invariant}(42);
+    } =>#t1;
+    core::Set<core::Object?> w = block {
+      final core::Set<core::Object?> #t2 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t2.{core::Set::add}{Invariant}(42);
+      #t2.{core::Set::add}{Invariant}(x);
+    } =>#t2;
+    core::Set<core::Object?> p = block {
+      final core::Set<core::Object?> #t3 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t3.{core::Set::add}{Invariant}(y);
+      #t3.{core::Set::add}{Invariant}(42);
+    } =>#t3;
+    core::Set<core::Object?> q = block {
+      final core::Set<core::Object?> #t4 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t4.{core::Set::add}{Invariant}(42);
+      #t4.{core::Set::add}{Invariant}(y);
+    } =>#t4;
     self::assertRightSubtype(v);
     self::assertLeftSubtype<core::Set<core::Object?>>(v);
     self::assertRightSubtype(w);
@@ -21,8 +37,16 @@ class C<X extends core::Object? = core::Object?, Y extends core::Object = core::
     self::assertRightSubtype(q);
     self::assertLeftSubtype<core::Set<core::Object?>>(q);
     if(x is{ForNonNullableByDefault} core::Object?) {
-      core::Set<core::Object?> v = let final core::Set<core::Object?> #t13 = new col::_CompactLinkedHashSet::•<core::Object?>() in let final core::bool #t14 = #t13.{core::Set::add}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */}) in let final core::bool #t15 = #t13.{core::Set::add}(42) in #t13;
-      core::Set<core::Object?> w = let final core::Set<core::Object?> #t16 = new col::_CompactLinkedHashSet::•<core::Object?>() in let final core::bool #t17 = #t16.{core::Set::add}(42) in let final core::bool #t18 = #t16.{core::Set::add}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */}) in #t16;
+      core::Set<core::Object?> v = block {
+        final core::Set<core::Object?> #t5 = new col::_CompactLinkedHashSet::•<core::Object?>();
+        #t5.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */});
+        #t5.{core::Set::add}{Invariant}(42);
+      } =>#t5;
+      core::Set<core::Object?> w = block {
+        final core::Set<core::Object?> #t6 = new col::_CompactLinkedHashSet::•<core::Object?>();
+        #t6.{core::Set::add}{Invariant}(42);
+        #t6.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */});
+      } =>#t6;
       self::assertRightSubtype(v);
       self::assertLeftSubtype<core::Set<core::Object?>>(v);
       self::assertRightSubtype(w);

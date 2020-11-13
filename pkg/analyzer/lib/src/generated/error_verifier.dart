@@ -637,7 +637,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _checkForValidField(node);
-    _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
@@ -721,8 +720,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               identifier, functionExpression.parameters);
         }
         _checkForNonVoidReturnTypeForSetter(returnType);
-        _checkForInvalidModifierOnBody(node.functionExpression.body,
-            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
@@ -916,8 +913,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         ).checkGetter(node.name, node.declaredElement);
       }
       if (node.isSetter) {
-        _checkForInvalidModifierOnBody(
-            node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
         _checkForNonVoidReturnTypeForSetter(returnType);
       } else if (node.isOperator) {
@@ -1111,7 +1106,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
 
@@ -1498,7 +1492,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       Element prevElement = _exportedElements[name];
       if (element != null && prevElement != null && prevElement != element) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.AMBIGUOUS_EXPORT, directive, [
+            CompileTimeErrorCode.AMBIGUOUS_EXPORT, directive.uri, [
           name,
           prevElement.library.definingCompilationUnit.source.uri,
           element.library.definingCompilationUnit.source.uri
@@ -1513,7 +1507,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Check the given node to see whether it was ambiguous because the name was
   /// imported from two or more imports.
   void _checkForAmbiguousImport(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    Element element = node.writeOrReadElement;
     if (element is MultiplyDefinedElementImpl) {
       String name = element.displayName;
       List<Element> conflictingMembers = element.conflictingElements;
@@ -2112,16 +2106,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_enclosingExecutable.isConstConstructor) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, expression);
-    }
-  }
-
-  /// Verify that the given normal formal [parameter] is not 'const'.
-  ///
-  /// See [CompileTimeErrorCode.CONST_FORMAL_PARAMETER].
-  void _checkForConstFormalParameter(NormalFormalParameter parameter) {
-    if (parameter.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_FORMAL_PARAMETER, parameter);
     }
   }
 
@@ -2802,7 +2786,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // prepare element
-    Element element = identifier.staticElement;
+    Element element = identifier.writeOrReadElement;
     if (!(element is MethodElement || element is PropertyAccessorElement)) {
       return;
     }
@@ -2895,7 +2879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // prepare member Element
-    Element element = name.staticElement;
+    Element element = name.writeOrReadElement;
     if (element is ExecutableElement) {
       if (!element.isStatic) {
         // OK, instance member
@@ -4245,7 +4229,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     AstNode node,
     FunctionTypeAliasElement element,
   ) {
-    if ((element as GenericTypeAliasElementImpl).hasSelfReference) {
+    if ((element as FunctionTypeAliasElementImpl).hasSelfReference) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
         node,
@@ -4490,7 +4474,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
-    Element element = name.staticElement;
+    Element element = name.writeOrReadElement;
     if (element == null || element is TypeParameterElement) {
       return;
     }

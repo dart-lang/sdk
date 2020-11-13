@@ -4,4 +4,4 @@
 
 // @dart=2.9
 
-int? versioned_2_9_AllowedPackage; // ok
+int? versioned_2_9_AllowedPackage; // error

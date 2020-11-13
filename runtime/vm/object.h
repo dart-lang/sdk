@@ -429,14 +429,6 @@ class Object {
   V(ExceptionHandlers, empty_exception_handlers)                               \
   V(Array, extractor_parameter_types)                                          \
   V(Array, extractor_parameter_names)                                          \
-  V(Bytecode, implicit_getter_bytecode)                                        \
-  V(Bytecode, implicit_setter_bytecode)                                        \
-  V(Bytecode, implicit_static_getter_bytecode)                                 \
-  V(Bytecode, method_extractor_bytecode)                                       \
-  V(Bytecode, invoke_closure_bytecode)                                         \
-  V(Bytecode, invoke_field_bytecode)                                           \
-  V(Bytecode, nsm_dispatcher_bytecode)                                         \
-  V(Bytecode, dynamic_invocation_forwarder_bytecode)                           \
   V(Instance, sentinel)                                                        \
   V(Instance, transition_sentinel)                                             \
   V(Instance, unknown_constant)                                                \
@@ -486,7 +478,6 @@ class Object {
     return kernel_program_info_class_;
   }
   static ClassPtr code_class() { return code_class_; }
-  static ClassPtr bytecode_class() { return bytecode_class_; }
   static ClassPtr instructions_class() { return instructions_class_; }
   static ClassPtr instructions_section_class() {
     return instructions_section_class_;
@@ -510,7 +501,6 @@ class Object {
     return unhandled_exception_class_;
   }
   static ClassPtr unwind_error_class() { return unwind_error_class_; }
-  static ClassPtr dyncalltypecheck_class() { return dyncalltypecheck_class_; }
   static ClassPtr singletargetcache_class() { return singletargetcache_class_; }
   static ClassPtr unlinkedcall_class() { return unlinkedcall_class_; }
   static ClassPtr monomorphicsmiablecall_class() {
@@ -792,7 +782,7 @@ class Object {
   static ClassPtr kernel_program_info_class_;  // Class of KernelProgramInfo vm
                                                // object.
   static ClassPtr code_class_;                 // Class of the Code vm object.
-  static ClassPtr bytecode_class_;      // Class of the Bytecode vm object.
+
   static ClassPtr instructions_class_;  // Class of the Instructions vm object.
   static ClassPtr instructions_section_class_;  // Class of InstructionsSection.
   static ClassPtr object_pool_class_;      // Class of the ObjectPool vm object.
@@ -804,7 +794,6 @@ class Object {
   static ClassPtr deopt_info_class_;            // Class of DeoptInfo.
   static ClassPtr context_class_;            // Class of the Context vm object.
   static ClassPtr context_scope_class_;      // Class of ContextScope vm object.
-  static ClassPtr dyncalltypecheck_class_;   // Class of ParameterTypeCheck.
   static ClassPtr singletargetcache_class_;  // Class of SingleTargetCache.
   static ClassPtr unlinkedcall_class_;       // Class of UnlinkedCall.
   static ClassPtr
@@ -922,10 +911,10 @@ enum class NNBDMode {
 // The NNBDCompiledMode reflects the mode in which constants of the library were
 // compiled by CFE.
 enum class NNBDCompiledMode {
-  kDisabled = 0,
-  kWeak = 1,
-  kStrong = 2,
-  kAgnostic = 3,
+  kWeak = 0,
+  kStrong = 1,
+  kAgnostic = 2,
+  kInvalid = 3,
 };
 
 class Class : public Object {
@@ -1114,6 +1103,10 @@ class Class : public Object {
   // Return true if this class declares type parameters.
   bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
 
+  // Returns a canonicalized vector of the type parameters instantiated
+  // to bounds. If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
+
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t host_type_arguments_field_offset() const {
@@ -1201,6 +1194,8 @@ class Class : public Object {
 
   // Returns the list of classes directly implementing this class.
   GrowableObjectArrayPtr direct_implementors() const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
     return raw_ptr()->direct_implementors_;
   }
   void AddDirectImplementor(const Class& subclass, bool is_mixin) const;
@@ -1208,6 +1203,11 @@ class Class : public Object {
 
   // Returns the list of classes having this class as direct superclass.
   GrowableObjectArrayPtr direct_subclasses() const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+    return direct_subclasses_unsafe();
+  }
+  GrowableObjectArrayPtr direct_subclasses_unsafe() const {
     return raw_ptr()->direct_subclasses_;
   }
   void AddDirectSubclass(const Class& subclass) const;
@@ -1271,7 +1271,11 @@ class Class : public Object {
   ErrorPtr VerifyEntryPoint() const;
 
   // Returns an array of instance and static fields defined by this class.
-  ArrayPtr fields() const { return raw_ptr()->fields_; }
+  ArrayPtr fields() const {
+    // We rely on the fact that any loads from the array are dependent loads
+    // and avoid the load-acquire barrier here.
+    return raw_ptr()->fields_;
+  }
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
@@ -1291,17 +1295,25 @@ class Class : public Object {
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
 
-  // TODO(koda): Unite w/ hash table.
-  ArrayPtr functions() const { return raw_ptr()->functions_; }
+  ArrayPtr current_functions() const {
+    // We rely on the fact that any loads from the array are dependent loads
+    // and avoid the load-acquire barrier here.
+    return raw_ptr()->functions_;
+  }
+  ArrayPtr functions() const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+    return current_functions();
+  }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
-  void RemoveFunction(const Function& function) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
-  FunctionPtr LookupDynamicFunction(const String& name) const;
-  FunctionPtr LookupDynamicFunctionAllowAbstract(const String& name) const;
+  FunctionPtr LookupFunctionReadLocked(const String& name) const;
+  FunctionPtr LookupDynamicFunctionUnsafe(const String& name) const;
+
   FunctionPtr LookupDynamicFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupStaticFunction(const String& name) const;
   FunctionPtr LookupStaticFunctionAllowPrivate(const String& name) const;
@@ -1309,7 +1321,6 @@ class Class : public Object {
   FunctionPtr LookupConstructorAllowPrivate(const String& name) const;
   FunctionPtr LookupFactory(const String& name) const;
   FunctionPtr LookupFactoryAllowPrivate(const String& name) const;
-  FunctionPtr LookupFunction(const String& name) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupGetterFunction(const String& name) const;
   FunctionPtr LookupSetterFunction(const String& name) const;
@@ -1340,18 +1351,14 @@ class Class : public Object {
     return RoundedAllocationSize(sizeof(ClassLayout));
   }
 
-  bool is_implemented() const {
-    return ImplementedBit::decode(raw_ptr()->state_bits_);
-  }
+  bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
   void set_is_implemented() const;
 
-  bool is_abstract() const {
-    return AbstractBit::decode(raw_ptr()->state_bits_);
-  }
+  bool is_abstract() const { return AbstractBit::decode(state_bits()); }
   void set_is_abstract() const;
 
   ClassLayout::ClassLoadingState class_loading_state() const {
-    return ClassLoadingBits::decode(raw_ptr()->state_bits_);
+    return ClassLoadingBits::decode(state_bits());
   }
 
   bool is_declaration_loaded() const {
@@ -1365,35 +1372,35 @@ class Class : public Object {
   void set_is_type_finalized() const;
 
   bool is_synthesized_class() const {
-    return SynthesizedClassBit::decode(raw_ptr()->state_bits_);
+    return SynthesizedClassBit::decode(state_bits());
   }
   void set_is_synthesized_class() const;
 
-  bool is_enum_class() const { return EnumBit::decode(raw_ptr()->state_bits_); }
+  bool is_enum_class() const { return EnumBit::decode(state_bits()); }
   void set_is_enum_class() const;
 
   bool is_finalized() const {
-    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+    return ClassFinalizedBits::decode(state_bits()) ==
                ClassLayout::kFinalized ||
-           ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+           ClassFinalizedBits::decode(state_bits()) ==
                ClassLayout::kAllocateFinalized;
   }
   void set_is_finalized() const;
 
   bool is_allocate_finalized() const {
-    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+    return ClassFinalizedBits::decode(state_bits()) ==
            ClassLayout::kAllocateFinalized;
   }
   void set_is_allocate_finalized() const;
 
   bool is_prefinalized() const {
-    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+    return ClassFinalizedBits::decode(state_bits()) ==
            ClassLayout::kPreFinalized;
   }
 
   void set_is_prefinalized() const;
 
-  bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
+  bool is_const() const { return ConstBit::decode(state_bits()); }
   void set_is_const() const;
 
   // Tests if this is a mixin application class which was desugared
@@ -1403,21 +1410,19 @@ class Class : public Object {
   // In such case, its mixed-in type was pulled into the end of
   // interfaces list.
   bool is_transformed_mixin_application() const {
-    return TransformedMixinApplicationBit::decode(raw_ptr()->state_bits_);
+    return TransformedMixinApplicationBit::decode(state_bits());
   }
   void set_is_transformed_mixin_application() const;
 
   bool is_fields_marked_nullable() const {
-    return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
+    return FieldsMarkedNullableBit::decode(state_bits());
   }
   void set_is_fields_marked_nullable() const;
 
-  bool is_allocated() const {
-    return IsAllocatedBit::decode(raw_ptr()->state_bits_);
-  }
+  bool is_allocated() const { return IsAllocatedBit::decode(state_bits()); }
   void set_is_allocated(bool value) const;
 
-  bool is_loaded() const { return IsLoadedBit::decode(raw_ptr()->state_bits_); }
+  bool is_loaded() const { return IsLoadedBit::decode(state_bits()); }
   void set_is_loaded(bool value) const;
 
   uint16_t num_native_fields() const { return raw_ptr()->num_native_fields_; }
@@ -1428,25 +1433,11 @@ class Class : public Object {
   CodePtr allocation_stub() const { return raw_ptr()->allocation_stub_; }
   void set_allocation_stub(const Code& value) const;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  intptr_t binary_declaration_offset() const {
-    return ClassLayout::BinaryDeclarationOffset::decode(
-        raw_ptr()->binary_declaration_);
-  }
-  void set_binary_declaration_offset(intptr_t value) const {
-    ASSERT(value >= 0);
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    ClassLayout::BinaryDeclarationOffset::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
 #else
-    ASSERT(!is_declared_in_bytecode());
-    return binary_declaration_offset();
+    return raw_ptr()->kernel_offset_;
 #endif
   }
 
@@ -1454,45 +1445,10 @@ class Class : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    ASSERT(!is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->kernel_offset_, value);
 #endif
   }
-
-  intptr_t bytecode_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    ASSERT(is_declared_in_bytecode());
-    return binary_declaration_offset();
-#endif
-  }
-
-  void set_bytecode_offset(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
-#endif
-  }
-
-  bool is_declared_in_bytecode() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return false;
-#else
-    return ClassLayout::IsDeclaredInBytecode::decode(
-        raw_ptr()->binary_declaration_);
-#endif
-  }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void set_is_declared_in_bytecode(bool value) const {
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    ClassLayout::IsDeclaredInBytecode::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   void DisableAllocationStub() const;
 
@@ -1714,8 +1670,6 @@ class Class : public Object {
   const char* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
 
-  ArrayPtr invocation_dispatcher_cache() const;
-  void set_invocation_dispatcher_cache(const Array& cache) const;
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
                                          FunctionLayout::Kind kind) const;
@@ -1731,15 +1685,26 @@ class Class : public Object {
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
 
+  uint32_t state_bits() const {
+    // Ensure any following load instructions do not get performed before this
+    // one.
+    return LoadNonPointer<uint32_t, std::memory_order_acquire>(
+        &raw_ptr()->state_bits_);
+  }
+
  public:
   void set_num_type_arguments(intptr_t value) const;
 
-  bool has_pragma() const {
-    return HasPragmaBit::decode(raw_ptr()->state_bits_);
-  }
+  bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
   void set_has_pragma(bool has_pragma) const;
 
  private:
+  void set_functions(const Array& value) const;
+  void set_fields(const Array& value) const;
+  void set_invocation_dispatcher_cache(const Array& cache) const;
+
+  ArrayPtr invocation_dispatcher_cache() const;
+
   // Calculates number of type arguments of this class.
   // This includes type arguments of a superclass and takes overlapping
   // of type arguments into account.
@@ -1749,7 +1714,8 @@ class Class : public Object {
   void InitEmptyFields();
 
   static FunctionPtr CheckFunctionType(const Function& func, MemberKind kind);
-  FunctionPtr LookupFunction(const String& name, MemberKind kind) const;
+  FunctionPtr LookupFunctionReadLocked(const String& name,
+                                       MemberKind kind) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name,
                                          MemberKind kind) const;
   FieldPtr LookupField(const String& name, MemberKind kind) const;
@@ -1773,7 +1739,6 @@ class Class : public Object {
   friend class Instance;
   friend class Object;
   friend class Type;
-  friend class InterpreterHelpers;
   friend class Intrinsifier;
   friend class ProgramWalker;
   friend class Precompiler;
@@ -1829,41 +1794,6 @@ class PatchClass : public Object {
   static PatchClassPtr New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
-  friend class Class;
-};
-
-class ParameterTypeCheck : public Object {
- public:
-  // The FP-relative index of the parameter in a bytecode frame (after optional
-  // parameter marshalling) whose assignability needs to be checked, or 0 if
-  // this is a type parameter check.
-  intptr_t index() const { return raw_ptr()->index_; }
-  void set_index(intptr_t i) const { StoreNonPointer(&raw_ptr()->index_, i); }
-
-  // The type parameter to whose bound needs to be checked, or null if this is
-  // an ordinary parameter check.
-  AbstractTypePtr param() const { return raw_ptr()->param_; }
-  void set_param(const AbstractType& t) const;
-
-  // FP[index] assignable to type, OR param is subtype of bound.
-  AbstractTypePtr type_or_bound() const { return raw_ptr()->type_or_bound_; }
-  void set_type_or_bound(const AbstractType& t) const;
-
-  // The parameter or type parameter's name to use in an error message.
-  StringPtr name() const { return raw_ptr()->name_; }
-  void set_name(const String& n) const;
-
-  SubtypeTestCachePtr cache() const { return raw_ptr()->cache_; }
-  void set_cache(const SubtypeTestCache& c) const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(ParameterTypeCheckLayout));
-  }
-
-  static ParameterTypeCheckPtr New();
-
- private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ParameterTypeCheck, Object);
   friend class Class;
 };
 
@@ -2406,7 +2336,6 @@ class ICData : public CallSiteData {
   friend class Class;
   friend class VMDeserializationRoots;
   friend class ICDataTestTask;
-  friend class Interpreter;
   friend class VMSerializationRoots;
   friend class SnapshotWriter;
 };
@@ -2675,7 +2604,6 @@ class Function : public Object {
   void AttachCode(const Code& value) const;
   void SetInstructions(const Code& value) const;
   void ClearCode() const;
-  void ClearBytecode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
@@ -2713,9 +2641,6 @@ class Function : public Object {
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
   static bool HasCode(FunctionPtr function);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  static inline bool HasBytecode(FunctionPtr function);
-#endif
 
   static intptr_t code_offset() { return OFFSET_OF(FunctionLayout, code_); }
 
@@ -2739,15 +2664,6 @@ class Function : public Object {
     return OFFSET_OF(FunctionLayout, unchecked_entry_point_);
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  bool IsBytecodeAllowed(Zone* zone) const;
-  void AttachBytecode(const Bytecode& bytecode) const;
-  BytecodePtr bytecode() const { return raw_ptr()->bytecode_; }
-  inline bool HasBytecode() const;
-#else
-  inline bool HasBytecode() const { return false; }
-#endif
-
   virtual intptr_t Hash() const;
 
   // Returns true if there is at least one debugger breakpoint
@@ -2759,6 +2675,66 @@ class Function : public Object {
 
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
+
+  enum class DefaultTypeArgumentsKind : uint8_t {
+    // Only here to make sure it's explicitly set appropriately.
+    kInvalid = 0,
+    // Must instantiate the default type arguments before use.
+    kNeedsInstantiation,
+    // The default type arguments are already instantiated.
+    kIsInstantiated,
+    // Use the instantiator type arguments that would be used to instantiate
+    // the default type arguments, as instantiating produces the same result.
+    kSharesInstantiatorTypeArguments,
+    // Use the function type arguments that would be used to instantiate
+    // the default type arguments, as instantiating produces the same result.
+    kSharesFunctionTypeArguments,
+  };
+  static constexpr intptr_t kDefaultTypeArgumentsKindFieldSize = 3;
+  static_assert(static_cast<uint8_t>(
+                    DefaultTypeArgumentsKind::kSharesFunctionTypeArguments) <
+                    (1 << kDefaultTypeArgumentsKindFieldSize),
+                "Wrong bit size chosen for default TAV kind field");
+
+  // Fields encoded in an integer stored alongside a default TAV.
+  using DefaultTypeArgumentsKindField =
+      BitField<intptr_t,
+               DefaultTypeArgumentsKind,
+               0,
+               kDefaultTypeArgumentsKindFieldSize>;
+  // If more space is needed, we can almost certainly reduce the size of this
+  // field.
+  using NumParentTypeParametersField =
+      BitField<intptr_t,
+               uint16_t,
+               DefaultTypeArgumentsKindField::kNextBit,
+               kBitsPerByte * sizeof(uint16_t)>;
+
+  static_assert(NumParentTypeParametersField::kNextBit <=
+                    compiler::target::kSmiBits,
+                "Default TAV info does not fit in a target Smi");
+
+  // Returns a canonicalized vector of the type parameters instantiated
+  // to bounds. If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr InstantiateToBounds(
+      Thread* thread,
+      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+
+  // Whether this function should have a cached type arguments vector for the
+  // instantiated-to-bounds version of the type parameters.
+  bool CachesDefaultTypeArguments() const { return IsClosureFunction(); }
+
+  // Updates the cached default type arguments vector for this function if it
+  // caches and for its implicit closure function if it has one. If the
+  // default arguments are all canonical, the cached default type arguments
+  // vector is canonicalized. Should be run any time the type parameters vector
+  // is changed or if the default arguments of any type parameters are updated.
+  void UpdateCachedDefaultTypeArguments(Thread* thread) const;
+
+  // These are only usable for functions that cache the default type arguments.
+  TypeArgumentsPtr default_type_arguments(
+      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+  void set_default_type_arguments(const TypeArguments& value) const;
 
   // Enclosed generated closure function of this local function.
   // This will only work after the closure function has been allocated in the
@@ -2874,7 +2850,7 @@ class Function : public Object {
     return (kind() == FunctionLayout::kConstructor) && is_static();
   }
 
-  static bool ClosureBodiesContainNonCovariantChecks() {
+  static bool ClosureBodiesContainNonCovariantArgumentChecks() {
     return FLAG_precompiled_mode || FLAG_lazy_dispatchers;
   }
 
@@ -2946,8 +2922,13 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks() const {
-    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
+    return (IsClosureFunction() &&
+            ClosureBodiesContainNonCovariantArgumentChecks()) ||
            !(is_static() || (kind() == FunctionLayout::kConstructor));
+  }
+
+  bool NeedsTypeArgumentTypeChecks() const {
+    return !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
   bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
@@ -3051,25 +3032,11 @@ class Function : public Object {
 
 #undef DEFINE_GETTERS_AND_SETTERS
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  intptr_t binary_declaration_offset() const {
-    return FunctionLayout::BinaryDeclarationOffset::decode(
-        raw_ptr()->binary_declaration_);
-  }
-  void set_binary_declaration_offset(intptr_t value) const {
-    ASSERT(value >= 0);
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    FunctionLayout::BinaryDeclarationOffset::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
 #else
-    ASSERT(!is_declared_in_bytecode());
-    return binary_declaration_offset();
+    return raw_ptr()->kernel_offset_;
 #endif
   }
 
@@ -3077,48 +3044,13 @@ class Function : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    ASSERT(!is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->kernel_offset_, value);
 #endif
   }
 
-  intptr_t bytecode_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    ASSERT(is_declared_in_bytecode());
-    return binary_declaration_offset();
-#endif
-  }
-
-  void set_bytecode_offset(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
-#endif
-  }
-
-  bool is_declared_in_bytecode() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return false;
-#else
-    return FunctionLayout::IsDeclaredInBytecode::decode(
-        raw_ptr()->binary_declaration_);
-#endif
-  }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void set_is_declared_in_bytecode(bool value) const {
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    FunctionLayout::IsDeclaredInBytecode::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-  void InheritBinaryDeclarationFrom(const Function& src) const;
-  void InheritBinaryDeclarationFrom(const Field& src) const;
+  void InheritKernelOffsetFrom(const Function& src) const;
+  void InheritKernelOffsetFrom(const Field& src) const;
 
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
 
@@ -3166,9 +3098,6 @@ class Function : public Object {
   }
 
   bool HasOptimizedCode() const;
-
-  // Whether the function is ready for compiler optimizations.
-  bool ShouldCompilerOptimize() const;
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
@@ -3500,35 +3429,56 @@ class Function : public Object {
     return kind == MethodRecognizer::kUtf8DecoderScan;
   }
 
+  // Recognise async functions like:
+  //   user_func async {
+  //     // ...
+  //   }
   bool IsAsyncFunction() const { return modifier() == FunctionLayout::kAsync; }
 
+  // Recognise synthetic sync-yielding functions like the inner-most:
+  //   user_func /* was async */ {
+  //      :async_op(..) yielding {
+  //        // ...
+  //      }
+  //   }
   bool IsAsyncClosure() const {
     return is_generated_body() &&
            Function::Handle(parent_function()).IsAsyncFunction();
   }
 
-  bool IsGenerator() const {
-    return (modifier() & FunctionLayout::kGeneratorBit) != 0;
-  }
-
+  // Recognise sync* functions like:
+  //   user_func sync* {
+  //     // ...
+  //   }
   bool IsSyncGenerator() const {
     return modifier() == FunctionLayout::kSyncGen;
   }
 
-  bool IsSyncGenClosure() const {
+  // Recognise synthetic :sync_op_gen()s like:
+  //   user_func /* was sync* */ {
+  //     :sync_op_gen() {
+  //        // ...
+  //      }
+  //   }
+  bool IsSyncGenClosureMaker() const {
     return is_generated_body() &&
            Function::Handle(parent_function()).IsSyncGenerator();
   }
 
-  bool IsGeneratorClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsGenerator();
-  }
-
+  // Recognise async* functions like:
+  //   user_func async* {
+  //     // ...
+  //   }
   bool IsAsyncGenerator() const {
     return modifier() == FunctionLayout::kAsyncGen;
   }
 
+  // Recognise synthetic sync-yielding functions like the inner-most:
+  //   user_func /* originally async* */ {
+  //      :async_op(..) yielding {
+  //        // ...
+  //      }
+  //   }
   bool IsAsyncGenClosure() const {
     return is_generated_body() &&
            Function::Handle(parent_function()).IsAsyncGenerator();
@@ -3541,15 +3491,14 @@ class Function : public Object {
   // Recognise synthetic sync-yielding functions like the inner-most:
   //   user_func /* was sync* */ {
   //     :sync_op_gen() {
-  //        :sync_op() yielding {
+  //        :sync_op(..) yielding {
   //          // ...
   //        }
   //      }
   //   }
-  bool IsSyncYielding() const {
-    return (parent_function() != Function::null())
-               ? Function::Handle(parent_function()).IsSyncGenClosure()
-               : false;
+  bool IsSyncGenClosure() const {
+    return (parent_function() != Function::null()) &&
+           Function::Handle(parent_function()).IsSyncGenClosureMaker();
   }
 
   bool IsTypedDataViewFactory() const {
@@ -3698,6 +3647,12 @@ class Function : public Object {
 
   void SetWasExecuted(bool value) const { SetWasExecutedBit(value); }
 
+  static intptr_t data_offset() { return OFFSET_OF(FunctionLayout, data_); }
+
+  static intptr_t kind_tag_offset() {
+    return OFFSET_OF(FunctionLayout, kind_tag_);
+  }
+
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
   // const: Valid target of a const constructor call.
@@ -3772,11 +3727,6 @@ class Function : public Object {
         value, raw_ptr()->packed_fields_));
   }
 
- private:
-  void set_parameter_names(const Array& value) const;
-  void set_ic_data_array(const Array& value) const;
-  void SetInstructionsSafe(const Code& value) const;
-
   enum KindTagBits {
     kKindTagPos = 0,
     kKindTagSize = 5,
@@ -3795,8 +3745,7 @@ class Function : public Object {
   COMPILE_ASSERT(MethodRecognizer::kNumRecognizedMethods <
                  (1 << kRecognizedTagSize));
   COMPILE_ASSERT(kNumTagBits <=
-                 (kBitsPerByte *
-                  sizeof(static_cast<FunctionLayout*>(nullptr)->kind_tag_)));
+                 (kBitsPerByte * sizeof(decltype(FunctionLayout::kind_tag_))));
 
   class KindBits : public BitField<uint32_t,
                                    FunctionLayout::Kind,
@@ -3817,6 +3766,15 @@ class Function : public Object {
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
 
+ private:
+  // Given the provided defaults type arguments, determines which
+  // DefaultTypeArgumentsKind applies.
+  DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
+      const TypeArguments& defaults) const;
+
+  void set_parameter_names(const Array& value) const;
+  void set_ic_data_array(const Array& value) const;
+  void SetInstructionsSafe(const Code& value) const;
   void set_name(const String& value) const;
   void set_kind(FunctionLayout::Kind value) const;
   void set_parent_function(const Function& value) const;
@@ -3867,6 +3825,13 @@ class ClosureData : public Object {
     return RoundedAllocationSize(sizeof(ClosureDataLayout));
   }
 
+  static intptr_t default_type_arguments_offset() {
+    return OFFSET_OF(ClosureDataLayout, default_type_arguments_);
+  }
+  static intptr_t default_type_arguments_info_offset() {
+    return OFFSET_OF(ClosureDataLayout, default_type_arguments_info_);
+  }
+
  private:
   ContextScopePtr context_scope() const { return raw_ptr()->context_scope_; }
   void set_context_scope(const ContextScope& value) const;
@@ -3881,6 +3846,14 @@ class ClosureData : public Object {
 
   InstancePtr implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
+
+  TypeArgumentsPtr default_type_arguments() const {
+    return raw_ptr()->default_type_arguments_;
+  }
+  void set_default_type_arguments(const TypeArguments& value) const;
+
+  intptr_t default_type_arguments_info() const;
+  void set_default_type_arguments_info(intptr_t value) const;
 
   static ClosureDataPtr New();
 
@@ -4073,25 +4046,11 @@ class Field : public Object {
         GenericCovariantImplBit::update(value, raw_ptr()->kind_bits_));
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  intptr_t binary_declaration_offset() const {
-    return FieldLayout::BinaryDeclarationOffset::decode(
-        raw_ptr()->binary_declaration_);
-  }
-  void set_binary_declaration_offset(intptr_t value) const {
-    ASSERT(value >= 0);
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    FieldLayout::BinaryDeclarationOffset::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
 #else
-    ASSERT(!is_declared_in_bytecode());
-    return binary_declaration_offset();
+    return raw_ptr()->kernel_offset_;
 #endif
   }
 
@@ -4099,47 +4058,12 @@ class Field : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    ASSERT(!is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->kernel_offset_, value);
 #endif
   }
 
-  intptr_t bytecode_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    ASSERT(is_declared_in_bytecode());
-    return binary_declaration_offset();
-#endif
-  }
-
-  void set_bytecode_offset(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
-#endif
-  }
-
-  bool is_declared_in_bytecode() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return false;
-#else
-    return FieldLayout::IsDeclaredInBytecode::decode(
-        raw_ptr()->binary_declaration_);
-#endif
-  }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void set_is_declared_in_bytecode(bool value) const {
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    FieldLayout::IsDeclaredInBytecode::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-  void InheritBinaryDeclarationFrom(const Field& src) const;
+  void InheritKernelOffsetFrom(const Field& src) const;
 
   ExternalTypedDataPtr KernelData() const;
 
@@ -4467,7 +4391,6 @@ class Field : public Object {
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
-  friend class Interpreter;              // Access to bit field.
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -4814,27 +4737,22 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset,
-                        intptr_t bytecode_offset) const;
+                        intptr_t kernel_offset) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset,
-                        intptr_t bytecode_offset) const;
+                        intptr_t kernel_offset) const;
   void AddFunctionMetadata(const Function& func,
                            TokenPosition token_pos,
-                           intptr_t kernel_offset,
-                           intptr_t bytecode_offset) const;
+                           intptr_t kernel_offset) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset,
-                          intptr_t bytecode_offset) const;
+                          intptr_t kernel_offset) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
   void CloneMetadataFrom(const Library& from_library,
                          const Function& from_fun,
                          const Function& to_fun) const;
   ObjectPtr GetMetadata(const Object& obj) const;
-  ArrayPtr GetExtendedMetadata(const Object& obj, intptr_t count) const;
 
   // Tries to finds a @pragma annotation on [object].
   //
@@ -4956,25 +4874,11 @@ class Library : public Object {
   ExternalTypedDataPtr kernel_data() const { return raw_ptr()->kernel_data_; }
   void set_kernel_data(const ExternalTypedData& data) const;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  intptr_t binary_declaration_offset() const {
-    return LibraryLayout::BinaryDeclarationOffset::decode(
-        raw_ptr()->binary_declaration_);
-  }
-  void set_binary_declaration_offset(intptr_t value) const {
-    ASSERT(value >= 0);
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    LibraryLayout::BinaryDeclarationOffset::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
 #else
-    ASSERT(!is_declared_in_bytecode());
-    return binary_declaration_offset();
+    return raw_ptr()->kernel_offset_;
 #endif
   }
 
@@ -4982,45 +4886,10 @@ class Library : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    ASSERT(!is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->kernel_offset_, value);
 #endif
   }
-
-  intptr_t bytecode_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    ASSERT(is_declared_in_bytecode());
-    return binary_declaration_offset();
-#endif
-  }
-
-  void set_bytecode_offset(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(is_declared_in_bytecode());
-    set_binary_declaration_offset(value);
-#endif
-  }
-
-  bool is_declared_in_bytecode() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return false;
-#else
-    return LibraryLayout::IsDeclaredInBytecode::decode(
-        raw_ptr()->binary_declaration_);
-#endif
-  }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void set_is_declared_in_bytecode(bool value) const {
-    StoreNonPointer(&raw_ptr()->binary_declaration_,
-                    LibraryLayout::IsDeclaredInBytecode::update(
-                        value, raw_ptr()->binary_declaration_));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static LibraryPtr LookupLibrary(Thread* thread, const String& url);
   static LibraryPtr GetLibrary(intptr_t index);
@@ -5051,8 +4920,6 @@ class Library : public Object {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Finalize all classes in all libraries.
   static ErrorPtr FinalizeAllClasses();
-  // Eagerly read all bytecode.
-  static ErrorPtr ReadAllBytecode();
 #endif
 
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -5145,8 +5012,7 @@ class Library : public Object {
   void AddMetadata(const Object& owner,
                    const String& name,
                    TokenPosition token_pos,
-                   intptr_t kernel_offset,
-                   intptr_t bytecode_offset) const;
+                   intptr_t kernel_offset) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -5278,9 +5144,6 @@ class KernelProgramInfo : public Object {
                        const Smi& name_index,
                        const Class& klass) const;
 
-  ArrayPtr bytecode_component() const { return raw_ptr()->bytecode_component_; }
-  void set_bytecode_component(const Array& bytecode_component) const;
-
  private:
   static KernelProgramInfoPtr New();
 
@@ -5353,15 +5216,13 @@ class ObjectPool : public Object {
 
   template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr ObjectAt(intptr_t index) const {
-    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
-           (TypeAt(index) == EntryType::kNativeEntryData));
+    ASSERT(TypeAt(index) == EntryType::kTaggedObject);
     return LoadPointer<ObjectPtr, order>(&(EntryAddr(index)->raw_obj_));
   }
 
   template <std::memory_order order = std::memory_order_relaxed>
   void SetObjectAt(intptr_t index, const Object& obj) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
-           (TypeAt(index) == EntryType::kNativeEntryData) ||
            (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
     StorePointer<ObjectPtr, order>(&EntryAddr(index)->raw_obj_, obj.raw());
   }
@@ -6787,151 +6648,6 @@ class Code : public Object {
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
 };
 
-class Bytecode : public Object {
- public:
-  uword instructions() const { return raw_ptr()->instructions_; }
-
-  uword PayloadStart() const { return instructions(); }
-  intptr_t Size() const { return raw_ptr()->instructions_size_; }
-
-  ObjectPoolPtr object_pool() const { return raw_ptr()->object_pool_; }
-
-  bool ContainsInstructionAt(uword addr) const {
-    return BytecodeLayout::ContainsPC(raw(), addr);
-  }
-
-  PcDescriptorsPtr pc_descriptors() const { return raw_ptr()->pc_descriptors_; }
-  void set_pc_descriptors(const PcDescriptors& descriptors) const {
-    ASSERT(descriptors.IsOld());
-    StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
-  }
-
-  void Disassemble(DisassemblyFormatter* formatter = NULL) const;
-
-  ExceptionHandlersPtr exception_handlers() const {
-    return raw_ptr()->exception_handlers_;
-  }
-  void set_exception_handlers(const ExceptionHandlers& handlers) const {
-    ASSERT(handlers.IsOld());
-    StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
-  }
-
-  FunctionPtr function() const { return raw_ptr()->function_; }
-
-  void set_function(const Function& function) const {
-    ASSERT(function.IsOld());
-    StorePointer(&raw_ptr()->function_, function.raw());
-  }
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(BytecodeLayout));
-  }
-  static BytecodePtr New(uword instructions,
-                         intptr_t instructions_size,
-                         intptr_t instructions_offset,
-                         const ObjectPool& object_pool);
-
-  ExternalTypedDataPtr GetBinary(Zone* zone) const;
-
-  TokenPosition GetTokenIndexOfPC(uword return_address) const;
-  intptr_t GetTryIndexAtPc(uword return_address) const;
-
-  // Return the pc of the first 'DebugCheck' opcode of the bytecode.
-  // Return 0 if none is found.
-  uword GetFirstDebugCheckOpcodePc() const;
-
-  // Return the pc after the first 'debug checked' opcode in the range.
-  // Return 0 if none is found.
-  uword GetDebugCheckedOpcodeReturnAddress(uword from_offset,
-                                           uword to_offset) const;
-
-  intptr_t instructions_binary_offset() const {
-    return raw_ptr()->instructions_binary_offset_;
-  }
-  void set_instructions_binary_offset(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->instructions_binary_offset_, value);
-  }
-
-  intptr_t source_positions_binary_offset() const {
-    return raw_ptr()->source_positions_binary_offset_;
-  }
-  void set_source_positions_binary_offset(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->source_positions_binary_offset_, value);
-  }
-  bool HasSourcePositions() const {
-    return (source_positions_binary_offset() != 0);
-  }
-
-  intptr_t local_variables_binary_offset() const {
-    return raw_ptr()->local_variables_binary_offset_;
-  }
-  void set_local_variables_binary_offset(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->local_variables_binary_offset_, value);
-  }
-  bool HasLocalVariablesInfo() const {
-    return (local_variables_binary_offset() != 0);
-  }
-
-  LocalVarDescriptorsPtr var_descriptors() const {
-#if defined(PRODUCT)
-    UNREACHABLE();
-    return nullptr;
-#else
-    return raw_ptr()->var_descriptors_;
-#endif
-  }
-  void set_var_descriptors(const LocalVarDescriptors& value) const {
-#if defined(PRODUCT)
-    UNREACHABLE();
-#else
-    ASSERT(value.IsOld());
-    StorePointer(&raw_ptr()->var_descriptors_, value.raw());
-#endif
-  }
-
-  // Will compute local var descriptors if necessary.
-  LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
-
-  const char* Name() const;
-  const char* QualifiedName() const;
-  const char* FullyQualifiedName() const;
-
-  class SlowFindRawBytecodeVisitor : public FindObjectVisitor {
-   public:
-    explicit SlowFindRawBytecodeVisitor(uword pc) : pc_(pc) {}
-    virtual ~SlowFindRawBytecodeVisitor() {}
-
-    // Check if object matches find condition.
-    virtual bool FindObject(ObjectPtr obj) const;
-
-   private:
-    const uword pc_;
-
-    DISALLOW_COPY_AND_ASSIGN(SlowFindRawBytecodeVisitor);
-  };
-
-  static BytecodePtr FindCode(uword pc);
-
- private:
-  void set_instructions(uword instructions) const {
-    StoreNonPointer(&raw_ptr()->instructions_, instructions);
-  }
-  void set_instructions_size(intptr_t size) const {
-    StoreNonPointer(&raw_ptr()->instructions_size_, size);
-  }
-  void set_object_pool(const ObjectPool& object_pool) const {
-    StorePointer(&raw_ptr()->object_pool_, object_pool.raw());
-  }
-
-  friend class BytecodeDeserializationCluster;
-  friend class ObjectLayout;  // For ObjectLayout::SizeFromClass().
-  friend class BytecodeLayout;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Bytecode, Object);
-  friend class Class;
-  friend class SnapshotWriter;
-};
-
 class Context : public Object {
  public:
   ContextPtr parent() const { return raw_ptr()->parent_; }
@@ -6961,12 +6677,13 @@ class Context : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static const intptr_t kAwaitJumpVarIndex = 0;
-  static const intptr_t kAsyncCompleterIndex = 1;
+  static const intptr_t kAsyncFutureIndex = 1;
   static const intptr_t kControllerIndex = 1;
   // Expected context index of chained futures in recognized async functions.
   // These are used to unwind async stacks.
   static const intptr_t kFutureTimeoutFutureIndex = 2;
   static const intptr_t kFutureWaitFutureIndex = 2;
+  static const intptr_t kIsSyncIndex = 2;
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(ContextLayout, data) +
@@ -7678,21 +7395,26 @@ class TypeArguments : public Instance {
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
+  // Returns whether this TypeArguments vector can be used in a context that
+  // expects a vector of length [count]. Always true for the null vector.
+  bool HasCount(intptr_t count) const;
   static intptr_t length_offset() {
     return OFFSET_OF(TypeArgumentsLayout, length_);
   }
   intptr_t Length() const;
   AbstractTypePtr TypeAt(intptr_t index) const;
   AbstractTypePtr TypeAtNullSafe(intptr_t index) const;
+  static intptr_t types_offset() {
+    return OFFSET_OF_RETURNED_VALUE(TypeArgumentsLayout, types);
+  }
   static intptr_t type_at_offset(intptr_t index) {
-    return OFFSET_OF_RETURNED_VALUE(TypeArgumentsLayout, types) +
-           index * kWordSize;
+    return types_offset() + index * kWordSize;
   }
   void SetTypeAt(intptr_t index, const AbstractType& value) const;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
-      return TypeArguments::type_at_offset(0);
+      return TypeArguments::types_offset();
     }
 
     static constexpr intptr_t kElementSize = kWordSize;
@@ -7738,6 +7460,7 @@ class TypeArguments : public Instance {
       NameVisibility name_visibility,
       BaseTextBuffer* printer,
       NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
+  void PrintTo(BaseTextBuffer* printer) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
@@ -8467,6 +8190,9 @@ class TypeParameter : public AbstractType {
   }
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const { return false; }
+  static intptr_t flags_offset() {
+    return OFFSET_OF(TypeParameterLayout, flags_);
+  }
   bool IsGenericCovariantImpl() const {
     return TypeParameterLayout::GenericCovariantImplBit::decode(
         raw_ptr()->flags_);
@@ -8502,10 +8228,20 @@ class TypeParameter : public AbstractType {
   }
 
   StringPtr name() const { return raw_ptr()->name_; }
+  static intptr_t name_offset() {
+    return OFFSET_OF(TypeParameterLayout, name_);
+  }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
   AbstractTypePtr bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
+  AbstractTypePtr default_argument() const {
+    return raw_ptr()->default_argument_;
+  }
+  void set_default_argument(const AbstractType& value) const;
+  static intptr_t bound_offset() {
+    return OFFSET_OF(TypeParameterLayout, bound_);
+  }
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
@@ -8851,6 +8587,8 @@ class String : public Instance {
 #endif
   static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
+  static intptr_t HeaderSize() { return String::kSizeofRawString; }
+
   class CodePointIterator : public ValueObject {
    public:
     explicit CodePointIterator(const String& str)
@@ -9036,7 +8774,7 @@ class String : public Instance {
                                intptr_t array_len,
                                void* peer,
                                intptr_t external_allocation_size,
-                               Dart_WeakPersistentHandleFinalizer callback,
+                               Dart_HandleFinalizer callback,
                                Heap::Space = Heap::kNew);
 
   // Creates a new External String object using the specified array of
@@ -9045,7 +8783,7 @@ class String : public Instance {
                                intptr_t array_len,
                                void* peer,
                                intptr_t external_allocation_size,
-                               Dart_WeakPersistentHandleFinalizer callback,
+                               Dart_HandleFinalizer callback,
                                Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
@@ -9240,12 +8978,6 @@ class OneByteString : public AllStatic {
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(OneByteStringLayout) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
-#if defined(HASH_IN_OBJECT_HEADER)
-    // We have to pad zero-length raw strings so that they can be externalized.
-    // If we don't pad, then the external string object does not fit in the
-    // memory allocated for the raw string.
-    if (len == 0) return InstanceSize(1);
-#endif
     return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
@@ -9334,11 +9066,12 @@ class OneByteString : public AllStatic {
                                    bool as_reference);
 
   friend class Class;
-  friend class String;
-  friend class Symbols;
   friend class ExternalOneByteString;
+  friend class ImageWriter;
   friend class SnapshotReader;
+  friend class String;
   friend class StringHasher;
+  friend class Symbols;
   friend class Utf8;
 };
 
@@ -9370,7 +9103,6 @@ class TwoByteString : public AllStatic {
   static intptr_t data_offset() {
     return OFFSET_OF_RETURNED_VALUE(TwoByteStringLayout, data);
   }
-
   static intptr_t UnroundedSize(TwoByteStringPtr str) {
     return UnroundedSize(Smi::Value(str->ptr()->length_));
   }
@@ -9385,10 +9117,6 @@ class TwoByteString : public AllStatic {
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(TwoByteStringLayout) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
-    // We have to pad zero-length raw strings so that they can be externalized.
-    // If we don't pad, then the external string object does not fit in the
-    // memory allocated for the raw string.
-    if (len == 0) return InstanceSize(1);
     return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
@@ -9460,9 +9188,10 @@ class TwoByteString : public AllStatic {
                                    bool as_reference);
 
   friend class Class;
+  friend class ImageWriter;
+  friend class SnapshotReader;
   friend class String;
   friend class StringHasher;
-  friend class SnapshotReader;
   friend class Symbols;
 };
 
@@ -9494,13 +9223,12 @@ class ExternalOneByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(ExternalOneByteStringLayout));
   }
 
-  static ExternalOneByteStringPtr New(
-      const uint8_t* characters,
-      intptr_t len,
-      void* peer,
-      intptr_t external_allocation_size,
-      Dart_WeakPersistentHandleFinalizer callback,
-      Heap::Space space);
+  static ExternalOneByteStringPtr New(const uint8_t* characters,
+                                      intptr_t len,
+                                      void* peer,
+                                      intptr_t external_allocation_size,
+                                      Dart_HandleFinalizer callback,
+                                      Heap::Space space);
 
   static ExternalOneByteStringPtr null() {
     return static_cast<ExternalOneByteStringPtr>(Object::null());
@@ -9593,13 +9321,12 @@ class ExternalTwoByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(ExternalTwoByteStringLayout));
   }
 
-  static ExternalTwoByteStringPtr New(
-      const uint16_t* characters,
-      intptr_t len,
-      void* peer,
-      intptr_t external_allocation_size,
-      Dart_WeakPersistentHandleFinalizer callback,
-      Heap::Space space = Heap::kNew);
+  static ExternalTwoByteStringPtr New(const uint16_t* characters,
+                                      intptr_t len,
+                                      void* peer,
+                                      intptr_t external_allocation_size,
+                                      Dart_HandleFinalizer callback,
+                                      Heap::Space space = Heap::kNew);
 
   static ExternalTwoByteStringPtr null() {
     return static_cast<ExternalTwoByteStringPtr>(Object::null());
@@ -9716,6 +9443,11 @@ class Array : public Instance {
   }
   static intptr_t element_offset(intptr_t index) {
     return OFFSET_OF_RETURNED_VALUE(ArrayLayout, data) + kWordSize * index;
+  }
+  static intptr_t index_at_offset(intptr_t offset_in_bytes) {
+    intptr_t index = (offset_in_bytes - data_offset()) / kWordSize;
+    ASSERT(index >= 0);
+    return index;
   }
 
   struct ArrayTraits {
@@ -9881,7 +9613,6 @@ class Array : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
   friend class ImmutableArray;
-  friend class Interpreter;
   friend class Object;
   friend class String;
 };
@@ -10379,10 +10110,9 @@ class ExternalTypedData : public TypedDataBase {
 
 #undef TYPED_GETTER_SETTER
 
-  FinalizablePersistentHandle* AddFinalizer(
-      void* peer,
-      Dart_WeakPersistentHandleFinalizer callback,
-      intptr_t external_size) const;
+  FinalizablePersistentHandle* AddFinalizer(void* peer,
+                                            Dart_HandleFinalizer callback,
+                                            intptr_t external_size) const;
 
   static intptr_t data_offset() {
     return OFFSET_OF(ExternalTypedDataLayout, data_);
@@ -10736,6 +10466,9 @@ class Closure : public Instance {
   TypeArgumentsPtr instantiator_type_arguments() const {
     return raw_ptr()->instantiator_type_arguments_;
   }
+  void set_instantiator_type_arguments(const TypeArguments& args) const {
+    StorePointer(&raw_ptr()->instantiator_type_arguments_, args.raw());
+  }
   static intptr_t instantiator_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, instantiator_type_arguments_);
   }
@@ -10743,12 +10476,18 @@ class Closure : public Instance {
   TypeArgumentsPtr function_type_arguments() const {
     return raw_ptr()->function_type_arguments_;
   }
+  void set_function_type_arguments(const TypeArguments& args) const {
+    StorePointer(&raw_ptr()->function_type_arguments_, args.raw());
+  }
   static intptr_t function_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, function_type_arguments_);
   }
 
   TypeArgumentsPtr delayed_type_arguments() const {
     return raw_ptr()->delayed_type_arguments_;
+  }
+  void set_delayed_type_arguments(const TypeArguments& args) const {
+    StorePointer(&raw_ptr()->delayed_type_arguments_, args.raw());
   }
   static intptr_t delayed_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, delayed_type_arguments_);
@@ -10776,10 +10515,8 @@ class Closure : public Instance {
     return RoundedAllocationSize(sizeof(ClosureLayout));
   }
 
-  // Returns true if all elements are OK for canonicalization.
-  virtual void CanonicalizeFieldsLocked(Thread* thread) const {
-    // None of the fields of a closure are instances.
-  }
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const {
     return Function::Handle(function()).Hash();
   }
@@ -10829,10 +10566,19 @@ class ReceivePort : public Instance {
   InstancePtr handler() const { return raw_ptr()->handler_; }
   void set_handler(const Instance& value) const;
 
+#if !defined(PRODUCT)
+  StackTracePtr allocation_location() const {
+    return raw_ptr()->allocation_location_;
+  }
+
+  StringPtr debug_name() const { return raw_ptr()->debug_name_; }
+#endif
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(ReceivePortLayout));
   }
   static ReceivePortPtr New(Dart_Port id,
+                            const String& debug_name,
                             bool is_control_port,
                             Heap::Space space = Heap::kNew);
 
@@ -11334,16 +11080,6 @@ void Object::SetRaw(ObjectPtr value) {
   }
 #endif
 }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-bool Function::HasBytecode() const {
-  return raw_ptr()->bytecode_ != Bytecode::null();
-}
-
-bool Function::HasBytecode(FunctionPtr function) {
-  return function->ptr()->bytecode_ != Bytecode::null();
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 intptr_t Field::HostOffset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.

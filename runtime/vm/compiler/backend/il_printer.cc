@@ -452,8 +452,9 @@ void AssertSubtypeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   sub_type()->PrintTo(f);
   f->AddString(", ");
   super_type()->PrintTo(f);
-  f->Printf(", '%s', ", dst_name().ToCString());
-  f->AddString(" instantiator_type_args(");
+  f->AddString(", ");
+  dst_name()->PrintTo(f);
+  f->AddString(", instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->AddString("), function_type_args(");
   function_type_arguments()->PrintTo(f);
@@ -926,6 +927,8 @@ const char* RepresentationToCString(Representation rep) {
       return "double";
     case kUnboxedFloat:
       return "float";
+    case kUnboxedUint8:
+      return "uint8";
     case kUnboxedInt32:
       return "int32";
     case kUnboxedUint32:

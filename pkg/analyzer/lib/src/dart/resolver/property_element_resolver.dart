@@ -329,6 +329,12 @@ class PropertyElementResolver {
 
     var targetType = target.staticType;
 
+    if (targetType is FunctionType && propertyName.name == 'call') {
+      return PropertyElementResolverResult(
+        functionTypeCallType: targetType,
+      );
+    }
+
     if (targetType.isVoid) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
@@ -547,7 +553,7 @@ class PropertyElementResolver {
     @required bool hasWrite,
     @required bool forAnnotation,
   }) {
-    var lookupResult = target.scope.lookup2(identifier.name);
+    var lookupResult = target.scope.lookup(identifier.name);
 
     var readElement = _resolver.toLegacyElement(lookupResult.getter);
     var writeElement = _resolver.toLegacyElement(lookupResult.setter);
@@ -693,6 +699,7 @@ class PropertyElementResolverResult {
   final Element readElementRecovery;
   final Element writeElementRequested;
   final Element writeElementRecovery;
+  final FunctionType functionTypeCallType;
 
   /// If [IndexExpression] is resolved, the context type of the index.
   /// Might be `null` if `[]` or `[]=` are not resolved or invalid.
@@ -704,6 +711,7 @@ class PropertyElementResolverResult {
     this.writeElementRequested,
     this.writeElementRecovery,
     this.indexContextType,
+    this.functionTypeCallType,
   });
 
   Element get readElement {

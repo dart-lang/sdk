@@ -4,10 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -26,7 +26,7 @@ class AddRequiredTest extends FixProcessorLintTest {
   String get lintCode => LintNames.always_require_non_null_named_parameters;
 
   Future<void> test_withAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void function({String param}) {
   assert(param != null);
 }
@@ -40,15 +40,13 @@ void function({@required String param}) {
 }
 
 @reflectiveTest
-class AddRequiredWithNullSafetyTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class AddRequiredWithNullSafetyTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_REQUIRED2;
 
   Future<void> test_withAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void function({String param}) {}
 ''');
     await assertHasFix('''

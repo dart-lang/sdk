@@ -410,6 +410,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();     // read expression.
       return;
     case kMethodInvocation:
+      ReadFlags();                               // read flags.
       ReadPosition();                            // read position.
       CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
@@ -583,6 +584,8 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kBlock:
+      ReadPosition();  // read file offset.
+      ReadPosition();  // read file end offset.
       CalculateStatementListFingerprint();
       return;
     case kEmptyStatement:
@@ -797,7 +800,7 @@ uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
 
   String& name = String::Handle(zone, klass.Name());
   const Array& fields = Array::Handle(zone, klass.fields());
-  const Array& functions = Array::Handle(zone, klass.functions());
+  const Array& functions = Array::Handle(zone, klass.current_functions());
   const Array& interfaces = Array::Handle(zone, klass.interfaces());
   AbstractType& type = AbstractType::Handle(zone);
 

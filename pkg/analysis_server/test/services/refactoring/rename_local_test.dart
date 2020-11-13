@@ -463,11 +463,9 @@ main() {
   new A(test: 2);
 }
 ''');
-    driver.addFile(a);
-    driver.addFile(b);
+    await analyzeTestPackageFiles();
 
-    var session = driver.currentSession;
-    testAnalysisResult = await session.getResolvedUnit(a);
+    testAnalysisResult = await resolveFile(a);
     testFile = testAnalysisResult.path;
     testCode = testAnalysisResult.content;
     testUnit = testAnalysisResult.unit;

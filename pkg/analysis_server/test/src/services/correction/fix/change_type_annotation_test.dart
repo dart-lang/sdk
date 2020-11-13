@@ -21,7 +21,7 @@ class ChangeTypeAnnotationTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CHANGE_TYPE_ANNOTATION;
 
   Future<void> test_generic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   String v = <int>[];
   print(v);
@@ -36,7 +36,7 @@ main() {
   }
 
   Future<void> test_multipleVariables() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   String a, b = 42;
   print('\$a \$b');
@@ -46,7 +46,7 @@ main() {
   }
 
   Future<void> test_notVariableDeclaration() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   String v;
   v = 42;
@@ -57,7 +57,7 @@ main() {
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   String v = 'abc'.length;
   print(v);
@@ -73,7 +73,7 @@ main() {
 
   Future<void> test_synthetic_implicitCast() async {
     createAnalysisOptionsFile(implicitCasts: false);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int foo =
 ''');
     await assertNoFix(

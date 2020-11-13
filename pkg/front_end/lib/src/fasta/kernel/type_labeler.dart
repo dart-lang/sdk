@@ -26,6 +26,7 @@ import 'package:kernel/ast.dart'
         MapConstant,
         NeverType,
         NullConstant,
+        NullType,
         Nullability,
         PartialInstantiationConstant,
         Procedure,
@@ -158,6 +159,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     addNullability(node.declaredNullability);
   }
 
+  void visitNullType(NullType node) {
+    result.add("Null");
+  }
+
   void visitDynamicType(DynamicType node) {
     result.add("dynamic");
   }
@@ -255,12 +260,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       }
       result.add(">");
     }
-    if (classNode.name == 'Null' &&
-        classNode.enclosingLibrary.importUri.scheme == 'dart' &&
-        classNode.enclosingLibrary.importUri.path == 'core') {
-      // Don't print nullability on `Null`.
-      return;
-    }
     addNullability(node.nullability);
   }
 
@@ -309,7 +308,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (field.isStatic) continue;
       if (!first) result.add(", ");
       result.add("${field.name}: ");
-      node.fieldValues[field.reference].accept(this);
+      node.fieldValues[field.getterReference].accept(this);
       first = false;
     }
     result.add("}");

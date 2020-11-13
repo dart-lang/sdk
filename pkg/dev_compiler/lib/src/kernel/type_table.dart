@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/kernel.dart';
 
 import '../compiler/js_names.dart' as js_ast;
@@ -117,6 +119,7 @@ class _CacheTable {
     if (type is VoidType) return 'void';
     if (type is NeverType) return 'Never$nullability';
     if (type is BottomType) return 'bottom';
+    if (type is NullType) return 'Null';
     return 'invalid';
   }
 

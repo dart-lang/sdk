@@ -4,13 +4,12 @@
 
 library fasta.test.incremental_test;
 
-import "dart:async" show Future;
-
 import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import "package:kernel/ast.dart" show Component;
 
@@ -223,6 +222,7 @@ Future<Context> createContext(
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
+    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
     ..onDiagnostic = (DiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       if (message.severity == Severity.error) {

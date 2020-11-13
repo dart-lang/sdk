@@ -10,10 +10,10 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   get x() → core::int
-    return this.{self::C::_#C#x#isSet} ?{core::int} let final core::int? #t1 = this.{self::C::_#C#x} in #t1{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.");
+    return this.{self::C::_#C#x#isSet} ?{core::int} let final core::int? #t1 = this.{self::C::_#C#x} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
   set x(covariant core::int #t2) → void
     if(this.{self::C::_#C#x#isSet})
-      throw new _in::LateInitializationErrorImpl::•("Field 'x' has already been initialized.");
+      throw new _in::LateError::fieldAI("x");
     else {
       this.{self::C::_#C#x#isSet} = true;
       this.{self::C::_#C#x} = #t2;

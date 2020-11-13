@@ -8,17 +8,16 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+import 'package:pub/pub.dart';
 
 import '../core.dart';
-import '../events.dart';
 import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
 
-class RunCommand extends DartdevCommand<int> {
+class RunCommand extends DartdevCommand {
   static const String cmdName = 'run';
 
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
@@ -36,10 +35,7 @@ class RunCommand extends DartdevCommand<int> {
     );
   }
 
-  @override
-  final bool verbose;
-
-  RunCommand({this.verbose = false})
+  RunCommand({bool verbose = false})
       : super(
           cmdName,
           'Run a Dart program.',
@@ -104,6 +100,8 @@ class RunCommand extends DartdevCommand<int> {
         );
     }
     argParser
+      ..addMultiOption('define',
+          abbr: 'D', help: 'Defines an environment variable', hide: true)
       ..addFlag(
         'disable-service-auth-codes',
         hide: !verbose,
@@ -148,85 +146,35 @@ class RunCommand extends DartdevCommand<int> {
         negatable: false,
         help: 'Enables tracing of library and script loading.',
       );
+    addExperimentalFlags(argParser, verbose);
   }
 
   @override
   String get invocation => '${super.invocation} <dart file | package target>';
 
   @override
-  FutureOr<int> runImpl() async {
-    // The command line arguments after 'run'
-    var args = argResults.arguments.toList();
+  FutureOr<int> run() async {
+    var mainCommand = '';
+    var runArgs = <String>[];
+    if (argResults.rest.isNotEmpty) {
+      mainCommand = argResults.rest.first;
+      // The command line arguments after the command name.
+      runArgs = argResults.rest.skip(1).toList();
+    }
     // --launch-dds is provided by the VM if the VM service is to be enabled. In
     // that case, we need to launch DDS as well.
-    bool launchDds = false;
+    String launchDdsArg = argResults['launch-dds'];
     String ddsHost = '';
     String ddsPort = '';
-
-    final launchDdsArg = args.singleWhere(
-      (element) => element.startsWith('--launch-dds'),
-      orElse: () => null,
-    );
+    bool launchDds = false;
     if (launchDdsArg != null) {
       launchDds = true;
-      final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
+      final ddsUrl = launchDdsArg.split(':');
       ddsHost = ddsUrl[0];
       ddsPort = ddsUrl[1];
     }
 
-    var argsContainFile = false;
-    for (var arg in args) {
-      // The arg.contains('.') matches a file name pattern, i.e. some 'foo.dart'
-      if (arg.contains('.')) {
-        argsContainFile = true;
-      } else if (!argsContainFile &&
-          (arg == '--help' || arg == '-h' || arg == 'help')) {
-        // Only print usage if a help flag is provided before the script name.
-        printUsage();
-        return 0;
-      }
-    }
-
-    var disableServiceAuthCodes =
-        argResults['disable-service-auth-codes'] ?? false;
-
-    final cwd = Directory.current;
-    if (!argsContainFile && cwd.existsSync()) {
-      var foundImplicitFileToRun = false;
-      var cwdName = cwd.name;
-      for (var entity in cwd.listSync(followLinks: false)) {
-        if (entity is Directory && entity.name == 'bin') {
-          var filesInBin =
-              entity.listSync(followLinks: false).whereType<File>();
-
-          // Search for a dart file in bin/ with the pattern foo/bin/foo.dart
-          for (var fileInBin in filesInBin) {
-            if (fileInBin.isDartFile && fileInBin.name == '$cwdName.dart') {
-              args.add('bin/${fileInBin.name}');
-              foundImplicitFileToRun = true;
-              break;
-            }
-          }
-          // break here, no actions taken on any entities that are not bin/
-          break;
-        }
-      }
-
-      if (!foundImplicitFileToRun) {
-        // This throws.
-        usageException('Could not find the implicit file to run: '
-            'bin$separator$cwdName.dart.');
-      }
-    }
-
-    // Pass any --enable-experiment options along.
-    if (args.isNotEmpty && wereExperimentsSpecified) {
-      List<String> experimentIds = specifiedExperiments;
-      args = [
-        '--$experimentFlagName=${experimentIds.join(',')}',
-        ...args,
-      ];
-    }
+    bool disableServiceAuthCodes = argResults['disable-service-auth-codes'];
 
     // If the user wants to start a debugging session we need to do some extra
     // work and spawn a Dart Development Service (DDS) instance. DDS is a VM
@@ -242,31 +190,17 @@ class RunCommand extends DartdevCommand<int> {
       }
     }
 
-    var path = args.firstWhere((e) => !e.startsWith('-'));
-    final pathIndex = args.indexOf(path);
-    final runArgs = (pathIndex + 1 == args.length)
-        ? <String>[]
-        : args.sublist(pathIndex + 1);
+    String path;
     try {
-      path = Uri.parse(path).toFilePath();
-    } catch (_) {
-      // Input path will either be a valid path or a file uri
-      // (e.g /directory/file.dart or file:///directory/file.dart). We will try
-      // parsing it as a Uri, but if parsing failed for any reason (likely
-      // because path is not a file Uri), `path` will be passed without
-      // modification to the VM.
+      path = await getExecutableForCommand(mainCommand);
+    } on CommandResolutionFailedException catch (e) {
+      log.stderr(e.message);
+      return errorExitCode;
     }
+
     VmInteropHandler.run(path, runArgs);
     return 0;
   }
-
-  @override
-  UsageEvent createUsageEvent(int exitCode) => RunUsageEvent(
-        usagePath,
-        exitCode: exitCode,
-        specifiedExperiments: specifiedExperiments,
-        args: argResults.arguments,
-      );
 }
 
 class _DebuggingSession {
@@ -314,18 +248,4 @@ class _DebuggingSession {
       return false;
     }
   }
-}
-
-/// The [UsageEvent] for the run command.
-class RunUsageEvent extends UsageEvent {
-  RunUsageEvent(String usagePath,
-      {String label,
-      @required int exitCode,
-      @required List<String> specifiedExperiments,
-      @required List<String> args})
-      : super(RunCommand.cmdName, usagePath,
-            label: label,
-            exitCode: exitCode,
-            specifiedExperiments: specifiedExperiments,
-            args: args);
 }

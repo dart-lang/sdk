@@ -66,6 +66,14 @@ abstract class JSIndexable<E> {
   E operator [](int index);
 }
 
+/// The supertype for JSMutableArray and JavaScriptIndexingBehavior.
+///
+// TODO(nshahan) Use as a type mask that contains the objects we can use the JS
+// []= operator on.
+abstract class JSMutableIndexable<E> extends JSIndexable<E> {
+  operator []=(int index, E value);
+}
+
 /**
  * The interface implemented by JavaScript objects.  These are methods in
  * addition to the regular Dart Object methods like [Object.hashCode].

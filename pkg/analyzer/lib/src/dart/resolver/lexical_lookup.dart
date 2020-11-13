@@ -18,7 +18,7 @@ class LexicalLookup {
     @required bool setter,
   }) {
     var id = node.name;
-    var scopeResult = _resolver.nameScope.lookup2(id);
+    var scopeResult = _resolver.nameScope.lookup(id);
     var scopeGetter = scopeResult.getter;
     var scopeSetter = scopeResult.setter;
     if (scopeGetter != null || scopeSetter != null) {

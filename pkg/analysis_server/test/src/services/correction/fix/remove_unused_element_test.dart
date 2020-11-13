@@ -22,7 +22,7 @@ class RemoveUnusedElementTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
 
   Future<void> test_class_notUsed_inClassMember() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class _A {
   staticMethod() {
     new _A();
@@ -35,7 +35,7 @@ class _A {
   }
 
   Future<void> test_class_notUsed_isExpression() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class _A {}
 main(p) {
   if (p is _A) {
@@ -47,7 +47,7 @@ main(p) {
   }
 
   Future<void> test_class_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class _A {
 }
 ''');
@@ -56,7 +56,7 @@ class _A {
   }
 
   Future<void> test_enum_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 enum _MyEnum {A, B, C}
 ''');
     await assertHasFix(r'''
@@ -66,7 +66,7 @@ enum _MyEnum {A, B, C}
   }
 
   Future<void> test_functionLocal_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 main() {
   f() {}
 }
@@ -78,7 +78,7 @@ main() {
   }
 
   Future<void> test_functionTop_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 _f() {}
 main() {
 }
@@ -90,7 +90,7 @@ main() {
   }
 
   Future<void> test_functionTypeAlias_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 typedef _F(a, b);
 main() {
 }
@@ -102,7 +102,7 @@ main() {
   }
 
   Future<void> test_getter_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   get _g => null;
 }
@@ -114,7 +114,7 @@ class A {
   }
 
   Future<void> test_method_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   static _m() {}
 }
@@ -126,7 +126,7 @@ class A {
   }
 
   Future<void> test_setter_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   set _s(x) {}
 }
@@ -138,7 +138,7 @@ class A {
   }
 
   Future<void> test_staticMethod_extension_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 extension _E on String {
   static int m1() => 3;
   int m2() => 7;
@@ -154,7 +154,7 @@ void f() => print(_E("hello").m2());
   }
 
   Future<void> test_staticMethod_mixim_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 mixin _M {
   static int m1() => 3;
 }
@@ -170,7 +170,7 @@ void f(C c) {}
   }
 
   Future<void> test_staticMethod_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class _A {
   static int m() => 7;
 }
@@ -184,7 +184,7 @@ void f(_A a) {}
   }
 
   Future<void> test_topLevelVariable_notUsed() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 int _a = 1;
 main() {
   _a = 2;
@@ -195,7 +195,7 @@ main() {
   }
 
   Future<void> test_topLevelVariable_notUsed_noReference_first() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 int _a = 1, b = 2;
 ''');
     await assertHasFix(r'''
@@ -204,7 +204,7 @@ int b = 2;
   }
 
   Future<void> test_topLevelVariable_notUsed_noReference_last() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 int a = 1, _b = 2;
 ''');
     await assertHasFix(r'''
@@ -213,7 +213,7 @@ int a = 1;
   }
 
   Future<void> test_topLevelVariable_notUsed_noReference_only() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 int _a = 1;
 main() {}
 ''');

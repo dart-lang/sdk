@@ -110,7 +110,8 @@ class SerializationCluster : public ZoneAllocated {
 
 class DeserializationCluster : public ZoneAllocated {
  public:
-  DeserializationCluster() : start_index_(-1), stop_index_(-1) {}
+  explicit DeserializationCluster(const char* name)
+      : name_(name), start_index_(-1), stop_index_(-1) {}
   virtual ~DeserializationCluster() {}
 
   // Allocate memory for all objects in the cluster and write their addresses
@@ -126,7 +127,10 @@ class DeserializationCluster : public ZoneAllocated {
                         const Array& refs,
                         bool is_canonical) {}
 
+  const char* name() const { return name_; }
+
  protected:
+  const char* name_;
   // The range of the ref array that belongs to this cluster.
   intptr_t start_index_;
   intptr_t stop_index_;
@@ -147,31 +151,6 @@ class DeserializationRoots {
   virtual void ReadRoots(Deserializer* deserializer) = 0;
   virtual void PostLoad(Deserializer* deserializer, const Array& refs) = 0;
 };
-
-class SmiObjectIdPair {
- public:
-  SmiObjectIdPair() : smi_(nullptr), id_(0) {}
-  SmiPtr smi_;
-  intptr_t id_;
-
-  bool operator==(const SmiObjectIdPair& other) const {
-    return (smi_ == other.smi_) && (id_ == other.id_);
-  }
-};
-
-class SmiObjectIdPairTrait {
- public:
-  typedef SmiPtr Key;
-  typedef intptr_t Value;
-  typedef SmiObjectIdPair Pair;
-
-  static Key KeyOf(Pair kv) { return kv.smi_; }
-  static Value ValueOf(Pair kv) { return kv.id_; }
-  static inline intptr_t Hashcode(Key key) { return Smi::Value(key); }
-  static inline bool IsKeyEqual(Pair kv, Key key) { return kv.smi_ == key; }
-};
-
-typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
 
 // Reference value for objects that either are not reachable from the roots or
 // should never have a reference in the snapshot (because they are dropped,
@@ -411,15 +390,9 @@ class Serializer : public ThreadStackResource {
   // been allocated a reference ID yet, so should be used only after all
   // WriteAlloc calls.
   intptr_t RefId(ObjectPtr object, bool permit_artificial_ref = false) {
-    if (!object->IsHeapObject()) {
-      SmiPtr smi = Smi::RawCast(object);
-      auto const id = smi_ids_.Lookup(smi)->id_;
-      if (IsAllocatedReference(id)) return id;
-      FATAL("Missing ref");
-    }
     // The object id weak table holds image offsets for Instructions instead
     // of ref indices.
-    ASSERT(!object->IsInstructions());
+    ASSERT(!object->IsHeapObject() || !object->IsInstructions());
     auto const id = heap_->GetObjectId(object);
     if (permit_artificial_ref && IsArtificialReference(id)) {
       return -id;
@@ -440,16 +413,11 @@ class Serializer : public ThreadStackResource {
     if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
       return RefId(Object::null());
     }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-      return RefId(Object::null());
-    }
-#endif  // !DART_PRECOMPILED_RUNTIME
     FATAL("Missing ref");
   }
 
  private:
-  static const char* ReadOnlyObjectType(intptr_t cid);
+  const char* ReadOnlyObjectType(intptr_t cid);
 
   Heap* heap_;
   Zone* zone_;
@@ -465,7 +433,6 @@ class Serializer : public ThreadStackResource {
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
   intptr_t previous_text_offset_;
-  SmiObjectIdMap smi_ids_;
   FieldTable* field_table_;
 
   intptr_t dispatch_table_size_ = 0;
@@ -581,6 +548,7 @@ class Deserializer : public ThreadStackResource {
                intptr_t size,
                const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
+               bool is_non_root_unit,
                intptr_t offset = 0);
   ~Deserializer();
 
@@ -691,6 +659,7 @@ class Deserializer : public ThreadStackResource {
   DeserializationCluster** canonical_clusters_;
   DeserializationCluster** clusters_;
   FieldTable* field_table_;
+  const bool is_non_root_unit_;
 };
 
 #define ReadFromTo(obj, ...) d->ReadFromTo(obj, ##__VA_ARGS__);

@@ -21,20 +21,13 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getTypeAsInstanceOf(
-        type, superclass, clientLibrary, coreTypes);
+    return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
   }
 
   @override
   List<DartType> getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    Class typeClass = type.classNode;
-    if (typeClass == superclass) return type.typeArguments;
-    if (typeClass == coreTypes.nullClass) {
-      if (superclass.typeParameters.isEmpty) return const <DartType>[];
-      return new List<DartType>.filled(
-          superclass.typeParameters.length, coreTypes.nullType);
-    }
+    if (type.classNode == superclass) return type.typeArguments;
     return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
   }
 

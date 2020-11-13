@@ -32,36 +32,75 @@ main() {
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   // C?.id is equivalent to C.id.
-  { C.staticInt = 1; Expect.equals(1, C?.staticInt); }
-  { h.C.staticInt = 1; Expect.equals(1, h.C?.staticInt); }
+  {
+    C.staticInt = 1;
+    Expect.equals(1, C?.staticInt);
+    //               ^
+    // [cfe] The class 'C' cannot be null.
+  }
+  {
+    h.C.staticInt = 1;
+    Expect.equals(1, h.C?.staticInt);
+    //                 ^
+    // [cfe] The class 'C' cannot be null.
+  }
 
   // The static type of e1?.d is the static type of e1.id.
-  { int? i = new C(1)?.v; Expect.equals(1, i); }
-  //             ^
-  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
-  //                 ^^
-  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-  { String? s = new C(null)?.v; Expect.equals(null, s); }
-  //            ^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //                ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
-  //                ^
-  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
-  //                       ^^
-  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-  { C.staticInt = 1; int? i = C?.staticInt; Expect.equals(1, i); }
-  { h.C.staticInt = 1; int? i = h.C?.staticInt; Expect.equals(1, i); }
-  { C.staticInt = null; String? s = C?.staticInt; Expect.equals(null, s); }
-  //                                ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //                                   ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
-  { h.C.staticNullable = null; String? s = h.C?.staticNullable; Expect.equals(null, s); }
-  //                                       ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //                                            ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
+  {
+    int? i = new C(1)?.v;
+    //           ^
+    // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
+    //               ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    Expect.equals(1, i);
+  }
+  {
+    String? s = new C(null)?.v;
+    //          ^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    //              ^
+    // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
+    //              ^
+    // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
+    //                     ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    Expect.equals(null, s);
+  }
+  {
+    C.staticInt = 1;
+    int? i = C?.staticInt;
+    //       ^
+    // [cfe] The class 'C' cannot be null.
+    Expect.equals(1, i);
+  }
+  {
+    h.C.staticInt = 1;
+    int? i = h.C?.staticInt;
+    //         ^
+    // [cfe] The class 'C' cannot be null.
+    Expect.equals(1, i);
+  }
+  {
+    C.staticInt = null;
+    String? s = C?.staticInt;
+    //          ^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    // [cfe] The class 'C' cannot be null.
+    //             ^
+    // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
+    Expect.equals(null, s);
+  }
+  {
+    h.C.staticNullable = null;
+    String? s = h.C?.staticNullable;
+    //          ^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    //            ^
+    // [cfe] The class 'C' cannot be null.
+    //               ^
+    // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
+    Expect.equals(null, s);
+  }
 
   // Let T be the static type of e1 and let y be a fresh variable of type T.
   // Exactly the same static warnings that would be caused by y.id are also
@@ -70,10 +109,13 @@ main() {
   //                           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'bad' isn't defined for the class 'C'.
-  { var b = new C(1) as B?; Expect.equals(1, b?.v); }
-  //                                            ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'v' isn't defined for the class 'B'.
+  {
+    var b = new C(1) as B?;
+    Expect.equals(1, b?.v);
+    //                  ^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [cfe] The getter 'v' isn't defined for the class 'B'.
+  }
 
   // '?.' cannot be used to access toplevel properties in libraries imported via
   // prefix.

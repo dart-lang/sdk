@@ -24,7 +24,7 @@ class AvoidAnnotatingWithDynamicTest extends RemoveTypeAnnotationTest {
   String get lintCode => LintNames.avoid_annotating_with_dynamic;
 
   Future<void> test_insideFunctionTypedFormalParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bad(void foo(dynamic x)) {
   return null;
 }
@@ -37,7 +37,7 @@ bad(void foo(x)) {
   }
 
   Future<void> test_namedParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bad({dynamic defaultValue}) {
   return null;
 }
@@ -50,7 +50,7 @@ bad({defaultValue}) {
   }
 
   Future<void> test_normalParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bad(dynamic defaultValue) {
   return null;
 }
@@ -63,7 +63,7 @@ bad(defaultValue) {
   }
 
   Future<void> test_optionalParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bad([dynamic defaultValue]) {
   return null;
 }
@@ -82,7 +82,7 @@ class AvoidReturnTypesOnSettersTest extends RemoveTypeAnnotationTest {
   String get lintCode => LintNames.avoid_return_types_on_setters;
 
   Future<void> test_void() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void set speed2(int ms) {}
 ''');
     await assertHasFix('''
@@ -97,7 +97,7 @@ class AvoidTypesOnClosureParametersTest extends RemoveTypeAnnotationTest {
   String get lintCode => LintNames.avoid_types_on_closure_parameters;
 
   Future<void> test_namedParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var x = ({Future<int> defaultValue}) => null;
 ''');
     await assertHasFix('''
@@ -106,7 +106,7 @@ var x = ({defaultValue}) => null;
   }
 
   Future<void> test_normalParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var x = (Future<int> defaultValue) => null;
 ''');
     await assertHasFix('''
@@ -115,7 +115,7 @@ var x = (defaultValue) => null;
   }
 
   Future<void> test_optionalParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var x = ([Future<int> defaultValue]) => null;
 ''');
     await assertHasFix('''
@@ -136,7 +136,7 @@ class TypeInitFormalsTest extends RemoveTypeAnnotationTest {
   String get lintCode => LintNames.type_init_formals;
 
   Future<void> test_void() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int f;
   C(int this.f);

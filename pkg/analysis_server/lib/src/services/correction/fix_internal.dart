@@ -101,6 +101,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_initializer.
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
@@ -591,6 +592,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
+      DataDriven.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
@@ -725,6 +727,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
+      MakeVariableNullable.newInstance,
     ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
       AddMissingRequiredArgument.newInstance,
@@ -1072,6 +1075,9 @@ class FixProcessor extends BaseProcessor {
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.newInstance,
+    ],
+    StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
+      RemoveNonNullAssertion.newInstance,
     ],
   };
 

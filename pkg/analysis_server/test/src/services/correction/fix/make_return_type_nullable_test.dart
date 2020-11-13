@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -16,15 +16,13 @@ void main() {
 }
 
 @reflectiveTest
-class MakeReturnTypeNullableTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class MakeReturnTypeNullableTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
 
   Future<void> test_function_async() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future<String> f(String? s) async {
   return s;
 }
@@ -37,7 +35,7 @@ Future<String?> f(String? s) async {
   }
 
   Future<void> test_function_asyncStar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Stream<String> f(String? s) async* {
   yield s;
 }
@@ -50,7 +48,7 @@ Stream<String?> f(String? s) async* {
   }
 
   Future<void> test_function_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f(String? s) {
   return s;
 }
@@ -63,7 +61,7 @@ String? f(String? s) {
   }
 
   Future<void> test_function_syncStar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Iterable<String> f(String? s) sync* {
   yield s;
 }
@@ -76,7 +74,7 @@ Iterable<String?> f(String? s) sync* {
   }
 
   Future<void> test_getter_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String? f;
   String get g => f;
@@ -91,7 +89,7 @@ class C {
   }
 
   Future<void> test_incompatibilityIsNotLimitedToNullability() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int f() {
   return '';
 }
@@ -100,7 +98,7 @@ int f() {
   }
 
   Future<void> test_localFunction_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   String g(String? s) {
     return s;
@@ -119,7 +117,7 @@ void f() {
   }
 
   Future<void> test_method_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String m(String? s) {
     return s;
@@ -136,7 +134,7 @@ class C {
   }
 
   Future<void> test_returnTypeHasTypeArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List<String> f() {
   return null;
 }

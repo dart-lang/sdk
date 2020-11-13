@@ -53,7 +53,7 @@ FunctionPtr TrampolineFunction(const Function& dart_signature,
 
   Type& type = Type::Handle(zone);
   type ^= function.SignatureType(Nullability::kLegacy);
-  type ^= ClassFinalizer::FinalizeType(owner_class, type);
+  type ^= ClassFinalizer::FinalizeType(type);
   function.SetSignatureType(type);
   ASSERT(
       Type::Handle(function.SignatureType(Nullability::kLegacy)).IsFinalized());

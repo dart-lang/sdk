@@ -143,7 +143,8 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
     // start watching are sometimes misclassified as happening just after
     // we start watching.
     return _delayed(() {
-      File file = PhysicalResourceProvider.INSTANCE.getResource(filePath);
+      var file =
+          PhysicalResourceProvider.INSTANCE.getResource(filePath) as File;
       var changesReceived = <WatchEvent>[];
       var subscription = file.changes.listen(changesReceived.add);
       // Delay running the rest of the test to allow file.changes propagate.
@@ -160,7 +161,8 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
     // start watching are sometimes misclassified as happening just after
     // we start watching.
     return _delayed(() {
-      Folder folder = PhysicalResourceProvider.INSTANCE.getResource(filePath);
+      var folder =
+          PhysicalResourceProvider.INSTANCE.getResource(filePath) as Folder;
       var changesReceived = <WatchEvent>[];
       var subscription = folder.changes.listen(changesReceived.add);
       // Delay running the rest of the test to allow folder.changes to

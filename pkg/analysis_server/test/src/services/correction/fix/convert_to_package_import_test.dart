@@ -32,7 +32,7 @@ class ConvertToPackageImportTest extends FixProcessorLintTest {
     newFile('/home/test/lib/foo/bar.dart', content: '''
 class C {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '../lib/foo/bar.dart';
 
 C c;

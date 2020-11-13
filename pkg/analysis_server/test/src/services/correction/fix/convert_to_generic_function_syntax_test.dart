@@ -25,14 +25,14 @@ class PreferGenericFunctionTypeAliasesTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_generic_function_type_aliases;
 
   Future<void> test_functionTypeAlias_noParameterTypes() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef String F(x);
 ''');
     await assertNoFix();
   }
 
   Future<void> test_functionTypeAlias_noReturnType_noTypeParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef String F(int x);
 ''');
     await assertHasFix('''
@@ -41,7 +41,7 @@ typedef F = String Function(int x);
   }
 
   Future<void> test_functionTypeAlias_noReturnType_typeParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef F<P, R>(P x);
 ''');
     await assertHasFix('''
@@ -50,7 +50,7 @@ typedef F<P, R> = Function(P x);
   }
 
   Future<void> test_functionTypeAlias_returnType_noTypeParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef String F(int x);
 ''');
     await assertHasFix('''
@@ -59,7 +59,7 @@ typedef F = String Function(int x);
   }
 
   Future<void> test_functionTypeAlias_returnType_typeParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef R F<P, R>(P x);
 ''');
     await assertHasFix('''
@@ -77,14 +77,14 @@ class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest {
   String get lintCode => LintNames.use_function_type_syntax_for_parameters;
 
   Future<void> test_functionTypedParameter_noParameterTypes() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 g(String f(x)) {}
 ''');
     await assertNoFix();
   }
 
   Future<void> test_functionTypedParameter_returnType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 g(String f(int x)) {}
 ''');
     await assertHasFix('''

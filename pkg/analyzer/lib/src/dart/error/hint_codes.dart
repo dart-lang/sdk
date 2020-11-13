@@ -19,7 +19,7 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
       'ASSIGNMENT_OF_DO_NOT_STORE',
-      "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field.",
+      "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.",
       correction: "Try removing the assignment.");
 
   /**
@@ -337,6 +337,60 @@ class HintCode extends AnalyzerErrorCode {
       HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
           correction: "Try removing the repeated name from the list of hidden "
               "members.");
+
+  /**
+   * Parameters:
+   * 0: the name of the diagnostic being ignored
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a diagnostic name appears in an
+  // `ignore` comment, but the diagnostic is already being ignored, either
+  // because it's already included in the same `ignore` comment or because it
+  // appears in an `ignore-in-file` comment.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the diagnostic named
+  // `unused_local_variable` is already being ignored for the whole file so it
+  // doesn't need to be ignored on a specific line:
+  //
+  // ```dart
+  // // ignore_for_file: unused_local_variable
+  // void f() {
+  //   // ignore: [!unused_local_variable!]
+  //   var x = 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the diagnostic named
+  // `unused_local_variable` is being ignored twice on the same line:
+  //
+  // ```dart
+  // void f() {
+  //   // ignore: unused_local_variable, [!unused_local_variable!]
+  //   var x = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the ignore comment, or remove the unnecessary diagnostic name if the
+  // ignore comment is ignoring more than one diagnostic:
+  //
+  // ```dart
+  // // ignore_for_file: unused_local_variable
+  // void f() {
+  //   var x = 0;
+  // }
+  // ```
+  static const HintCode DUPLICATE_IGNORE = HintCode(
+      'DUPLICATE_IGNORE',
+      "The diagnostic '{0}' doesn't need to be ignored here because it's "
+          "already being ignored.",
+      correction:
+          "Try removing the name from the list, or removing the whole comment "
+          "if this is the only name in the list.");
 
   /**
    * Duplicate imports.
@@ -1423,6 +1477,15 @@ class HintCode extends AnalyzerErrorCode {
           "as an operand of a logical operator.");
 
   /**
+   * This hint indicates that a null literal is null-checked with `!`, but null
+   * is never not null.
+   */
+  static const HintCode NULL_CHECK_ALWAYS_FAILS = HintCode(
+      'NULL_CHECK_ALWAYS_FAILS',
+      "This null-check will always throw an exception because the expression "
+          "will always evaluate to 'null'.");
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -2018,17 +2081,17 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  /* // #### Description
+  // #### Description
   //
   // The analyzer produces this diagnostic when a reference to the class `Never`
   // is found in code that has an SDK constraint whose lower bound is less than
-  // 2.X.0. This class wasn't defined in earlier versions, so this code won't be
-  // able to run against earlier versions of the SDK.
+  // 2.12.0. This class wasn't defined in earlier versions, so this code won't
+  // be able to run against earlier versions of the SDK.
   //
   // #### Examples
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
-  // bound of less than 2.X.0:
+  // bound of less than 2.12.0:
   //
   // ```yaml
   // %uri="pubspec.yaml"
@@ -2050,7 +2113,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // ```yaml
   // environment:
-  //   sdk: '>=2.X.0 <2.7.0'
+  //   sdk: '>=2.12.0 <2.13.0'
   // ```
   //
   // If you need to support older versions of the SDK, then rewrite the code to
@@ -2058,14 +2121,12 @@ class HintCode extends AnalyzerErrorCode {
   //
   // ```dart
   // dynamic x;
-  // ``` */
+  // ```
   static const HintCode SDK_VERSION_NEVER = HintCode(
-      // TODO(brianwilkerson) Replace the message with the following when we know
-      //  when this feature will ship:
-      //    The type 'Never' wasn't supported until version 2.X.0, but this code
-      //    is required to be able to run on earlier versions.
       'SDK_VERSION_NEVER',
-      "The type Never isn't yet supported.");
+      "The type 'Never' wasn't supported until version 2.X.0, but this code is "
+          "required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
 
   /**
    * No parameters.
@@ -2350,6 +2411,16 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
+   * Parameters:
+   * 0: the name of the non-diagnostic being ignored
+   */
+  static const HintCode UNIGNORABLE_IGNORE = HintCode(
+      'UNIGNORABLE_IGNORE', "The diagnostic '{0}' can't be ignored.",
+      correction:
+          "Try removing the name from the list, or removing the whole comment "
+          "if this is the only name in the list.");
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -2384,6 +2455,18 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNNECESSARY_CAST = HintCode(
       'UNNECESSARY_CAST', "Unnecessary cast.",
       correction: "Try removing the cast.", hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the diagnostic being ignored
+   */
+  static const HintCode UNNECESSARY_IGNORE = HintCode(
+      'UNNECESSARY_IGNORE',
+      "The diagnostic '{0}' isn't produced at this location so it doesn't "
+          "need to be ignored.",
+      correction:
+          "Try removing the name from the list, or removing the whole comment "
+          "if this is the only name in the list.");
 
   /**
    * Unnecessary `noSuchMethod` declaration.

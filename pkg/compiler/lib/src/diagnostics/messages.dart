@@ -73,10 +73,8 @@ enum MessageKind {
   INVALID_PACKAGE_CONFIG,
   INVALID_PACKAGE_URI,
   INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
-  JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
-  JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NOT_FOUND,
@@ -173,27 +171,6 @@ class MessageTemplate {
       MessageKind.STRING_EXPECTED: const MessageTemplate(
           MessageKind.STRING_EXPECTED,
           "Expected a 'String', but got an instance of '#{type}'."),
-
-      MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS:
-          const MessageTemplate(
-              MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
-              "Js-interop class '#{cls}' cannot extend from the non js-interop "
-              "class '#{superclass}'.",
-              howToFix: "Annotate the superclass with @JS.",
-              examples: const [
-            """
-              import 'package:js/js.dart';
-
-              class Foo { }
-
-              @JS()
-              class Bar extends Foo { }
-
-              main() {
-                new Bar();
-              }
-              """
-          ]),
 
       MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER,

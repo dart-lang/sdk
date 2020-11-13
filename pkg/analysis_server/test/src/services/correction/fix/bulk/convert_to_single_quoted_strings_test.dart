@@ -19,7 +19,7 @@ class ConvertToSingleQuotedStringTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_single_quotes;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("abc");
   print("e" + "f" + "g");

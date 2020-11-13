@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
@@ -53,8 +55,8 @@ final closureCallbackPointer =
     Pointer.fromFunction<Void Function(Handle)>(doClosureCallback);
 
 void doDynamicLinking() {
-  Expect.isTrue(NativeApi.majorVersion == 1);
-  Expect.isTrue(NativeApi.minorVersion >= 1);
+  Expect.isTrue(NativeApi.majorVersion == 2);
+  Expect.isTrue(NativeApi.minorVersion >= 0);
   final initializeApi = testLibrary.lookupFunction<
       IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");

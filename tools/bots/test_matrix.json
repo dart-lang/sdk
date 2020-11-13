@@ -510,6 +510,12 @@
         "use-sdk": true
       }
     },
+    "dart2js-(linux|mac|win)-chrome-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-weak-(linux|mac|win)-x64-d8": {
       "options": {
         "builder-tag": "dart2js-weak",
@@ -521,10 +527,23 @@
         "use-sdk": true
       }
     },
+    "dart2js-(linux|win)-firefox-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-win-ie11": {
       "options": {
         "use-sdk": true,
         "babel": "{\"presets\":[\"es2015\"]}"
+      }
+    },
+    "dart2js-win-ie11-unsound": {
+      "options": {
+        "use-sdk": true,
+        "babel": "{\"presets\":[\"es2015\"]}",
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-win-edge": {
@@ -532,9 +551,21 @@
         "use-sdk": true
       }
     },
+    "dart2js-win-edge-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-mac-safari": {
       "options": {
         "use-sdk": true
+      }
+    },
+    "dart2js-mac-safari-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-minified-csp-(linux|mac|win)-chrome": {
@@ -544,10 +575,25 @@
         "use-sdk": true
       }
     },
+    "dart2js-minified-csp-(linux|mac|win)-chrome-unsound": {
+      "options": {
+        "minified": true,
+        "csp": true,
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-minified-(linux|mac|win)-d8": {
       "options": {
         "minified": true,
         "use-sdk": true
+      }
+    },
+    "dart2js-minified-(linux|mac|win)-d8-unsound": {
+      "options": {
+        "minified": true,
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-production-(linux|mac|win)-d8": {
@@ -562,6 +608,12 @@
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
         "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8-unsound": {
+      "options": {
+        "host-checked": true,
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
@@ -941,7 +993,8 @@
             "corelib",
             "ffi",
             "language",
-            "lib"
+            "lib",
+            "service"
           ]
         },
         {
@@ -1114,6 +1167,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -1439,8 +1493,7 @@
         "vm-kernel-win-debug-ia32",
         "vm-kernel-win-debug-x64",
         "vm-kernel-win-product-x64",
-        "vm-kernel-win-release-ia32",
-        "vm-kernel-win-release-x64"
+        "vm-kernel-win-release-ia32"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group."
@@ -1499,6 +1552,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -1551,7 +1605,8 @@
         "vm-kernel-linux-debug-x64",
         "vm-kernel-mac-product-x64",
         "vm-kernel-mac-release-x64",
-        "vm-kernel-mac-debug-x64"
+        "vm-kernel-mac-debug-x64",
+        "vm-kernel-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the co19_2 kernel builder group."
@@ -1847,7 +1902,6 @@
           "name": "check dart nnbd sdk for static errors",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
           ]
         },
@@ -2136,7 +2190,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-hostasserts-linux-ia32-d8",
+            "-ndart2js-hostasserts-linux-ia32-d8-unsound",
             "--dart2js-batch",
             "observatory_ui"
           ]
@@ -2207,7 +2261,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-${system}-${runtime}",
+            "-ndart2js-${system}-${runtime}-unsound",
             "--dart2js-batch",
             "--reset-browser-configuration",
             "observatory_ui"
@@ -2260,7 +2314,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-minified-linux-d8",
+            "-ndart2js-minified-linux-d8-unsound",
             "--dart2js-batch",
             "observatory_ui"
           ]
@@ -2331,7 +2385,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-minified-csp-linux-chrome",
+            "-ndart2js-minified-csp-linux-chrome-unsound",
             "--dart2js-batch",
             "--reset-browser-configuration",
             "observatory_ui"
@@ -2367,7 +2421,6 @@
           "name": "check dart nnbd sdk for static errors",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
             "--target",
             "dart2js"
@@ -2732,6 +2785,7 @@
             "ffi",
             "language",
             "lib",
+            "service",
             "standalone"
           ]
         },
@@ -3012,7 +3066,6 @@
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--fatal-warnings",
             "runtime/observatory"
           ]
         },
@@ -3200,7 +3253,7 @@
           ]
         },
         {
-          "name": "remove out directory to do a clean linux-x64-bytecode build",
+          "name": "remove out directory",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": [
             "clean"

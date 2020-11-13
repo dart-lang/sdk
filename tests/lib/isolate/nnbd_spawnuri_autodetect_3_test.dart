@@ -17,13 +17,15 @@ void main() {
   generateKernel(sourcePath, outPath);
 
   try {
+    String outUri = Uri.file(outPath).toString();
+
     // Strong Isolate Spawning another Strong Isolate using spawnUri.
     testNullSafetyMode(
-        "$tmpDirPath/strong_strong.dart", "", outPath, 're: strong');
+        "$tmpDirPath/strong_strong.dart", "", outUri, 're: strong');
 
     // Weak Isolate Spawning a Strong Isolate using spawnUri.
     testNullSafetyMode(
-        "$tmpDirPath/weak_strong.dart", "2.6", outPath, 're: strong');
+        "$tmpDirPath/weak_strong.dart", "2.6", outUri, 're: strong');
   } finally {
     tmpDir.deleteSync(recursive: true);
   }

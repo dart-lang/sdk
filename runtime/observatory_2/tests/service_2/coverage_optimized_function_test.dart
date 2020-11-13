@@ -37,11 +37,11 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': 461,
-      'endPos': 528,
+      'startPos': 463,
+      'endPos': 530,
       'compiled': true,
       'coverage': {
-        'hits': [461, 501, 512, 516],
+        'hits': [463, 503, 514, 518],
         'misses': []
       }
     };

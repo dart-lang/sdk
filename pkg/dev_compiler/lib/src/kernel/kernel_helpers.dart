@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/core_types.dart';
@@ -334,6 +336,7 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is InterfaceType ||
       t is InvalidType ||
       t is NeverType ||
+      t is NullType ||
       t is TypeParameterType ||
       t is TypedefType ||
       t is VoidType;

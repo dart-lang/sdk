@@ -42,6 +42,28 @@ class BulkFixesTest extends AbstractAnalysisTest {
     createProject();
   }
 
+  Future<void> test_annotateOverrides_excludedFile() async {
+    addAnalysisOptionsFile('''
+analyzer:
+  exclude:
+    - test/**
+linter:
+  rules:
+    - annotate_overrides
+''');
+
+    newFile('$projectPath/test/test.dart', content: '''
+class A {
+  void f() {}
+}
+class B extends A {
+  void f() {}
+}
+''');
+
+    await assertNoEdits();
+  }
+
   Future<void> test_annotateOverrides_excludedSubProject() async {
     // Root project.
     addAnalysisOptionsFile('''
@@ -123,6 +145,30 @@ A f() => new A();
     await assertEditEquals('''
 class A {}
 A f() => A();
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44080')
+  Future<void> test_unnecessaryNew_collectionLiteral_overlap() async {
+    addAnalysisOptionsFile('''
+linter:
+  rules:
+    - prefer_collection_literals
+    - unnecessary_new
+''');
+
+    addTestFile('''
+class A {
+  Map<String, Object> _map = {};
+  Set<String> _set = new Set<String>();
+}
+''');
+
+    await assertEditEquals('''
+class A {
+  Map<String, Object> _map = {};
+  Set<String> _set = <String>{};
+}
 ''');
   }
 

@@ -349,7 +349,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
               compiler::target::kWordSize);
           good += LoadLocal(tuple_diff);
           good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
-          good += LoadIndexed(/* index_scale = */ compiler::target::kWordSize);
+          good += LoadIndexed(kArrayCid);
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(
@@ -388,8 +388,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
                         compiler::target::kWordSize);
         copy_args_prologue += LoadLocal(tuple_diff);
         copy_args_prologue += SmiBinaryOp(Token::kADD, /* truncate= */ true);
-        copy_args_prologue +=
-            LoadIndexed(/* index_scale = */ compiler::target::kWordSize);
+        copy_args_prologue += LoadIndexed(kArrayCid);
 
         // first name in sorted list of all names
         const String& param_name = String::ZoneHandle(

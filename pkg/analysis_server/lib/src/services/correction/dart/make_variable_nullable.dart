@@ -28,47 +28,17 @@ class MakeVariableNullable extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = coveredNode;
     var parent = node?.parent;
-    if (unit.featureSet.isEnabled(Feature.non_nullable) &&
-        parent is AssignmentExpression &&
-        parent.rightHandSide == node) {
-      var leftHandSide = parent.leftHandSide;
-      if (leftHandSide is SimpleIdentifier) {
-        var element = leftHandSide.staticElement;
-        if (element is LocalVariableElement) {
-          var oldType = element.type;
-          var newType = (node as Expression).staticType;
-          if (node is NullLiteral) {
-            newType = (oldType as InterfaceTypeImpl)
-                .withNullability(NullabilitySuffix.question);
-          } else if (!typeSystem.isAssignableTo(
-              oldType, typeSystem.promoteToNonNull(newType))) {
-            return;
-          }
-          var declarationList =
-              _findDeclaration(element, parent.thisOrAncestorOfType<Block>());
-          if (declarationList == null || declarationList.variables.length > 1) {
-            return;
-          }
-          var variable = declarationList.variables[0];
-          _variableName = variable.name.name;
-          await builder.addDartFileEdit(file, (builder) {
-            var keyword = declarationList.keyword;
-            if (keyword != null && keyword.type == Keyword.VAR) {
-              builder.addReplacement(range.token(keyword), (builder) {
-                builder.writeType(newType);
-              });
-            } else if (keyword == null) {
-              if (declarationList.type == null) {
-                builder.addInsertion(variable.offset, (builder) {
-                  builder.writeType(newType);
-                  builder.write(' ');
-                });
-              } else {
-                builder.addSimpleInsertion(declarationList.type.end, '?');
-              }
-            }
-          });
-        }
+    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
+      if (node is SimpleIdentifier && parent is SimpleFormalParameter) {
+        await _forSimpleFormalParameter(builder, node, parent);
+      } else if (node is SimpleIdentifier &&
+          parent is FunctionTypedFormalParameter) {
+        await _forFunctionTypedFormalParameter(builder, node, parent);
+      } else if (node is SimpleIdentifier && parent is FieldFormalParameter) {
+        await _forFieldFormalParameter(builder, node, parent);
+      } else if (parent is AssignmentExpression &&
+          parent.rightHandSide == node) {
+        await _forVariableDeclaration(builder, node, parent);
       }
     }
   }
@@ -99,6 +69,108 @@ class MakeVariableNullable extends CorrectionProducer {
       currentBlock = currentBlock.parent.thisOrAncestorOfType<Block>();
     }
     return null;
+  }
+
+  /// Makes [parameter] nullable if possible.
+  Future<void> _forFieldFormalParameter(ChangeBuilder builder,
+      SimpleIdentifier name, FieldFormalParameter parameter) async {
+    if (parameter.parameters != null) {
+      // A function-typed field formal parameter.
+      if (parameter.question != null) {
+        return;
+      }
+      _variableName = parameter.identifier.name;
+      await builder.addDartFileEdit(file, (builder) {
+        // Add '?' after `)`.
+        builder.addSimpleInsertion(parameter.endToken.end, '?');
+      });
+    } else {
+      if (!_typeCanBeMadeNullable(parameter.type)) {
+        return;
+      }
+      _variableName = parameter.identifier.name;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(parameter.type.end, '?');
+      });
+    }
+  }
+
+  /// Makes [parameter] nullable if possible.
+  Future<void> _forFunctionTypedFormalParameter(ChangeBuilder builder,
+      SimpleIdentifier name, FunctionTypedFormalParameter parameter) async {
+    if (parameter.question != null) {
+      return;
+    }
+    _variableName = parameter.identifier.name;
+    await builder.addDartFileEdit(file, (builder) {
+      // Add '?' after `)`.
+      builder.addSimpleInsertion(parameter.endToken.end, '?');
+    });
+  }
+
+  Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
+      SimpleIdentifier name, SimpleFormalParameter parameter) async {
+    if (!_typeCanBeMadeNullable(parameter.type)) {
+      return;
+    }
+    _variableName = parameter.identifier.name;
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleInsertion(parameter.type.end, '?');
+    });
+  }
+
+  Future<void> _forVariableDeclaration(
+      ChangeBuilder builder, AstNode node, AssignmentExpression parent) async {
+    var leftHandSide = parent.leftHandSide;
+    if (leftHandSide is SimpleIdentifier) {
+      var element = leftHandSide.staticElement;
+      if (element is LocalVariableElement) {
+        var oldType = element.type;
+        var newType = (node as Expression).staticType;
+        if (node is NullLiteral) {
+          newType = (oldType as InterfaceTypeImpl)
+              .withNullability(NullabilitySuffix.question);
+        } else if (!typeSystem.isAssignableTo(
+            oldType, typeSystem.promoteToNonNull(newType))) {
+          return;
+        }
+        var declarationList =
+            _findDeclaration(element, parent.thisOrAncestorOfType<Block>());
+        if (declarationList == null || declarationList.variables.length > 1) {
+          return;
+        }
+        var variable = declarationList.variables[0];
+        _variableName = variable.name.name;
+        await builder.addDartFileEdit(file, (builder) {
+          var keyword = declarationList.keyword;
+          if (keyword != null && keyword.type == Keyword.VAR) {
+            builder.addReplacement(range.token(keyword), (builder) {
+              builder.writeType(newType);
+            });
+          } else if (keyword == null) {
+            if (declarationList.type == null) {
+              builder.addInsertion(variable.offset, (builder) {
+                builder.writeType(newType);
+                builder.write(' ');
+              });
+            } else {
+              builder.addSimpleInsertion(declarationList.type.end, '?');
+            }
+          }
+        });
+      }
+    }
+  }
+
+  bool _typeCanBeMadeNullable(TypeAnnotation typeAnnotation) {
+    // Ensure that there is a type annotation.
+    if (typeAnnotation == null) {
+      return false;
+    }
+    if (typeSystem.isNullable(typeAnnotation.type)) {
+      return false;
+    }
+    return true;
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

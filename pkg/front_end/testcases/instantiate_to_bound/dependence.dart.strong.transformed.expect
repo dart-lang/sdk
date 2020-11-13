@@ -17,7 +17,7 @@ class A<X extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class C<X extends core::Object* = dynamic, Y extends (self::C::X*) →* self::C::X* = (core::Null?) →* dynamic> extends core::Object {
+class C<X extends core::Object* = dynamic, Y extends (self::C::X*) →* self::C::X* = (Null) →* dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::X*, self::C::Y*>*
     : super core::Object::•()
     ;
@@ -32,7 +32,7 @@ class C<X extends core::Object* = dynamic, Y extends (self::C::X*) →* self::C:
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class D<X extends core::num* = core::num*, Y extends (self::D::X*) →* self::D::X* = (core::Null?) →* core::num*> extends core::Object {
+class D<X extends core::num* = core::num*, Y extends (self::D::X*) →* self::D::X* = (Null) →* core::num*> extends core::Object {
   synthetic constructor •() → self::D<self::D::X*, self::D::Y*>*
     : super core::Object::•()
     ;
@@ -47,6 +47,6 @@ class D<X extends core::num* = core::num*, Y extends (self::D::X*) →* self::D:
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field self::C<dynamic, (core::Null?) →* dynamic>* c;
-static field self::D<core::num*, (core::Null?) →* core::num*>* d;
+static field self::C<dynamic, (Null) →* dynamic>* c;
+static field self::D<core::num*, (Null) →* core::num*>* d;
 static method main() → dynamic {}

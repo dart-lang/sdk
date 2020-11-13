@@ -1,0 +1,150 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# If issuing a "compiling with strong mode but [...]" error, we should be able
+# to get rid of it if the error is fixed.
+
+type: newworld
+worlds:
+  - entry: package:baz/main.dart
+    experiments: non-nullable
+    nnbdMode: strong
+    errors: true
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib/",
+              "languageVersion": "2.8"
+            },
+            {
+              "name": "bar",
+              "rootUri": "../bar",
+              "packageUri": "lib/",
+              "languageVersion": "2.8"
+            },
+            {
+              "name": "baz",
+              "rootUri": "../baz",
+              "packageUri": ""
+            }
+          ]
+        }
+      foo/lib/foo.dart: |
+        // This file is in weak mode.
+        int x = null;
+      bar/lib/bar.dart: |
+        // This file is in weak mode.
+        int y = null;
+      baz/main.dart: |
+        // This file wants to be strong.
+        import "package:foo/foo.dart" as foo;
+        import "package:bar/bar.dart" as bar;
+        main() {
+          print(foo.x);
+          print(bar.y);
+        }
+    expectedLibraryCount: 3
+
+  # Update "nothing" so we still want the error.
+  - entry: package:baz/main.dart
+    experiments: non-nullable
+    nnbdMode: strong
+    worldType: updated
+    expectInitializeFromDill: false
+    errors: true
+    invalidate:
+      - baz/main.dart
+    sources:
+      baz/main.dart: |
+        // This file wants to be strong.
+        import "package:foo/foo.dart" as foo;
+        import "package:bar/bar.dart" as bar;
+        main() {
+          print(foo.x);
+          print(bar.y);
+          print("done");
+        }
+    expectedLibraryCount: 3
+
+
+  # Update ONE package to be strong.
+  - entry: package:baz/main.dart
+    experiments: non-nullable
+    nnbdMode: strong
+    worldType: updated
+    expectInitializeFromDill: false
+    errors: true
+    invalidate:
+      # .dart_tool/package_config.json is invalidated implicitly.
+      - foo/lib/foo.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib/"
+            },
+            {
+              "name": "bar",
+              "rootUri": "../bar",
+              "packageUri": "lib/",
+              "languageVersion": "2.8"
+            },
+            {
+              "name": "baz",
+              "rootUri": "../baz",
+              "packageUri": ""
+            }
+          ]
+        }
+      foo/lib/foo.dart: |
+        // This file is in strong mode.
+        int x = 42;
+    expectedLibraryCount: 3
+
+  # Update the last package to be strong.
+  - entry: package:baz/main.dart
+    experiments: non-nullable
+    nnbdMode: strong
+    worldType: updated
+    expectInitializeFromDill: false
+    errors: false
+    invalidate:
+      # .dart_tool/package_config.json is invalidated implicitly.
+      - bar/lib/bar.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib/"
+            },
+            {
+              "name": "bar",
+              "rootUri": "../bar",
+              "packageUri": "lib/"
+            },
+            {
+              "name": "baz",
+              "rootUri": "../baz",
+              "packageUri": ""
+            }
+          ]
+        }
+      bar/lib/bar.dart: |
+        // This file is in strong mode.
+        int y = 42;
+    expectedLibraryCount: 3
+

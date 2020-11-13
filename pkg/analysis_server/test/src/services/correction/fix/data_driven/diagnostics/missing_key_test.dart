@@ -128,10 +128,9 @@ transforms:
     - kind: 'addTypeParameter'
       name: 'a'
       argumentValue:
-        kind: 'argument'
-        index: 0
+        expression: ''
 ''', [
-      error(TransformSetErrorCode.missingKey, 124, 104),
+      error(TransformSetErrorCode.missingKey, 124, 85),
     ]);
   }
 
@@ -148,10 +147,9 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       argumentValue:
-        kind: 'argument'
-        index: 0
+        expression: ''
 ''', [
-      error(TransformSetErrorCode.missingKey, 124, 103),
+      error(TransformSetErrorCode.missingKey, 124, 84),
     ]);
   }
 

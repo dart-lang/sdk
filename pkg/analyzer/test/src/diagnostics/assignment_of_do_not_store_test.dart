@@ -178,6 +178,49 @@ class A {
     ]);
   }
 
+  test_topLevelVariable_assignment_field() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+String top = A().f; 
+
+class A{
+  @doNotStore
+  final f = '';
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5, messageContains: "'f'"),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_getter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+String top = v; 
+
+@doNotStore
+String get v => '';
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 1, messageContains: "'v'"),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_method() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+String top = A().v(); 
+
+class A{
+  @doNotStore
+  String v() => '';
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 7, messageContains: "'v'"),
+    ]);
+  }
+
   test_topLevelVariable_binaryExpression() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';

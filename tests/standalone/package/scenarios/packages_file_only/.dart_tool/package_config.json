@@ -9,7 +9,7 @@
     {
       "name": "foo",
       "rootUri": "../foo",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     }
   ]
 }

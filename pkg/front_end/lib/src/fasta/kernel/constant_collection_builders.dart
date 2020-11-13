@@ -107,6 +107,7 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
     List<Expression> lists = <Expression>[];
     for (Object part in parts) {
       if (part is List<Constant>) {
+        if (part.isEmpty) continue;
         lists.add(new ConstantExpression(new ListConstant(elementType, part)));
       } else if (part is Constant) {
         lists.add(evaluator.extract(part));
@@ -182,15 +183,15 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
           mapEntries[i] =
               new ConstantMapEntry(entries[i], evaluator.nullConstant);
         }
-        Constant map = evaluator.lowerMapConstant(new MapConstant(
-            elementType, evaluator.typeEnvironment.nullType, mapEntries));
+        Constant map = evaluator.lowerMapConstant(
+            new MapConstant(elementType, const NullType(), mapEntries));
         return evaluator.lower(
             result,
             new InstanceConstant(
                 evaluator.unmodifiableSetMap.enclosingClass.reference, [
               elementType
             ], <Reference, Constant>{
-              evaluator.unmodifiableSetMap.reference: map
+              evaluator.unmodifiableSetMap.getterReference: map
             }));
       } else {
         return evaluator.lowerSetConstant(result);
@@ -199,6 +200,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     List<Expression> sets = <Expression>[];
     for (Object part in parts) {
       if (part is List<Constant>) {
+        if (part.isEmpty) continue;
         sets.add(new ConstantExpression(new SetConstant(elementType, part)));
       } else if (part is Constant) {
         sets.add(evaluator.extract(part));
@@ -327,6 +329,7 @@ class MapConstantBuilder {
     List<Expression> maps = <Expression>[];
     for (Object part in parts) {
       if (part is List<ConstantMapEntry>) {
+        if (part.isEmpty) continue;
         maps.add(
             new ConstantExpression(new MapConstant(keyType, valueType, part)));
       } else if (part is Constant) {

@@ -31,7 +31,7 @@ void defineMigrateTests() {
   });
 
   test('directory implicit', () {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'int get foo => 1;\n');
     var result =
         p.runSync('migrate', ['--no-web-preview'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
@@ -40,7 +40,7 @@ void defineMigrateTests() {
   });
 
   test('directory explicit', () {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'int get foo => 1;\n');
     var result = p.runSync('migrate', ['--no-web-preview', p.dirPath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);

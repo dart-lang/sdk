@@ -28,8 +28,6 @@ List<String> _experimentsArgument(
   var experiments = {
     ...configuration.experiments,
     ...testFile.experiments,
-    if (configuration.nnbdMode != NnbdMode.legacy)
-      'non-nullable',
   };
   if (experiments.isEmpty) {
     return const [];
@@ -100,7 +98,6 @@ abstract class CompilerConfiguration {
         return AppJitCompilerConfiguration(configuration);
 
       case Compiler.dartk:
-      case Compiler.dartkb:
         if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
@@ -1088,8 +1085,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  static final noCausalAsyncStacksRegExp =
-      RegExp('--no[_-]causal[_-]async[_-]stacks');
+  static final causalAsyncStacksRegExp = RegExp('--causal[_-]async[_-]stacks');
 
   TestConfiguration get _configuration;
 
@@ -1120,7 +1116,7 @@ abstract class VMKernelCompilerMixin {
 
     var isProductMode = _configuration.configuration.mode == Mode.product;
 
-    var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
+    var causalAsyncStacks = arguments.any(causalAsyncStacksRegExp.hasMatch);
 
     var args = [
       _isAot ? '--aot' : '--no-aot',
@@ -1192,6 +1188,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
     var compilerArguments = [
       '--verify',
+      '--verify-skip-platform',
       "-o",
       outputFileName,
       "--platform",

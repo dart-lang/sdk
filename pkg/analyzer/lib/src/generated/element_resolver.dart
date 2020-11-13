@@ -176,7 +176,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
       if (prefixElement is PrefixElement) {
         var prefixScope = prefixElement.scope;
-        var lookupResult = prefixScope.lookup2(name.name);
+        var lookupResult = prefixScope.lookup(name.name);
         var element = lookupResult.getter ?? lookupResult.setter;
         element = _resolver.toLegacyElement(element);
         name.staticElement = element;
@@ -640,7 +640,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// which it could be resolved, or `null` if it could not be resolved. This
   /// does not record the results of the resolution.
   Element _resolveSimpleIdentifier(SimpleIdentifier identifier) {
-    var lookupResult = _resolver.nameScope.lookup2(identifier.name);
+    var lookupResult = _resolver.nameScope.lookup(identifier.name);
 
     Element element = lookupResult.getter;
     element = _resolver.toLegacyElement(element);

@@ -20,7 +20,7 @@ class ReplaceWithVarTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.REPLACE_WITH_VAR;
 
   Future<void> test_for() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> list) {
   for (/*caret*/int i = 0; i < list.length; i++) {
     print(i);
@@ -37,7 +37,7 @@ void f(List<int> list) {
   }
 
   Future<void> test_forEach() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> list) {
   for (/*caret*/int i in list) {
     print(i);
@@ -54,7 +54,7 @@ void f(List<int> list) {
   }
 
   Future<void> test_generic_instanceCreation_withArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 C<int> f() {
   /*caret*/C<int> c = C<int>();
   return c;
@@ -71,7 +71,7 @@ class C<T> {}
   }
 
   Future<void> test_generic_instanceCreation_withoutArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 C<int> f() {
   /*caret*/C<int> c = C();
   return c;
@@ -88,7 +88,7 @@ class C<T> {}
   }
 
   Future<void> test_generic_listLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List f() {
   /*caret*/List<int> l = [];
   return l;
@@ -103,7 +103,7 @@ List f() {
   }
 
   Future<void> test_generic_mapLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Map f() {
   /*caret*/Map<String, int> m = {};
   return m;
@@ -118,7 +118,7 @@ Map f() {
   }
 
   Future<void> test_generic_setLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Set f() {
   /*caret*/Set<int> s = {};
   return s;
@@ -133,7 +133,7 @@ Set f() {
   }
 
   Future<void> test_generic_setLiteral_ambiguous() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Set f() {
   /*caret*/Set s = {};
   return s;
@@ -143,7 +143,7 @@ Set f() {
   }
 
   Future<void> test_moreGeneral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 num f() {
   /*caret*/num n = 0;
   return n;
@@ -153,7 +153,7 @@ num f() {
   }
 
   Future<void> test_noInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   /*caret*/String s;
   s = '';
@@ -164,7 +164,7 @@ String f() {
   }
 
   Future<void> test_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   /*caret*/var s = '';
   return s;
@@ -174,7 +174,7 @@ String f() {
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   /*caret*/String s = '';
   return s;

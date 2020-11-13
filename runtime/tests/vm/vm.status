@@ -157,10 +157,6 @@ dart_2/transferable_throws_oom_test: SkipByDesign # Allocating too much memory t
 
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
-cc/GenKernelKernelCombined: Skip # Issue 34393.
-cc/GenKernelKernelLoadKernel: Skip # Issue 34542.
-cc/GenKernelKernelMaxRSS: Skip # Issue 34393.
-cc/GenKernelKernelReadAllBytecode: Skip # Issue 34393.
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
@@ -260,6 +256,7 @@ dart/appjit*: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
+dart/regress_44026_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 dart/type_casts_with_null_safety_autodetection_test: SkipByDesign # Test needs to run from source
 dart_2/appjit*: SkipByDesign # Test needs to run from source
@@ -299,12 +296,6 @@ cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/
 [ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64) ]
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
-
-[ $arch == arm || $arch == ia32 || $arch == simarm ]
-cc/GenKernelKernelCombined: SkipByDesign # No interpreter support.
-cc/GenKernelKernelLoadKernel: SkipByDesign # No interpreter support.
-cc/GenKernelKernelMaxRSS: SkipByDesign # No interpreter support.
-cc/GenKernelKernelReadAllBytecode: SkipByDesign # No interpreter support.
 
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct

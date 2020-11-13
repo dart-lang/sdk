@@ -19,7 +19,7 @@ class UseIsNotEmptyTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_is_not_empty;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> l) {
   if (!l.isEmpty) {}
   if (!l.isEmpty || true) {}

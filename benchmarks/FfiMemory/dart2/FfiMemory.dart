@@ -9,6 +9,8 @@
 // These micro benchmarks track the speed of reading and writing C memory from
 // Dart with a specific marshalling and unmarshalling of data.
 
+// @dart=2.9
+
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';

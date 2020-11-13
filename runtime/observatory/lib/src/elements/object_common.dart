@@ -14,20 +14,20 @@ import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
 class ObjectCommonElement extends CustomElement implements Renderable {
-  RenderingScheduler<ObjectCommonElement> _r;
+  late RenderingScheduler<ObjectCommonElement> _r;
 
   Stream<RenderedEvent<ObjectCommonElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.Object _object;
-  M.RetainedSizeRepository _retainedSizes;
-  M.ReachableSizeRepository _reachableSizes;
-  M.InboundReferencesRepository _references;
-  M.RetainingPathRepository _retainingPaths;
-  M.ObjectRepository _objects;
-  M.Guarded<M.Instance> _retainedSize = null;
+  late M.IsolateRef _isolate;
+  late M.Object _object;
+  late M.RetainedSizeRepository _retainedSizes;
+  late M.ReachableSizeRepository _reachableSizes;
+  late M.InboundReferencesRepository _references;
+  late M.RetainingPathRepository _retainingPaths;
+  late M.ObjectRepository _objects;
+  M.Guarded<M.Instance>? _retainedSize = null;
   bool _loadingRetainedBytes = false;
-  M.Guarded<M.Instance> _reachableSize = null;
+  M.Guarded<M.Instance>? _reachableSize = null;
   bool _loadingReachableBytes = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -41,7 +41,7 @@ class ObjectCommonElement extends CustomElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(object != null);
     assert(retainedSizes != null);
@@ -76,8 +76,8 @@ class ObjectCommonElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  RetainingPathElement _path;
-  InboundReferencesElement _inbounds;
+  RetainingPathElement? _path;
+  InboundReferencesElement? _inbounds;
 
   void render() {
     _path = _path ??
@@ -101,7 +101,7 @@ class ObjectCommonElement extends CustomElement implements Renderable {
                 ..children = <Element>[
                   _object.clazz == null
                       ? (new SpanElement()..text = '...')
-                      : new ClassRefElement(_isolate, _object.clazz,
+                      : new ClassRefElement(_isolate, _object.clazz!,
                               queue: _r.queue)
                           .element
                 ]
@@ -149,7 +149,7 @@ class ObjectCommonElement extends CustomElement implements Renderable {
                 ..text = 'Retaining path ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = <Element>[_path.element]
+                ..children = <Element>[_path!.element]
             ],
           new DivElement()
             ..classes = ['memberItem']
@@ -160,7 +160,7 @@ class ObjectCommonElement extends CustomElement implements Renderable {
                 ..text = 'Inbound references ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = <Element>[_inbounds.element]
+                ..children = <Element>[_inbounds!.element]
             ]
         ]
     ];
@@ -169,14 +169,14 @@ class ObjectCommonElement extends CustomElement implements Renderable {
   List<Element> _createReachableSizeValue() {
     final content = <Element>[];
     if (_reachableSize != null) {
-      if (_reachableSize.isSentinel) {
-        content.add(
-            new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
-                .element);
+      if (_reachableSize!.isSentinel) {
+        content.add(new SentinelValueElement(_reachableSize!.asSentinel!,
+                queue: _r.queue)
+            .element);
       } else {
         content.add(new SpanElement()
           ..text = Utils.formatSize(
-              int.parse(_reachableSize.asValue.valueAsString)));
+              int.parse(_reachableSize!.asValue!.valueAsString!)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -188,7 +188,7 @@ class ObjectCommonElement extends CustomElement implements Renderable {
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingReachableBytes = true;
-      _reachableSize = await _reachableSizes.get(_isolate, _object.id);
+      _reachableSize = await _reachableSizes.get(_isolate, _object.id!);
       _r.dirty();
     });
     content.add(button);
@@ -198,14 +198,14 @@ class ObjectCommonElement extends CustomElement implements Renderable {
   List<Element> _createRetainedSizeValue() {
     final content = <Element>[];
     if (_retainedSize != null) {
-      if (_retainedSize.isSentinel) {
-        content.add(
-            new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
-                .element);
+      if (_retainedSize!.isSentinel) {
+        content.add(new SentinelValueElement(_retainedSize!.asSentinel!,
+                queue: _r.queue)
+            .element);
       } else {
         content.add(new SpanElement()
-          ..text =
-              Utils.formatSize(int.parse(_retainedSize.asValue.valueAsString)));
+          ..text = Utils.formatSize(
+              int.parse(_retainedSize!.asValue!.valueAsString!)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -217,7 +217,7 @@ class ObjectCommonElement extends CustomElement implements Renderable {
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingRetainedBytes = true;
-      _retainedSize = await _retainedSizes.get(_isolate, _object.id);
+      _retainedSize = await _retainedSizes.get(_isolate, _object.id!);
       _r.dirty();
     });
     content.add(button);

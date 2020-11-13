@@ -691,14 +691,14 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// produced but no errors were generated, then the list will be empty.
   List<AnalysisError> get constantEvaluationErrors;
 
-  /// Return a representation of the value of this annotation, or `null` if the
-  /// value of this annotation has not been computed or if the value could not
-  /// be computed because of errors.
-  @Deprecated('Use computeConstantValue() instead')
-  DartObject get constantValue;
-
-  /// Return the element representing the field, variable, or const constructor
-  /// being used as an annotation.
+  /// Return the element referenced by this annotation.
+  ///
+  /// In valid code this element can be a [PropertyAccessorElement] getter
+  /// of a constant top-level variable, or a constant static field of a
+  /// class; or a constant [ConstructorElement].
+  ///
+  /// In invalid code this element can be `null`, or a reference to any
+  /// other element.
   Element get element;
 
   /// Return `true` if this annotation marks the associated function as always
@@ -1149,24 +1149,20 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 
 /// A function type alias (`typedef`).
 ///
+/// This class models a type alias whose body specifies a function type, as
+/// is the only possible kind of type alias before the generalization that
+/// allows the body to be an arbitrary type.
+///
+/// This class will be deprecated and [TypeAliasElement] will replace it
+/// when non-function type aliases are enabled by default.
+///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionTypeAliasElement
-    implements TypeParameterizedElement, TypeDefiningElement {
-  @override
-  CompilationUnitElement get enclosingElement;
-
+abstract class FunctionTypeAliasElement implements TypeAliasElement {
   /// Return the generic function type element representing the generic function
   /// type on the right side of the equals.
   GenericFunctionTypeElement get function;
 
-  /// Produces the function type resulting from instantiating this typedef with
-  /// the given [typeArguments] and [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
-  /// generic function, with type formals. For example, if the typedef is:
-  ///     typedef F<T> = void Function<U>(T, U);
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
+  @override
   FunctionType instantiate({
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
@@ -1196,11 +1192,6 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
-
-/// A synonym for [FunctionTypeAliasElement].
-///
-/// Clients may not extend, implement, or mix-in this class.
-abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {}
 
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.
@@ -1657,6 +1648,28 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
   bool get isExternal;
 }
 
+/// A type alias (`typedef`).
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TypeAliasElement
+    implements TypeParameterizedElement, TypeDefiningElement {
+  @override
+  CompilationUnitElement get enclosingElement;
+
+  /// Produces the type resulting from instantiating this typedef with the given
+  /// [typeArguments] and [nullabilitySuffix].
+  ///
+  /// Note that this always instantiates the typedef itself, so for a
+  /// [TypeAliasElement] the returned [DartType] might still be a generic
+  /// type, with type formals. For example, if the typedef is:
+  ///     typedef F<T> = void Function<U>(T, U);
+  /// then `F<int>` will produce `void Function<U>(int, U)`.
+  DartType instantiate({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
+}
+
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1730,27 +1743,12 @@ abstract class UriReferencedElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableElement implements Element, ConstantEvaluationTarget {
-  /// Return a representation of the value of this variable.
-  ///
-  /// Return `null` if either this variable was not declared with the 'const'
-  /// modifier or if the value of this variable could not be computed because of
-  /// errors.
-  @Deprecated('Use computeConstantValue() instead')
-  DartObject get constantValue;
-
   @override
   VariableElement get declaration;
 
   /// Return `true` if this variable element did not have an explicit type
   /// specified for it.
   bool get hasImplicitType;
-
-  /// Return a synthetic function representing this variable's initializer, or
-  /// `null` if this variable does not have an initializer. The function will
-  /// have no parameters. The return type of the function will be the
-  /// compile-time type of the initialization expression.
-  @deprecated
-  FunctionElement get initializer;
 
   /// Return `true` if this variable was declared with the 'const' modifier.
   bool get isConst;

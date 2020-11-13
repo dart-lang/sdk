@@ -6,28 +6,20 @@ library fasta.class_builder;
 
 import 'package:kernel/ast.dart'
     show
-        Arguments,
-        AsExpression,
-        AsyncMarker,
         Class,
         Constructor,
         DartType,
         DynamicType,
-        Expression,
         FunctionNode,
         FunctionType,
         FutureOrType,
         InterfaceType,
         Member,
-        MethodInvocation,
         Name,
+        NullType,
         Nullability,
-        Procedure,
-        ReturnStatement,
         Supertype,
-        ThisExpression,
         TypeParameter,
-        VoidType,
         getAsTypeArguments;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -43,13 +35,11 @@ import 'package:kernel/type_environment.dart'
 
 import 'package:kernel/src/types.dart' show Types;
 
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
 import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
-
-import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../loader.dart';
 
@@ -549,7 +539,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       Nullability nullability, List<DartType> arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
     if (isNullClass) {
-      nullability = Nullability.nullable;
+      return const NullType();
     }
     if (name == "FutureOr") {
       LibraryBuilder parentLibrary = parent;
@@ -773,48 +763,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
   }
 
-  void transformProcedureToNoSuchMethodForwarder(
-      Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
-    String prefix = procedure.isGetter
-        ? 'get:'
-        : procedure.isSetter
-            ? 'set:'
-            : '';
-    String invocationName = prefix + procedure.name.text;
-    if (procedure.isSetter) invocationName += '=';
-    Expression invocation = target.backendTarget.instantiateInvocation(
-        target.loader.coreTypes,
-        new ThisExpression(),
-        invocationName,
-        new Arguments.forwarded(procedure.function, library.library),
-        procedure.fileOffset,
-        /*isSuper=*/ false);
-    Expression result = new MethodInvocation(new ThisExpression(),
-        noSuchMethodName, new Arguments([invocation]), noSuchMethodInterface)
-      ..fileOffset = procedure.fileOffset;
-    if (procedure.function.returnType is! VoidType) {
-      result = new AsExpression(result, procedure.function.returnType)
-        ..isTypeError = true
-        ..isForDynamic = true
-        ..isForNonNullableByDefault = library.isNonNullableByDefault
-        ..fileOffset = procedure.fileOffset;
-    }
-    procedure.function.body = new ReturnStatement(result)
-      ..fileOffset = procedure.fileOffset;
-    procedure.function.body.parent = procedure.function;
-    procedure.function.asyncMarker = AsyncMarker.Sync;
-    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
-
-    procedure.isAbstract = false;
-    procedure.isNoSuchMethodForwarder = true;
-    procedure.isMemberSignature = false;
-    procedure.isForwardingStub = false;
-    procedure.isForwardingSemiStub = false;
-    procedure.memberSignatureOrigin = null;
-    procedure.forwardingStubInterfaceTarget = null;
-    procedure.forwardingStubSuperTarget = null;
-  }
-
   @override
   String get fullNameForErrors {
     return isMixinApplication && !isNamedMixinApplication
@@ -834,7 +782,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType implementedInterface = hierarchy.getTypeAsInstanceOf(
-          supertype, requiredInterface.classNode, library.library, coreTypes);
+          supertype, requiredInterface.classNode, library.library);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
               implementedInterface,
@@ -912,10 +860,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (redirectionTarget.target is FunctionBuilder) {
       FunctionBuilder targetBuilder = redirectionTarget.target;
       target = targetBuilder.function;
-    } else if (redirectionTarget.target is DillMemberBuilder &&
-        (redirectionTarget.target.isConstructor ||
-            redirectionTarget.target.isFactory)) {
-      DillMemberBuilder targetBuilder = redirectionTarget.target;
+    } else if (redirectionTarget.target is DillConstructorBuilder) {
+      DillConstructorBuilder targetBuilder = redirectionTarget.target;
       // It seems that the [redirectionTarget.target] is an instance of
       // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
       // e.g.
@@ -925,7 +871,19 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       //   }
       //   class B implements A {}
       //
-      target = targetBuilder.member.function;
+      target = targetBuilder.constructor.function;
+    } else if (redirectionTarget.target is DillFactoryBuilder) {
+      DillFactoryBuilder targetBuilder = redirectionTarget.target;
+      // It seems that the [redirectionTarget.target] is an instance of
+      // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
+      // e.g.
+      //
+      //   class A {
+      //     factory A() = B;
+      //   }
+      //   class B implements A {}
+      //
+      target = targetBuilder.procedure.function;
     } else if (redirectionTarget.target is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
       // issued.
@@ -1205,18 +1163,4 @@ class ConstructorRedirection {
   bool cycleReported;
 
   ConstructorRedirection(this.target) : cycleReported = false;
-}
-
-/// Returns `true` if override problems should be overlooked.
-///
-/// This is needed for the current encoding of some JavaScript implementation
-/// classes that are not valid Dart. For instance `JSInt` in
-/// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
-/// in `dart:js` that implement both `ListMixin` and `JsObject`.
-bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
-  String uri = '${classBuilder.library.importUri}';
-  return uri == 'dart:js' &&
-          classBuilder.fileUri.pathSegments.last == 'js.dart' ||
-      uri == 'dart:_interceptors' &&
-          classBuilder.fileUri.pathSegments.last == 'js_number.dart';
 }

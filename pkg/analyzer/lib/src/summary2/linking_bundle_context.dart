@@ -171,13 +171,13 @@ class LinkingBundleContext {
 
     Element typedefElement;
     List<DartType> typedefTypeArguments = const <DartType>[];
-    if (type.element is GenericTypeAliasElement) {
+    if (type.element is FunctionTypeAliasElement) {
       typedefElement = type.element;
       typedefTypeArguments = type.typeArguments;
     }
-    // TODO(scheglov) Cleanup to always use GenericTypeAliasElement.
+    // TODO(scheglov) Cleanup to always use FunctionTypeAliasElement.
     if (type.element is GenericFunctionTypeElement &&
-        type.element.enclosingElement is GenericTypeAliasElement) {
+        type.element.enclosingElement is FunctionTypeAliasElement) {
       typedefElement = type.element.enclosingElement;
       typedefTypeArguments = type.typeArguments;
     }

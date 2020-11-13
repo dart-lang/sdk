@@ -56,11 +56,14 @@ Future<void> socketTest() async {
   postEvent('socketTest', {'socket': 'test'});
 }
 
-Future<void> checkFinishEvent(ServiceEvent event) {
+bool checkFinishEvent(ServiceEvent event) {
   expect(event.kind, equals(ServiceEvent.kExtension));
-  expect(event.extensionKind, equals('socketTest'));
+  if (event.extensionKind != 'socketTest') {
+    return false;
+  }
   expect(event.extensionData, isA<Map>());
   expect(event.extensionData['socket'], equals('test'));
+  return true;
 }
 
 var tests = <IsolateTest>[
@@ -102,9 +105,10 @@ var tests = <IsolateTest>[
     var sub;
     sub = await isolate.vm.listenEventStream(Isolate.kExtensionStream,
         (ServiceEvent event) {
-      checkFinishEvent(event);
-      sub.cancel();
-      completer.complete();
+      if (checkFinishEvent(event)) {
+        sub.cancel();
+        completer.complete();
+      }
     });
 
     dynamic result = await isolate.invokeRpc("invoke",
@@ -150,9 +154,10 @@ var tests = <IsolateTest>[
       completer = Completer();
       sub = await isolate.vm.listenEventStream(Isolate.kExtensionStream,
           (ServiceEvent event) {
-        checkFinishEvent(event);
-        sub.cancel();
-        completer.complete();
+        if (checkFinishEvent(event)) {
+          sub.cancel();
+          completer.complete();
+        }
       });
       dynamic result = await isolate.invokeRpc("invoke",
           {"targetId": lib.id, "selector": "socketTest", "argumentIds": []});
@@ -197,9 +202,10 @@ var tests = <IsolateTest>[
     var sub;
     sub = await isolate.vm.listenEventStream(Isolate.kExtensionStream,
         (ServiceEvent event) {
-      checkFinishEvent(event);
-      sub.cancel();
-      completer.complete();
+      if (checkFinishEvent(event)) {
+        sub.cancel();
+        completer.complete();
+      }
     });
 
     dynamic result = await isolate.invokeRpc("invoke",

@@ -16,7 +16,10 @@
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
+#include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
+#include "vm/compiler/ffi/native_location.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
@@ -266,10 +269,14 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;
   SubclassFinder finder(zone, &cids, include_abstract);
-  if (use_subtype_test) {
-    finder.ScanImplementorClasses(dst_klass);
-  } else {
-    finder.ScanSubClasses(dst_klass);
+  {
+    SafepointReadRwLocker ml(thread(),
+                             thread()->isolate_group()->program_lock());
+    if (use_subtype_test) {
+      finder.ScanImplementorClasses(dst_klass);
+    } else {
+      finder.ScanSubClasses(dst_klass);
+    }
   }
 
   // Sort all collected cids.
@@ -772,8 +779,7 @@ static intptr_t Usage(const Function& function) {
       // 'function' is queued for optimized compilation
       count = FLAG_optimization_counter_threshold;
     } else {
-      // 'function' is queued for unoptimized compilation
-      count = FLAG_compilation_counter_threshold;
+      count = 0;
     }
   } else if (Code::IsOptimized(function.CurrentCode())) {
     // 'function' was optimized and stopped counting
@@ -990,9 +996,8 @@ Representation LoadFieldInstr::representation() const {
 AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
     TokenPosition token_pos,
     intptr_t num_context_variables)
-    : token_pos_(token_pos),
-      num_context_variables_(num_context_variables),
-      identity_(AliasIdentity::Unknown()) {
+    : TemplateAllocation(token_pos),
+      num_context_variables_(num_context_variables) {
   // This instruction is not used in AOT for code size reasons.
   ASSERT(!CompilerState::Current().is_aot());
 }
@@ -1225,6 +1230,15 @@ const Object& Value::BoundConstant() const {
   ConstantInstr* constant = definition()->AsConstant();
   ASSERT(constant != NULL);
   return constant->value();
+}
+
+bool Value::BindsToSmiConstant() const {
+  return BindsToConstant() && BoundConstant().IsSmi();
+}
+
+intptr_t Value::BoundSmiConstant() const {
+  ASSERT(BindsToSmiConstant());
+  return Smi::Cast(BoundConstant()).Value();
 }
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
@@ -2708,6 +2722,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kArgumentsDescriptor_size:
+    case Slot::Kind::kArrayElement:
     case Slot::Kind::kTypeArguments:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_data:
@@ -2719,8 +2734,12 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kClosure_hash:
+    case Slot::Kind::kClosureData_default_type_arguments:
+    case Slot::Kind::kClosureData_default_type_arguments_info:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
+    case Slot::Kind::kFunction_data:
+    case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
     case Slot::Kind::kFunction_parameter_names:
     case Slot::Kind::kFunction_parameter_types:
@@ -2728,6 +2747,9 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kTypeParameter_bound:
+    case Slot::Kind::kTypeParameter_flags:
+    case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
       return false;
@@ -2744,6 +2766,7 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kTypeArgumentsCid:
       return true;
     default:
       return false;
@@ -3767,6 +3790,9 @@ bool CheckNullInstr::AttributesEqual(Instruction* other) const {
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
+    case kUnboxedUint8:
+      return new BoxUint8Instr(value);
+
     case kUnboxedInt32:
       return new BoxInt32Instr(value);
 
@@ -4152,6 +4178,42 @@ LocationSummary* NativeEntryInstr::MakeLocationSummary(Zone* zone,
   UNREACHABLE();
 }
 
+void NativeEntryInstr::SaveArguments(FlowGraphCompiler* compiler) const {
+  __ Comment("SaveArguments");
+
+  // Save the argument registers, in reverse order.
+  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
+    SaveArgument(compiler, marshaller_.Location(i));
+  }
+
+  __ Comment("SaveArgumentsEnd");
+}
+
+void NativeEntryInstr::SaveArgument(
+    FlowGraphCompiler* compiler,
+    const compiler::ffi::NativeLocation& nloc) const {
+  if (nloc.IsStack()) return;
+
+  if (nloc.IsRegisters()) {
+    const auto& reg_loc = nloc.WidenTo4Bytes(compiler->zone()).AsRegisters();
+    const intptr_t num_regs = reg_loc.num_regs();
+    // Save higher-order component first, so bytes are in little-endian layout
+    // overall.
+    for (intptr_t i = num_regs - 1; i >= 0; i--) {
+      __ PushRegister(reg_loc.reg_at(i));
+    }
+  } else if (nloc.IsFpuRegisters()) {
+    // TODO(dartbug.com/40469): Reduce code size.
+    __ AddImmediate(SPREG, -8);
+    NoTemporaryAllocator temp_alloc;
+    const auto& dst = compiler::ffi::NativeStackLocation(
+        nloc.payload_type(), nloc.payload_type(), SPREG, 0);
+    compiler->EmitNativeMove(dst, nloc, &temp_alloc);
+  } else {
+    UNREACHABLE();
+  }
+}
+
 LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
                                                     bool optimizing) const {
   UNREACHABLE();
@@ -4262,6 +4324,18 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     FlowGraphCompiler* compiler) {
   ASSERT(calls_initializer());
+
+  if (throw_exception_on_initialization()) {
+    ThrowErrorSlowPathCode* slow_path =
+        new LateInitializationErrorSlowPath(this, compiler->CurrentTryIndex());
+    compiler->AddSlowPathCode(slow_path);
+
+    const Register result_reg = locs()->out(0).reg();
+    __ CompareObject(result_reg, Object::sentinel());
+    __ BranchIf(EQUAL, slow_path->entry_label());
+    return;
+  }
+
   ASSERT(locs()->in(0).reg() == InitInstanceFieldABI::kInstanceReg);
   ASSERT(locs()->out(0).reg() == InitInstanceFieldABI::kResultReg);
   ASSERT(slot().IsDartField());
@@ -4439,10 +4513,10 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // for the two frame pointers and two return addresses of the entry frame.
   constexpr intptr_t kEntryFramePadding = 4;
   compiler::ffi::FrameRebase rebase(
+      compiler->zone(),
       /*old_base=*/SPREG, /*new_base=*/FPREG,
       (-kExitLinkSlotFromEntryFp + kEntryFramePadding) *
-          compiler::target::kWordSize,
-      compiler->zone());
+          compiler::target::kWordSize);
   const auto& src =
       rebase.Rebase(marshaller_.NativeLocationOfNativeParameter(index_));
   NoTemporaryAllocator no_temp;
@@ -4763,10 +4837,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   UpdateReceiverSminess(zone);
 
-  if ((compiler->is_optimizing() || compiler->function().HasBytecode()) &&
-      HasICData()) {
-    ASSERT(HasICData());
-    if (compiler->is_optimizing() && (ic_data()->NumberOfUsedChecks() > 0)) {
+  if (compiler->is_optimizing() && HasICData()) {
+    if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
@@ -5219,36 +5291,40 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
-  if (!sub_type()->BindsToConstant() || !super_type()->BindsToConstant()) {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
-  }
-  const intptr_t kNumInputs = 4;
+  const intptr_t kNumInputs = 5;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(
-                         TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(kInstantiatorTAVPos,
+                  Location::RegisterLocation(
+                      AssertSubtypeABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
-      1, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
-  summary->set_in(2,
-                  Location::Constant(sub_type()->definition()->AsConstant()));
-  summary->set_in(3,
-                  Location::Constant(super_type()->definition()->AsConstant()));
+      kFunctionTAVPos,
+      Location::RegisterLocation(AssertSubtypeABI::kFunctionTypeArgumentsReg));
+  summary->set_in(kSubTypePos,
+                  Location::RegisterLocation(AssertSubtypeABI::kSubTypeReg));
+  summary->set_in(kSuperTypePos,
+                  Location::RegisterLocation(AssertSubtypeABI::kSuperTypeReg));
+  summary->set_in(kDstNamePos,
+                  Location::RegisterLocation(AssertSubtypeABI::kDstNameReg));
   return summary;
 }
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ PushRegister(locs()->in(0).reg());
-  __ PushRegister(locs()->in(1).reg());
-  __ PushObject(locs()->in(2).constant());
-  __ PushObject(locs()->in(3).constant());
-  __ PushObject(dst_name());
-
+#if defined(TARGET_ARCH_IA32)
+  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
+  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
+  __ PushRegister(AssertSubtypeABI::kDstNameReg);
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
                                 kSubtypeCheckRuntimeEntry, 5, locs());
 
   __ Drop(5);
+#else
+  compiler->GenerateStubCall(token_pos(), StubCode::AssertSubtype(),
+                             PcDescriptorsLayout::kOther, locs());
+#endif
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
@@ -5310,7 +5386,9 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSharedSlowPath);
+      zone, kNumInputs, kNumTemps,
+      UseSharedSlowPathStub(opt) ? LocationSummary::kCallOnSharedSlowPath
+                                 : LocationSummary::kCallOnSlowPath);
   locs->set_in(kLengthPos,
                Location::RegisterLocation(RangeErrorABI::kLengthReg));
   locs->set_in(kIndexPos, Location::RegisterLocation(RangeErrorABI::kIndexReg));
@@ -5605,14 +5683,10 @@ bool TestCidsInstr::AttributesEqual(Instruction* other) const {
   return true;
 }
 
-static bool BindsToSmiConstant(Value* value) {
-  return value->BindsToConstant() && value->BoundConstant().IsSmi();
-}
-
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {
-  bool is_smi_result = BindsToSmiConstant(v1) && BindsToSmiConstant(v2);
+  bool is_smi_result = v1->BindsToSmiConstant() && v2->BindsToSmiConstant();
   if (comparison->IsStrictCompare()) {
     // Strict comparison with number checks calls a stub and is not supported
     // by if-conversion.
@@ -6128,8 +6202,9 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp = locs()->temp(1).reg();
 
-  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0, zone_);
+  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+                                    /*new_base=*/saved_fp,
+                                    /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Representation origin_rep = RequiredInputRepresentation(i);

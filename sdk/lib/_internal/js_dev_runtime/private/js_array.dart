@@ -157,7 +157,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       var element = JS<E>('', '#[#]', this, i);
       // !test() ensures bool conversion in checked mode.
       if (!test(element) == removeMatching) {
-        retained.add(element);
+        // Unsafe add here to avoid extra casts and growable checks enforced by
+        // the exposed add method.
+        JS('', '#.push(#)', retained, element);
       }
       if (this.length != end) throw ConcurrentModificationError(this);
     }
@@ -645,7 +647,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
  * these classes can have specialized implementations. Doing so will challenge
  * many assumptions in the JS backend.
  */
-class JSMutableArray<E> extends JSArray<E> {}
+class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable<E> {}
 
 class JSFixedArray<E> extends JSMutableArray<E> {}
 

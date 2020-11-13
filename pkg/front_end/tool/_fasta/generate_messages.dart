@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'dart:io';
 
 import 'dart:isolate';
@@ -18,10 +16,16 @@ import 'package:yaml/yaml.dart' show loadYaml;
 main(List<String> arguments) async {
   var port = new ReceivePort();
   Messages message = await generateMessagesFiles();
-  await new File.fromUri(await computeSharedGeneratedFile())
-      .writeAsString(message.sharedMessages, flush: true);
-  await new File.fromUri(await computeCfeGeneratedFile())
-      .writeAsString(message.cfeMessages, flush: true);
+  if (message.sharedMessages.trim().isEmpty ||
+      message.cfeMessages.trim().isEmpty) {
+    print("Bailing because of errors: "
+        "Refusing to overwrite with empty file!");
+  } else {
+    await new File.fromUri(await computeSharedGeneratedFile())
+        .writeAsString(message.sharedMessages, flush: true);
+    await new File.fromUri(await computeCfeGeneratedFile())
+        .writeAsString(message.cfeMessages, flush: true);
+  }
   port.close();
 }
 
@@ -300,6 +304,7 @@ Template compileTemplate(String name, int index, String template, String tip,
       case "type":
       case "type2":
       case "type3":
+      case "type4":
         parameters.add("DartType _${name}");
         ensureLabeler();
         conversions

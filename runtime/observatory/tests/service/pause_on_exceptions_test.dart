@@ -25,7 +25,7 @@ doUncaught() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.reload();
+    Library lib = await isolate.rootLibrary.reload() as Library;
 
     var onPaused = null;
     var onResume = null;

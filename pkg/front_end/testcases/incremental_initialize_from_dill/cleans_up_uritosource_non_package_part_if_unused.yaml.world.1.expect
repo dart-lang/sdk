@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library libFoo from "org-dartlang-test:///b.dart" as lib {
 
   part e.dart;

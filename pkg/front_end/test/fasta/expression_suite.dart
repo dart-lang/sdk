@@ -4,8 +4,6 @@
 
 library fasta.test.expression_test;
 
-import "dart:async" show Future;
-
 import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File, IOSink;
@@ -413,6 +411,7 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
+    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
   final ProcessedOptions options =

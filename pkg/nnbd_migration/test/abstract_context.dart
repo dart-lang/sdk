@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -18,17 +20,30 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 /// TODO(paulberry): this logic is duplicated from other packages.  Find a way
 /// share it, or avoid relying on it.
 class AbstractContextTest with ResourceProviderMixin {
-  static const _homePath = '/home';
-  static const testsPath = '$_homePath/tests';
-
   OverlayResourceProvider overlayResourceProvider;
 
   AnalysisContextCollection _analysisContextCollection;
   AnalysisDriver _driver;
 
-  AnalysisDriver get driver => _driver;
+  final Set<String> knownPackages = {};
+
+  /// Whether the test should perform analysis with NNBD enabled.
+  ///
+  /// `false` by default.  May be overridden in derived test classes.
+  bool get analyzeWithNnbd => false;
+
+  AnalysisDriver get driver {
+    if (_driver == null) {
+      _createAnalysisContexts();
+    }
+    return _driver;
+  }
+
+  String get homePath => '/home';
 
   AnalysisSession get session => driver.currentSession;
+
+  String get testsPath => '$homePath/tests';
 
   void addMetaPackage() {
     addPackageFile('meta', 'meta.dart', r'''
@@ -48,7 +63,7 @@ class Required {
   /// package.
   File addPackageFile(String packageName, String pathInLib, String content) {
     var packagePath = '/.pub-cache/$packageName';
-    _addTestPackageDependency(packageName, packagePath);
+    knownPackages.add(packageName);
     return newFile('$packagePath/lib/$pathInLib', content: content);
   }
 
@@ -90,22 +105,13 @@ export 'package:test_core/test_core.dart';
 ''');
   }
 
-  /// Create all analysis contexts in [_homePath].
-  void createAnalysisContexts() {
-    _analysisContextCollection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath(_homePath)],
-      enableIndex: true,
-      resourceProvider: overlayResourceProvider,
-      sdkPath: convertPath('/sdk'),
-    );
-
-    _driver = getDriver(convertPath(testsPath));
-  }
-
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or throw [StateError] if the [path] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisContext getContext(String path) {
+    if (_analysisContextCollection == null) {
+      _createAnalysisContexts();
+    }
     path = convertPath(path);
     return _analysisContextCollection.contextFor(path);
   }
@@ -131,8 +137,16 @@ export 'package:test_core/test_core.dart';
     newFile('$testsPath/.packages', content: '''
 tests:file://$testsPath/lib
 ''');
-
-    createAnalysisContexts();
+    var pubspecPath = '$testsPath/pubspec.yaml';
+    // Subclasses may write out a different file first.
+    if (!getFile(pubspecPath).exists) {
+      newFile(pubspecPath, content: '''
+name: tests
+version: 1.0.0
+environment:
+  sdk: '>=2.9.0 <3.0.0'
+''');
+    }
   }
 
   void setupResourceProvider() {}
@@ -141,33 +155,38 @@ tests:file://$testsPath/lib
     AnalysisEngine.instance.clearCaches();
   }
 
-  void _addTestPackageDependency(String name, String rootPath) {
-    var packagesFile = getFile('$testsPath/.packages');
-    var packagesContent = packagesFile.readAsStringSync();
-
-    // Ignore if there is already the same package dependency.
-    if (packagesContent.contains('$name:file://')) {
-      return;
-    }
-
-    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
-
-    packagesFile.writeAsStringSync(packagesContent);
-
-    _createDriver();
-  }
-
-  void _createDriver() {
-    var collection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath(_homePath)],
+  /// Create all analysis contexts in [_homePath].
+  void _createAnalysisContexts() {
+    var packageConfigJson = {
+      'configVersion': 2,
+      'packages': [
+        for (var packageName in knownPackages)
+          {
+            'name': packageName,
+            'rootUri': toUriStr('/.pub-cache/$packageName'),
+            'packageUri': 'lib/',
+            'languageVersion': '2.12'
+          },
+        {
+          'name': 'tests',
+          'rootUri': '../',
+          'packageUri': 'lib/',
+          'languageVersion': analyzeWithNnbd ? '2.12' : '2.9'
+        }
+      ],
+      'generated': '2020-10-21T21:13:05.186004Z',
+      'generator': 'pub',
+      'generatorVersion': '2.10.0'
+    };
+    newFile('$testsPath/.dart_tool/package_config.json',
+        content: JsonEncoder.withIndent('  ').convert(packageConfigJson));
+    _analysisContextCollection = AnalysisContextCollectionImpl(
+      includedPaths: [convertPath(homePath)],
       enableIndex: true,
-      resourceProvider: resourceProvider,
+      resourceProvider: overlayResourceProvider,
       sdkPath: convertPath('/sdk'),
     );
 
-    var testPath = convertPath(testsPath);
-    var context = collection.contextFor(testPath) as DriverBasedAnalysisContext;
-
-    _driver = context.driver;
+    _driver = getDriver(convertPath(testsPath));
   }
 }

@@ -1,0 +1,21 @@
+import 'dart:async';
+
+class A {
+  FutureOr<void> method2() {}
+  FutureOr<void> method3() {}
+  void method1() {}
+}
+
+class B {
+  FutureOr<void> method3() {}
+  void method1() {}
+  void method2() {}
+}
+
+class C implements A, B {
+  method1() {}
+  method2() {}
+  method3() {}
+}
+
+main() {}

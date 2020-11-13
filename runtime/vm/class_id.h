@@ -31,7 +31,6 @@ typedef uint16_t ClassIdTagType;
   V(Namespace)                                                                 \
   V(KernelProgramInfo)                                                         \
   V(Code)                                                                      \
-  V(Bytecode)                                                                  \
   V(Instructions)                                                              \
   V(InstructionsSection)                                                       \
   V(ObjectPool)                                                                \
@@ -42,7 +41,6 @@ typedef uint16_t ClassIdTagType;
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
-  V(ParameterTypeCheck)                                                        \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(MonomorphicSmiableCall)                                                    \

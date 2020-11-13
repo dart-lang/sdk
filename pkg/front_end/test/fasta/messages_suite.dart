@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async" show Future, Stream;
-
 import "dart:convert" show utf8;
 
 import 'dart:io' show File, Platform;
@@ -77,8 +75,10 @@ class Configuration {
 
   CompilerOptions apply(CompilerOptions options) {
     if (nnbdMode != null) {
-      options.experimentalFlags[ExperimentalFlag.nonNullable] = true;
+      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
       options.nnbdMode = nnbdMode;
+    } else {
+      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = false;
     }
     return options;
   }

@@ -176,7 +176,7 @@ class Dart2jsTester {
     stopwatch.start();
     Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
     CompilerOptions options = helper.getOptions();
-    options.experimentalFlags[ExperimentalFlag
+    options.explicitExperimentalFlags[ExperimentalFlag
         .alternativeInvalidationStrategy] = useExperimentalInvalidation;
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);

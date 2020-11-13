@@ -19,7 +19,6 @@ main() {
   }
 
   const List<NonNullableByDefaultCompiledMode> modes = const [
-    NonNullableByDefaultCompiledMode.Disabled,
     NonNullableByDefaultCompiledMode.Weak,
     NonNullableByDefaultCompiledMode.Strong,
     NonNullableByDefaultCompiledMode.Agnostic,
@@ -37,7 +36,8 @@ main() {
       // Try individually.
       List<int> c1Serialized;
       {
-        Library lib1 = new Library(Uri.parse("foo://bar.dart"));
+        Library lib1 = new Library(Uri.parse("foo://bar.dart"))
+          ..nonNullableByDefaultCompiledMode = c1Mode;
         Component c1 = new Component(libraries: [lib1]);
         setCompileMode(c1, c1Mode);
         c1Serialized = serializeComponent(c1);
@@ -47,7 +47,8 @@ main() {
 
       List<int> c2Serialized;
       {
-        Library lib2 = new Library(Uri.parse("foo://baz.dart"));
+        Library lib2 = new Library(Uri.parse("foo://baz.dart"))
+          ..nonNullableByDefaultCompiledMode = c2Mode;
         Component c2 = new Component(libraries: [lib2]);
         setCompileMode(c2, c2Mode);
         c2Serialized = serializeComponent(c2);
@@ -128,12 +129,6 @@ bool isOK(NonNullableByDefaultCompiledMode c1Mode,
   if (c1Mode == c2Mode) return true;
   if (c1Mode == NonNullableByDefaultCompiledMode.Agnostic) return true;
   if (c2Mode == NonNullableByDefaultCompiledMode.Agnostic) return true;
-  if ((c1Mode == NonNullableByDefaultCompiledMode.Disabled ||
-          c1Mode == NonNullableByDefaultCompiledMode.Weak) &&
-      (c2Mode == NonNullableByDefaultCompiledMode.Disabled ||
-          c2Mode == NonNullableByDefaultCompiledMode.Weak)) {
-    return true;
-  }
   return false;
 }
 
@@ -143,8 +138,6 @@ NonNullableByDefaultCompiledMode verifyOK(
   if (isOK(c1Mode, c2Mode)) {
     if (c1Mode == NonNullableByDefaultCompiledMode.Agnostic) return c2Mode;
     if (c2Mode == NonNullableByDefaultCompiledMode.Agnostic) return c1Mode;
-    if (c1Mode == NonNullableByDefaultCompiledMode.Disabled) return c1Mode;
-    if (c2Mode == NonNullableByDefaultCompiledMode.Disabled) return c2Mode;
     return c1Mode;
   }
   throw "Not OK combination: $c1Mode and $c2Mode";

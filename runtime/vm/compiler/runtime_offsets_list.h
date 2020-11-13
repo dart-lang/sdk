@@ -60,6 +60,7 @@
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
+  CONSTANT(TypeArguments, kMaxElements)                                        \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
   FIELD(ArgumentsDescriptor, size_offset)                                      \
@@ -84,6 +85,8 @@
   FIELD(Closure, function_type_arguments_offset)                               \
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
+  FIELD(ClosureData, default_type_arguments_offset)                            \
+  FIELD(ClosureData, default_type_arguments_info_offset)                       \
   FIELD(Code, object_pool_offset)                                              \
   FIELD(Code, saved_instructions_offset)                                       \
   FIELD(Code, owner_offset)                                                    \
@@ -102,8 +105,10 @@
   FIELD(Field, is_nullable_offset)                                             \
   FIELD(Field, kind_bits_offset)                                               \
   FIELD(Function, code_offset)                                                 \
+  FIELD(Function, data_offset)                                                 \
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
+  FIELD(Function, kind_tag_offset)                                             \
   FIELD(Function, packed_fields_offset)                                        \
   FIELD(Function, parameter_names_offset)                                      \
   FIELD(Function, parameter_types_offset)                                      \
@@ -203,8 +208,6 @@
   FIELD(Thread, float_not_address_offset)                                      \
   FIELD(Thread, float_zerow_address_offset)                                    \
   FIELD(Thread, global_object_pool_offset)                                     \
-  FIELD(Thread, interpret_call_entry_point_offset)                             \
-  FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
@@ -217,6 +220,8 @@
   FIELD(Thread, switchable_call_miss_entry_offset)                             \
   FIELD(Thread, switchable_call_miss_stub_offset)                              \
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
+  FIELD(Thread, late_initialization_error_shared_with_fpu_regs_stub_offset)    \
+  FIELD(Thread, late_initialization_error_shared_without_fpu_regs_stub_offset) \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
   FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
   FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
@@ -264,6 +269,10 @@
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
+  FIELD(TypeArguments, types_offset)                                           \
+  FIELD(TypeParameter, bound_offset)                                           \
+  FIELD(TypeParameter, flags_offset)                                           \
+  FIELD(TypeParameter, name_offset)                                            \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, data_offset)                                            \
@@ -290,7 +299,6 @@
   SIZEOF(Array, InstanceSize, ArrayLayout)                                     \
   SIZEOF(Array, header_size, ArrayLayout)                                      \
   SIZEOF(Bool, InstanceSize, BoolLayout)                                       \
-  SIZEOF(Bytecode, InstanceSize, BytecodeLayout)                               \
   SIZEOF(Capability, InstanceSize, CapabilityLayout)                           \
   SIZEOF(Class, InstanceSize, ClassLayout)                                     \
   SIZEOF(Closure, InstanceSize, ClosureLayout)                                 \
@@ -336,7 +344,6 @@
   SIZEOF(Object, InstanceSize, ObjectLayout)                                   \
   SIZEOF(ObjectPool, InstanceSize, ObjectPoolLayout)                           \
   SIZEOF(OneByteString, InstanceSize, OneByteStringLayout)                     \
-  SIZEOF(ParameterTypeCheck, InstanceSize, ParameterTypeCheckLayout)           \
   SIZEOF(PatchClass, InstanceSize, PatchClassLayout)                           \
   SIZEOF(PcDescriptors, HeaderSize, PcDescriptorsLayout)                       \
   SIZEOF(Pointer, InstanceSize, PointerLayout)                                 \

@@ -1,7 +1,23 @@
 # Changelog
 
+## 5.5.0
+- Update to version `3.42.0` of the spec.
+- Added optional `limit` parameter to `getStack` RPC.
+
+## 5.4.0
+- Update to version `3.41.0` of the spec.
+- Added `PortList` class.
+- Added `getPorts` RPC.
+- Added optional properties `portId`, `allocationLocation`, and `debugName` to
+  `InstanceRef` and `Instance`.
+
+## 5.3.1
+- Rename `State` class to `_State` to avoid class name conflicts with Flutter.
+
 ## 5.3.0
-- Added support for `dart:io` extensions version 1.4.
+- Added support for `dart:io` extensions version 1.5.
+- Added combination getter/setter `socketProfilingEnabled`.
+- Deprecated `startSocketProfiling` and `pauseSocketProfiling`.
 - Update to version `3.40.0` of the spec.
 - Added `IsolateFlag` class.
 - Added `isolateFlags` property to `Isolate`.

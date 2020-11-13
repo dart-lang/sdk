@@ -296,6 +296,8 @@ void GCCompactor::Compact(OldPage* pages,
     ForwardStackPointers();
   }
 
+  heap_->old_space()->VisitRoots(this);
+
   {
     MutexLocker ml(pages_lock);
 

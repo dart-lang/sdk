@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/type_alias_builder.dart';
 
@@ -439,7 +440,11 @@ abstract class InternalExpression extends Expression {
       unsupported("${runtimeType}.accept1", -1, null);
 
   @override
-  DartType getStaticType(types) =>
+  DartType getStaticType(StaticTypeContext context) =>
+      unsupported("${runtimeType}.getStaticType", -1, null);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       unsupported("${runtimeType}.getStaticType", -1, null);
 
   ExpressionInferenceResult acceptInference(
@@ -1378,6 +1383,11 @@ class VariableDeclarationImpl extends VariableDeclaration {
   final bool isImplicitlyTyped;
 
   /// True if the initializer was specified by the programmer.
+  ///
+  /// Note that the variable might have a synthesized initializer expression,
+  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
+  /// For instance, for duplicate variable names, an invalid expression is set
+  /// as the initializer of the second variable.
   final bool hasDeclaredInitializer;
 
   // TODO(ahe): Remove this field. We can get rid of it by recording closure

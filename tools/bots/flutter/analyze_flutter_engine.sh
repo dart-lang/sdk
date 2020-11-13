@@ -25,6 +25,8 @@ cd engine
 # analyze lib/web_ui
 echo Analyzing lib/web_ui...
 pushd lib/web_ui
+
 $dart pub get
-$dart analyze
+$dart analyze --fatal-infos
+
 popd

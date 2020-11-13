@@ -33,6 +33,20 @@ main() {
     );
   }
 
+  test_functionType_call_read() async {
+    await assertNoErrorsInCode('''
+void f(int Function(String) a) {
+  a.call;
+}
+''');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('.call;'),
+      element: null,
+      type: 'int Function(String)',
+    );
+  }
+
   test_implicitCall_tearOff() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
@@ -116,11 +130,13 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPrefixedIdentifier(
+        prefixed,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
     assertSimpleIdentifier(
       prefixed.prefix,
@@ -129,12 +145,14 @@ void f(A a) {
       type: 'A',
     );
 
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefixed.identifier,
+        readElement: null,
+        writeElement: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
   }
 
   test_write() async {
@@ -160,11 +178,13 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPrefixedIdentifier(
+        prefixed,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
     assertSimpleIdentifier(
       prefixed.prefix,
@@ -173,12 +193,14 @@ void f(A a) {
       type: 'A',
     );
 
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefixed.identifier,
+        readElement: null,
+        writeElement: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
   }
 }
 

@@ -6,6 +6,8 @@
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
+// @dart = 2.9
+
 import 'sample_ffi_bitfield.dart' as bitfield;
 import 'sample_ffi_data.dart' as data;
 import 'sample_ffi_dynamic_library.dart' as dynamic_library;

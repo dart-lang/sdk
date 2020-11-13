@@ -1554,8 +1554,10 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);
-  __ ldr(R3, FieldAddress(R2, target::Class::num_type_arguments_offset()),
-         kHalfword);
+  __ ldr(
+      R3,
+      FieldAddress(R2, target::Class::num_type_arguments_offset(), kHalfword),
+      kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
@@ -1594,7 +1596,8 @@ static void EquivalentClassIds(Assembler* assembler,
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(scratch, cid1);
   __ ldr(scratch,
-         FieldAddress(scratch, target::Class::num_type_arguments_offset()),
+         FieldAddress(scratch, target::Class::num_type_arguments_offset(),
+                      kHalfword),
          kHalfword);
   __ cbnz(normal_ir_body, scratch);
   __ b(equal);
@@ -1693,9 +1696,9 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ ldr(R1, FieldAddress(R1, target::Type::nullability_offset()),
+  __ ldr(R1, FieldAddress(R1, target::Type::nullability_offset(), kByte),
          kUnsignedByte);
-  __ ldr(R2, FieldAddress(R2, target::Type::nullability_offset()),
+  __ ldr(R2, FieldAddress(R2, target::Type::nullability_offset(), kByte),
          kUnsignedByte);
   __ cmp(R1, Operand(R2));
   __ b(&check_legacy, NE);
@@ -1703,7 +1706,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   __ Bind(&equal);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
-  __ Ret();
+  __ ret();
 
   // At this point the nullabilities are different, so they can only be
   // syntactically equivalent if they're both either kNonNullable or kLegacy.
@@ -1726,7 +1729,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::String::hash_offset()), kUnsignedWord);
+  __ ldr(R0, FieldAddress(R0, target::String::hash_offset(), kWord),
+         kUnsignedWord);
   __ SmiTag(R0);
   __ ret();
 }
@@ -1736,7 +1740,8 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Object.
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Value.
   __ SmiUntag(R1);
-  __ str(R1, FieldAddress(R0, target::String::hash_offset()), kUnsignedWord);
+  __ str(R1, FieldAddress(R0, target::String::hash_offset(), kWord),
+         kUnsignedWord);
   __ ret();
 }
 
@@ -1981,17 +1986,11 @@ static void TryAllocateString(Assembler* assembler,
   __ mov(R6, length_reg);  // Save the length register.
   if (cid == kOneByteStringCid) {
     // Untag length.
-    __ adds(length_reg, ZR, Operand(length_reg, ASR, kSmiTagSize));
+    __ SmiUntag(length_reg, length_reg);
   } else {
     // Untag length and multiply by element size -> no-op.
-    __ adds(length_reg, ZR, Operand(length_reg));
+    ASSERT(kSmiTagSize == 1);
   }
-  // If the length is 0 then we have to make the allocated size a bit bigger,
-  // otherwise the string takes up less space than an ExternalOneByteString,
-  // and cannot be externalized.  TODO(erikcorry): We should probably just
-  // return a static zero length string here instead.
-  // length <- (length != 0) ? length : (ZR + 1).
-  __ csinc(length_reg, length_reg, ZR, NE);
   const intptr_t fixed_size_plus_alignment_padding =
       target::String::InstanceSize() +
       target::ObjectAlignment::kObjectAlignment - 1;
@@ -2096,7 +2095,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ AddImmediate(R6, 1);
   __ sub(R2, R2, Operand(1));
   __ cmp(R2, Operand(0));
-  __ str(R1, FieldAddress(R7, target::OneByteString::data_offset()),
+  __ str(R1, FieldAddress(R7, target::OneByteString::data_offset(), kByte),
          kUnsignedByte);
   __ AddImmediate(R7, 1);
   __ b(&loop, GT);

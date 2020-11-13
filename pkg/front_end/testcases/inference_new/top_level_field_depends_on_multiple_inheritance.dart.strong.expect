@@ -79,7 +79,7 @@ abstract class G extends core::Object implements self::D, self::E, self::F {
   synthetic constructor •() → self::G*
     : super core::Object::•()
     ;
-  abstract forwarding-stub method foo() → self::B*;
+  abstract member-signature method foo() → self::B*; -> self::E::foo
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -37,6 +38,7 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
+import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 bool _isIncrementOrDecrementOperator(TokenType tokenType) {
@@ -118,6 +120,15 @@ class FixBuilder {
 
   final NullabilityGraph _graph;
 
+  /// Helper that assists us in transforming Iterable methods to their "OrNull"
+  /// equivalents, or `null` if we are not doing such transformations.
+  final WhereOrNullTransformer _whereOrNullTransformer;
+
+  /// Indicates whether an import of package:collection's `IterableExtension`
+  /// will need to be added.
+  @visibleForTesting
+  bool needsIterableExtension = false;
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -128,7 +139,8 @@ class FixBuilder {
       NullabilityMigrationListener listener,
       CompilationUnit unit,
       bool warnOnWeakCode,
-      NullabilityGraph graph) {
+      NullabilityGraph graph,
+      bool transformWhereOrNull) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
         decoratedClassHierarchy,
@@ -143,7 +155,8 @@ class FixBuilder {
         unit,
         migrationResolutionHooks,
         warnOnWeakCode,
-        graph);
+        graph,
+        transformWhereOrNull);
   }
 
   FixBuilder._(
@@ -156,8 +169,12 @@ class FixBuilder {
       this.unit,
       this.migrationResolutionHooks,
       this.warnOnWeakCode,
-      this._graph)
-      : typeProvider = _typeSystem.typeProvider {
+      this._graph,
+      bool transformWhereOrNull)
+      : typeProvider = _typeSystem.typeProvider,
+        _whereOrNullTransformer = transformWhereOrNull
+            ? WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem)
+            : null {
     migrationResolutionHooks._fixBuilder = this;
     assert(_typeSystem.isNonNullableByDefault);
     assert((typeProvider as TypeProviderImpl).isNonNullableByDefault);
@@ -307,6 +324,11 @@ class MigrationResolutionHooksImpl
 
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
+
+  /// Deferred processing that should be performed once we have finished
+  /// evaluating the type of a method invocation.
+  final Map<MethodInvocation, DartType Function(DartType)>
+      _deferredMethodInvocationProcessing = {};
 
   TypeProvider get typeProvider => _fixBuilder.typeProvider;
 
@@ -551,12 +573,21 @@ class MigrationResolutionHooksImpl
       {AtomicEditInfo info, HintComment hint}) {
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
+    bool noValidMigration = node is NullLiteral && hint == null;
     info ??= checks != null
         ? AtomicEditInfo(
-            NullabilityFixDescription.checkExpression, checks.edges)
+            noValidMigration
+                ? NullabilityFixDescription.noValidMigrationForNull
+                : NullabilityFixDescription.checkExpression,
+            checks.edges)
         : null;
-    (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .addNullCheck(info, hint: hint);
+    var nodeChangeForExpression =
+        _fixBuilder._getChange(node) as NodeChangeForExpression;
+    if (noValidMigration) {
+      nodeChangeForExpression.addNoValidMigration(info);
+    } else {
+      nodeChangeForExpression.addNullCheck(info, hint: hint);
+    }
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -584,6 +615,12 @@ class MigrationResolutionHooksImpl
 
   DartType _modifyRValueType(Expression node, DartType type,
       {DartType context}) {
+    if (node is MethodInvocation) {
+      var deferredProcessing = _deferredMethodInvocationProcessing.remove(node);
+      if (deferredProcessing != null) {
+        type = deferredProcessing(type);
+      }
+    }
     var hint =
         _fixBuilder._variables.getNullCheckHint(_fixBuilder.source, node);
     if (hint != null) {
@@ -602,6 +639,29 @@ class MigrationResolutionHooksImpl
     context ??=
         InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
     if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
+      var transformationInfo =
+          _fixBuilder._whereOrNullTransformer?.tryTransformOrElseArgument(node);
+      if (transformationInfo != null) {
+        // We can fix this by dropping the node and changing the method call.
+        _fixBuilder.needsIterableExtension = true;
+        var info = AtomicEditInfo(
+            NullabilityFixDescription.changeMethodName(
+                transformationInfo.originalName,
+                transformationInfo.replacementName),
+            {});
+        (_fixBuilder._getChange(transformationInfo.methodInvocation.methodName)
+                as NodeChangeForMethodName)
+            .replaceWith(transformationInfo.replacementName, info);
+        (_fixBuilder._getChange(
+                    transformationInfo.methodInvocation.argumentList)
+                as NodeChangeForArgumentList)
+            .dropArgument(transformationInfo.orElseArgument, info);
+        _deferredMethodInvocationProcessing[
+                transformationInfo.methodInvocation] =
+            (methodInvocationType) => _fixBuilder._typeSystem
+                .makeNullable(methodInvocationType as TypeImpl);
+        return type;
+      }
       // Either a cast or a null check is needed.  We prefer to do a null
       // check if we can.
       var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
@@ -855,6 +915,21 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
           .removeLanguageVersionComment = true;
     }
+    if (_fixBuilder.needsIterableExtension) {
+      var packageCollectionImport =
+          _findImportDirective(node, 'package:collection/collection.dart');
+      if (packageCollectionImport != null) {
+        for (var combinator in packageCollectionImport.combinators) {
+          if (combinator is ShowCombinator) {
+            _ensureShows(combinator, 'IterableExtension');
+          }
+        }
+      } else {
+        (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
+            .addImport(
+                'package:collection/collection.dart', 'IterableExtension');
+      }
+    }
     super.visitCompilationUnit(node);
   }
 
@@ -929,6 +1004,28 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
           .lateHint = lateHint;
     }
     super.visitVariableDeclarationList(node);
+  }
+
+  /// Creates the necessary changes to ensure that [combinator] shows [name].
+  void _ensureShows(ShowCombinator combinator, String name) {
+    if (combinator.shownNames.any((shownName) => shownName.name == name)) {
+      return;
+    }
+    (_fixBuilder._getChange(combinator) as NodeChangeForShowCombinator)
+        .addName(name);
+  }
+
+  /// Searches [unit] for an unprefixed import directive whose URI matches
+  /// [uri], returning it if found, or `null` if not found.
+  ImportDirective _findImportDirective(CompilationUnit unit, String uri) {
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective &&
+          directive.prefix == null &&
+          directive.uriContent == uri) {
+        return directive;
+      }
+    }
+    return null;
   }
 }
 
@@ -1048,20 +1145,33 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
             cls.name, method.name, element.name),
         {FixReasonTarget.root: node});
     var metadata = parameter.metadata;
-    for (var annotation in metadata) {
-      if (annotation.elementAnnotation.isRequired) {
-        // TODO(paulberry): what if `@required` isn't the first annotation?
-        // Will we produce something that isn't grammatical?
-        (_fixBuilder._getChange(annotation) as NodeChangeForAnnotation)
+    if (metadata != null && metadata.isNotEmpty) {
+      // Only the last annotation can be changed into a `required` keyword;
+      // changing an earlier annotation into a keyword would be illegal.
+      var lastAnnotation = metadata.last;
+      if (lastAnnotation.elementAnnotation.isRequired) {
+        (_fixBuilder._getChange(lastAnnotation) as NodeChangeForAnnotation)
           ..changeToRequiredKeyword = true
           ..changeToRequiredKeywordInfo = info;
         return;
       }
     }
     // Otherwise create a new `required` keyword.
-    (_fixBuilder._getChange(parameter) as NodeChangeForDefaultFormalParameter)
+    var nodeChange = (_fixBuilder._getChange(parameter)
+        as NodeChangeForDefaultFormalParameter)
       ..addRequiredKeyword = true
       ..addRequiredKeywordInfo = info;
+    var requiredAnnotation = metadata?.firstWhere(
+        (annotation) => annotation.elementAnnotation.isRequired,
+        orElse: () => null);
+    if (requiredAnnotation != null) {
+      // If the parameter was annotated with `@required`, but it was not the
+      // last annotation, we remove the annotation in addition to adding the
+      // `required` keyword.
+      nodeChange
+        ..annotationToRemove = requiredAnnotation
+        ..removeAnnotationInfo = info;
+    }
   }
 
   void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {

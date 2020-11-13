@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -254,6 +257,11 @@ class ArgumentError extends Error {
   static T checkNotNull<T>(T argument, [String, name]) => argument;
 }
 
+// In the SDK this is an abstract class.
+class BigInt implements Comparable<BigInt> {
+  static BigInt parse(String source, {int radix}) => BigInt();
+}
+
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});
@@ -379,7 +387,11 @@ abstract class Iterable<E> {
 
   void forEach(void f(E element));
 
+  E lastWhere(bool test(E element), {E orElse()?});
+
   Iterable<R> map<R>(R f(E e));
+
+  E singleWhere(bool test(E element), {E orElse()?});
 
   List<E> toList({bool growable = true});
 
@@ -484,6 +496,8 @@ abstract class num implements Comparable<num> {
   int toInt();
 }
 
+abstract class Match {}
+
 class Object {
   const Object();
 
@@ -496,7 +510,9 @@ class Object {
   external dynamic noSuchMethod(Invocation invocation);
 }
 
-abstract class Pattern {}
+abstract class Pattern {
+  Iterable<Match> allMatches(String string, [int start = 0]);
+}
 
 abstract class RegExp implements Pattern {
   external factory RegExp(String source);
@@ -1086,14 +1102,24 @@ class MockSdk implements DartSdk {
 
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
+  ///
+  /// [nullSafePackages], if supplied, is a list of packages names that should
+  /// be included in the null safety allow list.
+  ///
+  /// [sdkVersion], if supplied will override the version stored in the mock
+  /// SDK's `version` file.
   MockSdk({
     @required this.resourceProvider,
     List<MockSdkLibrary> additionalLibraries = const [],
+    List<String> nullSafePackages = const [],
+    String sdkVersion,
   }) {
+    sdkVersion ??= '${ExperimentStatus.currentVersion.major}.'
+        '${ExperimentStatus.currentVersion.minor}.0';
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
         .getChildAssumingFile('version');
-    _versionFile.writeAsStringSync('2.10.0');
+    _versionFile.writeAsStringSync(sdkVersion);
 
     for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);
@@ -1150,19 +1176,20 @@ class MockSdk implements DartSdk {
       resourceProvider.convertPath(
         '$sdkRoot/lib/_internal/allowed_experiments.json',
       ),
-      r'''
-{
-  "version": 1,
-  "experimentSets": {
-    "nullSafety": ["non-nullable"]
-  },
-  "sdk": {
-    "default": {
-      "experimentSet": "nullSafety"
-    }
-  }
-}
-''',
+      json.encode({
+        'version': 1,
+        'experimentSets': {
+          'nullSafety': ['non-nullable']
+        },
+        'sdk': {
+          'default': {'experimentSet': 'nullSafety'}
+        },
+        if (nullSafePackages.isNotEmpty)
+          'packages': {
+            for (var package in nullSafePackages)
+              package: {'experimentSet': 'nullSafety'}
+          }
+      }),
     );
   }
 

@@ -6201,7 +6201,7 @@ class Parser {
       // identifier, then allow ensureIdentifier to report an error
       // and don't report errors here.
       if (varFinalOrConst == null) {
-        if (typeInfo == noType && lateToken == null) {
+        if (typeInfo == noType) {
           reportRecoverableError(next, codes.messageMissingConstFinalVarOrType);
         }
       } else if (optional('var', varFinalOrConst)) {

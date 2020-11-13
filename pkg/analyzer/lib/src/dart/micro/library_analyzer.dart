@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -27,6 +28,7 @@ import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
@@ -243,6 +245,16 @@ class LibraryAnalyzer {
           _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
         }
       });
+    }
+
+    // This must happen after all other diagnostics have been computed but
+    // before the list of diagnostics has been filtered.
+    for (var file in _library.libraryFiles) {
+      if (file.source != null) {
+        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
+                _fileToIgnoreInfo[file], _fileToLineInfo[file])
+            .reportErrors();
+      }
     }
   }
 
@@ -707,7 +719,15 @@ class LibraryAnalyzer {
       var enclosingExecutable = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration || e.parent is CompilationUnit;
       });
-      enclosingExecutable?.accept(resolverVisitor);
+
+      if (enclosingExecutable != null) {
+        var enclosingClass = enclosingExecutable.parent;
+        if (enclosingClass is ClassDeclaration) {
+          resolverVisitor.enclosingClass = enclosingClass.declaredElement;
+        }
+
+        enclosingExecutable?.accept(resolverVisitor);
+      }
     } else {
       unit.accept(resolverVisitor);
     }
@@ -789,7 +809,7 @@ class LibraryAnalyzer {
     }
     StringLiteral uriLiteral = directive.uri;
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-    if (_isGenerated(source)) {
+    if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
     _getErrorReporter(file)
@@ -804,30 +824,6 @@ class LibraryAnalyzer {
         _validateUriBasedDirective(file, directive);
       }
     }
-  }
-
-  /// Return `true` if the given [source] refers to a file that is assumed to be
-  /// generated.
-  static bool _isGenerated(Source source) {
-    if (source == null) {
-      return false;
-    }
-    // TODO(brianwilkerson) Generalize this mechanism.
-    const List<String> suffixes = <String>[
-      '.g.dart',
-      '.pb.dart',
-      '.pbenum.dart',
-      '.pbserver.dart',
-      '.pbjson.dart',
-      '.template.dart'
-    ];
-    String fullName = source.fullName;
-    for (String suffix in suffixes) {
-      if (fullName.endsWith(suffix)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

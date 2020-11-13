@@ -11,6 +11,7 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 
 namespace dart {
 namespace kernel {
@@ -366,27 +367,18 @@ Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
   }
 }
 
-Fragment BaseFlowGraphBuilder::LoadIndexed(intptr_t index_scale) {
+Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
+                                           intptr_t index_scale,
+                                           bool index_unboxed) {
   Value* index = Pop();
+  // A C pointer if index_unboxed, otherwise a boxed Dart value.
   Value* array = Pop();
+
+  // We use C behavior when dereferencing pointers, so we use aligned access in
+  // all cases.
   LoadIndexedInstr* instr = new (Z) LoadIndexedInstr(
-      array, index, /*index_unboxed=*/false, index_scale, kArrayCid,
-      kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
-  Push(instr);
-  return Fragment(instr);
-}
-
-Fragment BaseFlowGraphBuilder::LoadIndexedTypedData(classid_t class_id,
-                                                    intptr_t index_scale,
-                                                    bool index_unboxed) {
-  // We use C behavior when dereferencing pointers, we assume alignment.
-  const AlignmentType alignment = kAlignedAccess;
-
-  Value* index = Pop();
-  Value* c_pointer = Pop();
-  LoadIndexedInstr* instr = new (Z)
-      LoadIndexedInstr(c_pointer, index, index_unboxed, index_scale, class_id,
-                       alignment, DeoptId::kNone, TokenPosition::kNoSource);
+      array, index, index_unboxed, index_scale, class_id, kAlignedAccess,
+      DeoptId::kNone, TokenPosition::kNoSource);
   Push(instr);
   return Fragment(instr);
 }
@@ -966,6 +958,19 @@ Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
   return instructions;
 }
 
+Fragment BaseFlowGraphBuilder::InstantiateDynamicTypeArguments() {
+  Value* type_arguments = Pop();
+  Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
+  const Function& function = Object::null_function();
+  const Class& instantiator_class = Class::ZoneHandle(Z);
+  InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
+      TokenPosition::kNoSource, instantiator_type_args, function_type_args,
+      type_arguments, instantiator_class, function, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment BaseFlowGraphBuilder::LoadClassId() {
   LoadClassIdInstr* load = new (Z) LoadClassIdInstr(Pop());
   Push(load);
@@ -1108,7 +1113,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
     const auto& func_name = String::Handle(Z, parent.name());
     const auto& owner = Class::Handle(Z, parent.Owner());
     if (owner.EnsureIsFinalized(thread_) == Error::null()) {
-      function = owner.LookupFunction(func_name);
+      function = Resolver::ResolveFunction(Z, owner, func_name);
     }
   }
 

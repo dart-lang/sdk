@@ -2349,6 +2349,49 @@ void f(A a) {}
     }
   }
 
+  test_parseFileSync_doesNotReadImportedFiles() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
+''');
+
+    expect(driver.fsState.knownFilePaths, isEmpty);
+
+    // Don't read `a.dart` when parse.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+
+    // Still don't read `a.dart` when parse the second time.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+  }
+
+  test_parseFileSync_doesNotReadPartedFiles() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: r'''
+part of my;
+''');
+    newFile(b, content: r'''
+library my;
+part 'a.dart';
+''');
+
+    expect(driver.fsState.knownFilePaths, isEmpty);
+
+    // Don't read `a.dart` when parse.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+
+    // Still don't read `a.dart` when parse the second time.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+  }
+
   test_parseFileSync_languageVersion() async {
     var path = convertPath('/test/lib/test.dart');
 
@@ -2937,7 +2980,7 @@ var A = B;
 
     newFile(a, content: '');
     newFile(b, content: r'''
-import 'package:aaa/a.dart'; // ignore: unused_import
+import 'package:aaa/a.dart';
 A a;
 ''');
 
@@ -2949,7 +2992,7 @@ A a;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(1));
     expect(allResults[0].path, b);
-    expect(allResults[0].errors, hasLength(1));
+    expect(allResults[0].errors, hasLength(2));
 
     // Create generated file for `package:aaa/a.dart`.
     var aUri = Uri.parse('package:aaa/a.dart');

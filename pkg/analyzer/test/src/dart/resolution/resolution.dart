@@ -50,6 +50,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get futureElement => typeProvider.futureElement;
 
+  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
+  bool get hasAssignmentLeftResolution => false;
+
   ClassElement get intElement => typeProvider.intType.element;
 
   InterfaceType get intType => typeProvider.intType;
@@ -380,8 +383,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var isRead = node.inGetterContext();
     var isWrite = node.inSetterContext();
     if (isRead && isWrite) {
-      // ignore: deprecated_member_use_from_same_package
-      assertElement(node.auxiliaryElements?.staticElement, readElement);
       assertElement(node.staticElement, writeElement);
     } else if (isRead) {
       assertElement(node.staticElement, readElement);
@@ -669,6 +670,29 @@ mixin ResolutionTest implements ResourceProviderMixin {
       // TODO(scheglov) enforce this
 //      expect(type, isNull);
 //      assertTypeNull(node);
+    }
+  }
+
+  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
+  /// TODO(scheglov) rename this method
+  void assertSimpleIdentifierAssignmentTarget(
+    SimpleIdentifier node, {
+    @required Object readElement,
+    @required Object writeElement,
+    @required String type,
+  }) {
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        node,
+        readElement: readElement,
+        writeElement: writeElement,
+        type: type,
+      );
+    } else {
+      // TODO(scheglov) Enforce maybe?
+      // Currently VariableResolverVisitor sets it.
+      // expect(node.staticElement, isNull);
+      expect(node.staticType, isNull);
     }
   }
 

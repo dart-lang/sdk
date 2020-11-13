@@ -50,15 +50,13 @@ class TypeSchemaEnvironmentTest {
 
   Class get mapClass => coreTypes.mapClass;
 
-  InterfaceType get nullType => coreTypes.nullType;
-
   InterfaceType get numType => coreTypes.numLegacyRawType;
 
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectType => coreTypes.objectLegacyRawType;
 
-  DartType get bottomType => nullType;
+  DartType get bottomType => const NullType();
 
   DartType get topType => const DynamicType();
 
@@ -672,7 +670,7 @@ class TypeSchemaEnvironmentTest {
             topType,
             bottomType,
             grounded: true),
-        new InterfaceType(A.classNode, Nullability.legacy, [nullType]));
+        new InterfaceType(A.classNode, Nullability.legacy, [const NullType()]));
     // Solve(? <: T <: A) => A
     expect(
         env.solveTypeConstraint(_makeConstraint(upper: A), topType, bottomType),
@@ -776,7 +774,7 @@ class TypeSchemaEnvironmentTest {
             topType,
             bottomType,
             grounded: true),
-        new InterfaceType(B.classNode, Nullability.legacy, [nullType]));
+        new InterfaceType(B.classNode, Nullability.legacy, [const NullType()]));
   }
 
   void test_typeConstraint_default() {

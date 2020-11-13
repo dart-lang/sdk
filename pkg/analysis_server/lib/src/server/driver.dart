@@ -25,8 +25,6 @@ import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
-import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
-    show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
@@ -219,9 +217,6 @@ class Driver implements ServerStarter {
   /// The name of the option used to set the version for the client.
   static const String CLIENT_VERSION = 'client-version';
 
-  /// The name of the option used to enable DartPad specific functionality.
-  static const String DARTPAD_OPTION = 'dartpad';
-
   /// The name of the option used to disable exception handling.
   static const String DISABLE_SERVER_EXCEPTION_HANDLING =
       'disable-server-exception-handling';
@@ -233,12 +228,6 @@ class Driver implements ServerStarter {
   /// The name of the option to disable the search feature.
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
-
-  /// The name of the option used to enable experiments.
-  static const String ENABLE_EXPERIMENT_OPTION = 'enable-experiment';
-
-  /// The name of the option used to enable instrumentation.
-  static const String ENABLE_INSTRUMENTATION_OPTION = 'enable-instrumentation';
 
   /// The name of the option used to set the file read mode.
   static const String FILE_READ_MODE = 'file-read-mode';
@@ -336,10 +325,6 @@ class Driver implements ServerStarter {
 
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
-    if (results.wasParsed(ENABLE_EXPERIMENT_OPTION)) {
-      analysisServerOptions.enabledExperiments =
-          (results[ENABLE_EXPERIMENT_OPTION] as List).cast<String>().toList();
-    }
     analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
@@ -424,10 +409,6 @@ class Driver implements ServerStarter {
         print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
         return null;
       }
-    }
-
-    if (results[DARTPAD_OPTION]) {
-      UriContributor.suggestFilePaths = false;
     }
 
     {
@@ -754,10 +735,6 @@ class Driver implements ServerStarter {
         valueHelp: 'name', help: 'an identifier used to identify the client');
     parser.addOption(CLIENT_VERSION,
         valueHelp: 'version', help: 'the version of the client');
-    parser.addFlag(DARTPAD_OPTION,
-        help: 'enable DartPad specific functionality',
-        defaultsTo: false,
-        hide: true);
     parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
         // TODO(jcollins-g): Pipeline option through and apply to all
         // exception-nullifying runZoned() calls.
@@ -769,15 +746,6 @@ class Driver implements ServerStarter {
         help: 'disable all completion features', defaultsTo: false, hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
         help: 'disable all search features', defaultsTo: false, hide: true);
-    parser.addMultiOption(ENABLE_EXPERIMENT_OPTION,
-        help: 'Enable one or more experimental features. If multiple features '
-            'are being added, they should be comma separated.',
-        hide: true,
-        splitCommas: true);
-    parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
-        help: 'enable sending instrumentation information to a server',
-        defaultsTo: false,
-        negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,
         valueHelp: 'file path',
         help: 'write instrumentation data to the given file');
@@ -843,8 +811,17 @@ class Driver implements ServerStarter {
     //
     // Deprecated options - no longer read from.
     //
-    parser.addFlag('use-fasta-parser', defaultsTo: true, hide: true);
+
+    // Removed 11/8/2020.
+    parser.addFlag('dartpad', hide: true);
+    // Removed 10/30/2020.
+    parser.addMultiOption('enable-experiment', hide: true);
+    // Removed 9/23/2020.
+    parser.addFlag('enable-instrumentation', hide: true);
+    // Removed 11/8/2020.
     parser.addFlag('preview-dart-2', hide: true);
+    // Removed 9/23/2020.
+    parser.addFlag('use-fasta-parser', hide: true);
 
     return parser;
   }

@@ -43,7 +43,6 @@ export '../fasta/compiler_context.dart' show CompilerContext;
 export '../fasta/fasta_codes.dart'
     show
         LocatedMessage,
-        messageBytecodeLimitExceededTooManyArguments,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         noLength,
@@ -57,8 +56,7 @@ export '../fasta/fasta_codes.dart'
         templateFfiNotStatic,
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
-        templateFfiTypeMismatch,
-        templateIllegalRecursiveType;
+        templateFfiTypeMismatch;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 

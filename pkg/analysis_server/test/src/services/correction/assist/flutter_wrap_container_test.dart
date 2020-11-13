@@ -19,9 +19,16 @@ class FlutterWrapContainerTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_CONTAINER;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_aroundContainer() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 main() {
   return /*caret*/Container();
@@ -31,8 +38,7 @@ main() {
   }
 
   Future<void> test_aroundText() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 main() {
   /*caret*/Text('a');

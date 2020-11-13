@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Generates the API tables used by DartFuzz. Automatically generating these
 // tables is less error-prone than generating such tables by hand. Furthermore,
 // it simplifies regenerating the table when the libraries change.
@@ -653,6 +655,8 @@ void dumpHeader() {
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
 
 /// NOTE: this code has been generated automatically.
 

@@ -107,7 +107,7 @@ main() async {
   throwsIfCummulativeListIsTooLargeOn32bitPlatform();
 
   dynamic myNull;
-  if (isWeakMode) {
+  if (hasUnsoundNullSafety) {
     Expect.throwsArgumentError(() => TransferableTypedData.fromList(myNull));
     Expect.throwsArgumentError(() => TransferableTypedData.fromList([myNull]));
     Expect.throwsArgumentError(

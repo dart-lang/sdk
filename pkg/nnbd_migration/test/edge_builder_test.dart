@@ -61,7 +61,7 @@ class AssignmentCheckerTest extends Object
   final AssignmentCheckerForTesting checker;
 
   factory AssignmentCheckerTest() {
-    var typeProvider = TestTypeProvider();
+    var typeProvider = TestTypeProvider().asLegacy;
     _setCoreLibrariesTypeSystem(typeProvider);
 
     var graph = NullabilityGraphForTesting();
@@ -489,7 +489,7 @@ class AssignmentCheckerTest extends Object
     _myLibrary.definingCompilationUnit = definingUnit;
   }
 
-  static void _setCoreLibrariesTypeSystem(TestTypeProvider typeProvider) {
+  static void _setCoreLibrariesTypeSystem(TypeProviderImpl typeProvider) {
     var typeSystem = TypeSystemImpl(
       isNonNullableByDefault: false,
       implicitCasts: true,
@@ -3126,6 +3126,40 @@ class C {
         hard: true);
   }
 
+  Future<void> test_firstWhere_edges() async {
+    await analyze('''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''');
+
+    // Normally there would be an edge from the return type of `() => null` to
+    // a substitution node that pointed to the type argument to the type of `x`,
+    // and another substitution node would point from this to the return type of
+    // `firstEven`.  However, since we may replace `firstWhere` with
+    // `firstWhereOrNull` in order to avoid having to make `x`'s type argument
+    // nullable, we need a synthetic edge to ensure that the return type of
+    // `firstEven` is nullable.
+    var closureReturnType = decoratedExpressionType('() => null').returnType;
+    var firstWhereReturnType = variables
+        .decoratedExpressionType(findNode.methodInvocation('firstWhere'));
+    assertEdge(closureReturnType.node, firstWhereReturnType.node, hard: false);
+
+    // There should also be an edge from a substitution node to the return type
+    // of `firstWhere`, to account for the normal data flow (when the element is
+    // found).
+    var typeParameterType = decoratedTypeAnnotation('int>');
+    var firstWhereType = variables.decoratedElementType(findNode
+        .methodInvocation('firstWhere')
+        .methodName
+        .staticElement
+        .declaration);
+    assertEdge(
+        substitutionNode(
+            typeParameterType.node, firstWhereType.returnType.node),
+        firstWhereReturnType.node,
+        hard: false);
+  }
+
   Future<void> test_for_each_element_with_declaration() async {
     await analyze('''
 void f(List<int> l) {
@@ -3435,6 +3469,15 @@ void f({@required int i}) {}
   }
 
   Future<void>
+      test_functionDeclaration_parameter_named_no_default_required_hint() async {
+    await analyze('''
+void f({/*required*/ int i}) {}
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
+  }
+
+  Future<void>
       test_functionDeclaration_parameter_positionalOptional_default_notNull() async {
     await analyze('''
 void f([int i = 1]) {}
@@ -3575,6 +3618,20 @@ void g() {
     await analyze('''
 import 'package:meta/meta.dart';
 void f({@required int i}) {}
+void g() {
+  f();
+}
+''');
+    // The call at `f()` is presumed to be in error; no constraint is recorded.
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertNoUpstreamNullability(nullable_i);
+  }
+
+  Future<void>
+      test_functionInvocation_parameter_named_missing_required_hint() async {
+    verifyNoTestUnitErrors = false;
+    await analyze('''
+void f({/*required*/ int i}) {}
 void g() {
   f();
 }
@@ -4635,6 +4692,29 @@ int f2(C c) => c.m2()/*!*/;
     expect(hasNullCheckHint(findNode.methodInvocation('c.m2')), isTrue);
   }
 
+  Future<void> test_methodInvocation_call_functionTyped() async {
+    await analyze('''
+void f(void Function(int x) callback, int y) => callback.call(y);
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  Future<void> test_methodInvocation_call_interfaceTyped() async {
+    // Make sure that we don't try to treat all methods called `call` as though
+    // the underlying type is a function type.
+    await analyze('''
+abstract class C {
+  void call(int x);
+}
+void f(C c, int y) => c.call(y);
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
   Future<void> test_methodInvocation_dynamic() async {
     await analyze('''
 class C {
@@ -4984,13 +5064,13 @@ void g(C c, int j) {
   }
 
   Future<void> test_methodInvocation_parameter_named_differentPackage() async {
-    addPackageFile('pkgC', 'c.dart', '''
+    addPackageFile('foo', 'c.dart', '''
 class C {
   void f({int i}) {}
 }
 ''');
     await analyze('''
-import "package:pkgC/c.dart";
+import "package:foo/c.dart";
 void g(C c, int j) {
   c.f(i: j/*check*/);
 }
@@ -6533,6 +6613,47 @@ int f2(C c) => (c).i2/*!*/;
     expect(hasNullCheckHint(findNode.propertyAccess('(c).i2')), isTrue);
   }
 
+  Future<void> test_propertyAccess_call_functionTyped() async {
+    await analyze('''
+String/*1*/ Function(int/*2*/) f(String/*3*/ Function(int/*4*/) callback)
+    => callback.call;
+''');
+    assertEdge(decoratedTypeAnnotation('String/*3*/').node,
+        decoratedTypeAnnotation('String/*1*/').node,
+        hard: false, checkable: false);
+    assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+        decoratedTypeAnnotation('int/*4*/').node,
+        hard: false, checkable: false);
+    var tearOffNodeMatcher = anyNode;
+    assertEdge(
+        tearOffNodeMatcher,
+        decoratedGenericFunctionTypeAnnotation('String/*1*/ Function(int/*2*/)')
+            .node,
+        hard: false);
+    assertEdge(never, tearOffNodeMatcher.matchingNode,
+        hard: true, checkable: false);
+  }
+
+  Future<void> test_propertyAccess_call_interfaceTyped() async {
+    // Make sure that we don't try to treat all methods called `call` as though
+    // the underlying type is a function type.
+    await analyze('''
+abstract class C {
+  String call(int x);
+}
+String Function(int) f(C c) => c.call;
+''');
+    assertEdge(decoratedTypeAnnotation('String call').node,
+        decoratedTypeAnnotation('String Function').node,
+        hard: false, checkable: false);
+    assertEdge(decoratedTypeAnnotation('int) f').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: false, checkable: false);
+    assertEdge(never,
+        decoratedGenericFunctionTypeAnnotation('String Function(int)').node,
+        hard: false);
+  }
+
   Future<void> test_propertyAccess_dynamic() async {
     await analyze('''
 class C {
@@ -6558,6 +6679,16 @@ int f(int i) => i.hashCode;
     // No edge from i to `never` because it is safe to call `hashCode` on
     // `null`.
     assertNoEdge(decoratedTypeAnnotation('int i').node, never);
+  }
+
+  Future<void> test_propertyAccess_object_property_on_function_type() async {
+    await analyze('int f(void Function() g) => g.hashCode;');
+    var hashCodeReturnType = variables
+        .decoratedElementType(
+            typeProvider.objectType.element.getGetter('hashCode'))
+        .returnType;
+    assertEdge(hashCodeReturnType.node, decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   Future<void> test_propertyAccess_return_type() async {
@@ -7629,11 +7760,11 @@ double get myPi => pi;
   }
 
   Future<void> test_topLevelVar_reference_differentPackage() async {
-    addPackageFile('pkgPi', 'piConst.dart', '''
+    addPackageFile('foo', 'piConst.dart', '''
 double pi = 3.1415;
 ''');
     await analyze('''
-import "package:pkgPi/piConst.dart";
+import "package:foo/piConst.dart";
 double get myPi => pi;
 ''');
     var myPiType = decoratedTypeAnnotation('double get');

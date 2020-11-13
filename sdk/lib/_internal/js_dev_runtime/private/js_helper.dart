@@ -692,7 +692,7 @@ class JSName {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior<E> {}
+abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 /// Thrown by type assertions that fail.
 class TypeErrorImpl extends Error implements TypeError, CastError {

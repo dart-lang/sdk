@@ -258,7 +258,7 @@ class VMService extends MessageRouter {
     }
     acceptNewWebSocketConnections(false);
     _ddsUri = Uri.parse(uri);
-    await VMServiceEmbedderHooks?.ddsConnected!();
+    await VMServiceEmbedderHooks.ddsConnected!();
     return encodeSuccess(message);
   }
 

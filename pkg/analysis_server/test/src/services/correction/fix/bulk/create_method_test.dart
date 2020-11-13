@@ -19,7 +19,7 @@ class AddMissingHashOrEqualsTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.hash_and_equals;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   @override
   int get hashCode => 13;

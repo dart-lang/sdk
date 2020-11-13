@@ -94,12 +94,14 @@ class Address : public ValueObject {
       : ValueObject(),
         encoding_(other.encoding_),
         type_(other.type_),
-        base_(other.base_) {}
+        base_(other.base_),
+        log2sz_(other.log2sz_) {}
 
   Address& operator=(const Address& other) {
     encoding_ = other.encoding_;
     type_ = other.type_;
     base_ = other.base_;
+    log2sz_ = other.log2sz_;
     return *this;
   }
 
@@ -136,11 +138,15 @@ class Address : public ValueObject {
           OperandSize sz = kDoubleWord) {
     ASSERT((rn != kNoRegister) && (rn != R31) && (rn != ZR));
     ASSERT(CanHoldOffset(offset, at, sz));
+    log2sz_ = -1;
     const int32_t scale = Log2OperandSizeBytes(sz);
     if ((at == Offset) && Utils::IsUint(12 + scale, offset) &&
         (offset == ((offset >> scale) << scale))) {
       encoding_ =
           B24 | ((offset >> scale) << kImm12Shift) | Arm64Encode::Rn(rn);
+      if (offset != 0) {
+        log2sz_ = scale;
+      }
     } else if ((at == Offset) && Utils::IsInt(9, offset)) {
       encoding_ = ((offset & 0x1ff) << kImm9Shift) | Arm64Encode::Rn(rn);
     } else if ((at == PreIndex) || (at == PostIndex)) {
@@ -172,6 +178,9 @@ class Address : public ValueObject {
           idx |
           ((static_cast<uint32_t>(offset >> scale) << kImm7Shift) & kImm7Mask) |
           Arm64Encode::Rn(rn);
+      if (offset != 0) {
+        log2sz_ = scale;
+      }
     }
     type_ = at;
     base_ = ConcreteRegister(rn);
@@ -214,6 +223,7 @@ class Address : public ValueObject {
     addr.encoding_ = (((pc_off >> 2) << kImm19Shift) & kImm19Mask);
     addr.base_ = kNoRegister;
     addr.type_ = PCOffset;
+    addr.log2sz_ = -1;
     return addr;
   }
 
@@ -249,12 +259,14 @@ class Address : public ValueObject {
                 (static_cast<int32_t>(ext) << kExtendTypeShift);
     type_ = Reg;
     base_ = ConcreteRegister(rn);
+    log2sz_ = -1;  // Any.
   }
 
   static OperandSize OperandSizeFor(intptr_t cid) {
     switch (cid) {
       case kArrayCid:
       case kImmutableArrayCid:
+      case kTypeArgumentsCid:
         return kWord;
       case kOneByteStringCid:
       case kExternalOneByteStringCid:
@@ -307,6 +319,7 @@ class Address : public ValueObject {
   uint32_t encoding_;
   AddressType type_;
   Register base_;
+  int32_t log2sz_;  // Required log2 of operand size (-1 means any).
 
   friend class Assembler;
 };
@@ -517,7 +530,8 @@ class Assembler : public AssemblerBase {
   }
 
   void CompareTypeNullabilityWith(Register type, int8_t value) {
-    ldr(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()),
+    ldr(TMP,
+        FieldAddress(type, compiler::target::Type::nullability_offset(), kByte),
         kUnsignedByte);
     cmp(TMP, Operand(value));
   }
@@ -1584,11 +1598,11 @@ class Assembler : public AssemblerBase {
   // InstructionPattern::DecodeLoadWordFromPool can decode.
   //
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+  void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
 
-  void LoadDoubleWordFromPoolOffset(Register lower,
-                                    Register upper,
-                                    uint32_t offset);
+  void LoadDoubleWordFromPoolIndex(Register lower,
+                                   Register upper,
+                                   intptr_t index);
 
   void PushObject(const Object& object) {
     if (IsSameObject(compiler::NullObject(), object)) {
@@ -1826,7 +1840,7 @@ class Assembler : public AssemblerBase {
 
   bool constant_pool_allowed_;
 
-  void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
+  void LoadWordFromPoolIndexFixed(Register dst, intptr_t index);
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
@@ -2244,6 +2258,7 @@ class Assembler : public AssemblerBase {
     ASSERT((op != LDR && op != STR && op != LDRS) || a.can_writeback_to(rt));
 
     const int32_t size = Log2OperandSizeBytes(sz);
+    ASSERT(a.log2sz_ == -1 || a.log2sz_ == size);
     const int32_t encoding =
         op | ((size & 0x3) << kSzShift) | Arm64Encode::Rt(rt) | a.encoding();
     Emit(encoding);
@@ -2254,6 +2269,7 @@ class Assembler : public AssemblerBase {
                           Address a,
                           OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
+    ASSERT(a.log2sz_ == -1 || a.log2sz_ == Log2OperandSizeBytes(sz));
     ASSERT((rt != CSP) && (rt != R31));
     const int32_t size = (sz == kDoubleWord) ? B30 : 0;
     const int32_t encoding = op | size | Arm64Encode::Rt(rt) | a.encoding();
@@ -2270,6 +2286,7 @@ class Assembler : public AssemblerBase {
     ASSERT(op != LDP || rt != rt2);
 
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
+    ASSERT(a.log2sz_ == -1 || a.log2sz_ == Log2OperandSizeBytes(sz));
     ASSERT((rt != CSP) && (rt != R31));
     ASSERT((rt2 != CSP) && (rt2 != R31));
     int32_t opc = 0;

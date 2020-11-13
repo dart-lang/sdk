@@ -9,7 +9,7 @@ static method main() → dynamic {
   core::int? local;
   core::bool #local#isSet = false;
   function #local#get() → core::int
-    return #local#isSet ?{core::int} local{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local' has not been initialized.");
+    return #local#isSet ?{core::int} local{core::int} : throw new _in::LateError::localNI("local");
   function #local#set(core::int #t1) → dynamic {
     #local#isSet = true;
     return local = #t1;

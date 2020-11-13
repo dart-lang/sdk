@@ -545,7 +545,6 @@ void ContextScopeLayout::WriteTo(SnapshotWriter* writer,
 
 MESSAGE_SNAPSHOT_UNREACHABLE(AbstractType);
 MESSAGE_SNAPSHOT_UNREACHABLE(Bool);
-MESSAGE_SNAPSHOT_UNREACHABLE(Bytecode);
 MESSAGE_SNAPSHOT_UNREACHABLE(ClosureData);
 MESSAGE_SNAPSHOT_UNREACHABLE(Code);
 MESSAGE_SNAPSHOT_UNREACHABLE(CodeSourceMap);
@@ -566,7 +565,6 @@ MESSAGE_SNAPSHOT_UNREACHABLE(LocalVarDescriptors);
 MESSAGE_SNAPSHOT_UNREACHABLE(MegamorphicCache);
 MESSAGE_SNAPSHOT_UNREACHABLE(Namespace);
 MESSAGE_SNAPSHOT_UNREACHABLE(ObjectPool);
-MESSAGE_SNAPSHOT_UNREACHABLE(ParameterTypeCheck);
 MESSAGE_SNAPSHOT_UNREACHABLE(PatchClass);
 MESSAGE_SNAPSHOT_UNREACHABLE(PcDescriptors);
 MESSAGE_SNAPSHOT_UNREACHABLE(RedirectionData);
@@ -1376,7 +1374,6 @@ ExternalTypedDataPtr ExternalTypedData::ReadFrom(SnapshotReader* reader,
 
 // This function's name can appear in Observatory.
 static void IsolateMessageTypedDataFinalizer(void* isolate_callback_data,
-                                             Dart_WeakPersistentHandle handle,
                                              void* buffer) {
   free(buffer);
 }
@@ -1709,9 +1706,9 @@ void TransferableTypedDataLayout::WriteTo(SnapshotWriter* writer,
       length, data, tpeer,
       // Finalizer does nothing - in case of failure to serialize,
       // [data] remains wrapped in sender's [TransferableTypedData].
-      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {},
+      [](void* data, void* peer) {},
       // This is invoked on successful serialization of the message
-      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
+      [](void* data, void* peer) {
         TransferableTypedDataPeer* tpeer =
             reinterpret_cast<TransferableTypedDataPeer*>(peer);
         tpeer->handle()->EnsureFreedExternal(IsolateGroup::Current());

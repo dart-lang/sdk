@@ -81,8 +81,6 @@ class TypeConstraintGathererTest {
 
   Class get mapClass => coreTypes.mapClass;
 
-  InterfaceType get nullType => coreTypes.nullType;
-
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get P => coreTypes.legacyRawType(classP);
@@ -280,8 +278,8 @@ class TypeConstraintGathererTest {
   }
 
   void test_null_subtype_any() {
-    _checkConstraintsLower(T1, nullType, testLib, ['dart.core::Null? <: T1']);
-    _checkConstraintsUpper(nullType, Q, testLib, []);
+    _checkConstraintsLower(T1, new NullType(), testLib, ['Null <: T1']);
+    _checkConstraintsUpper(new NullType(), Q, testLib, []);
   }
 
   void test_parameter_subtype_any() {

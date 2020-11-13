@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -21,10 +21,16 @@ class AddMissingRequiredArgumentTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_constructor_flutter_children() async {
-    addFlutterPackage();
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -51,9 +57,7 @@ build() {
   }
 
   Future<void> test_constructor_flutter_hasTrailingComma() async {
-    addFlutterPackage();
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -80,8 +84,7 @@ build() {
   }
 
   Future<void> test_constructor_named() async {
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -108,7 +111,6 @@ void f() {
   }
 
   Future<void> test_constructor_single() async {
-    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -116,7 +118,7 @@ class A {
   A({@required int a}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -135,7 +137,6 @@ main() {
   }
 
   Future<void> test_constructor_single_closure() async {
-    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -145,7 +146,7 @@ class A {
   A({@required VoidCallback onPressed}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -164,7 +165,6 @@ main() {
   }
 
   Future<void> test_constructor_single_closure2() async {
-    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -174,7 +174,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -193,7 +193,6 @@ main() {
   }
 
   Future<void> test_constructor_single_closure3() async {
-    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -203,7 +202,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -222,7 +221,6 @@ main() {
   }
 
   Future<void> test_constructor_single_closure4() async {
-    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -232,7 +230,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -250,101 +248,7 @@ main() {
 ''');
   }
 
-  Future<void> test_constructor_single_closure_nnbd() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    addMetaPackage();
-    addSource('/home/test/lib/a.dart', r'''
-import 'package:meta/meta.dart';
-
-typedef int Callback(int? a);
-
-class A {
-  A({@required Callback callback}) {}
-}
-''');
-    await resolveTestUnit('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A();
-  print(a);
-}
-''');
-    await assertHasFix('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A(callback: (int? a) {  });
-  print(a);
-}
-''');
-  }
-
-  Future<void> test_constructor_single_closure_nnbd_from_legacy() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    addMetaPackage();
-    addSource('/home/test/lib/a.dart', r'''
-// @dart = 2.8
-import 'package:meta/meta.dart';
-
-typedef int Callback(int a);
-
-class A {
-  A({@required Callback callback}) {}
-}
-''');
-    await resolveTestUnit('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A();
-  print(a);
-}
-''');
-    await assertHasFix('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A(callback: (int a) {  });
-  print(a);
-}
-''');
-  }
-
-  Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    addMetaPackage();
-    addSource('/home/test/lib/a.dart', r'''
-import 'package:meta/meta.dart';
-
-typedef int Callback(int? a);
-
-class A {
-  A({@required Callback callback}) {}
-}
-''');
-    await resolveTestUnit('''
-// @dart = 2.8
-import 'package:test/a.dart';
-
-main() {
-  A a = new A();
-  print(a);
-}
-''');
-    await assertHasFix('''
-// @dart = 2.8
-import 'package:test/a.dart';
-
-main() {
-  A a = new A(callback: (int a) {  });
-  print(a);
-}
-''');
-  }
-
   Future<void> test_constructor_single_list() async {
-    addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -352,7 +256,7 @@ class A {
   A({@required List<String> names}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -371,8 +275,7 @@ main() {
   }
 
   Future<void> test_multiple() async {
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
@@ -391,8 +294,7 @@ main() {
   }
 
   Future<void> test_multiple_1of2() async {
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
@@ -411,8 +313,7 @@ main() {
   }
 
   Future<void> test_multiple_2of2() async {
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
@@ -431,9 +332,7 @@ main() {
   }
 
   Future<void> test_param_child() async {
-    addFlutterPackage();
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -465,9 +364,7 @@ build() {
   }
 
   Future<void> test_param_children() async {
-    addFlutterPackage();
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -499,8 +396,7 @@ build() {
   }
 
   Future<void> test_single() async {
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int abc}) {}
@@ -520,8 +416,7 @@ main() {
   }
 
   Future<void> test_single_normal() async {
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test(String x, {@required int abc}) {}
@@ -540,8 +435,7 @@ main() {
   }
 
   Future<void> test_single_with_details() async {
-    addMetaPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@Required("Really who doesn't need an abc?") int abc}) {}
@@ -561,15 +455,103 @@ main() {
 }
 
 @reflectiveTest
-class AddMissingRequiredArgumentWithNullSafetyTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class AddMissingRequiredArgumentWithNullSafetyTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
+  @override
+  bool get withPackageMeta => true;
+
+  Future<void> test_constructor_single_closure_nnbd() async {
+    addSource('/home/test/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+typedef int Callback(int? a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int? a) {  });
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_from_legacy() async {
+    addSource('/home/test/lib/a.dart', r'''
+// @dart = 2.8
+import 'package:meta/meta.dart';
+
+typedef int Callback(int a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
+    addSource('/home/test/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+typedef int Callback(int? a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestCode('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''');
+  }
+
   Future<void> test_nonNullable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({required int x}) {}
 void g() {
   f();
@@ -584,7 +566,7 @@ void g() {
   }
 
   Future<void> test_nullable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({required int? x}) {}
 void g() {
   f();

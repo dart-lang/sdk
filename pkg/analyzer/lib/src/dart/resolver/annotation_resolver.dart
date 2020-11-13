@@ -76,7 +76,6 @@ class AnnotationResolver {
         element = _resolver.toLegacyElement(element);
 
         identifier.staticElement = element;
-        identifier.staticType = element?.type ?? DynamicTypeImpl.instance;
         // TODO(scheglov) error?
       } else if (prefixElement is PrefixElement) {
         var resolver = PropertyElementResolver(_resolver);
@@ -108,14 +107,6 @@ class AnnotationResolver {
 
         var element = result.readElement;
         identifier.staticElement = element;
-
-        DartType type;
-        if (element is PropertyAccessorElement && element.isGetter) {
-          type = element.returnType;
-        } else {
-          type = DynamicTypeImpl.instance;
-        }
-        identifier.staticType = type;
       }
     } else {
       var identifier = nodeName as SimpleIdentifier;
@@ -137,16 +128,6 @@ class AnnotationResolver {
           [identifier.name],
         );
       }
-
-      DartType type;
-      if (element is ClassElement) {
-        type = _resolver.typeProvider.typeType;
-      } else if (element is PropertyAccessorElement && element.isGetter) {
-        type = element.returnType;
-      } else {
-        type = DynamicTypeImpl.instance;
-      }
-      identifier.staticType = type;
     }
 
     _resolveAnnotationElement(node);

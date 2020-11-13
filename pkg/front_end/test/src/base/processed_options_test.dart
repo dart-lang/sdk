@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -12,7 +10,12 @@ import 'package:front_end/src/fasta/util/bytes_sink.dart' show BytesSink;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Library, Component, loadComponentFromBytes;
+    show
+        CanonicalName,
+        Library,
+        Component,
+        loadComponentFromBytes,
+        NonNullableByDefaultCompiledMode;
 import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -34,7 +37,8 @@ class ProcessedOptionsTest {
   Component _mockOutline;
 
   Component get mockSummary => _mockOutline ??= new Component(
-      libraries: [new Library(Uri.parse('org-dartlang-test:///a/b.dart'))]);
+      libraries: [new Library(Uri.parse('org-dartlang-test:///a/b.dart'))])
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
 
   test_compileSdk_false() {
     for (var value in [false, true]) {

@@ -169,6 +169,13 @@ String debugLibraryToString(Library library) {
   return '$buffer';
 }
 
+String debugComponentToString(Component component) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: new NameSystem())
+      .writeComponentFile(component);
+  return '$buffer';
+}
+
 String componentToString(Component node) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer, syntheticNames: new NameSystem())
@@ -1342,6 +1349,16 @@ class Printer extends Visitor<Null> {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    List<String> flags = <String>[];
+    if (node.isInvariant) {
+      flags.add('Invariant');
+    }
+    if (node.isBoundsSafe) {
+      flags.add('BoundsSafe');
+    }
+    if (flags.isNotEmpty) {
+      write('{${flags.join(',')}}');
+    }
     writeNode(node.arguments);
   }
 
@@ -2158,6 +2175,10 @@ class Printer extends Visitor<Null> {
   visitNeverType(NeverType node) {
     writeWord('Never');
     writeNullability(node.nullability);
+  }
+
+  visitNullType(NullType node) {
+    writeWord('Null');
   }
 
   visitInterfaceType(InterfaceType node) {

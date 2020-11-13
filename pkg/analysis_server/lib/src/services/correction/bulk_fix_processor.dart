@@ -41,6 +41,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_statem
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -64,6 +65,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
@@ -123,7 +125,9 @@ class BulkFixProcessor {
     LintNames.empty_statements: [
       RemoveEmptyStatement.newInstance,
     ],
-    LintNames.hash_and_equals: [CreateMethod.equalsOrHashCode],
+    LintNames.hash_and_equals: [
+      CreateMethod.equalsOrHashCode,
+    ],
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
     ],
@@ -297,6 +301,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.UNDEFINED_METHOD: [
       DataDriven.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
     ],
@@ -326,7 +333,10 @@ class BulkFixProcessor {
   /// A map from an error code to a generator used to create the correction
   /// producer used to build a fix for that diagnostic. The generators used for
   /// lint rules are in the [lintProducerMap].
-  static const Map<ErrorCode, ProducerGenerator> nonLintProducerMap = {};
+  static const Map<ErrorCode, ProducerGenerator> nonLintProducerMap = {
+    StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
+        RemoveNonNullAssertion.newInstance,
+  };
 
   /// Information about the workspace containing the libraries in which changes
   /// will be produced.
@@ -389,6 +399,7 @@ class BulkFixProcessor {
   Future<void> _fixSingleError(DartFixContext fixContext,
       ResolvedUnitResult result, AnalysisError diagnostic) async {
     var context = CorrectionProducerContext(
+      applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
       resolvedResult: result,
@@ -408,28 +419,35 @@ class BulkFixProcessor {
     }
 
     var errorCode = diagnostic.errorCode;
-    if (errorCode is LintCode) {
-      var generators = lintProducerMap[errorCode.name];
-      if (generators != null) {
-        for (var generator in generators) {
+    try {
+      if (errorCode is LintCode) {
+        var generators = lintProducerMap[errorCode.name];
+        if (generators != null) {
+          for (var generator in generators) {
+            await compute(generator());
+          }
+        }
+      } else {
+        var generator = nonLintProducerMap[errorCode];
+        if (generator != null) {
           await compute(generator());
         }
-      }
-    } else {
-      var generator = nonLintProducerMap[errorCode];
-      if (generator != null) {
-        await compute(generator());
-      }
-      var multiGenerators = nonLintMultiProducerMap[errorCode];
-      if (multiGenerators != null) {
-        for (var multiGenerator in multiGenerators) {
-          var multiProducer = multiGenerator();
-          multiProducer.configure(context);
-          for (var producer in multiProducer.producers) {
-            await compute(producer);
+        var multiGenerators = nonLintMultiProducerMap[errorCode];
+        if (multiGenerators != null) {
+          for (var multiGenerator in multiGenerators) {
+            var multiProducer = multiGenerator();
+            multiProducer.configure(context);
+            for (var producer in multiProducer.producers) {
+              await compute(producer);
+            }
           }
         }
       }
+    } catch (e, s) {
+      throw CaughtException.withMessage(
+          'Exception generating fix for ${errorCode.name} in ${result.path}',
+          e,
+          s);
     }
   }
 }

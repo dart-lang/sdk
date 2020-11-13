@@ -20,17 +20,17 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
 class MetricsPageElement extends CustomElement implements Renderable {
-  RenderingScheduler<MetricsPageElement> _r;
+  late RenderingScheduler<MetricsPageElement> _r;
 
   Stream<RenderedEvent<MetricsPageElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.MetricRepository _metrics;
-  List<M.Metric> _available;
-  M.Metric _selected;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.MetricRepository _metrics;
+  List<M.Metric>? _available;
+  M.Metric? _selected;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -42,7 +42,7 @@ class MetricsPageElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.MetricRepository metrics,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -114,7 +114,7 @@ class MetricsPageElement extends CustomElement implements Renderable {
             ..children = _selected == null
                 ? const []
                 : [
-                    new MetricDetailsElement(_isolate, _selected, _metrics,
+                    new MetricDetailsElement(_isolate, _selected!, _metrics,
                             queue: _r.queue)
                         .element
                   ],
@@ -124,7 +124,7 @@ class MetricsPageElement extends CustomElement implements Renderable {
             ..children = _selected == null
                 ? const []
                 : [
-                    new MetricGraphElement(_isolate, _selected, _metrics,
+                    new MetricGraphElement(_isolate, _selected!, _metrics,
                             queue: _r.queue)
                         .element
                   ]
@@ -134,8 +134,8 @@ class MetricsPageElement extends CustomElement implements Renderable {
 
   Future _refresh() async {
     _available = (await _metrics.list(_isolate)).toList();
-    if (!_available.contains(_selected)) {
-      _selected = _available.first;
+    if (!_available!.contains(_selected)) {
+      _selected = _available!.first;
     }
     _r.dirty();
   }
@@ -144,14 +144,14 @@ class MetricsPageElement extends CustomElement implements Renderable {
     var s;
     return [
       s = new SelectElement()
-        ..value = _selected.name
-        ..children = _available.map((metric) {
+        ..value = _selected!.name!
+        ..children = _available!.map((metric) {
           return new OptionElement(
-              value: metric.name, selected: _selected == metric)
-            ..text = metric.name;
+              value: metric.name!, selected: _selected == metric)
+            ..text = metric.name!;
         }).toList(growable: false)
         ..onChange.listen((_) {
-          _selected = _available[s.selectedIndex];
+          _selected = _available![s.selectedIndex];
           _r.dirty();
         })
     ];

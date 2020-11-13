@@ -80,10 +80,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
             topType.classNode.enclosingLibrary.importUri.path == "core" &&
             topType.classNode.name == "Object");
     assert(bottomType == const NeverType(Nullability.nonNullable) ||
-        bottomType is InterfaceType &&
-            bottomType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
-            bottomType.classNode.enclosingLibrary.importUri.path == "core" &&
-            bottomType.classNode.name == "Null");
+        bottomType is NullType);
     _TypeSchemaEliminationVisitor visitor =
         new _TypeSchemaEliminationVisitor(isLeastClosure, topType, bottomType);
     DartType result = schema.accept(visitor);

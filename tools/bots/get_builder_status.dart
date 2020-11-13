@@ -8,6 +8,8 @@
 // These cloud functions write a success/failure result to the
 // builder table based on the approvals in Firestore.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -18,7 +20,7 @@ import 'package:http/http.dart' as http;
 const numAttempts = 20;
 const failuresPerConfiguration = 20;
 
-bool useStagingDatabase;
+/*late*/ bool useStagingDatabase;
 
 String get queryUrl {
   var project = useStagingDatabase ? "dart-ci-staging" : "dart-ci";
@@ -26,11 +28,11 @@ String get queryUrl {
       'projects/$project/databases/(default)/documents:runQuery';
 }
 
-String builder;
-String builderBase;
-int buildNumber;
-String token;
-http.Client client;
+/*late*/ String builder;
+/*late*/ String builderBase;
+/*late*/ int buildNumber;
+/*late*/ String token;
+/*late*/ http.Client client;
 
 String get buildTable => builder.endsWith('-try') ? 'try_builds' : 'builds';
 String get resultsTable => builder.endsWith('-try') ? 'try_results' : 'results';
@@ -73,9 +75,9 @@ main(List<String> args) async {
     usage(parser);
   }
 
-  useStagingDatabase = options['staging'];
-  builder = options['builder'];
-  buildNumber = int.parse(options['build_number']);
+  useStagingDatabase = options['staging'] /*!*/;
+  builder = options['builder'] /*!*/;
+  buildNumber = int.parse(options['build_number'] /*!*/);
   builderBase = builder.replaceFirst(RegExp('-try\$'), '');
   if (options['auth_token'] == null) {
     print('Option "--auth_token (-a)" is required\n');
@@ -139,7 +141,7 @@ Future<List<String>> getConfigurations() async {
   final response = await runFirestoreQuery(configurationsQuery());
   if (response.statusCode == HttpStatus.ok) {
     final documents = jsonDecode(response.body);
-    final groups = <String>{
+    final groups = <String /*!*/ >{
       for (Map document in documents)
         if (document.containsKey('document'))
           document['document']['name'].split('/').last
@@ -154,12 +156,12 @@ Map<int, Future<String>> commitHashes = {};
 Future<String> commitHash(int index) =>
     commitHashes.putIfAbsent(index, () => fetchCommitHash(index));
 
-Future<String> fetchCommitHash(int index) async {
+Future<String /*!*/ > fetchCommitHash(int index) async {
   final response = await runFirestoreQuery(commitQuery(index));
   if (response.statusCode == HttpStatus.ok) {
     final document = jsonDecode(response.body).first['document'];
     if (document != null) {
-      return document['name'].split('/').last;
+      return document['name'] /*!*/ .split('/').last;
     }
   }
   print('Could not fetch commit with index $index');
@@ -167,7 +169,7 @@ Future<String> fetchCommitHash(int index) async {
 }
 
 Future<Map<String, List<Map<String, dynamic>>>> fetchActiveFailures(
-    List<String> configurations) async {
+    List<String /*!*/ > configurations) async {
   final failures = <String, List<Map<String, dynamic>>>{};
   for (final configuration in configurations) {
     final response =

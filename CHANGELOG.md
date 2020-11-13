@@ -1,13 +1,41 @@
-## 2.11.0
+## 2.12.0
+
+### Language
+
+**Breaking Change** [Null
+Safety](https://dart.dev/null-safety/understanding-null-safety) is now enabled
+by default in all packages with a lower sdk constraint of 2.12.0 or greater.
+Files that are not subject to language versioning (whether because they are not
+contained in a pub package, or because the package that they are contained in
+has no lower sdk constraint) are treated as opted into to null safety by default
+and may report new errors.  Pub packages may be opted out of null safety by
+setting a min sdk constraint in pubspec.yaml of 2.9.0 or less.  Files may be
+opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 ### Core libraries
 
 #### `dart:io`
 
-*   `HttpRequest` will now correctly follow HTTP 308 redirects
-    (`HttpStatus.permanentRedirect`).
+* `HttpRequest` will now correctly follow HTTP 308 redirects
+  (`HttpStatus.permanentRedirect`).
+
+#### `dart:isolate`
+
+* Added `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
+  constructors, a name which can be associated with the port and displayed in
+  tooling.
 
 ### Dart VM
+
+*   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s will no longer
+    auto-delete themselves when the referenced object is garbage collected to
+    avoid race conditions, but they are still automatically deleted when the
+    isolate group shuts down.
+*   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandleFinalizer`
+    is renamed to `Dart_HandleFinalizer` and had its `handle` argument removed.
+    All api functions using that type have been updated.
+
+[#42312]: https://github.com/dart-lang/sdk/issues/42312
 
 ### Dart2JS
 
@@ -21,13 +49,29 @@
   `--enable-assert-initializers` command line options. These options haven't
   been supported in a while and were no-ops.
 
+#### dartfmt
+
+* Don't duplicate comments on chained if elements.
+* Preserve `?` in initializing formal function-typed parameters.
+
 #### Linter
 
-Updated the Linter to `0.1.121`, which includes:
+Updated the Linter to `0.1.124`, which includes:
 
-# 0.1.121
-
-* Performance improvements to `always_use_package_imports`, 
+* Fixed false positives in `prefer_constructors_over_static_methods`.
+* Updates to `package_names` to allow leading underscores.
+* Fixed NPEs in `unnecessary_null_checks`.
+* A fixed NPE in `missing_whitespace_between_adjacent_strings`.
+* Updates to `void_checks` for NNBD.
+* A fixed range error in `unnecessary_string_escapes`.
+* A fixed false positives in `unnecessary_null_types`.
+* Fixes to `prefer_constructors_over_static_methods` to respect type parameters.
+* Updates to `always_require_non_null_named_parameters` to be NNBD-aware.
+* Updates tp `unnecessary_nullable_for_final_variable_declarations` to allow dynamic.
+* Updates `overridden_fields` to not report on abstract parent fields.
+* Fixes to `unrelated_type_equality_checks` for NNBD.
+* Improvements to `type_init_formals`to allow types not equal to the field type.
+* Performance improvements to `always_use_package_imports`,
   `avoid_renaming_method_parameters`, `prefer_relative_imports` and
   `public_member_api_docs`.
 * (internal): updates to analyzer `0.40.4` APIs
@@ -40,6 +84,61 @@ Updated the Linter to `0.1.121`, which includes:
 * New lint: `unnecessary_null_checks`.
 * Fixed `unawaited_futures` to handle `Future` subtypes.
 * New lint: `avoid_type_to_string`.
+
+#### Pub
+
+* **Breaking**: The Dart SDK constraint is now **required** in `pubspec.yaml`.
+
+  You now have to include a section like:
+
+  ```yaml
+  environment:
+    sdk: '>=2.10.0 <3.0.0'
+  ```
+
+  See [#44072][].
+* The top level `pub` executable has been deprecated. Use `dart pub` instead.
+  See [dart tool][].
+* New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
+  
+  And a corresponding `dart pub remove` that removes dependencies.
+* New option `dart pub outdated --mode=null-safety` that will analyze your
+  dependencies for null-safety.
+* `dart pub publish` will now check your pubspec keys for likely typos.
+* New command `dart pub login` that logs in to pub.dev.
+* The `--server` option to `dart pub publish` and `dart pub uploader` have been
+  deprecated. Use `publish_to` in your `pubspec.yaml` or set the 
+  `$PUB_HOSTED_URL` environment variable.
+
+[#44072]: https://github.com/dart-lang/sdk/issues/44072
+[dart tool]: https://dart.dev/tools/dart-tool
+
+## 2.10.3 - 2020-10-29
+
+This is a patch release that fixes the following issues:
+* breaking changes in Chrome 86 that affect DDC (issues [#43750][] and
+  [#43193][]).
+* compiler error causing incorrect use of positional parameters when named
+  parameters should be used instead (issues [flutter/flutter#65324][] and
+  [flutter/flutter#68092][]).
+* crashes and/or undefined behavor in AOT compiled code (issues [#43770][] and
+  [#43786][]).
+* AOT compilation of classes with more than 64 unboxed fields
+  (issue [flutter/flutter#67803][]).
+
+[#43750]: https://github.com/dart-lang/sdk/issues/43750
+[#43193]: https://github.com/dart-lang/sdk/issues/43193
+[flutter/flutter#65324]: https://github.com/flutter/flutter/issues/65324
+[flutter/flutter#68092]: https://github.com/flutter/flutter/issues/68092
+[#43770]: https://github.com/dart-lang/sdk/issues/43770
+[#43786]: https://github.com/dart-lang/sdk/issues/43786
+[flutter/flutter#67803]: https://github.com/flutter/flutter/issues/67803
+
+## 2.10.2 - 2020-10-15
+
+This is a patch release that fixes a DDC compiler crash (issue [#43589]).
+
+[#43589]: https://github.com/dart-lang/sdk/issues/43589
 
 ## 2.10.1 - 2020-10-06
 

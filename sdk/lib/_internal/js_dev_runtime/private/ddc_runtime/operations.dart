@@ -82,7 +82,7 @@ bindCall(obj, name) {
 ///
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
-gbind(f, @rest List typeArgs) {
+gbind(f, @rest List<Object> typeArgs) {
   GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
   type.checkBounds(typeArgs);
   // Create a JS wrapper function that will also pass the type arguments, and
@@ -872,8 +872,15 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
 })()''');
 
 checkNativeNonNull(dynamic variable) {
-  if (_nativeNonNullAsserts) {
-    return nullCheck(variable);
+  if (_nativeNonNullAsserts && variable == null) {
+    // TODO(srujzs): Add link/patch for instructions to disable in internal
+    // build systems.
+    throw TypeErrorImpl('''
+      Unexpected null value encountered in Dart web platform libraries.
+      This may be a bug in the Dart SDK APIs. If you would like to report a bug
+      or disable this error, you can use the following instructions:
+      https://github.com/dart-lang/sdk/tree/master/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
+    ''');
   }
   return variable;
 }

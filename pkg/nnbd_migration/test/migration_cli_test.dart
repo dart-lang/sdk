@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -31,6 +32,8 @@ import 'package:nnbd_migration/src/preview/preview_site.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'utilities/test_logger.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -64,13 +67,16 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
       ResourceProvider resourceProvider,
       LineInfo Function(String) getLineInfo,
       Object bindAddress,
+      Logger logger,
       {List<String> included = const <String>[],
       int preferredPort,
-      String summaryPath})
-      : super(listener, resourceProvider, getLineInfo, bindAddress,
+      String summaryPath,
+      @required String sdkPath})
+      : super(listener, resourceProvider, getLineInfo, bindAddress, logger,
             included: included,
             preferredPort: preferredPort,
-            summaryPath: summaryPath);
+            summaryPath: summaryPath,
+            sdkPath: sdkPath);
 
   @override
   InstrumentationListener createInstrumentationListener(
@@ -89,11 +95,10 @@ class _MigrationCli extends MigrationCli {
   _MigrationCli(this._test)
       : super(
             binaryName: 'nnbd_migration',
-            loggerFactory: (isVerbose) => _test.logger = _TestLogger(isVerbose),
+            loggerFactory: (isVerbose) => _test.logger = TestLogger(isVerbose),
             defaultSdkPathOverride:
                 _test.resourceProvider.convertPath(mock_sdk.sdkRoot),
             resourceProvider: _test.resourceProvider,
-            processManager: _test.processManager,
             environmentVariables: _test.environmentVariables);
 
   _MigrationCliRunner decodeCommandLineArgs(ArgResults argResults,
@@ -149,19 +154,22 @@ class _MigrationCliRunner extends MigrationCliRunner {
       Object bindAddress,
       {List<String> included = const <String>[],
       int preferredPort,
-      String summaryPath}) {
+      String summaryPath,
+      @required String sdkPath}) {
     if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
-          listener, resourceProvider, getLineInfo, bindAddress,
+          listener, resourceProvider, getLineInfo, bindAddress, logger,
           included: included,
           preferredPort: preferredPort,
-          summaryPath: summaryPath);
+          summaryPath: summaryPath,
+          sdkPath: sdkPath);
     } else {
       return super.createNonNullableFix(
           listener, resourceProvider, getLineInfo, bindAddress,
           included: included,
           preferredPort: preferredPort,
-          summaryPath: summaryPath);
+          summaryPath: summaryPath,
+          sdkPath: sdkPath);
     }
   }
 
@@ -192,20 +200,23 @@ abstract class _MigrationCliTestBase {
 
   bool Function(String) overrideShouldBeMigrated;
 
-  set logger(_TestLogger logger);
-
-  _MockProcessManager get processManager;
+  set logger(TestLogger logger);
 
   MemoryResourceProvider get resourceProvider;
 }
 
 mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   @override
-  /*late*/ _TestLogger logger;
+  /*late*/ TestLogger logger;
 
   final hasVerboseHelpMessage = contains('for verbose help output');
 
   final hasUsageText = contains('Usage: nnbd_migration');
+
+  final urlStartRegexp = RegExp('https?:');
+
+  final dartVersionIsNullSafeByDefault =
+      Feature.non_nullable.releaseVersion != null;
 
   String assertDecodeArgsFailure(List<String> args) {
     var cli = _createCli();
@@ -276,7 +287,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Future assertPreviewServerResponsive(String url) async {
-    var response = await http.get(url);
+    var response = await httpGet(url);
     assertHttpSuccess(response);
   }
 
@@ -289,36 +300,6 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       expect(
           resourceProvider.getFile(filePath).readAsStringSync(), entry.value);
     }
-  }
-
-  void assertPubOutdatedFailure(
-      {int pubOutdatedExitCode = 0,
-      String pubOutdatedStdout = '',
-      String pubOutdatedStderr = ''}) {
-    processManager._mockResult = ProcessResult(123 /* pid */,
-        pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
-    logger = _TestLogger(true);
-    var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = createProjectDir(projectContents);
-    var success = DependencyChecker(
-            projectDir, resourceProvider.pathContext, logger, processManager)
-        .check();
-    expect(success, isFalse);
-  }
-
-  void assertPubOutdatedSuccess(
-      {int pubOutdatedExitCode = 0,
-      String pubOutdatedStdout = '',
-      String pubOutdatedStderr = ''}) {
-    processManager._mockResult = ProcessResult(123 /* pid */,
-        pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
-    logger = _TestLogger(true);
-    var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = createProjectDir(projectContents);
-    var success = DependencyChecker(
-            projectDir, resourceProvider.pathContext, logger, processManager)
-        .check();
-    expect(success, isTrue);
   }
 
   Future<String> assertRunFailure(List<String> args,
@@ -348,6 +329,19 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return stderrText;
   }
 
+  /// Wraps a future containing an HTTP response so that when that response is
+  /// received, we will verify that it is reasonable.
+  Future<http.Response> checkHttpResponse(
+      Future<http.Response> futureResponse) async {
+    var response = await futureResponse;
+    // Check that all "http:" and "https:" URLs in the given HTTP response are
+    // absolute (guards against https://github.com/dart-lang/sdk/issues/43545).
+    for (var match in urlStartRegexp.allMatches(response.body)) {
+      expect(response.body.substring(match.end), startsWith('//'));
+    }
+    return response;
+  }
+
   String createProjectDir(Map<String, String> contents,
       {String posixPath = '/test_project'}) {
     for (var entry in contents.entries) {
@@ -366,6 +360,23 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return jsonDecode(response.body)['sourceCode'] as String;
   }
 
+  /// Performs an HTTP get, verifying that the response received (if any) is
+  /// reasonable.
+  Future<http.Response> httpGet(dynamic url, {Map<String, String> headers}) {
+    return checkHttpResponse(http.get(url, headers: headers));
+  }
+
+  /// Performs an HTTP post, verifying that the response received (if any) is
+  /// reasonable.
+  Future<http.Response> httpPost(dynamic url,
+      {Map<String, String> headers, dynamic body, Encoding encoding}) {
+    return checkHttpResponse(
+        http.post(url, headers: headers, body: body, encoding: encoding));
+  }
+
+  String packagePath(String path) =>
+      resourceProvider.convertPath('/.pub-cache/$path');
+
   Future<void> runWithPreviewServer(_MigrationCli cli, List<String> args,
       Future<void> Function(String) callback) async {
     String url;
@@ -378,7 +389,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
         await callback(url);
       });
       // Server should be stopped now
-      expect(http.get(url), throwsA(anything));
+      expect(httpGet(url), throwsA(anything));
       assertNormalExit(cliRunner);
     }
   }
@@ -392,32 +403,23 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       {bool migrated = false,
       String sourceText,
       String pubspecText,
-      String packageConfigText}) {
+      String packageConfigText,
+      String analysisOptionsText}) {
     return {
       'pubspec.yaml': pubspecText ??
           '''
 name: test
 environment:
-  sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
+  sdk: '${migrated ? '>=2.12.0 <3.0.0' : '>=2.6.0 <3.0.0'}'
 ''',
-      '.dart_tool/package_config.json': packageConfigText ??
-          '''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "test",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "${migrated ? '2.9' : '2.6'}"
-    }
-  ]
-}
-''',
+      '.dart_tool/package_config.json':
+          packageConfigText ?? _getPackageConfigText(migrated: migrated),
       'lib/test.dart': sourceText ??
           '''
 int${migrated ? '?' : ''} f() => null;
-'''
+''',
+      if (analysisOptionsText != null)
+        'analysis_options.yaml': analysisOptionsText,
     };
   }
 
@@ -474,6 +476,7 @@ int${migrated ? '?' : ''} f() => null;
 
   test_flag_apply_changes_default() {
     expect(assertParseArgsSuccess([]).applyChanges, isFalse);
+    expect(assertParseArgsSuccess([]).webPreview, isTrue);
   }
 
   test_flag_apply_changes_disable() async {
@@ -482,6 +485,12 @@ int${migrated ? '?' : ''} f() => null;
   }
 
   test_flag_apply_changes_enable() {
+    var options = assertParseArgsSuccess(['--apply-changes']);
+    expect(options.applyChanges, isTrue);
+    expect(options.webPreview, isFalse);
+  }
+
+  test_flag_apply_changes_enable_with_no_web_preview() {
     expect(
         assertParseArgsSuccess(['--no-web-preview', '--apply-changes'])
             .applyChanges,
@@ -536,17 +545,17 @@ int${migrated ? '?' : ''} f() => null;
     expect(_getHelpText(verbose: true), contains(flagName));
   }
 
-  test_flag_skip_pub_outdated_default() {
-    expect(assertParseArgsSuccess([]).skipPubOutdated, isFalse);
+  test_flag_skip_import_check_default() {
+    expect(assertParseArgsSuccess([]).skipImportCheck, isFalse);
   }
 
-  test_flag_skip_pub_outdated_disable() async {
-    // "--no-skip-pub-outdated" is not an option.
-    await assertParseArgsFailure(['--no-skip-pub-outdated']);
+  test_flag_skip_import_check_disable() async {
+    // "--no-skip-import-check" is not an option.
+    await assertParseArgsFailure(['--no-skip-import_check']);
   }
 
-  test_flag_skip_pub_outdated_enable() {
-    expect(assertParseArgsSuccess(['--skip-pub-outdated']).skipPubOutdated,
+  test_flag_skip_import_check_enable() {
+    expect(assertParseArgsSuccess(['--skip-import-check']).skipImportCheck,
         isTrue);
   }
 
@@ -562,12 +571,45 @@ int${migrated ? '?' : ''} f() => null;
     expect(assertParseArgsSuccess(['--web-preview']).webPreview, isTrue);
   }
 
+  test_lifecycle_already_migrated_file() async {
+    Map<String, String> createProject({bool migrated = false}) {
+      var projectContents = simpleProject(sourceText: '''
+${migrated ? '' : '// @dart = 2.6'}
+import 'already_migrated.dart';
+int${migrated ? '?' : ''} x = y;
+''', migrated: true);
+      projectContents['lib/already_migrated.dart'] = '''
+int? y = 0;
+''';
+      return projectContents;
+    }
+
+    var projectContents = createProject();
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli(nullSafePackages: ['test'])
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertNormalExit(cliRunner);
+    // Check that a summary was printed
+    expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
+    // And that it refers to test.dart, but not pubspec.yaml or
+    // already_migrated.dart.
+    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), isNot(contains('pubspec.yaml')));
+    expect(logger.stdoutBuffer.toString(),
+        isNot(contains('already_migrated.dart')));
+    // And that it does not tell the user they can rerun with `--apply-changes`
+    expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
+    // Check that the non-migrated library was changed but not the migrated one
+    assertProjectContents(projectDir, createProject(migrated: true));
+  }
+
   test_lifecycle_apply_changes() async {
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
-    var cliRunner = cli.decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner =
+        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     bool applyHookCalled = false;
     cli._onApplyHook = () {
       expect(applyHookCalled, false);
@@ -720,6 +762,50 @@ int? f() => null
     });
   }
 
+  test_lifecycle_import_check_via_export() async {
+    // If the user's code exports a library that imports a non-migrated library,
+    // that's a problem too.
+    var projectContents = simpleProject(
+        sourceText: "export 'package:foo/foo.dart';",
+        packageConfigText: _getPackageConfigText(
+            migrated: false, packagesMigrated: {'foo': true, 'bar': false}));
+    var projectDir = createProjectDir(projectContents);
+    resourceProvider.newFile(
+        packagePath('foo/lib/foo.dart'), "import 'package:bar/bar.dart';");
+    resourceProvider.newFile(packagePath('bar/lib/bar.dart'), '');
+    await assertRunFailure([projectDir], expectedExitCode: 1);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('Error: package has unmigrated dependencies'));
+    // Output should mention bar.dart, since it's unmigrated
+    expect(output, contains('package:bar/bar.dart'));
+    // But it should not mention foo.dart, which is migrated
+    expect(output, isNot(contains('package:foo/foo.dart')));
+  }
+
+  test_lifecycle_import_check_via_indirect_export() async {
+    // If the user's code imports a library that exports a library that imports
+    // a non-migrated library, that's a problem too.
+    var projectContents = simpleProject(
+        sourceText: "import 'package:foo/foo.dart';",
+        packageConfigText: _getPackageConfigText(
+            migrated: false,
+            packagesMigrated: {'foo': true, 'bar': true, 'baz': false}));
+    var projectDir = createProjectDir(projectContents);
+    resourceProvider.newFile(
+        packagePath('foo/lib/foo.dart'), "export 'package:bar/bar.dart';");
+    resourceProvider.newFile(
+        packagePath('bar/lib/bar.dart'), "import 'package:baz/baz.dart';");
+    resourceProvider.newFile(packagePath('baz/lib/baz.dart'), '');
+    await assertRunFailure([projectDir], expectedExitCode: 1);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('Error: package has unmigrated dependencies'));
+    // Output should mention baz.dart, since it's unmigrated
+    expect(output, contains('package:baz/baz.dart'));
+    // But it should not mention foo.dart or bar.dart, which are migrated
+    expect(output, isNot(contains('package:foo/foo.dart')));
+    expect(output, isNot(contains('package:bar/bar.dart')));
+  }
+
   test_lifecycle_no_preview() async {
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
@@ -729,7 +815,7 @@ int? f() => null
     assertNormalExit(cliRunner);
     // Check that a summary was printed
     var output = logger.stdoutBuffer.toString();
-    expect(output, contains('Summary'));
+    expect(output, contains('Diff of changes'));
     // And that it refers to test.dart and pubspec.yaml
     expect(output, contains('test.dart'));
     expect(output, contains('pubspec.yaml'));
@@ -771,8 +857,12 @@ void call_g() => g(null);
         .join(projectDir, 'lib', 'analyze_but_do_not_migrate.dart');
     overridePathsToProcess = {testPath, analyzeButDoNotMigratePath};
     overrideShouldBeMigrated = (path) => path == testPath;
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli().decodeCommandLineArgs(_parseArgs([
+      '--no-web-preview',
+      '--apply-changes',
+      '--skip-import-check',
+      projectDir
+    ]));
     await cliRunner.run();
     assertNormalExit(cliRunner);
     // Check that a summary was printed
@@ -814,7 +904,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var response = await http.post(
+      var response = await httpPost(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -850,7 +940,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var response = await http.post(
+      var response = await httpPost(
           uri.replace(
               path: PreviewSite.applyMigrationPath,
               queryParameters: {'authToken': authToken}),
@@ -881,7 +971,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       final uri = Uri.parse(url);
       final authToken = uri.queryParameters['authToken'];
-      final fileResponse = await http.get(
+      final fileResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -894,8 +984,7 @@ void call_g() => g(null);
       final aLink = RegExp(r'<a href="([^"]+)" class="nav-link">');
       for (final match in aLink.allMatches(navigation)) {
         var href = match.group(1);
-        print(href);
-        final contentsResponse = await http.get(
+        final contentsResponse = await httpGet(
             uri.replace(
                 path: Uri.parse(href).path,
                 queryParameters: {'inline': 'true', 'authToken': authToken}),
@@ -915,7 +1004,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var treeResponse = await http.get(
+      var treeResponse = await httpGet(
           uri.replace(
               path: '/_preview/navigationTree.json',
               queryParameters: {'authToken': authToken}),
@@ -925,8 +1014,7 @@ void call_g() => g(null);
         var navTree = NavigationTreeNode.fromJson(root);
         for (final file in navTree.subtree) {
           if (file.href != null) {
-            print(file.href);
-            final contentsResponse = await http.get(
+            final contentsResponse = await httpGet(
                 uri
                     .resolve(file.href)
                     .replace(queryParameters: {'authToken': authToken}),
@@ -961,7 +1049,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var regionResponse = await http.get(
+      var regionResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -977,7 +1065,7 @@ void call_g() => g(null);
       final displayPath = regionJson.displayPath;
       final uriPath = regionJson.uriPath;
       // uriPath should be a working URI
-      final contentsResponse = await http.get(
+      final contentsResponse = await httpGet(
           uri.replace(
               path: uriPath,
               queryParameters: {'inline': 'true', 'authToken': authToken}),
@@ -1002,7 +1090,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       final uri = Uri.parse(url);
       final authToken = uri.queryParameters['authToken'];
-      final fileResponse = await http.get(
+      final fileResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -1015,7 +1103,7 @@ void call_g() => g(null);
       final regionsPathRegex = RegExp(r'<table data-path="([^"]+)">');
       expect(regionsPathRegex.hasMatch(regions), true);
       final regionsPath = regionsPathRegex.matchAsPrefix(regions).group(1);
-      final contentsResponse = await http.get(
+      final contentsResponse = await httpGet(
           uri.replace(
               path: Uri.parse(regionsPath).path,
               queryParameters: {'inline': 'true', 'authToken': authToken}),
@@ -1039,7 +1127,7 @@ void call_g() => g(null);
       // We haven't rerun, so getting the file details from the server should
       // still yield the original source text
       expect(await getSourceFromServer(uri, testPath), origSourceText);
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       // Now that we've rerun, the server should yield the new source text
@@ -1062,7 +1150,7 @@ void call_g() => g(null);
       // fail
       var response = await tryGetSourceFromServer(uri, test2Path);
       expect(response.statusCode, 404);
-      response = await http.post(uri.replace(path: 'rerun-migration'),
+      response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       // Now that we've rerun, the server should yield the new source text
@@ -1071,7 +1159,7 @@ void call_g() => g(null);
   }
 
   test_lifecycle_preview_rerun_deleted_file() async {
-    var projectContents = simpleProject();
+    var projectContents = {...simpleProject(), 'lib/other.dart': ''};
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     // Note: we use the summary to verify that the deletion was noticed
@@ -1092,7 +1180,7 @@ void call_g() => g(null);
           contains('lib${separator}test.dart'));
       // Now delete the lib file and rerun
       resourceProvider.deleteFile(testPath);
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       // lib/test.dart should no longer be readable from the server and
@@ -1121,7 +1209,7 @@ void call_g() => g(null);
       // We haven't rerun, so getting the file details from the server should
       // still yield the original source text, with informational space.
       expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       var body = jsonDecode(response.body);
@@ -1182,7 +1270,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var regionResponse = await http.get(
+      var regionResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -1195,7 +1283,7 @@ void call_g() => g(null);
               }),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var regionJson = jsonDecode(regionResponse.body);
-      var response = await http.post(
+      var response = await httpPost(
           uri.replace(
               path: 'apply-hint', queryParameters: {'authToken': authToken}),
           headers: {'Content-Type': 'application/json; charset=UTF-8'},
@@ -1227,13 +1315,13 @@ void call_g() => g(null);
             'offset': '3',
             'authToken': authToken
           });
-      var regionResponse = await http.get(regionUri,
+      var regionResponse = await httpGet(regionUri,
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
       final traceEntry = regionJson.traces[0].entries[0];
       final uriPath = traceEntry.link.href;
       // uriPath should be a working URI
-      final contentsResponse = await http.get(
+      final contentsResponse = await httpGet(
           regionUri
               .resolve(uriPath)
               .replace(queryParameters: {'authToken': authToken}),
@@ -1242,46 +1330,54 @@ void call_g() => g(null);
     });
   }
 
-  test_lifecycle_skip_pub_outdated_disable() async {
-    var projectContents = simpleProject(sourceText: '''
+  test_lifecycle_skip_import_check_disable() async {
+    var projectContents = simpleProject(
+        sourceText: '''
+import 'package:foo/foo.dart';
+import 'package:foo/bar.dart';
+
 int f() => null;
-''');
+''',
+        packageConfigText: _getPackageConfigText(
+            migrated: false, packagesMigrated: {'foo': false}));
     var projectDir = createProjectDir(projectContents);
-    processManager._mockResult = ProcessResult(
-        123 /* pid */,
-        0 /* exitCode */,
-        '''
-{ "packages":
-  [
-    { "package": "abc", "current": { "version": "1.0.0", "nullSafety": false } }
-  ]
-}
-''' /* stdout */,
-        '' /* stderr */);
-    var output = await assertRunFailure([projectDir], expectedExitCode: 1);
-    expect(output, contains('Warning: dependencies are outdated.'));
+    resourceProvider.newFile(packagePath('foo/lib/foo.dart'), '');
+    resourceProvider.newFile(packagePath('foo/lib/bar.dart'), '');
+    await assertRunFailure([projectDir], expectedExitCode: 1);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('Error: package has unmigrated dependencies'));
+    // Output should contain an indented, sorted list of all unmigrated
+    // dependencies.
+    expect(
+        output, contains('\n  package:foo/bar.dart\n  package:foo/foo.dart'));
+    // Output should mention that the user can rerun with `--skip-import-check`.
+    expect(output, contains('`--${CommandLineOptions.skipImportCheckFlag}`'));
   }
 
-  test_lifecycle_skip_pub_outdated_enable() async {
-    var projectContents = simpleProject(sourceText: '''
+  test_lifecycle_skip_import_check_enable() async {
+    var projectContents = simpleProject(
+        sourceText: '''
+import 'package:foo/foo.dart';
+import 'package:foo/bar.dart';
+
 int f() => null;
-''');
+''',
+        packageConfigText: _getPackageConfigText(
+            migrated: false, packagesMigrated: {'foo': false}));
     var projectDir = createProjectDir(projectContents);
-    processManager._mockResult = ProcessResult(
-        123 /* pid */,
-        0 /* exitCode */,
-        '''
-{ "packages":
-  [
-    { "package": "abc", "current": { "version": "1.0.0", "nullSafety": false } }
-  ]
-}
-''' /* stdout */,
-        '' /* stderr */);
+    resourceProvider.newFile(packagePath('foo/lib/foo.dart'), '');
+    resourceProvider.newFile(packagePath('foo/lib/bar.dart'), '');
     var cli = _createCli();
-    await runWithPreviewServer(cli, ['--skip-pub-outdated', projectDir],
+    await runWithPreviewServer(cli, ['--skip-import-check', projectDir],
         (url) async {
       await assertPreviewServerResponsive(url);
+      var output = logger.stdoutBuffer.toString();
+      expect(output, contains('Warning: package has unmigrated dependencies'));
+      // Output should not mention the particular unmigrated dependencies.
+      expect(output, isNot(contains('package:foo')));
+      // Output should mention that the user can rerun without
+      // `--skip-import-check`.
+      expect(output, contains('`--${CommandLineOptions.skipImportCheckFlag}`'));
     });
   }
 
@@ -1333,7 +1429,7 @@ int f() => null;
       resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
       // Rerunning should create a new summary
       var uri = Uri.parse(url);
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       summaryData =
@@ -1465,20 +1561,28 @@ int f() => null;
     var projectContents = simpleProject()
       ..remove('.dart_tool/package_config.json');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(
-        projectDir,
-        simpleProject(migrated: true)
-          ..remove('.dart_tool/package_config.json'));
+
+    if (dartVersionIsNullSafeByDefault) {
+      // The lack of a package config file means the test file is already opted
+      // in.
+      await assertRunFailure(['--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(
+          projectDir,
+          simpleProject(migrated: true)
+            ..remove('.dart_tool/package_config.json'));
+    }
   }
 
   test_package_config_is_missing_languageVersion() async {
     var packageConfigText = '''
 {
-  "configVersion": 3,
+  "configVersion": 2,
   "packages": [
     {
       "name": "test",
@@ -1490,30 +1594,46 @@ int f() => null;
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(projectDir,
-        simpleProject(migrated: true, packageConfigText: packageConfigText));
+
+    if (dartVersionIsNullSafeByDefault) {
+      // An omitted languageVersion field means the code is opted in to null
+      // safety.
+      await assertRunFailure(['--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(projectDir,
+          simpleProject(migrated: true, packageConfigText: packageConfigText));
+    }
   }
 
   test_package_config_is_missing_this_package() async {
     var packageConfigText = '''
 {
-  "configVersion": 3,
+  "configVersion": 2,
   "packages": [
   ]
 }
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(projectDir,
-        simpleProject(migrated: true, packageConfigText: packageConfigText));
+
+    if (dartVersionIsNullSafeByDefault) {
+      // An omitted entry in the package config means the code is opted in to null
+      // safety.
+      await assertRunFailure(['--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(projectDir,
+          simpleProject(migrated: true, packageConfigText: packageConfigText));
+    }
   }
 
   test_package_config_is_wrong_version() async {
@@ -1532,156 +1652,35 @@ int f() => null;
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(projectDir,
-        simpleProject(migrated: true, packageConfigText: packageConfigText));
-  }
 
-  test_pub_outdated_has_malformed_json() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '{ "packages": }');
-    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
-  }
-
-  test_pub_outdated_has_no_packages() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '{}');
-    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
-  }
-
-  test_pub_outdated_has_no_pre_null_safety_packages() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '''
-{
-  "packages": [
-    {
-      "package": "abc",
-      "current": { "version": "1.0.0", "nullSafety": true }
-    },
-    {
-      "package": "def",
-      "current": { "version": "2.0.0", "nullSafety": true }
+    if (dartVersionIsNullSafeByDefault) {
+      // An unreadable package config means the code is opted in to null safety.
+      await assertRunFailure(['--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(projectDir,
+          simpleProject(migrated: true, packageConfigText: packageConfigText));
     }
-  ]
-}
-''');
-  }
-
-  test_pub_outdated_has_one_pre_null_safety_package() {
-    assertPubOutdatedFailure(pubOutdatedStdout: '''
-{
-  "packages": [
-    {
-      "package": "abc",
-      "current": { "version": "1.0.0", "nullSafety": false }
-    },
-    {
-      "package": "def",
-      "current": { "version": "2.0.0", "nullSafety": true }
-    }
-  ]
-}
-''');
-    var stderrText = logger.stderrBuffer.toString();
-    expect(stderrText, contains('Warning:'));
-    expect(stderrText, contains('abc'));
-    expect(stderrText, contains('1.0.0'));
-  }
-
-  test_pub_outdated_has_package_with_missing_current() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '''
-{
-  "packages": [
-    {
-      "package": "abc"
-    }
-  ]
-}
-''');
-    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
-  }
-
-  test_pub_outdated_has_package_with_missing_name() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '''
-{
-  "packages": [
-    {
-      "current": {
-        "version": "1.0.0",
-        "nullSafety": false
-      }
-    }
-  ]
-}
-''');
-    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
-  }
-
-  test_pub_outdated_has_package_with_missing_nullSafety() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '''
-{
-  "packages": [
-    {
-      "package": "abc",
-      "current": {
-        "version": "1.0.0"
-      }
-    }
-  ]
-}
-''');
-    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
-  }
-
-  test_pub_outdated_has_package_with_missing_version() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '''
-{
-  "packages": [
-    {
-      "package": "abc",
-      "current": {
-        "nullSafety": false
-      }
-    }
-  ]
-}
-''');
-    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
-  }
-
-  test_pub_outdated_has_package_with_null_current() {
-    assertPubOutdatedSuccess(pubOutdatedStdout: '''
-{
-  "packages": [
-    {
-      "package": "abc",
-      "current": null
-    }
-  ]
-}
-''');
-    expect(logger.stderrBuffer.toString(), isEmpty);
-  }
-
-  test_pub_outdated_has_stderr() {
-    assertPubOutdatedSuccess(pubOutdatedStderr: 'anything');
-    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
   }
 
   test_pubspec_does_not_exist() async {
-    var projectContents = simpleProject()
-      ..remove('pubspec.yaml')
-      ..remove('.dart_tool/package_config.json');
+    var projectContents = simpleProject()..remove('pubspec.yaml');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
         projectDir,
-        simpleProject(migrated: true)
-          ..remove('pubspec.yaml')
-          ..remove('.dart_tool/package_config.json'));
+        simpleProject(
+            migrated: true,
+            // The package config file should not have been touched.
+            packageConfigText: _getPackageConfigText(migrated: false))
+          ..remove('pubspec.yaml'));
   }
 
   test_pubspec_environment_is_missing_sdk() async {
@@ -1691,8 +1690,8 @@ environment:
   foo: 1
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1700,7 +1699,7 @@ environment:
 name: test
 environment:
   foo: 1
-  sdk: '>=2.9.0 <2.10.0'
+  sdk: '>=2.12.0 <3.0.0'
 '''));
   }
 
@@ -1711,8 +1710,8 @@ environment: 1
 ''';
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1725,17 +1724,40 @@ name: test
 environment:
   sdk: 1
 ''';
-    var projectContents = simpleProject(pubspecText: pubspecText)
-      ..remove('.dart_tool/package_config.json');
+    var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
         projectDir,
-        simpleProject(migrated: true, pubspecText: pubspecText)
-          ..remove('.dart_tool/package_config.json'));
+        simpleProject(
+            migrated: true,
+            pubspecText: pubspecText,
+            // The package config file should not have been touched.
+            packageConfigText: _getPackageConfigText(migrated: false)));
+  }
+
+  test_pubspec_has_unusual_max_sdk_constraint() async {
+    // No one should be using a weird max SDK constraint like this.  If they are
+    // doing so, we'll fix it to 3.0.0.
+    var projectContents = simpleProject(pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <2.17.4'
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+'''));
   }
 
   test_pubspec_is_missing_environment() async {
@@ -1743,15 +1765,15 @@ environment:
 name: test
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(projectDir, simpleProject(migrated: true, pubspecText:
         // This is strange-looking, but valid.
         '''
 environment:
-  sdk: '>=2.9.0 <2.10.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 name: test
 '''));
@@ -1760,9 +1782,61 @@ name: test
   test_pubspec_is_not_a_map() async {
     var projectContents = simpleProject(pubspecText: 'not-a-map');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     expect(() async => await cliRunner.run(), throwsUnsupportedError);
+  }
+
+  test_pubspec_with_sdk_version_beta() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-1.2.beta')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-1.2.beta <3.0.0'
+'''));
+  }
+
+  test_pubspec_with_sdk_version_dev() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-1.2.dev')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
+'''));
+  }
+
+  test_pubspec_with_sdk_version_edge() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-edge.1234567')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
+'''));
+  }
+
+  test_pubspec_with_sdk_version_internal() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-1234567')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
+'''));
   }
 
   test_uses_physical_resource_provider_by_default() {
@@ -1772,16 +1846,29 @@ name: test
 
   Future<http.Response> tryGetSourceFromServer(Uri uri, String path) async {
     var authToken = uri.queryParameters['authToken'];
-    return await http.get(
+    return await httpGet(
         uri.replace(
             path: resourceProvider.pathContext.toUri(path).path,
             queryParameters: {'inline': 'true', 'authToken': authToken}),
         headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
-  _MigrationCli _createCli() {
-    mock_sdk.MockSdk(resourceProvider: resourceProvider);
+  _MigrationCli _createCli(
+      {List<String> nullSafePackages = const [], String sdkVersion}) {
+    mock_sdk.MockSdk(
+        resourceProvider: resourceProvider,
+        nullSafePackages: nullSafePackages,
+        sdkVersion: sdkVersion);
     return _MigrationCli(this);
+  }
+
+  void _expectErrorIndicatingCodeIsAlreadyOptedIn() {
+    var errorOutput = logger.stdoutBuffer.toString();
+    expect(errorOutput, contains('1 analysis issue found:'));
+    expect(
+        errorOutput,
+        contains("A value of type 'Null' can't be returned from function 'f' "
+            "because it has a return type of 'int'"));
   }
 
   String _getHelpText({@required bool verbose}) {
@@ -1790,6 +1877,31 @@ name: test
     expect(cliRunner, isNull);
     var helpText = logger.stderrBuffer.toString();
     return helpText;
+  }
+
+  String _getPackageConfigText(
+      {@required bool migrated,
+      Map<String, bool> packagesMigrated = const {}}) {
+    Object makePackageEntry(String name, bool migrated, {String rootUri}) {
+      rootUri ??=
+          resourceProvider.pathContext.toUri(packagePath(name)).toString();
+      return {
+        'name': name,
+        'rootUri': rootUri,
+        'packageUri': 'lib/',
+        'languageVersion': migrated ? '2.12' : '2.6'
+      };
+    }
+
+    var json = {
+      'configVersion': 2,
+      'packages': [
+        makePackageEntry('test', migrated, rootUri: '../'),
+        for (var entry in packagesMigrated.entries)
+          makePackageEntry(entry.key, entry.value)
+      ]
+    };
+    return JsonEncoder.withIndent('  ').convert(json) + '\n';
   }
 
   ArgResults _parseArgs(List<String> args) {
@@ -1803,16 +1915,12 @@ class _MigrationCliTestPosix extends _MigrationCliTestBase
   @override
   final resourceProvider;
 
-  @override
-  final processManager;
-
   _MigrationCliTestPosix()
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.posix
                 ? null
                 : path.Context(
-                    style: path.Style.posix, current: '/working_dir')),
-        processManager = _MockProcessManager();
+                    style: path.Style.posix, current: '/working_dir'));
 }
 
 @reflectiveTest
@@ -1821,79 +1929,10 @@ class _MigrationCliTestWindows extends _MigrationCliTestBase
   @override
   final resourceProvider;
 
-  @override
-  final processManager;
-
   _MigrationCliTestWindows()
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.windows
                 ? null
                 : path.Context(
-                    style: path.Style.windows, current: 'C:\\working_dir')),
-        processManager = _MockProcessManager();
-}
-
-class _MockProcessManager implements ProcessManager {
-  ProcessResult _mockResult;
-
-  dynamic noSuchMethod(Invocation invocation) {}
-
-  ProcessResult runSync(String executable, List<String> arguments,
-          {String workingDirectory}) =>
-      _mockResult ??
-      ProcessResult(
-        123 /* pid */,
-        0 /* exitCode */,
-        jsonEncode({'packages': []}) /* stdout */,
-        '' /* stderr */,
-      );
-}
-
-/// TODO(paulberry): move into cli_util
-class _TestLogger implements Logger {
-  final stderrBuffer = StringBuffer();
-
-  final stdoutBuffer = StringBuffer();
-
-  final bool isVerbose;
-
-  _TestLogger(this.isVerbose);
-
-  @override
-  Ansi get ansi => Ansi(false);
-
-  @override
-  void flush() {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  Progress progress(String message) {
-    return SimpleProgress(this, message);
-  }
-
-  @override
-  void stderr(String message) {
-    stderrBuffer.writeln(message);
-  }
-
-  @override
-  void stdout(String message) {
-    stdoutBuffer.writeln(message);
-  }
-
-  @override
-  void trace(String message) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void write(String message) {
-    stdoutBuffer.write(message);
-  }
-
-  @override
-  void writeCharCode(int charCode) {
-    stdoutBuffer.writeCharCode(charCode);
-  }
+                    style: path.Style.windows, current: 'C:\\working_dir'));
 }

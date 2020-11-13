@@ -39,7 +39,7 @@ int sizeOf<T extends NativeType>() {
 
 int _sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
-// Implemented in the method recognizer, bytecode interpreter uses runtime.
+// Implemented in the method recognizer.
 Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 
 // The real implementation of this function (for interface calls) lives in
@@ -92,7 +92,7 @@ class Pointer<T extends NativeType> {
         "Pointer.fromFunction cannot be called dynamically.");
   }
 
-  // Implemented in the method recognizer, bytecode interpreter uses runtime.
+  // Implemented in the method recognizer.
   @patch
   int get address native "Ffi_address";
 
@@ -114,10 +114,9 @@ class Pointer<T extends NativeType> {
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
 @pragma('vm:prefer-inline')
 int _abi()
-    native "Recognized method: method is directly interpreted by the bytecode interpreter or IR graph is built in the flow graph builder.";
+    native "Recognized method: IR graph is built in the flow graph builder.";
 
-// The following functions are implemented in the method recognizer, but the
-// bytecode interpreter uses native entries.
+// The following functions are implemented in the method recognizer.
 //
 // TODO(38172): Since these are not inlined (force optimize), they force
 // allocating a Pointer with in elementAt/offsetBy. Allocating these pointers

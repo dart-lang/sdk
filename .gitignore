@@ -103,3 +103,11 @@ tools/xcodebuild
 /generated/
 /crash_logs/
 /build/config/gclient_args.gni
+/pkg/front_end/testcases/old_dills/
+/logs.json
+/results.json
+/async_lazy_debug.so
+/dwarf.so
+/dwarf_obfuscate.so
+/il_tmp.txt
+

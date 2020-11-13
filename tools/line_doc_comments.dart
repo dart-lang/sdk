@@ -1,6 +1,8 @@
 #!/usr/bin/env dart
 
 /// Converts block-style Doc comments in Dart code to line style.
+
+// @dart = 2.9
 library line_doc_comments;
 
 import 'dart:io';

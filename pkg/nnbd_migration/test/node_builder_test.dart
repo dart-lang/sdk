@@ -829,6 +829,62 @@ class C {
     expect(ctorParamType.returnType.node.isImmutable, false);
   }
 
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint() async {
+    await analyze('''
+class C {
+  String s;
+  C({/*required*/ this.s});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint_annotation() async {
+    await analyze('''
+class C {
+  String s;
+  C({@deprecated /*required*/ this.s});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint_function_typed() async {
+    await analyze('''
+class C {
+  String Function() s;
+  C({/*required*/ String this.s()});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint_type() async {
+    await analyze('''
+class C {
+  String s;
+  C({/*required*/ String this.s});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
   Future<void> test_fieldFormalParameter_typed() async {
     await analyze('''
 class C {
@@ -861,6 +917,62 @@ class C {
         TypeMatcher<NullabilityNodeMutable>());
     // Note: the edge builder will unify this implicit type with the type of the
     // field.
+  }
+
+  Future<void> test_formalParameter_named_no_default_required_hint() async {
+    await analyze('''
+void f({/*required*/ String s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_annotation() async {
+    await analyze('''
+void f({@deprecated /*required*/ String s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_covariant() async {
+    await analyze('''
+class C {
+  void f({/*required*/ covariant String s}) {}
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.simpleParameter('String s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_final_type() async {
+    await analyze('''
+void f({/*required*/ final String s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_no_type() async {
+    await analyze('''
+void f({/*required*/ s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void> test_formalParameter_named_no_default_required_hint_var() async {
+    await analyze('''
+void f({/*required*/ var s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
   }
 
   Future<void> test_function_explicit_returnType() async {
@@ -983,6 +1095,28 @@ typedef int F(String s);
     expect(decoratedType.typeFormals, isEmpty);
     expect(decoratedType.positionalParameters[0],
         same(decoratedTypeAnnotation('String')));
+  }
+
+  Future<void>
+      test_functionTypedFormalParameter_named_no_default_required_hint() async {
+    await analyze('''
+void f({/*required*/ void s()}) {}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.functionTypedFormalParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_functionTypedFormalParameter_named_no_default_required_hint_no_return() async {
+    await analyze('''
+void f({/*required*/ s()}) {}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.functionTypedFormalParameter('s')),
+        isNotNull);
   }
 
   Future<void> test_functionTypedFormalParameter_namedParameter_typed() async {
@@ -1701,6 +1835,24 @@ void f({@required String s}) {}
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
+  Future<void>
+      test_topLevelFunction_parameterType_named_no_default_required_hint() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+void f({/*required*/ String s}) {}
+''');
+    var decoratedType = decoratedTypeAnnotation('String');
+    var functionType = decoratedFunctionType('f');
+    expect(functionType.namedParameters['s'], same(decoratedType));
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(never));
+    expect(decoratedType.node, isNot(always));
+    expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
   Future<void> test_topLevelFunction_parameterType_named_with_default() async {
     await analyze('''
 void f({String s: 'x'}) {}
@@ -2028,6 +2180,14 @@ typedef F = void Function();
 ''');
     var decorated = decoratedGenericFunctionTypeAnnotation('void Function()');
     expect(decorated.node, same(never));
+  }
+
+  Future<void> test_variableDeclaration_late_final_hint_simple() async {
+    await analyze('/*late final*/ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_after_metadata() async {

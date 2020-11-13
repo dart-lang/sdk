@@ -4,10 +4,10 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../abstract_context.dart';
 import '../../../abstract_single_unit.dart';
 
 void main() {
@@ -76,7 +76,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
     code = code.replaceFirst(key, '', offset);
 
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit(code);
+    await resolveTestCode(code);
 
     var context = PostfixCompletionContext(testAnalysisResult, offset, key);
     processor = PostfixCompletionProcessor(context);
@@ -623,7 +623,7 @@ f(expr) {
 }
 
 @reflectiveTest
-class _TryTest extends PostfixCompletionTest {
+class _TryTest extends PostfixCompletionTest with WithNullSafetyMixin {
   Future<void> test_try() async {
     await _prepareCompletion('.try', '''
 f() {
@@ -710,7 +710,6 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     await _prepareCompletion('.tryon', '''
 f() {
   throw 'error';.tryon
@@ -728,7 +727,6 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_into_legacy() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     newFile('/home/test/lib/a.dart', content: r'''
 String? x;
 ''');
@@ -753,7 +751,6 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_into_legacy_nested() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     newFile('/home/test/lib/a.dart', content: r'''
 List<String?> x;
 ''');
@@ -778,7 +775,6 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_legacy() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     newFile('/home/test/lib/a.dart', content: r'''
 // @dart = 2.8
 String x;
@@ -802,7 +798,6 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_legacy_nested() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     newFile('/home/test/lib/a.dart', content: r'''
 // @dart = 2.8
 List<String> x;
@@ -826,7 +821,6 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_nullable() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     await _prepareCompletion('.tryon', '''
 f() {
   String? x;
@@ -846,7 +840,6 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_nullable_nested() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     await _prepareCompletion('.tryon', '''
 f() {
   List<String?>? x;

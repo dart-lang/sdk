@@ -32,6 +32,7 @@ import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
+import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 import 'decorated_type_operations.dart';
@@ -211,12 +212,33 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final Set<PromotableElement> _lateHintedLocals = {};
 
+  final Set<PromotableElement> _requiredHintedParameters = {};
+
   final Map<Token, HintComment> _nullCheckHints = {};
 
-  EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
-      this.source, this.listener, this._decoratedClassHierarchy,
+  /// Helper that assists us in transforming Iterable methods to their "OrNull"
+  /// equivalents, or `null` if we are not doing such transformations.
+  final WhereOrNullTransformer _whereOrNullTransformer;
+
+  /// Deferred processing that should be performed once we have finished
+  /// evaluating the decorated type of a method invocation.
+  final Map<MethodInvocation, DecoratedType Function(DecoratedType)>
+      _deferredMethodInvocationProcessing = {};
+
+  EdgeBuilder(
+      this.typeProvider,
+      this._typeSystem,
+      this._variables,
+      this._graph,
+      this.source,
+      this.listener,
+      this._decoratedClassHierarchy,
+      bool transformWhereOrNull,
       {this.instrumentation})
-      : _inheritanceManager = InheritanceManager3();
+      : _inheritanceManager = InheritanceManager3(),
+        _whereOrNullTransformer = transformWhereOrNull
+            ? WhereOrNullTransformer(typeProvider, _typeSystem)
+            : null;
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -368,7 +390,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var sourceIsSetupCall = false;
     if (node.leftHandSide is SimpleIdentifier &&
         _isCurrentFunctionExpressionFoundInTestSetUpCall()) {
-      var assignee = (node.leftHandSide as SimpleIdentifier).staticElement;
+      var assignee =
+          getWriteOrReadElement(node.leftHandSide as SimpleIdentifier);
       var enclosingElementOfCurrentFunction =
           _currentFunctionExpression.declaredElement.enclosingElement;
       if (enclosingElementOfCurrentFunction == assignee.enclosingElement) {
@@ -724,6 +747,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (node.declaredElement.hasRequired) {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
+      } else if (_variables.getRequiredHint(source, node) != null) {
+        // Nothing to do; assume the implicit default value of `null` will never
+        // be reached.
+        _requiredHintedParameters.add(node.declaredElement);
       } else {
         _graph.makeNullable(getOrComputeElementType(node.declaredElement).node,
             OptionalFormalParameterOrigin(source, node));
@@ -879,6 +906,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _postDominatedLocals.doScoped(
           elements: node.declaredElement.parameters,
           action: () => _dispatch(node.body));
+      _variables.recordDecoratedExpressionType(node, _currentFunctionType);
       return _currentFunctionType;
     } finally {
       if (node.parent is! FunctionDeclaration) {
@@ -1001,7 +1029,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (target != null) {
       targetType = _checkExpressionNotNull(target);
     }
-    var callee = node.staticElement;
+    var callee = getWriteOrReadElement(node);
     DecoratedType result;
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
@@ -1208,17 +1236,27 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       targetType = _thisOrSuper(node);
     }
     DecoratedType expressionType;
-    if (callee == null) {
+    DecoratedType calleeType;
+    if (targetType != null &&
+        targetType.type is FunctionType &&
+        node.methodName.name == 'call') {
+      // If `X` has a function type, then in the expression `X.call()`, the
+      // function being called is `X` itself, so the callee type is simply the
+      // type of `X`.
+      calleeType = targetType;
+    } else if (callee != null) {
+      calleeType = getOrComputeElementType(callee, targetType: targetType);
+      if (callee is PropertyAccessorElement) {
+        calleeType = calleeType.returnType;
+      }
+    }
+    if (calleeType == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
       _dispatch(node.argumentList);
       expressionType = _makeNullableDynamicType(node);
     } else {
-      var calleeType = getOrComputeElementType(callee, targetType: targetType);
-      if (callee is PropertyAccessorElement) {
-        calleeType = calleeType.returnType;
-      }
       expressionType = _handleInvocationArguments(
           node,
           node.argumentList.arguments,
@@ -1227,11 +1265,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           calleeType,
           null,
           invokeType: node.staticInvokeType);
+      // Do any deferred processing for this method invocation.
+      var deferredProcessing = _deferredMethodInvocationProcessing.remove(node);
+      if (deferredProcessing != null) {
+        expressionType = deferredProcessing(expressionType);
+      }
       if (isNullAware) {
         expressionType = expressionType.withNode(
             NullabilityNode.forLUB(targetType.node, expressionType.node));
-        _variables.recordDecoratedExpressionType(node, expressionType);
       }
+      _variables.recordDecoratedExpressionType(node, expressionType);
     }
     _handleArgumentErrorCheckNotNull(node);
     _handleQuiverCheckNotNull(node);
@@ -1306,7 +1349,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         writeType = _fixNumericTypes(calleeType.returnType, node.staticType);
       }
       if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
+        var element = getWriteOrReadElement(operand);
         if (element is PromotableElement) {
           _flowAnalysis.write(element, writeType);
         }
@@ -1357,7 +1400,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       if (isIncrementOrDecrement) {
         if (operand is SimpleIdentifier) {
-          var element = operand.staticElement;
+          var element = getWriteOrReadElement(operand);
           if (element is PromotableElement) {
             _flowAnalysis.write(element, staticType);
           }
@@ -1499,7 +1542,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
     DecoratedType result;
-    var staticElement = node.staticElement;
+    var staticElement = getWriteOrReadElement(node);
     if (staticElement is PromotableElement) {
       if (!node.inDeclarationContext()) {
         var promotedType = _flowAnalysis.variableRead(node, staticElement);
@@ -1509,6 +1552,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (!node.inDeclarationContext() &&
           node.inGetterContext() &&
           !_lateHintedLocals.contains(staticElement) &&
+          !_requiredHintedParameters.contains(staticElement) &&
           !_flowAnalysis.isAssigned(staticElement)) {
         _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
       }
@@ -1702,7 +1746,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _typeNameNesting++;
       var typeArguments = typeName.typeArguments?.arguments;
       var element = typeName.name.staticElement;
-      if (element is GenericTypeAliasElement) {
+      if (element is FunctionTypeAliasElement) {
         final typedefType = _variables.decoratedElementType(element.function);
         final typeNameType =
             _variables.decoratedTypeAnnotation(source, typeName);
@@ -2198,7 +2242,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     PromotableElement destinationLocalVariable;
     if (destinationType == null) {
       if (destinationExpression is SimpleIdentifier) {
-        var element = destinationExpression.staticElement;
+        var element = getWriteOrReadElement(destinationExpression);
         if (element is PromotableElement) {
           destinationLocalVariable = element;
         }
@@ -2259,18 +2303,40 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _makeNullableDynamicType(compoundOperatorInfo);
         }
       } else {
-        var unwrappedExpression = expression.unParenthesized;
-        var hard = (questionAssignNode == null &&
-                _postDominatedLocals.isReferenceInScope(expression)) ||
-            // An edge from a cast should be hard, so that the cast type
-            // annotation is appropriately made nullable according to the
-            // destination type.
-            unwrappedExpression is AsExpression;
-        _checkAssignment(edgeOrigin, FixReasonTarget.root,
-            source: sourceType,
-            destination: destinationType,
-            hard: hard,
-            sourceIsFunctionLiteral: expression is FunctionExpression);
+        var transformationInfo =
+            _whereOrNullTransformer?.tryTransformOrElseArgument(expression);
+        if (transformationInfo != null) {
+          // Don't build any edges for this argument; if necessary we'll transform
+          // it rather than make things nullable.  But do save the nullability of
+          // the return value of the `orElse` method, so that we can later connect
+          // it to the nullability of the value returned from the method
+          // invocation.
+          var extraNullability = sourceType.returnType.node;
+          _deferredMethodInvocationProcessing[
+              transformationInfo.methodInvocation] = (methodInvocationType) {
+            var newNode = NullabilityNode.forInferredType(
+                NullabilityNodeTarget.text(
+                    'return value from ${transformationInfo.originalName}'));
+            var origin = IteratorMethodReturnOrigin(
+                source, transformationInfo.methodInvocation);
+            _graph.connect(methodInvocationType.node, newNode, origin);
+            _graph.connect(extraNullability, newNode, origin);
+            return methodInvocationType.withNode(newNode);
+          };
+        } else {
+          var unwrappedExpression = expression.unParenthesized;
+          var hard = (questionAssignNode == null &&
+                  _postDominatedLocals.isReferenceInScope(expression)) ||
+              // An edge from a cast should be hard, so that the cast type
+              // annotation is appropriately made nullable according to the
+              // destination type.
+              unwrappedExpression is AsExpression;
+          _checkAssignment(edgeOrigin, FixReasonTarget.root,
+              source: sourceType,
+              destination: destinationType,
+              hard: hard,
+              sourceIsFunctionLiteral: expression is FunctionExpression);
+        }
       }
       if (destinationLocalVariable != null) {
         _flowAnalysis.write(destinationLocalVariable, sourceType);
@@ -2825,7 +2891,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _handlePropertyAccess(Expression node, Expression target,
       SimpleIdentifier propertyName, bool isNullAware, bool isCascaded) {
     DecoratedType targetType;
-    var callee = propertyName.staticElement;
+    var callee = getWriteOrReadElement(propertyName);
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
     if (isCascaded) {
       targetType = _currentCascadeTargetType;
@@ -2838,12 +2904,27 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       targetType = _handleTarget(target, propertyName.name, callee);
     }
-    if (callee == null) {
+    DecoratedType calleeType;
+    if (targetType != null &&
+        targetType.type is FunctionType &&
+        propertyName.name == 'call') {
+      // If `X` has a function type, then in the expression `X.call`, the
+      // function being torn off is `X` itself, so the callee type is simply the
+      // non-nullable counterpart to the type of `X`.
+      var nullabilityNodeTarget =
+          NullabilityNodeTarget.text('expression').withCodeRef(node);
+      var nullabilityNode =
+          NullabilityNode.forInferredType(nullabilityNodeTarget);
+      _graph.makeNonNullableUnion(
+          nullabilityNode, CallTearOffOrigin(source, node));
+      calleeType = targetType.withNode(nullabilityNode);
+    } else if (callee != null) {
+      calleeType = getOrComputeElementType(callee, targetType: targetType);
+    }
+    if (calleeType == null) {
       // Dynamic dispatch.
       return _makeNullableDynamicType(node);
     }
-    var calleeType = getOrComputeElementType(callee, targetType: targetType);
-    // TODO(paulberry): substitute if necessary
     if (propertyName.inSetterContext()) {
       if (isNullAware) {
         _conditionalNodes[node] = targetType.node;
@@ -3140,6 +3221,47 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     return _futureOf(type, node);
+  }
+
+  /// If the [node] is the finishing identifier of an assignment, return its
+  /// "writeElement", otherwise return its "staticElement", which might be
+  /// thought as the "readElement".
+  static Element getWriteOrReadElement(AstNode node) {
+    var writeElement = _getWriteElement(node);
+    if (writeElement != null) {
+      return writeElement;
+    }
+
+    if (node is IndexExpression) {
+      return node.staticElement;
+    } else if (node is SimpleIdentifier) {
+      return node.staticElement;
+    } else {
+      return null;
+    }
+  }
+
+  /// If the [node] is the target of a [CompoundAssignmentExpression],
+  /// return the corresponding "writeElement", which is the local variable,
+  /// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
+  /// or the `[]=` operator.
+  static Element _getWriteElement(AstNode node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return parent.writeElement;
+    } else if (parent is PostfixExpression) {
+      return parent.writeElement;
+    } else if (parent is PrefixExpression) {
+      return parent.writeElement;
+    }
+
+    if (parent is PrefixedIdentifier && parent.identifier == node) {
+      return _getWriteElement(parent);
+    } else if (parent is PropertyAccess && parent.propertyName == node) {
+      return _getWriteElement(parent);
+    } else {
+      return null;
+    }
   }
 }
 

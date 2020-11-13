@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -49,26 +51,6 @@ abstract class TestRunner {
     String prefix = mode.substring(0, 3).toUpperCase();
     String tag = getTag(mode);
     List<String> extraFlags = [];
-    // Required extra flags for kbc.
-    if (mode.startsWith('kbc-int')) {
-      prefix += '-INT';
-      extraFlags += [
-        '--enable-interpreter',
-        '--compilation-counter-threshold=-1'
-      ];
-    } else if (mode.startsWith('kbc-mix')) {
-      prefix += '-MIX';
-      extraFlags += ['--enable-interpreter'];
-    } else if (mode.startsWith('kbc-cmp')) {
-      prefix += '-CMP';
-      extraFlags += ['--use-bytecode-compiler'];
-    }
-    // Every once in a while, go directly from source for kbc.
-    bool kbcSrc = false;
-    if (mode.startsWith('kbc') && rand.nextInt(4) == 0) {
-      prefix += '-SRC';
-      kbcSrc = true;
-    }
     // Every once in a while, stress test JIT.
     if (mode.startsWith('jit') && rand.nextInt(4) == 0) {
       final r = rand.nextInt(7);
@@ -124,9 +106,6 @@ abstract class TestRunner {
       return TestRunnerJIT(prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('aot')) {
       return TestRunnerAOT(prefix, tag, top, tmp, env, fileName, extraFlags);
-    } else if (mode.startsWith('kbc')) {
-      return TestRunnerKBC(
-          prefix, tag, top, tmp, env, fileName, extraFlags, kbcSrc);
     } else if (mode.startsWith('djs')) {
       return TestRunnerDJS(prefix, tag, top, tmp, env, fileName);
     }
@@ -219,60 +198,6 @@ class TestRunnerAOT implements TestRunner {
   String dart;
   String fileName;
   String snapshot;
-  final String top;
-  final String tmp;
-  Map<String, String> env;
-  List<String> cmd;
-}
-
-/// Concrete test runner of bytecode.
-class TestRunnerKBC implements TestRunner {
-  TestRunnerKBC(String prefix, String tag, this.top, this.tmp, this.env,
-      this.fileName, List<String> extraFlags, bool kbcSrc) {
-    description = '$prefix-$tag';
-    dart = '$top/out/$tag/dart';
-    if (kbcSrc) {
-      cmd = [
-        dart,
-        ...extraFlags,
-        '--old_gen_heap_size=${dartHeapSize}',
-        fileName
-      ];
-    } else {
-      generate = '$top/pkg/vm/tool/gen_kernel';
-      platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
-      dill = '$tmp/out.dill';
-      cmd = [dart, ...extraFlags, '--old_gen_heap_size=${dartHeapSize}', dill];
-    }
-  }
-
-  TestResult run() {
-    if (generate != null) {
-      TestResult result = runCommand(
-          [generate, '--gen-bytecode', platform, '-o', dill, fileName], env);
-      if (result.exitCode != 0) {
-        return result;
-      }
-    }
-    return runCommand(cmd, env);
-  }
-
-  void printReproductionCommand() {
-    if (generate != null) {
-      print([generate, '--gen-bytecode', platform, '-o', dill, fileName]
-          .join(" ")
-          .replaceAll('$top/', '')
-          .replaceAll('$tmp/', ''));
-    }
-    print(cmd.join(" ").replaceAll('$top/', '').replaceAll('$tmp/', ''));
-  }
-
-  String description;
-  String generate;
-  String platform;
-  String dill;
-  String dart;
-  String fileName;
   final String top;
   final String tmp;
   Map<String, String> env;
@@ -411,8 +336,8 @@ class DartFuzzTest {
           (mode1.contains('ia32') && mode2.contains('ia32')));
 
   bool ffiCapable(String mode1, String mode2) =>
-      (mode1.startsWith('jit') || mode1.startsWith('kbc')) &&
-      (mode2.startsWith('jit') || mode2.startsWith('kbc')) &&
+      mode1.startsWith('jit') &&
+      mode2.startsWith('jit') &&
       (!mode1.contains('arm') && !mode2.contains('arm'));
 
   bool nestedTypesAllowed(String mode1, String mode2) =>
@@ -757,30 +682,6 @@ class DartFuzzTestSession {
     'jit-arm64',
     'aot-debug-x64',
     'aot-x64',
-    'kbc-int-debug-ia32',
-    'kbc-cmp-debug-ia32',
-    'kbc-mix-debug-ia32',
-    'kbc-int-debug-x64',
-    'kbc-cmp-debug-x64',
-    'kbc-mix-debug-x64',
-    'kbc-int-debug-arm32',
-    'kbc-cmp-debug-arm32',
-    'kbc-mix-debug-arm32',
-    'kbc-int-debug-arm64',
-    'kbc-cmp-debug-arm64',
-    'kbc-mix-debug-arm64',
-    'kbc-int-ia32',
-    'kbc-cmp-ia32',
-    'kbc-mix-ia32',
-    'kbc-int-x64',
-    'kbc-cmp-x64',
-    'kbc-mix-x64',
-    'kbc-int-arm32',
-    'kbc-cmp-arm32',
-    'kbc-mix-arm32',
-    'kbc-int-arm64',
-    'kbc-cmp-arm64',
-    'kbc-mix-arm64',
   ];
 
   // Modes not used on cluster runs because they have outstanding issues.

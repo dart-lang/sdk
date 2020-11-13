@@ -824,7 +824,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       coreTypes.internalSymbolClass: true,
       coreTypes.listClass: true,
       coreTypes.mapClass: true,
-      coreTypes.nullClass: true,
       coreTypes.objectClass: true,
       coreTypes.setClass: true,
       coreTypes.stringClass: true,
@@ -925,8 +924,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (errorOnUnevaluatedConstant) {
         return createErrorConstant(node, messageConstEvalUnevaluated);
       }
-      return new UnevaluatedConstant(
-          removeRedundantFileUriExpressions(result.expression));
+      return canonicalize(new UnevaluatedConstant(
+          removeRedundantFileUriExpressions(result.expression)));
     }
     return result;
   }
@@ -1142,8 +1141,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     Constant constant = node.constant;
     Constant result = constant;
     if (constant is UnevaluatedConstant) {
-      result = _evaluateSubexpression(constant.expression);
-      if (result is AbortConstant) return result;
+      if (environmentDefines != null) {
+        result = _evaluateSubexpression(constant.expression);
+        if (result is AbortConstant) return result;
+      } else {
+        // Still no environment. Doing anything is just wasted time.
+        result = constant;
+      }
     }
     // If there were already constants in the AST then we make sure we
     // re-canonicalize them.  After running the transformer we will therefore
@@ -1159,10 +1163,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     final ListConstantBuilder builder =
         new ListConstantBuilder(node, convertType(node.typeArgument), this);
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (Expression element in node.expressions) {
+      seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (error != null) return error;
     }
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return builder.build();
   }
 
@@ -1184,10 +1196,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     final SetConstantBuilder builder =
         new SetConstantBuilder(node, convertType(node.typeArgument), this);
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (Expression element in node.expressions) {
+      seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (error != null) return error;
     }
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return builder.build();
   }
 
@@ -1209,10 +1229,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     final MapConstantBuilder builder = new MapConstantBuilder(
         node, convertType(node.keyType), convertType(node.valueType), this);
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (MapEntry element in node.entries) {
+      seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (error != null) return error;
     }
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return builder.build();
   }
 
@@ -1742,7 +1770,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return unevaluated(
           node,
           new MethodInvocation(extract(receiver), node.name,
-              unevaluatedArguments(arguments, {}, node.arguments.types)));
+              unevaluatedArguments(arguments, {}, node.arguments.types))
+            ..fileOffset = node.fileOffset
+            ..flags = node.flags);
     }
 
     final String op = node.name.text;
@@ -2397,13 +2427,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         if (constant is NullConstant) {
           if (type.nullability == Nullability.legacy) {
             // `null is Null` is handled below.
-            return typeEnvironment.isSubtypeOf(type, typeEnvironment.nullType,
+            return typeEnvironment.isSubtypeOf(type, const NullType(),
                     SubtypeCheckMode.ignoringNullabilities) ||
                 typeEnvironment.isSubtypeOf(typeEnvironment.objectLegacyRawType,
                     type, SubtypeCheckMode.ignoringNullabilities);
           } else {
-            return typeEnvironment.isSubtypeOf(typeEnvironment.nullType, type,
-                SubtypeCheckMode.withNullabilities);
+            return typeEnvironment.isSubtypeOf(
+                const NullType(), type, SubtypeCheckMode.withNullabilities);
           }
         }
         return isSubtype(
@@ -2826,7 +2856,7 @@ class InstanceBuilder {
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     fields.forEach((Field field, Constant value) {
       assert(value is! UnevaluatedConstant);
-      fieldValues[field.reference] = value;
+      fieldValues[field.getterReference] = value;
     });
     assert(unusedArguments.isEmpty);
     return new InstanceConstant(klass.reference, typeArguments, fieldValues);
@@ -2835,7 +2865,7 @@ class InstanceBuilder {
   InstanceCreation buildUnevaluatedInstance() {
     final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     fields.forEach((Field field, Constant value) {
-      fieldValues[field.reference] = evaluator.extract(value);
+      fieldValues[field.getterReference] = evaluator.extract(value);
     });
     return new InstanceCreation(
         klass.reference, typeArguments, fieldValues, asserts, unusedArguments);
@@ -3087,6 +3117,9 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 
   @override
   bool visitBottomType(BottomType node) => true;
+
+  @override
+  bool visitNullType(NullType node) => true;
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {

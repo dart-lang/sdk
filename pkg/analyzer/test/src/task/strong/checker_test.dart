@@ -4522,7 +4522,7 @@ class AlsoValid extends Base {
 
 main() => new Derived();
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 170, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 170, 5),
     ]);
   }
 

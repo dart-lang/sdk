@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
+import 'package:dartdev/src/analytics.dart' show disabledAnalytics;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -20,7 +20,7 @@ void command() {
   // For each command description, assert that the values are not empty, don't
   // have trailing white space and end with a period.
   test('description formatting', () {
-    DartdevRunner(['--disable-dartdev-analytics'])
+    DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
         .commands
         .forEach((String commandKey, Command command) {
       expect(commandKey, isNotEmpty);
@@ -32,7 +32,7 @@ void command() {
 
   // Assert that all found usageLineLengths are the same and null
   test('argParser usageLineLength', () {
-    DartdevRunner(['--disable-dartdev-analytics'])
+    DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
         .commands
         .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
@@ -42,22 +42,16 @@ void command() {
             command.name != 'pub') {
           expect(command.argParser.usageLineLength,
               stdout.hasTerminal ? stdout.terminalColumns : null);
+        } else if (command.name == 'pub') {
+          // TODO(sigurdm): Avoid special casing here.
+          // https://github.com/dart-lang/pub/issues/2700
+          expect(command.argParser.usageLineLength,
+              stdout.hasTerminal ? stdout.terminalColumns : 80);
         } else {
           expect(command.argParser.usageLineLength, isNull);
         }
       }
     });
-  });
-
-  test('enable experiments flag is supported', () {
-    final args = [
-      '--disable-dartdev-analytics',
-      '--enable-experiment=non-nullable'
-    ];
-    final runner = DartdevRunner(args);
-    ArgResults results = runner.parse(args);
-    expect(results['enable-experiment'], isNotEmpty);
-    expect(results['enable-experiment'].first, 'non-nullable');
   });
 }
 

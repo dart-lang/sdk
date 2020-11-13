@@ -54,13 +54,13 @@ class NativeStackLocation;
 class NativeLocation : public ZoneAllocated {
  public:
   static bool LocationCanBeExpressed(Location loc, Representation rep);
-  static NativeLocation& FromLocation(Location loc,
-                                      Representation rep,
-                                      Zone* zone);
-  static NativeLocation& FromPairLocation(Location loc,
+  static NativeLocation& FromLocation(Zone* zone,
+                                      Location loc,
+                                      Representation rep);
+  static NativeLocation& FromPairLocation(Zone* zone,
+                                          Location loc,
                                           Representation rep,
-                                          intptr_t index,
-                                          Zone* zone);
+                                          intptr_t index);
 
   // The type of the data at this location.
   const NativeType& payload_type() const { return payload_type_; }
@@ -74,9 +74,9 @@ class NativeLocation : public ZoneAllocated {
   const NativeType& container_type() const { return container_type_; }
 
   virtual NativeLocation& WithOtherNativeType(
+      Zone* zone,
       const NativeType& new_payload_type,
-      const NativeType& new_container_type,
-      Zone* zone) const = 0;
+      const NativeType& new_container_type) const = 0;
 
 #if defined(TARGET_ARCH_ARM)
   const NativeLocation& WidenToQFpuRegister(Zone* zone) const;
@@ -101,7 +101,7 @@ class NativeLocation : public ZoneAllocated {
   const NativeFpuRegistersLocation& AsFpuRegisters() const;
   const NativeStackLocation& AsStack() const;
 
-  virtual NativeLocation& Split(intptr_t index, Zone* zone) const {
+  virtual NativeLocation& Split(Zone* zone, intptr_t index) const {
     ASSERT(index == 0 || index == 1);
     UNREACHABLE();
   }
@@ -152,9 +152,9 @@ class NativeRegistersLocation : public NativeLocation {
   virtual ~NativeRegistersLocation() {}
 
   virtual NativeRegistersLocation& WithOtherNativeType(
+      Zone* zone,
       const NativeType& new_payload_type,
-      const NativeType& new_container_type,
-      Zone* zone) const {
+      const NativeType& new_container_type) const {
     return *new (zone)
         NativeRegistersLocation(new_payload_type, new_container_type, regs_);
   }
@@ -167,7 +167,7 @@ class NativeRegistersLocation : public NativeLocation {
   intptr_t num_regs() const { return regs_->length(); }
   Register reg_at(intptr_t index) const { return regs_->At(index); }
 
-  virtual NativeRegistersLocation& Split(intptr_t index, Zone* zone) const;
+  virtual NativeRegistersLocation& Split(Zone* zone, intptr_t index) const;
 
   virtual void PrintTo(BaseTextBuffer* f) const;
 
@@ -220,9 +220,9 @@ class NativeFpuRegistersLocation : public NativeLocation {
   virtual ~NativeFpuRegistersLocation() {}
 
   virtual NativeFpuRegistersLocation& WithOtherNativeType(
+      Zone* zone,
       const NativeType& new_payload_type,
-      const NativeType& new_container_type,
-      Zone* zone) const {
+      const NativeType& new_container_type) const {
     return *new (zone) NativeFpuRegistersLocation(
         new_payload_type, new_container_type, fpu_reg_kind_, fpu_reg_);
   }
@@ -276,9 +276,9 @@ class NativeStackLocation : public NativeLocation {
   virtual ~NativeStackLocation() {}
 
   virtual NativeStackLocation& WithOtherNativeType(
+      Zone* zone,
       const NativeType& new_payload_type,
-      const NativeType& new_container_type,
-      Zone* zone) const {
+      const NativeType& new_container_type) const {
     return *new (zone) NativeStackLocation(new_payload_type, new_container_type,
                                            base_register_, offset_in_bytes_);
   }
@@ -301,7 +301,7 @@ class NativeStackLocation : public NativeLocation {
     return Location::DoubleStackSlot(offset_in_words(), base_register_);
   }
 
-  virtual NativeStackLocation& Split(intptr_t index, Zone* zone) const;
+  virtual NativeStackLocation& Split(Zone* zone, intptr_t index) const;
 
   virtual void PrintTo(BaseTextBuffer* f) const;
 

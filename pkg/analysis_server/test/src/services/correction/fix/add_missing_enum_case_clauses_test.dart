@@ -39,7 +39,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
   }
 
   Future<void> test_empty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 enum E {a, b, c}
 void f(E e) {
   switch (e) {
@@ -65,7 +65,7 @@ void f(E e) {
   }
 
   Future<void> test_incomplete_switchStatement() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 enum E {a, b, c}
 
 void f(E e) {
@@ -76,7 +76,7 @@ void f(E e) {
   }
 
   Future<void> test_nonEmpty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 enum E {a, b, c}
 void f(E e) {
   switch (e) {

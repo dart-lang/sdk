@@ -71,51 +71,51 @@ get listFilledEither => List.filled(5, 'e', growable: boolFlag);
 
 // -------- List.generate --------
 
-/*member: listGenerateDefault:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: 8)*/
+/*member: listGenerateDefault:Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/
 get listGenerateDefault => List.generate(
     8, /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) => 'x$i');
 
-/*member: listGenerateGrowable:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: 8)*/
+/*member: listGenerateGrowable:Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/
 get listGenerateGrowable => List.generate(
     8, /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) => 'g$i',
     growable: true);
 
-/*member: listGenerateFixed:Container([exact=JSFixedArray], element: [null|subclass=Object], length: 8)*/
+/*member: listGenerateFixed:Container([exact=JSFixedArray], element: [exact=JSString], length: 8)*/
 get listGenerateFixed => List.generate(
     8, /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) => 'f$i',
     growable: false);
 
-/*member: listGenerateEither:Container([subclass=JSMutableArray], element: [null|subclass=Object], length: 8)*/
+/*member: listGenerateEither:Container([subclass=JSMutableArray], element: [exact=JSString], length: 8)*/
 get listGenerateEither => List.generate(
     8, /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) => 'e$i',
     growable: boolFlag);
 
 // -------- List.of --------
 
-/*member: listOfDefault:[exact=JSExtendableArray]*/
+/*member: listOfDefault:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 get listOfDefault => List.of(data);
 
-/*member: listOfGrowable:[exact=JSExtendableArray]*/
+/*member: listOfGrowable:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 get listOfGrowable => List.of(data, growable: true);
 
-/*member: listOfFixed:[exact=JSFixedArray]*/
+/*member: listOfFixed:Container([exact=JSFixedArray], element: [null|subclass=Object], length: null)*/
 get listOfFixed => List.of(data, growable: false);
 
-/*member: listOfEither:[subclass=JSMutableArray]*/
+/*member: listOfEither:Container([subclass=JSMutableArray], element: [null|subclass=Object], length: null)*/
 get listOfEither => List.of(data, growable: boolFlag);
 
 // -------- List.from --------
 
-/*member: listFromDefault:[exact=JSExtendableArray]*/
+/*member: listFromDefault:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 get listFromDefault => List.from(data);
 
-/*member: listFromGrowable:[exact=JSExtendableArray]*/
+/*member: listFromGrowable:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 get listFromGrowable => List.from(data, growable: true);
 
-/*member: listFromFixed:[exact=JSFixedArray]*/
+/*member: listFromFixed:Container([exact=JSFixedArray], element: [null|subclass=Object], length: null)*/
 get listFromFixed => List.from(data, growable: false);
 
-/*member: listFromEither:[subclass=JSMutableArray]*/
+/*member: listFromEither:Container([subclass=JSMutableArray], element: [null|subclass=Object], length: null)*/
 get listFromEither => List.from(data, growable: boolFlag);
 
 // -------- List.unmodifiable --------

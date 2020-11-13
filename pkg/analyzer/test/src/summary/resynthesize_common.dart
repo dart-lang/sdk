@@ -8884,7 +8884,7 @@ class C {
         element: self::@class::C::@getter::foo
         name: SimpleIdentifier
           staticElement: self::@class::C::@getter::foo
-          staticType: int
+          staticType: null
           token: foo
 }
   metadata
@@ -8892,7 +8892,7 @@ class C {
       element: self::@getter::foo
       name: SimpleIdentifier
         staticElement: self::@getter::foo
-        staticType: int
+        staticType: null
         token: foo
   typeParameters
     T
@@ -8903,7 +8903,7 @@ class C {
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
-            staticType: int
+            staticType: null
             token: foo
 const int foo;
   constantInitializer
@@ -9121,7 +9121,7 @@ extension E on int {
         element: self::@extension::E::@getter::foo
         name: SimpleIdentifier
           staticElement: self::@extension::E::@getter::foo
-          staticType: int
+          staticType: null
           token: foo
 }
   metadata
@@ -9129,7 +9129,7 @@ extension E on int {
       element: self::@getter::foo
       name: SimpleIdentifier
         staticElement: self::@getter::foo
-        staticType: int
+        staticType: null
         token: foo
   typeParameters
     T
@@ -9140,7 +9140,7 @@ extension E on int {
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
-            staticType: int
+            staticType: null
             token: foo
 const int foo;
   constantInitializer
@@ -9430,7 +9430,7 @@ mixin M on Object {
         element: self::@mixin::M::@getter::foo
         name: SimpleIdentifier
           staticElement: self::@mixin::M::@getter::foo
-          staticType: int
+          staticType: null
           token: foo
 }
   metadata
@@ -9438,7 +9438,7 @@ mixin M on Object {
       element: self::@getter::foo
       name: SimpleIdentifier
         staticElement: self::@getter::foo
-        staticType: int
+        staticType: null
         token: foo
   typeParameters
     T
@@ -9449,7 +9449,7 @@ mixin M on Object {
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
-            staticType: int
+            staticType: null
             token: foo
 const int foo;
   constantInitializer
@@ -11789,7 +11789,7 @@ class C {
       element: <null>
       name: SimpleIdentifier
         staticElement: <null>
-        staticType: dynamic
+        staticType: null
         token: foo
 ''',
         withFullyResolvedAst: true);
@@ -11817,7 +11817,7 @@ class C {
       element: <null>
       name: SimpleIdentifier
         staticElement: <null>
-        staticType: dynamic
+        staticType: null
         token: v
 ''',
         withFullyResolvedAst: true);

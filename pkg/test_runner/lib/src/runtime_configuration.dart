@@ -251,9 +251,6 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
     }
 
-    if (_configuration.compiler == Compiler.dartkb) {
-      multiplier *= 4;
-    }
     if (mode.isDebug) {
       multiplier *= 2;
     }
@@ -261,6 +258,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       multiplier *= 2;
     }
     if (_configuration.sanitizer != Sanitizer.none) {
+      multiplier *= 2;
+    }
+    if (_configuration.rr) {
       multiplier *= 2;
     }
     return multiplier;
@@ -297,7 +297,11 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       arguments.insertAll(0, config.arguments);
       executable = config.executable;
     }
-    return [VMCommand(executable, arguments, environmentOverrides)];
+    var command = VMCommand(executable, arguments, environmentOverrides);
+    if (_configuration.rr && !isCrashExpected) {
+      return [RRCommand(command)];
+    }
+    return [command];
   }
 }
 
@@ -326,7 +330,11 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       executable = config.executable;
     }
 
-    return [VMCommand(executable, arguments, environmentOverrides)];
+    var command = VMCommand(executable, arguments, environmentOverrides);
+    if (_configuration.rr && !isCrashExpected) {
+      return [RRCommand(command)];
+    }
+    return [command];
   }
 }
 

@@ -186,9 +186,6 @@ main(List<String> args) async {
     "$rootPath/gallery/.packages",
     "-Ddart.vm.profile=false",
     "-Ddart.vm.product=false",
-    "--bytecode-options=source-positions,local-var-info,debugger-stops,"
-        "instance-field-initializers,keep-unreachable-code,"
-        "avoid-closure-call-instructions",
     "--enable-asserts",
     "--track-widget-creation",
     "--initialize-from-dill",

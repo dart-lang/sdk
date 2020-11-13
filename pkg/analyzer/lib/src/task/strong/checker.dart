@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -257,14 +258,16 @@ class CodeChecker extends RecursiveAstVisitor {
 
     final init = node.initializers;
     for (int i = 0, last = init.length - 1; i < last; i++) {
-      final node = init[i];
-      if (node is SuperConstructorInvocation) {
+      final initializer = init[i];
+      if (initializer is SuperConstructorInvocation) {
         // TODO(srawlins): Don't report this when
         //  [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR] or
         //  [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS] is reported for
         //  this constructor.
-        _recordMessage(
-            node, CompileTimeErrorCode.INVALID_SUPER_INVOCATION, [node]);
+        var source = (node.root as CompilationUnit).declaredElement.source;
+        var token = initializer.superKeyword;
+        reporter.onError(AnalysisError(source, token.offset, token.length,
+            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, [initializer]));
       }
     }
   }
@@ -346,7 +349,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is MethodElement) {
       var type = element.type;
       // Analyzer should enforce number of parameter types, but check in
@@ -926,6 +929,8 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {
+    // TODO(brianwilkerson) Convert this class to use an ErrorReporter so that
+    //  the logic for converting types is in one place.
     arguments = arguments.map((argument) {
       if (argument is DartType) {
         return argument.getDisplayString(withNullability: false);

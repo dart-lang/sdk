@@ -5,7 +5,6 @@
 /// Defines the front-end API for converting source code to summaries.
 library front_end.summary_generator;
 
-import 'dart:async';
 import 'compiler_options.dart';
 
 import '../base/processed_options.dart';

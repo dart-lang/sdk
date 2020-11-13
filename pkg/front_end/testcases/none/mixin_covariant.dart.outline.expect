@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Superclass extends core::Object {
+  synthetic constructor •() → self::Superclass
+    ;
+  method method1(core::num argument1, core::num argument2) → core::String
+    ;
+  method method2(core::num argument1, core::num argument2) → core::String
+    ;
+  method method3(core::num argument1, covariant core::int argument2) → core::String
+    ;
+  method method4(core::num argument1, covariant core::num argument2) → core::String
+    ;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    ;
+  method method1(core::num argument1, core::num argument2) → core::String
+    ;
+  method method2(covariant core::int argument1, core::num argument2) → core::String
+    ;
+  method method3(core::num argument1, core::num argument2) → core::String
+    ;
+  method method4(covariant core::int argument1, core::int argument2) → core::String
+    ;
+}
+abstract class _Class&Superclass&Mixin = self::Superclass with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Superclass&Mixin
+    : super self::Superclass::•()
+    ;
+  abstract forwarding-stub method method2(covariant core::num argument1, core::num argument2) → core::String;
+  forwarding-stub method method3(core::num argument1, covariant core::num argument2) → core::String
+    return super.{self::Superclass::method3}(argument1, argument2);
+  forwarding-stub method method4(covariant core::num argument1, covariant core::num argument2) → core::String
+    return super.{self::Superclass::method4}(argument1, argument2);
+}
+class Class extends self::_Class&Superclass&Mixin {
+  synthetic constructor •() → self::Class
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → void
+  ;
+static method throws(() → void f) → void
+  ;

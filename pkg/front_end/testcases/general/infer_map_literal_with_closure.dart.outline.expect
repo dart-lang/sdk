@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field core::Map<core::String*, (core::String*) →* core::Null?>* map;
+  field core::Map<core::String*, (core::String*) →* Null>* map;
   synthetic constructor •() → self::Class*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

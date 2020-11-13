@@ -47,7 +47,7 @@ mixin M {}
     ]);
   }
 
-  void test_classType_topLevelVariable() async {
+  void test_classType_topLevelVariable_constructor() async {
     writeTestPackageConfigWithMeta();
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
@@ -61,6 +61,25 @@ class A {
 int x = 0;
 ''', [
       error(HintCode.INVALID_ANNOTATION_TARGET, 98, 1),
+    ]);
+  }
+
+  void test_classType_topLevelVariable_topLevelConstant() async {
+    writeTestPackageConfigWithMeta();
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.classType})
+class A {
+  const A();
+}
+
+const a = A();
+
+@a
+int x = 0;
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 114, 1),
     ]);
   }
 

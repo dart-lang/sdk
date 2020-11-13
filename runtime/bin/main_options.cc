@@ -36,8 +36,6 @@ static const char* kSnapshotKindNames[] = {
 
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
 bool Options::enable_vm_service_ = false;
-MallocGrowableArray<const char*> Options::enabled_experiments_ =
-    MallocGrowableArray<const char*>(4);
 
 #define OPTION_FIELD(variable) Options::variable##_
 
@@ -368,28 +366,6 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
   return false;
 }
 
-bool Options::ProcessEnableExperimentOption(const char* arg,
-                                            CommandLineOptions* vm_options) {
-  const char* value =
-      OptionProcessor::ProcessOption(arg, "--enable_experiment=");
-  if (value == nullptr) {
-    value = OptionProcessor::ProcessOption(arg, "--enable-experiment=");
-  }
-  if (value == nullptr) {
-    return false;
-  }
-  vm_options->AddArgument(arg);
-  Utils::CStringUniquePtr tmp =
-      Utils::CreateCStringUniquePtr(Utils::StrDup(value));
-  char* save_ptr;  // Needed for strtok_r.
-  char* token = strtok_r(const_cast<char*>(tmp.get()), ",", &save_ptr);
-  while (token != NULL) {
-    enabled_experiments_.Add(Utils::StrDup(token));
-    token = strtok_r(NULL, ",", &save_ptr);
-  }
-  return true;
-}
-
 int Options::ParseArguments(int argc,
                             char** argv,
                             bool vm_run_app_snapshot,
@@ -480,6 +456,8 @@ int Options::ParseArguments(int argc,
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
   SSLCertContext::set_root_certs_file(Options::root_certs_file());
   SSLCertContext::set_root_certs_cache(Options::root_certs_cache());
+  SSLCertContext::set_long_ssl_cert_evaluation(
+      Options::long_ssl_cert_evaluation());
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
@@ -555,49 +533,22 @@ int Options::ParseArguments(int argc,
 
   vm_options->AddArguments(vm_argv, vm_argc);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!enabled_experiments_.is_empty()) {
-    intptr_t num_experiments = enabled_experiments_.length();
-    if (!(Options::disable_dart_dev() || run_script)) {
-      const char* kEnableExperiment = "--enable-experiment=";
-      int option_size = strlen(kEnableExperiment);
-      for (intptr_t i = 0; i < num_experiments; ++i) {
-        const char* flag = enabled_experiments_.At(i);
-        option_size += strlen(flag);
-        if (i + 1 != num_experiments) {
-          // Account for comma if there's more experiments to add.
-          ++option_size;
-        }
-      }
-      // Make room for null terminator
-      ++option_size;
-
-      char* enabled_experiments_arg = new char[option_size];
-      int offset = snprintf(enabled_experiments_arg, option_size, "%s",
-                            kEnableExperiment);
-      for (intptr_t i = 0; i < num_experiments; ++i) {
-        const char* flag = enabled_experiments_.At(i);
-        const char* kFormat = (i + 1 != num_experiments) ? "%s," : "%s";
-        offset += snprintf(enabled_experiments_arg + offset,
-                           option_size - offset, kFormat, flag);
-        free(const_cast<char*>(flag));
-        ASSERT(offset < option_size);
-      }
-      DartDevIsolate::set_should_run_dart_dev(true);
-      dart_options->AddArgument(enabled_experiments_arg);
-    } else {
-      for (intptr_t i = 0; i < num_experiments; ++i) {
-        free(const_cast<char*>(enabled_experiments_.At(i)));
-      }
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   // If running with dartdev, attempt to parse VM flags which are part of the
   // dartdev command (e.g., --enable-vm-service, --observe, etc).
   if (!run_script) {
     int tmp_i = i;
+    // We only run the CLI implicitly if the service is enabled and the user
+    // didn't run with the 'run' command. If they did provide a command, we need
+    // to skip it here to continue parsing VM flags.
+    if (!implicitly_use_dart_dev) {
+      tmp_i++;
+    }
     while (tmp_i < argc) {
+      // Check if this flag is a potentially valid VM flag. If not, we've likely
+      // hit a script name and are done parsing VM flags.
+      if (!OptionProcessor::IsValidFlag(argv[tmp_i], kPrefix, kPrefixLen)) {
+        break;
+      }
       OptionProcessor::TryProcess(argv[tmp_i], vm_options);
       tmp_i++;
     }

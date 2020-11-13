@@ -326,6 +326,7 @@ class SafepointRwLock {
     if (IsCurrentThreadWriter()) {
       return true;
     }
+    MutexLocker ml(&reader_ids_mutex_);
     for (intptr_t i = readers_ids_.length() - 1; i >= 0; i--) {
       if (readers_ids_.At(i) == id) {
         return true;
@@ -333,7 +334,7 @@ class SafepointRwLock {
     }
     return false;
   }
-#endif // defined(DEBUG)
+#endif  // defined(DEBUG)
 
   bool IsCurrentThreadWriter() {
     return writer_id_ == OSThread::GetCurrentThreadId();
@@ -351,11 +352,14 @@ class SafepointRwLock {
     if (IsCurrentThreadWriter()) {
       return false;
     }
-    while (state_ == -1) {
+    while (state_ < 0) {
       ml.Wait();
     }
 #if defined(DEBUG)
-    readers_ids_.Add(OSThread::GetCurrentThreadId());
+    {
+      MutexLocker ml(&reader_ids_mutex_);
+      readers_ids_.Add(OSThread::GetCurrentThreadId());
+    }
 #endif
     ++state_;
     return true;
@@ -364,16 +368,19 @@ class SafepointRwLock {
     SafepointMonitorLocker ml(&monitor_);
     ASSERT(state_ > 0);
 #if defined(DEBUG)
-    intptr_t i = readers_ids_.length() - 1;
-    ThreadId id = OSThread::GetCurrentThreadId();
-    while (i >= 0) {
-      if (readers_ids_.At(i) == id) {
-        readers_ids_.RemoveAt(i);
-        break;
+    {
+      MutexLocker ml(&reader_ids_mutex_);
+      intptr_t i = readers_ids_.length() - 1;
+      ThreadId id = OSThread::GetCurrentThreadId();
+      while (i >= 0) {
+        if (readers_ids_.At(i) == id) {
+          readers_ids_.RemoveAt(i);
+          break;
+        }
+        i--;
       }
-      i--;
+      ASSERT(i >= 0);
     }
-    ASSERT(i >= 0);
 #endif
     if (--state_ == 0) {
       ml.NotifyAll();
@@ -406,10 +413,11 @@ class SafepointRwLock {
   Monitor monitor_;
   // [state_] > 0  : The lock is held by multiple readers.
   // [state_] == 0 : The lock is free (no readers/writers).
-  // [state_] == -1: The lock is held by a single writer.
+  // [state_] < 0  : The lock is held by a single writer (possibly nested).
   intptr_t state_ = 0;
 
 #if defined(DEBUG)
+  Mutex reader_ids_mutex_;
   MallocGrowableArray<ThreadId> readers_ids_;
 #endif
   ThreadId writer_id_ = OSThread::kInvalidThreadId;

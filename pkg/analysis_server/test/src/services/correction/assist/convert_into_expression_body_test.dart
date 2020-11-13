@@ -21,14 +21,14 @@ class ConvertIntoExpressionBodyTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_INTO_EXPRESSION_BODY;
 
   Future<void> test_already() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() => 42;
 ''');
     await assertNoAssistAt('fff()');
   }
 
   Future<void> test_async() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   mmm() async {
     return 42;
@@ -46,7 +46,7 @@ class A {
     createAnalysisOptionsFile(
         lints: [LintNames.prefer_expression_function_bodies]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   mmm() async {
     return 42;
@@ -57,7 +57,7 @@ class A {
   }
 
   Future<void> test_closure() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 setup(x) {}
 main() {
   setup(() {
@@ -74,7 +74,7 @@ main() {
   }
 
   Future<void> test_closure_voidExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 setup(x) {}
 main() {
   setup((_) {
@@ -91,7 +91,7 @@ main() {
   }
 
   Future<void> test_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.named();
 
@@ -110,7 +110,7 @@ class A {
   }
 
   Future<void> test_function_onBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() {
   return 42;
 }
@@ -121,7 +121,7 @@ fff() => 42;
   }
 
   Future<void> test_function_onName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() {
   return 42;
 }
@@ -132,7 +132,7 @@ fff() => 42;
   }
 
   Future<void> test_inExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   return 42;
 }
@@ -141,7 +141,7 @@ main() {
   }
 
   Future<void> test_method_onBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   m() { // marker
     return 42;
@@ -156,7 +156,7 @@ class A {
   }
 
   Future<void> test_moreThanOneStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() {
   var v = 42;
   return v;
@@ -166,14 +166,14 @@ fff() {
   }
 
   Future<void> test_noEnclosingFunction() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var V = 42;
 ''');
     await assertNoAssistAt('V = ');
   }
 
   Future<void> test_noReturn() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() {
   var v = 42;
 }
@@ -182,7 +182,7 @@ fff() {
   }
 
   Future<void> test_noReturnValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() {
   return;
 }
@@ -191,7 +191,7 @@ fff() {
   }
 
   Future<void> test_topFunction_onReturnStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() {
   return 42;
 }

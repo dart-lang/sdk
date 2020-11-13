@@ -23,11 +23,14 @@
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/simulator.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+#define Z (thread->zone())
 
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
@@ -49,7 +52,7 @@ ISOLATE_UNIT_TEST_CASE(Class) {
 
   // Class has no fields and no functions yet.
   EXPECT_EQ(Array::Handle(cls.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(cls.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(cls.current_functions()).Length(), 0);
 
   // Setup the interfaces in the class.
   // Normally the class finalizer is resolving super types and interfaces
@@ -118,13 +121,16 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   // The class can now be finalized.
   cls.Finalize();
 
   function_name = String::New("Foo");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(function.IsNull());
   function = cls.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
@@ -132,7 +138,7 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT_EQ(cls.raw(), function.Owner());
   EXPECT(function.is_static());
   function_name = String::New("baz");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT(function_name.Equals(String::Handle(function.name())));
   EXPECT_EQ(cls.raw(), function.Owner());
@@ -141,13 +147,13 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT(function.IsNull());
 
   function_name = String::New("foo");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(0, function.num_fixed_parameters());
   EXPECT(!function.HasOptionalParameters());
 
   function_name = String::New("bar");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(kNumFixedParameters, function.num_fixed_parameters());
   EXPECT_EQ(kNumOptionalParameters, function.NumOptionalParameters());
@@ -197,8 +203,12 @@ ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
     }
 
     cls.set_interfaces(Array::empty_array());
-    cls.SetFunctions(Array::empty_array());
-    cls.SetFields(fields);
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      cls.SetFunctions(Array::empty_array());
+      cls.SetFields(fields);
+    }
     cls.Finalize();
 
     instance = Instance::New(cls);
@@ -296,7 +306,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
 
   // EmptyClass has no fields and no functions.
   EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.current_functions()).Length(), 0);
 
   ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
@@ -311,7 +321,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
 
   // No fields, functions, or super type for the OneFieldClass.
   EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.current_functions()).Length(), 0);
   EXPECT_EQ(empty_class.super_type(), AbstractType::null());
   ClassFinalizer::FinalizeTypesInClass(one_field_class);
 
@@ -322,7 +332,10 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
                  Object::dynamic_type(), TokenPosition::kMinSource,
                  TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
-  one_field_class.SetFields(one_fields);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    one_field_class.SetFields(one_fields);
+  }
   one_field_class.Finalize();
   intptr_t header_size = sizeof(ObjectLayout);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
@@ -1611,9 +1624,7 @@ ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   EXPECT(!th_str.Equals(chars, 3));
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = {0xF6, 0xF1, 0xE9};
@@ -2513,7 +2524,10 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
@@ -3717,10 +3731,11 @@ ISOLATE_UNIT_TEST_CASE(MirrorReference) {
 }
 
 static FunctionPtr GetFunction(const Class& cls, const char* name) {
-  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  Thread* thread = Thread::Current();
+  const auto& error = cls.EnsureIsFinalized(thread);
   EXPECT(error == Error::null());
-  const Function& result = Function::Handle(
-      cls.LookupDynamicFunction(String::Handle(String::New(name))));
+  const Function& result = Function::Handle(Resolver::ResolveDynamicFunction(
+      Z, cls, String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
@@ -3762,7 +3777,10 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
@@ -3798,7 +3816,10 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
   cls.Finalize();
 
   // Add invocation dispatcher.
@@ -4063,7 +4084,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 
@@ -4071,7 +4092,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 
@@ -4079,7 +4100,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 }
@@ -4173,10 +4194,12 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   }
   // Function reference
   {
+    Thread* thread = Thread::Current();
     JSONStream js;
     Class& cls = Class::Handle(isolate->object_store()->bool_class());
     const String& func_name = String::Handle(String::New("toString"));
-    Function& func = Function::Handle(cls.LookupFunction(func_name));
+    Function& func =
+        Function::Handle(Resolver::ResolveFunction(Z, cls, func_name));
     ASSERT(!func.IsNull());
     func.PrintJSON(&js, true);
     ElideJSONSubstring("classes", js.ToCString(), buffer);

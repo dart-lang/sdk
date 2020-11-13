@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 void main() {
   /* bl */ var foo = /*sl:1*/ Foo();
   foo.foo = foo. /*sl:2*/ fooMethod;

@@ -6,6 +6,11 @@ final bool kTrue = int.parse('1') == 1 ? true : false;
 final bool kFalse = int.parse('1') == 2 ? true : false;
 int get mint => 0xaabbccddaabbccdd;
 int get smiOrMint => kTrue ? 1 : mint;
+dynamic usedObject;
+
+void use(dynamic object) {
+  usedObject ??= object;
+}
 
 class X {}
 
@@ -42,7 +47,16 @@ class Impl1 implements Interface {
       dynamic boxedNonNullableIntOrDouble,
       dynamic boxedNullableIntOrDouble,
       dynamic boxedNullableX,
-      dynamic boxedX) {}
+      dynamic boxedX) {
+    use(unboxedInt);
+    use(unboxedDouble);
+    use(boxedNullableInt);
+    use(boxedNullableDouble);
+    use(boxedNonNullableIntOrDouble);
+    use(boxedNullableIntOrDouble);
+    use(boxedNullableX);
+    use(boxedX);
+  }
 
   dynamic returnUnboxedSmi(X ignored) => 1;
   dynamic returnUnboxedInt(X ignored) => 1;
@@ -65,7 +79,16 @@ class BaseImpl2 {
       dynamic boxedNonNullableIntOrDouble,
       dynamic boxedNullableIntOrDouble,
       dynamic boxedNullableX,
-      dynamic boxedX) {}
+      dynamic boxedX) {
+    use(unboxedInt);
+    use(unboxedDouble);
+    use(boxedNullableInt);
+    use(boxedNullableDouble);
+    use(boxedNonNullableIntOrDouble);
+    use(boxedNullableIntOrDouble);
+    use(boxedNullableX);
+    use(boxedX);
+  }
 
   dynamic returnUnboxedSmi(X ignored) => 2;
   dynamic returnUnboxedInt(X ignored) => mint;
@@ -88,7 +111,16 @@ class SubImpl3 extends BaseImpl2 implements Interface {
       dynamic boxedNonNullableIntOrDouble,
       dynamic boxedNullableIntOrDouble,
       dynamic boxedNullableX,
-      dynamic boxedX) {}
+      dynamic boxedX) {
+    use(unboxedInt);
+    use(unboxedDouble);
+    use(boxedNullableInt);
+    use(boxedNullableDouble);
+    use(boxedNonNullableIntOrDouble);
+    use(boxedNullableIntOrDouble);
+    use(boxedNullableX);
+    use(boxedX);
+  }
 
   dynamic returnUnboxedSmi(X ignored) => 3;
   dynamic returnUnboxedInt(X ignored) => mint;
@@ -154,5 +186,3 @@ main() {
   use(d.returnBoxedNullableX(null));
   use(d.returnBoxedX(null));
 }
-
-void use(dynamic value) {}

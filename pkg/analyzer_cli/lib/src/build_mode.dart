@@ -7,7 +7,6 @@ import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -179,7 +178,6 @@ class BuildMode with HasContextMixin {
 
   PackageBundleAssembler assembler;
 
-  final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
   summary2.LinkedElementFactory elementFactory;
 
   // May be null.
@@ -249,13 +247,6 @@ class BuildMode with HasContextMixin {
       assembler = PackageBundleAssembler();
       if (_shouldOutputSummary) {
         await logger.runAsync('Build and write output summary', () async {
-          // Prepare all unlinked units.
-          await logger.runAsync('Prepare unlinked units', () async {
-            for (var src in explicitSources) {
-              await _prepareUnit('${src.uri}');
-            }
-          });
-
           // Build and assemble linked libraries.
           _computeLinkedLibraries2();
 
@@ -298,8 +289,8 @@ class BuildMode with HasContextMixin {
     });
   }
 
-  /// Use [elementFactory] filled with input summaries, and link prepared
-  /// [inputParsedUnitResults] to produce linked libraries in [assembler].
+  /// Use [elementFactory] filled with input summaries, and link libraries
+  /// in [explicitSources] to produce linked libraries in [assembler].
   void _computeLinkedLibraries2() {
     logger.run('Link output summary2', () {
       var inputLibraries = <summary2.LinkInputLibrary>[];
@@ -307,7 +298,7 @@ class BuildMode with HasContextMixin {
       for (var librarySource in explicitSources) {
         var path = librarySource.fullName;
 
-        var parseResult = inputParsedUnitResults[path];
+        var parseResult = analysisDriver.parseFileSync(path);
         if (parseResult == null) {
           throw ArgumentError('No parsed unit for $path');
         }
@@ -338,7 +329,7 @@ class BuildMode with HasContextMixin {
             }
 
             var partPath = partSource.fullName;
-            var partParseResult = inputParsedUnitResults[partPath];
+            var partParseResult = analysisDriver.parseFileSync(partPath);
             if (partParseResult == null) {
               throw ArgumentError('No parsed unit for part $partPath in $path');
             }
@@ -498,22 +489,6 @@ class BuildMode with HasContextMixin {
     }
 
     return Packages.empty;
-  }
-
-  /// Ensure that the parsed unit for [absoluteUri] is available.
-  ///
-  /// If the unit is in the input [summaryDataStore], do nothing.
-  Future<void> _prepareUnit(String absoluteUri) async {
-    // Parse the source and serialize its AST.
-    var uri = Uri.parse(absoluteUri);
-    var source = sourceFactory.forUri2(uri);
-    if (!source.exists()) {
-      // TODO(paulberry): we should report a warning/error because DDC
-      // compilations are unlikely to work.
-      return;
-    }
-    var result = await analysisDriver.parseFile(source.fullName);
-    inputParsedUnitResults[result.path] = result;
   }
 
   /// Print errors for all explicit sources. If [outputPath] is supplied, output

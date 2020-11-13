@@ -56,7 +56,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<List<Object>>();
-      Expect.equals(isWeakMode, foo.isT(new List.filled(5, null)));
+      Expect.equals(hasUnsoundNullSafety, foo.isT(new List.filled(5, null)));
       Expect.equals(true, foo.isT(new List<Object>.filled(5, "o")));
       Expect.equals(true, foo.isT(new List<int>.filled(5, 0)));
       Expect.equals(true, foo.isT(new List<num>.filled(5, 0)));
@@ -64,7 +64,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<List<int>>();
-      Expect.equals(isWeakMode, foo.isT(new List.filled(5, null)));
+      Expect.equals(hasUnsoundNullSafety, foo.isT(new List.filled(5, null)));
       Expect.equals(false, foo.isT(new List<Object>.filled(5, "o")));
       Expect.equals(true, foo.isT(new List<int>.filled(5, 0)));
       Expect.equals(false, foo.isT(new List<num>.filled(5, 0)));
@@ -72,7 +72,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<List<num>>();
-      Expect.equals(isWeakMode, foo.isT(new List.filled(5, null)));
+      Expect.equals(hasUnsoundNullSafety, foo.isT(new List.filled(5, null)));
       Expect.equals(false, foo.isT(new List<Object>.filled(5, "o")));
       Expect.equals(true, foo.isT(new List<int>.filled(5, 0)));
       Expect.equals(true, foo.isT(new List<num>.filled(5, 0)));
@@ -80,7 +80,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<List<String>>();
-      Expect.equals(isWeakMode, foo.isT(new List.filled(5, null)));
+      Expect.equals(hasUnsoundNullSafety, foo.isT(new List.filled(5, null)));
       Expect.equals(false, foo.isT(new List<Object>.filled(5, "o")));
       Expect.equals(false, foo.isT(new List<int>.filled(5, 0)));
       Expect.equals(false, foo.isT(new List<num>.filled(5, 0)));
@@ -96,7 +96,8 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<Object>();
-      Expect.equals(isWeakMode, foo.isListT(new List.filled(5, null)));
+      Expect.equals(
+          hasUnsoundNullSafety, foo.isListT(new List.filled(5, null)));
       Expect.equals(true, foo.isListT(new List<Object>.filled(5, "o")));
       Expect.equals(true, foo.isListT(new List<int>.filled(5, 0)));
       Expect.equals(true, foo.isListT(new List<num>.filled(5, 0)));
@@ -104,7 +105,8 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<int>();
-      Expect.equals(isWeakMode, foo.isListT(new List.filled(5, null)));
+      Expect.equals(
+          hasUnsoundNullSafety, foo.isListT(new List.filled(5, null)));
       Expect.equals(false, foo.isListT(new List<Object>.filled(5, "o")));
       Expect.equals(true, foo.isListT(new List<int>.filled(5, 0)));
       Expect.equals(false, foo.isListT(new List<num>.filled(5, 0)));
@@ -112,7 +114,8 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<num>();
-      Expect.equals(isWeakMode, foo.isListT(new List.filled(5, null)));
+      Expect.equals(
+          hasUnsoundNullSafety, foo.isListT(new List.filled(5, null)));
       Expect.equals(false, foo.isListT(new List<Object>.filled(5, "o")));
       Expect.equals(true, foo.isListT(new List<int>.filled(5, 0)));
       Expect.equals(true, foo.isListT(new List<num>.filled(5, 0)));
@@ -120,7 +123,8 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<String>();
-      Expect.equals(isWeakMode, foo.isListT(new List.filled(5, null)));
+      Expect.equals(
+          hasUnsoundNullSafety, foo.isListT(new List.filled(5, null)));
       Expect.equals(false, foo.isListT(new List<Object>.filled(5, "o")));
       Expect.equals(false, foo.isListT(new List<int>.filled(5, 0)));
       Expect.equals(false, foo.isListT(new List<num>.filled(5, 0)));

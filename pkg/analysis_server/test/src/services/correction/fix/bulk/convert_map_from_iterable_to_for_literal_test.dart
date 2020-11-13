@@ -19,7 +19,7 @@ class ConvertToForElementTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_for_elements_to_map_fromIterable;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   var k = 3;
   return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);

@@ -18,11 +18,20 @@ main() {
 @reflectiveTest
 class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
   @override
+  String get testPackageLanguageVersion =>
+      '${ExperimentStatus.currentVersion.major}.'
+      '${ExperimentStatus.currentVersion.minor}';
+
+  @override
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
-        experiments: [EnableString.triple_shift],
+        experiments: [
+          // TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
+          EnableString.non_nullable,
+          EnableString.triple_shift,
+        ],
       ),
     );
   }

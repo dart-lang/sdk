@@ -58,9 +58,11 @@ class NoActiveIsolateScope {
 };
 
 Heap::Heap(IsolateGroup* isolate_group,
+           bool is_vm_isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
     : isolate_group_(isolate_group),
+      is_vm_isolate_(is_vm_isolate),
       new_space_(this, max_new_gen_semi_words),
       old_space_(this, max_old_gen_words),
       barrier_(),
@@ -150,6 +152,9 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   if (addr != 0) {
     return addr;
   }
+
+  old_space_.TryReleaseReservation();
+
   // Give up allocating this object.
   OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
                size);
@@ -678,11 +683,12 @@ void Heap::WriteProtect(bool read_only) {
 }
 
 void Heap::Init(IsolateGroup* isolate_group,
+                bool is_vm_isolate,
                 intptr_t max_new_gen_words,
                 intptr_t max_old_gen_words) {
   ASSERT(isolate_group->heap() == nullptr);
-  std::unique_ptr<Heap> heap(
-      new Heap(isolate_group, max_new_gen_words, max_old_gen_words));
+  std::unique_ptr<Heap> heap(new Heap(isolate_group, is_vm_isolate,
+                                      max_new_gen_words, max_old_gen_words));
   isolate_group->set_heap(std::move(heap));
 }
 
@@ -907,27 +913,27 @@ void Heap::ResetObjectIdTable() {
 }
 
 intptr_t Heap::GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const {
-  if (raw_obj->IsNewObject()) {
+  if (!raw_obj->IsSmiOrOldObject()) {
     return new_weak_tables_[sel]->GetValue(raw_obj);
   }
-  ASSERT(raw_obj->IsOldObject());
+  ASSERT(raw_obj->IsSmiOrOldObject());
   return old_weak_tables_[sel]->GetValue(raw_obj);
 }
 
 void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
-  if (raw_obj->IsNewObject()) {
+  if (!raw_obj->IsSmiOrOldObject()) {
     new_weak_tables_[sel]->SetValue(raw_obj, val);
   } else {
-    ASSERT(raw_obj->IsOldObject());
+    ASSERT(raw_obj->IsSmiOrOldObject());
     old_weak_tables_[sel]->SetValue(raw_obj, val);
   }
 }
 
 void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
-      before_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+      !before_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
   const auto after_space =
-      after_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+      !after_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
 
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     const auto selector = static_cast<Heap::WeakSelector>(sel);

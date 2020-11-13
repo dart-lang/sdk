@@ -6,12 +6,12 @@ import "dart:_internal" as _in;
 static method test() → dynamic {
   core::int? nullableTopLevelLocal = _in::createSentinel<core::int?>();
   function #nullableTopLevelLocal#get() → core::int?
-    return let final core::int? #t1 = nullableTopLevelLocal in _in::isSentinel(#t1) ?{core::int?} throw new _in::LateInitializationErrorImpl::•("Local 'nullableTopLevelLocal' has not been initialized.") : #t1{core::int?};
+    return let final core::int? #t1 = nullableTopLevelLocal in _in::isSentinel(#t1) ?{core::int?} throw new _in::LateError::localNI("nullableTopLevelLocal") : #t1{core::int?};
   function #nullableTopLevelLocal#set(core::int? #t2) → dynamic
     return nullableTopLevelLocal = #t2;
   core::int? nonNullableTopLevelLocal;
   function #nonNullableTopLevelLocal#get() → core::int
-    return let final core::int? #t3 = nonNullableTopLevelLocal in #t3.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'nonNullableTopLevelLocal' has not been initialized.") : #t3{core::int};
+    return let final core::int? #t3 = nonNullableTopLevelLocal in #t3.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableTopLevelLocal") : #t3{core::int};
   function #nonNullableTopLevelLocal#set(core::int #t4) → dynamic
     return nonNullableTopLevelLocal = #t4;
   core::int? nullableTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
@@ -26,20 +26,20 @@ static method test() → dynamic {
     return nonNullableTopLevelLocalWithInitializer = #t8;
   final core::int? nullableFinalTopLevelLocal = _in::createSentinel<core::int?>();
   function #nullableFinalTopLevelLocal#get() → core::int?
-    return let final core::int? #t9 = nullableFinalTopLevelLocal in _in::isSentinel(#t9) ?{core::int?} throw new _in::LateInitializationErrorImpl::•("Local 'nullableFinalTopLevelLocal' has not been initialized.") : #t9{core::int?};
+    return let final core::int? #t9 = nullableFinalTopLevelLocal in _in::isSentinel(#t9) ?{core::int?} throw new _in::LateError::localNI("nullableFinalTopLevelLocal") : #t9{core::int?};
   function #nullableFinalTopLevelLocal#set(core::int? #t10) → dynamic
     if(_in::isSentinel(nullableFinalTopLevelLocal))
       return nullableFinalTopLevelLocal = #t10;
     else
-      throw new _in::LateInitializationErrorImpl::•("Local 'nullableFinalTopLevelLocal' has already been initialized.");
+      throw new _in::LateError::localAI("nullableFinalTopLevelLocal");
   final core::int? nonNullableFinalTopLevelLocal;
   function #nonNullableFinalTopLevelLocal#get() → core::int
-    return let final core::int? #t11 = nonNullableFinalTopLevelLocal in #t11.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'nonNullableFinalTopLevelLocal' has not been initialized.") : #t11{core::int};
+    return let final core::int? #t11 = nonNullableFinalTopLevelLocal in #t11.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableFinalTopLevelLocal") : #t11{core::int};
   function #nonNullableFinalTopLevelLocal#set(core::int #t12) → dynamic
     if(nonNullableFinalTopLevelLocal.==(null))
       return nonNullableFinalTopLevelLocal = #t12;
     else
-      throw new _in::LateInitializationErrorImpl::•("Local 'nonNullableFinalTopLevelLocal' has already been initialized.");
+      throw new _in::LateError::localAI("nonNullableFinalTopLevelLocal");
   final core::int? nullableFinalTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
   function #nullableFinalTopLevelLocalWithInitializer#get() → core::int?
     return let final core::int? #t13 = nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t13) ?{core::int?} nullableFinalTopLevelLocalWithInitializer = null : #t13{core::int?};

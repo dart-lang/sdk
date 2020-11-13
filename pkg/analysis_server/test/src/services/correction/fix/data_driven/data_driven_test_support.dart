@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 import '../fix_processor.dart';
@@ -26,7 +27,8 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// Add the file containing the data used by the data-driven fix with the
   /// given [content].
   void addPackageDataFile(String content) {
-    addPackageFile('p', TransformSetManager.dataFileName, content);
+    newFile('$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
+        content: content);
   }
 
   /// Return a code template that will produce the given [text].
@@ -42,7 +44,11 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// Set the content of the library that defines the element referenced by the
   /// data on which this test is based.
   void setPackageContent(String content) {
-    addPackageFile('p', 'lib.dart', content);
+    newFile('$workspaceRootPath/p/lib/lib.dart', content: content);
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+    );
   }
 
   /// Set the data on which this test is based.

@@ -240,7 +240,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   DartType get bottomType => isNonNullableByDefault
       ? const NeverType(Nullability.nonNullable)
-      : engine.coreTypes.nullType;
+      : const NullType();
 
   DartType computeGreatestClosure(DartType type) {
     return greatestClosure(type, const DynamicType(), bottomType);
@@ -256,14 +256,14 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   DartType computeNullable(DartType type) {
-    if (type == coreTypes.nullType || type is NeverType) {
-      return coreTypes.nullType;
+    if (type is NullType || type is NeverType) {
+      return const NullType();
     }
     return type.withDeclaredNullability(library.nullable);
   }
 
   DartType computeNonNullable(DartType type) {
-    if (type == coreTypes.nullType) {
+    if (type is NullType) {
       return isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
           : type;
@@ -392,12 +392,23 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType expectedType, ExpressionInferenceResult result,
       {int fileOffset,
       bool isVoidAllowed: false,
-      Template<Message Function(DartType, DartType, bool)> errorTemplate}) {
+      Template<Message Function(DartType, DartType, bool)> errorTemplate,
+      Template<Message Function(DartType, DartType, bool)>
+          nullabilityErrorTemplate,
+      Template<Message Function(DartType, bool)> nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType, bool)>
+          nullabilityNullTypeErrorTemplate,
+      Template<Message Function(DartType, DartType, DartType, DartType, bool)>
+          nullabilityPartErrorTemplate}) {
     return ensureAssignable(
         expectedType, result.inferredType, result.expression,
         fileOffset: fileOffset,
         isVoidAllowed: isVoidAllowed,
-        errorTemplate: errorTemplate);
+        errorTemplate: errorTemplate,
+        nullabilityErrorTemplate: nullabilityErrorTemplate,
+        nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
+        nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
+        nullabilityPartErrorTemplate: nullabilityPartErrorTemplate);
   }
 
   /// Ensures that [expressionType] is assignable to [contextType].
@@ -424,8 +435,37 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType declaredContextType,
       DartType runtimeCheckedType,
       bool isVoidAllowed: false,
-      Template<Message Function(DartType, DartType, bool)> errorTemplate}) {
+      Template<Message Function(DartType, DartType, bool)> errorTemplate,
+      Template<Message Function(DartType, DartType, bool)>
+          nullabilityErrorTemplate,
+      Template<Message Function(DartType, bool)> nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType, bool)>
+          nullabilityNullTypeErrorTemplate,
+      Template<Message Function(DartType, DartType, DartType, DartType, bool)>
+          nullabilityPartErrorTemplate}) {
     assert(contextType != null);
+
+    // [errorTemplate], [nullabilityErrorTemplate], and
+    // [nullabilityPartErrorTemplate] should be provided together.
+    assert((errorTemplate == null) == (nullabilityErrorTemplate == null) &&
+        (nullabilityErrorTemplate == null) ==
+            (nullabilityPartErrorTemplate == null));
+    // [nullabilityNullErrorTemplate] and [nullabilityNullTypeErrorTemplate]
+    // should be provided together.
+    assert((nullabilityNullErrorTemplate == null) ==
+        (nullabilityNullTypeErrorTemplate == null));
+    errorTemplate ??= templateInvalidAssignmentError;
+    if (nullabilityErrorTemplate == null) {
+      // Use [templateInvalidAssignmentErrorNullabilityNull] only if no
+      // specific [nullabilityErrorTemplate] template was passed.
+      nullabilityNullErrorTemplate ??=
+          templateInvalidAssignmentErrorNullabilityNull;
+    }
+    nullabilityNullTypeErrorTemplate ??= nullabilityErrorTemplate ??
+        templateInvalidAssignmentErrorNullabilityNullType;
+    nullabilityErrorTemplate ??= templateInvalidAssignmentErrorNullability;
+    nullabilityPartErrorTemplate ??=
+        templateInvalidAssignmentErrorPartNullability;
 
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
@@ -439,14 +479,14 @@ class TypeInferrerImpl implements TypeInferrer {
 
     Template<Message Function(DartType, DartType, bool)>
         preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(expression);
-    AssignabilityKind kind = _computeAssignabilityKind(
+    AssignabilityResult assignabilityResult = _computeAssignabilityKind(
         contextType, expressionType,
         isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null);
 
     Expression result;
-    switch (kind) {
+    switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
         result = expression;
         break;
@@ -471,8 +511,13 @@ class TypeInferrerImpl implements TypeInferrer {
         break;
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
-        result = _wrapUnassignableExpression(expression, expressionType,
-            contextType, declaredContextType, errorTemplate);
+        result = _wrapUnassignableExpression(
+            expression,
+            expressionType,
+            contextType,
+            errorTemplate.withArguments(expressionType,
+                declaredContextType ?? contextType, isNonNullableByDefault));
+
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
@@ -496,15 +541,85 @@ class TypeInferrerImpl implements TypeInferrer {
             typedTearoff.tearoff,
             typedTearoff.tearoffType,
             contextType,
-            declaredContextType,
-            errorTemplate);
+            errorTemplate.withArguments(typedTearoff.tearoffType,
+                declaredContextType ?? contextType, isNonNullableByDefault));
+
         break;
       case AssignabilityKind.unassignableCantTearoff:
         result = _wrapTearoffErrorExpression(
             expression, contextType, templateNullableTearoffError);
         break;
+      case AssignabilityKind.unassignableNullability:
+        if (expressionType == assignabilityResult.subtype &&
+            contextType == assignabilityResult.supertype) {
+          if (expression is NullLiteral &&
+              nullabilityNullErrorTemplate != null) {
+            result = _wrapUnassignableExpression(
+                expression,
+                expressionType,
+                contextType,
+                nullabilityNullErrorTemplate.withArguments(
+                    declaredContextType ?? contextType,
+                    isNonNullableByDefault));
+          } else if (expressionType is NullType) {
+            result = _wrapUnassignableExpression(
+                expression,
+                expressionType,
+                contextType,
+                nullabilityNullTypeErrorTemplate.withArguments(
+                    expressionType,
+                    declaredContextType ?? contextType,
+                    isNonNullableByDefault));
+          } else {
+            result = _wrapUnassignableExpression(
+                expression,
+                expressionType,
+                contextType,
+                nullabilityErrorTemplate.withArguments(
+                    expressionType,
+                    declaredContextType ?? contextType,
+                    isNonNullableByDefault));
+          }
+        } else {
+          result = _wrapUnassignableExpression(
+              expression,
+              expressionType,
+              contextType,
+              nullabilityPartErrorTemplate.withArguments(
+                  expressionType,
+                  declaredContextType ?? contextType,
+                  assignabilityResult.subtype,
+                  assignabilityResult.supertype,
+                  isNonNullableByDefault));
+        }
+        break;
+      case AssignabilityKind.unassignableNullabilityTearoff:
+        TypedTearoff typedTearoff =
+            _tearOffCall(expression, expressionType, fileOffset);
+        if (expressionType == assignabilityResult.subtype &&
+            contextType == assignabilityResult.supertype) {
+          result = _wrapUnassignableExpression(
+              typedTearoff.tearoff,
+              typedTearoff.tearoffType,
+              contextType,
+              nullabilityErrorTemplate.withArguments(typedTearoff.tearoffType,
+                  declaredContextType ?? contextType, isNonNullableByDefault));
+        } else {
+          result = _wrapUnassignableExpression(
+              typedTearoff.tearoff,
+              typedTearoff.tearoffType,
+              contextType,
+              nullabilityPartErrorTemplate.withArguments(
+                  typedTearoff.tearoffType,
+                  declaredContextType ?? contextType,
+                  assignabilityResult.subtype,
+                  assignabilityResult.supertype,
+                  isNonNullableByDefault));
+        }
+        break;
       default:
-        return unhandled("${kind}", "ensureAssignable", fileOffset, helper.uri);
+        return unhandled("${assignabilityResult}", "ensureAssignable",
+            fileOffset, helper.uri);
     }
 
     return result;
@@ -532,12 +647,8 @@ class TypeInferrerImpl implements TypeInferrer {
     return errorNode;
   }
 
-  Expression _wrapUnassignableExpression(
-      Expression expression,
-      DartType expressionType,
-      DartType contextType,
-      DartType declaredContextType,
-      Template<Message Function(DartType, DartType, bool)> template) {
+  Expression _wrapUnassignableExpression(Expression expression,
+      DartType expressionType, DartType contextType, Message message) {
     Expression errorNode = new AsExpression(
         expression,
         // TODO(ahe): The outline phase doesn't correctly remove invalid
@@ -550,13 +661,7 @@ class TypeInferrerImpl implements TypeInferrer {
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = helper.wrapInProblem(
-          errorNode,
-          (template ?? templateInvalidAssignmentError).withArguments(
-              expressionType,
-              declaredContextType ?? contextType,
-              isNonNullableByDefault),
-          errorNode.fileOffset,
-          noLength);
+          errorNode, message, errorNode.fileOffset, noLength);
     }
     return errorNode;
   }
@@ -590,7 +695,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Computes the assignability kind of [expressionType] to [contextType].
   ///
   /// The computation is side-effect free.
-  AssignabilityKind _computeAssignabilityKind(
+  AssignabilityResult _computeAssignabilityKind(
       DartType contextType, DartType expressionType,
       {bool isNonNullableByDefault,
       bool isVoidAllowed,
@@ -611,7 +716,8 @@ class TypeInferrerImpl implements TypeInferrer {
         if (_shouldTearOffCall(contextType, expressionType)) {
           needsTearoff = true;
           if (isNonNullableByDefault && expressionType.isPotentiallyNullable) {
-            return AssignabilityKind.unassignableCantTearoff;
+            return const AssignabilityResult(
+                AssignabilityKind.unassignableCantTearoff);
           }
           expressionType =
               getGetterTypeForMemberTarget(callMember, expressionType)
@@ -621,20 +727,18 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (expressionType is VoidType && !isVoidAllowed) {
-      return AssignabilityKind.unassignableVoid;
+      return const AssignabilityResult(AssignabilityKind.unassignableVoid);
     }
 
-    {
-      IsSubtypeOf result = typeSchemaEnvironment
-          .performNullabilityAwareSubtypeCheck(expressionType, contextType);
-      bool isDirectlyAssignable = isNonNullableByDefault
-          ? result.isSubtypeWhenUsingNullabilities()
-          : result.isSubtypeWhenIgnoringNullabilities();
-      if (isDirectlyAssignable) {
-        return needsTearoff
-            ? AssignabilityKind.assignableTearoff
-            : AssignabilityKind.assignable;
-      }
+    IsSubtypeOf isDirectSubtypeResult = typeSchemaEnvironment
+        .performNullabilityAwareSubtypeCheck(expressionType, contextType);
+    bool isDirectlyAssignable = isNonNullableByDefault
+        ? isDirectSubtypeResult.isSubtypeWhenUsingNullabilities()
+        : isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities();
+    if (isDirectlyAssignable) {
+      return needsTearoff
+          ? const AssignabilityResult(AssignabilityKind.assignableTearoff)
+          : const AssignabilityResult(AssignabilityKind.assignable);
     }
 
     bool isIndirectlyAssignable = isNonNullableByDefault
@@ -643,23 +747,36 @@ class TypeInferrerImpl implements TypeInferrer {
             .performNullabilityAwareSubtypeCheck(contextType, expressionType)
             .isSubtypeWhenIgnoringNullabilities();
     if (!isIndirectlyAssignable) {
-      return needsTearoff
-          ? AssignabilityKind.unassignableTearoff
-          : AssignabilityKind.unassignable;
+      if (isNonNullableByDefault &&
+          isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities()) {
+        return needsTearoff
+            ? new AssignabilityResult.withTypes(
+                AssignabilityKind.unassignableNullabilityTearoff,
+                isDirectSubtypeResult.subtype,
+                isDirectSubtypeResult.supertype)
+            : new AssignabilityResult.withTypes(
+                AssignabilityKind.unassignableNullability,
+                isDirectSubtypeResult.subtype,
+                isDirectSubtypeResult.supertype);
+      } else {
+        return needsTearoff
+            ? const AssignabilityResult(AssignabilityKind.unassignableTearoff)
+            : const AssignabilityResult(AssignabilityKind.unassignable);
+      }
     }
     if (isExpressionTypePrecise) {
       // The type of the expression is known precisely, so an implicit
       // downcast is guaranteed to fail.  Insert a compile-time error.
-      return AssignabilityKind.unassignablePrecise;
+      return const AssignabilityResult(AssignabilityKind.unassignablePrecise);
     }
     // Insert an implicit downcast.
     return needsTearoff
-        ? AssignabilityKind.assignableTearoffCast
-        : AssignabilityKind.assignableCast;
+        ? const AssignabilityResult(AssignabilityKind.assignableTearoffCast)
+        : const AssignabilityResult(AssignabilityKind.assignableCast);
   }
 
   bool isNull(DartType type) {
-    return type is InterfaceType && type.classNode == coreTypes.nullClass;
+    return type is NullType;
   }
 
   /// Computes the type arguments for an access to an extension instance member
@@ -877,9 +994,12 @@ class TypeInferrerImpl implements TypeInferrer {
             // potentially nullable access.
             isPotentiallyNullable: false);
       }
-      if (includeExtensionMethods) {
+      if (includeExtensionMethods && receiverBound is! DynamicType) {
         ObjectAccessTarget target = _findExtensionMember(
-            receiverBound, coreTypes.objectClass, name, fileOffset,
+            isNonNullableByDefault ? receiverType : receiverBound,
+            coreTypes.objectClass,
+            name,
+            fileOffset,
             setter: setter);
         if (target != null) {
           return target;
@@ -898,7 +1018,7 @@ class TypeInferrerImpl implements TypeInferrer {
         case Nullability.nullable:
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.
-          return findInterfaceMember(coreTypes.nullType, name, fileOffset);
+          return findInterfaceMember(const NullType(), name, fileOffset);
         case Nullability.undetermined:
           return internalProblem(
               templateInternalProblemUnsupportedNullability.withArguments(
@@ -946,14 +1066,23 @@ class TypeInferrerImpl implements TypeInferrer {
         // error message that the extension member exists but that the access is
         // invalid.
         target = _findExtensionMember(
-            computeNonNullable(receiverBound), classNode, name, fileOffset,
+            isNonNullableByDefault
+                ? computeNonNullable(receiverType)
+                : computeNonNullable(receiverBound),
+            classNode,
+            name,
+            fileOffset,
             setter: setter,
             defaultTarget: target,
             isPotentiallyNullableAccess: true);
       } else {
         target = _findExtensionMember(
-            receiverBound, classNode, name, fileOffset,
-            setter: setter, defaultTarget: target);
+            isNonNullableByDefault ? receiverType : receiverBound,
+            classNode,
+            name,
+            fileOffset,
+            setter: setter,
+            defaultTarget: target);
       }
     }
     return target;
@@ -1483,9 +1612,7 @@ class TypeInferrerImpl implements TypeInferrer {
       assert(isTopLevel, "No initializer type provided.");
       return null;
     }
-    if (initializerType is BottomType ||
-        (initializerType is InterfaceType &&
-            initializerType.classNode == coreTypes.nullClass)) {
+    if (initializerType is BottomType || initializerType is NullType) {
       // If the initializer type is Null or bottom, the inferred type is
       // dynamic.
       // TODO(paulberry): this rule is inherited from analyzer behavior but is
@@ -2041,7 +2168,15 @@ class TypeInferrerImpl implements TypeInferrer {
               isVoidAllowed: expectedType is VoidType,
               // TODO(johnniwinther): Specialize message for operator
               // invocations.
-              errorTemplate: templateArgumentTypeNotAssignable);
+              errorTemplate: templateArgumentTypeNotAssignable,
+              nullabilityErrorTemplate:
+                  templateArgumentTypeNotAssignableNullability,
+              nullabilityPartErrorTemplate:
+                  templateArgumentTypeNotAssignablePartNullability,
+              nullabilityNullErrorTemplate:
+                  templateArgumentTypeNotAssignableNullabilityNull,
+              nullabilityNullTypeErrorTemplate:
+                  templateArgumentTypeNotAssignableNullabilityNullType);
           if (namedExpression == null) {
             arguments.positional[positionalShift + i] = expression
               ..parent = arguments;
@@ -2169,7 +2304,7 @@ class TypeInferrerImpl implements TypeInferrer {
               substitution.substituteType(formalTypesFromContext[i]));
           if (typeSchemaEnvironment.isSubtypeOf(
               inferredType,
-              coreTypes.nullType,
+              const NullType(),
               isNonNullableByDefault
                   ? SubtypeCheckMode.withNullabilities
                   : SubtypeCheckMode.ignoringNullabilities)) {
@@ -4229,6 +4364,25 @@ enum AssignabilityKind {
 
   /// Unassignable because the tear-off can't be done on the nullable receiver.
   unassignableCantTearoff,
+
+  /// Unassignable only because of nullability modifiers.
+  unassignableNullability,
+
+  /// Unassignable because of nullability and needs a tearoff of "call" for
+  /// better error reporting.
+  unassignableNullabilityTearoff,
+}
+
+class AssignabilityResult {
+  final AssignabilityKind kind;
+  final DartType subtype; // Can be null.
+  final DartType supertype; // Can be null.
+
+  const AssignabilityResult(this.kind)
+      : subtype = null,
+        supertype = null;
+
+  AssignabilityResult.withTypes(this.kind, this.subtype, this.supertype);
 }
 
 /// Convenient way to return both a tear-off expression and its type.

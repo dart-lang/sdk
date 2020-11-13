@@ -248,7 +248,8 @@ bool TranslationHelper::IsField(NameIndex name) {
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
-  return StringEquals(CanonicalNameString(kind), "@fields");
+  return StringEquals(CanonicalNameString(kind), "@fields") ||
+         StringEquals(CanonicalNameString(kind), "@=fields");
 }
 
 bool TranslationHelper::IsConstructor(NameIndex name) {
@@ -578,9 +579,6 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
   CheckStaticLookup(klass);
   ASSERT(!klass.IsNull());
-  if (klass.is_declared_in_bytecode()) {
-    klass.EnsureDeclarationLoaded();
-  }
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
@@ -995,9 +993,14 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
       FALL_THROUGH;
-    case kCanonicalName:
-      canonical_name_ =
-          helper_->ReadCanonicalNameReference();  // read canonical_name.
+    case kCanonicalNameGetter:
+      canonical_name_getter_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_getter.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    case kCanonicalNameSetter:
+      canonical_name_setter_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_setter.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kSourceUriIndex:
@@ -2342,6 +2345,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();              // read expression.
       return;
     case kMethodInvocation:
+      ReadFlags();                   // read flags.
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
@@ -2510,6 +2514,8 @@ void KernelReaderHelper::SkipStatement() {
       SkipExpression();  // read expression.
       return;
     case kBlock:
+      ReadPosition();  // read file offset.
+      ReadPosition();  // read file end offset.
       SkipStatementList();
       return;
     case kEmptyStatement:
@@ -2981,9 +2987,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
   const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(klass_name));
   ASSERT(!klass.IsNull());
-  if (klass.is_declared_in_bytecode()) {
-    klass.EnsureDeclarationLoaded();
-  }
   if (simple) {
     if (finalize_ || klass.is_type_finalized()) {
       // Fast path for non-generic types: retrieve or populate the class's only
@@ -3008,7 +3011,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
-    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+    result_ = ClassFinalizer::FinalizeType(result_);
   }
 }
 
@@ -3107,8 +3110,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       Type::ZoneHandle(Z, signature_function.SignatureType(nullability));
 
   if (finalize_) {
-    signature_type ^=
-        ClassFinalizer::FinalizeType(*active_class_->klass, signature_type);
+    signature_type ^= ClassFinalizer::FinalizeType(signature_type);
     // Do not refer to signature_function anymore, since it may have been
     // replaced during canonicalization.
     signature_function = Function::null();
@@ -3185,8 +3187,7 @@ void TypeTranslator::BuildTypeParameterType() {
         active_class_->RecordDerivedTypeParameter(Z, type_param,
                                                   TypeParameter::Cast(result_));
         if (finalize_) {
-          result_ =
-              ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+          result_ = ClassFinalizer::FinalizeType(result_);
         }
         return;
       }
@@ -3202,7 +3203,7 @@ void TypeTranslator::BuildTypeParameterType() {
       active_class_->RecordDerivedTypeParameter(Z, type_param,
                                                 TypeParameter::Cast(result_));
       if (finalize_) {
-        result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+        result_ = ClassFinalizer::FinalizeType(result_);
       }
       return;
     }
@@ -3266,7 +3267,7 @@ const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
   Type& type = Type::Handle(
       Z, Type::New(receiver_class, type_arguments, TokenPosition::kNoSource));
   if (finalize_) {
-    type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
+    type ^= ClassFinalizer::FinalizeType(type);
   }
 
   const TypeArguments& instantiated_type_arguments =
@@ -3332,7 +3333,7 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   }
   ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
-  // Step b) Fill in the bounds of all [TypeParameter]s.
+  // Step b) Fill in the bounds and default arguments of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
@@ -3351,14 +3352,24 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
       parameter.set_bound(bound);
     }
-
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
+    const AbstractType* default_arg = &Object::dynamic_type();
+    if (helper_->ReadTag() == kSomething) {
+      default_arg = &BuildTypeWithoutFinalization();
+    }
+    parameter.set_default_argument(*default_arg);
     helper.Finish();
   }
 
-  // Fix bounds in all derived type parameters (with different nullabilities).
+  if (set_on.IsFunction()) {
+    Function::Cast(set_on).UpdateCachedDefaultTypeArguments(Thread::Current());
+  }
+
+  // Fix bounds and default arguments in all derived type parameters (with
+  // different nullabilities).
   if (active_class->derived_type_parameters != nullptr) {
     auto& derived = TypeParameter::Handle(Z);
-    auto& bound = AbstractType::Handle(Z);
+    auto& type = AbstractType::Handle(Z);
     for (intptr_t i = 0, n = active_class->derived_type_parameters->Length();
          i < n; ++i) {
       derived ^= active_class->derived_type_parameters->At(i);
@@ -3367,8 +3378,10 @@ void TypeTranslator::LoadAndSetupTypeParameters(
            derived.parameterized_function() == set_on.raw())) {
         ASSERT(!derived.IsFinalized());
         parameter ^= type_parameters.TypeAt(derived.index());
-        bound = parameter.bound();
-        derived.set_bound(bound);
+        type = parameter.bound();
+        derived.set_bound(type);
+        type = parameter.default_argument();
+        derived.set_default_argument(type);
       }
     }
   }

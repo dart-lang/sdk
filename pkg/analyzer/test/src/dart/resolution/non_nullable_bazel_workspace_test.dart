@@ -61,14 +61,6 @@ dart_package(
     );
     assertNoErrorsInResult();
     assertType(findNode.typeName('int v'), 'int');
-
-    // Legacy in other package.
-    await resolveFileCode(
-      '$workspaceRootPath/dart/aaa/lib/a.dart',
-      'int v = 0;',
-    );
-    assertNoErrorsInResult();
-    assertType(findNode.typeName('int v'), 'int*');
   }
 
   test_buildFile_nonNullable_oneLine_noComma() async {

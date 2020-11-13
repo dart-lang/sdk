@@ -7,6 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../services/refactoring/abstract_rename.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -27,7 +28,7 @@ class ImportLibraryProject1Test extends FixProcessorTest {
 class A {}
 class B {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'lib.dart' show A;
 main() {
   A a;
@@ -44,7 +45,7 @@ class Test {
   const Test();
 }
 ''');
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:$foo/foo.dart';
 
 void f() {
@@ -65,13 +66,19 @@ void f() {
   }
 
   Future<void> test_lib() async {
-    addPackageFile('my_pkg', 'a.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
 ''');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test test = null;
   print(test);
@@ -89,17 +96,23 @@ main() {
   }
 
   Future<void> test_lib_extension() async {
-    addPackageFile('my_pkg', 'a.dart', '''
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: '''
 extension E on int {
   static String m() => '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
 ''');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   print(E.m());
 }
@@ -115,12 +128,18 @@ f() {
   }
 
   Future<void> test_lib_src() async {
-    addPackageFile('my_pkg', 'src/a.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/src/a.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test test = null;
   print(test);
@@ -131,7 +150,7 @@ main() {
 
   Future<void> test_notInLib() async {
     addSource('/home/other/test/lib.dart', 'class Test {}');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test t;
   print(t);
@@ -144,7 +163,7 @@ main() {
     addSource('/home/test/lib/a.dart', '''
 class Foo {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() { new Foo(); }
 ''');
     await assertHasFix('''
@@ -160,7 +179,7 @@ main() { new Foo(); }
     addSource('/home/test/lib/dir/a.dart', '''
 class Foo {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() { new Foo(); }
 ''');
     await assertHasFix('''
@@ -177,7 +196,7 @@ main() { new Foo(); }
 class Foo {}
 ''');
     testFile = convertPath('/home/test/lib/dir/test.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() { new Foo(); }
 ''');
     await assertHasFix('''
@@ -196,7 +215,7 @@ class Test {
   const Test(int p);
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @Test(0)
 main() {
 }
@@ -214,7 +233,7 @@ main() {
     addSource('/home/test/lib/lib.dart', '''
 class Test {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   try {
     print(1);
@@ -246,7 +265,7 @@ library b;
 class One {}
 class Two {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/b.dart' show Two;
 main () {
   new Two();
@@ -269,7 +288,7 @@ main () {
 library lib;
 class Test {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test t = null;
   print(t);
@@ -291,7 +310,7 @@ main() {
 library lib;
 class Test {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test t = null;
   print(t);
@@ -313,7 +332,7 @@ main() {
 library lib;
 class Test {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test t = null;
   print(t);
@@ -335,7 +354,7 @@ class Test {
   const Test();
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   return const Test();
 }
@@ -355,7 +374,7 @@ class Test {
   const Test.named();
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   const Test.named();
 }
@@ -375,7 +394,7 @@ class Test {
   const Test();
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   return Test();
 }
@@ -395,7 +414,7 @@ class Test {
   const Test();
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   return new Test();
 }
@@ -415,7 +434,7 @@ class Test {
   Test.named();
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   new Test.named();
 }
@@ -434,7 +453,7 @@ main() {
 library lib;
 myFunction() {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   myFunction();
 }
@@ -450,7 +469,7 @@ main() {
 
   Future<void> test_withFunction_functionTopLevelVariable() async {
     addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   myFunction();
 }
@@ -466,7 +485,7 @@ main() {
 
   Future<void> test_withFunction_functionTopLevelVariableIdentifier() async {
     addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   myFunction;
 }
@@ -485,7 +504,7 @@ main() {
 library lib;
 myFunction() {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   myFunction;
 }
@@ -502,7 +521,7 @@ main() {
   @failingTest
   Future<void> test_withFunction_nonFunctionType() async {
     addSource('/home/test/lib/lib.dart', 'int zero = 0;');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   zero();
 }
@@ -515,7 +534,7 @@ main() {
 library lib;
 myFunction() {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main() {
     myFunction();
@@ -538,7 +557,7 @@ class A {
 library lib;
 typedef MyFunction();
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   MyFunction t = null;
   print(t);
@@ -558,7 +577,7 @@ main() {
     addSource('/home/test/lib/lib.dart', '''
 mixin Test {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class X = Object with Test;
 ''');
     await assertHasFix('''
@@ -573,7 +592,7 @@ class X = Object with Test;
 library lib;
 int MY_VAR = 42;
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(MY_VAR);
 }
@@ -594,13 +613,19 @@ class ImportLibraryProject2Test extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
 
   Future<void> test_lib() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'b.dart';");
-    addPackageFile('my_pkg', 'b.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: "export 'b.dart';");
+    newFile('/.pub-cache/my_pkg/lib/b.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test test = null;
   print(test);
@@ -617,13 +642,19 @@ main() {
   }
 
   Future<void> test_lib_src() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'src/b.dart';");
-    addPackageFile('my_pkg', 'src/b.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: "export 'src/b.dart';");
+    newFile('/.pub-cache/my_pkg/lib/src/b.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test test = null;
   print(test);
@@ -640,17 +671,23 @@ main() {
   }
 
   Future<void> test_lib_src_extension() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'src/b.dart';");
-    addPackageFile('my_pkg', 'src/b.dart', '''
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: "export 'src/b.dart';");
+    newFile('/.pub-cache/my_pkg/lib/src/b.dart', content: '''
 extension E on int {
   static String m() => '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   print(E.m());
 }
@@ -671,12 +708,18 @@ class ImportLibraryProject3Test extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3;
 
   Future<void> test_inLibSrc_differentContextRoot() async {
-    addPackageFile('bbb', 'b1.dart', r'''
+    newFile('/.pub-cache/bbb/lib/b1.dart', content: r'''
 import 'src/b2.dart';
 class A {}
 ''');
-    addPackageFile('bbb', 'src/b2.dart', 'class Test {}');
-    await resolveTestUnit('''
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '/.pub-cache/bbb'),
+    );
+
+    newFile('/.pub-cache/bbb/lib/src/b2.dart', content: 'class Test {}');
+    await resolveTestCode('''
 import 'package:bbb/b1.dart';
 main() {
   Test t;
@@ -689,7 +732,7 @@ main() {
 
   Future<void> test_inLibSrc_thisContextRoot() async {
     addSource('/home/test/lib/src/lib.dart', 'class Test {}');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test t;
   print(t);
@@ -711,7 +754,7 @@ extension E on int {
   static String m() => '';
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   print(E.m());
 }

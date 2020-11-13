@@ -101,9 +101,10 @@ class ContextLocatorImpl implements ContextLocator {
       root.packagesFile = defaultPackagesFile ?? _findPackagesFile(folder);
       root.optionsFile = defaultOptionsFile ?? _findOptionsFile(folder);
       root.included.add(folder);
+      root.excludedGlobs = _getExcludedGlobs(root);
       roots.add(root);
       _createContextRootsIn(roots, folder, excludedFolders, root,
-          _getExcludedFiles(root), defaultOptionsFile, defaultPackagesFile);
+          root.excludedGlobs, defaultOptionsFile, defaultPackagesFile);
     }
     Map<Folder, ContextRoot> rootMap = <Folder, ContextRoot>{};
     for (File file in includedFiles) {
@@ -135,14 +136,14 @@ class ContextLocatorImpl implements ContextLocator {
   /// file will be used even if there is a local version of the file.
   ///
   /// For each directory within the given [folder] that is neither in the list
-  /// of [excludedFolders] nor excluded by the [excludedFilePatterns],
-  /// recursively search for nested context roots.
+  /// of [excludedFolders] nor excluded by the [excludedGlobs], recursively
+  /// search for nested context roots.
   void _createContextRoots(
       List<ContextRoot> roots,
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedFilePatterns,
+      List<Glob> excludedGlobs,
       File optionsFile,
       File packagesFile) {
     //
@@ -175,16 +176,16 @@ class ContextLocatorImpl implements ContextLocator {
       containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
-      excludedFilePatterns = _getExcludedFiles(root);
+      excludedGlobs = _getExcludedGlobs(root);
+      root.excludedGlobs = excludedGlobs;
     }
     _createContextRootsIn(roots, folder, excludedFolders, containingRoot,
-        excludedFilePatterns, optionsFile, packagesFile);
+        excludedGlobs, optionsFile, packagesFile);
   }
 
   /// For each directory within the given [folder] that is neither in the list
-  /// of [excludedFolders] nor excluded by the [excludedFilePatterns],
-  /// recursively search for nested context roots and add them to the list of
-  /// [roots].
+  /// of [excludedFolders] nor excluded by the [excludedGlobs], recursively
+  /// search for nested context roots and add them to the list of [roots].
   ///
   /// If either the [optionsFile] or [packagesFile] is non-`null` then the given
   /// file will be used even if there is a local version of the file.
@@ -193,7 +194,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedFilePatterns,
+      List<Glob> excludedGlobs,
       File optionsFile,
       File packagesFile) {
     bool isExcluded(Folder folder) {
@@ -201,7 +202,7 @@ class ContextLocatorImpl implements ContextLocator {
           folder.shortName.startsWith('.')) {
         return true;
       }
-      for (Glob pattern in excludedFilePatterns) {
+      for (Glob pattern in excludedGlobs) {
         if (pattern.matches(folder.path)) {
           return true;
         }
@@ -220,7 +221,7 @@ class ContextLocatorImpl implements ContextLocator {
             containingRoot.excluded.add(child);
           } else {
             _createContextRoots(roots, child, excludedFolders, containingRoot,
-                excludedFilePatterns, optionsFile, packagesFile);
+                excludedGlobs, optionsFile, packagesFile);
           }
         }
       }
@@ -235,9 +236,9 @@ class ContextLocatorImpl implements ContextLocator {
   /// folder or any parent folder.
   File _findOptionsFile(Folder folder) {
     while (folder != null) {
-      File packagesFile = _getOptionsFile(folder);
-      if (packagesFile != null) {
-        return packagesFile;
+      File optionsFile = _getOptionsFile(folder);
+      if (optionsFile != null) {
+        return optionsFile;
       }
       folder = folder.parent;
     }
@@ -263,7 +264,7 @@ class ContextLocatorImpl implements ContextLocator {
   /// file associated with the context root. The list will be empty if there are
   /// no exclusion patterns in the options file, or if there is no options file
   /// associated with the context root.
-  List<Glob> _getExcludedFiles(ContextRootImpl root) {
+  List<Glob> _getExcludedGlobs(ContextRootImpl root) {
     List<Glob> patterns = [];
     File optionsFile = root.optionsFile;
     if (optionsFile != null) {
@@ -281,8 +282,10 @@ class ContextLocatorImpl implements ContextLocator {
                 for (String excludedPath in excludeList) {
                   Context context = resourceProvider.pathContext;
                   if (context.isRelative(excludedPath)) {
-                    excludedPath =
-                        context.join(optionsFile.parent.path, excludedPath);
+                    excludedPath = posix.joinAll([
+                      ...context.split(optionsFile.parent.path),
+                      ...posix.split(excludedPath),
+                    ]);
                   }
                   patterns.add(Glob(excludedPath, context: context));
                 }

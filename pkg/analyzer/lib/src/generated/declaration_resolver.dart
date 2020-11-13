@@ -98,7 +98,7 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
-  ElementWalker.forTypedef(GenericTypeAliasElementImpl element)
+  ElementWalker.forTypedef(FunctionTypeAliasElementImpl element)
       : element = element,
         _parameters = element.function.parameters,
         _typeParameters = element.typeParameters;

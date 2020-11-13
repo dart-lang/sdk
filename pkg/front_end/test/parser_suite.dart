@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File;
@@ -53,6 +51,8 @@ import 'parser_test_listener.dart' show ParserTestListener;
 
 import 'parser_test_parser.dart' show TestParser;
 
+import 'testing_utils.dart' show checkEnvironment;
+
 const String EXPECTATIONS = '''
 [
   {
@@ -71,8 +71,18 @@ main([List<String> arguments = const []]) =>
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context(suite.name, environment["updateExpectations"] == "true",
-      environment["trace"] == "true", environment["annotateLines"] == "true");
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "trace",
+    "annotateLines"
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
+  bool updateExpectations = environment["updateExpectations"] == "true";
+  bool trace = environment["trace"] == "true";
+  bool annotateLines = environment["annotateLines"] == "true";
+
+  return new Context(suite.name, updateExpectations, trace, annotateLines);
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(

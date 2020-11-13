@@ -261,9 +261,9 @@ class ElementFactory {
     _objectElement = null;
   }
 
-  static GenericTypeAliasElementImpl genericTypeAliasElement(String name,
+  static FunctionTypeAliasElementImpl functionTypeAliasElement(String name,
       {List<ParameterElement> parameters = const [], DartType returnType}) {
-    var element = GenericTypeAliasElementImpl(name, -1);
+    var element = FunctionTypeAliasElementImpl(name, -1);
     element.function = GenericFunctionTypeElementImpl.forOffset(-1)
       ..parameters = parameters
       ..returnType = returnType ?? DynamicTypeImpl.instance;

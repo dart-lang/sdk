@@ -4,14 +4,16 @@
 
 import 'dart:convert' show jsonDecode, JsonEncoder;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:charcode/charcode.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/front_end/charcodes.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
@@ -26,22 +28,16 @@ import 'package:yaml/yaml.dart';
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
-  // TODO(srawlins): Refactor to use
-  //  `Feature.non_nullable.releaseVersion` when this becomes non-null.
-  static const String _intendedMinimumSdkVersion = '2.9.0';
-
-  // In the package_config.json file, the patch number is omitted.
-  static const String _intendedLanguageVersion = '2.9';
-
-  static const String _intendedSdkVersionConstraint =
-      '>=$_intendedMinimumSdkVersion <2.10.0';
-
   static final List<HttpPreviewServer> _allServers = [];
+
+  final Version _intendedMinimumSdkVersion;
 
   /// The internet address the server should bind to.  Should be suitable for
   /// passing to HttpServer.bind, i.e. either a [String] or an
   /// [InternetAddress].
   final Object bindAddress;
+
+  final Logger _logger;
 
   final int preferredPort;
 
@@ -83,15 +79,27 @@ class NonNullableFix {
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
 
-  NonNullableFix(
-      this.listener, this.resourceProvider, this._getLineInfo, this.bindAddress,
-      {List<String> included = const [], this.preferredPort, this.summaryPath})
+  NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
+      this.bindAddress, this._logger,
+      {List<String> included = const [],
+      this.preferredPort,
+      this.summaryPath,
+      @required String sdkPath})
       : includedRoot =
-            _getIncludedRoot(included, listener.server.resourceProvider) {
+            _getIncludedRoot(included, listener.server.resourceProvider),
+        _intendedMinimumSdkVersion =
+            _computeIntendedMinimumSdkVersion(resourceProvider, sdkPath) {
     reset();
   }
 
   bool get isPreviewServerRunning => _server != null;
+
+  /// In the package_config.json file, the patch number is omitted.
+  String get _intendedLanguageVersion =>
+      '${_intendedMinimumSdkVersion.major}.${_intendedMinimumSdkVersion.minor}';
+
+  String get _intendedSdkVersionConstraint =>
+      '>=$_intendedMinimumSdkVersion <3.0.0';
 
   InstrumentationListener createInstrumentationListener(
           {MigrationSummary migrationSummary}) =>
@@ -108,7 +116,7 @@ class NonNullableFix {
     migration.finish();
     final state = MigrationState(
         migration, includedRoot, listener, instrumentationListener);
-    await state.refresh();
+    await state.refresh(_logger);
     return state;
   }
 
@@ -121,8 +129,8 @@ class NonNullableFix {
 
   /// Processes the non-source files of the package rooted at [pkgFolder].
   ///
-  /// This means updating the pubspec.yaml file and the package_config.json
-  /// file, if necessary.
+  /// This means updating the pubspec.yaml file, the package_config.json
+  /// file, and the analysis_options.yaml file, each only if necessary.
   void processPackage(Folder pkgFolder) {
     if (!_packageIsNNBD) {
       return;
@@ -130,13 +138,14 @@ class NonNullableFix {
 
     var pubspecFile = pkgFolder.getChildAssumingFile('pubspec.yaml');
     if (!pubspecFile.exists) {
-      // TODO(srawlins): Handle other package types, such as Bazel.
+      // If the pubspec file cannot be found, we do not attempt to change the
+      // Package Config file, nor the analysis options file.
       return;
     }
 
-    _Pubspec pubspec;
+    _YamlFile pubspec;
     try {
-      pubspec = _Pubspec.parseFrom(pubspecFile);
+      pubspec = _YamlFile._parseFrom(pubspecFile);
     } on FileSystemException catch (e) {
       _processPubspecException('read', pubspecFile.path, e);
       return;
@@ -146,7 +155,6 @@ class NonNullableFix {
     }
 
     var updated = _processPubspec(pubspec);
-
     if (updated) {
       _processConfigFile(pkgFolder, pubspec);
     }
@@ -162,7 +170,7 @@ class NonNullableFix {
   Future<MigrationState> rerun() async {
     reset();
     var state = await rerunFunction();
-    await state.refresh();
+    await state.refresh(_logger);
     return state;
   }
 
@@ -207,14 +215,16 @@ class NonNullableFix {
   }
 
   /// Updates the Package Config file to specify a minimum Dart SDK version
-  /// which enables the Null Safety feature.
-  void _processConfigFile(Folder pkgFolder, _Pubspec pubspec) {
+  /// which supports null safety.
+  void _processConfigFile(Folder pkgFolder, _YamlFile pubspec) {
     if (!_packageIsNNBD) {
       return;
     }
 
     var packageName = pubspec._getName();
-    if (packageName == null) {}
+    if (packageName == null) {
+      return;
+    }
 
     var packageConfigFile = pkgFolder
         .getChildAssumingFolder('.dart_tool')
@@ -291,42 +301,8 @@ class NonNullableFix {
   }
 
   /// Updates the pubspec.yaml file to specify a minimum Dart SDK version which
-  /// enables the Null Safety feature.
-  bool _processPubspec(_Pubspec pubspec) {
-    /// Inserts [content] into [pubspecFile], immediately after [parentSpan].
-    void insertAfterParent(SourceSpan parentSpan, String content) {
-      var line = parentSpan.end.line;
-      var offset = parentSpan.end.offset;
-      // Walk [offset] and [line] back to the first non-whitespace character
-      // before [offset].
-      while (offset > 0) {
-        var ch = pubspec.textContent.codeUnitAt(offset - 1);
-        if (ch == $space || ch == $cr) {
-          --offset;
-        } else if (ch == $lf) {
-          --offset;
-          --line;
-        } else {
-          break;
-        }
-      }
-      var edit = SourceEdit(offset, 0, content);
-      listener.addSourceFileEdit(
-          'enable Null Safety language feature',
-          Location(pubspec.path, offset, content.length, line, 0),
-          SourceFileEdit(pubspec.path, 0, edits: [edit]));
-    }
-
-    void replaceSpan(SourceSpan span, String content) {
-      var line = span.start.line;
-      var offset = span.start.offset;
-      var edit = SourceEdit(offset, span.length, content);
-      listener.addSourceFileEdit(
-          'enable Null Safety language feature',
-          Location(pubspec.path, offset, content.length, line, 0),
-          SourceFileEdit(pubspec.path, 0, edits: [edit]));
-    }
-
+  /// supports null safety.
+  bool _processPubspec(_YamlFile pubspec) {
     var pubspecMap = pubspec.content;
     YamlNode environmentOptions;
     if (pubspecMap is YamlMap) {
@@ -339,21 +315,21 @@ environment:
   sdk: '$_intendedSdkVersionConstraint'
 
 ''';
-      insertAfterParent(SourceSpan(start, start, ''), content);
+      pubspec._insertAfterParent(
+          SourceSpan(start, start, ''), content, listener);
     } else if (environmentOptions is YamlMap) {
       var sdk = environmentOptions.nodes['sdk'];
       if (sdk == null) {
         var content = """
 
   sdk: '$_intendedSdkVersionConstraint'""";
-        insertAfterParent(environmentOptions.span, content);
+        pubspec._insertAfterParent(environmentOptions.span, content, listener);
       } else if (sdk is YamlScalar) {
         VersionConstraint currentConstraint;
         if (sdk.value is String) {
           currentConstraint = VersionConstraint.parse(sdk.value as String);
-          var minimumVersion = Version.parse(_intendedMinimumSdkVersion);
           if (currentConstraint is VersionRange &&
-              currentConstraint.min >= minimumVersion) {
+              currentConstraint.min >= _intendedMinimumSdkVersion) {
             // The current SDK version constraint already enables Null Safety.
             // Do not edit pubspec.yaml, nor package_config.json.
             return false;
@@ -361,7 +337,8 @@ environment:
             // TODO(srawlins): This overwrites the current maximum version. In
             // the uncommon situation that the maximum is not '<3.0.0', it
             // should not.
-            replaceSpan(sdk.span, "'$_intendedSdkVersionConstraint'");
+            pubspec._replaceSpan(
+                sdk.span, "'$_intendedSdkVersionConstraint'", listener);
           }
         } else {
           // Something is odd with the SDK constraint we've found in
@@ -398,6 +375,52 @@ environment:
       } catch (_) {}
     }
     _allServers.clear();
+  }
+
+  static Version _computeIntendedMinimumSdkVersion(
+      ResourceProvider resourceProvider, String sdkPath) {
+    var versionFile = resourceProvider
+        .getFile(resourceProvider.pathContext.join(sdkPath, 'version'));
+    if (!versionFile.exists) {
+      throw StateError(
+          'Could not find SDK version file at ${versionFile.path}');
+    }
+    var sdkVersionString = versionFile.readAsStringSync().trim();
+    var sdkVersion = Version.parse(sdkVersionString);
+    // Ideally, we would like to set the user's minimum SDK constraint to the
+    // version in which null safety was released to stable.  But we only want to
+    // do so if we are sure that stable release exists.  An easy way to check
+    // that is to see if the current SDK version is greater than or equal to the
+    // stable release of null safety.
+    var nullSafetyStableReleaseVersion = Feature.non_nullable.releaseVersion;
+    if (sdkVersion >= nullSafetyStableReleaseVersion) {
+      // It is, so we can use it as the minimum SDK constraint.
+      return nullSafetyStableReleaseVersion;
+    } else {
+      // It isn't.  This either means that null safety hasn't been released to
+      // stable yet (in which case it's definitely not safe to use
+      // `nullSafetyStableReleaseVersion` as a minimum SDK constraint), or it
+      // has been released but the user hasn't upgraded to it (in which case we
+      // don't want to use it as a minimum SDK constraint anyway, because we
+      // don't want to force the user to upgrade their SDK in order to be able
+      // to use their own package).  Our next best option is to use the user's
+      // current SDK version as a minimum SDK constraint, assuming it's a proper
+      // beta release version.
+      if (sdkVersionString.contains('beta')) {
+        // It is, so we can use it.
+        return sdkVersion;
+      } else {
+        // It isn't.  The user is probably either on a bleeding edge version of
+        // the SDK (e.g. `2.12.0-edge.<SHA>`), a dev version
+        // (e.g. `2.12.0-X.Y.dev`), or an internally built version
+        // (e.g. `2.12.0-<large number>`).  All of these version numbers are
+        // unsafe for the user to use as their minimum SDK constraint, because
+        // if they published their package, it wouldn't be usable with the
+        // latest beta release.  So just fall back on using a version of
+        // `<stable release>-0`.
+        return Version.parse('$nullSafetyStableReleaseVersion-0');
+      }
+    }
   }
 
   /// Get the "root" of all [included] paths. See [includedRoot] for its
@@ -455,22 +478,13 @@ $stackTrace''');
   }
 }
 
-class _Pubspec {
+class _YamlFile {
   final String path;
   final String textContent;
+
   final YamlNode content;
 
-  factory _Pubspec.parseFrom(File file) {
-    var textContent = file.readAsStringSync();
-    var content = loadYaml(textContent);
-    if (content is YamlNode) {
-      return _Pubspec._(file.path, textContent, content);
-    } else {
-      throw FormatException('pubspec.yaml is not a YAML map.');
-    }
-  }
-
-  _Pubspec._(this.path, this.textContent, this.content);
+  _YamlFile._(this.path, this.textContent, this.content);
 
   String _getName() {
     YamlNode packageNameNode;
@@ -485,6 +499,51 @@ class _Pubspec {
       return packageNameNode.value as String;
     } else {
       return null;
+    }
+  }
+
+  /// Inserts [content] into this file, immediately after [parentSpan].
+  void _insertAfterParent(
+      SourceSpan parentSpan, String content, DartFixListener listener) {
+    var line = parentSpan.end.line;
+    var offset = parentSpan.end.offset;
+    // Walk [offset] and [line] back to the first non-whitespace character
+    // before [offset].
+    while (offset > 0) {
+      var ch = textContent.codeUnitAt(offset - 1);
+      if (ch == $space || ch == $cr) {
+        --offset;
+      } else if (ch == $lf) {
+        --offset;
+        --line;
+      } else {
+        break;
+      }
+    }
+    var edit = SourceEdit(offset, 0, content);
+    listener.addSourceFileEdit(
+        'enable Null Safety language feature',
+        Location(path, offset, content.length, line, 0),
+        SourceFileEdit(path, 0, edits: [edit]));
+  }
+
+  void _replaceSpan(SourceSpan span, String content, DartFixListener listener) {
+    var line = span.start.line;
+    var offset = span.start.offset;
+    var edit = SourceEdit(offset, span.length, content);
+    listener.addSourceFileEdit(
+        'enable Null Safety language feature',
+        Location(path, offset, content.length, line, 0),
+        SourceFileEdit(path, 0, edits: [edit]));
+  }
+
+  static _YamlFile _parseFrom(File file) {
+    var textContent = file.readAsStringSync();
+    var content = loadYaml(textContent);
+    if (content is YamlNode) {
+      return _YamlFile._(file.path, textContent, content);
+    } else {
+      throw FormatException('pubspec.yaml is not a YAML map.');
     }
   }
 }

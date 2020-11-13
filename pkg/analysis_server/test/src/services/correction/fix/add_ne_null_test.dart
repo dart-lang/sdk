@@ -21,7 +21,7 @@ class AddNeNullTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_NE_NULL;
 
   Future<void> test_nonBoolCondition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(String p) {
   if (p) {
     print(p);
@@ -38,7 +38,7 @@ main(String p) {
   }
 
   Future<void> test_nonBoolCondition_all() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(String p, String q) {
   if (p) {
     print(p);

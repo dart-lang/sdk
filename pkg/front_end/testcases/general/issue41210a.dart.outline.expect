@@ -93,12 +93,12 @@ abstract class _C&Object&A&B = self::_C&Object&A with self::B /*isAnonymousMixin
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
-  abstract forwarding-stub method method(core::num* i, {core::String* s}) → core::String*;
+  abstract member-signature method method(core::num* i, {core::String* s}) → core::String*; -> self::A::method
 }
 class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     ;
-  abstract forwarding-stub method method(core::num* i, {core::String* s}) → core::String*;
+  abstract member-signature method method(core::num* i, {core::String* s}) → core::String*; -> self::A::method
 }
 abstract class D extends core::Object implements self::Interface, self::Interface2 {
   synthetic constructor •() → self::D*

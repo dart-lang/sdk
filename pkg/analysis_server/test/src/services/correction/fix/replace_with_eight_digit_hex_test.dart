@@ -24,7 +24,7 @@ class ReplaceWithEightDigitHexTest extends FixProcessorLintTest {
   String get lintCode => LintNames.use_full_hex_values_for_flutter_colors;
 
   Future<void> test_notHex() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library dart.ui;
 
 var c = Color(1);
@@ -45,7 +45,7 @@ class Color {
   }
 
   Future<void> test_short() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library dart.ui;
 
 var c = Color(0x000001);

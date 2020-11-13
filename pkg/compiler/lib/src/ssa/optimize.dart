@@ -13,6 +13,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../ir/util.dart';
 import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/backend.dart' show CodegenInputs;
@@ -925,11 +926,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction maybeAddNativeReturnNullCheck(
       HInstruction node, HInstruction replacement, FunctionEntity method) {
-    if (_options.enableNativeNullAssertions) {
+    if (_options.nativeNullAssertions) {
       if (method.library.isNonNullableByDefault) {
         FunctionType type =
             _closedWorld.elementEnvironment.getFunctionType(method);
-        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType) &&
+            memberEntityIsInWebLibrary(method)) {
           node.block.addBefore(node, replacement);
           replacement = HNullCheck(replacement,
               _abstractValueDomain.excludeNull(replacement.instructionType),
@@ -1875,16 +1877,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (environment is HInstanceEnvironment) {
       HInstruction instance = environment.inputs.single;
       AbstractValue instanceAbstractValue = instance.instructionType;
-      ClassEntity instanceClass =
-          _abstractValueDomain.getExactClass(instanceAbstractValue);
-      if (instanceClass == null) {
-        // All the subclasses of JSArray are JSArray at runtime.
-        ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
-        if (_abstractValueDomain
-            .isInstanceOf(instanceAbstractValue, jsArrayClass)
-            .isDefinitelyTrue) {
-          instanceClass = jsArrayClass;
-        }
+      ClassEntity instanceClass;
+
+      // All the subclasses of JSArray are JSArray at runtime.
+      ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
+      if (_abstractValueDomain
+          .isInstanceOf(instanceAbstractValue, jsArrayClass)
+          .isDefinitelyTrue) {
+        instanceClass = jsArrayClass;
+      } else {
+        instanceClass =
+            _abstractValueDomain.getExactClass(instanceAbstractValue);
       }
       if (instanceClass != null) {
         if (_typeRecipeDomain.isReconstruction(
@@ -2052,6 +2055,232 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return instance.inputs.last;
     }
 
+    return node;
+  }
+
+  @override
+  HInstruction visitBitAnd(HBitAnd node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+
+    if (left is HConstant) {
+      if (right is HConstant) {
+        return foldBinary(node.operation(), left, right) ?? node;
+      }
+      //  c1 & a  -->  a & c1
+      return HBitAnd(right, left, node.instructionType);
+    }
+
+    if (right is HConstant) {
+      ConstantValue constant = right.constant;
+      if (constant.isZero) return right; // a & 0  -->  0
+      if (_isFull32BitMask(constant)) {
+        if (left.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
+          // Mask of all '1's has no effect.
+          return left;
+          // TODO(sra): A more advanced version of this would be to see if the
+          // input might have any bits that would be cleared by the mask.  Thus
+          // `a >> 24 & 255` is a no-op since `a >> 24` can have only the low 8
+          // bits non-zero. If a bit is must-zero, we can remove it from
+          // mask. e.g. if a is Uint31, then `a >> 24 & 0xF0` becomes `a >> 24 &
+          // 0x70`.
+        }
+
+        // Ensure that the result is still canonicalized to an unsigned 32-bit
+        // integer using `left >>> 0`. This shift is often removed or combined
+        // in subsequent optimization.
+        HConstant zero = _graph.addConstantInt(0, _closedWorld);
+        return HShiftRight(left, zero, node.instructionType);
+      }
+
+      if (left is HBitAnd && left.usedBy.length == 1) {
+        HInstruction operand1 = left.left;
+        HInstruction operand2 = left.right;
+        if (operand2 is HConstant) {
+          //  (a & c1) & c2  -->  a & (c1 & c2)
+          HInstruction folded =
+              foldBinary(constant_system.bitAnd, operand2, right);
+          if (folded == null) return node;
+          return HBitAnd(operand1, folded, node.instructionType);
+        }
+        // TODO(sra): We don't rewrite (a & c1) & b --> (a & b) & c1. I suspect
+        // that the JavaScript VM might benefit from reducing the value early
+        // (e.g. to a 'Smi'). We could do that, but we should also consider a
+        // variation of the above rule where:
+        //
+        //     a & c1 & ... & b & c2  -->  a & (c1 & c2) & ... & b
+        //
+        // This would probably be best deferred until after GVN in case (a & c1)
+        // is reused.
+      }
+    }
+
+    return node;
+  }
+
+  bool _isFull32BitMask(ConstantValue constant) {
+    return constant is IntConstantValue && constant.intValue == _mask32;
+  }
+
+  static final _mask32 = BigInt.parse('FFFFFFFF', radix: 16);
+
+  @override
+  HInstruction visitBitOr(HBitOr node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+
+    if (left is HConstant) {
+      if (right is HConstant) {
+        return foldBinary(node.operation(), left, right) ?? node;
+      }
+      //  c1 | a  -->  a | c1
+      return HBitOr(right, left, node.instructionType);
+    }
+
+    //  (a | b) | c
+    if (left is HBitOr && left.usedBy.length == 1) {
+      HInstruction operand1 = left.left;
+      HInstruction operand2 = left.right;
+      if (operand2 is HConstant) {
+        if (right is HConstant) {
+          //  (a | c1) | c2  -->  a | (c1 | c2)
+          HInstruction folded =
+              foldBinary(constant_system.bitOr, operand2, right);
+          if (folded == null) return node;
+          return HBitOr(operand1, folded, node.instructionType);
+        } else {
+          //  (a | c1) | b  -->  (a | b) | c1
+          HInstruction or1 = _makeBitOr(operand1, right)
+            ..sourceInformation = left.sourceInformation;
+          node.block.addBefore(node, or1);
+          // TODO(sra): Restart simplification at 'or1'.
+          return _makeBitOr(or1, operand2);
+        }
+      }
+    }
+
+    //  (a & c1) | (a & c2)  -->  a & (c1 | c2)
+    if (left is HBitAnd &&
+        left.usedBy.length == 1 &&
+        right is HBitAnd &&
+        right.usedBy.length == 1) {
+      HInstruction a1 = left.left;
+      HInstruction a2 = right.left;
+      if (a1 == a2) {
+        HInstruction c1 = left.right;
+        HInstruction c2 = right.right;
+        if (c1 is HConstant && c2 is HConstant) {
+          HInstruction folded = foldBinary(constant_system.bitOr, c1, c2);
+          if (folded != null) {
+            return HBitAnd(a1, folded, node.instructionType);
+          }
+        }
+      }
+    }
+
+    // TODO(sra):
+    //
+    //  (e | (a & c1)) | (a & c2)  -->  e | (a & (c1 | c2))
+
+    return node;
+  }
+
+  HBitOr _makeBitOr(HInstruction operand1, HInstruction operand2) {
+    AbstractValue instructionType = _abstractValueDomainBitOr(
+        operand1.instructionType, operand2.instructionType);
+    return HBitOr(operand1, operand2, instructionType);
+  }
+
+  // TODO(sra): Use a common definition of primitive operations in the
+  // AbstractValueDomain.
+  AbstractValue _abstractValueDomainBitOr(AbstractValue a, AbstractValue b) {
+    return (_abstractValueDomain.isUInt31(a).isDefinitelyTrue &&
+            _abstractValueDomain.isUInt31(b).isDefinitelyTrue)
+        ? _abstractValueDomain.uint31Type
+        : _abstractValueDomain.uint32Type;
+  }
+
+  @override
+  HInstruction visitShiftRight(HShiftRight node) {
+    HInstruction left = node.left;
+    HInstruction count = node.right;
+    if (count is HConstant) {
+      if (left is HConstant) {
+        return foldBinary(node.operation(), left, count) ?? node;
+      }
+      ConstantValue countValue = count.constant;
+      // Shift by zero can convert to 32 bit unsigned, so remove only if no-op.
+      //  a >> 0  -->  a
+      if (countValue.isZero &&
+          left.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
+        return left;
+      }
+      if (left is HBitAnd && left.usedBy.length == 1) {
+        // TODO(sra): Should this be postponed to after GVN?
+        HInstruction operand = left.left;
+        HInstruction mask = left.right;
+        if (mask is HConstant) {
+          // Reduce mask constant size.
+          //  (a & mask) >> count  -->  (a >> count) & (mask >> count)
+          ConstantValue maskValue = mask.constant;
+
+          ConstantValue shiftedMask =
+              constant_system.shiftRight.fold(maskValue, countValue);
+          if (shiftedMask is IntConstantValue && shiftedMask.isUInt32()) {
+            // TODO(sra): The shift type should be available from the abstract
+            // value domain.
+            AbstractValue shiftType = shiftedMask.isZero
+                ? _abstractValueDomain.uint32Type
+                : _abstractValueDomain.uint31Type;
+            var shift = HShiftRight(operand, count, shiftType)
+              ..sourceInformation = node.sourceInformation;
+
+            node.block.addBefore(node, shift);
+            HConstant shiftedMaskInstruction =
+                _graph.addConstant(shiftedMask, _closedWorld);
+            return HBitAnd(shift, shiftedMaskInstruction, node.instructionType);
+          }
+        }
+        return node;
+      }
+    }
+    return node;
+  }
+
+  @override
+  HInstruction visitShiftLeft(HShiftLeft node) {
+    HInstruction left = node.left;
+    HInstruction count = node.right;
+    if (count is HConstant) {
+      if (left is HConstant) {
+        return foldBinary(node.operation(), left, count) ?? node;
+      }
+      // Shift by zero can convert to 32 bit unsigned, so remove only if no-op.
+      //  a << 0  -->  a
+      if (count.constant.isZero &&
+          left.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
+        return left;
+      }
+      // Shift-mask-unshift reduction.
+      //   ((a >> c1) & c2) << c1  -->  a & (c2 << c1);
+      if (left is HBitAnd && left.usedBy.length == 1) {
+        HInstruction operand1 = left.left;
+        HInstruction operand2 = left.right;
+        if (operand2 is HConstant) {
+          if (operand1 is HShiftRight && operand1.usedBy.length == 1) {
+            HInstruction a = operand1.left;
+            HInstruction count2 = operand1.right;
+            if (count2 == count) {
+              HInstruction folded =
+                  foldBinary(constant_system.shiftLeft, operand2, count);
+              if (folded != null) {
+                return HBitAnd(a, folded, node.instructionType);
+              }
+            }
+          }
+        }
+      }
+    }
     return node;
   }
 }

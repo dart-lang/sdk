@@ -12,7 +12,7 @@ class A extends core::Object {
     ;
 }
 class B extends core::Object {
-  constructor •([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "hi")] dynamic unused4) → self::B*
+  constructor •() → self::B*
     : dynamic #t1 = [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::foo(), super core::Object::•()
     ;
 }
@@ -55,9 +55,9 @@ class I extends self::H {
 static method foo() → dynamic {}
 static method main() → void {
   new self::A::•();
-  new self::B::•("hi");
+  new self::B::•();
   self::C<core::num*>* c = new self::D::•();
-  exp::Expect::throws<dynamic>(() → core::Null? {
+  exp::Expect::throws<dynamic>(() → Null {
     [@vm.call-site-attributes.metadata=receiverType:#lib::C<dart.core::num*>*] [@vm.direct-call.metadata=#lib::D.bar] c.{self::C::bar} = 3.14;
   });
   self::E* e = new self::F::•();

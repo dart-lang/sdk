@@ -32,8 +32,8 @@ class B<S extends dynamic> {
 
   void testPromotedType(S s) {
     if (s is int) {
-      // Check that `int` has no `f`, bind `T` to `int`.
-      int Function(int) f = s.f;
+      // Check that `int` has no `f`, erase `S & int` to `S`, bind `T` to `S`.
+      S Function(S) f = s.f;
     }
   }
 }

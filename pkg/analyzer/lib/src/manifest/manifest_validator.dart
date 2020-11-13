@@ -5,10 +5,10 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import 'charcodes.dart';
 import 'manifest_values.dart';
 import 'manifest_warning_code.dart';
 

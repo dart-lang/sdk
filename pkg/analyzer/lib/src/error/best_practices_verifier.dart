@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -23,6 +24,7 @@ import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -45,10 +47,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// in the scope of a class.
   ClassElementImpl _enclosingClass;
 
-  /// A flag indicating whether a surrounding member (compilation unit or class)
-  /// is deprecated.
-  bool _inDeprecatedMember;
-
   /// A flag indicating whether a surrounding member is annotated as
   /// `@doNotStore`.
   bool _inDoNotStoreMember;
@@ -69,6 +67,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final LibraryElement _currentLibrary;
 
   final _InvalidAccessVerifier _invalidAccessVerifier;
+
+  final DeprecatedMemberUseVerifier _deprecatedVerifier;
 
   final MustCallSuperVerifier _mustCallSuperVerifier;
 
@@ -106,9 +106,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier = _InvalidAccessVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
+        _deprecatedVerifier =
+            DeprecatedMemberUseVerifier(workspacePackage, _errorReporter),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
         _workspacePackage = workspacePackage {
-    _inDeprecatedMember = _currentLibrary.hasDeprecated;
+    _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
 
     _linterContext = LinterContextImpl(
@@ -266,17 +268,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitArgumentList(ArgumentList node) {
-    for (Expression argument in node.arguments) {
-      ParameterElement parameter = argument.staticParameterElement;
-      if (parameter?.isOptionalPositional == true) {
-        _checkForDeprecatedMemberUse(parameter, argument);
-      }
-    }
-    super.visitArgumentList(node);
-  }
-
-  @override
   void visitAsExpression(AsExpression node) {
     if (isUnnecessaryCast(node, _typeSystem)) {
       _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
@@ -286,17 +277,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    TokenType operatorType = node.operator.type;
-    if (operatorType != TokenType.EQ) {
-      _checkForDeprecatedMemberUse(node.staticElement, node);
-    }
+    _deprecatedVerifier.assignmentExpression(node);
     super.visitAssignmentExpression(node);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _checkForDivisionOptimizationHint(node);
-    _checkForDeprecatedMemberUse(node.staticElement, node);
+    _deprecatedVerifier.binaryExpression(node);
     _checkForInvariantNullComparison(node);
     super.visitBinaryExpression(node);
   }
@@ -313,11 +301,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 
-    bool wasInDeprecatedMember = _inDeprecatedMember;
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
-    if (element != null && element.hasDeprecated) {
-      _inDeprecatedMember = true;
-    }
+    _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element != null && element.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
@@ -331,7 +316,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
-      _inDeprecatedMember = wasInDeprecatedMember;
+      _deprecatedVerifier.popInDeprecated();
       _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
@@ -361,13 +346,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    _checkForDeprecatedMemberUse(node.staticElement, node);
+    _deprecatedVerifier.constructorName(node);
     super.visitConstructorName(node);
   }
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _checkForDeprecatedMemberUse(node.uriElement, node);
+    _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
     super.visitExportDirective(node);
   }
@@ -380,10 +365,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    bool wasInDeprecatedMember = _inDeprecatedMember;
-    if (_hasDeprecatedAnnotation(node.metadata)) {
-      _inDeprecatedMember = true;
-    }
+    _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
     try {
       super.visitFieldDeclaration(node);
@@ -417,18 +399,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               [field.name, overriddenElement.enclosingElement.name]);
         }
 
-        var expressionMap =
-            _getSubExpressionsMarkedDoNotStore(field.initializer);
-        for (var entry in expressionMap.entries) {
-          _errorReporter.reportErrorForNode(
-            HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
-            entry.key,
-            [entry.value.name],
-          );
-        }
+        _checkForAssignmentOfDoNotStore(field.initializer);
       }
     } finally {
-      _inDeprecatedMember = wasInDeprecatedMember;
+      _deprecatedVerifier.popInDeprecated();
     }
   }
 
@@ -440,12 +414,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    bool wasInDeprecatedMember = _inDeprecatedMember;
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     ExecutableElement element = node.declaredElement;
-    if (element != null && element.hasDeprecated) {
-      _inDeprecatedMember = true;
-    }
+    _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element != null && element.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
@@ -461,7 +432,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           body: node.functionExpression.body);
       super.visitFunctionDeclaration(node);
     } finally {
-      _inDeprecatedMember = wasInDeprecatedMember;
+      _deprecatedVerifier.popInDeprecated();
       _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
@@ -487,12 +458,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var callElement = node.staticElement;
-    if (callElement is MethodElement &&
-        callElement.name == FunctionElement.CALL_METHOD_NAME) {
-      _checkForDeprecatedMemberUse(callElement, node);
-    }
-
+    _deprecatedVerifier.functionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -532,7 +498,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    _checkForDeprecatedMemberUse(node.uriElement, node);
+    _deprecatedVerifier.importDirective(node);
     ImportElement importElement = node.element;
     if (importElement != null && importElement.isDeferred) {
       _checkForLoadLibraryFunction(node, importElement);
@@ -543,12 +509,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _checkForDeprecatedMemberUse(node.staticElement, node);
+    _deprecatedVerifier.indexExpression(node);
     super.visitIndexExpression(node);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _deprecatedVerifier.instanceCreationExpression(node);
     _checkForLiteralConstructorUse(node);
     super.visitInstanceCreationExpression(node);
   }
@@ -561,7 +528,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    bool wasInDeprecatedMember = _inDeprecatedMember;
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     ExecutableElement element = node.declaredElement;
     Element enclosingElement = element?.enclosingElement;
@@ -583,9 +549,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
                 forSuper: true)
             : null;
 
-    if (element != null && element.hasDeprecated) {
-      _inDeprecatedMember = true;
-    }
+    _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element != null && element.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
@@ -615,26 +579,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       super.visitMethodDeclaration(node);
     } finally {
-      _inDeprecatedMember = wasInDeprecatedMember;
+      _deprecatedVerifier.popInDeprecated();
       _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    _deprecatedVerifier.methodInvocation(node);
     _checkForNullAwareHints(node, node.operator);
     super.visitMethodInvocation(node);
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _enclosingClass = node.declaredElement;
+    var element = node.declaredElement;
+    _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 
-    bool wasInDeprecatedMember = _inDeprecatedMember;
-    if (_hasDeprecatedAnnotation(node.metadata)) {
-      _inDeprecatedMember = true;
-    }
+    _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
 
     try {
       _checkForImmutable(node);
@@ -643,19 +606,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
-      _inDeprecatedMember = wasInDeprecatedMember;
+      _deprecatedVerifier.popInDeprecated();
     }
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _checkForDeprecatedMemberUse(node.staticElement, node);
+    _deprecatedVerifier.postfixExpression(node);
+    if (node.operator.type == TokenType.BANG &&
+        node.operand.staticType.isDartCoreNull) {
+      _errorReporter.reportErrorForNode(HintCode.NULL_CHECK_ALWAYS_FAILS, node);
+    }
     super.visitPostfixExpression(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _checkForDeprecatedMemberUse(node.staticElement, node);
+    _deprecatedVerifier.prefixExpression(node);
     super.visitPrefixExpression(node);
   }
 
@@ -668,7 +635,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    _checkForDeprecatedMemberUse(node.staticElement, node);
+    _deprecatedVerifier.redirectingConstructorInvocation(node);
     super.visitRedirectingConstructorInvocation(node);
   }
 
@@ -686,29 +653,30 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _checkForDeprecatedMemberUseAtIdentifier(node);
+    _deprecatedVerifier.simpleIdentifier(node);
     _invalidAccessVerifier.verify(node);
     super.visitSimpleIdentifier(node);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    _checkForDeprecatedMemberUse(node.staticElement, node);
+    _deprecatedVerifier.superConstructorInvocation(node);
     _invalidAccessVerifier.verifySuperConstructorInvocation(node);
     super.visitSuperConstructorInvocation(node);
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    bool wasInDeprecatedMember = _inDeprecatedMember;
-    if (_hasDeprecatedAnnotation(node.metadata)) {
-      _inDeprecatedMember = true;
+    _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
+
+    for (var decl in node.variables.variables) {
+      _checkForAssignmentOfDoNotStore(decl.initializer);
     }
 
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      _inDeprecatedMember = wasInDeprecatedMember;
+      _deprecatedVerifier.popInDeprecated();
     }
   }
 
@@ -797,112 +765,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Given some [element], look at the associated metadata and report the use
-  /// of the member if it is declared as deprecated. If a diagnostic is reported
-  /// it should be reported at the given [node].
-  void _checkForDeprecatedMemberUse(Element element, AstNode node) {
-    bool isDeprecated(Element element) {
-      if (element is PropertyAccessorElement && element.isSynthetic) {
-        // TODO(brianwilkerson) Why isn't this the implementation for PropertyAccessorElement?
-        Element variable = element.variable;
-        if (variable == null) {
-          return false;
-        }
-        return variable.hasDeprecated;
-      }
-      return element.hasDeprecated;
+  void _checkForAssignmentOfDoNotStore(Expression expression) {
+    var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
+    for (var entry in expressionMap.entries) {
+      _errorReporter.reportErrorForNode(
+        HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
+        entry.key,
+        [entry.value.name],
+      );
     }
-
-    bool isLocalParameter(Element element, AstNode node) {
-      if (element is ParameterElement) {
-        ExecutableElement definingFunction = element.enclosingElement;
-        FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
-        while (body != null) {
-          ExecutableElement enclosingFunction;
-          AstNode parent = body.parent;
-          if (parent is ConstructorDeclaration) {
-            enclosingFunction = parent.declaredElement;
-          } else if (parent is FunctionExpression) {
-            enclosingFunction = parent.declaredElement;
-          } else if (parent is MethodDeclaration) {
-            enclosingFunction = parent.declaredElement;
-          }
-          if (enclosingFunction == definingFunction) {
-            return true;
-          }
-          body = parent?.thisOrAncestorOfType<FunctionBody>();
-        }
-      }
-      return false;
-    }
-
-    if (!_inDeprecatedMember &&
-        element != null &&
-        isDeprecated(element) &&
-        !isLocalParameter(element, node)) {
-      String displayName = element.displayName;
-      if (element is ConstructorElement) {
-        // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
-        // or have the logic centralized elsewhere, instead of doing this logic
-        // here.
-        displayName = element.enclosingElement.displayName;
-        if (element.displayName.isNotEmpty) {
-          displayName = "$displayName.${element.displayName}";
-        }
-      } else if (element is LibraryElement) {
-        displayName = element.definingCompilationUnit.source.uri.toString();
-      } else if (node is MethodInvocation &&
-          displayName == FunctionElement.CALL_METHOD_NAME) {
-        var invokeType = node.staticInvokeType as InterfaceType;
-        if (invokeType is InterfaceType) {
-          var invokeClass = invokeType.element;
-          displayName = "${invokeClass.name}.${element.displayName}";
-        }
-      }
-      LibraryElement library =
-          element is LibraryElement ? element : element.library;
-      String message = _deprecatedMessage(element);
-      if (message == null || message.isEmpty) {
-        HintCode hintCode = _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-            : HintCode.DEPRECATED_MEMBER_USE;
-        _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
-      } else {
-        HintCode hintCode = _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
-            : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE;
-        _errorReporter
-            .reportErrorForNode(hintCode, node, [displayName, message]);
-      }
-    }
-  }
-
-  /// For [SimpleIdentifier]s, only call [checkForDeprecatedMemberUse]
-  /// if the node is not in a declaration context.
-  ///
-  /// Also, if the identifier is a constructor name in a constructor invocation,
-  /// then calls to the deprecated constructor will be caught by
-  /// [visitInstanceCreationExpression] and
-  /// [visitSuperConstructorInvocation], and can be ignored by
-  /// this visit method.
-  ///
-  /// @param identifier some simple identifier to check for deprecated use of
-  /// @return `true` if and only if a hint code is generated on the passed node
-  /// See [HintCode.DEPRECATED_MEMBER_USE].
-  void _checkForDeprecatedMemberUseAtIdentifier(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext()) {
-      return;
-    }
-    AstNode parent = identifier.parent;
-    if ((parent is ConstructorName && identical(identifier, parent.name)) ||
-        (parent is ConstructorDeclaration &&
-            identical(identifier, parent.returnType)) ||
-        (parent is SuperConstructorInvocation &&
-            identical(identifier, parent.constructorName)) ||
-        parent is HideCombinator) {
-      return;
-    }
-    _checkForDeprecatedMemberUse(identifier.staticElement, identifier);
   }
 
   /// Check for the passed binary expression for the
@@ -1080,7 +951,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         ];
         for (var type in signatureTypes) {
           var typeElement = type?.element?.enclosingElement;
-          if (typeElement is GenericTypeAliasElement &&
+          if (typeElement is FunctionTypeAliasElement &&
               typeElement.hasInternal) {
             _errorReporter.reportErrorForNode(
                 HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
@@ -1656,10 +1527,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   Set<TargetKind> _targetKindsFor(ElementAnnotation annotation) {
     var element = annotation.element;
     ClassElement classElement;
-    if (element is VariableElement) {
-      var type = element.type;
-      if (type is InterfaceType) {
-        classElement = type.element;
+    if (element is PropertyAccessorElement) {
+      if (element.isGetter) {
+        var type = element.returnType;
+        if (type is InterfaceType) {
+          classElement = type.element;
+        }
       }
     } else if (element is ConstructorElement) {
       classElement = element.enclosingElement;
@@ -1737,35 +1610,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  /// Return the message in the deprecated annotation on the given [element], or
-  /// `null` if the element doesn't have a deprecated annotation or if the
-  /// annotation does not have a message.
-  static String _deprecatedMessage(Element element) {
-    // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
-    ElementAnnotationImpl annotation = element.metadata.firstWhere(
-      (e) => e.isDeprecated,
-      orElse: () => null,
-    );
-    if (annotation == null || annotation.element is PropertyAccessorElement) {
-      return null;
-    }
-    DartObject constantValue = annotation.computeConstantValue();
-    return constantValue?.getField('message')?.toStringValue() ??
-        constantValue?.getField('expires')?.toStringValue();
-  }
-
-  static bool _hasDeprecatedAnnotation(List<Annotation> annotations) {
-    for (var i = 0; i < annotations.length; i++) {
-      if (annotations[i].elementAnnotation.isDeprecated) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element == null) {
       return false;
@@ -1798,9 +1642,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
 class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
-  static final _testDir = '${path.separator}test${path.separator}';
-  static final _testDriverDir = '${path.separator}test_driver${path.separator}';
-  static final _testingDir = '${path.separator}testing${path.separator}';
+  static final _testDirectories = [
+    '${path.separator}test${path.separator}',
+    '${path.separator}integration_test${path.separator}',
+    '${path.separator}test_driver${path.separator}',
+    '${path.separator}testing${path.separator}',
+  ];
 
   final ErrorReporter _errorReporter;
   final LibraryElement _library;
@@ -1815,9 +1662,7 @@ class _InvalidAccessVerifier {
       this._errorReporter, this._library, this._workspacePackage) {
     var path = _library.source.fullName;
     _inTemplateSource = path.contains(_templateExtension);
-    _inTestDirectory = path.contains(_testDir) ||
-        path.contains(_testDriverDir) ||
-        path.contains(_testingDir);
+    _inTestDirectory = _testDirectories.any(path.contains);
   }
 
   /// Produces a hint if [identifier] is accessed from an invalid location.
@@ -1848,7 +1693,7 @@ class _InvalidAccessVerifier {
 
     var element = grandparent is ConstructorName
         ? grandparent.staticElement
-        : identifier.staticElement;
+        : identifier.writeOrReadElement;
 
     if (element == null || _inCurrentLibrary(element)) {
       return;
@@ -2007,7 +1852,6 @@ class _InvalidAccessVerifier {
       return true;
     }
     if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
         element.variable.hasVisibleForTemplate) {
       return true;
     }
@@ -2022,7 +1866,6 @@ class _InvalidAccessVerifier {
       return true;
     }
     if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
         element.variable.hasVisibleForTesting) {
       return true;
     }

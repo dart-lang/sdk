@@ -61,10 +61,6 @@ where
     --mode2            : m2, and values one of
         jit-[debug-][ia32|x64|arm32|arm64]               = Dart JIT
         aot-[debug-][x64|arm32|arm64]                    = Dart AOT
-        kbc-[int|mix|cmp]-[debug-][ia32|x64|arm32|arm64] = Dart KBC
-                                                           (interpreted/
-                                                            mixed-mode/
-                                                            compiled bytecode)
         djs-x64                                          = dart2js + Node.JS
     --[no-]rerun       : re-run a testcase if there is only a divergence in
                          the return codes outside the range [-255,+255];

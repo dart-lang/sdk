@@ -195,6 +195,7 @@ class KernelLineStartsReader {
 
 void CollectTokenPositionsFor(const Script& script);
 
+ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field);
 ObjectPtr EvaluateMetadata(const Field& metadata_field,
                            bool is_annotations_offset);
 ObjectPtr BuildParameterDescriptor(const Function& function);
@@ -213,11 +214,6 @@ void ReadParameterCovariance(const Function& function,
 // call-site: if function has no parameters or has only covariant parameters
 // as such function already checks all of its parameters.
 bool NeedsDynamicInvocationForwarder(const Function& function);
-
-// Returns a list of ParameterTypeChecks needed by a dynamic invocation
-// forwarder that targets [function]. Indices in these checks correspond to
-// bytecode frame indices.
-ArrayPtr CollectDynamicInvocationChecks(const Function& function);
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);

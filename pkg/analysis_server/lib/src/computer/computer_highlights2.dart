@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s in a Dart [CompilationUnit].
@@ -114,7 +115,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_class(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! ClassElement) {
       return false;
     }
@@ -136,7 +137,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! ConstructorElement) {
       return false;
     }
@@ -144,7 +145,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is LocalVariableElement) {
       var elementType = element.type;
       if (elementType?.isDynamic == true) {
@@ -167,7 +168,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is FieldFormalParameterElement) {
       if (node.parent is FieldFormalParameter) {
         element = (element as FieldFormalParameterElement).field;
@@ -216,7 +217,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_function(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! FunctionElement) {
       return false;
     }
@@ -235,7 +236,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_functionTypeAlias(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! FunctionTypeAliasElement) {
       return false;
     }
@@ -249,7 +250,7 @@ class DartUnitHighlightsComputer2 {
       return false;
     }
     // should be property accessor
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! PropertyAccessorElement) {
       return false;
     }
@@ -278,7 +279,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_importPrefix(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! PrefixElement) {
       return false;
     }
@@ -294,7 +295,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_label(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! LabelElement) {
       return false;
     }
@@ -302,7 +303,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_localVariable(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! LocalVariableElement) {
       return false;
     }
@@ -314,7 +315,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! MethodElement) {
       return false;
     }
@@ -339,7 +340,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_parameter(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! ParameterElement) {
       return false;
     }
@@ -350,7 +351,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! TypeParameterElement) {
       return false;
     }
@@ -360,7 +361,7 @@ class DartUnitHighlightsComputer2 {
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
       SimpleIdentifier node) {
     // unresolved
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element != null) {
       return false;
     }

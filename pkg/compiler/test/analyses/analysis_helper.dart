@@ -86,7 +86,8 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       : assert(evaluationMode != null),
         super(
             new ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
-            classHierarchy) {
+            classHierarchy,
+            new StaticTypeCacheImpl()) {
     _constantEvaluator = new Dart2jsConstantEvaluator(
         typeEnvironment, const ir.SimpleErrorReporter().report,
         evaluationMode: evaluationMode);
@@ -310,7 +311,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     ir.DartType staticType = node?.accept(this);
     assert(
         node is! ir.Expression ||
-            staticType == typeEnvironment.nullType ||
+            staticType is ir.NullType ||
             staticType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(
                 staticType,

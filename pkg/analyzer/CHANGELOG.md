@@ -1,3 +1,31 @@
+## 0.41.0 (Not yet released - breaking changes)
+* Replaced `Scope.lookup({id, setter})` with `lookup(id)`.
+* Deprecated `Scope.lookup2(id)`, use `lookup()` instead.
+* Removed deprecated `Member.baseElement`.
+* Removed deprecated `package:analyzer/analyzer.dart` library.
+* Removed deprecated `ElementAnnotation.constantValue`.
+* Removed deprecated `VariableElement.constantValue`.
+* Removed deprecated `VariableElement.initializer`.
+* Removed deprecated `auxiliaryElements`.
+* The value of`FunctionType.element` for types created from a `typedef`
+  is now `FunctionTypeAliasElement`, not its function element.
+* Removed deprecated `GenericTypeAliasElement`.
+
+## 0.40.6
+* The non_nullable feature is released in 2.12 language version.
+* Updated the current language version to 2.12.
+* Changed the default language version when the package does not specify one.
+  Instead of the latest known language version, the language version of the
+  SDK (against which analysis is done, not necessary the same as used to run
+  the analyzer) is used.
+
+## 0.40.5
+* Deprecated `GenericTypeAliasElement`. Use `FunctionTypeAliasElement`.
+* Read imports, exports, and parts on demand in `AnalysisDriver`.
+  Specifically, `parseFileSync` will not read any referenced files.
+* Types are not set anymore for classes/constructors/getters of
+  identifiers in metadata (still set in arguments).
+
 ## 0.40.4
 * Deprecated `IndexExpression.auxiliaryElements` and
   `SimpleIdentifier.auxiliaryElements`. Use `CompoundAssignmentExpression`.

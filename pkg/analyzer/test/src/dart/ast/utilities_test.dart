@@ -37,7 +37,7 @@ class NodeLocator2Test extends ParserTestCase {
     String code = ' int vv; ';
     //             012345678
     CompilationUnit unit = parseCompilationUnit(code);
-    TopLevelVariableDeclaration declaration = unit.declarations[0];
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
     SimpleIdentifier varName = variableList.variables[0].name;
@@ -58,7 +58,7 @@ class NodeLocator2Test extends ParserTestCase {
     String code = ' int vv; ';
     //             012345678
     CompilationUnit unit = parseCompilationUnit(code);
-    TopLevelVariableDeclaration declaration = unit.declarations[0];
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
     SimpleIdentifier varName = variableList.variables[0].name;
@@ -277,11 +277,11 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitConstructorDeclaration() {
     String className = "A";
     String constructorName = "c";
-    ConstructorDeclarationImpl fromNode = AstTestFactory.constructorDeclaration(
+    var fromNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
         AstTestFactory.formalParameterList(),
-        null);
+        null) as ConstructorDeclarationImpl;
     ConstructorElement element = ElementFactory.constructorElement2(
         ElementFactory.classElement2(className), constructorName);
     fromNode.declaredElement = element;
@@ -472,7 +472,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     DartType typeC = interfaceTypeStar(ElementFactory.classElement2('C'));
 
     ForStatement fromNode = createNode();
-    ForEachPartsWithIdentifier fromForLoopParts = fromNode.forLoopParts;
+    var fromForLoopParts = fromNode.forLoopParts as ForEachPartsWithIdentifier;
     fromForLoopParts.identifier.staticType = typeA;
     (fromForLoopParts.iterable as SimpleIdentifier).staticType = typeB;
     ((fromNode.body as ExpressionStatement).expression as SimpleIdentifier)
@@ -480,7 +480,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
     ForStatement toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    ForEachPartsWithIdentifier toForLoopParts = fromNode.forLoopParts;
+    var toForLoopParts = fromNode.forLoopParts as ForEachPartsWithIdentifier;
     expect(toForLoopParts.identifier.staticType, same(typeA));
     expect(
         (toForLoopParts.iterable as SimpleIdentifier).staticType, same(typeB));
@@ -491,9 +491,9 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitFunctionExpression() {
-    FunctionExpressionImpl fromNode = AstTestFactory.functionExpression2(
+    var fromNode = AstTestFactory.functionExpression2(
         AstTestFactory.formalParameterList(),
-        AstTestFactory.emptyFunctionBody());
+        AstTestFactory.emptyFunctionBody()) as FunctionExpressionImpl;
     MethodElement element = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
     fromNode.declaredElement = element;
@@ -567,9 +567,6 @@ class ResolutionCopierTest with ElementsTypesMixin {
     );
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements = AuxiliaryElements(staticElement);
-    // ignore: deprecated_member_use_from_same_package
-    fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
@@ -578,8 +575,6 @@ class ResolutionCopierTest with ElementsTypesMixin {
       index: AstTestFactory.integer(0),
     );
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    // ignore: deprecated_member_use_from_same_package
-    expect(toNode.auxiliaryElements, same(auxiliaryElements));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
@@ -851,16 +846,11 @@ class ResolutionCopierTest with ElementsTypesMixin {
     SimpleIdentifier fromNode = AstTestFactory.identifier3("x");
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements = AuxiliaryElements(staticElement);
-    // ignore: deprecated_member_use_from_same_package
-    fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SimpleIdentifier toNode = AstTestFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    // ignore: deprecated_member_use_from_same_package
-    expect(toNode.auxiliaryElements, same(auxiliaryElements));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }

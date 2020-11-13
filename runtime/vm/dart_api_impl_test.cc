@@ -1430,9 +1430,7 @@ TEST_CASE(DartAPI_ArrayValues) {
   }
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 TEST_CASE(DartAPI_IsString) {
   uint8_t latin1[] = {'o', 'n', 'e', 0xC2, 0xA2};
@@ -1581,7 +1579,6 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
 }
 
 static void ExternalStringCallbackFinalizer(void* isolate_callback_data,
-                                            Dart_WeakPersistentHandle handle,
                                             void* peer) {
   *static_cast<int*>(peer) *= 2;
 }
@@ -1966,7 +1963,7 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
-      "List main(int size) {\n"
+      "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
       "  return view;\n"
@@ -1977,7 +1974,7 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
   // Test with a typed data view object.
   Dart_Handle dart_args[1];
   dart_args[0] = Dart_NewInteger(kSize);
-  Dart_Handle view_obj = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   EXPECT_VALID(view_obj);
   for (intptr_t i = 0; i < kSize; ++i) {
     EXPECT_VALID(Dart_ListSetAt(view_obj, i, Dart_NewInteger(i & 0xff)));
@@ -1998,7 +1995,7 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
-      "List main(int size) {\n"
+      "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
       "  return view;\n"
@@ -2009,7 +2006,7 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
   // Create a typed data view object.
   Dart_Handle dart_args[1];
   dart_args[0] = Dart_NewInteger(kSize);
-  Dart_Handle view_obj = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   EXPECT_VALID(view_obj);
   // Test that the API considers it a TypedData object.
   EXPECT(Dart_IsTypedData(view_obj));
@@ -2258,9 +2255,7 @@ TEST_CASE(DartAPI_ExternalByteDataAccess) {
 }
 
 static bool byte_data_finalizer_run = false;
-void ByteDataFinalizer(void* isolate_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer) {
+void ByteDataFinalizer(void* isolate_data, void* peer) {
   ASSERT(!byte_data_finalizer_run);
   free(peer);
   byte_data_finalizer_run = true;
@@ -2789,22 +2784,13 @@ TEST_CASE(DartAPI_ExternalUint8ClampedArrayAccess) {
   EXPECT(value);
 }
 
-static void NopCallback(void* isolate_callback_data,
-                        Dart_WeakPersistentHandle handle,
-                        void* peer) {}
 static void NopCallback(void* isolate_callback_data, void* peer) {}
 
-static void UnreachedCallback(void* isolate_callback_data,
-                              Dart_WeakPersistentHandle handle,
-                              void* peer) {
-  UNREACHABLE();
-}
 static void UnreachedCallback(void* isolate_callback_data, void* peer) {
   UNREACHABLE();
 }
 
 static void ExternalTypedDataFinalizer(void* isolate_callback_data,
-                                       Dart_WeakPersistentHandle handle,
                                        void* peer) {
   *static_cast<int*>(peer) = 42;
 }
@@ -2855,22 +2841,24 @@ TEST_CASE(DartAPI_SlowFinalizer) {
   EXPECT_EQ(20, count);
 }
 
-static void SlowWeakPersistentHandle(void* isolate_callback_data,
-                                     Dart_WeakPersistentHandle handle,
-                                     void* peer) {
+static void SlowWeakPersistentHandle(void* isolate_callback_data, void* peer) {
   OS::Sleep(10);
   intptr_t* count = reinterpret_cast<intptr_t*>(peer);
   (*count)++;
 }
 
 TEST_CASE(DartAPI_SlowWeakPersistenhandle) {
+  Dart_WeakPersistentHandle handles[20];
   intptr_t count = 0;
+
   for (intptr_t i = 0; i < 10; i++) {
     Dart_EnterScope();
     Dart_Handle str1 = Dart_NewStringFromCString("Live fast");
-    Dart_NewWeakPersistentHandle(str1, &count, 0, SlowWeakPersistentHandle);
+    handles[i] =
+        Dart_NewWeakPersistentHandle(str1, &count, 0, SlowWeakPersistentHandle);
     Dart_Handle str2 = Dart_NewStringFromCString("Die young");
-    Dart_NewWeakPersistentHandle(str2, &count, 0, SlowWeakPersistentHandle);
+    handles[i + 10] =
+        Dart_NewWeakPersistentHandle(str2, &count, 0, SlowWeakPersistentHandle);
     Dart_ExitScope();
 
     {
@@ -2880,6 +2868,10 @@ TEST_CASE(DartAPI_SlowWeakPersistenhandle) {
   }
 
   EXPECT_EQ(20, count);
+
+  for (intptr_t i = 0; i < 20; i++) {
+    Dart_DeleteWeakPersistentHandle(handles[i]);
+  }
 }
 
 static void CheckFloat32x4Data(Dart_Handle obj) {
@@ -3119,27 +3111,9 @@ static Dart_Handle AsHandle(Dart_WeakPersistentHandle weak) {
   return Dart_HandleFromWeakPersistent(weak);
 }
 
-static Dart_WeakPersistentHandle weak_new_ref = NULL;
-static Dart_WeakPersistentHandle weak_old_ref = NULL;
-
-static void WeakPersistentHandleCallback(void* isolate_callback_data,
-                                         Dart_WeakPersistentHandle handle,
-                                         void* peer) {
-  if (handle == weak_new_ref) {
-    weak_new_ref = NULL;
-  } else if (handle == weak_old_ref) {
-    weak_old_ref = NULL;
-  }
-}
-
 TEST_CASE(DartAPI_WeakPersistentHandle) {
-  Dart_Handle local_new_ref = Dart_Null();
-  weak_new_ref = Dart_NewWeakPersistentHandle(local_new_ref, NULL, 0,
-                                              WeakPersistentHandleCallback);
-
-  Dart_Handle local_old_ref = Dart_Null();
-  weak_old_ref = Dart_NewWeakPersistentHandle(local_old_ref, NULL, 0,
-                                              WeakPersistentHandleCallback);
+  Dart_WeakPersistentHandle weak_new_ref = nullptr;
+  Dart_WeakPersistentHandle weak_old_ref = nullptr;
 
   {
     Dart_EnterScope();
@@ -3159,14 +3133,15 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
       EXPECT_VALID(old_ref);
 
       // Create a weak ref to the new space object.
-      weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, 0,
-                                                  WeakPersistentHandleCallback);
+      weak_new_ref =
+          Dart_NewWeakPersistentHandle(new_ref, nullptr, 0, NopCallback);
       EXPECT_VALID(AsHandle(weak_new_ref));
       EXPECT(!Dart_IsNull(AsHandle(weak_new_ref)));
 
       // Create a weak ref to the old space object.
-      weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, 0,
-                                                  WeakPersistentHandleCallback);
+      weak_old_ref =
+          Dart_NewWeakPersistentHandle(old_ref, nullptr, 0, NopCallback);
+
       EXPECT_VALID(AsHandle(weak_old_ref));
       EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
     }
@@ -3224,7 +3199,8 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     Dart_EnterScope();
     // Weak ref to new space object should now be cleared.
-    EXPECT(weak_new_ref == NULL);
+    EXPECT_VALID(AsHandle(weak_new_ref));
+    EXPECT(Dart_IsNull(AsHandle(weak_new_ref)));
     EXPECT_VALID(AsHandle(weak_old_ref));
     EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
     Dart_ExitScope();
@@ -3239,8 +3215,10 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     Dart_EnterScope();
     // Weak ref to old space object should now be cleared.
-    EXPECT(weak_new_ref == NULL);
-    EXPECT(weak_old_ref == NULL);
+    EXPECT_VALID(AsHandle(weak_new_ref));
+    EXPECT(Dart_IsNull(AsHandle(weak_new_ref)));
+    EXPECT_VALID(AsHandle(weak_old_ref));
+    EXPECT(Dart_IsNull(AsHandle(weak_old_ref)));
     Dart_ExitScope();
   }
 
@@ -3249,6 +3227,9 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     // Garbage collect one last time to revisit deleted handles.
     GCTestHelper::CollectAllGarbage();
   }
+
+  Dart_DeleteWeakPersistentHandle(weak_new_ref);
+  Dart_DeleteWeakPersistentHandle(weak_old_ref);
 }
 
 static Dart_FinalizableHandle finalizable_new_ref = nullptr;
@@ -3384,7 +3365,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
   Dart_Handle obj2 = Dart_NewInteger(0);
   EXPECT_VALID(obj2);
   Dart_WeakPersistentHandle ref2 =
-      Dart_NewWeakPersistentHandle(obj2, NULL, 0, WeakPersistentHandleCallback);
+      Dart_NewWeakPersistentHandle(obj2, NULL, 0, NopCallback);
   EXPECT_EQ(ref2, static_cast<void*>(NULL));
 
   Dart_ExitScope();
@@ -3416,16 +3397,11 @@ static Dart_WeakPersistentHandle weak_persistent_handle3;
 
 static void WeakPersistentHandlePeerCleanupFinalizer(
     void* isolate_callback_data,
-    Dart_WeakPersistentHandle handle,
     void* peer) {
   Dart_DeletePersistentHandle(persistent_handle1);
   Dart_DeleteWeakPersistentHandle(weak_persistent_handle2);
   *static_cast<int*>(peer) = 42;
 }
-
-static void WeakPersistentHandleNoopCallback(void* isolate_callback_data,
-                                             Dart_WeakPersistentHandle handle,
-                                             void* peer) {}
 
 TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizer) {
   Heap* heap = Isolate::Current()->heap();
@@ -3437,8 +3413,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizer) {
   persistent_handle1 = Dart_NewPersistentHandle(ref1);
   Dart_Handle ref2 = Dart_NewStringFromCString(kTestString1);
   int peer2 = 0;
-  weak_persistent_handle2 = Dart_NewWeakPersistentHandle(
-      ref2, &peer2, 0, WeakPersistentHandleNoopCallback);
+  weak_persistent_handle2 =
+      Dart_NewWeakPersistentHandle(ref2, &peer2, 0, NopCallback);
   int peer3 = 0;
   {
     Dart_EnterScope();
@@ -3454,6 +3430,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizer) {
     EXPECT(peer3 == 42);
   }
   Dart_ExitScope();
+
+  Dart_DeleteWeakPersistentHandle(weak_persistent_handle3);
 }
 
 static Dart_FinalizableHandle finalizable_handle3;
@@ -3495,7 +3473,6 @@ TEST_CASE(DartAPI_FinalizableHandleCleanupFinalizer) {
 }
 
 static void WeakPersistentHandlePeerFinalizer(void* isolate_callback_data,
-                                              Dart_WeakPersistentHandle handle,
                                               void* peer) {
   *static_cast<int*>(peer) = 42;
 }
@@ -3520,6 +3497,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallback) {
     GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
   }
+  Dart_DeleteWeakPersistentHandle(weak_ref);
 }
 
 static void FinalizableHandlePeerFinalizer(void* isolate_callback_data,
@@ -3599,13 +3577,53 @@ TEST_CASE(DartAPI_FinalizableHandleNoCallback) {
 
 Dart_WeakPersistentHandle delete_on_finalization;
 
+static void DeleteWeakHandleOnFinalization(void* isolate_callback_data,
+                                           void* peer) {
+  *static_cast<int*>(peer) = 42;
+  Dart_DeleteWeakPersistentHandle(delete_on_finalization);
+  delete_on_finalization = nullptr;
+}
+
+static void DontDeleteWeakHandleOnFinalization(void* isolate_callback_data,
+                                               void* peer) {
+  *static_cast<int*>(peer) = 42;
+  delete_on_finalization = nullptr;
+}
+
+// Mimicking the old handle behavior by deleting the handle itself in the
+// finalizer.
+TEST_CASE(DartAPI_WeakPersistentHandleCallbackSelfDelete) {
+  int peer = 0;
+  {
+    Dart_EnterScope();
+    Dart_Handle obj = NewString("new string");
+    EXPECT_VALID(obj);
+    delete_on_finalization = Dart_NewWeakPersistentHandle(
+        obj, &peer, 0, DeleteWeakHandleOnFinalization);
+    EXPECT_VALID(AsHandle(delete_on_finalization));
+    EXPECT(peer == 0);
+    Dart_ExitScope();
+  }
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectOldSpace();
+    EXPECT(peer == 0);
+    GCTestHelper::CollectNewSpace();
+    EXPECT(peer == 42);
+    ASSERT(delete_on_finalization == nullptr);
+  }
+}
+
+// Checking that the finalizer gets run on shutdown, but that the delete
+// handle does not get invoked. (The handles have already been deleted by
+// releasing the LocalApiState.)
 VM_UNIT_TEST_CASE(DartAPI_WeakPersistentHandlesCallbackShutdown) {
   TestCase::CreateTestIsolate();
   Dart_EnterScope();
   Dart_Handle ref = Dart_True();
   int peer = 1234;
-  Dart_NewWeakPersistentHandle(ref, &peer, 0,
-                               WeakPersistentHandlePeerFinalizer);
+  delete_on_finalization = Dart_NewWeakPersistentHandle(
+      ref, &peer, 0, DontDeleteWeakHandleOnFinalization);
   Dart_ExitScope();
   Dart_ShutdownIsolate();
   EXPECT(peer == 42);
@@ -3668,6 +3686,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     GCTestHelper::CollectOldSpace();
     EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
+  Dart_DeleteWeakPersistentHandle(weak1);
+  Dart_DeleteWeakPersistentHandle(weak2);
 }
 
 TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
@@ -3827,7 +3847,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   }
   // Large enough to trigger GC in old space. Not actually allocated.
   const intptr_t kHugeExternalSize = (kWordSize == 4) ? 513 * MB : 1025 * MB;
-  Dart_NewWeakPersistentHandle(live, NULL, kHugeExternalSize, NopCallback);
+  Dart_WeakPersistentHandle weak2 =
+      Dart_NewWeakPersistentHandle(live, NULL, kHugeExternalSize, NopCallback);
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
@@ -3836,6 +3857,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
               isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
   }
   Dart_ExitScope();
+  Dart_DeleteWeakPersistentHandle(weak);
+  Dart_DeleteWeakPersistentHandle(weak2);
 }
 
 TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOldspaceGC) {
@@ -3984,13 +4007,11 @@ static Dart_NativeFunction ExampleResourceNativeResolver(
 }
 
 struct ExampleResource {
-  Dart_WeakPersistentHandle self;
+  Dart_FinalizableHandle self;
   void* lots_of_memory;
 };
 
-void ExampleResourceFinalizer(void* isolate_peer,
-                              Dart_WeakPersistentHandle handle,
-                              void* peer) {
+void ExampleResourceFinalizer(void* isolate_peer, void* peer) {
   ExampleResource* resource = reinterpret_cast<ExampleResource*>(peer);
   free(resource->lots_of_memory);
   delete resource;
@@ -4001,8 +4022,8 @@ void FUNCTION_NAME(ExampleResource_Allocate)(Dart_NativeArguments native_args) {
   intptr_t external_size = 10 * MB;
   ExampleResource* resource = new ExampleResource();
   resource->lots_of_memory = malloc(external_size);
-  resource->self = Dart_NewWeakPersistentHandle(
-      receiver, resource, external_size, ExampleResourceFinalizer);
+  resource->self = Dart_NewFinalizableHandle(receiver, resource, external_size,
+                                             ExampleResourceFinalizer);
   EXPECT_VALID(Dart_SetNativeInstanceField(
       receiver, 0, reinterpret_cast<intptr_t>(resource)));
   // Some pretend resource initialization.
@@ -4032,7 +4053,7 @@ void FUNCTION_NAME(ExampleResource_Dispose)(Dart_NativeArguments native_args) {
   if (resource->lots_of_memory != nullptr) {
     free(resource->lots_of_memory);
     resource->lots_of_memory = nullptr;
-    Dart_UpdateExternalSize(resource->self, 0);
+    Dart_UpdateFinalizableExternalSize(resource->self, receiver, 0);
   }
 }
 
@@ -4072,13 +4093,12 @@ static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;
 
 static void ImplicitReferencesCallback(void* isolate_callback_data,
-                                       Dart_WeakPersistentHandle handle,
                                        void* peer) {
-  if (handle == weak1) {
+  if (peer == &weak1) {
     weak1 = NULL;
-  } else if (handle == weak2) {
+  } else if (peer == &weak2) {
     weak2 = NULL;
-  } else if (handle == weak3) {
+  } else if (peer == &weak3) {
     weak3 = NULL;
   }
 }
@@ -4103,19 +4123,19 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
 
     weak1 =
         Dart_NewWeakPersistentHandle(AllocateOldString("weakly reachable 1"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak1, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 =
         Dart_NewWeakPersistentHandle(AllocateOldString("weakly reachable 2"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak2, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 =
         Dart_NewWeakPersistentHandle(AllocateOldString("weakly reachable 3"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak3, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
   }
@@ -4144,6 +4164,11 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
   }
+
+  Dart_DeleteWeakPersistentHandle(strong_weak);
+  Dart_DeleteWeakPersistentHandle(weak1);
+  Dart_DeleteWeakPersistentHandle(weak2);
+  Dart_DeleteWeakPersistentHandle(weak3);
 }
 
 TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
@@ -4166,19 +4191,19 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
 
     weak1 =
         Dart_NewWeakPersistentHandle(AllocateNewString("weakly reachable 1"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak1, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 =
         Dart_NewWeakPersistentHandle(AllocateNewString("weakly reachable 2"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak2, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 =
         Dart_NewWeakPersistentHandle(AllocateNewString("weakly reachable 3"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak3, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
   }
@@ -4206,6 +4231,11 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
   }
+
+  Dart_DeleteWeakPersistentHandle(strong_weak);
+  Dart_DeleteWeakPersistentHandle(weak1);
+  Dart_DeleteWeakPersistentHandle(weak2);
+  Dart_DeleteWeakPersistentHandle(weak3);
 }
 
 // Unit test for creating multiple scopes and local handles within them.
@@ -5524,9 +5554,6 @@ TEST_CASE(DartAPI_New) {
       "  factory MyClass.multiply(value) {\n"
       "    return new MyClass.named(value * 100);\n"
       "  }\n"
-      "  factory MyClass.nullo() {\n"
-      "    return null;\n"
-      "  }\n"
       "  var foo;\n"
       "}\n"
       "\n"
@@ -5686,11 +5713,6 @@ TEST_CASE(DartAPI_New) {
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(1100, int_value);
-
-  // Invoke a factory constructor which returns null.
-  result = Dart_New(type, NewString("nullo"), 0, NULL);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsNull(result));
 
   // Pass an error class object.  Error is passed through.
   result = Dart_New(Dart_NewApiError("myerror"), NewString("named"), 1, args);
@@ -5967,6 +5989,13 @@ TEST_CASE(DartAPI_NewListOfTypeFilled) {
 
   // Null is always valid as the fill argument if we're creating an empty list.
   EXPECT_VALID(Dart_NewListOfTypeFilled(zxhandle_type, Dart_Null(), 0));
+
+  // Test creation of a non nullable list of strings.
+  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(corelib);
+  Dart_Handle string_type =
+      Dart_GetNonNullableType(corelib, NewString("String"), 0, NULL);
+  EXPECT_VALID(Dart_NewListOfTypeFilled(string_type, Dart_EmptyString(), 2));
 }
 
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
@@ -7380,9 +7409,7 @@ TEST_CASE(DartAPI_IllegalPost) {
   EXPECT(!success);
 }
 
-static void UnreachableFinalizer(void* isolate_callback_data,
-                                 Dart_WeakPersistentHandle handle,
-                                 void* peer) {
+static void UnreachableFinalizer(void* isolate_callback_data, void* peer) {
   UNREACHABLE();
 }
 
@@ -8626,7 +8653,7 @@ TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
 
 TEST_CASE(DartAPI_ExternalStringIndexOf) {
   const char* kScriptChars =
-      "main(String pattern) {\n"
+      "testMain(String pattern) {\n"
       "  var str = 'Hello World';\n"
       "  return str.indexOf(pattern);\n"
       "}\n";
@@ -8641,7 +8668,7 @@ TEST_CASE(DartAPI_ExternalStringIndexOf) {
 
   Dart_Handle dart_args[1];
   dart_args[0] = ext8;
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
@@ -8971,10 +8998,7 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
 
   Dart_Handle bytes = Dart_NewExternalTypedDataWithFinalizer(
       Dart_TypedData_kUint8, response_json, response_json_length, response_json,
-      response_json_length,
-      [](void* ignored, Dart_WeakPersistentHandle handle, void* peer) {
-        free(peer);
-      });
+      response_json_length, [](void* ignored, void* peer) { free(peer); });
   EXPECT_VALID(bytes);
 
   // We don't have a C++ JSON decoder so we'll invoke dart to validate the

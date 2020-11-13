@@ -1,0 +1,26 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  static set property(dart.core::int value) → void {}
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  static get property() → dart.core::int
+    return 87;
+}
+library from "org-dartlang-test:///lib3.dart" as lib3 {
+additionalExports = (lib1::property,
+  lib2::property)
+
+  export "org-dartlang-test:///lib1.dart";
+  export "org-dartlang-test:///lib2.dart";
+
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib3.dart";
+
+  static method main() → dynamic {
+    lib1::property = 87;
+  }
+}

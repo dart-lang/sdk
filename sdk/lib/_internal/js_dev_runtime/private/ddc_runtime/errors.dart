@@ -44,7 +44,7 @@ nullFailed(String? fileUri, int? line, int? column, String? variable) {
 }
 
 throwLateInitializationError(String name) {
-  throw internal.LateInitializationErrorImpl(name);
+  throw internal.LateError(name);
 }
 
 throwCyclicInitializationError([String? field]) {

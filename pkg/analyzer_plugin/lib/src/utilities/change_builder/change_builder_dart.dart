@@ -17,12 +17,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/src/utilities/charcodes.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:charcode/ascii.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// A [ChangeBuilder] used to build changes in Dart files.
@@ -427,10 +427,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // return type
     var returnType = element.returnType;
-    var typeWritten = writeType(returnType,
-        groupName: returnTypeGroupName, methodBeingCopied: element);
-    if (typeWritten) {
-      write(' ');
+    if (!isSetter) {
+      var typeWritten = writeType(returnType,
+          groupName: returnTypeGroupName, methodBeingCopied: element);
+      if (typeWritten) {
+        write(' ');
+      }
     }
     if (isGetter) {
       write(Keyword.GET.lexeme);
@@ -1186,7 +1188,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // Typedef(s) are represented as GenericFunctionTypeElement(s).
     if (element is GenericFunctionTypeElement &&
         element.typeParameters.isEmpty &&
-        element.enclosingElement is GenericTypeAliasElement) {
+        element.enclosingElement is FunctionTypeAliasElement) {
       element = element.enclosingElement;
     }
 

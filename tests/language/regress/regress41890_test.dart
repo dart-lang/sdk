@@ -43,8 +43,8 @@ void test() {
       var item = items[i];
       String code = answers[i];
       bool expected = code == 'T' ||
-          (code == 'S' && isStrongMode) ||
-          (code == 'W' && isWeakMode);
+          (code == 'S' && hasSoundNullSafety) ||
+          (code == 'W' && hasUnsoundNullSafety);
       Expect.equals(expected, predicate(item), "$predicate '$code' $item");
     }
   }

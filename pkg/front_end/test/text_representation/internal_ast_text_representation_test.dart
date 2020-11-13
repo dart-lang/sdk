@@ -316,7 +316,7 @@ void _testFactoryConstructorInvocationJudgment() {
   library.addClass(cls);
   Procedure factoryConstructor = new Procedure(
       new Name(''), ProcedureKind.Factory, new FunctionNode(null));
-  cls.addMember(factoryConstructor);
+  cls.addProcedure(factoryConstructor);
 
   testExpression(
       new FactoryConstructorInvocationJudgment(

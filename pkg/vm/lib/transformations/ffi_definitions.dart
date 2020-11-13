@@ -227,9 +227,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             f.fileUri);
       } else {
         final DartType nativeType = InterfaceType(
-            nativeTypesClasses[nativeTypeAnnos.first.index],
+            nativeTypesClasses[_getFieldType(nativeTypeAnnos.first).index],
             Nullability.legacy);
-        // TODO(36730): Support structs inside structs.
+        // TODO(dartbug.com/37271): Support structs inside structs.
         final DartType shouldBeDartType = convertNativeTypeToDartType(
             nativeType, /*allowStructs=*/ false, /*allowHandle=*/ false);
         if (shouldBeDartType == null ||
@@ -286,7 +286,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ..fileOffset = node.fileOffset
       ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
     _makeEntryPoint(ctor);
-    node.addMember(ctor);
+    node.addConstructor(ctor);
   }
 
   /// Computes the field offsets (for all ABIs) in the struct and replaces the
@@ -294,6 +294,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   ///
   /// Returns the total size of the struct (for all ABIs).
   Map<Abi, int> _replaceFields(Class node, IndexedClass indexedClass) {
+    final classes = <Class>[];
     final types = <NativeType>[];
     final fields = <int, Field>{};
     final getters = <int, Procedure>{};
@@ -304,18 +305,22 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final dartType = _structFieldMemberType(m);
 
       NativeType nativeType;
+      Class clazz;
       if (_isPointerType(dartType)) {
         nativeType = NativeType.kPointer;
+        clazz = pointerClass;
       } else {
         final nativeTypeAnnos = _getNativeTypeAnnotations(m).toList();
         if (nativeTypeAnnos.length == 1) {
-          nativeType = nativeTypeAnnos.first;
+          clazz = nativeTypeAnnos.first;
+          nativeType = _getFieldType(clazz);
         }
       }
 
       if ((m is Field || (m is Procedure && m.isGetter)) &&
           nativeType != null) {
         types.add(nativeType);
+        classes.add(clazz);
         if (m is Field) {
           fields[i] = m;
         }
@@ -332,6 +337,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
 
+    _annoteStructWithFields(node, classes);
+
     final sizeAndOffsets = <Abi, SizeAndOffsets>{};
     for (final Abi abi in Abi.values) {
       sizeAndOffsets[abi] = _calculateSizeAndOffsets(types, abi);
@@ -342,7 +349,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           .map((Abi abi, SizeAndOffsets v) => MapEntry(abi, v.offsets[i]));
       final methods = _generateMethodsForField(
           fields[i], types[i], fieldOffsets, indexedClass);
-      methods.forEach((p) => node.addMember(p));
+      methods.forEach((p) => node.addProcedure(p));
     }
 
     for (final Field f in fields.values) {
@@ -375,6 +382,29 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     return sizeAndOffsets.map((k, v) => MapEntry(k, v.size));
+  }
+
+  void _annoteStructWithFields(Class node, List<Class> fieldTypes) {
+    final types = fieldTypes.map((Class c) {
+      List<DartType> typeArg = const [];
+      if (c == pointerClass) {
+        typeArg = [
+          InterfaceType(pointerClass.superclass, Nullability.nonNullable)
+        ];
+      }
+      return TypeLiteralConstant(
+          InterfaceType(c, Nullability.nonNullable, typeArg));
+    }).toList();
+
+    node.addAnnotation(ConstantExpression(
+        InstanceConstant(pragmaClass.reference, [], {
+          pragmaName.getterReference: StringConstant("vm:ffi:struct-fields"),
+          // TODO(dartbug.com/38158): Wrap list in class to be able to encode
+          // more information when needed.
+          pragmaOptions.getterReference: ListConstant(
+              InterfaceType(typeClass, Nullability.nonNullable), types)
+        }),
+        InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }
 
   /// Expression that queries VM internals at runtime to figure out on which ABI
@@ -498,16 +528,18 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   void _replaceSizeOfMethod(
       Class struct, Map<Abi, int> sizes, IndexedClass indexedClass) {
     var name = Name("#sizeOf");
+    var lookupField = indexedClass?.lookupField(name.text);
     final Field sizeOf = Field(name,
         isStatic: true,
         isFinal: true,
         initializer: _runtimeBranchOnLayout(sizes),
         type: InterfaceType(intClass, Nullability.legacy),
         fileUri: struct.fileUri,
-        reference: indexedClass?.lookupField(name.text)?.reference)
+        getterReference: lookupField?.getterReference,
+        setterReference: lookupField?.setterReference)
       ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
-    struct.addMember(sizeOf);
+    struct.addField(sizeOf);
   }
 
   int _sizeInBytes(NativeType type, Abi abi) {
@@ -555,8 +587,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   void _makeEntryPoint(Annotatable node) {
     node.addAnnotation(ConstantExpression(
         InstanceConstant(pragmaClass.reference, [], {
-          pragmaName.reference: StringConstant("vm:entry-point"),
-          pragmaOptions.reference: NullConstant()
+          pragmaName.getterReference: StringConstant("vm:entry-point"),
+          pragmaOptions.getterReference: NullConstant()
         }),
         InterfaceType(pragmaClass, Nullability.legacy, [])));
   }
@@ -571,14 +603,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return fieldType;
   }
 
-  Iterable<NativeType> _getNativeTypeAnnotations(Member node) {
+  Iterable<Class> _getNativeTypeAnnotations(Member node) {
     return node.annotations
         .whereType<ConstantExpression>()
         .map((expr) => expr.constant)
         .whereType<InstanceConstant>()
         .map((constant) => constant.classNode)
-        .map((klass) => _getFieldType(klass))
-        .where((type) => type != null);
+        .where((klass) => _getFieldType(klass) != null);
   }
 }
 

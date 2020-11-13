@@ -11,7 +11,7 @@ import 'dart:async' show Future, Stream, StreamController;
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    VM vm = isolate.owner;
+    VM vm = isolate.owner as VM;
 
     final serviceEvents =
         (await vm.getEventStream('Service')).asBroadcastStream();
@@ -23,7 +23,7 @@ var tests = <IsolateTest>[
 
     // Avoid to manually encode and decode messages from the stream
     Stream<String> stream = socket.stream.map(jsonEncode);
-    stream.cast<Object>().pipe(_socket);
+    stream.cast<dynamic>().pipe(_socket);
     dynamic _decoder(dynamic obj) {
       return jsonDecode(obj);
     }
@@ -121,7 +121,7 @@ var tests = <IsolateTest>[
       } on ServerRpcException catch (e) {
         expect(e.code, equals(errorCode + iteration));
         expect(e.data, isNotNull);
-        expect(e.data[errorKey + end], equals(errorValue + end));
+        expect(e.data![errorKey + end], equals(errorValue + end));
       }
     }
   },

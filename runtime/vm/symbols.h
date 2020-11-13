@@ -28,7 +28,7 @@ class ObjectPointerVisitor;
   V(AsFunctionInternal, "_asFunctionInternal")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
-  V(AsyncCompleter, ":async_completer")                                        \
+  V(AsyncFuture, ":async_future")                                              \
   V(AsyncOperation, ":async_op")                                               \
   V(AsyncStackTraceVar, ":async_stack_trace")                                  \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
@@ -40,7 +40,6 @@ class ObjectPointerVisitor;
   V(ByteData, "ByteData")                                                      \
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
-  V(Bytecode, "Bytecode")                                                      \
   V(Call, "call")                                                              \
   V(Cancel, "cancel")                                                          \
   V(CastError, "_CastError")                                                   \
@@ -109,7 +108,9 @@ class ObjectPointerVisitor;
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
   V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
+  V(DynamicCallCurrentFunctionVar, ":dyn_call_current_function")               \
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
+  V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
@@ -235,7 +236,6 @@ class ObjectPointerVisitor;
   V(Other, "other")                                                            \
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(PackageScheme, "package:")                                                 \
-  V(ParameterTypeCheck, "ParameterTypeCheck")                                  \
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
@@ -308,11 +308,7 @@ class ObjectPointerVisitor;
   V(WasmDouble, "Double")                                                      \
   V(WasmVoid, "Void")                                                          \
   V(YieldKw, "yield")                                                          \
-  V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
-  V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
-  V(_AsyncAwaitCompleterStart, "_AsyncAwaitCompleter.start")                   \
   V(_AsyncAwaitStart, "start")                                                 \
-  V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
   V(_AsyncStreamController, "_AsyncStreamController")                          \
@@ -329,6 +325,7 @@ class ObjectPointerVisitor;
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
+  V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -448,6 +445,7 @@ class ObjectPointerVisitor;
   V(_handleMessage, "_handleMessage")                                          \
   V(_instanceOf, "_instanceOf")                                                \
   V(_lookupHandler, "_lookupHandler")                                          \
+  V(_lookupOpenPorts, "_lookupOpenPorts")                                      \
   V(_name, "_name")                                                            \
   V(_onData, "_onData")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
@@ -478,6 +476,7 @@ class ObjectPointerVisitor;
   V(hashCode, "get:hashCode")                                                  \
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
+  V(is_sync, ":is_sync")                                                       \
   V(isPaused, "isPaused")                                                      \
   V(isSync, "isSync")                                                          \
   V(last, "last")                                                              \

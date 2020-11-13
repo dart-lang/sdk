@@ -34,7 +34,7 @@ class A {
   // [cfe] The modifier 'late' should be before the modifier 'final'.
   //                        ^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'A'.
+  // [cfe] The value 'null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
 
   covariant late x15;
   //        ^^^^

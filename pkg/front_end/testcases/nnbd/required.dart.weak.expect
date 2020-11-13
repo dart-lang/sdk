@@ -74,23 +74,23 @@ class C extends self::A {
     ;
   method foo({core::int x = #C1}) → dynamic {}
 }
-static field ({a: core::int, required b: core::int}) → dynamic field = ({core::int a = #C1, required core::int b = #C2}) → core::Null? {};
+static field ({a: core::int, required b: core::int}) → dynamic field = ({core::int a = #C1, required core::int b = #C2}) → Null {};
 static method method({core::int a = #C1, required core::int b = #C2, required final core::int c = #C2}) → dynamic {}
 static method ok() → dynamic {
   ({a: core::int, required b: core::int}) → dynamic f;
   function g({core::int a = #C1, required core::int b = #C2}) → void {}
-  f = ({core::int a = #C1, required core::int b = #C2}) → core::Null? {};
+  f = ({core::int a = #C1, required core::int b = #C2}) → Null {};
   (core::int, [core::int]) → dynamic f2;
   function g2(core::int a, [core::int b = #C1]) → void {}
-  f2 = (core::int a, [core::int b = #C1]) → core::Null? {};
+  f2 = (core::int a, [core::int b = #C1]) → Null {};
 }
 static method error() → dynamic {
   ({a: core::int, required b: core::int}) → dynamic f;
   function g({core::int a = #C2, required core::int b = #C1}) → void {}
-  f = ({core::int a = #C2, required core::int b = #C1}) → core::Null? {};
+  f = ({core::int a = #C2, required core::int b = #C1}) → Null {};
   (core::int, [core::int]) → dynamic f2;
   function g2(core::int a = #C1, [core::int b = #C2]) → void {}
-  f2 = (core::int a = #C1, [core::int b = #C2]) → core::Null? {};
+  f2 = (core::int a = #C1, [core::int b = #C2]) → Null {};
 }
 static method main() → dynamic {}
 

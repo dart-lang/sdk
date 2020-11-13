@@ -1943,18 +1943,11 @@ static void TryAllocateString(Assembler* assembler,
   __ pushq(RDI);                          // Preserve length.
   if (cid == kOneByteStringCid) {
     // Untag length.
-    __ sarq(RDI, Immediate(kSmiTagShift));
+    __ SmiUntag(RDI);
   } else {
     // Untag length and multiply by element size -> no-op.
-    __ testq(RDI, RDI);
+    ASSERT(kSmiTagSize == 1);
   }
-  // If the length is 0 then we have to make the allocated size a bit bigger,
-  // otherwise the string takes up less space than an ExternalOneByteString,
-  // and cannot be externalized.  TODO(erikcorry): We should probably just
-  // return a static zero length string here instead.
-  __ j(NOT_ZERO, &not_zero_length);
-  __ addq(RDI, Immediate(1));
-  __ Bind(&not_zero_length);
   const intptr_t fixed_size_plus_alignment_padding =
       target::String::InstanceSize() +
       target::ObjectAlignment::kObjectAlignment - 1;

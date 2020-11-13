@@ -58,6 +58,8 @@ const char* Slot::KindToCString(Kind k) {
 #undef NATIVE_CASE
     case Kind::kTypeArguments:
       return "TypeArguments";
+    case Kind::kArrayElement:
+      return "ArrayElement";
     case Kind::kCapturedVariable:
       return "CapturedVariable";
     case Kind::kDartField:
@@ -79,6 +81,10 @@ bool Slot::ParseKind(const char* str, Kind* out) {
 #undef NATIVE_CASE
   if (strcmp(str, "TypeArguments") == 0) {
     *out = Kind::kTypeArguments;
+    return true;
+  }
+  if (strcmp(str, "ArrayElement") == 0) {
+    *out = Kind::kArrayElement;
     return true;
   }
   if (strcmp(str, "CapturedVariable") == 0) {
@@ -173,6 +179,9 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
     case kImmutableArrayCid:
       return GetNativeSlot(Kind::kArray_length);
 
+    case kTypeArgumentsCid:
+      return GetNativeSlot(Kind::kTypeArguments_length);
+
     default:
       UNREACHABLE();
       return GetNativeSlot(Kind::kArray_length);
@@ -209,6 +218,14 @@ const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
   const Slot& slot =
       Slot(Kind::kTypeArgumentsIndex, IsImmutableBit::encode(true), kDynamicCid,
            offset, ":argument", /*static_type=*/nullptr, kTagged);
+  return SlotCache::Instance(thread).Canonicalize(slot);
+}
+
+const Slot& Slot::GetArrayElementSlot(Thread* thread,
+                                      intptr_t offset_in_bytes) {
+  const Slot& slot =
+      Slot(Kind::kArrayElement, IsNullableBit::encode(true), kDynamicCid,
+           offset_in_bytes, ":array_element", /*static_type=*/nullptr, kTagged);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
@@ -328,6 +345,7 @@ bool Slot::Equals(const Slot* other) const {
   switch (kind_) {
     case Kind::kTypeArguments:
     case Kind::kTypeArgumentsIndex:
+    case Kind::kArrayElement:
       return (offset_in_bytes_ == other->offset_in_bytes_);
 
     case Kind::kCapturedVariable:

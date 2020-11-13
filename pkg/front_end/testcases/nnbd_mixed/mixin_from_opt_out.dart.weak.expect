@@ -9,7 +9,7 @@ abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Class&Object&Mixin
     : super core::Object::•()
     ;
-  abstract forwarding-stub operator ==(dynamic other) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class Class extends self::_Class&Object&Mixin {
   synthetic constructor •() → self::Class

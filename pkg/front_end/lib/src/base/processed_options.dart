@@ -4,8 +4,6 @@
 
 import 'dart:io' show exitCode;
 
-import 'dart:async' show Future;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -165,6 +163,8 @@ class ProcessedOptions {
 
   bool get verify => _raw.verify;
 
+  bool get verifySkipPlatform => _raw.verifySkipPlatform;
+
   bool get debugDump => _raw.debugDump;
 
   bool get omitPlatform => _raw.omitPlatform;
@@ -207,7 +207,8 @@ class ProcessedOptions {
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
   FormattedMessage format(
-      LocatedMessage message, Severity severity, List<LocatedMessage> context) {
+      LocatedMessage message, Severity severity, List<LocatedMessage> context,
+      {List<Uri> involvedFiles}) {
     int offset = message.charOffset;
     Uri uri = message.uri;
     Location location = offset == -1 ? null : getLocation(uri, offset);
@@ -221,11 +222,12 @@ class ProcessedOptions {
       }
     }
     return message.withFormatting(formatted, location?.line ?? -1,
-        location?.column ?? -1, severity, formattedContext);
+        location?.column ?? -1, severity, formattedContext,
+        involvedFiles: involvedFiles);
   }
 
   void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage> context}) {
+      {List<LocatedMessage> context, List<Uri> involvedFiles}) {
     if (command_line_reporting.isHidden(severity)) return;
     if (command_line_reporting.isCompileTimeError(severity)) {
       CompilerContext.current.logError(message, severity);
@@ -233,7 +235,8 @@ class ProcessedOptions {
     if (CompilerContext.current.options.setExitCodeOnProblem) {
       exitCode = 1;
     }
-    reportDiagnosticMessage(format(message, severity, context));
+    reportDiagnosticMessage(
+        format(message, severity, context, involvedFiles: involvedFiles));
     if (command_line_reporting.shouldThrowOn(severity)) {
       if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
         // Skip this one. The interesting one comes later.
@@ -320,9 +323,6 @@ class ProcessedOptions {
   /// effect.
   void clearFileSystemCache() => _fileSystem = null;
 
-  /// Whether to generate bytecode.
-  bool get bytecode => _raw.bytecode;
-
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
 
@@ -340,9 +340,22 @@ class ProcessedOptions {
   /// This is `true` either if the [flag] is passed through an explicit
   /// `--enable-experiment` option or if the [flag] is expired and on by
   /// default.
+  bool isExperimentEnabledByDefault(flags.ExperimentalFlag flag) {
+    return flags.isExperimentEnabled(flag,
+        defaultExperimentFlagsForTesting:
+            _raw.defaultExperimentFlagsForTesting);
+  }
+
+  /// Returns `true` if the [flag] is enabled globally.
+  ///
+  /// This is `true` either if the [flag] is passed through an explicit
+  /// `--enable-experiment` option or if the [flag] is expired and on by
+  /// default.
   bool isExperimentEnabledGlobally(flags.ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
-        experimentalFlags: _raw.experimentalFlags);
+        explicitExperimentalFlags: _raw.explicitExperimentalFlags,
+        defaultExperimentFlagsForTesting:
+            _raw.defaultExperimentFlagsForTesting);
   }
 
   /// Returns `true` if the [flag] is enabled in the library with the given
@@ -353,18 +366,21 @@ class ProcessedOptions {
   /// the 'allowed_experiments.json' file for this library.
   bool isExperimentEnabledInLibrary(
       flags.ExperimentalFlag flag, Uri importUri) {
-    return flags.isExperimentEnabledInLibrary(flag, importUri,
-        experimentalFlags: _raw.experimentalFlags,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting);
+    return _raw.isExperimentEnabledInLibrary(flag, importUri);
   }
 
-  Version getExperimentEnabledVersion(flags.ExperimentalFlag flag) {
-    return flags.getExperimentEnabledVersion(flag,
-        experimentReleasedVersionForTesting:
-            _raw.experimentReleasedVersionForTesting);
+  Version getExperimentEnabledVersionInLibrary(
+      flags.ExperimentalFlag flag, Uri importUri) {
+    return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
   Component _validateNullSafetyMode(Component component) {
+    if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
+      throw new FormatException(
+          'Provided .dill file for the following libraries has an invalid null '
+          'safety mode and does not support null safety:\n'
+          '${component.libraries.join('\n')}');
+    }
     if (nnbdMode == NnbdMode.Strong &&
         !(component.mode == NonNullableByDefaultCompiledMode.Strong ||
             component.mode == NonNullableByDefaultCompiledMode.Agnostic)) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
-
 import 'dart:developer' show debugger;
 
 import 'dart:io' show Directory, File;
@@ -47,6 +45,7 @@ import 'package:front_end/src/fasta/incremental_serializer.dart'
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
@@ -74,7 +73,7 @@ import 'package:kernel/target/targets.dart'
 import 'package:kernel/text/ast_to_text.dart' show Printer, componentToString;
 
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Expectation, Result, Step, TestDescription, runMe;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
@@ -88,6 +87,44 @@ import 'utils/io_utils.dart' show computeRepoDir;
 
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
+
+const Expectation ExpectationFileMismatch =
+    const Expectation.fail("ExpectationFileMismatch");
+const Expectation ExpectationFileMissing =
+    const Expectation.fail("ExpectationFileMissing");
+const Expectation MissingErrors = const Expectation.fail("MissingErrors");
+const Expectation UnexpectedErrors = const Expectation.fail("UnexpectedErrors");
+const Expectation MissingWarnings = const Expectation.fail("MissingWarnings");
+const Expectation UnexpectedWarnings =
+    const Expectation.fail("UnexpectedWarnings");
+const Expectation ClassHierarchyError =
+    const Expectation.fail("ClassHierarchyError");
+const Expectation NeededDillMismatch =
+    const Expectation.fail("NeededDillMismatch");
+const Expectation IncrementalSerializationError =
+    const Expectation.fail("IncrementalSerializationError");
+const Expectation ContentDataMismatch =
+    const Expectation.fail("ContentDataMismatch");
+const Expectation MissingInitializationError =
+    const Expectation.fail("MissingInitializationError");
+const Expectation UnexpectedInitializationError =
+    const Expectation.fail("UnexpectedInitializationError");
+const Expectation ReachableLibrariesError =
+    const Expectation.fail("ReachableLibrariesError");
+const Expectation UriToSourceError = const Expectation.fail("UriToSourceError");
+const Expectation MissingPlatformLibraries =
+    const Expectation.fail("MissingPlatformLibraries");
+const Expectation UnexpectedPlatformLibraries =
+    const Expectation.fail("UnexpectedPlatformLibraries");
+const Expectation UnexpectedRebuildBodiesOnly =
+    const Expectation.fail("UnexpectedRebuildBodiesOnly");
+const Expectation UnexpectedEntryToLibraryCount =
+    const Expectation.fail("UnexpectedEntryToLibraryCount");
+const Expectation LibraryCountMismatch =
+    const Expectation.fail("LibraryCountMismatch");
+const Expectation InitializedFromDillMismatch =
+    const Expectation.fail("InitializedFromDillMismatch");
+const Expectation NNBDModeMismatch = const Expectation.fail("NNBDModeMismatch");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
@@ -152,6 +189,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   String get name => "run compilations";
 
   Future<Result<TestData>> run(TestData data, Context context) async {
+    Result<TestData> result;
     YamlMap map = data.map;
     Set<String> keys = new Set<String>.from(map.keys.cast<String>());
     keys.remove("type");
@@ -175,7 +213,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           "trackWidgetCreation",
           "incrementalSerialization"
         ]);
-        await new NewWorldTest().newWorldTest(
+        result = await new NewWorldTest().newWorldTest(
           data,
           context,
           map["worlds"],
@@ -192,7 +230,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
     }
 
     if (keys.isNotEmpty) throw "Unknown toplevel keys: $keys";
-    return pass(data);
+    return result ?? pass(data);
   }
 }
 
@@ -315,7 +353,8 @@ Future<Map<String, List<int>>> createModules(Map module,
     if (wantedLibs.length != moduleSources.length) {
       throw "Module probably not setup right.";
     }
-    Component result = new Component(libraries: wantedLibs);
+    Component result = new Component(libraries: wantedLibs)
+      ..setMainMethodAndMode(null, false, c.mode);
     List<int> resultBytes = util.postProcess(result);
     moduleResult[moduleName] = resultBytes;
   }
@@ -340,7 +379,7 @@ class NewWorldTest {
     return output;
   }
 
-  Future<Null> newWorldTest(
+  Future<Result<TestData>> newWorldTest(
       TestData data,
       Context context,
       List worlds,
@@ -469,6 +508,8 @@ class NewWorldTest {
         Uri uri = base.resolve(filename);
         if (filename == ".packages") {
           packagesUri = uri;
+        } else if (filename == ".dart_tool/package_config.json") {
+          packagesUri = uri;
         }
         if (world["enableStringReplacement"] == true) {
           data = doStringReplacements(data);
@@ -489,12 +530,21 @@ class NewWorldTest {
         }
         options.omitPlatform = omitPlatform != false;
         if (world["experiments"] != null) {
-          Map<ExperimentalFlag, bool> experimentalFlags =
-              parseExperimentalFlags(
-                  parseExperimentalArguments([world["experiments"]]),
+          Map<String, bool> flagsFromOptions =
+              parseExperimentalArguments([world["experiments"]]);
+          // Ensure that we run with non-nullable turned off even when the
+          // flag is on by default.
+          // TODO(johnniwinther,jensj): Update tests to explicitly opt out.
+          flagsFromOptions['non-nullable'] ??= false;
+          Map<ExperimentalFlag, bool> explicitExperimentalFlags =
+              parseExperimentalFlags(flagsFromOptions,
                   onError: (e) =>
                       throw "Error on parsing experiments flags: $e");
-          options.experimentalFlags = experimentalFlags;
+          options.explicitExperimentalFlags = explicitExperimentalFlags;
+        } else {
+          options.explicitExperimentalFlags = {
+            ExperimentalFlag.nonNullable: false
+          };
         }
         if (world["nnbdMode"] != null) {
           String nnbdMode = world["nnbdMode"];
@@ -611,8 +661,9 @@ class NewWorldTest {
           }
         }
       }
-      performErrorAndWarningCheck(
-          world, gotError, formattedErrors, gotWarning, formattedWarnings);
+      Result<TestData> result = performErrorAndWarningCheck(world, data,
+          gotError, formattedErrors, gotWarning, formattedWarnings);
+      if (result != null) return result;
       if (world["expectInitializationError"] != null) {
         Set<String> seenInitializationError = seenDiagnosticCodes.intersection({
           "InitializeFromDillNotSelfContainedNoDump",
@@ -622,12 +673,16 @@ class NewWorldTest {
         });
         if (world["expectInitializationError"] == true) {
           if (seenInitializationError.isEmpty) {
-            throw "Expected to see an initialization error but didn't.";
+            return new Result<TestData>(data, MissingInitializationError,
+                "Expected to see an initialization error but didn't.");
           }
         } else if (world["expectInitializationError"] == false) {
           if (seenInitializationError.isNotEmpty) {
-            throw "Expected not to see an initialization error but did: "
-                "$seenInitializationError.";
+            return new Result<TestData>(
+                data,
+                UnexpectedInitializationError,
+                "Expected not to see an initialization error but did: "
+                "$seenInitializationError.");
           }
         } else {
           throw "Unsupported value for 'expectInitializationError': "
@@ -639,8 +694,14 @@ class NewWorldTest {
           fileSystem: gotError ? null : fs);
       print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
-      checkExpectedContent(world, component);
-      checkNeededDillLibraries(world, compiler.neededDillLibraries, base);
+      Result contentResult = checkExpectedContent(world, component);
+      if (contentResult != null) return contentResult.copyWithOutput(data);
+      result = checkNeededDillLibraries(
+          world, data, compiler.neededDillLibraries, base);
+      if (result != null) return result;
+
+      Result nnbdCheck = checkNNBDSettings(component);
+      if (nnbdCheck != null) return nnbdCheck.copyWithOutput(data);
 
       if (!noFullComponent) {
         Set<Library> allLibraries = new Set<Library>();
@@ -648,13 +709,19 @@ class NewWorldTest {
           computeAllReachableLibrariesFor(lib, allLibraries);
         }
         if (allLibraries.length != component.libraries.length) {
-          Expect.fail("Expected for the reachable stuff to be equal to "
+          return new Result<TestData>(
+              data,
+              ReachableLibrariesError,
+              "Expected for the reachable stuff to be equal to "
               "${component.libraries} but it was $allLibraries");
         }
         Set<Library> tooMany = allLibraries.toSet()
           ..removeAll(component.libraries);
         if (tooMany.isNotEmpty) {
-          Expect.fail("Expected for the reachable stuff to be equal to "
+          return new Result<TestData>(
+              data,
+              ReachableLibrariesError,
+              "Expected for the reachable stuff to be equal to "
               "${component.libraries} but these were there too: $tooMany "
               "(and others were missing)");
         }
@@ -670,8 +737,11 @@ class NewWorldTest {
         for (String filename in world["uriToSourcesDoesntInclude"]) {
           Uri uri = base.resolve(filename);
           if (component.uriToSource[uri] != null) {
-            throw "Expected no uriToSource for $uri but found "
-                "${component.uriToSource[uri]}";
+            return new Result<TestData>(
+                data,
+                UriToSourceError,
+                "Expected no uriToSource for $uri but found "
+                "${component.uriToSource[uri]}");
           }
         }
       }
@@ -686,14 +756,22 @@ class NewWorldTest {
           // Dart scheme uris too.
           if (uri == null || uri.scheme == "org-dartlang-sdk") continue;
           if (!allowed.contains(uri)) {
-            throw "Expected no uriToSource for $uri but found "
-                "${component.uriToSource[uri]}";
+            return new Result<TestData>(
+                data,
+                UriToSourceError,
+                "Expected no uriToSource for $uri but found "
+                "${component.uriToSource[uri]}");
           }
         }
       }
 
-      checkExpectFile(data, worldNum, "", context, actualSerialized);
-      checkClassHierarchy(compiler, component, data, worldNum, context);
+      result = checkExpectFile(data, worldNum, "", context, actualSerialized);
+      if (result != null) return result;
+      if (world["skipClassHierarchyTest"] != true) {
+        result =
+            checkClassHierarchy(compiler, component, data, worldNum, context);
+        if (result != null) return result;
+      }
 
       int nonSyntheticLibraries = countNonSyntheticLibraries(component);
       int nonSyntheticPlatformLibraries =
@@ -701,36 +779,54 @@ class NewWorldTest {
       int syntheticLibraries = countSyntheticLibraries(component);
       if (world["expectsPlatform"] == true) {
         if (nonSyntheticPlatformLibraries < 5) {
-          throw "Expected to have at least 5 platform libraries "
+          return new Result<TestData>(
+              data,
+              MissingPlatformLibraries,
+              "Expected to have at least 5 platform libraries "
               "(actually, the entire sdk), "
-              "but got $nonSyntheticPlatformLibraries.";
+              "but got $nonSyntheticPlatformLibraries.");
         }
       } else {
         if (nonSyntheticPlatformLibraries != 0) {
-          throw "Expected to have 0 platform libraries "
-              "but got $nonSyntheticPlatformLibraries.";
+          return new Result<TestData>(
+              data,
+              UnexpectedPlatformLibraries,
+              "Expected to have 0 platform libraries "
+              "but got $nonSyntheticPlatformLibraries.");
         }
       }
       if (world["expectedLibraryCount"] != null) {
         if (nonSyntheticLibraries - nonSyntheticPlatformLibraries !=
             world["expectedLibraryCount"]) {
-          throw "Expected ${world["expectedLibraryCount"]} non-synthetic "
+          return new Result<TestData>(
+              data,
+              LibraryCountMismatch,
+              "Expected ${world["expectedLibraryCount"]} non-synthetic "
               "libraries, got "
               "${nonSyntheticLibraries - nonSyntheticPlatformLibraries} "
-              "(not counting platform libraries)";
+              "(not counting platform libraries)");
         }
       }
       if (world["expectedSyntheticLibraryCount"] != null) {
         if (syntheticLibraries != world["expectedSyntheticLibraryCount"]) {
-          throw "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
-              "libraries, got ${syntheticLibraries}";
+          return new Result<TestData>(
+              data,
+              LibraryCountMismatch,
+              "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
+              "libraries, got ${syntheticLibraries}");
         }
       }
 
       if (world["expectsRebuildBodiesOnly"] != null) {
         bool didRebuildBodiesOnly = compiler.rebuildBodiesCount > 0;
-        Expect.equals(world["expectsRebuildBodiesOnly"], didRebuildBodiesOnly,
-            "Whether we expected to rebuild bodies only.");
+        if (world["expectsRebuildBodiesOnly"] != didRebuildBodiesOnly) {
+          return new Result<TestData>(
+              data,
+              UnexpectedRebuildBodiesOnly,
+              "Expected didRebuildBodiesOnly="
+              "${world["expectsRebuildBodiesOnly"]}, "
+              "didRebuildBodiesOnly=${didRebuildBodiesOnly}.");
+        }
       }
 
       if (!noFullComponent) {
@@ -740,14 +836,21 @@ class NewWorldTest {
                 entries.contains(lib.fileUri))
             .toList();
         if (entryLib.length != entries.length) {
-          throw "Expected the entries to become libraries. "
+          return new Result<TestData>(
+              data,
+              UnexpectedEntryToLibraryCount,
+              "Expected the entries to become libraries. "
               "Got ${entryLib.length} libraries for the expected "
-              "${entries.length} entries.";
+              "${entries.length} entries.");
         }
       }
       if (compiler.initializedFromDill != expectInitializeFromDill) {
-        throw "Expected that initializedFromDill would be "
-            "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
+        return new Result<TestData>(
+            data,
+            InitializedFromDillMismatch,
+            "Expected that initializedFromDill would be "
+            "$expectInitializeFromDill but was "
+            "${compiler.initializedFromDill}");
       }
 
       if (incrementalSerialization == true && compiler.initializedFromDill) {
@@ -772,8 +875,12 @@ class NewWorldTest {
           Expect.isNull(world["expectedInvalidatedUri"]);
         }
       }
-      List<int> incrementalSerializationBytes = checkIncrementalSerialization(
+      Result<List<int>> serializationResult = checkIncrementalSerialization(
           incrementalSerialization, component, incrementalSerializer, world);
+      if (!serializationResult.isPass) {
+        return serializationResult.copyWithOutput(data);
+      }
+      List<int> incrementalSerializationBytes = serializationResult.output;
 
       Set<String> prevFormattedErrors = formattedErrors.toSet();
       Set<String> prevFormattedWarnings = formattedWarnings.toSet();
@@ -791,8 +898,9 @@ class NewWorldTest {
             entryPoints: entries,
             fullComponent: true,
             simulateTransformer: world["simulateTransformer"]);
-        performErrorAndWarningCheck(
-            world, gotError, formattedErrors, gotWarning, formattedWarnings);
+        Result<TestData> result = performErrorAndWarningCheck(world, data,
+            gotError, formattedErrors, gotWarning, formattedWarnings);
+        if (result != null) return result;
         List<int> thisWholeComponent = util.postProcess(component2);
         print("*****\n\ncomponent2:\n"
             "${componentToStringSdkFiltered(component2)}\n\n\n");
@@ -801,16 +909,22 @@ class NewWorldTest {
             prevFormattedWarnings, formattedWarnings);
         newestWholeComponent = component2;
 
-        List<int> incrementalSerializationBytes2 =
-            checkIncrementalSerialization(incrementalSerialization, component2,
-                incrementalSerializer, world);
+        Result<List<int>> serializationResult = checkIncrementalSerialization(
+            incrementalSerialization, component2, incrementalSerializer, world);
+        if (!serializationResult.isPass) {
+          return serializationResult.copyWithOutput(data);
+        }
+        List<int> incrementalSerializationBytes2 = serializationResult.output;
 
         if ((incrementalSerializationBytes == null &&
                 incrementalSerializationBytes2 != null) ||
             (incrementalSerializationBytes != null &&
                 incrementalSerializationBytes2 == null)) {
-          throw "Incremental serialization gave results in one instance, "
-              "but not another.";
+          return new Result<TestData>(
+              data,
+              IncrementalSerializationError,
+              "Incremental serialization gave results in one instance, "
+              "but not another.");
         }
 
         if (incrementalSerializationBytes != null) {
@@ -837,22 +951,29 @@ class NewWorldTest {
           Procedure procedure = await compiler.compileExpression(
               expression, {}, [], "debugExpr", uri);
           if (gotError && !expectErrors) {
-            throw "Got error(s) on expression compilation: ${formattedErrors}.";
+            return new Result<TestData>(data, UnexpectedErrors,
+                "Got error(s) on expression compilation: ${formattedErrors}.");
           } else if (!gotError && expectErrors) {
-            throw "Didn't get any errors.";
+            return new Result<TestData>(
+                data, MissingErrors, "Didn't get any errors.");
           }
           if (gotWarning && !expectWarnings) {
-            throw "Got warning(s) on expression compilation: "
-                "${formattedWarnings}.";
+            return new Result<TestData>(
+                data,
+                UnexpectedWarnings,
+                "Got warning(s) on expression compilation: "
+                "${formattedWarnings}.");
           } else if (!gotWarning && expectWarnings) {
-            throw "Didn't get any warnings.";
+            return new Result<TestData>(
+                data, MissingWarnings, "Didn't get any warnings.");
           }
-          checkExpectFile(
+          Result<TestData> result = checkExpectFile(
               data,
               worldNum,
               ".expression.$expressionCompilationNum",
               context,
               nodeToString(procedure));
+          if (result != null) return result;
         }
       }
 
@@ -885,8 +1006,9 @@ class NewWorldTest {
             entryPoints: entries,
             simulateTransformer: world["simulateTransformer"]);
         compilerFromScratch = null;
-        performErrorAndWarningCheck(
-            world, gotError, formattedErrors, gotWarning, formattedWarnings);
+        Result<TestData> result = performErrorAndWarningCheck(world, data,
+            gotError, formattedErrors, gotWarning, formattedWarnings);
+        if (result != null) return result;
         util.throwOnEmptyMixinBodies(component3);
         await util.throwOnInsufficientUriToSource(component3);
         print("Compile took ${stopwatch.elapsedMilliseconds} ms");
@@ -897,16 +1019,25 @@ class NewWorldTest {
         checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
             prevFormattedWarnings, formattedWarnings);
 
-        List<int> incrementalSerializationBytes3 =
-            checkIncrementalSerialization(incrementalSerialization, component3,
-                incrementalSerializer2, world);
+        Result<List<int>> serializationResult = checkIncrementalSerialization(
+            incrementalSerialization,
+            component3,
+            incrementalSerializer2,
+            world);
+        if (!serializationResult.isPass) {
+          return serializationResult.copyWithOutput(data);
+        }
+        List<int> incrementalSerializationBytes3 = serializationResult.output;
 
         if ((incrementalSerializationBytes == null &&
                 incrementalSerializationBytes3 != null) ||
             (incrementalSerializationBytes != null &&
                 incrementalSerializationBytes3 == null)) {
-          throw "Incremental serialization gave results in one instance, "
-              "but not another.";
+          return new Result<TestData>(
+              data,
+              IncrementalSerializationError,
+              "Incremental serialization gave results in one instance, "
+              "but not another.");
         }
 
         if (incrementalSerializationBytes != null) {
@@ -930,11 +1061,45 @@ class NewWorldTest {
         print("Continuing after debug break");
       }
     }
+    return new Result<TestData>.pass(data);
   }
 }
 
-void checkExpectFile(TestData data, int worldNum, String extraUriString,
-    Context context, String actualSerialized) {
+Result checkNNBDSettings(Component component) {
+  NonNullableByDefaultCompiledMode mode = component.mode;
+  if (mode == NonNullableByDefaultCompiledMode.Invalid) return null;
+  for (Library lib in component.libraries) {
+    if (mode == lib.nonNullableByDefaultCompiledMode) continue;
+
+    if (mode == NonNullableByDefaultCompiledMode.Agnostic) {
+      // Component says agnostic but the library isn't => Error!
+      return new Result(
+          null,
+          NNBDModeMismatch,
+          "Component mode was agnostic but ${lib.importUri} had mode "
+          "${lib.nonNullableByDefaultCompiledMode}.");
+    }
+
+    // Agnostic can be mixed with everything.
+    if (lib.nonNullableByDefaultCompiledMode ==
+        NonNullableByDefaultCompiledMode.Agnostic) continue;
+
+    if (mode == NonNullableByDefaultCompiledMode.Strong ||
+        lib.nonNullableByDefaultCompiledMode ==
+            NonNullableByDefaultCompiledMode.Strong) {
+      // Non agnostic and one (but not both) are strong => error.
+      return new Result(
+          null,
+          NNBDModeMismatch,
+          "Component mode was $mode but ${lib.importUri} had mode "
+          "${lib.nonNullableByDefaultCompiledMode}.");
+    }
+  }
+  return null;
+}
+
+Result<TestData> checkExpectFile(TestData data, int worldNum,
+    String extraUriString, Context context, String actualSerialized) {
   Uri uri = data.loadedFrom.resolve(data.loadedFrom.pathSegments.last +
       ".world.$worldNum${extraUriString}.expect");
   String expected;
@@ -948,24 +1113,32 @@ void checkExpectFile(TestData data, int worldNum, String extraUriString,
     } else {
       String extra = "";
       if (expected == null) extra = "Expect file did not exist.\n";
-      throw "${extra}Unexpected serialized representation. "
+      return new Result<TestData>(
+          data,
+          expected == null ? ExpectationFileMissing : ExpectationFileMismatch,
+          "${extra}Unexpected serialized representation. "
           "Fix or update $uri to contain the below:\n\n"
-          "$actualSerialized";
+          "$actualSerialized",
+          autoFixCommand: "updateExpectations=true");
     }
   }
+  return null;
 }
 
 /// Check that the class hierarchy is up-to-date with reality.
 ///
 /// This has the option to do expect files, but it's disabled by default
 /// while we're trying to figure out if it's useful or not.
-void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
-    TestData data, int worldNum, Context context,
+Result<TestData> checkClassHierarchy(TestIncrementalCompiler compiler,
+    Component component, TestData data, int worldNum, Context context,
     {bool checkExpectFile: false}) {
   ClassHierarchy classHierarchy = compiler.getClassHierarchy();
   if (classHierarchy is! ClosedWorldClassHierarchy) {
-    throw "Expected the class hierarchy to be ClosedWorldClassHierarchy "
-        "but it wasn't. It was ${classHierarchy.runtimeType}";
+    return new Result<TestData>(
+        data,
+        ClassHierarchyError,
+        "Expected the class hierarchy to be ClosedWorldClassHierarchy "
+        "but it wasn't. It was ${classHierarchy.runtimeType}");
   }
   List<ForTestingClassInfo> classHierarchyData =
       (classHierarchy as ClosedWorldClassHierarchy).getTestingClassInfo();
@@ -973,7 +1146,8 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
       new Map<Class, ForTestingClassInfo>();
   for (ForTestingClassInfo info in classHierarchyData) {
     if (classHierarchyMap[info.classNode] != null) {
-      throw "Two entries for ${info.classNode}";
+      return new Result<TestData>(
+          data, ClassHierarchyError, "Two entries for ${info.classNode}");
     }
     classHierarchyMap[info.classNode] = info;
   }
@@ -986,28 +1160,35 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
       sb.writeln("  - Class ${c.name}");
 
       Set<Class> checkedSupertypes = <Class>{};
-      void checkSupertype(Supertype supertype) {
-        if (supertype == null) return;
+      Result<TestData> checkSupertype(Supertype supertype) {
+        if (supertype == null) return null;
         Class superclass = supertype.classNode;
         if (checkedSupertypes.add(superclass)) {
           Supertype asSuperClass =
               classHierarchy.getClassAsInstanceOf(c, superclass);
           if (asSuperClass == null) {
-            throw "${superclass} not found as a superclass of $c";
+            return new Result<TestData>(data, ClassHierarchyError,
+                "${superclass} not found as a superclass of $c");
           }
-          checkSupertype(superclass.supertype);
-          checkSupertype(superclass.mixedInType);
+          Result<TestData> result = checkSupertype(superclass.supertype);
+          if (result != null) return result;
+          result = checkSupertype(superclass.mixedInType);
+          if (result != null) return result;
           for (Supertype interface in superclass.implementedTypes) {
-            checkSupertype(interface);
+            result = checkSupertype(interface);
+            if (result != null) return result;
           }
         }
+        return null;
       }
 
-      checkSupertype(c.asThisSupertype);
+      Result<TestData> result = checkSupertype(c.asThisSupertype);
+      if (result != null) return result;
 
       ForTestingClassInfo info = classHierarchyMap[c];
       if (info == null) {
-        throw "Didn't find any class hierarchy info for $c";
+        return new Result<TestData>(data, ClassHierarchyError,
+            "Didn't find any class hierarchy info for $c");
       }
 
       if (info.lazyDeclaredGettersAndCalls != null) {
@@ -1022,21 +1203,30 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           if (f.isStatic) continue;
           if (!f.hasImplicitGetter) continue;
           if (!members.remove(f)) {
-            throw "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
-                "for ${c.name} in ${library.importUri}";
+            return new Result<TestData>(
+                data,
+                ClassHierarchyError,
+                "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
+                "for ${c.name} in ${library.importUri}");
           }
         }
         for (Procedure p in c.procedures) {
           if (p.isStatic) continue;
           if (p.isSetter) continue;
           if (!members.remove(p)) {
-            throw "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
-                "for ${c.name} in ${library.importUri}";
+            return new Result<TestData>(
+                data,
+                ClassHierarchyError,
+                "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
+                "for ${c.name} in ${library.importUri}");
           }
         }
         if (members.isNotEmpty) {
-          throw "Still have ${members.map((m) => m.name.text)} left "
-              "for ${c.name} in ${library.importUri}";
+          return new Result<TestData>(
+              data,
+              ClassHierarchyError,
+              "Still have ${members.map((m) => m.name.text)} left "
+              "for ${c.name} in ${library.importUri}");
         }
       }
       if (info.lazyDeclaredSetters != null) {
@@ -1051,19 +1241,24 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           if (f.isStatic) continue;
           if (!f.hasImplicitSetter) continue;
           if (!members.remove(f)) {
-            throw "Didn't find $f in lazyDeclaredSetters for $c";
+            return new Result<TestData>(data, ClassHierarchyError,
+                "Didn't find $f in lazyDeclaredSetters for $c");
           }
         }
         for (Procedure p in c.procedures) {
           if (p.isStatic) continue;
           if (!p.isSetter) continue;
           if (!members.remove(p)) {
-            throw "Didn't find $p in lazyDeclaredSetters for $c";
+            return new Result<TestData>(data, ClassHierarchyError,
+                "Didn't find $p in lazyDeclaredSetters for $c");
           }
         }
         if (members.isNotEmpty) {
-          throw "Still have ${members.map((m) => m.name.text)} left "
-              "for ${c.name} in ${library.importUri}";
+          return new Result<TestData>(
+              data,
+              ClassHierarchyError,
+              "Still have ${members.map((m) => m.name.text)} left "
+              "for ${c.name} in ${library.importUri}");
         }
       }
       if (info.lazyImplementedGettersAndCalls != null) {
@@ -1107,12 +1302,16 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
       } else {
         String extra = "";
         if (expected == null) extra = "Expect file did not exist.\n";
-        throw "${extra}Unexpected serialized representation. "
+        return new Result<TestData>(
+            data,
+            ClassHierarchyError,
+            "${extra}Unexpected serialized representation. "
             "Fix or update $uri to contain the below:\n\n"
-            "$actualClassHierarchy";
+            "$actualClassHierarchy");
       }
     }
   }
+  return null;
 }
 
 void checkErrorsAndWarnings(
@@ -1144,13 +1343,14 @@ void checkErrorsAndWarnings(
   }
 }
 
-List<int> checkIncrementalSerialization(
+Result<List<int>> checkIncrementalSerialization(
     bool incrementalSerialization,
     Component component,
     IncrementalSerializer incrementalSerializer,
     YamlMap world) {
   if (incrementalSerialization == true) {
-    Component c = new Component(nameRoot: component.root);
+    Component c = new Component(nameRoot: component.root)
+      ..setMainMethodAndMode(null, false, component.mode);
     c.libraries.addAll(component.libraries);
     c.uriToSource.addAll(component.uriToSource);
     Map<String, Set<String>> originalContent = buildMapOfContent(c);
@@ -1159,18 +1359,26 @@ List<int> checkIncrementalSerialization(
     incrementalSerializer.writePackagesToSinkAndTrimComponent(c, sink);
     int librariesAfter = c.libraries.length;
     if (librariesAfter > librariesBefore) {
-      throw "Incremental serialization added libraries!";
+      return new Result<List<int>>(null, IncrementalSerializationError,
+          "Incremental serialization added libraries!");
     }
     if (librariesBefore == librariesAfter &&
         world["incrementalSerializationDoesWork"] == true) {
-      throw "Incremental serialization didn't remove any libraries!";
+      return new Result<List<int>>(null, IncrementalSerializationError,
+          "Incremental serialization didn't remove any libraries!");
     }
     if (librariesAfter < librariesBefore && sink.builder.isEmpty) {
-      throw "Incremental serialization didn't output any bytes, "
-          "but did remove libraries";
+      return new Result<List<int>>(
+          null,
+          IncrementalSerializationError,
+          "Incremental serialization didn't output any bytes, "
+          "but did remove libraries");
     } else if (librariesAfter == librariesBefore && !sink.builder.isEmpty) {
-      throw "Incremental serialization did output bytes, "
-          "but didn't remove libraries";
+      return new Result<List<int>>(
+          null,
+          IncrementalSerializationError,
+          "Incremental serialization did output bytes, "
+          "but didn't remove libraries");
     }
     if (librariesAfter < librariesBefore) {
       // If we actually did incrementally serialize anything, check the output!
@@ -1191,8 +1399,11 @@ List<int> checkIncrementalSerialization(
         for (String uriString in serializationShouldNotInclude) {
           Uri uri = Uri.parse(uriString);
           if (includedImportUris.contains(uri)) {
-            throw "Incremental serialization shouldn't include "
-                "$uriString but did.";
+            return new Result<List<int>>(
+                null,
+                IncrementalSerializationError,
+                "Incremental serialization shouldn't include "
+                "$uriString but did.");
           }
         }
       }
@@ -1207,18 +1418,20 @@ List<int> checkIncrementalSerialization(
       for (String key in newKeys) {
         afterContent.remove(key);
       }
-      checkExpectedContentData(afterContent, originalContent);
+      Result result = checkExpectedContentData(afterContent, originalContent);
+      if (result != null) return result.copyWithOutput<List<int>>(null);
 
       // Check that the result is self-contained.
-      checkSelfContained(loadedComponent);
+      result = checkSelfContained(loadedComponent);
+      if (result != null) return result.copyWithOutput<List<int>>(null);
 
-      return bytes;
+      return new Result<List<int>>.pass(bytes);
     }
   }
-  return null;
+  return new Result<List<int>>.pass(null);
 }
 
-void checkSelfContained(Component component) {
+Result checkSelfContained(Component component) {
   Set<Library> got = new Set<Library>.from(component.libraries);
   for (Library lib in component.libraries) {
     for (LibraryDependency dependency in lib.dependencies) {
@@ -1229,11 +1442,15 @@ void checkSelfContained(Component component) {
             .startsWith("root::dart:")) {
           continue;
         }
-        throw "Component didn't contain ${dependency.importedLibraryReference} "
-            "and it should have.";
+        return Result(
+            null,
+            IncrementalSerializationError,
+            "Component didn't contain ${dependency.importedLibraryReference} "
+            "and it should have.");
       }
     }
   }
+  return null;
 }
 
 void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
@@ -1254,33 +1471,46 @@ void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
   }
 }
 
-void checkExpectedContent(YamlMap world, Component component) {
+Result checkExpectedContent(YamlMap world, Component component) {
   if (world["expectedContent"] != null) {
     Map<String, Set<String>> actualContent = buildMapOfContent(component);
     Map expectedContent = world["expectedContent"];
-    checkExpectedContentData(actualContent, expectedContent);
+    return checkExpectedContentData(actualContent, expectedContent);
   }
+  return null;
 }
 
-void checkExpectedContentData(
+Result checkExpectedContentData(
     Map<String, Set<String>> actualContent, Map expectedContent) {
-  doThrow() {
-    throw "Expected and actual content not the same.\n"
+  Result<TestData> createFailureResult() {
+    return new Result(
+        null,
+        ContentDataMismatch,
+        "Expected and actual content not the same.\n"
         "Expected $expectedContent.\n"
-        "Got $actualContent";
+        "Got $actualContent");
   }
 
-  if (actualContent.length != expectedContent.length) doThrow();
+  if (actualContent.length != expectedContent.length) {
+    return createFailureResult();
+  }
   Set<String> missingKeys = actualContent.keys.toSet()
     ..removeAll(expectedContent.keys);
-  if (missingKeys.isNotEmpty) doThrow();
+  if (missingKeys.isNotEmpty) {
+    return createFailureResult();
+  }
   for (String key in expectedContent.keys) {
     Set<String> expected = new Set<String>.from(expectedContent[key]);
     Set<String> actual = actualContent[key].toSet();
-    if (expected.length != actual.length) doThrow();
+    if (expected.length != actual.length) {
+      return createFailureResult();
+    }
     actual.removeAll(expected);
-    if (actual.isNotEmpty) doThrow();
+    if (actual.isNotEmpty) {
+      return createFailureResult();
+    }
   }
+  return null;
 }
 
 Map<String, Set<String>> buildMapOfContent(Component component) {
@@ -1301,8 +1531,8 @@ Map<String, Set<String>> buildMapOfContent(Component component) {
   return actualContent;
 }
 
-void checkNeededDillLibraries(
-    YamlMap world, Set<Library> neededDillLibraries, Uri base) {
+Result<TestData> checkNeededDillLibraries(
+    YamlMap world, TestData data, Set<Library> neededDillLibraries, Uri base) {
   if (world["neededDillLibraries"] != null) {
     List<Uri> actualContent = new List<Uri>();
     for (Library lib in neededDillLibraries) {
@@ -1315,20 +1545,30 @@ void checkNeededDillLibraries(
       expectedContent.add(base.resolve(entry));
     }
 
-    doThrow() {
-      throw "Expected and actual content not the same.\n"
+    Result<TestData> createFailureResult() {
+      return new Result<TestData>(
+          data,
+          NeededDillMismatch,
+          "Expected and actual content not the same.\n"
           "Expected $expectedContent.\n"
-          "Got $actualContent";
+          "Got $actualContent");
     }
 
-    if (actualContent.length != expectedContent.length) doThrow();
+    if (actualContent.length != expectedContent.length) {
+      return createFailureResult();
+    }
     Set<Uri> notInExpected =
         actualContent.toSet().difference(expectedContent.toSet());
     Set<Uri> notInActual =
         expectedContent.toSet().difference(actualContent.toSet());
-    if (notInExpected.isNotEmpty) doThrow();
-    if (notInActual.isNotEmpty) doThrow();
+    if (notInExpected.isNotEmpty) {
+      return createFailureResult();
+    }
+    if (notInActual.isNotEmpty) {
+      return createFailureResult();
+    }
   }
+  return null;
 }
 
 String nodeToString(TreeNode node) {
@@ -1337,16 +1577,18 @@ String nodeToString(TreeNode node) {
   return '$buffer';
 }
 
-String componentToStringSdkFiltered(Component node) {
+String componentToStringSdkFiltered(Component component) {
   Component c = new Component();
   List<Uri> dartUris = new List<Uri>();
-  for (Library lib in node.libraries) {
+  for (Library lib in component.libraries) {
     if (lib.importUri.scheme == "dart") {
       dartUris.add(lib.importUri);
     } else {
       c.libraries.add(lib);
     }
   }
+  c.setMainMethodAndMode(component.mainMethodName, true, component.mode);
+  c.problemsAsJson = component.problemsAsJson;
 
   StringBuffer s = new StringBuffer();
   s.write(componentToString(c));
@@ -1386,22 +1628,28 @@ int countSyntheticLibraries(Component c) {
   return result;
 }
 
-void performErrorAndWarningCheck(
+Result<TestData> performErrorAndWarningCheck(
     YamlMap world,
+    TestData data,
     bool gotError,
     Set<String> formattedErrors,
     bool gotWarning,
     Set<String> formattedWarnings) {
   if (world["errors"] == true && !gotError) {
-    throw "Expected error, but didn't get any.";
+    return new Result<TestData>(
+        data, MissingErrors, "Expected error, but didn't get any.");
   } else if (world["errors"] != true && gotError) {
-    throw "Got unexpected error(s): $formattedErrors.";
+    return new Result<TestData>(
+        data, UnexpectedErrors, "Got unexpected error(s): $formattedErrors.");
   }
   if (world["warnings"] == true && !gotWarning) {
-    throw "Expected warning, but didn't get any.";
+    return new Result<TestData>(
+        data, MissingWarnings, "Expected warning, but didn't get any.");
   } else if (world["warnings"] != true && gotWarning) {
-    throw "Got unexpected warnings(s): $formattedWarnings.";
+    return new Result<TestData>(data, UnexpectedWarnings,
+        "Got unexpected warnings(s): $formattedWarnings.");
   }
+  return null;
 }
 
 void checkIsEqual(List<int> a, List<int> b) {
@@ -1663,10 +1911,13 @@ void doSimulateTransformer(Component c) {
     Name fieldName = new Name("unique_SimulateTransformer");
     Field field = new Field(fieldName,
         isFinal: true,
-        reference: lib.reference.canonicalName
+        getterReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
+            ?.reference,
+        setterReference: lib.reference.canonicalName
+            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
-    lib.addMember(field);
+    lib.addField(field);
     for (Class c in lib.classes) {
       if (c.fields
           .where((f) => f.name.text == "unique_SimulateTransformer")
@@ -1675,10 +1926,13 @@ void doSimulateTransformer(Component c) {
       fieldName = new Name("unique_SimulateTransformer");
       field = new Field(fieldName,
           isFinal: true,
-          reference: c.reference.canonicalName
+          getterReference: c.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
+              ?.reference,
+          setterReference: c.reference.canonicalName
+              ?.getChildFromFieldSetterWithName(fieldName)
               ?.reference);
-      c.addMember(field);
+      c.addField(field);
     }
   }
 }

@@ -816,8 +816,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       reportLocatedMessage(reporter, message, context);
     },
         environment: _environment.toMap(),
-        enableTripleShift:
-            options.languageExperiments[ir.ExperimentalFlag.tripleShift],
+        enableTripleShift: options.enableTripleShift,
         evaluationMode: options.useLegacySubtyping
             ? ir.EvaluationMode.weak
             : ir.EvaluationMode.strong);
@@ -1430,12 +1429,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           new ir.StaticTypeContext(node, typeEnvironment));
       return converter.convert(impactData);
     } else {
+      StaticTypeCacheImpl staticTypeCache = new StaticTypeCacheImpl();
       KernelImpactBuilder builder = new KernelImpactBuilder(
           this,
           member,
           reporter,
           options,
-          new ir.StaticTypeContext(node, typeEnvironment),
+          new ir.StaticTypeContext(node, typeEnvironment,
+              cache: staticTypeCache),
+          staticTypeCache,
           variableScopeModel,
           annotations,
           _constantValuefier);

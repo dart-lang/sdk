@@ -5,6 +5,8 @@
 // Add fields with data about the test run and the commit tested, and
 // with the result on the last build tested, to the test results file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 

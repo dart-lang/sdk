@@ -311,7 +311,8 @@ class Forest {
 
   /// Return a representation of a block of [statements] at the given
   /// [fileOffset].
-  Statement createBlock(int fileOffset, List<Statement> statements) {
+  Statement createBlock(
+      int fileOffset, int fileEndOffset, List<Statement> statements) {
     assert(fileOffset != null);
     List<Statement> copy;
     for (int i = 0; i < statements.length; i++) {
@@ -323,7 +324,9 @@ class Forest {
         copy.add(statement);
       }
     }
-    return new Block(copy ?? statements)..fileOffset = fileOffset;
+    return new Block(copy ?? statements)
+      ..fileOffset = fileOffset
+      ..fileEndOffset = fileEndOffset;
   }
 
   /// Return a representation of a break statement.

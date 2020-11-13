@@ -20,7 +20,7 @@ class ConvertIntoAsyncBodyTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_INTO_ASYNC_BODY;
 
   Future<void> test_async() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 Future<String> f() async => '';
 ''');
@@ -28,7 +28,7 @@ Future<String> f() async => '';
   }
 
   Future<void> test_asyncStar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 Stream<String> f() async* {}
 ''');
@@ -36,7 +36,7 @@ Stream<String> f() async* {}
   }
 
   Future<void> test_closure() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   f(() => 123);
 }
@@ -51,7 +51,7 @@ f(g) {}
   }
 
   Future<void> test_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   C() {}
 }
@@ -60,7 +60,7 @@ class C {
   }
 
   Future<void> test_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() => '';
 ''');
     await assertHasAssistAt('=>', '''
@@ -69,7 +69,7 @@ Future<String> f() async => '';
   }
 
   Future<void> test_getter_expression_noSpace() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int get g=>0;
 }
@@ -82,7 +82,7 @@ class C {
   }
 
   Future<void> test_inBody_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   void foo() {
     print(42);
@@ -93,7 +93,7 @@ class C {
   }
 
   Future<void> test_inBody_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   void foo() => print(42);
 }
@@ -102,7 +102,7 @@ class C {
   }
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int m() { return 0; }
 }
@@ -115,7 +115,7 @@ class C {
   }
 
   Future<void> test_method_abstract() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class C {
   int m();
 }
@@ -124,7 +124,7 @@ abstract class C {
   }
 
   Future<void> test_method_noReturnType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   m() { return 0; }
 }
@@ -137,7 +137,7 @@ class C {
   }
 
   Future<void> test_syncStar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Iterable<String> f() sync* {}
 ''');
     await assertNoAssistAt('{}');

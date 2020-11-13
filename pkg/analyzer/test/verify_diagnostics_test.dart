@@ -407,11 +407,18 @@ class _SnippetTest extends PubPackageResolutionTest {
 
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
         experiments: snippet.experiments,
       ),
     );
+  }
+
+  @override
+  String get testPackageLanguageVersion {
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
+    return snippet.experiments == null ? '2.9' : null;
   }
 
   @override

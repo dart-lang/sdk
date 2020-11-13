@@ -29,7 +29,7 @@ class ConvertToRelativeImportTest extends FixProcessorLintTest {
 class C {}
 ''');
     testFile = convertPath('/home/test/lib/src/test.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/foo.dart';
 C c;
 ''');
@@ -44,7 +44,7 @@ C c;
     // Validate we don't get a fix with imports referencing different packages.
     addSource('/home/test1/lib/foo.dart', '');
     testFile = convertPath('/home/test2/lib/bar.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test1/foo.dart';
 ''');
 
@@ -54,7 +54,7 @@ import 'package:test1/foo.dart';
   Future<void> test_relativeImportGarbledUri() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/bar.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/foo';
 ''');
 
@@ -70,7 +70,7 @@ import 'foo';
 class C {}
 ''');
     testFile = convertPath('/home/test/lib/bar.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import "package:test/foo.dart";
 C c;
 ''');
@@ -86,7 +86,7 @@ C c;
 class C {}
 ''');
     testFile = convertPath('/home/test/lib/bar.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/foo.dart';
 C c;
 ''');
@@ -102,7 +102,7 @@ C c;
 class C {}
 ''');
     testFile = convertPath('/home/test/lib/test.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/baz/foo.dart';
 C c;
 ''');

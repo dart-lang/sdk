@@ -183,7 +183,7 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
           positionalParameters: [other]),
       fileUri: cls.fileUri)
     ..fileOffset = cls.fileOffset;
-  cls.addMember(equalsOperator);
+  cls.addProcedure(equalsOperator);
 }
 
 void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
@@ -226,7 +226,7 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     targetsHashcode[variable] = targetHashcode;
     targets[variable] = target;
   }
-  cls.addMember(Procedure(
+  cls.addProcedure(Procedure(
       Name("hashCode"),
       ProcedureKind.Getter,
       FunctionNode(
@@ -278,7 +278,7 @@ void addToString(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
   }
   DartType returnType =
       coreTypes.stringRawType(cls.enclosingLibrary.nonNullable);
-  cls.addMember(Procedure(
+  cls.addProcedure(Procedure(
       Name("toString"),
       ProcedureKind.Method,
       FunctionNode(ReturnStatement(StringConcatenation(wording)),
@@ -311,7 +311,7 @@ void addCopyWith(
     targets[variable] = target;
   }
 
-  cls.addMember(Procedure(
+  cls.addProcedure(Procedure(
       Name("copyWith"),
       ProcedureKind.Method,
       FunctionNode(

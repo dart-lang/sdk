@@ -135,7 +135,8 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
         compiler.stopAfterTypeInference =
             options.contains(stopAfterTypeInference);
       },
-      packageConfig: packageConfig);
+      packageConfig: packageConfig,
+      unsafeToTouchSourceFiles: true);
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
     Expect.isTrue(
@@ -453,7 +454,7 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 Uri createUriForFileName(String fileName) {
   // Pretend this is a dart2js_native test to allow use of 'native'
   // keyword and import of private libraries.
-  return Uri.parse('memory:sdk/tests/dart2js_2/native/$fileName');
+  return Uri.parse('memory:sdk/tests/dart2js/native/$fileName');
 }
 
 Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,

@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::String> original = #C11;
+static const field core::List<core::String> copy1 = #C11;
+static const field core::List<core::String> copy2 = #C11;
+static const field core::List<core::String> copy3 = #C11;
+static const field core::List<core::String> copy4 = #C11;
+static const field core::List<core::String> copy5 = #C11;
+static const field core::List<core::String> copy6 = #C11;
+static const field core::List<core::String> copy7 = #C11;
+static const field core::List<core::String> copy8 = #C11;
+static const field core::List<core::String> copy9 = #C11;
+static const field core::List<core::String> copy10 = #C11;
+static const field core::List<core::String> copy11 = #C11;
+static const field core::List<core::String> copy12 = #C11;
+static const field core::List<core::String> copy13 = #C11;
+static const field core::List<core::String> copy14 = #C11;
+static const field core::List<core::String> copy15 = #C11;
+static const field core::List<core::String> copy16 = #C11;
+static const field core::List<core::String> copy17 = #C11;
+static const field core::List<core::String> copy18 = #C11;
+static const field core::List<core::String> copy19 = #C11;
+static const field core::List<core::String> copy20 = #C11;
+static const field core::List<core::String> copy21 = #C11;
+static const field core::List<core::String> copy22 = #C11;
+static const field core::List<core::String> copy23 = #C11;
+static const field core::List<core::String> copy24 = #C11;
+static const field core::List<core::String> copy25 = #C11;
+static const field core::List<core::String> copy26 = #C11;
+static const field core::List<core::String> copy27 = #C11;
+static const field core::List<core::String> copy28 = #C11;
+static const field core::List<core::String> copy29 = #C11;
+static const field core::List<core::String> copy30 = #C11;
+static const field core::List<core::String> copy31 = #C11;
+static const field core::List<core::String> copy32 = #C11;
+static const field core::List<core::String> copy33 = #C11;
+static const field core::List<core::String> copy34 = #C11;
+static const field core::List<core::String> copy35 = #C11;
+static const field core::List<core::String> copy36 = #C11;
+static const field core::List<core::String> copy37 = #C11;
+static const field core::List<core::String> copy38 = #C11;
+static const field core::List<core::String> copy39 = #C11;
+static const field core::List<core::String> copy40 = #C11;
+static const field core::List<core::String> copy41 = #C11;
+static const field core::List<core::String> copy42 = #C11;
+static const field core::List<core::String> copy43 = #C11;
+static const field core::List<core::String> copy44 = #C11;
+static const field core::List<core::String> copy45 = #C11;
+static const field core::List<core::String> copy46 = #C11;
+static const field core::List<core::String> copy47 = #C11;
+static const field core::List<core::String> copy48 = #C11;
+static const field core::List<core::String> copy49 = #C11;
+static const field core::List<core::String> copy50 = #C11;
+
+constants  {
+  #C1 = "lots"
+  #C2 = "of"
+  #C3 = "strings"
+  #C4 = <core::String>[#C1, #C2, #C3]
+  #C5 = "original"
+  #C6 = "that"
+  #C7 = "are"
+  #C8 = "already"
+  #C9 = "constants"
+  #C10 = <core::String>[#C6, #C7, #C8, #C9]
+  #C11 = eval #C4 + const <dynamic>[const core::String::fromEnvironment(#C5)] + #C10
+}

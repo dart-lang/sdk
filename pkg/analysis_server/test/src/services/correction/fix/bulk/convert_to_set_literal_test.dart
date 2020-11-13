@@ -19,7 +19,7 @@ class ConvertToSetLiteralTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_collection_literals;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Set s = Set();
 var s1 = Set<int>();
 ''');

@@ -334,7 +334,7 @@ static const field core::int* circularity4 = self::circularity1;
 static const field dynamic function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
 const function_const = () {};
                        ^^";
-static field () →* core::Null? function_var;
+static field () →* Null function_var;
 static field self::ConstClassWithFailingAssertWithEmptyMessage* failedAssertEmptyMessage;
 static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic>* classWithTypeArguments1 = const self::ClassWithTypeArguments::•<core::int*, core::int*, core::int*>(42, 42, 42);
 static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic>* classWithTypeArguments2 = const self::ClassWithTypeArguments::•<dynamic, dynamic, dynamic>(42, 42, 42);

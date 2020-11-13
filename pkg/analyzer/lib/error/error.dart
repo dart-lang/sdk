@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
+import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
@@ -63,7 +64,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER,
   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-  CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
   CompileTimeErrorCode.AMBIGUOUS_IMPORT,
@@ -123,7 +123,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
   CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE,
   CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-  CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
   CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
   CompileTimeErrorCode
       .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
@@ -482,6 +481,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.DEPRECATED_MIXIN_FUNCTION,
   HintCode.DIVISION_OPTIMIZATION,
   HintCode.DUPLICATE_HIDDEN_NAME,
+  HintCode.DUPLICATE_IGNORE,
   HintCode.DUPLICATE_IMPORT,
   HintCode.DUPLICATE_SHOWN_NAME,
   HintCode.EQUAL_ELEMENTS_IN_SET,
@@ -535,6 +535,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.NULL_AWARE_BEFORE_OPERATOR,
   HintCode.NULL_AWARE_IN_CONDITION,
   HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR,
+  HintCode.NULL_CHECK_ALWAYS_FAILS,
   HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
   HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
@@ -561,7 +562,9 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.TYPE_CHECK_IS_NULL,
   HintCode.UNDEFINED_HIDDEN_NAME,
   HintCode.UNDEFINED_SHOWN_NAME,
+  HintCode.UNIGNORABLE_IGNORE,
   HintCode.UNNECESSARY_CAST,
+  HintCode.UNNECESSARY_IGNORE,
   HintCode.UNNECESSARY_NO_SUCH_METHOD,
   HintCode.UNNECESSARY_NULL_COMPARISON_FALSE,
   HintCode.UNNECESSARY_NULL_COMPARISON_TRUE,
@@ -793,6 +796,9 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.WITH_BEFORE_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+  PubspecWarningCode.INVALID_DEPENDENCY,
+  PubspecWarningCode.PATH_DOES_NOT_EXIST,
+  PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,

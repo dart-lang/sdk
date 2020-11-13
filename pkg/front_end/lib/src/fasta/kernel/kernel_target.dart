@@ -4,9 +4,9 @@
 
 library fasta.kernel_target;
 
-import 'dart:async' show Future;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
+    show DillLibraryBuilder;
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -39,29 +39,20 @@ import 'package:kernel/ast.dart'
         TypeParameterType,
         VariableDeclaration,
         VariableGet;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
-
 import 'package:kernel/core_types.dart';
-
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
-
-import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
-import 'package:kernel/verifier.dart' show verifyGetStaticType;
-
 import 'package:kernel/transformations/value_class.dart' as valueClass;
-
+import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 import '../../base/nnbd_mode.dart';
-
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -79,27 +70,25 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-
 import '../compiler_context.dart' show CompilerContext;
-
 import '../crash.dart' show withCrashReporting;
-
-import '../dill/dill_target.dart' show DillTarget;
-
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
-
-import '../fasta_codes.dart' show Message, LocatedMessage;
-
+import '../dill/dill_target.dart' show DillTarget;
+import '../fasta_codes.dart' show LocatedMessage, Message;
 import '../loader.dart' show Loader;
-
 import '../messages.dart'
     show
         FormattedMessage,
+        messageAgnosticWithStrongDillLibrary,
+        messageAgnosticWithWeakDillLibrary,
         messageConstConstructorLateFinalFieldCause,
         messageConstConstructorLateFinalFieldError,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
+        messageInvalidNnbdDillLibrary,
+        messageStrongWithWeakDillLibrary,
+        messageWeakWithStrongDillLibrary,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -108,29 +97,18 @@ import '../messages.dart'
         templateInferredPackageUri,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
-
 import '../problems.dart' show unhandled;
-
 import '../scope.dart' show AmbiguousBuilder;
-
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import '../source/source_loader.dart' show SourceLoader;
-
 import '../target_implementation.dart' show TargetImplementation;
-
 import '../uri_translator.dart' show UriTranslator;
-
 import 'constant_evaluator.dart' as constants
     show EvaluationMode, transformLibraries, transformProcedure;
-
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
-
 import 'metadata_collector.dart' show MetadataCollector;
-
-import 'verifier.dart' show verifyComponent;
+import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
@@ -274,10 +252,44 @@ class KernelTarget extends TargetImplementation {
     if (dillTarget.isLoaded) {
       LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
-        if (loader.nnbdMode == NnbdMode.Strong ||
-            loader.nnbdMode == NnbdMode.Agnostic) {
-          if (!builder.isNonNullableByDefault) {
-            loader.registerStrongOptOutLibrary(builder);
+        if (!builder.isNonNullableByDefault &&
+            (loader.nnbdMode == NnbdMode.Strong ||
+                loader.nnbdMode == NnbdMode.Agnostic)) {
+          loader.registerStrongOptOutLibrary(builder);
+        } else if (builder is DillLibraryBuilder) {
+          NonNullableByDefaultCompiledMode libraryMode =
+              builder.library.nonNullableByDefaultCompiledMode;
+          if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
+            loader.registerNnbdMismatchLibrary(
+                builder, messageInvalidNnbdDillLibrary);
+          } else {
+            switch (loader.nnbdMode) {
+              case NnbdMode.Weak:
+                if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                    libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+                  loader.registerNnbdMismatchLibrary(
+                      builder, messageWeakWithStrongDillLibrary);
+                }
+                break;
+              case NnbdMode.Strong:
+                if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                    libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+                  loader.registerNnbdMismatchLibrary(
+                      builder, messageStrongWithWeakDillLibrary);
+                }
+                break;
+              case NnbdMode.Agnostic:
+                if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
+                  if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
+                    loader.registerNnbdMismatchLibrary(
+                        builder, messageAgnosticWithStrongDillLibrary);
+                  } else {
+                    loader.registerNnbdMismatchLibrary(
+                        builder, messageAgnosticWithWeakDillLibrary);
+                  }
+                }
+                break;
+            }
           }
         }
         return builder;
@@ -328,10 +340,6 @@ class KernelTarget extends TargetImplementation {
       await loader.buildOutlines();
       loader.createTypeInferenceEngine();
       loader.coreLibrary.becomeCoreLibrary();
-      dynamicType.bind(
-          loader.coreLibrary.lookupLocalMember("dynamic", required: true));
-      bottomType
-          .bind(loader.coreLibrary.lookupLocalMember("Never", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
       setupTopAndBottomTypes();
@@ -440,7 +448,10 @@ class KernelTarget extends TargetImplementation {
           break;
       }
     } else {
-      compiledMode = NonNullableByDefaultCompiledMode.Disabled;
+      compiledMode = NonNullableByDefaultCompiledMode.Weak;
+    }
+    if (loader.hasInvalidNnbdModeLibrary) {
+      compiledMode = NonNullableByDefaultCompiledMode.Invalid;
     }
 
     Reference mainReference;
@@ -465,9 +476,86 @@ class KernelTarget extends TargetImplementation {
     if (metadataCollector != null) {
       component.addMetadataRepository(metadataCollector.repository);
     }
+    assert(_getLibraryNnbdModeError(component) == null,
+        "Got error: ${_getLibraryNnbdModeError(component)}");
 
     ticker.logMs("Linked component");
     return component;
+  }
+
+  String _getLibraryNnbdModeError(Component component) {
+    if (loader.hasInvalidNnbdModeLibrary) {
+      // At least 1 library should be invalid or there should be a mix of strong
+      // and weak. For libraries we've just compiled it will be marked as
+      // invalid, but for libraries loaded from dill they have their original
+      // value (i.e. either strong or weak).
+      bool foundInvalid = false;
+      bool foundStrong = false;
+      bool foundWeak = false;
+      for (Library library in component.libraries) {
+        if (library.nonNullableByDefaultCompiledMode ==
+            NonNullableByDefaultCompiledMode.Invalid) {
+          foundInvalid = true;
+          break;
+        } else if (!foundWeak &&
+            library.nonNullableByDefaultCompiledMode ==
+                NonNullableByDefaultCompiledMode.Weak) {
+          foundWeak = true;
+          if (foundStrong) break;
+        } else if (!foundStrong &&
+            library.nonNullableByDefaultCompiledMode ==
+                NonNullableByDefaultCompiledMode.Strong) {
+          foundStrong = true;
+          if (foundWeak) break;
+        }
+      }
+      if (!foundInvalid && !(foundStrong && foundWeak)) {
+        return "hasInvalidNnbdModeLibrary is true, but no library was invalid "
+            "and there was no weak/strong mix.";
+      }
+      if (component.mode != NonNullableByDefaultCompiledMode.Invalid) {
+        return "Component mode is not invalid as expected";
+      }
+    } else {
+      // No libraries are allowed to be invalid, and should all be compatible
+      // with the component nnbd mode setting.
+      if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
+        return "Component mode is invalid which was not expected";
+      }
+      if (component.modeRaw == null) {
+        return "Component mode not set at all";
+      }
+      for (Library library in component.libraries) {
+        if (component.mode == NonNullableByDefaultCompiledMode.Strong) {
+          if (library.nonNullableByDefaultCompiledMode !=
+                  NonNullableByDefaultCompiledMode.Strong &&
+              library.nonNullableByDefaultCompiledMode !=
+                  NonNullableByDefaultCompiledMode.Agnostic) {
+            return "Expected library ${library.importUri} to be strong or "
+                "agnostic, but was ${library.nonNullableByDefaultCompiledMode}";
+          }
+        } else if (component.mode == NonNullableByDefaultCompiledMode.Weak) {
+          if (library.nonNullableByDefaultCompiledMode !=
+                  NonNullableByDefaultCompiledMode.Weak &&
+              library.nonNullableByDefaultCompiledMode !=
+                  NonNullableByDefaultCompiledMode.Agnostic) {
+            return "Expected library ${library.importUri} to be weak or "
+                "agnostic, but was ${library.nonNullableByDefaultCompiledMode}";
+          }
+        } else if (component.mode ==
+            NonNullableByDefaultCompiledMode.Agnostic) {
+          if (library.nonNullableByDefaultCompiledMode !=
+              NonNullableByDefaultCompiledMode.Agnostic) {
+            return "Expected library ${library.importUri} to be agnostic, "
+                "but was ${library.nonNullableByDefaultCompiledMode}";
+          }
+        } else {
+          return "Expected component mode to be either strong, "
+              "weak or agnostic but was ${component.mode}";
+        }
+      }
+    }
+    return null;
   }
 
   void installDefaultSupertypes() {
@@ -752,11 +840,13 @@ class KernelTarget extends TargetImplementation {
   void setupTopAndBottomTypes() {
     objectType
         .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
-
+    dynamicType
+        .bind(loader.coreLibrary.lookupLocalMember("dynamic", required: true));
     ClassBuilder nullClassBuilder =
         loader.coreLibrary.lookupLocalMember("Null", required: true);
-    nullClassBuilder.isNullClass = true;
-    nullType.bind(nullClassBuilder);
+    nullType.bind(nullClassBuilder..isNullClass = true);
+    bottomType
+        .bind(loader.coreLibrary.lookupLocalMember("Never", required: true));
   }
 
   void computeCoreTypes() {
@@ -1221,14 +1311,16 @@ class KernelTarget extends TargetImplementation {
 
   void verify() {
     // TODO(ahe): How to handle errors.
-    verifyComponent(component);
+    verifyComponent(component,
+        skipPlatform: context.options.verifySkipPlatform);
     ClassHierarchy hierarchy =
         new ClassHierarchy(component, new CoreTypes(component),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
       // An error has already been reported.
     });
     verifyGetStaticType(
-        new TypeEnvironment(loader.coreTypes, hierarchy), component);
+        new TypeEnvironment(loader.coreTypes, hierarchy), component,
+        skipPlatform: context.options.verifySkipPlatform);
     ticker.logMs("Verified component");
   }
 

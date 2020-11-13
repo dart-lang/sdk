@@ -252,6 +252,26 @@ void main() {
     ]);
   }
 
+  test_topLevelVariable() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+@visibleForTemplate
+int a = 7;
+''');
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
+import 'lib1.dart';
+
+void main() {
+  a;
+}
+''');
+
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 37, 1),
+    ]);
+  }
+
   test_unnamedConstructor() async {
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:angular_meta/angular_meta.dart';

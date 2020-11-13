@@ -178,38 +178,4 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
           name: libraryName);
     }
   }
-
-  @override
-  void processJsInteropAnnotations(
-      NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder) {
-    DiagnosticReporter reporter = elementMap.reporter;
-    KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-    KCommonElements commonElements = elementMap.commonElements;
-
-    for (LibraryEntity library in elementEnvironment.libraries) {
-      // Error checking for class inheritance must happen after the first pass
-      // through all the classes because it is possible to declare a subclass
-      // before a superclass that has not yet had "markJsInteropClass" called on
-      // it.
-      elementEnvironment.forEachClass(library, (ClassEntity cls) {
-        ir.Class classNode = elementMap.getClassNode(cls);
-        String className = annotationData.getJsInteropClassName(classNode);
-        if (className != null) {
-          bool implementsJsJavaScriptObjectClass = false;
-          elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
-            if (supertype.element == commonElements.jsJavaScriptObjectClass) {
-              implementsJsJavaScriptObjectClass = true;
-            }
-          });
-          if (!implementsJsJavaScriptObjectClass) {
-            reporter.reportErrorMessage(
-                cls, MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
-              'cls': cls.name,
-              'superclass': elementEnvironment.getSuperClass(cls).name
-            });
-          }
-        }
-      });
-    }
-  }
 }

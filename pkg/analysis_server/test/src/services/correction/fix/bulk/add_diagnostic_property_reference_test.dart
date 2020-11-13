@@ -19,8 +19,8 @@ class AddDiagnosticPropertyReferenceTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.diagnostic_describe_all_properties;
 
   Future<void> test_singleFile() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 

@@ -48,9 +48,9 @@ void Assembler::LoadNativeEntry(
     Register dst,
     const ExternalLabel* label,
     ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindNativeFunction(label, patchable));
-  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
+  const intptr_t index =
+      object_pool_builder().FindNativeFunction(label, patchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::call(const ExternalLabel* label) {
@@ -67,8 +67,7 @@ void Assembler::CallPatchable(const Code& target, CodeEntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
   const intptr_t idx = object_pool_builder().AddObject(
       ToObject(target), ObjectPoolBuilderEntry::kPatchable);
-  const int32_t offset = target::ObjectPool::element_offset(idx);
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  LoadWordFromPoolIndex(CODE_REG, idx);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
@@ -78,8 +77,7 @@ void Assembler::CallWithEquivalence(const Code& target,
   ASSERT(constant_pool_allowed());
   const intptr_t idx =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  const int32_t offset = target::ObjectPool::element_offset(idx);
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  LoadWordFromPoolIndex(CODE_REG, idx);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
@@ -87,8 +85,7 @@ void Assembler::Call(const Code& target) {
   ASSERT(constant_pool_allowed());
   const intptr_t idx = object_pool_builder().FindObject(
       ToObject(target), ObjectPoolBuilderEntry::kNotPatchable);
-  const int32_t offset = target::ObjectPool::element_offset(idx);
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  LoadWordFromPoolIndex(CODE_REG, idx);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 }
 
@@ -248,8 +245,7 @@ void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
 #endif
   }
 
-  movq(Assembler::VMTagAddress(),
-       Immediate(target::Thread::vm_tag_compiled_id()));
+  movq(Assembler::VMTagAddress(), Immediate(target::Thread::vm_tag_dart_id()));
   movq(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 
@@ -1210,9 +1206,12 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   return true;
 }
 
-void Assembler::LoadWordFromPoolOffset(Register dst, int32_t offset) {
+void Assembler::LoadWordFromPoolIndex(Register dst, intptr_t idx) {
   ASSERT(constant_pool_allowed());
   ASSERT(dst != PP);
+  // PP is tagged on X64.
+  const int32_t offset =
+      target::ObjectPool::element_offset(idx) - kHeapObjectTag;
   // This sequence must be decodable by code_patcher_x64.cc.
   movq(dst, Address(PP, offset));
 }
@@ -1239,10 +1238,9 @@ void Assembler::LoadObjectHelper(Register dst,
     }
   }
   if (CanLoadFromObjectPool(object)) {
-    const int32_t offset = target::ObjectPool::element_offset(
-        is_unique ? object_pool_builder().AddObject(object)
-                  : object_pool_builder().FindObject(object));
-    LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
+    const intptr_t index = is_unique ? object_pool_builder().AddObject(object)
+                                     : object_pool_builder().FindObject(object);
+    LoadWordFromPoolIndex(dst, index);
     return;
   }
   ASSERT(target::IsSmi(object));
@@ -1315,9 +1313,8 @@ void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
   } else if (imm.is_int32() || !constant_pool_allowed()) {
     movq(reg, imm);
   } else {
-    int32_t offset =
-        target::ObjectPool::element_offset(FindImmediate(imm.value()));
-    LoadWordFromPoolOffset(reg, offset - kHeapObjectTag);
+    const intptr_t idx = FindImmediate(imm.value());
+    LoadWordFromPoolIndex(reg, idx);
   }
 }
 
@@ -1674,19 +1671,27 @@ void Assembler::LeaveCallRuntimeFrame() {
   LeaveStubFrame();
 }
 
-void Assembler::CallCFunction(Register reg) {
+void Assembler::CallCFunction(Register reg, bool restore_rsp) {
   // Reserve shadow space for outgoing arguments.
   if (CallingConventions::kShadowSpaceBytes != 0) {
     subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
   }
   call(reg);
+  // Restore stack.
+  if (restore_rsp && CallingConventions::kShadowSpaceBytes != 0) {
+    addq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
+  }
 }
-void Assembler::CallCFunction(Address address) {
+void Assembler::CallCFunction(Address address, bool restore_rsp) {
   // Reserve shadow space for outgoing arguments.
   if (CallingConventions::kShadowSpaceBytes != 0) {
     subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
   }
   call(address);
+  // Restore stack.
+  if (restore_rsp && CallingConventions::kShadowSpaceBytes != 0) {
+    addq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
+  }
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,

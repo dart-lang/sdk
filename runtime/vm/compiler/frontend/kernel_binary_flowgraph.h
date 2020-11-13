@@ -9,7 +9,6 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -41,7 +40,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                          &constant_reader_,
                          active_class_,
                          /* finalize= */ true),
-        bytecode_metadata_helper_(this, active_class_),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this, &constant_reader_),
         procedure_attributes_metadata_helper_(this),
@@ -63,7 +61,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void ReadForwardingStubTarget(const Function& function);
   void EvaluateConstFieldValue(const Field& field);
   void SetupDefaultParameterValues();
-  void ReadDefaultFunctionTypeArguments(const Function& function);
 
   FlowGraph* BuildGraphOfFieldInitializer();
   Fragment BuildFieldInitializer(const Field& field,
@@ -414,7 +411,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   ActiveClass* const active_class_;
   ConstantReader constant_reader_;
   TypeTranslator type_translator_;
-  BytecodeMetadataHelper bytecode_metadata_helper_;
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;

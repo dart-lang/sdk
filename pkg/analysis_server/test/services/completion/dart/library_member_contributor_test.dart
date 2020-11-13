@@ -99,11 +99,12 @@ extension MyExt on int {}
 
   Future<void> test_libraryPrefix_deferred_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', content: '''
         library testA;
         import "dart:async" deferred as bar;
         part "test.dart";''');
     addTestSource('part of testA; foo() {bar.^}');
+    await resolveFile('$testPackageLibPath/a.dart');
     // Assume that libraries containing has been computed for part files
     await computeSuggestions();
     assertSuggestClass('Future');
@@ -112,8 +113,8 @@ extension MyExt on int {}
   }
 
   Future<void> test_libraryPrefix_with_exports() async {
-    addSource('/home/test/lib/a.dart', 'library libA; class A { }');
-    addSource('/home/test/lib/b.dart', '''
+    newFile('$testPackageLibPath/a.dart', content: 'library libA; class A { }');
+    newFile('$testPackageLibPath/b.dart', content: '''
         library libB;
         export "a.dart";
         class B { }
@@ -188,12 +189,12 @@ main() {
 
   Future<void> test_PrefixedIdentifier_library_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
-    addSource('/home/test/lib/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', content: '''
         library testA;
         import "b.dart" as b;
         part "test.dart";
@@ -202,6 +203,7 @@ main() {
     addTestSource('''
         part of testA;
         main() {b.^}''');
+    await resolveFile('$testPackageLibPath/a.dart');
     // Assume that libraries containing has been computed for part files
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -218,7 +220,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/home/test/lib/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         var T1;
         class X { }
@@ -243,7 +245,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/home/test/lib/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         var T1;
         class X { }
@@ -268,7 +270,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
@@ -282,7 +284,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', content: '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''

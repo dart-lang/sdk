@@ -153,12 +153,24 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 22, 12),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
+    assertAssignment(
+      findNode.assignment('[0] +='),
       readElement: null,
+      readType: 'dynamic',
       writeElement: null,
+      writeType: 'dynamic',
+      operatorElement: null,
       type: 'dynamic',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        findNode.index('x[0]'),
+        readElement: null,
+        writeElement: null,
+        type: 'dynamic',
+      );
+    }
 
     assertType(findNode.binary('1 + 2'), 'int');
   }
@@ -209,12 +221,24 @@ void f(Never? x) {
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
-    assertIndexExpression(
-      findNode.index('x[0]'),
+    assertAssignment(
+      findNode.assignment('[0] +='),
       readElement: null,
+      readType: 'dynamic',
       writeElement: null,
+      writeType: 'dynamic',
+      operatorElement: null,
       type: 'dynamic',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        findNode.index('x[0]'),
+        readElement: null,
+        writeElement: null,
+        type: 'dynamic',
+      );
+    }
 
     assertType(findNode.binary('1 + 2'), 'int');
   }
@@ -428,12 +452,14 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 29, 2),
     ]);
 
-    assertSimpleIdentifier(
-      findNode.simple('foo'),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        findNode.simple('foo'),
+        readElement: null,
+        writeElement: null,
+        type: 'dynamic',
+      );
+    }
 
     assertAssignment(
       findNode.assignment('foo += 0'),

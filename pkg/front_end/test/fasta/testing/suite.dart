@@ -4,8 +4,6 @@
 
 library fasta.testing.suite;
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show Directory, File, Platform;
@@ -30,7 +28,6 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
         AllowedExperimentalFlags,
         ExperimentalFlag,
         defaultAllowedExperimentalFlags,
-        defaultExperimentalFlags,
         isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
@@ -84,6 +81,7 @@ import 'package:kernel/ast.dart'
         Library,
         Member,
         Node,
+        NonNullableByDefaultCompiledMode,
         TreeNode,
         UnevaluatedConstant,
         Version,
@@ -206,7 +204,7 @@ const String noVerifyCmd = '--no-verify';
 /// This is used for instance for defining target, mode, and experiment specific
 /// test folders.
 class FolderOptions {
-  final Map<ExperimentalFlag, bool> _experimentalFlags;
+  final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
   final bool forceLateLowering;
   final bool forceLateLoweringSentinel;
   final bool forceStaticFieldLowering;
@@ -217,7 +215,7 @@ class FolderOptions {
   final String target;
   final String overwriteCurrentSdkVersion;
 
-  FolderOptions(this._experimentalFlags,
+  FolderOptions(this._explicitExperimentalFlags,
       {this.forceLateLowering: false,
       this.forceLateLoweringSentinel: false,
       this.forceStaticFieldLowering: false,
@@ -240,10 +238,10 @@ class FolderOptions {
         assert(noVerify != null),
         assert(target != null);
 
-  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
-    Map<ExperimentalFlag, bool> flags = new Map.from(defaultExperimentalFlags);
-    flags.addAll(_experimentalFlags);
+    Map<ExperimentalFlag, bool> flags = {};
+    flags.addAll(_explicitExperimentalFlags);
     flags.addAll(forcedExperimentalFlags);
     return flags;
   }
@@ -275,7 +273,7 @@ class FastaContext extends ChainContext with MatchContext {
   final List<Step> steps;
   final Uri vm;
   final bool onlyCrashes;
-  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final bool skipVm;
   final bool verify;
   final bool weak;
@@ -308,7 +306,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.vm,
       this.platformBinaries,
       this.onlyCrashes,
-      this.experimentalFlags,
+      this.explicitExperimentalFlags,
       bool ignoreExpectations,
       this.updateExpectations,
       bool updateComments,
@@ -510,8 +508,8 @@ class FastaContext extends ChainContext with MatchContext {
         ..sdkRoot = sdk
         ..packagesFileUri = uriConfiguration.packageConfigUri ?? packages
         ..environmentDefines = folderOptions.defines
-        ..experimentalFlags =
-            folderOptions.computeExperimentalFlags(experimentalFlags)
+        ..explicitExperimentalFlags = folderOptions
+            .computeExplicitExperimentalFlags(explicitExperimentalFlags)
         ..nnbdMode = weak
             ? NnbdMode.Weak
             : (folderOptions.nnbdAgnosticMode
@@ -734,8 +732,8 @@ class Run extends Step<ComponentResult, int, FastaContext> {
   Future<Result<int>> run(ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
         context.computeFolderOptions(result.description);
-    Map<ExperimentalFlag, bool> experimentalFlags =
-        folderOptions.computeExperimentalFlags(context.experimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
     switch (folderOptions.target) {
       case "vm":
         if (context.platformUri == null) {
@@ -757,7 +755,19 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         } finally {
           await generated.parent.delete(recursive: true);
         }
-        return process.toResult();
+        Result<int> runResult = process.toResult();
+        if (result.component.mode == NonNullableByDefaultCompiledMode.Invalid) {
+          // In this case we expect and want a runtime error.
+          if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
+            // We convert this to pass because that's exactly what we'd expect.
+            return pass(0);
+          } else {
+            // Different outcome - that's a failure!
+            return new Result<int>(runResult.output,
+                ExpectationSet.Default["MissingRuntimeError"], runResult.error);
+          }
+        }
+        return runResult;
       case "none":
       case "noneWithJs":
         return pass(0);
@@ -965,11 +975,11 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         context.computeLibrariesSpecificationUri(description);
     TestOptions testOptions = context.computeTestOptions(description);
     FolderOptions folderOptions = context.computeFolderOptions(description);
-    Map<ExperimentalFlag, bool> experimentalFlags =
-        folderOptions.computeExperimentalFlags(context.experimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
     NnbdMode nnbdMode = context.weak ||
             !isExperimentEnabled(ExperimentalFlag.nonNullable,
-                experimentalFlags: experimentalFlags)
+                explicitExperimentalFlags: experimentalFlags)
         ? NnbdMode.Weak
         : (folderOptions.nnbdAgnosticMode
             ? NnbdMode.Agnostic
@@ -986,7 +996,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           errors.add(message.plainTextFormatted);
         }
         ..environmentDefines = folderOptions.defines
-        ..experimentalFlags = experimentalFlags
+        ..explicitExperimentalFlags = experimentalFlags
         ..nnbdMode = nnbdMode
         ..librariesSpecificationUri = librariesSpecificationUri
         ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
@@ -1104,7 +1114,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                     description, p, userLibraries, options, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
-                null,
                 autoFixCommand: '${UPDATE_COMMENTS}=true');
           }
         }
@@ -1194,8 +1203,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
       return new Result<ComponentResult>(
           result,
           context.expectationSet["TransformVerificationError"],
-          errors.join('\n'),
-          null);
+          errors.join('\n'));
     }
     return pass(result);
   }
@@ -1236,8 +1244,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
       if (messages.isEmpty) {
         return pass(result);
       } else {
-        return new Result<ComponentResult>(null,
-            context.expectationSet["VerificationError"], "$messages", null);
+        return new Result<ComponentResult>(
+            null, context.expectationSet["VerificationError"], "$messages");
       }
     }, errorOnMissingInput: false);
   }

@@ -2670,6 +2670,7 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
     case kTagged:
       return RangeBoundary::kRangeBoundarySmi;
     case kUnboxedInt32:
+    case kUnboxedUint8:  // Overapproximate Uint8 as Int32.
       return RangeBoundary::kRangeBoundaryInt32;
     case kUnboxedInt64:
     case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
@@ -2689,10 +2690,15 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
           RangeBoundary::FromConstant(compiler::target::Array::kMaxElements));
       break;
 
-    case Slot::Kind::kTypeArguments_length:
     case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+      break;
+
+    case Slot::Kind::kTypeArguments_length:
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(
+                         compiler::target::TypeArguments::kMaxElements));
       break;
 
     case Slot::Kind::kString_length:
@@ -2717,6 +2723,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kClosureData_default_type_arguments:
+    case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_parameter_names:
     case Slot::Kind::kFunction_parameter_types:
     case Slot::Kind::kFunction_type_parameters:
@@ -2724,13 +2732,22 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kTypeParameter_bound:
+    case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
       // Not an integer valued field.
       UNREACHABLE();
       break;
 
+    case Slot::Kind::kArrayElement:
+      // Should not be used in LoadField instructions.
+      UNREACHABLE();
+      break;
+
+    case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
+    case Slot::Kind::kTypeParameter_flags:
       *range = Range::Full(RepresentationToRangeSize(slot().representation()));
       break;
 
@@ -2747,6 +2764,12 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kArgumentsDescriptor_size:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
+
+    case Slot::Kind::kClosureData_default_type_arguments_info:
+      *range = Range(
+          RangeBoundary::FromConstant(0),
+          RangeBoundary::FromConstant(
+              (1 << Function::NumParentTypeParametersField::kNextBit) - 1));
   }
 }
 

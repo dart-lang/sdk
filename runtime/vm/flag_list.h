@@ -20,12 +20,6 @@ constexpr bool kDartPrecompiledRuntime = true;
 constexpr bool kDartPrecompiledRuntime = false;
 #endif
 
-#if defined(DART_USE_BYTECODE)
-constexpr bool kDartUseBytecode = true;
-#else
-constexpr bool kDartUseBytecode = false;
-#endif
-
 #if defined(USING_THREAD_SANITIZER)
 // TODO(39611): Address races in the background compiler.
 constexpr bool kDartUseBackgroundCompilation = false;
@@ -61,8 +55,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
-  P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
+  P(causal_async_stacks, bool, false, "Improved async stacks")                 \
+  P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   R(dedup_instructions, true, bool, false,                                     \
@@ -102,9 +96,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Collects all dynamic function names to identify unique targets")          \
   P(compactor_tasks, int, 2,                                                   \
     "The number of tasks to use for parallel compaction.")                     \
-  P(compilation_counter_threshold, int, 10,                                    \
-    "Function's usage-counter value before interpreted function is compiled, " \
-    "-1 means never")                                                          \
   P(concurrent_mark, bool, true, "Concurrent mark for old generation.")        \
   P(concurrent_sweep, bool, true, "Concurrent sweep for old generation.")      \
   C(deoptimize_alot, false, false, bool, false,                                \
@@ -225,7 +216,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
-  P(use_bytecode_compiler, bool, kDartUseBytecode, "Compile from bytecode")    \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
@@ -248,7 +238,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Enable magical pragmas for testing purposes. Use at your own risk!")      \
   R(eliminate_type_checks, true, bool, true,                                   \
     "Eliminate type checks when allowed by static type analysis.")             \
-  P(enable_interpreter, bool, false, "Enable interpreting kernel bytecode.")   \
   D(support_rr, bool, false, "Support running within RR.")                     \
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access throuh native API. See "         \

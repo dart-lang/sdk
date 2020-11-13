@@ -67,8 +67,8 @@ class ByteStream extends self::StreamView {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method super_foobar2([@vm.inferred-type.metadata=dart.core::Null? (value: null)] (dynamic) →* void onData) → dynamic {
     super.{self::StreamView::foobar}(onData);
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  method super_foobar3({[@vm.inferred-type.metadata=dart.core::Null? (value: null)] (dynamic) →* void onData = #C1, [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::Function* onError = #C1}) → dynamic {
-    super.{self::StreamView::foobar}(onData, onError: onError);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  method super_foobar3() → dynamic {
+    super.{self::StreamView::foobar}(#C1, onError: #C1);
   }
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:13]  get super_stream() → self::Stream*
     return [@vm.inferred-type.metadata=!] super.{self::StreamView::_stream};
@@ -81,28 +81,28 @@ class _HandleErrorStream extends self::Stream {
 static method round0() → void {
   new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
 }
-static method round1({[@vm.inferred-type.metadata=dart.core::Null? (value: null)] (dynamic) →* void onData = #C1}) → void {
+static method round1() → void {
   self::ByteStream* x = new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
-  [@vm.direct-call.metadata=#lib::ByteStream.super_foobar1] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar1}(onData);
+  [@vm.direct-call.metadata=#lib::ByteStream.super_foobar1] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar1}(#C1);
 }
-static method round2({[@vm.inferred-type.metadata=dart.core::Null? (value: null)] (dynamic) →* void onData = #C1, [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::Function* onError = #C1}) → void {
+static method round2() → void {
   new self::_ControllerStream::•();
   self::Stream* x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
-  [@vm.direct-call.metadata=#lib::StreamView.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(onData, onError: onError);
+  [@vm.direct-call.metadata=#lib::StreamView.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(#C1, onError: #C1);
 }
-static method round3({[@vm.inferred-type.metadata=dart.core::Null? (value: null)] (dynamic) →* void onData = #C1, [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::Function* onError = #C1}) → void {
+static method round3() → void {
   self::Stream* x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
   x = new self::_ControllerStream::•();
-  [@vm.direct-call.metadata=#lib::_StreamImpl.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(onData, onError: onError);
+  [@vm.direct-call.metadata=#lib::_StreamImpl.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(#C1, onError: #C1);
 }
-static method round4({[@vm.inferred-type.metadata=dart.core::Null? (value: null)] (dynamic) →* void onData = #C1}) → void {
+static method round4() → void {
   self::ByteStream* x = new self::ByteStream::•(new self::_ControllerStream::•());
   self::Stream* y = [@vm.direct-call.metadata=#lib::ByteStream.super_stream] [@vm.inferred-type.metadata=!] x.{self::ByteStream::super_stream};
   self::Stream* z = [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] x.{self::StreamView::_stream};
   if([@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] y.{self::Stream::==}(z)) {
-    [@vm.direct-call.metadata=#lib::ByteStream.super_foobar2] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar2}(onData);
+    [@vm.direct-call.metadata=#lib::ByteStream.super_foobar2] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar2}(#C1);
   }
 }
 static method round5() → void {

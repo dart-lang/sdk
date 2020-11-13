@@ -22,6 +22,120 @@ main() {
 
 @reflectiveTest
 class MetadataResolutionTest extends PubPackageResolutionTest {
+  test_genericClass_instanceGetter() async {
+    await resolveTestCode(r'''
+class A<T> {
+  T get foo {}
+}
+
+@A.foo
+void f() {}
+''');
+
+    _assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  element: self::@class::A::@getter::foo
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+      token: foo
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@class::A
+      staticType: null
+      token: A
+    staticElement: self::@class::A::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_genericClass_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A.named();
+}
+
+@A.named()
+void f() {}
+''');
+
+    _assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  arguments: ArgumentList
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: dynamic}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: dynamic}
+      staticType: null
+      token: named
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@class::A
+      staticType: null
+      token: A
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: dynamic}
+    staticType: null
+''');
+  }
+
+  test_genericClass_staticGetter() async {
+    await resolveTestCode(r'''
+class A<T> {
+  static T get foo {}
+}
+
+@A.foo
+void f() {}
+''');
+
+    _assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  element: self::@class::A::@getter::foo
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+      token: foo
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@class::A
+      staticType: null
+      token: A
+    staticElement: self::@class::A::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_genericClass_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A();
+}
+
+@A()
+void f() {}
+''');
+
+    _assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  arguments: ArgumentList
+  element: ConstructorMember
+    base: self::@class::A::@constructor::•
+    substitution: {T: dynamic}
+  name: SimpleIdentifier
+    staticElement: self::@class::A
+    staticType: null
+    token: A
+''');
+  }
+
   test_onFieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -55,7 +169,7 @@ Annotation
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier
     staticElement: self::@class::A
-    staticType: Type
+    staticType: null
     token: A
 ''');
   }

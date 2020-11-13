@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         InvalidType,
         NamedType,
         NeverType,
+        NullType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -1020,6 +1021,8 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitBottomType(BottomType node) => false;
 
   bool visitNeverType(NeverType node) => false;
+
+  bool visitNullType(NullType node) => false;
 
   bool visitInterfaceType(InterfaceType node) {
     return anyTypeVariables(node.typeArguments);

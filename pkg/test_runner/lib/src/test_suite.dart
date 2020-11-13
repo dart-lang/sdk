@@ -600,14 +600,12 @@ class StandardTestSuite extends TestSuite {
     for (var vmOptionsVariant = 0;
         vmOptionsVariant < vmOptionsList.length;
         vmOptionsVariant++) {
-      var vmOptions = vmOptionsList[vmOptionsVariant];
-      var allVmOptions = vmOptions;
-      if (extraVmOptions.isNotEmpty) {
-        allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
-      }
-
+      var vmOptions = [
+        ...vmOptionsList[vmOptionsVariant],
+        ...extraVmOptions,
+      ];
       var isCrashExpected = expectations.contains(Expectation.crash);
-      var commands = _makeCommands(testFile, vmOptionsVariant, allVmOptions,
+      var commands = _makeCommands(testFile, vmOptionsVariant, vmOptions,
           commonArguments, isCrashExpected);
       var variantTestName = testFile.name;
       if (vmOptionsList.length > 1) {
@@ -630,25 +628,22 @@ class StandardTestSuite extends TestSuite {
       for (var vmOptionsVariant = 0;
           vmOptionsVariant < vmOptionsList.length;
           vmOptionsVariant++) {
-        var vmOptions = vmOptionsList[vmOptionsVariant];
-        var allVmOptions = vmOptions;
-        if (extraVmOptions.isNotEmpty) {
-          allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
-        }
-        if (emitDdsTest) {
-          allVmOptions.add('-DUSE_DDS=true');
-        }
+        var vmOptions = [
+          ...vmOptionsList[vmOptionsVariant],
+          ...extraVmOptions,
+          if (emitDdsTest) '-DUSE_DDS=true',
+        ];
         var isCrashExpected = expectations.contains(Expectation.crash);
         var commands = _makeCommands(
             testFile,
             vmOptionsVariant + (vmOptionsList.length * i),
-            allVmOptions,
+            vmOptions,
             commonArguments,
             isCrashExpected);
         var variantTestName =
             testFile.name + '/${emitDdsTest ? 'dds' : 'service'}';
         if (vmOptionsList.length > 1) {
-          variantTestName = "${testFile.name}_$vmOptionsVariant";
+          variantTestName = "${variantTestName}_$vmOptionsVariant";
         }
 
         _addTestCase(testFile, variantTestName, commands, expectations, onTest);
@@ -894,7 +889,6 @@ class StandardTestSuite extends TestSuite {
     const compilers = [
       Compiler.none,
       Compiler.dartk,
-      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.appJitk,
     ];

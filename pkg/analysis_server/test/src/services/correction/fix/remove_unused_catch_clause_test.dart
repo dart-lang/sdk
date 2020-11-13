@@ -20,7 +20,7 @@ class RemoveUnusedCatchClauseTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE;
 
   Future<void> test_removeUnusedCatchClause() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   try {
     throw 42;

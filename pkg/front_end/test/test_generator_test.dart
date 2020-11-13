@@ -223,6 +223,6 @@ class Generator {
   Generator(this.typeParameters, this.beforePlug, this.afterPlug);
 
   String generate(String plug) {
-    return "${beforePlug}${plug}${afterPlug}";
+    return "// @dart = 2.9\n${beforePlug}${plug}${afterPlug}";
   }
 }

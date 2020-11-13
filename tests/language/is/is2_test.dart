@@ -59,7 +59,7 @@ class InstanceofTest {
       var a = new List.empty();
       Expect.equals(true, a is List);
       Expect.equals(true, a is List<Object?>);
-      Expect.equals(isWeakMode, a is List<Object>);
+      Expect.equals(hasUnsoundNullSafety, a is List<Object>);
       Expect.equals(false, a is List<int>);
       Expect.equals(false, a is List<num>);
       Expect.equals(false, a is List<String>);

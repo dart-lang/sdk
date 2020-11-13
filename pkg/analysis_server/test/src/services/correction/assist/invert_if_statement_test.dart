@@ -20,7 +20,7 @@ class InvertIfStatementTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.INVERT_IF_STATEMENT;
 
   Future<void> test_blocks() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true) {
     0;
@@ -41,7 +41,7 @@ main() {
   }
 
   Future<void> test_statements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true)
     0;

@@ -21,7 +21,7 @@ class ReplaceVarWithDynamicTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REPLACE_VAR_WITH_DYNAMIC;
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   Map<String, var> m;
 }

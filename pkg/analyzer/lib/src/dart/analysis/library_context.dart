@@ -235,14 +235,6 @@ class LibraryContext {
         librariesLoaded += cycle.libraries.length;
       }
 
-      // We are about to load dart:core, but if we have just linked it, the
-      // linker might have set the type provider. So, clear it, and recreate
-      // the element factory - it is empty anyway.
-      if (!elementFactory.hasDartCore) {
-        analysisContext.clearTypeProvider();
-        _createElementFactory();
-      }
-
       var bundle = LinkedNodeBundle.fromBuffer(bytes);
       inputBundles.add(bundle);
       elementFactory.addBundle(

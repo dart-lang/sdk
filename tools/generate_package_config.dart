@@ -1,6 +1,9 @@
 #!/usr/bin/env dart
 
 /// Generates the repo's ".dart_tool/package_config.json" file.
+
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -26,6 +29,7 @@ void main(List<String> args) {
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
     packageDirectory('sdk/lib/_internal/js_runtime'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
+    packageDirectory('tools/package_deps'),
   ];
 
   var cfePackageDirs = [

@@ -179,12 +179,14 @@ void f<T>() {
       type: 'dynamic',
     );
 
-    assertSimpleIdentifier(
-      postfix.operand,
-      readElement: findElement.typeParameter('T'),
-      writeElement: findElement.typeParameter('T'),
-      type: 'dynamic',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        postfix.operand,
+        readElement: findElement.typeParameter('T'),
+        writeElement: findElement.typeParameter('T'),
+        type: 'dynamic',
+      );
+    }
   }
 
   test_inc_prefixedIdentifier_instance() async {
@@ -417,12 +419,14 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
-      postfix.operand,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        postfix.operand,
+        readElement: findElement.getter('x'),
+        writeElement: findElement.setter('x'),
+        type: 'num',
+      );
+    }
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter() async {
@@ -450,12 +454,14 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
-      postfix.operand,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        postfix.operand,
+        readElement: findElement.topGet('x'),
+        writeElement: findElement.topSet('x'),
+        type: 'num',
+      );
+    }
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -485,12 +491,14 @@ class A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
-      postfix.operand,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        postfix.operand,
+        readElement: findElement.topGet('x'),
+        writeElement: findElement.topSet('x'),
+        type: 'num',
+      );
+    }
   }
 }
 
@@ -533,7 +541,9 @@ void f(Object x) {
 }
 ''');
 
-    assertType(findNode.simple('x++;'), 'A');
+    if (hasAssignmentLeftResolution) {
+      assertType(findNode.simple('x++;'), 'A');
+    }
 
     assertPostfixExpression(
       findNode.postfix('x++'),
@@ -604,11 +614,13 @@ void f(Map<String, int> a) {
   }
 
   test_nullCheck_null() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f(Null x) {
   x!;
 }
-''');
+''', [
+      error(HintCode.NULL_CHECK_ALWAYS_FAILS, 19, 2),
+    ]);
 
     assertType(findNode.postfix('x!'), 'Never');
   }

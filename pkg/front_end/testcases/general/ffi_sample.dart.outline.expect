@@ -14,7 +14,7 @@ class Coordinate extends ffi::Struct {
   field ffi::Pointer<self::Coordinate*>* next;
   static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate*
     ;
-  abstract member-signature get _addressOf() → ffi::Pointer<ffi::Struct*>*; -> ffi::Struct::_addressOf
+  abstract member-signature get _addressOf() → core::Object*; -> ffi::Struct::_addressOf
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

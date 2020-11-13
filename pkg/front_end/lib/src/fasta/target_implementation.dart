@@ -61,10 +61,21 @@ abstract class TargetImplementation extends Target {
     return _options.isExperimentEnabledInLibrary(flag, importUri);
   }
 
-  Version getExperimentEnabledVersion(ExperimentalFlag flag) {
-    return _options.getExperimentEnabledVersion(flag);
+  Version getExperimentEnabledVersionInLibrary(
+      ExperimentalFlag flag, Uri importUri) {
+    return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
+  /// Returns `true` if the [flag] is enabled by default.
+  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
+    return _options.isExperimentEnabledByDefault(flag);
+  }
+
+  /// Returns `true` if the [flag] is enabled globally.
+  ///
+  /// This is `true` either if the [flag] is passed through an explicit
+  /// `--enable-experiment` option or if the [flag] is expired and on by
+  /// default.
   bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
     return _options.isExperimentEnabledGlobally(flag);
   }
@@ -169,12 +180,14 @@ abstract class TargetImplementation extends Target {
       int length,
       Uri fileUri,
       List<LocatedMessage> messageContext,
-      Severity severity) {
+      Severity severity,
+      {List<Uri> involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
         message.withLocation(fileUri, charOffset, length),
         severity,
-        messageContext);
+        messageContext,
+        involvedFiles: involvedFiles);
   }
 
   Severity fixSeverity(Severity severity, Message message, Uri fileUri) {

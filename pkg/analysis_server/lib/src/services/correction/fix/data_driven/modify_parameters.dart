@@ -96,7 +96,7 @@ class ModifyParameters extends Change<_Data> {
         builder.write(': ');
       }
       parameter.argumentValue
-          .writeOn(builder, TemplateContext(argumentList, fix.utils));
+          .writeOn(builder, TemplateContext(argumentList.parent, fix.utils));
     }
 
     var insertionRanges = argumentsToInsert.contiguousSubRanges.toList();
@@ -195,7 +195,7 @@ class ModifyParameters extends Change<_Data> {
     if (newNamed.isNotEmpty) {
       int offset;
       var needsInitialComma = false;
-      if (arguments.isEmpty) {
+      if (remainingArguments.isEmpty && argumentsToInsert.isEmpty) {
         offset = argumentList.rightParenthesis.offset;
       } else {
         offset = arguments[arguments.length - 1].end;
@@ -226,6 +226,11 @@ class ModifyParameters extends Change<_Data> {
     if (parent is InvocationExpression) {
       var argumentList = parent.argumentList;
       return _Data(argumentList);
+    } else if (parent is Label) {
+      var argumentList = parent.parent.parent;
+      if (argumentList is ArgumentList) {
+        return _Data(argumentList);
+      }
     }
     return null;
   }

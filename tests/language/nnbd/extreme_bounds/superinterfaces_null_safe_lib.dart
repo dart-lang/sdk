@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 // This library establishes an opted in class hierarchy which has a single
 // non-generic top element, with a generic element below it, and a null safety
 // specific instantantiation of the generic below that.  This is used to test

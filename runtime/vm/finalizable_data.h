@@ -14,8 +14,8 @@ namespace dart {
 struct FinalizableData {
   void* data;
   void* peer;
-  Dart_WeakPersistentHandleFinalizer callback;
-  Dart_WeakPersistentHandleFinalizer successful_write_callback;
+  Dart_HandleFinalizer callback;
+  Dart_HandleFinalizer successful_write_callback;
 };
 
 class MessageFinalizableData {
@@ -25,19 +25,18 @@ class MessageFinalizableData {
 
   ~MessageFinalizableData() {
     for (intptr_t i = take_position_; i < records_.length(); i++) {
-      records_[i].callback(nullptr, nullptr, records_[i].peer);
+      records_[i].callback(nullptr, records_[i].peer);
     }
   }
 
   /// If [successful_write_callback] is provided, it's invoked when message
   /// was serialized successfully.
   /// [callback] is invoked when serialization failed.
-  void Put(
-      intptr_t external_size,
-      void* data,
-      void* peer,
-      Dart_WeakPersistentHandleFinalizer callback,
-      Dart_WeakPersistentHandleFinalizer successful_write_callback = nullptr) {
+  void Put(intptr_t external_size,
+           void* data,
+           void* peer,
+           Dart_HandleFinalizer callback,
+           Dart_HandleFinalizer successful_write_callback = nullptr) {
     FinalizableData finalizable_data;
     finalizable_data.data = data;
     finalizable_data.peer = peer;
@@ -64,8 +63,7 @@ class MessageFinalizableData {
   void SerializationSucceeded() {
     for (intptr_t i = 0; i < records_.length(); i++) {
       if (records_[i].successful_write_callback != nullptr) {
-        records_[i].successful_write_callback(nullptr, nullptr,
-                                              records_[i].peer);
+        records_[i].successful_write_callback(nullptr, records_[i].peer);
       }
     }
   }

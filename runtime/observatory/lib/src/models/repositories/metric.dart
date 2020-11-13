@@ -14,7 +14,7 @@ abstract class MetricRepository {
   MetricSamplingRate getSamplingRate(IsolateRef isolate, Metric metric);
   void setBufferSize(IsolateRef isolate, Metric metric, MetricBufferSize r);
   MetricBufferSize getBufferSize(IsolateRef isolate, Metric metric);
-  Iterable<MetricSample> getSamples(IsolateRef isolate, Metric metric);
+  Iterable<MetricSample>? getSamples(IsolateRef isolate, Metric metric);
   double getMinValue(IsolateRef isolate, Metric metric);
   double getMaxValue(IsolateRef isolate, Metric metric);
 }

@@ -40,7 +40,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -63,7 +63,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -90,7 +90,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -113,7 +113,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -136,7 +136,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C extends Old {}
@@ -153,7 +153,7 @@ class C extends New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C extends Old {}
@@ -172,7 +172,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C implements Old {}
@@ -189,7 +189,7 @@ class C implements New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C implements Old {}
@@ -208,7 +208,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 extension E on Old {}
@@ -225,7 +225,7 @@ extension E on New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 extension E on Old {}
@@ -244,7 +244,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}
@@ -261,7 +261,7 @@ void f(New o) {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}
@@ -280,7 +280,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -297,7 +297,7 @@ class C with New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -320,7 +320,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -339,7 +339,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -361,23 +361,23 @@ class RenameConstructorTest extends _AbstractRenameTest {
     setPackageContent('''
 class C {
   @deprecated
-  C.old();
-  C.new();
+  C.a();
+  C.b();
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old();
+  C.a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new();
+  C.b();
 }
 ''');
   }
@@ -385,22 +385,22 @@ void f() {
   Future<void> test_named_named_removed() async {
     setPackageContent('''
 class C {
-  C.new();
+  C.b();
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old();
+  C.a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new();
+  C.b();
 }
 ''');
   }
@@ -414,7 +414,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], ''));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -437,7 +437,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], ''));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -458,11 +458,11 @@ void f() {
 class C {
   @deprecated
   C();
-  C.new();
+  C.a();
 }
 ''');
-    setPackageData(_rename(['C', ''], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', ''], 'a'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -473,7 +473,7 @@ void f() {
 import '$importUri';
 
 void f() {
-  C.new();
+  C.a();
 }
 ''');
   }
@@ -481,11 +481,11 @@ void f() {
   Future<void> test_unnamed_named_removed() async {
     setPackageContent('''
 class C {
-  C.new();
+  C.a();
 }
 ''');
-    setPackageData(_rename(['C', ''], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', ''], 'a'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -496,7 +496,7 @@ void f() {
 import '$importUri';
 
 void f() {
-  C.new();
+  C.a();
 }
 ''');
   }
@@ -518,7 +518,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var l = Old('a').double;
@@ -537,7 +537,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var l = Old('a').double;
@@ -560,7 +560,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -579,7 +579,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -601,23 +601,23 @@ class RenameFieldTest extends _AbstractRenameTest {
     setPackageContent('''
 class C {
   @deprecated
-  int old;
-  int new;
+  int a;
+  int b;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
-  c.old;
+  c.a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f(C c) {
-  c.new;
+  c.b;
 }
 ''');
   }
@@ -625,22 +625,22 @@ void f(C c) {
   Future<void> test_instance_reference_removed() async {
     setPackageContent('''
 class C {
-  int new;
+  int b;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
-  c.old;
+  c.a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f(C c) {
-  c.new;
+  c.b;
 }
 ''');
   }
@@ -649,23 +649,23 @@ void f(C c) {
     setPackageContent('''
 class C {
   @deprecated
-  static int old;
-  static int new;
+  static int a;
+  static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old = 0;
+  C.a = 0;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new = 0;
+  C.b = 0;
 }
 ''');
   }
@@ -673,22 +673,22 @@ void f() {
   Future<void> test_static_assignment_removed() async {
     setPackageContent('''
 class C {
-  static int new;
+  static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old = 0;
+  C.a = 0;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new = 0;
+  C.b = 0;
 }
 ''');
   }
@@ -697,23 +697,23 @@ void f() {
     setPackageContent('''
 class C {
   @deprecated
-  static int old;
-  static int new;
+  static int a;
+  static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old;
+  C.a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new;
+  C.b;
 }
 ''');
   }
@@ -721,22 +721,22 @@ void f() {
   Future<void> test_static_reference_removed() async {
     setPackageContent('''
 class C {
-  static int new;
+  static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old;
+  C.a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new;
+  C.b;
 }
 ''');
   }
@@ -760,7 +760,7 @@ class D {
 }
 ''');
     setPackageData(_rename(['C', 'a'], 'b'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(D d) {
@@ -782,7 +782,7 @@ class D {
 }
 ''');
     setPackageData(_rename(['C', 'a'], 'b'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 D d = D(a: 2);
@@ -790,50 +790,104 @@ D d = D(a: 2);
     await assertNoFix();
   }
 
-  Future<void> test_instance_reference_deprecated() async {
+  Future<void> test_instance_reference_direct_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
-  int get old => 0;
-  int get new => 1;
+  int get a => 0;
+  int get b => 1;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
-  c.old;
+  c.a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f(C c) {
-  c.new;
+  c.b;
 }
 ''');
   }
 
-  Future<void> test_instance_reference_removed() async {
+  Future<void> test_instance_reference_direct_removed() async {
     setPackageContent('''
 class C {
-  int get new => 1;
+  int get b => 1;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
-  c.old;
+  c.a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f(C c) {
-  c.new;
+  c.b;
+}
+''');
+  }
+
+  Future<void> test_instance_reference_indirect_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get a => 0;
+  int get b => 1;
+}
+class D {
+  C c() => C();
+}
+''');
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().a);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().b);
+}
+''');
+  }
+
+  Future<void> test_instance_reference_indirect_removed() async {
+    setPackageContent('''
+class C {
+  int get b => 1;
+}
+class D {
+  C c() => C();
+}
+''');
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().a);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().b);
 }
 ''');
   }
@@ -841,43 +895,43 @@ void f(C c) {
   Future<void> test_topLevel_reference_deprecated() async {
     setPackageContent('''
 @deprecated
-int get old => 0;
-int get new => 1;
+int get a => 0;
+int get b => 1;
 ''');
-    setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  old;
+  a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  new;
+  b;
 }
 ''');
   }
 
   Future<void> test_topLevel_reference_removed() async {
     setPackageContent('''
-int get new => 1;
+int get b => 1;
 ''');
-    setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  old;
+  a;
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  new;
+  b;
 }
 ''', errorFilter: ignoreUnusedImport);
   }
@@ -893,17 +947,17 @@ class RenameMethodTest extends _AbstractRenameTest {
     setPackageContent('''
 class C {
   @deprecated
-  int old() => 0;
-  int new() => 0;
+  int a() => 0;
+  int b() => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
   @override
-  int old() => 0;
+  int a() => 0;
 }
 ''');
     await assertHasFix('''
@@ -911,7 +965,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int new() => 0;
+  int b() => 0;
 }
 ''');
   }
@@ -919,16 +973,16 @@ class D extends C {
   Future<void> test_instance_override_removed() async {
     setPackageContent('''
 class C {
-  int new() => 0;
+  int b() => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
   @override
-  int old() => 0;
+  int a() => 0;
 }
 ''');
     await assertHasFix('''
@@ -936,7 +990,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int new() => 0;
+  int b() => 0;
 }
 ''');
   }
@@ -945,23 +999,23 @@ class D extends C {
     setPackageContent('''
 class C {
   @deprecated
-  int old() {}
-  int new() {}
+  int a() {}
+  int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
-  c.old();
+  c.a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f(C c) {
-  c.new();
+  c.b();
 }
 ''');
   }
@@ -969,22 +1023,22 @@ void f(C c) {
   Future<void> test_instance_reference_removed() async {
     setPackageContent('''
 class C {
-  int new() {}
+  int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
-  c.old();
+  c.a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f(C c) {
-  c.new();
+  c.b();
 }
 ''');
   }
@@ -993,23 +1047,23 @@ void f(C c) {
     setPackageContent('''
 class C {
   @deprecated
-  static int old() {}
-  static int new() {}
+  static int a() {}
+  static int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old();
+  C.a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new();
+  C.b();
 }
 ''');
   }
@@ -1017,22 +1071,22 @@ void f() {
   Future<void> test_static_reference_removed() async {
     setPackageContent('''
 class C {
-  static int new() {}
+  static int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  C.old();
+  C.a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new();
+  C.b();
 }
 ''');
   }
@@ -1050,7 +1104,7 @@ mixin Old {}
 mixin New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -1067,7 +1121,7 @@ class C with New {}
 mixin New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -1088,43 +1142,43 @@ class RenameTopLevelFunctionTest extends _AbstractRenameTest {
   Future<void> test_deprecated() async {
     setPackageContent('''
 @deprecated
-int old() {}
-int new() {}
+int a() {}
+int b() {}
 ''');
-    setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  old();
+  a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  new();
+  b();
 }
 ''');
   }
 
   Future<void> test_removed() async {
     setPackageContent('''
-int new() {}
+int b() {}
 ''');
-    setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
-  old();
+  a();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  new();
+  b();
 }
 ''', errorFilter: ignoreUnusedImport);
   }
@@ -1142,7 +1196,7 @@ typedef Old = int Function(int);
 typedef New = int Function(int);
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}
@@ -1159,7 +1213,7 @@ void f(New o) {}
 typedef New = int Function(int);
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}
@@ -1182,6 +1236,7 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind),
               components: components),
+          bulkApply: false,
           changes: [
             Rename(newName: newName),
           ]);

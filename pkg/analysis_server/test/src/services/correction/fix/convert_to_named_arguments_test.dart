@@ -20,7 +20,7 @@ class ConvertToNamedArgumentsTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CONVERT_TO_NAMED_ARGUMENTS;
 
   Future<void> test_ambiguous() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A({int a, int b});
 }
@@ -33,7 +33,7 @@ main() {
   }
 
   Future<void> test_functionExpressionInvocation_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void Function({int aaa}) get g => null;
 }
@@ -54,7 +54,7 @@ main(A a) {
   }
 
   Future<void> test_functionExpressionInvocation_variable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef F = void Function({int aaa});
 
 main(F f) {
@@ -71,7 +71,7 @@ main(F f) {
   }
 
   Future<void> test_instanceCreation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A({int a, double b});
 }
@@ -92,7 +92,7 @@ main() {
   }
 
   Future<void> test_instanceCreation_hasPositional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A(int a, {int b});
 }
@@ -113,7 +113,7 @@ main() {
   }
 
   Future<void> test_methodInvocation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   void foo({int a}) {}
 }
@@ -134,7 +134,7 @@ main(C c) {
   }
 
   Future<void> test_noCompatibleParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A({String a});
 }

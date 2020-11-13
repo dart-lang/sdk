@@ -5,8 +5,6 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
-import 'dart:async' show Future;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/kernel.dart'
@@ -126,7 +124,7 @@ Future<CompilerResult> generateKernelInternal(
       trimmedSummaryComponent.uriToSource.addAll(summaryComponent.uriToSource);
 
       NonNullableByDefaultCompiledMode compiledMode =
-          NonNullableByDefaultCompiledMode.Disabled;
+          NonNullableByDefaultCompiledMode.Weak;
       switch (options.nnbdMode) {
         case NnbdMode.Weak:
           compiledMode = NonNullableByDefaultCompiledMode.Weak;
@@ -137,6 +135,9 @@ Future<CompilerResult> generateKernelInternal(
         case NnbdMode.Agnostic:
           compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
           break;
+      }
+      if (kernelTarget.loader.hasInvalidNnbdModeLibrary) {
+        compiledMode = NonNullableByDefaultCompiledMode.Invalid;
       }
 
       trimmedSummaryComponent.setMainMethodAndMode(

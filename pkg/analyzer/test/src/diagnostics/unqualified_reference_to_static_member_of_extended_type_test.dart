@@ -16,6 +16,11 @@ main() {
 @reflectiveTest
 class UnqualifiedReferenceToStaticMemberOfExtendedTypeTest
     extends PubPackageResolutionTest {
+  CompileTimeErrorCode get _errorCode {
+    return CompileTimeErrorCode
+        .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE;
+  }
+
   test_getter() async {
     await assertErrorsInCode('''
 class MyClass {
@@ -27,11 +32,7 @@ extension MyExtension on MyClass {
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode
-              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-          98,
-          4),
+      error(_errorCode, 98, 4),
     ]);
   }
 
@@ -46,30 +47,30 @@ extension MyExtension on MyClass {
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode
-              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-          92,
-          2),
+      error(_errorCode, 92, 2),
     ]);
   }
 
-  test_setter() async {
+  test_readWrite() async {
     await assertErrorsInCode('''
 class MyClass {
-  static set foo(int i) {}
+  static int get x => 0;
+  static set x(int _) {}
 }
+
 extension MyExtension on MyClass {
-  void m() {
-    foo = 3;
+  void f() {
+    x = 0;
+    x += 1;
+    ++x;
+    x++;
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode
-              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-          97,
-          3),
+      error(_errorCode, 121, 1),
+      error(_errorCode, 132, 1),
+      error(_errorCode, 146, 1),
+      error(_errorCode, 153, 1),
     ]);
   }
 }

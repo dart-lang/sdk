@@ -17,6 +17,7 @@ import '../ast.dart'
         Library,
         NamedType,
         NeverType,
+        NullType,
         Nullability,
         TypeParameter,
         TypeParameterType,
@@ -27,6 +28,7 @@ import '../core_types.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart';
 import 'legacy_erasure.dart';
+import 'non_null.dart';
 
 mixin StandardBounds {
   ClassHierarchyBase get hierarchy;
@@ -159,12 +161,12 @@ mixin StandardBounds {
     }
 
     // MOREBOTTOM(Null, T) = true.
-    if (s == coreTypes.nullType) {
+    if (s is NullType) {
       return true;
     }
 
     // MOREBOTTOM(S, Null) = false.
-    if (t == coreTypes.nullType) {
+    if (t is NullType) {
       return false;
     }
 
@@ -354,20 +356,20 @@ mixin StandardBounds {
       if (coreTypes.isObject(type2)) {
         return moretop(type2, type1) ? type1 : type2;
       }
-      if (type2.declaredNullability == Nullability.nonNullable) {
+      if (type2.nullability == Nullability.nonNullable) {
         return type2;
       }
-      type2 = type2.withDeclaredNullability(Nullability.nonNullable);
-      if (type2.declaredNullability == Nullability.nonNullable) {
+      type2 = computeNonNull(type2);
+      if (type2.nullability == Nullability.nonNullable) {
         return type2;
       }
       return const NeverType(Nullability.nonNullable);
     } else if (coreTypes.isObject(type2)) {
-      if (type1.declaredNullability == Nullability.nonNullable) {
+      if (type1.nullability == Nullability.nonNullable) {
         return type1;
       }
-      type1 = type1.withDeclaredNullability(Nullability.nonNullable);
-      if (type1.declaredNullability == Nullability.nonNullable) {
+      type1 = computeNonNull(type1);
+      if (type1.nullability == Nullability.nonNullable) {
         return type1;
       }
       return const NeverType(Nullability.nonNullable);
@@ -397,11 +399,9 @@ mixin StandardBounds {
     // [intersectNullabilities] to compute the resulting type if the subtype
     // relation is established.
     DartType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1, clientLibrary,
-            nullType: coreTypes.nullType);
+        computeTypeWithoutNullabilityMarker(type1, clientLibrary);
     DartType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2, clientLibrary,
-            nullType: coreTypes.nullType);
+        computeTypeWithoutNullabilityMarker(type2, clientLibrary);
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(intersectNullabilities(
@@ -465,10 +465,10 @@ mixin StandardBounds {
       DartType type1, DartType type2, Library clientLibrary) {
     // Do legacy erasure on the argument, so that the result types that are
     // computed from arguments are legacy.
-    type1 = type1 == coreTypes.nullType
+    type1 = type1 is NullType
         ? type1
         : type1.withDeclaredNullability(Nullability.legacy);
-    type2 = type2 == coreTypes.nullType
+    type2 = type2 is NullType
         ? type2
         : type2.withDeclaredNullability(Nullability.legacy);
 
@@ -513,8 +513,8 @@ mixin StandardBounds {
     // SLB(bottom, T) = SLB(T, bottom) = bottom.
     if (type1 is BottomType) return type1;
     if (type2 is BottomType) return type2;
-    if (type1 == coreTypes.nullType) return type1;
-    if (type2 == coreTypes.nullType) return type2;
+    if (type1 is NullType) return type1;
+    if (type2 is NullType) return type2;
 
     // Function types have structural lower bounds.
     if (type1 is FunctionType && type2 is FunctionType) {
@@ -667,12 +667,12 @@ mixin StandardBounds {
       if (coreTypes.isObject(type2)) {
         return moretop(type1, type2) ? type1 : type2;
       }
-      if (type2.declaredNullability == Nullability.nonNullable) {
+      if (type2.nullability == Nullability.nonNullable) {
         return type1;
       }
       return type1.withDeclaredNullability(Nullability.nullable);
     } else if (coreTypes.isObject(type2)) {
-      if (type1.declaredNullability == Nullability.nonNullable) {
+      if (type1.nullability == Nullability.nonNullable) {
         return type2;
       }
       return type2.withDeclaredNullability(Nullability.nullable);
@@ -773,11 +773,9 @@ mixin StandardBounds {
     // uses [uniteNullabilities] to compute the resulting type if the subtype
     // relation is established.
     InterfaceType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1, clientLibrary,
-            nullType: coreTypes.nullType);
+        computeTypeWithoutNullabilityMarker(type1, clientLibrary);
     InterfaceType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2, clientLibrary,
-            nullType: coreTypes.nullType);
+        computeTypeWithoutNullabilityMarker(type2, clientLibrary);
 
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
@@ -1276,8 +1274,8 @@ mixin StandardBounds {
     // SUB(bottom, T) = SUB(T, bottom) = T.
     if (type1 is BottomType) return type2;
     if (type2 is BottomType) return type1;
-    if (type1 == coreTypes.nullType) return type2;
-    if (type2 == coreTypes.nullType) return type1;
+    if (type1 is NullType) return type2;
+    if (type2 is NullType) return type1;
 
     if (type1 is TypeParameterType || type2 is TypeParameterType) {
       return _getNullabilityObliviousTypeParameterStandardUpperBound(

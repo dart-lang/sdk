@@ -88,6 +88,11 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   void RegisterCallbacks(SSL* ssl);
   TrustEvaluateHandlerFunc GetTrustEvaluateHandler() const;
 
+  static bool long_ssl_cert_evaluation() { return long_ssl_cert_evaluation_; }
+  static void set_long_ssl_cert_evaluation(bool long_ssl_cert_evaluation) {
+    long_ssl_cert_evaluation_ = long_ssl_cert_evaluation;
+  }
+
  private:
   void AddCompiledInCerts();
   void LoadRootCertFile(const char* file);
@@ -100,6 +105,8 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   uint8_t* alpn_protocol_string_;
 
   bool trust_builtin_;
+
+  static bool long_ssl_cert_evaluation_;
 
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
 };

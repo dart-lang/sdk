@@ -337,7 +337,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Increasing the length fails if the element type does not allow `null`.
    *
    * Throws an [UnsupportedError] if the list is fixed-length or
-   * if attempting tp enlarge the list when `null` is not a valid element.
+   * if attempting to enlarge the list when `null` is not a valid element.
    */
   set length(int newLength);
 

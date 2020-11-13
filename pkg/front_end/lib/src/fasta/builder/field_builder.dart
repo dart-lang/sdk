@@ -18,6 +18,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 import '../kernel/late_lowering.dart' as late_lowering;
+import '../kernel/member_covariance.dart';
 
 import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
 
@@ -321,12 +322,16 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   Member get invokeTarget => readTarget;
 
   @override
+  Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
+
+  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     build(library);
     _fieldEncoding.registerMembers(library, this, f);
   }
 
+  /// Builds the core AST structures for this field as needed for the outline.
   void build(SourceLibraryBuilder libraryBuilder) {
     if (type != null) {
       // notInstanceContext is set to true for extension fields as they
@@ -538,6 +543,9 @@ abstract class FieldEncoding {
   /// Returns the member used to write to the field.
   Member get writeTarget;
 
+  /// Returns the generated members that are visible through exports.
+  Iterable<Member> get exportedMembers;
+
   /// Creates the members necessary for this field encoding.
   ///
   /// This method is called for both outline and full compilation so the created
@@ -569,7 +577,10 @@ class RegularFieldEncoding implements FieldEncoding {
 
   RegularFieldEncoding(Uri fileUri, int charOffset, int charEndOffset,
       Field reference, bool isNonNullableByDefault) {
-    _field = new Field(null, fileUri: fileUri, reference: reference?.reference)
+    _field = new Field(null,
+        fileUri: fileUri,
+        getterReference: reference?.getterReference,
+        setterReference: reference?.setterReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = isNonNullableByDefault;
@@ -673,6 +684,9 @@ class RegularFieldEncoding implements FieldEncoding {
   Member get writeTarget => _field;
 
   @override
+  Iterable<Member> get exportedMembers => [_field];
+
+  @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
       <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: false)];
 
@@ -686,6 +700,8 @@ class RegularFieldEncoding implements FieldEncoding {
 class SourceFieldMember extends BuilderClassMember {
   @override
   final SourceFieldBuilder memberBuilder;
+
+  Covariance _covariance;
 
   @override
   final bool forSetter;
@@ -706,7 +722,14 @@ class SourceFieldMember extends BuilderClassMember {
   @override
   Member getMember(ClassHierarchyBuilder hierarchy) {
     memberBuilder._ensureType(hierarchy);
-    return memberBuilder.member;
+    return memberBuilder.field;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??= forSetter
+        ? new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter)
+        : const Covariance.empty();
   }
 
   @override
@@ -727,6 +750,7 @@ class SourceFieldMember extends BuilderClassMember {
 abstract class AbstractLateFieldEncoding implements FieldEncoding {
   final String name;
   final int fileOffset;
+  final int fileEndOffset;
   DartType _type;
   Field _field;
   Field _lateIsSetField;
@@ -762,15 +786,18 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : fileOffset = charOffset,
+        fileEndOffset = charEndOffset,
         _isSetStrategy = isSetStrategy,
         _forceIncludeIsSetField =
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
-    _field =
-        new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = true
-          ..isInternalImplementation = true;
+    _field = new Field(null,
+        fileUri: fileUri,
+        getterReference: referenceFrom?.getterReference,
+        setterReference: referenceFrom?.setterReference)
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = true
+      ..isInternalImplementation = true;
     switch (_isSetStrategy) {
       case late_lowering.IsSetStrategy.useSentinelOrNull:
         // [_lateIsSetField] is never needed.
@@ -778,7 +805,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       case late_lowering.IsSetStrategy.forceUseIsSetField:
       case late_lowering.IsSetStrategy.useIsSetFieldOrNull:
         _lateIsSetField = new Field(null,
-            fileUri: fileUri, reference: lateIsSetReferenceFrom?.reference)
+            fileUri: fileUri,
+            getterReference: lateIsSetReferenceFrom?.getterReference,
+            setterReference: lateIsSetReferenceFrom?.setterReference)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = true
@@ -786,9 +815,15 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         break;
     }
     _lateGetter = new Procedure(
-        null, ProcedureKind.Getter, new FunctionNode(null),
-        fileUri: fileUri, reference: getterReferenceFrom?.reference)
+        null,
+        ProcedureKind.Getter,
+        new FunctionNode(null)
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
+        fileUri: fileUri,
+        reference: getterReferenceFrom?.reference)
       ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = true;
     _lateSetter = _createSetter(name, fileUri, charOffset, setterReferenceFrom,
         isCovariant: isCovariant);
@@ -903,10 +938,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         null,
         ProcedureKind.Setter,
         new FunctionNode(null,
-            positionalParameters: [parameter], returnType: const VoidType()),
+            positionalParameters: [parameter], returnType: const VoidType())
+          ..fileOffset = charOffset
+          ..fileEndOffset = fileEndOffset,
         fileUri: fileUri,
         reference: referenceFrom?.reference)
       ..fileOffset = charOffset
+      ..fileEndOffset = fileEndOffset
       ..isNonNullableByDefault = true;
   }
 
@@ -961,6 +999,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   Member get writeTarget => _lateSetter;
+
+  @override
+  Iterable<Member> get exportedMembers {
+    if (_lateSetter != null) {
+      return [_lateGetter, _lateSetter];
+    }
+    return [_lateGetter];
+  }
 
   @override
   void build(
@@ -1124,10 +1170,11 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
       CoreTypes coreTypes, String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterBodyWithoutInitializer(
-        coreTypes, fileOffset, name, type, 'Field',
+        coreTypes, fileOffset, name, type,
         createVariableRead: _createFieldRead,
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
-        isSetEncoding: isSetEncoding);
+        isSetEncoding: isSetEncoding,
+        forField: true);
   }
 }
 
@@ -1228,7 +1275,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBodyFinal(
-        coreTypes, fileOffset, name, parameter, type, 'Field',
+        coreTypes, fileOffset, name, parameter, type,
         shouldReturnValue: false,
         createVariableRead: () => _createFieldGet(_field),
         createVariableWrite: (Expression value) =>
@@ -1236,7 +1283,8 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
         createIsSetWrite: (Expression value) =>
             _createFieldSet(_lateIsSetField, value),
-        isSetEncoding: isSetEncoding);
+        isSetEncoding: isSetEncoding,
+        forField: true);
   }
 }
 
@@ -1268,7 +1316,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       CoreTypes coreTypes, String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterWithInitializerWithRecheck(
-        coreTypes, fileOffset, name, _type, 'Field', initializer,
+        coreTypes, fileOffset, name, _type, initializer,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),
@@ -1296,6 +1344,8 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   final Member _member;
 
+  Covariance _covariance;
+
   @override
   final bool forSetter;
 
@@ -1309,6 +1359,12 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Member getMember(ClassHierarchyBuilder hierarchy) {
     fieldBuilder._ensureType(hierarchy);
     return _member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??=
+        new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter);
   }
 
   @override
@@ -1428,12 +1484,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   ClassMember get concrete => this;
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return false;
-  }
-
-  @override
   bool isSameDeclaration(ClassMember other) {
     if (identical(this, other)) return true;
     return other is _SynthesizedFieldClassMember &&
@@ -1478,7 +1528,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           null,
           ProcedureKind.Setter,
           new FunctionNode(null,
-              positionalParameters: [parameter], returnType: const VoidType()),
+              positionalParameters: [parameter], returnType: const VoidType())
+            ..fileOffset = charOffset
+            ..fileEndOffset = charEndOffset,
           fileUri: fileUri,
           reference: setterReference?.reference)
         ..fileOffset = charOffset
@@ -1606,6 +1658,14 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
 
   @override
   Member get writeTarget => _setter;
+
+  @override
+  Iterable<Member> get exportedMembers {
+    if (_setter != null) {
+      return [_getter, _setter];
+    }
+    return [_getter];
+  }
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>

@@ -19,7 +19,7 @@ class ConvertToNullAwareTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_null_aware_operators;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int m(int p) => p;
 }

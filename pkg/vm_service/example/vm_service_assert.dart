@@ -192,6 +192,7 @@ String assertInstanceKind(String obj) {
   if (obj == "MirrorReference") return obj;
   if (obj == "Null") return obj;
   if (obj == "PlainInstance") return obj;
+  if (obj == "ReceivePort") return obj;
   if (obj == "RegExp") return obj;
   if (obj == "StackTrace") return obj;
   if (obj == "String") return obj;
@@ -912,6 +913,13 @@ vms.Obj assertObj(vms.Obj obj) {
   return obj;
 }
 
+vms.PortList assertPortList(vms.PortList obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertListOfInstanceRef(obj.ports);
+  return obj;
+}
+
 vms.ProfileFunction assertProfileFunction(vms.ProfileFunction obj) {
   assertNotNull(obj);
   assertString(obj.kind);
@@ -1097,6 +1105,7 @@ vms.Stack assertStack(vms.Stack obj) {
   assertString(obj.type);
   assertListOfFrame(obj.frames);
   assertListOfMessage(obj.messages);
+  assertBool(obj.truncated);
   return obj;
 }
 

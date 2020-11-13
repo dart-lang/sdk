@@ -1011,8 +1011,15 @@ f(C c) {
   c[2] = 1;
 }
 ''');
-    var index = findNode.index('c[2]');
-    assertElement(index, findElement.method('[]=', of: 'C'));
+    assertAssignment(
+      findNode.assignment('[2] ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'C'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_indexEquals_fromExtension_functionType() async {
@@ -1024,8 +1031,15 @@ g(int Function(int) f) {
   f[2] = 3;
 }
 ''');
-    var index = findNode.index('f[2]');
-    assertElement(index, findElement.method('[]=', of: 'E'));
+    assertAssignment(
+      findNode.assignment('f[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_indexEquals_fromExtension_interfaceType() async {
@@ -1038,8 +1052,15 @@ f(C c) {
   c[2] = 3;
 }
 ''');
-    var index = findNode.index('c[2]');
-    assertElement(index, findElement.method('[]=', of: 'E'));
+    assertAssignment(
+      findNode.assignment('c[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_postfix_fromExtendedType() async {
@@ -1180,8 +1201,15 @@ g(int Function(int) f) {
   f.a = 1;
 }
 ''');
-    var access = findNode.prefixed('f.a');
-    assertElement(access, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_oneMatch() async {
@@ -1196,8 +1224,15 @@ f(C c) {
   c.a = 1;
 }
 ''');
-    var access = findNode.prefixed('c.a');
-    assertElement(access, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_tearoff_fromExtension_functionType() async {
@@ -1356,9 +1391,16 @@ f() {
   p.E.a = 3;
 }
 ''');
-    var identifier = findNode.simple('a =');
-    var import = findElement.importFind('package:test/lib.dart');
-    assertElement(identifier, import.extension_('E').getSetter('a'));
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: importFind.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_setter_local() async {
@@ -1373,8 +1415,15 @@ f() {
   E.a = 3;
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_tearoff() async {
@@ -1662,8 +1711,15 @@ f(int? a) {
   a.foo = 1;
 }
 ''');
-    var access = findNode.prefixed('a.foo');
-    assertElement(access, findElement.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_fromInstance_nullAware() async {
@@ -1676,8 +1732,15 @@ f(int? a) {
   a?.foo = 1;
 }
 ''');
-    var access = findNode.propertyAccess('a?.foo');
-    assertElement(access, findElement.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int?',
+    );
   }
 }
 
@@ -1848,8 +1911,15 @@ extension E on C {
   void b() { this[2] = 1; }
 }
 ''');
-    var index = findNode.index('this[2]');
-    assertElement(index, findElement.method('[]=', of: 'C'));
+    assertAssignment(
+      findNode.assignment('this[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'C'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_indexEquals_fromThis_fromExtension() async {
@@ -1860,8 +1930,15 @@ extension E on C {
   void b() { this[2] = 3; }
 }
 ''');
-    var index = findNode.index('this[2]');
-    assertElement(index, findElement.method('[]=', of: 'E'));
+    assertAssignment(
+      findNode.assignment('this[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_unary_fromThis_fromExtendedType() async {
@@ -1893,35 +1970,49 @@ extension E on C {
   test_instance_setter_fromInstance() async {
     await assertNoErrorsInCode('''
 class C {
-  set a(int) {}
+  set a(int _) {}
 }
 
 extension E on C {
-  set a(int) {}
+  set a(int _) {}
   void m() {
     a = 3;
   }
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a', of: 'E'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_fromThis_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  set a(int) {}
+  set a(int _) {}
 }
 
 extension E on C {
-  set a(int) {}
+  set a(int _) {}
   void m() {
     this.a = 3;
   }
 }
 ''');
-    var access = findNode.propertyAccess('this.a');
-    assertElement(access, findElement.setter('a', of: 'C'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a', of: 'C'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_fromThis_fromExtension() async {
@@ -1929,14 +2020,21 @@ extension E on C {
 class C {}
 
 extension E on C {
-  set a(int) {}
+  set a(int _) {}
   void m() {
     this.a = 3;
   }
 }
 ''');
-    var access = findNode.propertyAccess('this.a');
-    assertElement(access, findElement.setter('a', of: 'E'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_tearoff_fromInstance() async {
@@ -2060,8 +2158,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_setter_fromStatic() async {
@@ -2075,8 +2180,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_tearoff_fromInstance() async {
@@ -2197,8 +2309,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a = 0;');
-    assertElement(identifier, findElement.topSet('a'));
+    assertAssignment(
+      findNode.assignment('a = 0'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topSet('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_topLevel_setter_fromStatic() async {
@@ -2215,8 +2334,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a = 0;');
-    assertElement(identifier, findElement.topSet('a'));
+    assertAssignment(
+      findNode.assignment('a = 0'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topSet('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 }
 

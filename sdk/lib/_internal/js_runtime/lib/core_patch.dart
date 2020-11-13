@@ -8,6 +8,8 @@ import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
 import 'dart:_js_helper'
     show
+        assertUnreachable,
+        boolConversionCheck,
         checkInt,
         Closure,
         ConstantMap,
@@ -448,8 +450,27 @@ class List<E> {
 
   @patch
   factory List.of(Iterable<E> elements, {bool growable: true}) {
-    // TODO(32937): Specialize to benefit from known element type.
-    return List.from(elements, growable: growable);
+    if (growable == true) return List._of(elements);
+    if (growable == false) return List._fixedOf(elements);
+
+    // [growable] may be `null` in legacy mode. Fail with the same error as if
+    // [growable] was used in a condition position in spec mode.
+    boolConversionCheck(growable);
+    assertUnreachable();
+  }
+
+  factory List._of(Iterable<E> elements) {
+    // This is essentially `addAll`, but without a check for modifiability or
+    // ConcurrentModificationError on the receiver.
+    List<E> list = <E>[];
+    for (final e in elements) {
+      list.add(e);
+    }
+    return list;
+  }
+
+  factory List._fixedOf(Iterable<E> elements) {
+    return makeListFixedLength(List._of(elements));
   }
 
   @patch

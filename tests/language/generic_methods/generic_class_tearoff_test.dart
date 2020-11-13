@@ -38,6 +38,6 @@ main() {
 
   Expect.isTrue(h is! Int2Int);
   Expect.isTrue(h is! String2String);
-  Expect.equals(isWeakMode, h is Object2Object);
+  Expect.equals(hasUnsoundNullSafety, h is Object2Object);
   Expect.isTrue(h is! GenericMethod);
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -41,15 +42,17 @@ class MigrationState {
 
   final AnalysisResult analysisResult;
 
+  /*late*/ List<String> previewUrls;
+
   /// Initialize a newly created migration state with the given values.
   MigrationState(this.migration, this.includedRoot, this.listener,
       this.instrumentationListener,
       [this.analysisResult]);
 
-  bool get hasErrors => analysisResult?.hasErrors ?? false;
-
   /// If the migration has been applied to disk.
   bool get hasBeenApplied => _hasBeenApplied;
+
+  bool get hasErrors => analysisResult?.hasErrors ?? false;
 
   /// Mark that the migration has been applied to disk.
   void markApplied() {
@@ -58,17 +61,15 @@ class MigrationState {
   }
 
   /// Refresh the state of the migration after the migration has been updated.
-  Future<void> refresh() async {
+  Future<void> refresh(Logger logger) async {
     assert(!hasBeenApplied);
     var provider = listener.server.resourceProvider;
     var infoBuilder = InfoBuilder(provider, includedRoot,
-        instrumentationListener.data, listener, migration, nodeMapper);
+        instrumentationListener.data, listener, migration, nodeMapper, logger);
     var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(
         unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
     pathMapper = PathMapper(provider);
   }
-
-  /*late*/ List<String> previewUrls;
 }

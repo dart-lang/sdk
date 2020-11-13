@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
@@ -14,16 +15,19 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
-        messageJsInteropNonExternalMember;
+        messageJsInteropNonExternalMember,
+        templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropJSClassExtendsDartClass;
 
 import 'src/js_interop.dart';
 
 class JsInteropChecks extends RecursiveVisitor<void> {
+  final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   bool _classHasJSAnnotation = false;
   bool _libraryHasJSAnnotation = false;
 
-  JsInteropChecks(this._diagnosticsReporter);
+  JsInteropChecks(this._coreTypes, this._diagnosticsReporter);
 
   @override
   void defaultMember(Member member) {
@@ -36,6 +40,25 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   @override
   void visitClass(Class cls) {
     _classHasJSAnnotation = hasJSInteropAnnotation(cls);
+    var superclass = cls.superclass;
+    if (superclass != null && superclass != _coreTypes.objectClass) {
+      var superHasJSAnnotation = hasJSInteropAnnotation(superclass);
+      if (_classHasJSAnnotation && !superHasJSAnnotation) {
+        _diagnosticsReporter.report(
+            templateJsInteropJSClassExtendsDartClass.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.location.file);
+      } else if (!_classHasJSAnnotation && superHasJSAnnotation) {
+        _diagnosticsReporter.report(
+            templateJsInteropDartClassExtendsJSClass.withArguments(
+                cls.name, superclass.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.location.file);
+      }
+    }
     super.visitClass(cls);
     _classHasJSAnnotation = false;
   }
