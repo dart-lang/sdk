@@ -254,14 +254,13 @@ class Malloc : public AllStatic {
   }
 };
 
-class EmptyBase {};
-
 template <typename T>
-class MallocGrowableArray : public BaseGrowableArray<T, EmptyBase, Malloc> {
+class MallocGrowableArray
+    : public BaseGrowableArray<T, MallocAllocated, Malloc> {
  public:
   explicit MallocGrowableArray(intptr_t initial_capacity)
-      : BaseGrowableArray<T, EmptyBase, Malloc>(initial_capacity, NULL) {}
-  MallocGrowableArray() : BaseGrowableArray<T, EmptyBase, Malloc>(NULL) {}
+      : BaseGrowableArray<T, MallocAllocated, Malloc>(initial_capacity, NULL) {}
+  MallocGrowableArray() : BaseGrowableArray<T, MallocAllocated, Malloc>(NULL) {}
 };
 
 }  // namespace dart
