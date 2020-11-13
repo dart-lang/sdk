@@ -1320,7 +1320,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   //
   // If the instances of the class should be mutable, then remove the
-  //annotation, or choose a different superclass if the annotation is inherited:
+  // annotation, or choose a different superclass if the annotation is
+  // inherited:
   //
   // ```dart
   // class C {
