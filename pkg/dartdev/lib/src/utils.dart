@@ -38,6 +38,31 @@ String trimEnd(String s, String suffix) {
   return s;
 }
 
+/// Static util methods used in dartdev to potentially modify the order of the
+/// arguments passed into dartdev.
+class PubUtils {
+  /// If [doModifyArgs] returns true, then this method returns a modified copy
+  /// of the argument list, 'help' is removed from the interior of the list, and
+  /// '--help' is added to the end of the list of arguments. This method returns
+  /// a modified copy of the list, the list itself is not modified.
+  static List<String> modifyArgs(List<String> args) => List.from(args)
+    ..remove('help')
+    ..add('--help');
+
+  /// If ... help pub ..., and no other verb (such as 'analyze') appears before
+  /// the ... help pub ... in the argument list, then return true.
+  static bool shouldModifyArgs(List<String> args, List<String> allCmds) =>
+      args != null &&
+      allCmds != null &&
+      args.isNotEmpty &&
+      allCmds.isNotEmpty &&
+      args.firstWhere((arg) => allCmds.contains(arg), orElse: () => '') ==
+          'help' &&
+      args.contains('help') &&
+      args.contains('pub') &&
+      args.indexOf('help') + 1 == args.indexOf('pub');
+}
+
 extension FileSystemEntityExtension on FileSystemEntity {
   String get name => p.basename(path);
 

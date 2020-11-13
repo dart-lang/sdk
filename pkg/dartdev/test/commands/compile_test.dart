@@ -27,9 +27,8 @@ void defineCompileTests() {
   test('Implicit --help', () {
     final p = project();
     var result = p.runSync(
-      [
-        'compile',
-      ],
+      'compile',
+      [],
     );
     expect(result.stderr, contains('Compile Dart'));
     expect(result.exitCode, compileErrorExitCode);
@@ -38,7 +37,8 @@ void defineCompileTests() {
   test('--help', () {
     final p = project();
     final result = p.runSync(
-      ['compile', '--help'],
+      'compile',
+      ['--help'],
     );
     expect(result.stdout, contains('Compile Dart'));
     expect(result.exitCode, 0);
@@ -48,8 +48,8 @@ void defineCompileTests() {
     final p = project(mainSrc: 'void main() { print("I love jit"); }');
     final outFile = path.join(p.dirPath, 'main.jit');
     var result = p.runSync(
+      'compile',
       [
-        'compile',
         'jit-snapshot',
         '-o',
         outFile,
@@ -61,7 +61,7 @@ void defineCompileTests() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
 
-    result = p.runSync(['run', 'main.jit']);
+    result = p.runSync('run', ['main.jit']);
     expect(result.stdout, contains('I love jit'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -73,8 +73,8 @@ void defineCompileTests() {
     final outFile = path.canonicalize(path.join(p.dirPath, 'lib', 'main.exe'));
 
     var result = p.runSync(
+      'compile',
       [
-        'compile',
         'exe',
         inFile,
       ],
@@ -102,8 +102,8 @@ void defineCompileTests() {
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
     var result = p.runSync(
+      'compile',
       [
-        'compile',
         'exe',
         '--define',
         'life=42',
@@ -134,8 +134,8 @@ void defineCompileTests() {
     final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
 
     var result = p.runSync(
+      'compile',
       [
-        'compile',
         'aot-snapshot',
         '-o',
         'main.aot',
@@ -163,8 +163,8 @@ void defineCompileTests() {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
     final outFile = path.join(p.dirPath, 'main.dill');
     var result = p.runSync(
+      'compile',
       [
-        'compile',
         'kernel',
         '-o',
         outFile,
@@ -176,7 +176,7 @@ void defineCompileTests() {
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
 
-    result = p.runSync(['run', 'main.dill']);
+    result = p.runSync('run', ['main.dill']);
     expect(result.stdout, contains('I love kernel'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -187,8 +187,7 @@ void defineCompileTests() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'main.js'));
 
-    final result = p.runSync([
-      'compile',
+    final result = p.runSync('compile', [
       'js',
       '-m',
       '-o',
