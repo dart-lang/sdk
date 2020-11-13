@@ -684,6 +684,11 @@ linter:
     expect(
         errorOutput, isNot(contains('try to fix errors in the source code')));
     expect(errorOutput, contains('re-run with\n--ignore-exceptions'));
+    expect(errorOutput, contains('consider filing a bug report'));
+    expect(
+        errorOutput,
+        contains(
+            RegExp(r'Please include the SDK version \([0-9]+\.[0-9]+\..*\)')));
   }
 
   test_lifecycle_exception_handling_ignore() async {

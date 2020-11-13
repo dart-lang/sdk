@@ -640,7 +640,10 @@ bug in the migration tool.  Please consider filing a bug report at:
 ''');
       }
       logger.stderr('https://github.com/dart-lang/sdk/issues/new');
+      var sdkVersion = Platform.version.split(' ')[0];
       logger.stderr('''
+Please include the SDK version ($sdkVersion) in your bug report.
+
 To attempt to perform migration anyway, you may re-run with
 --${CommandLineOptions.ignoreExceptionsFlag}.
 
