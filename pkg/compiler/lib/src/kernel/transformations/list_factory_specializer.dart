@@ -251,8 +251,21 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     if (function.namedParameters.isNotEmpty) return false;
 
     final body = function.body;
-    // For now, only arrow functions.
+
+    // Arrow functions.
     if (body is ReturnStatement) return true;
+
+    if (body is Block) {
+      // Simple body containing just a return.
+      final statements = body.statements;
+      if (statements.length == 1 && statements.single is ReturnStatement) {
+        return true;
+      }
+
+      // TODO(sra): We can accept more complex closures but, with diminishing
+      // returns. It would probably be best to handle more complex cases by
+      // improving environment design and inlining.
+    }
 
     return false;
   }
