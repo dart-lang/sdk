@@ -20,7 +20,7 @@ void run() {
 
   test('--help', () {
     p = project();
-    var result = p.runSync(['run', '--help']);
+    var result = p.runSync('run', ['--help']);
 
     expect(result.stdout, contains('Run a Dart program.'));
     expect(result.stdout, contains('Debugging options:'));
@@ -30,7 +30,7 @@ void run() {
 
   test("'Hello World'", () {
     p = project(mainSrc: "void main() { print('Hello World'); }");
-    ProcessResult result = p.runSync(['run', p.relativeFilePath]);
+    ProcessResult result = p.runSync('run', [p.relativeFilePath]);
 
     expect(result.stdout, contains('Hello World'));
     expect(result.stderr, isEmpty);
@@ -40,7 +40,7 @@ void run() {
   test('no such file', () {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     ProcessResult result =
-        p.runSync(['run', 'no/such/file/${p.relativeFilePath}']);
+        p.runSync('run', ['no/such/file/${p.relativeFilePath}']);
 
     expect(result.stderr, isNotEmpty);
     expect(result.exitCode, isNot(0));
@@ -51,7 +51,7 @@ void run() {
     // name (package name) will be the name of the temporary directory on disk
     p = project(mainSrc: "void main() { print('Hello World'); }");
     p.file('bin/main.dart', "void main() { print('Hello main.dart'); }");
-    ProcessResult result = p.runSync(['run']);
+    ProcessResult result = p.runSync('run', []);
 
     expect(result.stdout, contains('Hello main.dart'));
     expect(result.stderr, isEmpty);
@@ -62,7 +62,7 @@ void run() {
   test('missing implicit packageName.dart', () {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     p.file('bin/foo.dart', "void main() { print('Hello main.dart'); }");
-    ProcessResult result = p.runSync(['run']);
+    ProcessResult result = p.runSync('run', []);
 
     expect(result.stdout, isEmpty);
     expect(
@@ -75,8 +75,7 @@ void run() {
   test('arguments are properly passed', () {
     p = project();
     p.file('main.dart', 'void main(args) { print(args); }');
-    ProcessResult result = p.runSync([
-      'run',
+    ProcessResult result = p.runSync('run', [
       '--enable-experiment=triple-shift',
       'main.dart',
       'argument1',
@@ -94,8 +93,7 @@ void run() {
     p.file('main.dart', 'void main(args) { print(args); }');
     // Test with absolute path
     final name = path.join(p.dirPath, 'main.dart');
-    final result = p.runSync([
-      'run',
+    final result = p.runSync('run', [
       '--enable-experiment=triple-shift',
       name,
       '--argument1',
@@ -113,8 +111,7 @@ void run() {
     p.file('main.dart', 'void main(args) { print(args); }');
     // Test with File uri
     final name = path.join(p.dirPath, 'main.dart');
-    final result = p.runSync([
-      'run',
+    final result = p.runSync('run', [
       Uri.file(name).toString(),
       '--argument1',
       'argument2',
@@ -137,8 +134,7 @@ void run() {
     //
     // This test ensures that allowed arguments for dart run which are valid VM
     // arguments are properly handled by the VM.
-    ProcessResult result = p.runSync([
-      'run',
+    ProcessResult result = p.runSync('run', [
       '--observe',
       '--pause-isolates-on-start',
       // This should negate the above flag.
@@ -157,8 +153,7 @@ void run() {
     expect(result.exitCode, 0);
 
     // Again, with --disable-service-auth-codes.
-    result = p.runSync([
-      'run',
+    result = p.runSync('run', [
       '--observe',
       '--pause-isolates-on-start',
       // This should negate the above flag.
@@ -183,8 +178,7 @@ void run() {
 
     // Any VM flags not listed under 'dart run help --verbose' should be passed
     // before a dartdev command.
-    ProcessResult result = p.runSync([
-      'run',
+    ProcessResult result = p.runSync('run', [
       '--vm-name=foo',
       p.relativeFilePath,
     ]);
@@ -202,8 +196,7 @@ void run() {
 
     // Any VM flags not listed under 'dart run help --verbose' should be passed
     // before a dartdev command.
-    ProcessResult result = p.runSync([
-      'run',
+    ProcessResult result = p.runSync('run', [
       '--verbose_gc',
       p.relativeFilePath,
     ]);
@@ -221,8 +214,7 @@ void run() {
 
     // Ensure --enable-asserts doesn't cause the dartdev isolate to fail to
     // load. Regression test for: https://github.com/dart-lang/sdk/issues/42831
-    ProcessResult result = p.runSync([
-      'run',
+    ProcessResult result = p.runSync('run', [
       '--enable-asserts',
       p.relativeFilePath,
     ]);
@@ -236,8 +228,7 @@ void run() {
     p = project(mainSrc: 'void main() { assert(false); }');
 
     // Any VM flags passed after the script shouldn't be interpreted by the VM.
-    ProcessResult result = p.runSync([
-      'run',
+    ProcessResult result = p.runSync('run', [
       p.relativeFilePath,
       '--enable-asserts',
     ]);

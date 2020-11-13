@@ -30,7 +30,7 @@ dependencies:
   yaml: any
 
 dev_dependencies:
-  analysis_tool: any
+  analyzer_utilities: any
   http: any
   logging: any
   matcher: any

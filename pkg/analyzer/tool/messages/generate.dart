@@ -13,10 +13,10 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:analysis_tool/package_root.dart' as pkg_root;
-import 'package:analysis_tool/tools.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 

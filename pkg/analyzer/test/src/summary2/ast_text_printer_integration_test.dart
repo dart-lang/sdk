@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
-import 'package:analysis_tool/package_root.dart' as package_root;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:test/test.dart';
 
 import '../dart/ast/parse_base.dart';

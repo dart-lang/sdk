@@ -19,7 +19,7 @@ void format() {
 
   test('--help', () {
     p = project();
-    var result = p.runSync(['format', '--help']);
+    var result = p.runSync('format', ['--help']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically format Dart source code.'));
@@ -32,7 +32,7 @@ void format() {
 
   test('--help --verbose', () {
     p = project();
-    var result = p.runSync(['format', '--help', '--verbose']);
+    var result = p.runSync('format', ['--help', '--verbose']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically format Dart source code.'));
@@ -45,7 +45,7 @@ void format() {
 
   test('unchanged', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    ProcessResult result = p.runSync(['format', p.relativeFilePath]);
+    ProcessResult result = p.runSync('format', [p.relativeFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, startsWith('Formatted 1 file (0 changed) in '));
@@ -53,7 +53,7 @@ void format() {
 
   test('formatted', () {
     p = project(mainSrc: 'int get foo =>       1;\n');
-    ProcessResult result = p.runSync(['format', p.relativeFilePath]);
+    ProcessResult result = p.runSync('format', [p.relativeFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -65,7 +65,7 @@ void format() {
   test('unknown file', () {
     p = project(mainSrc: 'int get foo => 1;\n');
     var unknownFilePath = '${p.relativeFilePath}-unknown-file.dart';
-    ProcessResult result = p.runSync(['format', unknownFilePath]);
+    ProcessResult result = p.runSync('format', [unknownFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr,
         startsWith('No file or directory found at "$unknownFilePath".'));

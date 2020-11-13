@@ -243,13 +243,13 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   Future<String> assertErrorExit(
       MigrationCliRunner cliRunner, FutureOr<void> Function() callback,
-      {@required bool withUsage, dynamic expectedExitCode = anything}) async {
+      {@required bool withUsage, dynamic expectedExitCode}) async {
+    expectedExitCode ??= isNot(0);
     try {
       await callback();
       fail('Migration succeeded; expected it to abort with an error');
     } on MigrationExit catch (migrationExit) {
       expect(migrationExit.exitCode, isNotNull);
-      expect(migrationExit.exitCode, isNot(0));
       expect(migrationExit.exitCode, expectedExitCode);
     }
     expect(cliRunner.isPreviewServerRunning, isFalse);
@@ -313,7 +313,8 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   Future<String> assertRunFailure(List<String> args,
       {MigrationCli cli,
       bool withUsage = false,
-      dynamic expectedExitCode = anything}) async {
+      dynamic expectedExitCode}) async {
+    expectedExitCode ??= isNot(0);
     cli ??= _createCli();
     MigrationCliRunner cliRunner;
     try {
@@ -321,7 +322,6 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
           cli.decodeCommandLineArgs(MigrationCli.createParser().parse(args));
     } on MigrationExit catch (e) {
       expect(e.exitCode, isNotNull);
-      expect(e.exitCode, isNot(0));
       expect(e.exitCode, expectedExitCode);
       return assertStderr(withUsage: withUsage);
     }
@@ -684,6 +684,11 @@ linter:
     expect(
         errorOutput, isNot(contains('try to fix errors in the source code')));
     expect(errorOutput, contains('re-run with\n--ignore-exceptions'));
+    expect(errorOutput, contains('consider filing a bug report'));
+    expect(
+        errorOutput,
+        contains(
+            RegExp(r'Please include the SDK version \([0-9]+\.[0-9]+\..*\)')));
   }
 
   test_lifecycle_exception_handling_ignore() async {
@@ -834,6 +839,15 @@ import 'test.dart';
         contains(
             'analysis errors will result in erroneous migration suggestions'));
     expect(output, contains('Please fix the analysis issues'));
+  }
+
+  test_lifecycle_migration_already_performed() async {
+    var projectContents = simpleProject(migrated: true);
+    var projectDir = createProjectDir(projectContents);
+    await assertRunFailure([projectDir], expectedExitCode: 0);
+    var output = logger.stdoutBuffer.toString();
+    expect(output,
+        contains('All sources appear to be already migrated.  Nothing to do.'));
   }
 
   test_lifecycle_no_preview() async {

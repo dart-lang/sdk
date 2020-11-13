@@ -4,13 +4,13 @@
 
 import 'dart:io';
 
-import 'package:analysis_tool/package_root.dart' as package_root;
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:path/src/context.dart';
 
 /// Generate the file `diagnostics.md` based on the documentation associated

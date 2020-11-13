@@ -640,7 +640,10 @@ bug in the migration tool.  Please consider filing a bug report at:
 ''');
       }
       logger.stderr('https://github.com/dart-lang/sdk/issues/new');
+      var sdkVersion = Platform.version.split(' ')[0];
       logger.stderr('''
+Please include the SDK version ($sdkVersion) in your bug report.
+
 To attempt to perform migration anyway, you may re-run with
 --${CommandLineOptions.ignoreExceptionsFlag}.
 
@@ -704,6 +707,9 @@ Exception details:
         if (!options.ignoreErrors) {
           throw MigrationExit(1);
         }
+      } else if (analysisResult.allSourcesAlreadyMigrated) {
+        _logAlreadyMigrated();
+        throw MigrationExit(0);
       } else {
         logger.stdout('No analysis issues found.');
       }
@@ -749,6 +755,9 @@ View the migration suggestions by visiting:
 
 Use this interactive web view to review, improve, or apply the results.
 When finished with the preview, hit ctrl-c to terminate this process.
+
+If you make edits outside of the web view (in your IDE), use the 'Rerun from
+sources' action.
 
 ''');
 
@@ -854,6 +863,10 @@ When finished with the preview, hit ctrl-c to terminate this process.
     }
   }
 
+  void _logAlreadyMigrated() {
+    logger.stdout(migratedAlready);
+  }
+
   void _logErrors(AnalysisResult analysisResult) {
     logger.stdout('');
 
@@ -912,6 +925,15 @@ get erroneous migration suggestions.
     var analysisResult = await _fixCodeProcessor.runFirstPhase();
     if (analysisResult.hasErrors) {
       _logErrors(analysisResult);
+      return MigrationState(
+          _fixCodeProcessor._task.migration,
+          _fixCodeProcessor._task.includedRoot,
+          _dartFixListener,
+          _fixCodeProcessor._task.instrumentationListener,
+          {},
+          analysisResult);
+    } else if (analysisResult.allSourcesAlreadyMigrated) {
+      _logAlreadyMigrated();
       return MigrationState(
           _fixCodeProcessor._task.migration,
           _fixCodeProcessor._task.includedRoot,

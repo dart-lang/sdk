@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_tool/package_root.dart' as package_root;
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 
 import 'generate.dart';

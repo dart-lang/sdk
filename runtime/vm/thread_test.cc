@@ -296,7 +296,9 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   bool wait = true;
 
   EXPECT(isolate->heap()->GrowthControlState());
-  isolate->heap()->DisableGrowthControl();
+
+  NoHeapGrowthControlScope no_heap_growth_scope;
+
   for (intptr_t i = 0; i < kTaskCount; i++) {
     Dart::thread_pool()->Run<SimpleTaskWithZoneAllocation>(
         (i + 1), isolate, &threads[i], &sync, &monitor, &done_count, &wait);

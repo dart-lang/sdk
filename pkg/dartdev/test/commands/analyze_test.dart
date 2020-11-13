@@ -62,7 +62,7 @@ void defineAnalyze() {
 
   test('--help', () {
     p = project();
-    var result = p.runSync(['analyze', '--help']);
+    var result = p.runSync('analyze', ['--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -72,7 +72,7 @@ void defineAnalyze() {
 
   test('multiple directories', () {
     p = project();
-    var result = p.runSync(['analyze', '/no/such/dir1/', '/no/such/dir2/']);
+    var result = p.runSync('analyze', ['/no/such/dir1/', '/no/such/dir2/']);
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
@@ -82,7 +82,7 @@ void defineAnalyze() {
 
   test('no such directory', () {
     p = project();
-    var result = p.runSync(['analyze', '/no/such/dir1/']);
+    var result = p.runSync('analyze', ['/no/such/dir1/']);
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
@@ -93,7 +93,7 @@ void defineAnalyze() {
   test('current working directory', () {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = p.runSync(['analyze'], workingDir: p.dirPath);
+    var result = p.runSync('analyze', [], workingDir: p.dirPath);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -102,7 +102,7 @@ void defineAnalyze() {
 
   test('no errors', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync(['analyze', p.dirPath]);
+    var result = p.runSync('analyze', [p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -111,7 +111,7 @@ void defineAnalyze() {
 
   test('one error', () {
     p = project(mainSrc: "int get foo => 'str';\n");
-    var result = p.runSync(['analyze', p.dirPath]);
+    var result = p.runSync('analyze', [p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
@@ -123,7 +123,7 @@ void defineAnalyze() {
 
   test('two errors', () {
     p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
-    var result = p.runSync(['analyze', p.dirPath]);
+    var result = p.runSync('analyze', [p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
@@ -134,7 +134,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync(['analyze', '--fatal-warnings', p.dirPath]);
+    var result = p.runSync('analyze', ['--fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
@@ -145,7 +145,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync(['analyze', p.dirPath]);
+    var result = p.runSync('analyze', [p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
@@ -156,7 +156,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync(['analyze', '--no-fatal-warnings', p.dirPath]);
+    var result = p.runSync('analyze', ['--no-fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -165,7 +165,7 @@ void defineAnalyze() {
 
   test('info implicit no --fatal-infos', () {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
-    var result = p.runSync(['analyze', p.dirPath]);
+    var result = p.runSync('analyze', [p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -174,7 +174,7 @@ void defineAnalyze() {
 
   test('info --fatal-infos', () {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
-    var result = p.runSync(['analyze', '--fatal-infos', p.dirPath]);
+    var result = p.runSync('analyze', ['--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
@@ -188,7 +188,7 @@ int f() {
   var one = 1;
   return result;
 }''');
-    var result = p.runSync(['analyze', '--verbose', p.dirPath]);
+    var result = p.runSync('analyze', ['--verbose', p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
