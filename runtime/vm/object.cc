@@ -8326,6 +8326,7 @@ FunctionPtr Function::InstantiateSignatureFrom(
   // Note that parent pointers in newly instantiated signatures still points to
   // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
+  const intptr_t num_parent_type_params = NumParentTypeParameters();
 
   // See the comment on kCurrentAndEnclosingFree to understand why we don't
   // adjust 'num_free_fun_type_params' downward in this case.
@@ -8345,7 +8346,6 @@ FunctionPtr Function::InstantiateSignatureFrom(
     if (IsGeneric() || HasGenericParent()) {
       // We only consider the function type parameters declared by the parents
       // of this signature function as free.
-      const int num_parent_type_params = NumParentTypeParameters();
       if (num_parent_type_params < num_free_fun_type_params) {
         num_free_fun_type_params = num_parent_type_params;
       }
@@ -8354,6 +8354,8 @@ FunctionPtr Function::InstantiateSignatureFrom(
 
   Function& sig = Function::Handle(Function::NewSignatureFunction(
       owner, parent, TokenPosition::kNoSource, space));
+  const intptr_t offset =
+      sig.NumParentTypeParameters() - num_parent_type_params;
   AbstractType& type = AbstractType::Handle(zone);
 
   // Copy the type parameters and instantiate their bounds (if necessary).
@@ -8363,10 +8365,11 @@ FunctionPtr Function::InstantiateSignatureFrom(
     if (!type_params.IsNull()) {
       TypeArguments& instantiated_type_params = TypeArguments::Handle(zone);
       TypeParameter& type_param = TypeParameter::Handle(zone);
-      Class& cls = Class::Handle(zone);
+      const Class& null_class = Class::Handle(zone);
       String& param_name = String::Handle(zone);
       for (intptr_t i = 0; i < type_params.Length(); ++i) {
         type_param ^= type_params.TypeAt(i);
+        ASSERT(type_param.index() == num_parent_type_params + i);
         type = type_param.bound();
         if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
           type = type.InstantiateFrom(instantiator_type_arguments,
@@ -8377,12 +8380,14 @@ FunctionPtr Function::InstantiateSignatureFrom(
           if (type.IsNull()) {
             return Function::null();
           }
-          cls = type_param.parameterized_class();
+        }
+        if (offset > 0 || type.raw() != type_param.bound()) {
           param_name = type_param.name();
+          ASSERT(type_param.IsFunctionTypeParameter());
           ASSERT(type_param.IsFinalized());
           ASSERT(type_param.IsCanonical());
           type_param = TypeParameter::New(
-              cls, sig, type_param.index(), param_name, type,
+              null_class, sig, type_param.index() + offset, param_name, type,
               type_param.IsGenericCovariantImpl(), type_param.nullability(),
               type_param.token_pos());
           type_param.SetIsFinalized();
@@ -8838,6 +8843,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 
   // Set closure function's type parameters.
   auto& type_args_handle = TypeArguments::Handle(zone, type_parameters());
+  // This function cannot be local, therefore it has no generic parent.
+  // Its implicit closure function therefore has no generic parent function
+  // either. That is why it is safe to simply copy the type parameters.
   closure_function.set_type_parameters(type_args_handle);
   closure_function.UpdateCachedDefaultTypeArguments(thread);
 
@@ -20757,6 +20765,7 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
     }
     object_store->set_canonical_type_parameters(table.Release());
   }
+  ASSERT(!type_parameter.IsDeclaration());
   return type_parameter.raw();
 }
 
@@ -20771,8 +20780,10 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
   const TypeArguments& type_params = TypeArguments::Handle(
       zone, cls.IsNull() ? function.type_parameters() : cls.type_parameters());
   const intptr_t offset =
-      cls.IsNull() ? function.NumParentTypeParameters()
-                   : (cls.NumTypeArguments() - cls.NumTypeParameters());
+      IsFinalized()
+          ? (cls.IsNull() ? function.NumParentTypeParameters()
+                          : (cls.NumTypeArguments() - cls.NumTypeParameters()))
+          : 0;
   TypeParameter& type_parameter = TypeParameter::Handle(zone);
   type_parameter ^= type_params.TypeAt(index() - offset);
   ASSERT(!type_parameter.IsNull());
