@@ -926,6 +926,7 @@ dart_vm_extra_builder(
 nightly_builder(
     "app-kernel-linux-product-x64",
     category = "vm|app-kernel|p64",
+    channels = ["try"],
 )
 dart_vm_extra_builder(
     "app-kernel-linux-release-x64",
@@ -1145,18 +1146,22 @@ dart_vm_sanitizer_builder(
 nightly_builder(
     "vm-kernel-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
+    channels = ["try"],
 )
 nightly_builder(
     "vm-kernel-reload-linux-release-x64",
     category = "vm|misc|reload|r",
+    channels = ["try"],
 )
 nightly_builder(
     "vm-kernel-reload-rollback-linux-debug-x64",
     category = "vm|misc|reload|drb",
+    channels = ["try"],
 )
 nightly_builder(
     "vm-kernel-reload-rollback-linux-release-x64",
     category = "vm|misc|reload|rrb",
+    channels = ["try"],
 )
 dart_vm_low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
 
