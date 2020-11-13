@@ -7,7 +7,6 @@ This tracker is for issues related to:
 * Dart core libraries ("dart:async", "dart:io", etc.)
 * Dart VM
 * dart2js
-* dartfix
 * dev_compiler
 
 Some other pieces of the Dart ecosystem are maintained elsewhere. Please
