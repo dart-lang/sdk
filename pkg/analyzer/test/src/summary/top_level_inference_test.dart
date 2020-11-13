@@ -2688,7 +2688,7 @@ class C extends A implements B {
     String path = convertPath('/test/lib/test.dart');
     newFile(path, content: text);
     UnitElementResult result = await driver.getUnitElement(path);
-    return result.element.library;
+    return result.element.library /*!*/;
   }
 }
 
