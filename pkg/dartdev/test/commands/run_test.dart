@@ -67,8 +67,8 @@ void run() {
     expect(result.stdout, isEmpty);
     expect(
         result.stderr,
-        contains(
-            'Could not find `bin/dartdev_temp.dart` in package `dartdev_temp`.'));
+        contains('Could not find `bin${path.separator}dartdev_temp.dart` in '
+            'package `dartdev_temp`.'));
     expect(result.exitCode, 255);
   });
 
