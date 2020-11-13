@@ -65,7 +65,7 @@ vars = {
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
 
-  "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
+  "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",

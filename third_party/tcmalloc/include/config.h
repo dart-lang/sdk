@@ -6,6 +6,9 @@
 #define GPERFTOOLS_CONFIG_H_
 
 
+/* enable aggressive decommit by default */
+/* #undef ENABLE_AGGRESSIVE_DECOMMIT_BY_DEFAULT */
+
 /* Build new/delete operators for overaligned types */
 #define ENABLE_ALIGNED_NEW_DELETE 1
 
@@ -17,6 +20,9 @@
 
 /* Build sized deletion operators */
 #define ENABLE_SIZED_DELETE 1
+
+/* Define to 1 if you have the <asm/ptrace.h> header file. */
+/* #undef HAVE_ASM_PTRACE_H */
 
 /* Define to 1 if compiler supports __builtin_stack_pointer */
 /* #undef HAVE_BUILTIN_STACK_POINTER */
@@ -36,7 +42,7 @@
 
 /* Define to 1 if you have the declaration of `cfree', and to 0 if you don't.
    */
-#define HAVE_DECL_CFREE 1
+#define HAVE_DECL_CFREE 0
 
 /* Define to 1 if you have the declaration of `memalign', and to 0 if you
    don't. */
@@ -86,9 +92,6 @@
 
 /* Define to 1 if you have the `geteuid' function. */
 #define HAVE_GETEUID 1
-
-/* Define to 1 if you have the `getpagesize' function. */
-#define HAVE_GETPAGESIZE 1
 
 /* Define to 1 if you have the <glob.h> header file. */
 #define HAVE_GLOB_H 1
@@ -159,9 +162,6 @@
 
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #define HAVE_SYS_CDEFS_H 1
-
-/* Define to 1 if you have the <sys/param.h> header file. */
-#define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/prctl.h> header file. */
 #define HAVE_SYS_PRCTL_H 1
@@ -239,7 +239,7 @@
 #define PACKAGE_NAME "gperftools"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "gperftools 2.7"
+#define PACKAGE_STRING "gperftools 2.8"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "gperftools"
@@ -248,7 +248,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.7"
+#define PACKAGE_VERSION "2.8"
 
 /* How to access the PC from a struct ucontext */
 /* #undef PC_FROM_UCONTEXT */
@@ -285,17 +285,14 @@
 /* the namespace where STL code like vector<> is defined */
 #define STL_NAMESPACE std
 
-/* Define 32K of internal pages size for tcmalloc */
-/* #undef TCMALLOC_32K_PAGES */
-
-/* Define 64K of internal pages size for tcmalloc */
-/* #undef TCMALLOC_64K_PAGES */
-
 /* Define 8 bytes of allocation alignment for tcmalloc */
 /* #undef TCMALLOC_ALIGN_8BYTES */
 
+/* Define internal page size for tcmalloc as number of left bitshift */
+/* #undef TCMALLOC_PAGE_SIZE_SHIFT */
+
 /* Version number of package */
-#define VERSION "2.7"
+#define VERSION "2.8"
 
 /* C99 says: define this to get the PRI... macros from stdint.h */
 #ifndef __STDC_FORMAT_MACROS
