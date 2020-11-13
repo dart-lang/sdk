@@ -19,6 +19,7 @@ compilesdk
 constructor(s)
 count.#count
 d
+dart.dev
 dart2js_server
 dart:ffi
 dart_runner
@@ -30,6 +31,7 @@ f
 flutter_runner
 futureor
 h
+https
 interop
 libraries.json
 list.filled
@@ -51,6 +53,7 @@ patch(es)
 pubspec.yaml
 re
 sdksummary
+solutions
 stacktrace
 stringokempty
 struct<#name

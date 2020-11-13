@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/rules.dart';
@@ -1487,6 +1488,34 @@ sky_engine:lib/''');
     resourceProvider.modifyFile(filePath, 'new contents');
     return pumpEventQueue().then((_) {
       // TODO(brianwilkerson) Test when the file was modified
+    });
+  }
+
+  Future<void> test_watch_modifyPackageConfigJson() {
+    var packageConfigPath = '$projPath/.dart_tool/package_config.json';
+    var filePath = convertPath('$projPath/bin/main.dart');
+
+    resourceProvider.newFile(packageConfigPath, '');
+    resourceProvider.newFile(filePath, 'library main;');
+
+    manager.setRoots(<String>[projPath], <String>[]);
+
+    var filePaths = callbacks.currentFilePaths;
+    expect(filePaths, hasLength(1));
+    expect(filePaths, contains(filePath));
+    expect(_currentPackageMap, isEmpty);
+
+    // update .dart_tool/package_config.json
+    callbacks.now++;
+    resourceProvider.modifyFile(
+      packageConfigPath,
+      (PackageConfigFileBuilder()..add(name: 'my', rootPath: '../'))
+          .toContent(toUriStr: toUriStr),
+    );
+
+    return pumpEventQueue().then((_) {
+      // verify new package info
+      expect(_currentPackageMap.keys, unorderedEquals(['my']));
     });
   }
 

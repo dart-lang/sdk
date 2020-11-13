@@ -9,8 +9,10 @@ import "dart:async";
 import "dart:io";
 
 import 'package:expect/expect.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 

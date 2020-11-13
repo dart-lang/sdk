@@ -1325,13 +1325,12 @@ StrongModeNNBDButOptOut:
 
 StrongModeNNBDPackageOptOut:
   template:  |
-    This project cannot run with sound null safety, because one or more project dependencies do not
-    support null safety:
+    Cannot run with sound null safety, because the following dependencies
+    don't support null safety:
 
     #names
 
-    Run 'pub outdated --mode=null-safety' to determine if versions of your
-    dependencies supporting null safety are available.
+    For solutions, see https://dart.dev/go/unsound-null-safety
 
 WeakWithStrongDillLibrary:
   template: "Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety."

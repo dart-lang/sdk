@@ -81,14 +81,16 @@ var z = pi;
 int a = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:math';
 import 'package:aaa/a.dart';
 
 var x = 0;
 var y = a;
 var z = pi;
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 27, 20),
+    ]);
     assertType(findElement.topVar('x').type, 'int');
     assertType(findElement.topVar('y').type, 'int');
     assertType(findElement.topVar('z').type, 'double');

@@ -504,6 +504,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForLoadLibraryFunction(node, importElement);
     }
     _invalidAccessVerifier.verifyImport(node);
+    _checkForImportOfLegacyLibraryIntoNullSafe(node);
     super.visitImportDirective(node);
   }
 
@@ -920,6 +921,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             HintCode.MUST_BE_IMMUTABLE, node.name, [nonFinalFields.join(', ')]);
       }
     }
+  }
+
+  void _checkForImportOfLegacyLibraryIntoNullSafe(ImportDirective node) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    var importElement = node.element as ImportElement;
+    var importedLibrary = importElement.importedLibrary;
+    if (importedLibrary == null || importedLibrary.isNonNullableByDefault) {
+      return;
+    }
+
+    _errorReporter.reportErrorForNode(
+      HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE,
+      node.uri,
+      [importedLibrary.source.uri],
+    );
   }
 
   /// Check that the namespace exported by [node] does not include any elements

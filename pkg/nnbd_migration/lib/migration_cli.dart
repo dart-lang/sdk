@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' hide File;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -50,9 +51,10 @@ class AnalysisResult {
   final Map<String, LineInfo> lineInfo;
   final Context pathContext;
   final String rootDirectory;
+  final bool allSourcesAlreadyMigrated;
 
-  AnalysisResult(
-      this.errors, this.lineInfo, this.pathContext, this.rootDirectory) {
+  AnalysisResult(this.errors, this.lineInfo, this.pathContext,
+      this.rootDirectory, this.allSourcesAlreadyMigrated) {
     errors.sort((AnalysisError one, AnalysisError two) {
       if (one.source != two.source) {
         return one.source.fullName.compareTo(two.source.fullName);
@@ -876,27 +878,41 @@ Exception details:
     for (AnalysisError error in analysisResult.errors) {
       renderer.render(error);
     }
-
     logger.stdout('');
-    logger.stdout('Note: analysis errors will result in erroneous migration '
-        'suggestions.');
-
     _hasAnalysisErrors = true;
+
     if (options.ignoreErrors) {
+      logger.stdout('Note: analysis errors will result in erroneous migration '
+          'suggestions.');
       logger.stdout('Continuing with migration suggestions due to the use of '
           '--${CommandLineOptions.ignoreErrorsFlag}.');
     } else {
       // Fail with how to continue.
+      logger.stdout("The migration tool didn't start, due to analysis errors.");
       logger.stdout('');
       if (analysisResult.hasImportErrors) {
-        logger
-            .stdout('Unresolved URIs found.  Did you forget to run "pub get"?');
-        logger.stdout('');
+        logger.stdout('''
+The following steps might fix your problem:
+1. Run `dart pub get`.
+2. Try running `dart migrate` again.
+''');
+      } else if (analysisResult.allSourcesAlreadyMigrated) {
+        logger.stdout('''
+The following steps might fix your problem:
+1. Set the lower SDK constraint (in pubspec.yaml) to a version before 2.12.
+2. Run `dart pub get`.
+3. Try running `dart migrate` again.
+''');
+      } else {
+        const ignoreErrors = CommandLineOptions.ignoreErrorsFlag;
+        logger.stdout('''
+We recommend fixing the analysis issues before running `dart migrate`.
+Alternatively, you can run `dart migrate --$ignoreErrors`, but you might
+get erroneous migration suggestions.
+''');
       }
       logger.stdout(
-          'Please fix the analysis issues (or, force generation of migration '
-          'suggestions by re-running with '
-          '--${CommandLineOptions.ignoreErrorsFlag}).');
+          'More information: https://dart.dev/go/null-safety-migration');
     }
   }
 
@@ -1054,7 +1070,11 @@ class _FixCodeProcessor extends Object {
     _progressBar = ProgressBar(_migrationCli.logger, pathsToProcess.length);
 
     // Process each source file.
+    bool allSourcesAlreadyMigrated = true;
     await processResources((ResolvedUnitResult result) async {
+      if (!result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+        allSourcesAlreadyMigrated = false;
+      }
       _progressBar.tick();
       List<AnalysisError> errors = result.errors
           .where((error) => error.severity == Severity.error)
@@ -1078,8 +1098,12 @@ class _FixCodeProcessor extends Object {
       }
     }
 
-    return AnalysisResult(analysisErrors, _migrationCli.lineInfo,
-        _migrationCli.pathContext, _migrationCli.options.directory);
+    return AnalysisResult(
+        analysisErrors,
+        _migrationCli.lineInfo,
+        _migrationCli.pathContext,
+        _migrationCli.options.directory,
+        allSourcesAlreadyMigrated);
   }
 
   Future<MigrationState> runLaterPhases() async {

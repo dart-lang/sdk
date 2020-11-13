@@ -347,13 +347,15 @@ const cInt = const int.fromEnvironment('foo', defaultValue: 1);
 const cString = const String.fromEnvironment('foo', defaultValue: 'bar');
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 const vBool = cBool;
 const vInt = cInt;
 const vString = cString;
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     DartObjectImpl evaluate(String name) {
       return findElement.topVar(name).computeConstantValue();
