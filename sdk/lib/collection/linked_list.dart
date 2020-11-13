@@ -122,6 +122,17 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     } while (!identical(current, _first));
   }
 
+  /// Returns true if the [LinkedList] contains an element equal to [element].
+  ///
+  /// This operation will take constant time since the [element] should be a
+  /// [LinkedListEntry] that stores in which list if any it is contained.
+  bool contains(Object? element) {
+    if (element is E) {
+      return element.list == this;
+    }
+    return false;
+  }
+
   bool get isEmpty => _length == 0;
 
   /// Inserts [newEntry] as last entry of the list.
