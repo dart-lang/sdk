@@ -387,6 +387,7 @@ int Options::ParseArguments(int argc,
 
   bool enable_dartdev_analytics = false;
   bool disable_dartdev_analytics = false;
+  bool no_dartdev_analytics = false;
 
   // Parse out the vm options.
   while (i < argc) {
@@ -405,12 +406,14 @@ int Options::ParseArguments(int argc,
       const char* kVerboseDebug1 = "--verbose_debug";
       const char* kVerboseDebug2 = "--verbose-debug";
 
-      // The following two flags are processed as DartDev flags and are not to
+      // The following flags are processed as DartDev flags and are not to
       // be treated as if they are VM flags.
       const char* kEnableDartDevAnalytics1 = "--enable-analytics";
       const char* kEnableDartDevAnalytics2 = "--enable_analytics";
       const char* kDisableDartDevAnalytics1 = "--disable-analytics";
       const char* kDisableDartDevAnalytics2 = "--disable_analytics";
+      const char* kNoDartDevAnalytics1 = "--no-analytics";
+      const char* kNoDartDevAnalytics2 = "--no_analytics";
 
       if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
           (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
@@ -425,6 +428,12 @@ int Options::ParseArguments(int argc,
                  (strncmp(argv[i], kEnableDartDevAnalytics2,
                           strlen(kEnableDartDevAnalytics2)) == 0)) {
         enable_dartdev_analytics = true;
+        skipVmOption = true;
+      } else if ((strncmp(argv[i], kNoDartDevAnalytics1,
+                          strlen(kNoDartDevAnalytics1)) == 0) ||
+                 (strncmp(argv[i], kNoDartDevAnalytics2,
+                          strlen(kNoDartDevAnalytics2)) == 0)) {
+        no_dartdev_analytics = true;
         skipVmOption = true;
       } else if ((strncmp(argv[i], kDisableDartDevAnalytics1,
                           strlen(kDisableDartDevAnalytics1)) == 0) ||
@@ -517,6 +526,9 @@ int Options::ParseArguments(int argc,
     }
     if (disable_dartdev_analytics) {
       dart_options->AddArgument("--disable-analytics");
+    }
+    if (no_dartdev_analytics) {
+      dart_options->AddArgument("--no-analytics");
     }
     return 0;
   }

@@ -21,7 +21,7 @@ void defineFix() {
 
   test('none', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('fix', [p.dirPath]);
+    var result = p.runSync(['fix', p.dirPath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
@@ -38,7 +38,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', [], workingDir: p.dirPath);
+    var result = p.runSync(['fix'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Fixed 1 file.'));
@@ -55,7 +55,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['--dry-run', '.'], workingDir: p.dirPath);
+    var result = p.runSync(['fix', '--dry-run', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -76,7 +76,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    var result = p.runSync(['fix', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Fixed 1 file.'));
@@ -96,7 +96,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    var result = p.runSync(['fix', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
@@ -114,7 +114,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    var result = p.runSync(['fix', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));

@@ -71,16 +71,14 @@ dev_dependencies:
   }
 
   ProcessResult runSync(
-    String command,
     List<String> args, {
     String workingDir,
   }) {
     var arguments = [
-      command,
+      '--no-analytics',
       ...?args,
     ];
 
-    arguments.add('--disable-dartdev-analytics');
     return Process.runSync(Platform.resolvedExecutable, arguments,
         workingDirectory: workingDir ?? dir.path,
         environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
