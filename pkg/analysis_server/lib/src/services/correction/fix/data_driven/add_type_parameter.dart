@@ -50,7 +50,7 @@ class AddTypeParameter extends Change<_Data> {
   @override
   _Data validate(DataDrivenFix fix) {
     var node = fix.node;
-    var context = TemplateContext(getInvocation(node), fix.utils);
+    var context = TemplateContext.forInvocation(node, fix.utils);
     if (node is NamedType) {
       // wrong_number_of_type_arguments
       // wrong_number_of_type_arguments_constructor
@@ -101,7 +101,7 @@ class AddTypeParameter extends Change<_Data> {
 
   void _applyToTypeArguments(
       DartFileEditBuilder builder, DataDrivenFix fix, _TypeArgumentData data) {
-    var context = TemplateContext(getInvocation(fix.node), fix.utils);
+    var context = TemplateContext.forInvocation(fix.node, fix.utils);
     var typeArguments = data.typeArguments;
     if (typeArguments == null) {
       // Adding the first type argument.
@@ -130,7 +130,7 @@ class AddTypeParameter extends Change<_Data> {
 
   void _applyToTypeParameters(
       DartFileEditBuilder builder, DataDrivenFix fix, _TypeParameterData data) {
-    var context = TemplateContext(getInvocation(fix.node), fix.utils);
+    var context = TemplateContext.forInvocation(fix.node, fix.utils);
 
     void writeParameter(DartEditBuilder builder) {
       builder.write(name);

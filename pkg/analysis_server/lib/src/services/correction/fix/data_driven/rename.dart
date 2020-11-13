@@ -66,6 +66,16 @@ class Rename extends Change<SimpleIdentifier> {
   SimpleIdentifier validate(DataDrivenFix fix) {
     var node = fix.node;
     if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is Label && parent.parent is NamedExpression) {
+        var invocation = parent.parent.parent.parent;
+        if (invocation is InstanceCreationExpression) {
+          invocation.constructorName.name;
+        } else if (invocation is MethodInvocation) {
+          return invocation.methodName;
+        }
+        return null;
+      }
       return node;
     } else if (node is ConstructorName) {
       return node.name;

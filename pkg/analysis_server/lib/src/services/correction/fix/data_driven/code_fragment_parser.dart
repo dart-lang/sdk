@@ -275,7 +275,7 @@ class CodeFragmentParser {
   ///   <identifier> | <string>
   Expression _parsePrimaryExpression() {
     var token = currentToken;
-    var kind = token.kind;
+    var kind = token?.kind;
     if (kind == _TokenKind.identifier) {
       advance();
       var variableName = token.lexeme;
@@ -295,8 +295,23 @@ class CodeFragmentParser {
       var value = lexeme.substring(1, lexeme.length - 1);
       return LiteralString(value);
     }
-    errorReporter.reportErrorForOffset(TransformSetErrorCode.expectedPrimary,
-        token.offset + delta, token.length);
+    int offset;
+    int length;
+    if (token == null) {
+      if (tokens.isNotEmpty) {
+        token = tokens[tokens.length - 1];
+        offset = token.offset + delta;
+        length = token.length;
+      } else {
+        offset = delta;
+        length = 0;
+      }
+    } else {
+      offset = token.offset + delta;
+      length = token.length;
+    }
+    errorReporter.reportErrorForOffset(
+        TransformSetErrorCode.expectedPrimary, offset, length);
     return null;
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:meta/meta.dart';
@@ -23,7 +23,7 @@ class Transform {
   final ElementDescriptor element;
 
   /// A list containing the changes to be applied to affect the transform.
-  final List<Change> changes;
+  final ChangesSelector changesSelector;
 
   /// Initialize a newly created transform to describe a transformation of the
   /// [element].
@@ -32,7 +32,7 @@ class Transform {
       this.date,
       @required this.bulkApply,
       @required this.element,
-      @required this.changes});
+      @required this.changesSelector});
 
   /// Return `true` if this transform can be applied to fix an issue related to
   /// an element that matches the given [matcher]. The flag [applyingBulkFixes]

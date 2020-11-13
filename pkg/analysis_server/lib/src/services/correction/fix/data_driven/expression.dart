@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 
 /// A binary expression.
@@ -18,10 +19,35 @@ class BinaryExpression extends Expression {
   /// Initialize a newly created binary expression consisting of the
   /// [leftOperand], [operator], and [rightOperand].
   BinaryExpression(this.leftOperand, this.operator, this.rightOperand);
+
+  @override
+  Object evaluateIn(TemplateContext context) {
+    switch (operator) {
+      case Operator.and:
+        var left = leftOperand.evaluateIn(context);
+        var right = rightOperand.evaluateIn(context);
+        if (left is bool && right is bool) {
+          return left && right;
+        }
+        return null;
+      case Operator.equal:
+        var left = leftOperand.evaluateIn(context);
+        var right = rightOperand.evaluateIn(context);
+        return left == right;
+      case Operator.notEqual:
+        var left = leftOperand.evaluateIn(context);
+        var right = rightOperand.evaluateIn(context);
+        return left != right;
+    }
+    return null;
+  }
 }
 
 /// An expression.
-abstract class Expression {}
+abstract class Expression {
+  /// Return the result of evaluating this expression.
+  Object evaluateIn(TemplateContext context);
+}
 
 /// A literal string.
 class LiteralString extends Expression {
@@ -30,6 +56,11 @@ class LiteralString extends Expression {
 
   /// Initialize a newly created literal string to have the given [value].
   LiteralString(this.value);
+
+  @override
+  String evaluateIn(TemplateContext context) {
+    return value;
+  }
 }
 
 /// An operator used in a binary expression.
@@ -47,4 +78,9 @@ class VariableReference extends Expression {
   /// Initialize a newly created variable reference to reference the variable
   /// whose value is computed by the [generator].
   VariableReference(this.generator);
+
+  @override
+  String evaluateIn(TemplateContext context) {
+    return generator.evaluateIn(context);
+  }
 }

@@ -4,8 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
@@ -53,8 +56,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -88,8 +92,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -124,8 +129,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -165,8 +171,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -209,8 +216,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -256,8 +264,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as AddTypeParameter;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
     var components = change.argumentValue.components;
@@ -292,8 +301,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as AddTypeParameter;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
     expect(change.extendedType, null);
@@ -332,8 +342,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as AddTypeParameter;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
 
@@ -375,8 +386,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as AddTypeParameter;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
 
@@ -408,7 +420,7 @@ transforms:
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
     expect(transform.bulkApply, false);
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_correctOffsetForPlainStrings() {
@@ -453,7 +465,7 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_getter_inMixin() {
@@ -472,7 +484,7 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_getter_topLevel() {
@@ -490,7 +502,7 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_method_inClass() {
@@ -509,7 +521,7 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename m');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_variable() {
@@ -527,7 +539,7 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename v');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_incomplete() {
@@ -568,8 +580,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as RemoveParameter;
@@ -594,8 +607,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as RemoveParameter;
@@ -621,14 +635,53 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename A');
-    expect(transform.changes, hasLength(1));
-    var rename = transform.changes[0] as Rename;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var rename = changes[0] as Rename;
+    expect(rename.newName, 'B');
+  }
+
+  void test_rename_oneOf() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename A'
+  date: 2020-08-21
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  oneOf:
+    - if: "'a' == 'b'"
+      changes:
+        - kind: 'rename'
+          newName: 'B'
+''');
+    var transforms = _transforms('A');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename A');
+    var selector = transform.changesSelector as ConditionalChangesSelector;
+    var changeMap = selector.changeMap;
+    expect(changeMap, hasLength(1));
+    var condition = changeMap.keys.first as BinaryExpression;
+    expect((condition.leftOperand as LiteralString).value, 'a');
+    expect(condition.operator, Operator.equal);
+    expect((condition.rightOperand as LiteralString).value, 'b');
+    var changes = changeMap[condition];
+    expect(changes, hasLength(1));
+    var rename = changes[0] as Rename;
     expect(rename.newName, 'B');
   }
 
   /// Return the first accessor from the given [component].
   Accessor _accessor(TemplateComponent component) =>
       ((component as TemplateVariable).generator as CodeFragment).accessors[0];
+
+  /// Assuming that the [transform] has a single list of changes associated with
+  /// it, return the list of changes.
+  List<Change> _changes(Transform transform) =>
+      (transform.changesSelector as UnconditionalChangesSelector).changes;
 
   ElementMatcher _matcher(String name) =>
       ElementMatcher(importedUris: uris, name: name);
