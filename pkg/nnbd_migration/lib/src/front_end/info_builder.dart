@@ -361,7 +361,7 @@ class InfoBuilder {
 
     var lineInfo = result.unit.lineInfo;
     var insertions = <int, List<AtomicEdit>>{};
-    var hintsSeen = <HintComment>{};
+    var infosSeen = Set<AtomicEditInfo>.identity();
 
     // Apply edits and build the regions.
     var changes = sourceInfo.changes ?? {};
@@ -392,8 +392,7 @@ class InfoBuilder {
             ? const <TraceInfo>[]
             : _computeTraces(info.fixReasons);
         var description = info?.description;
-        var hint = info?.hintComment;
-        var isCounted = hint == null || hintsSeen.add(hint);
+        var isCounted = info != null && infosSeen.add(info);
         var explanation = description?.appliedMessage;
         var kind = description?.kind;
         if (edit.isInsertion) {
