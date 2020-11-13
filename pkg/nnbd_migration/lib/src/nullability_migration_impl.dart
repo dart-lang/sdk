@@ -197,12 +197,6 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void finish() {
-    if (!_propagated) {
-      // [finalizeInput] sets this field to `true`, so if it's still false, that
-      // means it was never called; this probably means that all the code fed
-      // to the migration tool was already migrated.
-      throw ExperimentStatusException.migratedAlready();
-    }
     _postmortemFileWriter?.write();
     _instrumentation?.finished();
   }
