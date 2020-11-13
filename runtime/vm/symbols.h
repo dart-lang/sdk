@@ -76,6 +76,9 @@ class ObjectPointerVisitor;
   V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartFfi, "dart:ffi")                                                       \
   V(DartFfiLibName, "ffi")                                                     \
+  V(DartWasm, "dart:wasm")                                                     \
+  V(DartWasmLibName, "wasm")                                                   \
+  V(DartLibraryWasm, "dart.library.wasm")                                      \
   V(DartIOLibName, "dart.io")                                                  \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsVM, "dart.isVM")                                                     \
@@ -299,6 +302,11 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
+  V(WasmInt32, "Int32")                                                        \
+  V(WasmInt64, "Int64")                                                        \
+  V(WasmFloat, "Float")                                                        \
+  V(WasmDouble, "Double")                                                      \
+  V(WasmVoid, "Void")                                                          \
   V(YieldKw, "yield")                                                          \
   V(_AsyncAwaitStart, "start")                                                 \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \

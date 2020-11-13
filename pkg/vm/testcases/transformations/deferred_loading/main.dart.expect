@@ -4,6 +4,7 @@ LoadingUnit(id=1, parent=0,
   #lib
   dart:_http
   dart:core
+  dart:wasm
   dart:cli
   dart:io
   dart:nativewrappers

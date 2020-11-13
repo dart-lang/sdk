@@ -632,6 +632,14 @@ void Object::InitVtables() {
 
 #define INIT_VTABLE(clazz)                                                     \
   {                                                                            \
+    Instance fake_handle;                                                      \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_WASM(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
     TypedData fake_internal_handle;                                            \
     builtin_vtables_[kTypedData##clazz##Cid] = fake_internal_handle.vtable();  \
     TypedDataView fake_view_handle;                                            \
@@ -2291,6 +2299,23 @@ ErrorPtr Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
 
+    lib = Library::LookupLibrary(thread, Symbols::DartWasm());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartWasm(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kWasm, lib);
+
+#define REGISTER_WASM_TYPE(clazz)                                              \
+  cls = Class::New<Instance, RTN::Instance>(k##clazz##Cid, isolate);           \
+  cls.set_num_type_arguments(0);                                               \
+  cls.set_is_prefinalized();                                                   \
+  pending_classes.Add(cls);                                                    \
+  RegisterClass(cls, Symbols::clazz(), lib);
+    CLASS_LIST_WASM(REGISTER_WASM_TYPE);
+#undef REGISTER_WASM_TYPE
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -2384,6 +2409,11 @@ ErrorPtr Object::Init(Isolate* isolate,
   cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate);
     CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_CLASS);
 #undef REGISTER_FFI_CLASS
+
+#define REGISTER_WASM_CLASS(clazz)                                             \
+  cls = Class::New<Instance, RTN::Instance>(k##clazz##Cid, isolate);
+    CLASS_LIST_WASM(REGISTER_WASM_CLASS);
+#undef REGISTER_WASM_CLASS
 
     cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid, isolate);
 
@@ -13335,6 +13365,10 @@ LibraryPtr Library::TypedDataLibrary() {
 
 LibraryPtr Library::VMServiceLibrary() {
   return Isolate::Current()->object_store()->_vmservice_library();
+}
+
+LibraryPtr Library::WasmLibrary() {
+  return Isolate::Current()->object_store()->wasm_library();
 }
 
 const char* Library::ToCString() const {
