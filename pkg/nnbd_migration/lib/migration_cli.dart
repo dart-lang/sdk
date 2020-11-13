@@ -704,6 +704,9 @@ Exception details:
         if (!options.ignoreErrors) {
           throw MigrationExit(1);
         }
+      } else if (analysisResult.allSourcesAlreadyMigrated) {
+        _logAlreadyMigrated();
+        throw MigrationExit(0);
       } else {
         logger.stdout('No analysis issues found.');
       }
@@ -857,6 +860,10 @@ sources' action.
     }
   }
 
+  void _logAlreadyMigrated() {
+    logger.stdout(migratedAlready);
+  }
+
   void _logErrors(AnalysisResult analysisResult) {
     logger.stdout('');
 
@@ -915,6 +922,15 @@ get erroneous migration suggestions.
     var analysisResult = await _fixCodeProcessor.runFirstPhase();
     if (analysisResult.hasErrors) {
       _logErrors(analysisResult);
+      return MigrationState(
+          _fixCodeProcessor._task.migration,
+          _fixCodeProcessor._task.includedRoot,
+          _dartFixListener,
+          _fixCodeProcessor._task.instrumentationListener,
+          {},
+          analysisResult);
+    } else if (analysisResult.allSourcesAlreadyMigrated) {
+      _logAlreadyMigrated();
       return MigrationState(
           _fixCodeProcessor._task.migration,
           _fixCodeProcessor._task.includedRoot,
