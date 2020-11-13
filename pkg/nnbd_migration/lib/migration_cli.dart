@@ -728,6 +728,9 @@ View the migration suggestions by visiting:
 Use this interactive web view to review, improve, or apply the results.
 When finished with the preview, hit ctrl-c to terminate this process.
 
+If you make edits outside of the web view (in your IDE), use the 'Rerun from
+sources' action.
+
 ''');
 
       // Block until sigint (ctrl-c).
