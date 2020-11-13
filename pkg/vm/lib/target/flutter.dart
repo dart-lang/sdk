@@ -41,7 +41,6 @@ class FlutterTarget extends VmTarget {
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
-        'dart:wasm',
 
         // Required for flutter.
         'dart:ui',

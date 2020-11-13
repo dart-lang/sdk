@@ -161,6 +161,26 @@ bool  b = a!.isEven;
             ['1 late final hint converted to late and final keywords']));
   }
 
+  Future<void> test_editList_countsWhereOrNullSingly() async {
+    await buildInfoForSingleTestFile(
+        '''
+import 'package:collection/collection.dart';
+
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''',
+        removeViaComments: false,
+        migratedContent: '''
+import 'package:collection/collection.dart';
+
+int? firstEven(Iterable<int >  x)
+    => x.firstWherefirstWhereOrNull((x) => x.isEven, orElse: () => null);
+''');
+    var output = renderUnits()[0];
+    expect(output.edits.keys,
+        unorderedEquals(['1 method name changed', '1 type made nullable']));
+  }
+
   Future<void> test_editList_pluralHeader() async {
     await buildInfoForSingleTestFile('''
 int a = null;

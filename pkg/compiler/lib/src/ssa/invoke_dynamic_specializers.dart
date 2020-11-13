@@ -109,6 +109,13 @@ class InvokeDynamicSpecializer {
     return const InvokeDynamicSpecializer();
   }
 
+  bool requiresBoundsCheck(HInvokeDynamic node, JClosedWorld closedWorld) {
+    if (node.isBoundsSafe) return false;
+    return closedWorld.annotationsData
+        .getIndexBoundsCheckPolicy(node.instructionContext)
+        .isEmitted;
+  }
+
   HBoundsCheck insertBoundsCheck(HInstruction indexerNode, HInstruction array,
       HInstruction indexArgument, JClosedWorld closedWorld) {
     final abstractValueDomain = closedWorld.abstractValueDomain;
@@ -202,9 +209,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     }
 
     HInstruction checkedIndex = index;
-    if (closedWorld.annotationsData
-        .getIndexBoundsCheckPolicy(instruction.instructionContext)
-        .isEmitted) {
+    if (requiresBoundsCheck(instruction, closedWorld)) {
       checkedIndex =
           insertBoundsCheck(instruction, receiver, index, closedWorld);
     }
@@ -283,9 +288,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     }
 
     HInstruction checkedIndex = index;
-    if (closedWorld.annotationsData
-        .getIndexBoundsCheckPolicy(instruction.instructionContext)
-        .isEmitted) {
+    if (requiresBoundsCheck(instruction, closedWorld)) {
       checkedIndex =
           insertBoundsCheck(instruction, receiver, index, closedWorld);
     }
@@ -315,9 +318,7 @@ class RemoveLastSpecializer extends InvokeDynamicSpecializer {
     // We are essentially inlining `result = a[a.length - 1]`. `0` is the only
     // index that can fail so we check zero directly, but we want to report the
     // error index as `-1`, so we add `-1` as an extra input that to the check.
-    if (closedWorld.annotationsData
-        .getIndexBoundsCheckPolicy(instruction.instructionContext)
-        .isEmitted) {
+    if (requiresBoundsCheck(instruction, closedWorld)) {
       HConstant zeroIndex = graph.addConstantInt(0, closedWorld);
       HBoundsCheck check =
           insertBoundsCheck(instruction, receiver, zeroIndex, closedWorld);
