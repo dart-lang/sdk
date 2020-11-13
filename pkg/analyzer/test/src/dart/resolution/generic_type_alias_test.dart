@@ -122,6 +122,7 @@ void f() {
 ''', [
       error(ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, 13, 1),
       error(ParserErrorCode.EXPECTED_TYPE_NAME, 15, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 15, 0),
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 1),
     ]);
   }

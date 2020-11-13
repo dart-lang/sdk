@@ -1540,15 +1540,8 @@ class AstBuilder extends StackListener {
       if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
         handleRecoverableError(messageTypedefNotFunction, equals, equals);
       }
-      declarations.add(ast.genericTypeAlias(
-          comment,
-          metadata,
-          typedefKeyword,
-          name,
-          templateParameters,
-          equals,
-          type,
-          semicolon));
+      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
+          name, templateParameters, equals, type, semicolon));
     }
   }
 

@@ -520,7 +520,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.name.accept(this);
     node.typeParameters?.accept(this);
     _token(node.equals);
-    node.functionType.accept(this);
+    node.type.accept(this);
     _token(node.semicolon);
   }
 
