@@ -158,11 +158,15 @@ class SimplyBoundedDependencyWalker
       collector.visitParameters(node.parameters);
       return collector.types;
     } else if (node is GenericTypeAlias) {
-      var functionType = node.functionType;
-      if (functionType != null) {
+      var type = node.type;
+      if (type != null) {
         var collector = _TypeCollector();
-        collector.addType(functionType.returnType);
-        collector.visitParameters(functionType.parameters);
+        if (type is GenericFunctionType) {
+          collector.addType(type.returnType);
+          collector.visitParameters(type.parameters);
+        } else {
+          collector.addType(type);
+        }
         return collector.types;
       } else {
         return const <TypeAnnotation>[];

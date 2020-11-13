@@ -170,12 +170,17 @@ class JsInteropChecks extends RecursiveVisitor<void> {
 
   /// Returns whether [member] is considered to be a JS interop member.
   bool _isJSInteropMember(Member member) {
-    if (!member.isExternal) return false;
-    if (_classHasJSAnnotation) return true;
-    if (!_classHasJSAnnotation && member.enclosingClass != null) return false;
-    // In the case where the member does not belong to any class, a JS
-    // annotation is not needed on the library to be considered JS interop as
-    // long as the member has an annotation.
-    return hasJSInteropAnnotation(member) || _libraryHasJSAnnotation;
+    if (member.isExternal) {
+      if (_classHasJSAnnotation) return true;
+      if (member.enclosingClass == null) {
+        // In the case where the member does not belong to any class, a JS
+        // annotation is not needed on the library to be considered JS interop
+        // as long as the member has an annotation.
+        return hasJSInteropAnnotation(member) || _libraryHasJSAnnotation;
+      }
+    }
+
+    // Otherwise, not JS interop.
+    return false;
   }
 }

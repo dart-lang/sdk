@@ -145,7 +145,10 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
-    node.functionType?.accept(this);
+    // TODO(eernst): Extend this visitor to visit types.
+    // E.g., `List<Function<@m X>()> Function()` is not included now.
+    var type = node.type;
+    if (type is GenericFunctionType) type.accept(this);
   }
 
   @override

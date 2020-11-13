@@ -5423,6 +5423,11 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   @override
   TypeAnnotation get type => _type;
 
+  /// Set the type being defined by the alias to the given [TypeAnnotation].
+  set type(TypeAnnotation typeAnnotation) {
+    _type = _becomeParentOf(typeAnnotation as TypeAnnotationImpl);
+  }
+
   @override
   TypeParameterList get typeParameters => _typeParameters;
 

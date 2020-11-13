@@ -107,10 +107,6 @@ group("dartfmt") {
   deps = [ "utils/dartfmt" ]
 }
 
-group("dartfix") {
-  deps = [ "utils/dartfix" ]
-}
-
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
 }

@@ -263,7 +263,7 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
     );
 
     node.typeParameters?.accept(this);
-    node.functionType?.accept(this);
+    node.type?.accept(this);
   }
 
   @override
