@@ -41,7 +41,8 @@ class Service {
   /// Uri to access the service).
   static Future<ServiceProtocolInfo> getInfo() async {
     // Port to receive response from service isolate.
-    final RawReceivePort receivePort = new RawReceivePort();
+    final RawReceivePort receivePort =
+        new RawReceivePort(null, 'Service.getInfo');
     final Completer<Uri?> uriCompleter = new Completer<Uri?>();
     receivePort.handler = (Uri? uri) => uriCompleter.complete(uri);
     // Request the information from the service isolate.
@@ -62,7 +63,8 @@ class Service {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
-    final RawReceivePort receivePort = new RawReceivePort();
+    final RawReceivePort receivePort =
+        new RawReceivePort(null, 'Service.controlWebServer');
     final Completer<Uri> uriCompleter = new Completer<Uri>();
     receivePort.handler = (Uri uri) => uriCompleter.complete(uri);
     // Request the information from the service isolate.

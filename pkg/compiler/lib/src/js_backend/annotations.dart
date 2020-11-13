@@ -102,6 +102,14 @@ class PragmaAnnotation {
       14, 'downcast:check',
       forFunctionsOnly: false, internalOnly: false);
 
+  static const PragmaAnnotation indexBoundsTrust = const PragmaAnnotation(
+      15, 'index-bounds:trust',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation indexBoundsCheck = const PragmaAnnotation(
+      16, 'index-bounds:check',
+      forFunctionsOnly: false, internalOnly: false);
+
   static const List<PragmaAnnotation> values = [
     noInline,
     tryInline,
@@ -118,6 +126,8 @@ class PragmaAnnotation {
     parameterCheck,
     downcastTrust,
     downcastCheck,
+    indexBoundsTrust,
+    indexBoundsCheck,
   ];
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
@@ -319,6 +329,12 @@ abstract class AnnotationsData {
   ///
   /// If [member] is `null`, the default policy is returned.
   CheckPolicy getExplicitCastCheckPolicy(MemberEntity member);
+
+  /// What should the compiler do with index bounds checks `[]`, `[]=` and
+  /// `removeLast()` operations in the body of [member].
+  ///
+  /// If [member] is `null`, the default policy is returned.
+  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -330,6 +346,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   final CheckPolicy _defaultImplicitDowncastCheckPolicy;
   final CheckPolicy _defaultConditionCheckPolicy;
   final CheckPolicy _defaultExplicitCastCheckPolicy;
+  final CheckPolicy _defaultIndexBoundsCheckPolicy;
   final Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations;
 
   AnnotationsDataImpl(CompilerOptions options, this.pragmaAnnotations)
@@ -338,7 +355,9 @@ class AnnotationsDataImpl implements AnnotationsData {
             options.defaultImplicitDowncastCheckPolicy,
         this._defaultConditionCheckPolicy = options.defaultConditionCheckPolicy,
         this._defaultExplicitCastCheckPolicy =
-            options.defaultExplicitCastCheckPolicy;
+            options.defaultExplicitCastCheckPolicy,
+        this._defaultIndexBoundsCheckPolicy =
+            options.defaultIndexBoundsCheckPolicy;
 
   factory AnnotationsDataImpl.readFromDataSource(
       CompilerOptions options, DataSource source) {
@@ -503,6 +522,21 @@ class AnnotationsDataImpl implements AnnotationsData {
       }
     }
     return _defaultExplicitCastCheckPolicy;
+  }
+
+  @override
+  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity member) {
+    if (member != null) {
+      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      if (annotations != null) {
+        if (annotations.contains(PragmaAnnotation.indexBoundsTrust)) {
+          return CheckPolicy.trusted;
+        } else if (annotations.contains(PragmaAnnotation.indexBoundsCheck)) {
+          return CheckPolicy.checked;
+        }
+      }
+    }
+    return _defaultIndexBoundsCheckPolicy;
   }
 }
 

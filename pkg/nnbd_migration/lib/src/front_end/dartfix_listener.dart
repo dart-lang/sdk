@@ -7,6 +7,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
+import 'package:pub_semver/src/version.dart';
 
 class DartFixListener {
   final DriverProviderImpl server;
@@ -15,14 +16,9 @@ class DartFixListener {
 
   final List<DartFixSuggestion> suggestions = [];
 
-  /// Add the given [detail] to the list of details to be returned to the
-  /// client.
-  final void Function(String detail) reportException;
+  final DartFixListenerClient client;
 
-  /// Callback that reports a fatal error to the client.
-  final void Function(String detail) reportFatalError;
-
-  DartFixListener(this.server, this.reportException, this.reportFatalError);
+  DartFixListener(this.server, this.client);
 
   /// Record an edit to be sent to the client.
   ///
@@ -49,6 +45,13 @@ class DartFixListener {
     suggestions.add(DartFixSuggestion(description, location: location));
   }
 
+  /// Reports to then user that they need to run `dart pub get` after the
+  /// migration finishes.
+  void reportPubGetNeeded(Map<String, Version> neededPackages) {
+    client.onMessage(
+        'Your pubspec has been updated.  Please run `dart pub get`.');
+  }
+
   /// Reset this listener so that it can accrue a new set of changes.
   void reset() {
     suggestions.clear();
@@ -58,6 +61,18 @@ class DartFixListener {
       ..selection = null
       ..id = null;
   }
+}
+
+abstract class DartFixListenerClient {
+  /// Add the given [detail] to the list of details to be returned to the
+  /// client.
+  void onException(String detail);
+
+  /// Callback that reports a fatal error to the client.
+  void onFatalError(String detail);
+
+  /// Reports the given [detail] message to the client; not an error condition.
+  void onMessage(String detail);
 }
 
 class DartFixSuggestion {

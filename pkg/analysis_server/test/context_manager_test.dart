@@ -55,14 +55,14 @@ void _fail(String message) {
 class AbstractContextManagerTest extends ContextManagerTest {
   void test_contextsInAnalysisRoot_nestedContext() {
     var subProjPath = join(projPath, 'subproj');
-    var subProjFolder = resourceProvider.newFolder(subProjPath);
-    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
+    var subProjFolder = newFolder(subProjPath);
+    newFile(join(subProjPath, 'pubspec.yaml'), content: 'contents');
     var subProjFilePath = join(subProjPath, 'file.dart');
-    resourceProvider.newFile(subProjFilePath, 'contents');
+    newFile(subProjFilePath, content: 'contents');
     manager.setRoots(<String>[projPath], <String>[]);
     // Make sure that there really are contexts for both the main project and
     // the subproject.
-    var projectFolder = resourceProvider.getFolder(projPath);
+    var projectFolder = getFolder(projPath);
     var projContextInfo = manager.getContextInfoFor(projectFolder);
     expect(projContextInfo, isNotNull);
     expect(projContextInfo.folder, projectFolder);
@@ -106,7 +106,7 @@ embedded_libs:
   "dart:typed_data": "../embedder/src/part"
   ''');
 
-    var projectFolder = resourceProvider.newFolder(projPath);
+    var projectFolder = newFolder(projPath);
 
     // NOTE that this is Not in our package path yet.
 
@@ -159,8 +159,7 @@ sky_engine:lib/''');
     manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
     // Confirm that one context was created.
-    var count = manager
-        .numberOfContextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    var count = manager.numberOfContextsInAnalysisRoot(newFolder(projPath));
     expect(count, equals(1));
     var source = sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
@@ -178,8 +177,8 @@ sky_engine:lib/''');
     var project = convertPath('/project');
     var excludedFolder = convertPath('$project/excluded');
     // set roots
-    resourceProvider.newFolder(project);
-    resourceProvider.newFolder(excludedFolder);
+    newFolder(project);
+    newFolder(excludedFolder);
     manager.setRoots(<String>[project], <String>[excludedFolder]);
     // verify
     expect(manager.isInAnalysisRoot(convertPath('$excludedFolder/test.dart')),
@@ -188,10 +187,10 @@ sky_engine:lib/''');
 
   void test_isInAnalysisRoot_inNestedContext() {
     var subProjPath = join(projPath, 'subproj');
-    var subProjFolder = resourceProvider.newFolder(subProjPath);
-    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
+    var subProjFolder = newFolder(subProjPath);
+    newFile(join(subProjPath, 'pubspec.yaml'), content: 'contents');
     var subProjFilePath = join(subProjPath, 'file.dart');
-    resourceProvider.newFile(subProjFilePath, 'contents');
+    newFile(subProjFilePath, content: 'contents');
     manager.setRoots(<String>[projPath], <String>[]);
     // Make sure that there really is a context for the subproject.
     var subProjContextInfo = manager.getContextInfoFor(subProjFolder);
@@ -214,14 +213,14 @@ sky_engine:lib/''');
   Future<void> test_packagesFolder_areAnalyzed() {
     // create a context with a pubspec.yaml file
     var pubspecPath = join(projPath, 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'pubspec');
+    newFile(pubspecPath, content: 'pubspec');
     // create a file in the "packages" folder
     var filePath1 = join(projPath, 'packages', 'file1.dart');
-    var file1 = resourceProvider.newFile(filePath1, 'contents');
+    var file1 = newFile(filePath1, content: 'contents');
     manager.setRoots(<String>[projPath], <String>[]);
     expect(callbacks.currentFilePaths, unorderedEquals([file1.path]));
     var filePath2 = join(projPath, 'packages', 'file2.dart');
-    var file2 = resourceProvider.newFile(filePath2, 'contents');
+    var file2 = newFile(filePath2, content: 'contents');
     return pumpEventQueue().then((_) {
       expect(callbacks.currentFilePaths,
           unorderedEquals([file1.path, file2.path]));
@@ -230,7 +229,7 @@ sky_engine:lib/''');
 
   Future<void> test_path_filter() async {
     // Setup context.
-    var root = resourceProvider.newFolder(projPath);
+    var root = newFolder(projPath);
     manager.setRoots(<String>[projPath], <String>[]);
     expect(callbacks.currentFilePaths, isEmpty);
     // Set ignore patterns for context.
@@ -257,7 +256,7 @@ sky_engine:lib/''');
   Future<void> test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
     var packagespecFile = join(projPath, '.packages');
-    resourceProvider.newFile(packagespecFile, '');
+    newFile(packagespecFile, content: '');
     manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
@@ -280,8 +279,8 @@ sky_engine:lib/''');
     var subdir2Path = join(projPath, 'subdir2');
     var packagespec1Path = join(subdir1Path, '.packages');
     var packagespec2Path = join(subdir2Path, '.packages');
-    resourceProvider.newFile(packagespec1Path, '');
-    resourceProvider.newFile(packagespec2Path, '');
+    newFile(packagespec1Path, content: '');
+    newFile(packagespec2Path, content: '');
     manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots,
@@ -301,7 +300,7 @@ sky_engine:lib/''');
   Future<void> test_refresh_folder_with_pubspec() {
     // create a context with a pubspec.yaml file
     var pubspecPath = join(projPath, 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'pubspec');
+    newFile(pubspecPath, content: 'pubspec');
     manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
@@ -321,8 +320,8 @@ sky_engine:lib/''');
     var subdir2Path = join(projPath, 'subdir2');
     var pubspec1Path = join(subdir1Path, 'pubspec.yaml');
     var pubspec2Path = join(subdir2Path, 'pubspec.yaml');
-    resourceProvider.newFile(pubspec1Path, 'pubspec');
-    resourceProvider.newFile(pubspec2Path, 'pubspec');
+    newFile(pubspec1Path, content: 'pubspec');
+    newFile(pubspec2Path, content: 'pubspec');
     manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots,
@@ -342,12 +341,12 @@ sky_engine:lib/''');
   Future<void> test_refresh_oneContext() {
     // create two contexts with pubspec.yaml files
     var pubspecPath = join(projPath, 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'pubspec1');
+    newFile(pubspecPath, content: 'pubspec1');
 
     var proj2Path = convertPath('/my/proj2');
-    resourceProvider.newFolder(proj2Path);
+    newFolder(proj2Path);
     var pubspec2Path = join(proj2Path, 'pubspec.yaml');
-    resourceProvider.newFile(pubspec2Path, 'pubspec2');
+    newFile(pubspec2Path, content: 'pubspec2');
 
     var roots = <String>[projPath, proj2Path];
     manager.setRoots(roots, <String>[]);
@@ -355,7 +354,7 @@ sky_engine:lib/''');
       expect(callbacks.currentContextRoots, unorderedEquals(roots));
       var then = callbacks.now;
       callbacks.now++;
-      manager.refresh([resourceProvider.getResource(proj2Path)]);
+      manager.refresh([getFolder(proj2Path)]);
       return pumpEventQueue().then((_) {
         expect(callbacks.currentContextRoots, unorderedEquals(roots));
         expect(callbacks.currentContextTimestamps[projPath], then);
@@ -365,15 +364,14 @@ sky_engine:lib/''');
   }
 
   void test_setRoots_addFolderWithDartFile() {
-    var filePath = resourceProvider.pathContext.join(projPath, 'foo.dart');
-    resourceProvider.newFile(filePath, 'contents');
+    var filePath = join(projPath, 'foo.dart');
+    newFile(filePath, content: 'contents');
     manager.setRoots(<String>[projPath], <String>[]);
     // verify
     var filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
     expect(filePaths, contains(filePath));
-    var drivers =
-        manager.getDriversInAnalysisRoot(resourceProvider.newFolder(projPath));
+    var drivers = manager.getDriversInAnalysisRoot(newFolder(projPath));
     expect(drivers, hasLength(1));
     expect(drivers[0], isNotNull);
     var result = sourceFactory.forUri('dart:async');
@@ -382,7 +380,7 @@ sky_engine:lib/''');
 
   void test_setRoots_addFolderWithDartFileInSubfolder() {
     var filePath = join(projPath, 'foo', 'bar.dart');
-    resourceProvider.newFile(filePath, 'contents');
+    newFile(filePath, content: 'contents');
     manager.setRoots(<String>[projPath], <String>[]);
     // verify
     var filePaths = callbacks.currentFilePaths;
@@ -415,14 +413,12 @@ sky_engine:lib/''');
     expect(callbacks.currentContextRoots, contains(projPath));
     var projSources = callbacks.currentFileSources(projPath);
     expect(projSources, hasLength(1));
-    expect(projSources.first.uri.toString(),
-        (Uri.file(join(libPath, 'main.dart')).toString()));
+    expect(projSources.first.uri, toUri('$libPath/main.dart'));
 
     expect(callbacks.currentContextRoots, contains(examplePath));
     var exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
-    expect(exampleSources.first.uri.toString(),
-        (Uri.file(join(examplePath, 'example.dart')).toString()));
+    expect(exampleSources.first.uri, toUri('$examplePath/example.dart'));
   }
 
   void test_setRoots_addFolderWithNestedPubspec() {
@@ -449,8 +445,7 @@ sky_engine:lib/''');
     expect(callbacks.currentContextRoots, contains(examplePath));
     var exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
-    expect(exampleSources.first.uri.toString(),
-        (Uri.file('$examplePath/example.dart').toString()));
+    expect(exampleSources.first.uri, toUri('$examplePath/example.dart'));
   }
 
   void test_setRoots_addFolderWithoutPubspec() {
@@ -463,8 +458,7 @@ sky_engine:lib/''');
   void test_setRoots_addFolderWithPackagespec() {
     var packagespecPath = join(projPath, '.packages');
     var testLib = convertPath('/home/somebody/.pub/cache/unittest-0.9.9/lib');
-    var testLibUri = resourceProvider.pathContext.toUri(testLib);
-    resourceProvider.newFile(packagespecPath, 'unittest:$testLibUri');
+    newFile(packagespecPath, content: 'unittest:${toUriStr(testLib)}');
     var libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     var mainFile = newFile('$libPath/main.dart');
     var source = mainFile.createSource();
@@ -484,7 +478,7 @@ sky_engine:lib/''');
 
   void test_setRoots_addFolderWithPubspec() {
     var pubspecPath = join(projPath, 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'pubspec');
+    newFile(pubspecPath, content: 'pubspec');
     manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
@@ -494,8 +488,8 @@ sky_engine:lib/''');
   void test_setRoots_addFolderWithPubspec_andPackagespec() {
     var pubspecPath = join(projPath, 'pubspec.yaml');
     var packagespecPath = join(projPath, '.packages');
-    resourceProvider.newFile(pubspecPath, 'pubspec');
-    resourceProvider.newFile(packagespecPath, '');
+    newFile(pubspecPath, content: 'pubspec');
+    newFile(packagespecPath, content: '');
     manager.setRoots(<String>[projPath], <String>[]);
     // verify
     callbacks.assertContextPaths([projPath]);
@@ -521,10 +515,10 @@ sky_engine:lib/''');
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
     expect(sources, hasLength(4));
     var uris = sources.map((Source source) => source.uri.toString()).toList();
-    expect(uris, contains((Uri.file(appPath)).toString()));
+    expect(uris, contains(toUriStr(appPath)));
     expect(uris, contains('package:proj/main.dart'));
     expect(uris, contains('package:proj/src/internal.dart'));
-    expect(uris, contains((Uri.file(testFilePath)).toString()));
+    expect(uris, contains(toUriStr(testFilePath)));
   }
 
   void test_setRoots_addFolderWithPubspecAndPackagespecFolders() {
@@ -571,9 +565,9 @@ sky_engine:lib/''');
     newFile('$projectB/${ContextManagerImpl.PUBSPEC_NAME}');
     newFile('$projectB/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'bar:lib/');
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subProjectA_file, 'library a;');
-    resourceProvider.newFile(subProjectB_file, 'library b;');
+    newFile(rootFile, content: 'library root;');
+    newFile(subProjectA_file, content: 'library a;');
+    newFile(subProjectB_file, content: 'library b;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, projectA, projectB]);
@@ -586,12 +580,12 @@ sky_engine:lib/''');
     expect(
         _packageMap(projectA),
         equals({
-          'foo': [resourceProvider.getFolder(projectALib)]
+          'foo': [getFolder(projectALib)]
         }));
     expect(
         _packageMap(projectB),
         equals({
-          'bar': [resourceProvider.getFolder(projectBLib)]
+          'bar': [getFolder(projectBLib)]
         }));
   }
 
@@ -601,8 +595,8 @@ sky_engine:lib/''');
     var file1 = convertPath('$project/file1.dart');
     var file2 = convertPath('$project/file2.dart');
     // create files
-    resourceProvider.newFile(file1, '// 1');
-    resourceProvider.newFile(file2, '// 2');
+    newFile(file1, content: '// 1');
+    newFile(file2, content: '// 2');
     // set roots
     manager.setRoots(<String>[project], <String>[file1]);
     callbacks.assertContextPaths([project]);
@@ -617,8 +611,8 @@ sky_engine:lib/''');
     var fileA = convertPath('$folderA/a.dart');
     var fileB = convertPath('$folderB/b.dart');
     // create files
-    resourceProvider.newFile(fileA, 'library a;');
-    resourceProvider.newFile(fileB, 'library b;');
+    newFile(fileA, content: 'library a;');
+    newFile(fileB, content: 'library b;');
     // set roots
     manager.setRoots(<String>[project], <String>[folderB]);
     callbacks.assertContextPaths([project]);
@@ -631,8 +625,8 @@ sky_engine:lib/''');
     var file1 = convertPath('$project/file1.dart');
     var file2 = convertPath('$project/file2.dart');
     // create files
-    resourceProvider.newFile(file1, '// 1');
-    resourceProvider.newFile(file2, '// 2');
+    newFile(file1, content: '// 1');
+    newFile(file2, content: '// 2');
     // set roots
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
@@ -651,8 +645,8 @@ sky_engine:lib/''');
     var fileA = convertPath('$folderA/a.dart');
     var fileB = convertPath('$folderB/b.dart');
     // create files
-    resourceProvider.newFile(fileA, 'library a;');
-    resourceProvider.newFile(fileB, 'library b;');
+    newFile(fileA, content: 'library a;');
+    newFile(fileB, content: 'library b;');
     // initially both "aaa/a" and "bbb/b" are included
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
@@ -669,8 +663,8 @@ sky_engine:lib/''');
     var file1 = convertPath('$project/file1.dart');
     var file2 = convertPath('$project/file2.dart');
     // create files
-    resourceProvider.newFile(file1, '// 1');
-    resourceProvider.newFile(file2, '// 2');
+    newFile(file1, content: '// 1');
+    newFile(file2, content: '// 2');
     // set roots
     manager.setRoots(<String>[project], <String>[file2]);
     callbacks.assertContextPaths([project]);
@@ -687,8 +681,8 @@ sky_engine:lib/''');
     var file1 = convertPath('$project/bin/file1.dart');
     var file2 = convertPath('$project/bin/file2.dart');
     // create files
-    resourceProvider.newFile(file1, '// 1');
-    resourceProvider.newFile(file2, '// 2');
+    newFile(file1, content: '// 1');
+    newFile(file2, content: '// 2');
     // set roots
     manager.setRoots(<String>[project], <String>[file2]);
     callbacks.assertContextPaths([project]);
@@ -707,8 +701,8 @@ sky_engine:lib/''');
     var fileA = convertPath('$folderA/a.dart');
     var fileB = convertPath('$folderB/b.dart');
     // create files
-    resourceProvider.newFile(fileA, 'library a;');
-    resourceProvider.newFile(fileB, 'library b;');
+    newFile(fileA, content: 'library a;');
+    newFile(fileB, content: 'library b;');
     // exclude "bbb/"
     manager.setRoots(<String>[project], <String>[folderB]);
     callbacks.assertContextPaths([project]);
@@ -724,9 +718,9 @@ sky_engine:lib/''');
     var fileA = convertPath('$project/foo.dart');
     var fileB = convertPath('$project/lib/doc/bar.dart');
     var fileC = convertPath('$project/doc/bar.dart');
-    resourceProvider.newFile(fileA, '');
-    resourceProvider.newFile(fileB, '');
-    resourceProvider.newFile(fileC, '');
+    newFile(fileA, content: '');
+    newFile(fileB, content: '');
+    newFile(fileC, content: '');
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA, fileB]);
@@ -738,8 +732,8 @@ sky_engine:lib/''');
     var example = convertPath('$project/example');
     var examplePubspec = convertPath('$example/pubspec.yaml');
     // create files
-    resourceProvider.newFile(projectPubspec, 'name: project');
-    resourceProvider.newFile(examplePubspec, 'name: example');
+    newFile(projectPubspec, content: 'name: project');
+    newFile(examplePubspec, content: 'name: example');
     manager.setRoots(<String>[example, project], <String>[]);
     // verify
     {
@@ -764,8 +758,8 @@ sky_engine:lib/''');
     var projectPubspec = convertPath('$project/pubspec.yaml');
     var example = convertPath('$project/example');
     // create files
-    resourceProvider.newFile(projectPubspec, 'name: project');
-    resourceProvider.newFolder(example);
+    newFile(projectPubspec, content: 'name: project');
+    newFolder(example);
     manager.setRoots(<String>[project, example], <String>[]);
     // verify
     {
@@ -786,8 +780,8 @@ sky_engine:lib/''');
     var example = convertPath('$project/example');
     var examplePubspec = convertPath('$example/pubspec.yaml');
     // create files
-    resourceProvider.newFile(projectPubspec, 'name: project');
-    resourceProvider.newFile(examplePubspec, 'name: example');
+    newFile(projectPubspec, content: 'name: project');
+    newFile(examplePubspec, content: 'name: example');
     manager.setRoots(<String>[project, example], <String>[]);
     // verify
     {
@@ -811,7 +805,7 @@ sky_engine:lib/''');
     var packagePath = convertPath('/package/foo');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:${toUriStr('/package/foo')}');
-    var packageFolder = resourceProvider.newFolder(packagePath);
+    var packageFolder = newFolder(packagePath);
     manager.setRoots(<String>[projPath], <String>[]);
     expect(
         _currentPackageMap,
@@ -826,7 +820,7 @@ sky_engine:lib/''');
     var excludedFolder = convertPath('$project/excluded');
     var excludedPubspec = convertPath('$excludedFolder/pubspec.yaml');
     // create files
-    resourceProvider.newFile(excludedPubspec, 'name: ignore-me');
+    newFile(excludedPubspec, content: 'name: ignore-me');
     // set "/project", and exclude "/project/excluded"
     manager.setRoots(<String>[project], <String>[excludedFolder]);
     callbacks.assertContextPaths([project]);
@@ -834,7 +828,7 @@ sky_engine:lib/''');
 
   void test_setRoots_noContext_inDotFolder() {
     var pubspecPath = join(projPath, '.pub', 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'name: test');
+    newFile(pubspecPath, content: 'name: test');
     manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentContextRoots, hasLength(1));
@@ -846,11 +840,10 @@ sky_engine:lib/''');
     var filePath = join(projPath, 'lib', 'foo.dart');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:lib/');
-    resourceProvider.newFile(filePath, 'contents');
+    newFile(filePath, content: 'contents');
     manager.setRoots(<String>[projPath], <String>[]);
 
-    var drivers =
-        manager.getDriversInAnalysisRoot(resourceProvider.newFolder(projPath));
+    var drivers = manager.getDriversInAnalysisRoot(newFolder(projPath));
     expect(drivers, hasLength(1));
     expect(drivers[0], isNotNull);
     var result = sourceFactory.forUri('package:foo/foo.dart');
@@ -859,7 +852,7 @@ sky_engine:lib/''');
 
   void test_setRoots_packagesFolder_hasContext() {
     var pubspecPath = join(projPath, 'packages', 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'name: test');
+    newFile(pubspecPath, content: 'name: test');
     manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentContextRoots, hasLength(2));
@@ -873,8 +866,8 @@ sky_engine:lib/''');
     var project = convertPath('/project');
     var fileA = convertPath('$project/foo.dart');
     var fileB = convertPath('$project/.pub/bar.dart');
-    resourceProvider.newFile(fileA, '');
-    resourceProvider.newFile(fileB, '');
+    newFile(fileA, content: '');
+    newFile(fileB, content: '');
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
@@ -893,7 +886,7 @@ sky_engine:lib/''');
   void test_setRoots_removeFolderWithPackagespec() {
     // create a pubspec
     var pubspecPath = join(projPath, '.packages');
-    resourceProvider.newFile(pubspecPath, '');
+    newFile(pubspecPath, content: '');
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[]);
     expect(manager.changeSubscriptions, hasLength(1));
@@ -918,12 +911,12 @@ sky_engine:lib/''');
     var subProjectA_file = convertPath('$subProjectA/bin/sub_a.dart');
     var subProjectB_file = convertPath('$subProjectB/bin/sub_b.dart');
     // create files
-    resourceProvider.newFile(projectA_file, '// a');
-    resourceProvider.newFile(projectB_file, '// b');
-    resourceProvider.newFile(subProjectA_pubspec, '');
-    resourceProvider.newFile(subProjectB_pubspec, '');
-    resourceProvider.newFile(subProjectA_file, '// sub-a');
-    resourceProvider.newFile(subProjectB_file, '// sub-b');
+    newFile(projectA_file, content: '// a');
+    newFile(projectB_file, content: '// b');
+    newFile(subProjectA_pubspec, content: '');
+    newFile(subProjectB_pubspec, content: '');
+    newFile(subProjectA_file, content: '// sub-a');
+    newFile(subProjectB_file, content: '// sub-b');
     // set roots
     manager.setRoots(<String>[projectA, projectB], <String>[]);
     callbacks
@@ -942,7 +935,7 @@ sky_engine:lib/''');
   void test_setRoots_removeFolderWithPubspec() {
     // create a pubspec
     var pubspecPath = join(projPath, 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'pubspec');
+    newFile(pubspecPath, content: 'pubspec');
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[]);
     expect(callbacks.currentContextRoots, hasLength(1));
@@ -965,12 +958,12 @@ sky_engine:lib/''');
     var subProjectA_file = convertPath('$subProjectA/bin/sub_a.dart');
     var subProjectB_file = convertPath('$subProjectB/bin/sub_b.dart');
     // create files
-    resourceProvider.newFile(projectA_file, '// a');
-    resourceProvider.newFile(projectB_file, '// b');
-    resourceProvider.newFile(subProjectA_pubspec, 'pubspec');
-    resourceProvider.newFile(subProjectB_pubspec, 'pubspec');
-    resourceProvider.newFile(subProjectA_file, '// sub-a');
-    resourceProvider.newFile(subProjectB_file, '// sub-b');
+    newFile(projectA_file, content: '// a');
+    newFile(projectB_file, content: '// b');
+    newFile(subProjectA_pubspec, content: 'pubspec');
+    newFile(subProjectB_pubspec, content: 'pubspec');
+    newFile(subProjectA_file, content: '// sub-a');
+    newFile(subProjectB_file, content: '// sub-b');
     // set roots
     manager.setRoots(<String>[projectA, projectB], <String>[]);
     callbacks
@@ -992,7 +985,7 @@ sky_engine:lib/''');
     // context to be ignored.
     var project = convertPath('/.pub/project');
     var fileA = convertPath('$project/foo.dart');
-    resourceProvider.newFile(fileA, '');
+    newFile(fileA, content: '');
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
@@ -1017,7 +1010,7 @@ sky_engine:lib/''');
     expect(callbacks.currentFilePaths, hasLength(0));
     // add file
     var filePath = join(projPath, 'foo.dart');
-    resourceProvider.newFile(filePath, 'contents');
+    newFile(filePath, content: 'contents');
     // the file was added
     return pumpEventQueue().then((_) {
       var filePaths = callbacks.currentFilePaths;
@@ -1034,13 +1027,13 @@ sky_engine:lib/''');
     var fileA = convertPath('$folderA/a.dart');
     var fileB = convertPath('$folderB/b.dart');
     // create files
-    resourceProvider.newFile(fileA, 'library a;');
+    newFile(fileA, content: 'library a;');
     // set roots
     manager.setRoots(<String>[project], <String>[folderB]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     // add a file, ignored as excluded
-    resourceProvider.newFile(fileB, 'library b;');
+    newFile(fileB, content: 'library b;');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([project]);
       callbacks.assertContextFiles(project, [fileA]);
@@ -1053,13 +1046,13 @@ sky_engine:lib/''');
     var fileA = convertPath('$project/a.dart');
     var fileB = convertPath('$project/lib/doc/b.dart');
     // create files
-    resourceProvider.newFile(fileA, '');
+    newFile(fileA, content: '');
     // set roots
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     // add a "lib/doc" file, it is not ignored
-    resourceProvider.newFile(fileB, '');
+    newFile(fileB, content: '');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([project]);
       callbacks.assertContextFiles(project, [fileA, fileB]);
@@ -1072,13 +1065,13 @@ sky_engine:lib/''');
     var fileA = convertPath('$project/a.dart');
     var fileB = convertPath('$project/doc/b.dart');
     // create files
-    resourceProvider.newFile(fileA, '');
+    newFile(fileA, content: '');
     // set roots
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     // add a "doc" file, it is ignored
-    resourceProvider.newFile(fileB, '');
+    newFile(fileB, content: '');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([project]);
       callbacks.assertContextFiles(project, [fileA]);
@@ -1091,11 +1084,11 @@ sky_engine:lib/''');
     var project = convertPath('/project');
     var fileA = convertPath('$project/foo.dart');
     var fileB = convertPath('$project/.pub/bar.dart');
-    resourceProvider.newFile(fileA, '');
+    newFile(fileA, content: '');
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
-    resourceProvider.newFile(fileB, '');
+    newFile(fileB, content: '');
     await pumpEventQueue();
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
@@ -1107,11 +1100,11 @@ sky_engine:lib/''');
     var project = convertPath('/.pub/project');
     var fileA = convertPath('$project/foo.dart');
     var fileB = convertPath('$project/bar/baz.dart');
-    resourceProvider.newFile(fileA, '');
+    newFile(fileA, content: '');
     manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
-    resourceProvider.newFile(fileB, '');
+    newFile(fileB, content: '');
     await pumpEventQueue();
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA, fileB]);
@@ -1123,7 +1116,7 @@ sky_engine:lib/''');
     expect(callbacks.currentFilePaths, hasLength(0));
     // add file in subfolder
     var filePath = join(projPath, 'foo', 'bar.dart');
-    resourceProvider.newFile(filePath, 'contents');
+    newFile(filePath, content: 'contents');
     // the file was added
     return pumpEventQueue().then((_) {
       var filePaths = callbacks.currentFilePaths;
@@ -1138,14 +1131,14 @@ sky_engine:lib/''');
     var rootFile = convertPath('$root/root.dart');
     var rootPackagespec = convertPath('$root/.packages');
     // create files
-    resourceProvider.newFile(rootFile, 'library root;');
+    newFile(rootFile, content: 'library root;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
     // add packagespec - still just one root
-    resourceProvider.newFile(rootPackagespec, '');
+    newFile(rootPackagespec, content: '');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1162,15 +1155,15 @@ sky_engine:lib/''');
     var subPubspec = convertPath('$subProject/.packages');
     var subFile = convertPath('$subProject/bin/a.dart');
     // create files
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subFile, 'library a;');
+    newFile(rootFile, content: 'library root;');
+    newFile(subFile, content: 'library a;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile, subFile]);
     // add .packages
-    resourceProvider.newFile(subPubspec, '');
+    newFile(subPubspec, content: '');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root, subProject]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1187,16 +1180,16 @@ sky_engine:lib/''');
     var subFile = convertPath('$subProject/bin/sub.dart');
     var subSubPubspec = convertPath('$subProject/subsub/.packages');
     // create files
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subPubspec, '');
-    resourceProvider.newFile(subFile, 'library sub;');
+    newFile(rootFile, content: 'library root;');
+    newFile(subPubspec, content: '');
+    newFile(subFile, content: 'library sub;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     callbacks.assertContextFiles(root, [rootFile]);
     callbacks.assertContextFiles(subProject, [subFile]);
     // add pubspec - ignore, because is already in a packagespec-based context
-    resourceProvider.newFile(subSubPubspec, '');
+    newFile(subSubPubspec, content: '');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root, subProject]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1213,9 +1206,9 @@ sky_engine:lib/''');
     var subPubspec = convertPath('$subProject/pubspec.yaml');
     var subFile = convertPath('$subProject/bin/a.dart');
     // create files
-    resourceProvider.newFile(subPubspec, 'pubspec');
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subFile, 'library a;');
+    newFile(subPubspec, content: 'pubspec');
+    newFile(rootFile, content: 'library root;');
+    newFile(subFile, content: 'library a;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
@@ -1224,7 +1217,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(subProject, [subFile]);
 
     // add .packages
-    resourceProvider.newFile(subPackagespec, '');
+    newFile(subPackagespec, content: '');
     return pumpEventQueue().then((_) {
       // Should NOT create another context.
       callbacks.assertContextPaths([root, subProject]);
@@ -1239,14 +1232,14 @@ sky_engine:lib/''');
     var rootFile = convertPath('$root/root.dart');
     var rootPubspec = convertPath('$root/pubspec.yaml');
     // create files
-    resourceProvider.newFile(rootFile, 'library root;');
+    newFile(rootFile, content: 'library root;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
     // add pubspec - still just one root
-    resourceProvider.newFile(rootPubspec, 'pubspec');
+    newFile(rootPubspec, content: 'pubspec');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1261,15 +1254,15 @@ sky_engine:lib/''');
     var subPubspec = convertPath('$subProject/pubspec.yaml');
     var subFile = convertPath('$subProject/bin/a.dart');
     // create files
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subFile, 'library a;');
+    newFile(rootFile, content: 'library root;');
+    newFile(subFile, content: 'library a;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile, subFile]);
     // add pubspec
-    resourceProvider.newFile(subPubspec, 'pubspec');
+    newFile(subPubspec, content: 'pubspec');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root, subProject]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1286,16 +1279,16 @@ sky_engine:lib/''');
     var subFile = convertPath('$subProject/bin/sub.dart');
     var subSubPubspec = convertPath('$subProject/subsub/pubspec.yaml');
     // create files
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subPubspec, 'pubspec');
-    resourceProvider.newFile(subFile, 'library sub;');
+    newFile(rootFile, content: 'library root;');
+    newFile(subPubspec, content: 'pubspec');
+    newFile(subFile, content: 'library sub;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     callbacks.assertContextFiles(root, [rootFile]);
     callbacks.assertContextFiles(subProject, [subFile]);
     // add pubspec - ignore, because is already in a pubspec-based context
-    resourceProvider.newFile(subSubPubspec, 'pubspec');
+    newFile(subSubPubspec, content: 'pubspec');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root, subProject]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1306,7 +1299,7 @@ sky_engine:lib/''');
   Future<void> test_watch_deleteFile() {
     var filePath = join(projPath, 'foo.dart');
     // add root with a file
-    var file = resourceProvider.newFile(filePath, 'contents');
+    var file = newFile(filePath, content: 'contents');
     var projFolder = file.parent;
     manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
@@ -1316,7 +1309,7 @@ sky_engine:lib/''');
     expect(file.exists, isTrue);
     expect(projFolder.exists, isTrue);
     // delete the file
-    resourceProvider.deleteFile(filePath);
+    deleteFile(filePath);
     return pumpEventQueue().then((_) {
       expect(file.exists, isFalse);
       expect(projFolder.exists, isTrue);
@@ -1327,7 +1320,7 @@ sky_engine:lib/''');
   Future<void> test_watch_deleteFolder() {
     var filePath = join(projPath, 'foo.dart');
     // add root with a file
-    var file = resourceProvider.newFile(filePath, 'contents');
+    var file = newFile(filePath, content: 'contents');
     var projFolder = file.parent;
     manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
@@ -1337,7 +1330,7 @@ sky_engine:lib/''');
     expect(file.exists, isTrue);
     expect(projFolder.exists, isTrue);
     // delete the folder
-    resourceProvider.deleteFolder(projPath);
+    deleteFolder(projPath);
     return pumpEventQueue().then((_) {
       expect(file.exists, isFalse);
       expect(projFolder.exists, isFalse);
@@ -1351,14 +1344,14 @@ sky_engine:lib/''');
     var rootPubspec = convertPath('$root/.packages');
     var rootFile = convertPath('$root/root.dart');
     // create files
-    resourceProvider.newFile(rootPubspec, '');
-    resourceProvider.newFile(rootFile, 'library root;');
+    newFile(rootPubspec, content: '');
+    newFile(rootFile, content: 'library root;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     callbacks.assertContextFiles(root, [rootFile]);
     // delete the pubspec
-    resourceProvider.deleteFile(rootPubspec);
+    deleteFile(rootPubspec);
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1373,9 +1366,9 @@ sky_engine:lib/''');
     var subPubspec = convertPath('$subProject/.packages');
     var subFile = convertPath('$subProject/bin/a.dart');
     // create files
-    resourceProvider.newFile(subPubspec, '');
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subFile, 'library a;');
+    newFile(subPubspec, content: '');
+    newFile(rootFile, content: 'library root;');
+    newFile(subFile, content: 'library a;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
@@ -1383,7 +1376,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(root, [rootFile]);
     callbacks.assertContextFiles(subProject, [subFile]);
     // delete the pubspec
-    resourceProvider.deleteFile(subPubspec);
+    deleteFile(subPubspec);
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root]);
       callbacks.assertContextFiles(root, [rootFile, subFile]);
@@ -1409,10 +1402,10 @@ sky_engine:lib/''');
     var subPubspec = convertPath('$subProject/pubspec.yaml');
     var subFile = convertPath('$subProject/bin/a.dart');
     // create files
-    resourceProvider.newFile(subPackagespec, '');
-    resourceProvider.newFile(subPubspec, 'pubspec');
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subFile, 'library a;');
+    newFile(subPackagespec, content: '');
+    newFile(subPubspec, content: 'pubspec');
+    newFile(rootFile, content: 'library root;');
+    newFile(subFile, content: 'library a;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
@@ -1420,7 +1413,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(root, [rootFile]);
     callbacks.assertContextFiles(subProject, [subFile]);
     // delete the packagespec
-    resourceProvider.deleteFile(subPackagespec);
+    deleteFile(subPackagespec);
     return pumpEventQueue().then((_) {
       // Should NOT merge
       callbacks.assertContextPaths([root, subProject]);
@@ -1434,14 +1427,14 @@ sky_engine:lib/''');
     var rootPubspec = convertPath('$root/pubspec.yaml');
     var rootFile = convertPath('$root/root.dart');
     // create files
-    resourceProvider.newFile(rootPubspec, 'pubspec');
-    resourceProvider.newFile(rootFile, 'library root;');
+    newFile(rootPubspec, content: 'pubspec');
+    newFile(rootFile, content: 'library root;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     callbacks.assertContextFiles(root, [rootFile]);
     // delete the pubspec
-    resourceProvider.deleteFile(rootPubspec);
+    deleteFile(rootPubspec);
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root]);
       callbacks.assertContextFiles(root, [rootFile]);
@@ -1456,9 +1449,9 @@ sky_engine:lib/''');
     var subPubspec = convertPath('$subProject/pubspec.yaml');
     var subFile = convertPath('$subProject/bin/a.dart');
     // create files
-    resourceProvider.newFile(subPubspec, 'pubspec');
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subFile, 'library a;');
+    newFile(subPubspec, content: 'pubspec');
+    newFile(rootFile, content: 'library root;');
+    newFile(subFile, content: 'library a;');
     // set roots
     manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
@@ -1466,7 +1459,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(root, [rootFile]);
     callbacks.assertContextFiles(subProject, [subFile]);
     // delete the pubspec
-    resourceProvider.deleteFile(subPubspec);
+    deleteFile(subPubspec);
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([root]);
       callbacks.assertContextFiles(root, [rootFile, subFile]);
@@ -1476,7 +1469,7 @@ sky_engine:lib/''');
   Future<void> test_watch_modifyFile() {
     var filePath = join(projPath, 'foo.dart');
     // add root with a file
-    resourceProvider.newFile(filePath, 'contents');
+    newFile(filePath, content: 'contents');
     manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
     var filePaths = callbacks.currentFilePaths;
@@ -1485,7 +1478,7 @@ sky_engine:lib/''');
     // TODO(brianwilkerson) Test when the file was modified
     // update the file
     callbacks.now++;
-    resourceProvider.modifyFile(filePath, 'new contents');
+    modifyFile(filePath, 'new contents');
     return pumpEventQueue().then((_) {
       // TODO(brianwilkerson) Test when the file was modified
     });
@@ -1495,8 +1488,8 @@ sky_engine:lib/''');
     var packageConfigPath = '$projPath/.dart_tool/package_config.json';
     var filePath = convertPath('$projPath/bin/main.dart');
 
-    resourceProvider.newFile(packageConfigPath, '');
-    resourceProvider.newFile(filePath, 'library main;');
+    newFile(packageConfigPath, content: '');
+    newFile(filePath, content: 'library main;');
 
     manager.setRoots(<String>[projPath], <String>[]);
 
@@ -1507,7 +1500,7 @@ sky_engine:lib/''');
 
     // update .dart_tool/package_config.json
     callbacks.now++;
-    resourceProvider.modifyFile(
+    modifyFile(
       packageConfigPath,
       (PackageConfigFileBuilder()..add(name: 'my', rootPath: '../'))
           .toContent(toUriStr: toUriStr),
@@ -1523,8 +1516,8 @@ sky_engine:lib/''');
     var packagesPath = convertPath('$projPath/.packages');
     var filePath = convertPath('$projPath/bin/main.dart');
 
-    resourceProvider.newFile(packagesPath, '');
-    resourceProvider.newFile(filePath, 'library main;');
+    newFile(packagesPath, content: '');
+    newFile(filePath, content: 'library main;');
 
     manager.setRoots(<String>[projPath], <String>[]);
 
@@ -1535,7 +1528,7 @@ sky_engine:lib/''');
 
     // update .packages
     callbacks.now++;
-    resourceProvider.modifyFile(packagesPath, 'main:./lib/');
+    modifyFile(packagesPath, 'main:./lib/');
     return pumpEventQueue().then((_) {
       // verify new package info
       expect(_currentPackageMap.keys, unorderedEquals(['main']));
@@ -1615,7 +1608,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   void setUp() {
     processRequiredPlugins();
     projPath = convertPath('/my/proj');
-    resourceProvider.newFolder(projPath);
+    newFolder(projPath);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
     var sdkManager = DartSdkManager(convertPath(sdkRoot));
@@ -1633,7 +1626,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   }
 
   Map<String, List<Folder>> _packageMap(String contextPath) {
-    var folder = resourceProvider.getFolder(contextPath);
+    var folder = getFolder(contextPath);
     var info = manager.getContextInfoFor(folder);
     return info.analysisDriver.sourceFactory?.packageMap;
   }
@@ -1821,7 +1814,7 @@ include: package:boo/other_options.yaml
 
     // Remove the root, with the analysis options file.
     // No exceptions.
-    resourceProvider.deleteFolder(projPath);
+    deleteFolder(projPath);
     await pumpEventQueue();
   }
 
@@ -1867,8 +1860,7 @@ linter:
     await pumpEventQueue();
 
     // Confirm that one context was created.
-    var count = manager
-        .numberOfContextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    var count = manager.numberOfContextsInAnalysisRoot(newFolder(projPath));
     expect(count, equals(1));
 
     // Verify options.
@@ -1973,7 +1965,7 @@ analyzer:
   Future<void> test_non_analyzable_files_not_considered() async {
     // Set up project and get a reference to the driver.
     manager.setRoots(<String>[projPath], <String>[]);
-    var projectFolder = resourceProvider.newFolder(projPath);
+    var projectFolder = newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(1));
 
@@ -1999,14 +1991,14 @@ analyzer:
     // After a few other changes, the test now times out on my machine, so I'm
     // disabling it in order to prevent it from being flaky.
     _fail('Test times out');
-    var file = resourceProvider.newFile('$projPath/bin/test.dart', r'''
+    var file = newFile('$projPath/bin/test.dart', content: r'''
 main() {
   var paths = <int>[];
   var names = <String>[];
   paths.addAll(names.map((s) => s.length));
 }
 ''');
-    resourceProvider.newFile('$projPath/$optionsFileName', r'''
+    newFile('$projPath/$optionsFileName', content: r'''
 analyzer:
   strong-mode: false
 ''');
@@ -2025,7 +2017,7 @@ analyzer:
     expect(result.errors, isEmpty);
 
     // Update the options file - turn on 'strong-mode'.
-    resourceProvider.updateFile('$projPath/$optionsFileName', r'''
+    modifyFile('$projPath/$optionsFileName', r'''
 analyzer:
   strong-mode: true
 ''');
@@ -2067,7 +2059,7 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[]);
 
     // Verify that analysis options was parsed and the ignore patterns applied.
-    var projectFolder = resourceProvider.newFolder(projPath);
+    var projectFolder = newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(1));
     var driver = drivers[0];
@@ -2100,7 +2092,7 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[]);
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
-    var projectFolder = resourceProvider.newFolder(projPath);
+    var projectFolder = newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(2));
     expect(drivers[0].name, equals(convertPath('/my/proj')));
@@ -2132,7 +2124,7 @@ analyzer:
 
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
-    var projectFolder = resourceProvider.newFolder(projPath);
+    var projectFolder = newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(2));
     expect(drivers[0].name, equals(convertPath('/my/proj')));
@@ -2161,7 +2153,7 @@ analyzer:
     // Setup context / driver.
     manager.setRoots(<String>[projPath], <String>[]);
 
-    var projectFolder = resourceProvider.newFolder(projPath);
+    var projectFolder = newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(2));
     expect(drivers[0].name, equals(convertPath('/my/proj')));
@@ -2174,8 +2166,8 @@ analyzer:
     var example = convertPath('$project/example');
     var examplePubspec = convertPath('$example/pubspec.yaml');
     // create files
-    resourceProvider.newFile(projectPubspec, 'name: project');
-    resourceProvider.newFile(examplePubspec, 'name: example');
+    newFile(projectPubspec, content: 'name: project');
+    newFile(examplePubspec, content: 'name: example');
     newFile('$project/$optionsFileName', content: r'''
 analyzer:
   exclude:
@@ -2207,8 +2199,8 @@ analyzer:
     var aPubspec = convertPath('$a/pubspec.yaml');
     var cPubspec = convertPath('$c/pubspec.yaml');
     // create files
-    resourceProvider.newFile(aPubspec, 'name: aaa');
-    resourceProvider.newFile(cPubspec, 'name: ccc');
+    newFile(aPubspec, content: 'name: aaa');
+    newFile(cPubspec, content: 'name: ccc');
     newFile('$a/$optionsFileName', content: r'''
 analyzer:
   exclude:

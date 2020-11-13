@@ -40,6 +40,7 @@ import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
 import 'package:nnbd_migration/src/variables.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 bool _isIncrementOrDecrementOperator(TokenType tokenType) {
   switch (tokenType) {
@@ -121,13 +122,18 @@ class FixBuilder {
   final NullabilityGraph _graph;
 
   /// Helper that assists us in transforming Iterable methods to their "OrNull"
-  /// equivalents, or `null` if we are not doing such transformations.
+  /// equivalents.
   final WhereOrNullTransformer _whereOrNullTransformer;
 
   /// Indicates whether an import of package:collection's `IterableExtension`
   /// will need to be added.
   @visibleForTesting
   bool needsIterableExtension = false;
+
+  /// Map of additional package dependencies that will be required by the
+  /// migrated code.  Keys are package names; values indicate the minimum
+  /// required version of each package.
+  final Map<String, Version> _neededPackages;
 
   factory FixBuilder(
       Source source,
@@ -140,7 +146,7 @@ class FixBuilder {
       CompilationUnit unit,
       bool warnOnWeakCode,
       NullabilityGraph graph,
-      bool transformWhereOrNull) {
+      Map<String, Version> neededPackages) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
         decoratedClassHierarchy,
@@ -156,7 +162,7 @@ class FixBuilder {
         migrationResolutionHooks,
         warnOnWeakCode,
         graph,
-        transformWhereOrNull);
+        neededPackages);
   }
 
   FixBuilder._(
@@ -170,11 +176,10 @@ class FixBuilder {
       this.migrationResolutionHooks,
       this.warnOnWeakCode,
       this._graph,
-      bool transformWhereOrNull)
+      this._neededPackages)
       : typeProvider = _typeSystem.typeProvider,
-        _whereOrNullTransformer = transformWhereOrNull
-            ? WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem)
-            : null {
+        _whereOrNullTransformer =
+            WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem) {
     migrationResolutionHooks._fixBuilder = this;
     assert(_typeSystem.isNonNullableByDefault);
     assert((typeProvider as TypeProviderImpl).isNonNullableByDefault);
@@ -640,10 +645,12 @@ class MigrationResolutionHooksImpl
         InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
     if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
       var transformationInfo =
-          _fixBuilder._whereOrNullTransformer?.tryTransformOrElseArgument(node);
+          _fixBuilder._whereOrNullTransformer.tryTransformOrElseArgument(node);
       if (transformationInfo != null) {
         // We can fix this by dropping the node and changing the method call.
         _fixBuilder.needsIterableExtension = true;
+        _fixBuilder._neededPackages['collection'] =
+            Version.parse('1.15.0-nullsafety.4');
         var info = AtomicEditInfo(
             NullabilityFixDescription.changeMethodName(
                 transformationInfo.originalName,

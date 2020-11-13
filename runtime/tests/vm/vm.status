@@ -14,6 +14,7 @@ cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 dart/data_uri_import_test/none: SkipByDesign
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
+dart/isolates/dart_api_create_lightweight_isolate_test: Skip # Issue #44180
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -23,6 +24,7 @@ dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 dart_2/data_uri_import_test/none: SkipByDesign
 dart_2/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart_2/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
+dart_2/isolates/dart_api_create_lightweight_isolate_test: Skip # Issue #44180
 dart_2/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart_2/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart_2/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.

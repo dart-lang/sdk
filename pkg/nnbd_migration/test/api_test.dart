@@ -60,8 +60,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     var migration = NullabilityMigration(listener, getLineInfo,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
-        warnOnWeakCode: warnOnWeakCode,
-        transformWhereOrNull: true);
+        warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
       if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {

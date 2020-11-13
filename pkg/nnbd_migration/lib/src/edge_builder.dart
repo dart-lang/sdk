@@ -217,7 +217,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final Map<Token, HintComment> _nullCheckHints = {};
 
   /// Helper that assists us in transforming Iterable methods to their "OrNull"
-  /// equivalents, or `null` if we are not doing such transformations.
+  /// equivalents.
   final WhereOrNullTransformer _whereOrNullTransformer;
 
   /// Deferred processing that should be performed once we have finished
@@ -225,20 +225,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final Map<MethodInvocation, DecoratedType Function(DecoratedType)>
       _deferredMethodInvocationProcessing = {};
 
-  EdgeBuilder(
-      this.typeProvider,
-      this._typeSystem,
-      this._variables,
-      this._graph,
-      this.source,
-      this.listener,
-      this._decoratedClassHierarchy,
-      bool transformWhereOrNull,
+  EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
+      this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
       : _inheritanceManager = InheritanceManager3(),
-        _whereOrNullTransformer = transformWhereOrNull
-            ? WhereOrNullTransformer(typeProvider, _typeSystem)
-            : null;
+        _whereOrNullTransformer =
+            WhereOrNullTransformer(typeProvider, _typeSystem);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -2304,7 +2296,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       } else {
         var transformationInfo =
-            _whereOrNullTransformer?.tryTransformOrElseArgument(expression);
+            _whereOrNullTransformer.tryTransformOrElseArgument(expression);
         if (transformationInfo != null) {
           // Don't build any edges for this argument; if necessary we'll transform
           // it rather than make things nullable.  But do save the nullability of

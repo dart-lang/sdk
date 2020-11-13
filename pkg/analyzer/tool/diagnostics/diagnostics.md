@@ -5645,6 +5645,8 @@ class C {
 {% endprettify %}
 
 If the instances of the class should be mutable, then remove the
+annotation, or choose a different superclass if the annotation is
+inherited:
 
 {% prettify dart tag=pre+code %}
 class C {

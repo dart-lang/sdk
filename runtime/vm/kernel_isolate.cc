@@ -417,13 +417,16 @@ void KernelIsolate::AddExperimentalFlag(const char* value) {
   free(temp);
 }
 
-bool KernelIsolate::GetExperimentalFlag(const char* value) {
+bool KernelIsolate::GetExperimentalFlag(ExperimentalFeature feature) {
+  const char* value = GetExperimentalFeatureName(feature);
   for (const char* str : *experimental_flags_) {
     if (strcmp(str, value) == 0) {
       return true;
+    } else if (strstr(str, "no-") == str && strcmp(str + 3, value) == 0) {
+      return false;
     }
   }
-  return false;
+  return GetExperimentalFeatureDefault(feature);
 }
 
 DEFINE_OPTION_HANDLER(KernelIsolate::AddExperimentalFlag,

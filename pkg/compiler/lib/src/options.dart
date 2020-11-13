@@ -319,6 +319,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an internal configuration option derived from other flags.
   CheckPolicy defaultExplicitCastCheckPolicy;
 
+  /// What should the compiler do with List index bounds checks.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy defaultIndexBoundsCheckPolicy;
+
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
 
@@ -609,6 +614,11 @@ class CompilerOptions implements DiagnosticOptions {
       defaultExplicitCastCheckPolicy = CheckPolicy.trusted;
     } else {
       defaultExplicitCastCheckPolicy = CheckPolicy.checked;
+    }
+    if (trustPrimitives) {
+      defaultIndexBoundsCheckPolicy = CheckPolicy.trusted;
+    } else {
+      defaultIndexBoundsCheckPolicy = CheckPolicy.checked;
     }
 
     if (_disableMinification) {

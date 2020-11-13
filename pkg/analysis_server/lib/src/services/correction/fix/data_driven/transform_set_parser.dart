@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:meta/meta.dart';
@@ -117,7 +118,12 @@ class TransformSetParser {
   /// The error reporter to which diagnostics will be reported.
   final ErrorReporter errorReporter;
 
+  /// The name of the package from which the data file being translated was
+  /// found.
   final String packageName;
+
+  /// The variable scope defined for the current transform.
+  VariableScope transformVariableScope = VariableScope.empty;
 
   /// The parameter modifications associated with the current transform, or
   /// `null` if the current transform does not yet have any such modifications.
@@ -141,8 +147,8 @@ class TransformSetParser {
 
   /// Convert the given [template] into a list of components. Variable
   /// references in the template are looked up in the map of [generators].
-  List<TemplateComponent> _extractTemplateComponents(String template,
-      Map<String, ValueGenerator> generators, int templateOffset) {
+  List<TemplateComponent> _extractTemplateComponents(
+      String template, VariableScope variableScope, int templateOffset) {
     var components = <TemplateComponent>[];
     var textStart = 0;
     var variableStart = template.indexOf(_openComponent);
@@ -163,7 +169,7 @@ class TransformSetParser {
         return components;
       } else {
         var name = template.substring(variableStart + 2, endIndex).trim();
-        var generator = generators[name];
+        var generator = variableScope.lookup(name);
         if (generator == null) {
           errorReporter.reportErrorForOffset(
               TransformSetErrorCode.undefinedVariable,
@@ -490,10 +496,11 @@ class TransformSetParser {
         }
       }
       // TODO(brianwilkerson) We should report unreferenced variables.
-      var generators = _translateTemplateVariables(node.valueAt(_variablesKey),
+      var variableScope = _translateTemplateVariables(
+          node.valueAt(_variablesKey),
           ErrorContext(key: _variablesKey, parentNode: node));
       var components =
-          _extractTemplateComponents(template, generators, templateOffset);
+          _extractTemplateComponents(template, variableScope, templateOffset);
       return CodeTemplate(kind, components);
     } else if (node == null) {
       if (required) {
@@ -766,11 +773,10 @@ class TransformSetParser {
     }
   }
 
-  /// Translate the [node] into a list of template components. Return the
-  /// resulting list, or `null` if the [node] does not represent a valid
-  /// variables map. If the [node] is not valid, use the [context] to report the
-  /// error.
-  Map<String, ValueGenerator> _translateTemplateVariables(
+  /// Translate the [node] into a variable scope. Return the resulting scope, or
+  /// the enclosing scope if the [node] does not represent a valid variables
+  /// map. If the [node] is not valid, use the [context] to report the error.
+  VariableScope _translateTemplateVariables(
       YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
       var generators = <String, ValueGenerator>{};
@@ -784,11 +790,12 @@ class TransformSetParser {
           }
         }
       }
-      return generators;
+      return VariableScope(transformVariableScope, generators);
     } else if (node == null) {
-      return const {};
+      return transformVariableScope;
     } else {
-      return _reportInvalidValue(node, context, 'Map');
+      _reportInvalidValue(node, context, 'Map');
+      return transformVariableScope;
     }
   }
 
@@ -798,8 +805,14 @@ class TransformSetParser {
   Transform _translateTransform(YamlNode node, ErrorContext context) {
     assert(node != null);
     if (node is YamlMap) {
-      _reportUnsupportedKeys(node,
-          const {_bulkApplyKey, _changesKey, _dateKey, _elementKey, _titleKey});
+      _reportUnsupportedKeys(node, const {
+        _bulkApplyKey,
+        _changesKey,
+        _dateKey,
+        _elementKey,
+        _titleKey,
+        _variablesKey
+      });
       var title = _translateString(node.valueAt(_titleKey),
           ErrorContext(key: _titleKey, parentNode: node));
       var date = _translateDate(node.valueAt(_dateKey),
@@ -810,8 +823,12 @@ class TransformSetParser {
           true;
       var element = _translateElement(node.valueAt(_elementKey),
           ErrorContext(key: _elementKey, parentNode: node));
+      transformVariableScope = _translateTemplateVariables(
+          node.valueAt(_variablesKey),
+          ErrorContext(key: _variablesKey, parentNode: node));
       var changes = _translateList(node.valueAt(_changesKey),
           ErrorContext(key: _changesKey, parentNode: node), _translateChange);
+      transformVariableScope = VariableScope.empty;
       if (title == null || date == null || element == null || changes == null) {
         // The error has already been reported.
         return null;

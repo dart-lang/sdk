@@ -806,7 +806,7 @@ bool Dart::DetectNullSafety(const char* script_uri,
   }
 
   // If we are loading from source, figure out the mode from the source.
-  if (!KernelIsolate::GetExperimentalFlag("no-non-nullable")) {
+  if (KernelIsolate::GetExperimentalFlag(ExperimentalFeature::non_nullable)) {
     return KernelIsolate::DetectNullSafety(script_uri, package_config,
                                            original_working_directory);
   }

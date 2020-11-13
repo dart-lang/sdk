@@ -21,8 +21,8 @@ part 'message.dart';
 part 'message_router.dart';
 part 'named_lookup.dart';
 
-final isolateControlPort = RawReceivePort();
-final scriptLoadPort = RawReceivePort();
+final isolateControlPort = RawReceivePort(null, 'Isolate Control Port');
+final scriptLoadPort = RawReceivePort(null, 'Script Load');
 
 abstract class IsolateEmbedderData {
   void cleanup();

@@ -1981,6 +1981,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           _sourceInformationBuilder.buildForInCurrent(node);
       HInstruction index = localsHandler.readLocal(indexVariable,
           sourceInformation: sourceInformation);
+      // No bound check is necessary on indexer as it is immediately guarded by
+      // the condition.
       HInstruction value = new HIndex(array, index, type)
         ..sourceInformation = sourceInformation;
       add(value);
@@ -4983,6 +4985,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           typeArguments, sourceInformation,
           isIntercepted: isIntercepted);
     }
+    invoke.instructionContext = _currentFrame.member;
     if (node is ir.MethodInvocation) {
       invoke.isInvariant = node.isInvariant;
       invoke.isBoundsSafe = node.isBoundsSafe;

@@ -1206,7 +1206,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   void connectToEventHandler() {
     assert(!isClosed);
     if (eventPort == null) {
-      eventPort = new RawReceivePort(multiplex);
+      eventPort = new RawReceivePort(multiplex, 'Socket Event Handler');
     }
   }
 
