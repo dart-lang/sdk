@@ -98,6 +98,8 @@ vm_sources = [
   "elf.h",
   "exceptions.cc",
   "exceptions.h",
+  "experimental_features.cc",
+  "experimental_features.h",
   "ffi_callback_trampolines.cc",
   "ffi_callback_trampolines.h",
   "field_table.cc",

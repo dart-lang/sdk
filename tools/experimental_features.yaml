@@ -10,13 +10,17 @@
 #
 # ### Code Generation
 #
-# When you change this file, run the following to update analyzer and kernel:
+# When you change this file, run the following to update analyzer, kernel, and
+# vm:
 #
 # analyzer:
 #   dart pkg/analyzer/tool/experiments/generate.dart
 #
 # kernel:
 #   pkg/front_end/tool/fasta generate-experimental-flags
+#
+# vm:
+#   dart tools/generate_experimental_flags.dart
 #
 # ### Overview
 #
