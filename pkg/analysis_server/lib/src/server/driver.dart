@@ -719,14 +719,34 @@ class Driver implements ServerStarter {
   CommandLineParser _createArgParser() {
     var parser = CommandLineParser();
     parser.addFlag(HELP_OPTION,
-        help: 'print this help message without starting a server',
-        abbr: 'h',
-        defaultsTo: false,
-        negatable: false);
+        abbr: 'h', negatable: false, help: 'Print this usage information.');
     parser.addOption(CLIENT_ID,
-        valueHelp: 'name', help: 'an identifier used to identify the client');
+        valueHelp: 'name', help: 'An identifier used to identify the client.');
     parser.addOption(CLIENT_VERSION,
-        valueHelp: 'version', help: 'the version of the client');
+        valueHelp: 'version', help: 'The version of the client.');
+
+    parser.addFlag(USE_LSP,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Whether to use the Language Server Protocol (LSP).');
+
+    parser.addOption(SDK_OPTION,
+        valueHelp: 'path', help: 'The path to the Dart SDK.');
+    parser.addOption(CACHE_FOLDER,
+        valueHelp: 'path',
+        help: 'The path to the location to write cache data.');
+
+    parser.addOption(INSTRUMENTATION_LOG_FILE,
+        valueHelp: 'file path',
+        help: 'Write instrumentation data to the given file.');
+    parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
+        valueHelp: 'path',
+        help: "Set a destination for the new analysis driver's log.");
+    parser.addOption(PORT_OPTION,
+        valueHelp: 'port',
+        help: 'The http diagnostic port to serve status and performance '
+            'information.');
+
     parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
         // TODO(jcollins-g): Pipeline option through and apply to all
         // exception-nullifying runZoned() calls.
@@ -738,16 +758,12 @@ class Driver implements ServerStarter {
         help: 'disable all completion features', defaultsTo: false, hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
         help: 'disable all search features', defaultsTo: false, hide: true);
-    parser.addOption(INSTRUMENTATION_LOG_FILE,
-        valueHelp: 'file path',
-        help: 'write instrumentation data to the given file');
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: 'enable sending `print` output to the console',
         defaultsTo: false,
-        negatable: false);
-    parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
-        valueHelp: 'path',
-        help: "set a destination for the new analysis driver's log");
+        negatable: false,
+        hide: true);
+
     parser.addFlag(ANALYTICS_FLAG,
         help: 'enable or disable sending analytics information to Google',
         hide: !telemetry.SHOW_ANALYTICS_UI);
@@ -755,27 +771,17 @@ class Driver implements ServerStarter {
         negatable: false,
         help: 'suppress analytics for this session',
         hide: !telemetry.SHOW_ANALYTICS_UI);
-    parser.addOption(PORT_OPTION,
-        valueHelp: 'port',
-        help: 'the http diagnostic port on which the server provides'
-            ' status and performance information');
-    parser.addOption(SDK_OPTION,
-        valueHelp: 'path', help: 'Path to the Dart sdk');
-    parser.addOption(CACHE_FOLDER,
-        valueHelp: 'path', help: 'Path to the location to write cache data');
-    parser.addFlag(USE_LSP,
-        defaultsTo: false,
-        negatable: false,
-        help: 'Whether to use the Language Server Protocol');
-    parser.addFlag(ENABLE_COMPLETION_MODEL,
-        help: 'Whether or not to turn on ML ranking for code completion');
-    parser.addOption(COMPLETION_MODEL_FOLDER,
-        valueHelp: 'path',
-        help: 'Path to the location of a code completion model');
+
     parser.addOption(TRAIN_USING,
         valueHelp: 'path',
         help: 'Pass in a directory to analyze for purposes of training an '
             'analysis server snapshot.');
+
+    parser.addFlag(ENABLE_COMPLETION_MODEL,
+        help: 'Whether or not to turn on ML ranking for code completion.');
+    parser.addOption(COMPLETION_MODEL_FOLDER,
+        valueHelp: 'path',
+        help: 'Path to the location of a code completion model.');
 
     //
     // Temporary flags.
