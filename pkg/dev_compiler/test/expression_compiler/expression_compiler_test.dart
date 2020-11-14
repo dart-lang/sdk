@@ -8,12 +8,13 @@ import 'dart:io' show Directory, File;
 
 import 'package:cli_util/cli_util.dart';
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/incremental_serializer.dart';
-import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -97,7 +98,7 @@ class Module {
   final Uri importUri;
 
   Module(this.importUri, this.fileUri)
-      : name = importUri.pathSegments.last.replaceAll('.dart', ''),
+      : name = libraryUriToJsIdentifier(importUri),
         path = importUri.scheme == 'package'
             ? 'packages/${importUri.path}'
             : importUri.path;
@@ -124,20 +125,31 @@ class TestCompiler {
 
   Future<TestCompilationResult> compile(
       {Uri input,
+      Uri packages,
       int line,
       int column,
       Map<String, String> scope,
       String expression}) async {
     // initialize incremental compiler and create component
+    setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
     var component = await compiler.computeDelta();
+    component.computeCanonicalNames();
 
     // initialize ddc
     var classHierarchy = compiler.getClassHierarchy();
     var compilerOptions = SharedCompilerOptions(replCompile: true);
     var coreTypes = compiler.getCoreTypes();
-    var kernel2jsCompiler = ProgramCompiler(
-        component, classHierarchy, compilerOptions, const {}, const {},
+
+    final importToSummary = Map<Library, Component>.identity();
+    final summaryToModule = Map<Component, String>.identity();
+    for (var lib in component.libraries) {
+      importToSummary[lib] = component;
+    }
+    summaryToModule[component] = 'foo.dart';
+
+    var kernel2jsCompiler = ProgramCompiler(component, classHierarchy,
+        compilerOptions, importToSummary, summaryToModule,
         coreTypes: coreTypes);
     kernel2jsCompiler.emitModule(component);
 
@@ -152,19 +164,13 @@ class TestCompiler {
 
     // collect all module names and paths
     var moduleInfo = _collectModules(component);
-
-    var modules =
-        moduleInfo.map((k, v) => MapEntry<String, String>(v.name, v.path));
-    modules['dart'] = 'dart_sdk';
-    modules['core'] = 'dart_sdk';
-
     var module = moduleInfo[input];
 
     setup.errors.clear();
 
     // compile
     var jsExpression = await evaluator.compileExpressionToJs(
-        module.package, line, column, modules, scope, module.name, expression);
+        module.package, line, column, scope, expression);
 
     if (setup.errors.isNotEmpty) {
       jsExpression = setup.errors.toString().replaceAll(
@@ -193,6 +199,7 @@ class TestDriver {
   Directory tempDir;
   final String source;
   Uri input;
+  Uri packages;
   File file;
   int line;
 
@@ -204,6 +211,21 @@ class TestDriver {
     input = tempDir.uri.resolve('foo.dart');
     file = File.fromUri(input)..createSync();
     file.writeAsStringSync(source);
+
+    packages = tempDir.uri.resolve('package_config.json');
+    file = File.fromUri(packages)..createSync();
+    file.writeAsStringSync('''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": "./",
+            "packageUri": "./"
+          }
+        ]
+      }
+      ''');
   }
 
   void delete() {
@@ -217,6 +239,7 @@ class TestDriver {
       String expectedResult}) async {
     var result = await TestCompiler(options).compile(
         input: input,
+        packages: packages,
         line: line,
         column: 1,
         scope: scope,
@@ -233,7 +256,9 @@ class TestDriver {
   }
 
   String _normalize(String text) {
-    return text.replaceAll(RegExp('\'.*foo.dart\''), '\'foo.dart\'');
+    return text
+        .replaceAll(RegExp('\'.*foo.dart\''), '\'foo.dart\'')
+        .replaceAll(RegExp('\".*foo.dart\"'), '\'foo.dart\'');
   }
 
   Matcher _matches(String text) {
@@ -541,8 +566,6 @@ void main() {
           expression: 'x + _staticField',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.notNull(x) + dart.notNull(foo.C._staticField);
           }.bind(this)(
             1
@@ -569,7 +592,6 @@ void main() {
           expression: 'x + _field',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return dart.notNull(x) + dart.notNull(this[_field]);
           }.bind(this)(
@@ -636,7 +658,6 @@ void main() {
           expression: '_field = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return this[_field] = 2;
           }.bind(this)(
@@ -664,8 +685,6 @@ void main() {
           expression: '_staticField = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let _staticField = dart.privateName(foo, "_staticField");
             return foo.C._staticField = 2;
           }.bind(this)(
             1
@@ -755,8 +774,6 @@ void main() {
           expression: 'x + _staticField',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.notNull(x) + dart.notNull(foo.C._staticField);
           }.bind(this)(
             1
@@ -783,7 +800,6 @@ void main() {
           expression: 'x + _field',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return dart.notNull(x) + dart.notNull(this[_field]);
           }.bind(this)(
@@ -798,7 +814,6 @@ void main() {
           expression: '_field = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return this[_field] = 2;
           }.bind(this)(
@@ -826,8 +841,6 @@ void main() {
           expression: '_staticField = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let _staticField = dart.privateName(foo, "_staticField");
             return foo.C._staticField = 2;
           }.bind(this)(
           1
@@ -1014,7 +1027,6 @@ void main() {
           expression: 'C(1,3)._field',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return new foo.C.new(1, 3)[_field];
           }(
@@ -1065,7 +1077,6 @@ void main() {
           expression: 'c._field',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return c[_field];
           }(
@@ -1123,7 +1134,6 @@ void main() {
           expression: 'c._field = 2',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return c[_field] = 2;
           }(
@@ -1512,8 +1522,6 @@ void main() {
           expression: 'x + _staticField',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.notNull(x) + dart.notNull(foo.C._staticField);
           }.bind(this)(
             1
@@ -1540,7 +1548,6 @@ void main() {
           expression: 'x + _field',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
             return dart.notNull(x) + dart.notNull(this[_field]);
           }.bind(this)(
@@ -1607,7 +1614,6 @@ void main() {
           expression: '_field = 2',
           expectedResult: '''
         (function(x) {
-          let foo = require('foo.dart').foo;
           let _field = dart.privateName(foo, "_field");
           return this[_field] = 2;
         }.bind(this)(
@@ -1635,8 +1641,6 @@ void main() {
           expression: '_staticField = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let _staticField = dart.privateName(foo, "_staticField");
             return foo.C._staticField = 2;
           }.bind(this)(
             1

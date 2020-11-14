@@ -1792,6 +1792,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               templateIncrementalCompilerIllegalParameter.withArguments(name),
               // TODO: pass variable declarations instead of
               // parameter names for proper location detection.
+              // https://github.com/dart-lang/sdk/issues/44158
               -1,
               -1,
               libraryUri);
@@ -1849,11 +1850,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      // TODO: pass variable declarations instead of
+      // parameter names for proper location detection.
+      // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
               .map((name) =>
-                  new VariableDeclarationImpl(name, 0, type: definitions[name]))
+                  new VariableDeclarationImpl(name, 0, type: definitions[name])
+                    ..fileOffset =
+                        cls?.fileOffset ?? libraryBuilder.library.fileOffset)
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);

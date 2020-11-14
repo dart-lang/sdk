@@ -824,7 +824,8 @@ class FrontendCompiler implements CompilerInterface {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
 
-    _processedOptions.ticker.logMs('Compiling expression to JavaScript');
+    _processedOptions.ticker
+        .logMs('Compiling expression to JavaScript in $moduleName');
 
     var kernel2jsCompiler = _bundler.compilers[moduleName];
     Component component = _generator.lastKnownGoodComponent;
@@ -832,7 +833,7 @@ class FrontendCompiler implements CompilerInterface {
 
     _processedOptions.ticker.logMs('Computed component');
 
-    var evaluator = new ExpressionCompiler(
+    var expressionCompiler = new ExpressionCompiler(
       _compilerOptions,
       errors,
       _generator.generator,
@@ -840,8 +841,8 @@ class FrontendCompiler implements CompilerInterface {
       component,
     );
 
-    var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
-        column, jsModules, jsFrameValues, moduleName, expression);
+    var procedure = await expressionCompiler.compileExpressionToJs(
+        libraryUri, line, column, jsFrameValues, expression);
 
     var result = errors.length > 0 ? errors[0] : procedure;
 

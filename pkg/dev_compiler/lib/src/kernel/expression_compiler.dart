@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message, Code;
 
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/compiler/js_names.dart' as js_ast;
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
 import 'package:dev_compiler/src/kernel/compiler.dart';
 
@@ -253,8 +254,16 @@ class FileEndOffsetCalculator extends Visitor<int> {
   }
 }
 
+/// Collect private fields and libraries used in expression.
+///
+/// Used during expression evaluation to find symbols
+/// for private fields. The symbols are used in the ddc
+/// compilation of the expression, are not always avalable
+/// in the JavaScript scope, so we need to redefine them.
+///
+/// See [_addSymbolDefinitions]
 class PrivateFieldsVisitor extends Visitor<void> {
-  final Map<String, String> privateFields = {};
+  final Map<String, Library> privateFields = {};
 
   @override
   void defaultNode(Node node) {
@@ -263,33 +272,31 @@ class PrivateFieldsVisitor extends Visitor<void> {
 
   @override
   void visitFieldReference(Field node) {
-    if (node.name.isPrivate) {
-      var library = node.enclosingLibrary?.importUri;
-      privateFields[node.name.text] = library?.toString();
+    if (node.name.isPrivate && !node.isStatic) {
+      privateFields[node.name.text] = node.enclosingLibrary;
     }
   }
 
   @override
   void visitField(Field node) {
-    if (node.name.isPrivate) {
-      var library = node.enclosingLibrary?.importUri;
-      privateFields[node.name.text] = library?.toString();
+    if (node.name.isPrivate && !node.isStatic) {
+      privateFields[node.name.text] = node.enclosingLibrary;
     }
   }
 
   @override
   void visitPropertyGet(PropertyGet node) {
-    if (node.name.isPrivate) {
-      var library = node.interfaceTarget?.enclosingLibrary?.importUri;
-      privateFields[node.name.text] = library?.toString();
+    var member = node.interfaceTarget;
+    if (node.name.isPrivate && member != null && member.isInstanceMember) {
+      privateFields[node.name.text] = node.interfaceTarget?.enclosingLibrary;
     }
   }
 
   @override
   void visitPropertySet(PropertySet node) {
-    if (node.name.isPrivate) {
-      var library = node.interfaceTarget?.enclosingLibrary?.importUri;
-      privateFields[node.name.text] = library?.toString();
+    var member = node.interfaceTarget;
+    if (node.name.isPrivate && member != null && member.isInstanceMember) {
+      privateFields[node.name.text] = node.interfaceTarget?.enclosingLibrary;
     }
   }
 }
@@ -329,31 +336,18 @@ class ExpressionCompiler {
   /// Values listed in [jsFrameValues] are substituted for their names in the
   /// [expression].
   ///
-  /// Ensures that all [jsModules] are loaded and accessible inside the
-  /// expression.
-  ///
   /// Returns expression compiled to JavaScript or null on error.
-  /// Errors are reported using onDiagnostic function
-  /// [moduleName] is of the form 'packages/hello_world_main.dart'
+  /// Errors are reported using onDiagnostic function.
+  ///
   /// [jsFrameValues] is a map from js variable name to its primitive value
   /// or another variable name, for example
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
-  /// [jsModules] is a map from variable name to the module name, where
-  /// variable name is the name originally used in JavaScript to contain the
-  /// module object, for example:
-  /// { 'dart':'dart_sdk', 'main': 'packages/hello_world_main.dart' }
-  Future<String> compileExpressionToJs(
-      String libraryUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsScope,
-      String moduleName,
-      String expression) async {
+  Future<String> compileExpressionToJs(String libraryUri, int line, int column,
+      Map<String, String> jsScope, String expression) async {
     try {
       // 1. find dart scope where debugger is paused
 
-      _log('Compiling expression in $moduleName:\n$expression');
+      _log('Compiling expression \n$expression');
 
       var dartScope = await _findScopeAt(Uri.parse(libraryUri), line, column);
       if (dartScope == null) {
@@ -382,11 +376,10 @@ class ExpressionCompiler {
 
       // 3. compile dart expression to JS
 
-      var jsExpression = await _compileExpression(
-          dartScope, jsModules, moduleName, expression);
+      var jsExpression = await _compileExpression(dartScope, expression);
 
       if (jsExpression == null) {
-        _log('Failed to compile expression in $moduleName:\n$expression');
+        _log('Failed to compile expression: \n$expression');
         return null;
       }
 
@@ -472,19 +465,9 @@ class ExpressionCompiler {
 
   /// Return a JS function that returns the evaluated results when called.
   ///
-  /// [scope] current dart scope information
-  /// [modules] map from module variable names to module names in JavaScript
-  /// code. For example,
-  /// { 'dart':'dart_sdk', 'main': 'packages/hello_world_main.dart' }
-  /// [currentModule] current js module name.
-  /// For example, in library package:hello_world/main.dart:
-  /// 'packages/hello_world/main.dart'
+  /// [scope] current dart scope information.
   /// [expression] expression to compile in given [scope].
-  Future<String> _compileExpression(
-      DartScope scope,
-      Map<String, String> modules,
-      String currentModule,
-      String expression) async {
+  Future<String> _compileExpression(DartScope scope, String expression) async {
     var procedure = await _compiler.compileExpression(
         expression,
         scope.definitions,
@@ -513,7 +496,7 @@ class ExpressionCompiler {
 
     _log('Generated JavaScript for expression');
 
-    var jsFunModified = _addSymbolDefinitions(procedure, jsFun, scope, modules);
+    var jsFunModified = _addSymbolDefinitions(procedure, jsFun, scope);
 
     _log('Added symbol definitions to JavaScript');
 
@@ -531,71 +514,40 @@ class ExpressionCompiler {
 
   /// Add symbol definitions for all symbols in compiled expression
   ///
+  /// Example:
+  ///
+  ///   compilation of this._field from library 'main'
+  ///
+  /// Symbol definition:
+  ///
+  ///   let _f = dart.privateName(main, "_f");
+  ///
+  /// Expression generated by ddc:
+  ///
+  ///   this[_f]
+  ///
   /// TODO: this is a temporary workaround to make JavaScript produced
   /// by the ProgramCompiler self-contained.
   /// Issue: https://github.com/dart-lang/sdk/issues/41480
-  js_ast.Fun _addSymbolDefinitions(Procedure procedure, js_ast.Fun jsFun,
-      DartScope scope, Map<String, String> modules) {
+  js_ast.Fun _addSymbolDefinitions(
+      Procedure procedure, js_ast.Fun jsFun, DartScope scope) {
     // get private fields accessed by the evaluated expression
     var fieldsCollector = PrivateFieldsVisitor();
     procedure.accept(fieldsCollector);
     var privateFields = fieldsCollector.privateFields;
 
-    // collect libraries where private fields are defined
-    var currentLibraries = <String, String>{};
-    var currentModules = <String, String>{};
-    for (var variable in modules.keys) {
-      var module = modules[variable];
-      for (var field in privateFields.keys) {
-        var library = privateFields[field];
-        if (library != null) {
-          var libraryVariable =
-              library.replaceAll('.dart', '').replaceAll('/', '__');
-          if (libraryVariable.endsWith(variable)) {
-            if (currentLibraries[field] != null) {
-              onDiagnostic(_createInternalError(
-                  scope.library.importUri,
-                  0,
-                  0,
-                  'ExpressionCompiler: $field defined in more than one library: '
-                  '${currentLibraries[field]}, $variable'));
-              return null;
-            }
-            currentLibraries[field] = variable;
-            currentModules[variable] = module;
-          }
-        }
-      }
-    }
+    // collect library names where private symbols are defined
+    var libraryForField = privateFields.map((field, library) =>
+        MapEntry(field, _kernel2jsCompiler.emitLibraryName(library).name));
 
     var body = js_ast.Block([
-      // require modules used in evaluated expression
-      ...currentModules.keys.map((String variable) =>
-          _createRequireModuleStatement(
-              currentModules[variable], variable, variable)),
       // re-create private field accessors
-      ...currentLibraries.keys
-          .map((String k) => _createPrivateField(k, currentLibraries[k])),
+      ...libraryForField.keys.map(
+          (String field) => _createPrivateField(field, libraryForField[field])),
       // statements generated by the FE
       ...jsFun.body.statements
     ]);
-
     return js_ast.Fun(jsFun.params, body);
-  }
-
-  /// Creates a library symbol definition
-  ///
-  /// example:
-  /// let dart = require('dart_sdk').dart;
-  js_ast.Statement _createRequireModuleStatement(
-      String moduleName, String moduleVariable, String fieldName) {
-    var variableName = moduleVariable.replaceFirst('.dart', '');
-    var rhs = js_ast.PropertyAccess.field(
-        js_ast.Call(js_ast.Identifier('require'),
-            [js_ast.LiteralExpression('\'$moduleName\'')]),
-        '$fieldName');
-
-    return rhs.toVariableDeclaration(js_ast.Identifier('$variableName'));
   }
 
   /// Creates a private symbol definition
@@ -603,13 +555,7 @@ class ExpressionCompiler {
   /// example:
   /// let _f = dart.privateName(main, "_f");
   js_ast.Statement _createPrivateField(String field, String library) {
-    var libraryName = library.replaceFirst('.dart', '');
-    var rhs = js_ast.Call(
-        js_ast.PropertyAccess.field(js_ast.Identifier('dart'), 'privateName'), [
-      js_ast.LiteralExpression(libraryName),
-      js_ast.LiteralExpression('"$field"')
-    ]);
-
-    return rhs.toVariableDeclaration(js_ast.Identifier('$field'));
+    return js_ast.js.statement('let # = dart.privateName(#, #)',
+        [field, library, js_ast.js.string(field)]);
   }
 }

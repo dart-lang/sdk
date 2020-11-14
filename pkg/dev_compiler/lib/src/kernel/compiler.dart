@@ -105,6 +105,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   FunctionNode _currentFunction;
 
+  /// Whether the current function needs to insert parameter checks.
+  ///
+  /// Used to avoid adding checks for formal parameters inside a synthetic
+  /// function that is generated during expression compilation in the
+  /// incremental compiler, since those checks would already be done in
+  /// the original code.
+  bool _checkParameters = true;
+
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
@@ -353,8 +361,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add assert locations
     _uriMap.forEach((location, id) {
-      moduleItems.insert(_constTableInsertionIndex,
-          js.statement('var # = #;', [id, js.escapedString(location)]));
+      var value = location == null ? 'null' : js.escapedString(location);
+      moduleItems.insert(
+          _constTableInsertionIndex, js.statement('var # = #;', [id, value]));
     });
 
     moduleItems.addAll(afterClassDefItems);
@@ -2982,6 +2991,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _staticTypeContext.enterLibrary(_currentLibrary);
     _currentClass = cls;
 
+    // Do not add formal parameter checks for the top-level synthetic function
+    // generated for expression evaluation, as those parameters are a set of
+    // variables from the current scope, and should alredy be checked in the
+    // original code.
+    _checkParameters = false;
+
     // Emit function with additional information, such as types that are used
     // in the expression. Note that typeTable can be null if this function is
     // called from the expression compilation service, since we currently do
@@ -3341,13 +3356,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // The check on `p.type` is per:
         // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
         var condition = js.call('# == null', [jsParam]);
+        // Offsets are not available for compiler-generated variables
+        // Get the best available location even if the offset is missing.
+        // https://github.com/dart-lang/sdk/issues/34942
         var location = p.location;
         var check = js.statement(' if (#) #.nullFailed(#, #, #, #);', [
           condition,
           runtimeModule,
-          _cacheUri(location.file.toString()),
-          js.number(location.line),
-          js.number(location.column),
+          _cacheUri(location?.file?.toString()),
+          js.number(location?.line ?? -1),
+          js.number(location?.column ?? -1),
           js.escapedString('${p.name}'),
         ]);
         body.add(check);
@@ -3356,7 +3374,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     for (var p in f.positionalParameters) {
       var jsParam = _emitVariableDef(p);
-      initParameter(p, jsParam);
+      if (_checkParameters) {
+        initParameter(p, jsParam);
+      }
     }
     for (var p in f.namedParameters) {
       // Parameters will be passed using their real names, not the (possibly
@@ -3383,8 +3403,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           paramName,
         ]));
       }
-      initParameter(p, jsParam);
+      if (_checkParameters) {
+        initParameter(p, jsParam);
+      }
     }
+
+    // '_checkParametes = false' is only needed once, while processing formal
+    // parameters of the synthetic function from expression evalaluation - it
+    // will be called from emitFunctionIncremental, which is a top-level API
+    // for expression compilation.
+    // Here we either are done with processing those formals, or compiling
+    // something else (in which case _checkParameters is already true).
+    _checkParameters = true;
     return body;
   }
 
