@@ -4,6 +4,9 @@
 //
 // Dart test program for testing native extensions.
 
+// OtherResources=test_extension.dart
+// OtherResources=test_extension_tester.dart
+
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 import 'dart:async';
@@ -21,6 +24,7 @@ Future copyFileToDirectory(String file, String directory) {
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
+  throw 'Unknown operating system ${Platform.operatingSystem}';
 }
 
 // Returns a list containing the source file name in the first element and the
@@ -37,6 +41,7 @@ List<String> getExtensionNames(String arch) {
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
+  throw 'Unknown operating system ${Platform.operatingSystem}';
 }
 
 String getExtensionPath(String buildDirectory, String filename) {
