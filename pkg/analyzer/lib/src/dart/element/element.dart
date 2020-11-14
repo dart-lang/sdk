@@ -2921,7 +2921,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPrivate {
-    String name = displayName;
+    var name = this.name;
     if (name == null) {
       return true;
     }
@@ -3947,7 +3947,7 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
-  String get displayName => name;
+  String get displayName => name ?? '';
 
   @override
   String get documentationComment {

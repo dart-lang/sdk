@@ -632,6 +632,7 @@ class AnalysisServerOptions {
 
   /// Return `true` if the new relevance computations should be used when
   /// computing code completion suggestions.
+  // TODO: This flag is no longer used.
   bool useNewRelevance = true;
 
   /// The set of enabled features.

@@ -65,8 +65,45 @@ class TemplateContext {
   /// The utilities used to help extract the code associated with various nodes.
   final CorrectionUtils utils;
 
-  /// Initialize a newly created variable support.
+  /// Initialize a newly created template context with the [node] and [utils].
   TemplateContext(this.node, this.utils);
+
+  /// Initialize a newly created template context that uses the invocation
+  /// containing the [node] and the [utils].
+  factory TemplateContext.forInvocation(AstNode node, CorrectionUtils utils) =>
+      TemplateContext(_getInvocation(node), utils);
+
+  /// Return the invocation containing the given [node]. The invocation will be
+  /// either an instance creation expression, function invocation, method
+  /// invocation, or an extension override.
+  static AstNode _getInvocation(AstNode node) {
+    if (node is ArgumentList) {
+      return node.parent;
+    } else if (node is InstanceCreationExpression ||
+        node is InvocationExpression) {
+      return node;
+    } else if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is ConstructorName) {
+        var grandparent = parent.parent;
+        if (grandparent is InstanceCreationExpression) {
+          return grandparent;
+        }
+      } else if (parent is Label && parent.parent is NamedExpression) {
+        return parent.parent.parent.parent;
+      } else if (parent is MethodInvocation && parent.methodName == node) {
+        return parent;
+      }
+    } else if (node is TypeArgumentList) {
+      var parent = node.parent;
+      if (parent is InvocationExpression) {
+        return parent;
+      } else if (parent is ExtensionOverride) {
+        return parent;
+      }
+    }
+    return null;
+  }
 }
 
 /// Literal text within a template.

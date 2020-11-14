@@ -4,10 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_fragment_parser.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
@@ -53,6 +55,7 @@ class TransformSetParser {
   static const String _fieldKey = 'field';
   static const String _functionKey = 'function';
   static const String _getterKey = 'getter';
+  static const String _ifKey = 'if';
   static const String _inClassKey = 'inClass';
   static const String _inEnumKey = 'inEnum';
   static const String _inExtensionKey = 'inExtension';
@@ -64,6 +67,7 @@ class TransformSetParser {
   static const String _nameKey = 'name';
   static const String _newNameKey = 'newName';
   static const String _oldNameKey = 'oldName';
+  static const String _oneOfKey = 'oneOf';
   static const String _setterKey = 'setter';
   static const String _statementsKey = 'statements';
   static const String _styleKey = 'style';
@@ -474,6 +478,8 @@ class TransformSetParser {
       CodeTemplateKind kind;
       int templateOffset;
       String template;
+      // TODO(brianwilkerson) Rework to use `_singleKey` to improve reporting
+      //  (see _translateTransform for an example).
       var expressionNode = node.valueAt(_expressionKey);
       if (expressionNode != null) {
         _reportUnsupportedKeys(node, const {_expressionKey, _variablesKey});
@@ -509,6 +515,47 @@ class TransformSetParser {
       return null;
     } else {
       return _reportInvalidValue(node, context, 'Map');
+    }
+  }
+
+  void _translateConditionalChange(YamlNode node, ErrorContext context,
+      Map<Expression, List<Change>> changeMap) {
+    if (node is YamlMap) {
+      _reportUnsupportedKeys(node, const {_ifKey, _changesKey});
+      var expressionNode = node.valueAt(_ifKey);
+      var expressionText = _translateString(
+          expressionNode, ErrorContext(key: _ifKey, parentNode: node));
+      var changes = _translateList(node.valueAt(_changesKey),
+          ErrorContext(key: _changesKey, parentNode: node), _translateChange);
+      if (_parameterModifications != null) {
+        if (changes != null) {
+          changes.add(ModifyParameters(modifications: _parameterModifications));
+        }
+        _parameterModifications = null;
+      }
+      if (expressionText != null && changes != null) {
+        var expression = CodeFragmentParser(errorReporter,
+                scope: transformVariableScope)
+            .parseCondition(expressionText, _offsetOfString(expressionNode));
+        if (expression != null) {
+          changeMap[expression] = changes;
+        }
+      }
+    } else {
+      return _reportInvalidValue(node, context, 'Map');
+    }
+  }
+
+  ChangesSelector _translateConditionalChanges(
+      YamlNode node, ErrorContext context) {
+    if (node is YamlList) {
+      var changeMap = <Expression, List<Change>>{};
+      for (var element in node.nodes) {
+        _translateConditionalChange(element, context, changeMap);
+      }
+      return ConditionalChangesSelector(changeMap);
+    } else {
+      return _reportInvalidValue(node, context, 'List');
     }
   }
 
@@ -810,6 +857,7 @@ class TransformSetParser {
         _changesKey,
         _dateKey,
         _elementKey,
+        _oneOfKey,
         _titleKey,
         _variablesKey
       });
@@ -826,23 +874,44 @@ class TransformSetParser {
       transformVariableScope = _translateTemplateVariables(
           node.valueAt(_variablesKey),
           ErrorContext(key: _variablesKey, parentNode: node));
-      var changes = _translateList(node.valueAt(_changesKey),
-          ErrorContext(key: _changesKey, parentNode: node), _translateChange);
-      transformVariableScope = VariableScope.empty;
-      if (title == null || date == null || element == null || changes == null) {
+      ChangesSelector selector;
+      var key = _singleKey(
+          node, const [_changesKey, _oneOfKey], context.parentNode,
+          required: true);
+      if (key == _oneOfKey) {
+        selector = _translateConditionalChanges(node.valueAt(_oneOfKey),
+            ErrorContext(key: _oneOfKey, parentNode: node));
+      } else if (key == _changesKey) {
+        var changes = _translateList(node.valueAt(_changesKey),
+            ErrorContext(key: _changesKey, parentNode: node), _translateChange);
+        if (changes == null) {
+          // The error has already been reported.
+          _parameterModifications = null;
+          return null;
+        }
+        if (_parameterModifications != null) {
+          changes.add(ModifyParameters(modifications: _parameterModifications));
+          _parameterModifications = null;
+        }
+        selector = UnconditionalChangesSelector(changes);
+      } else {
         // The error has already been reported.
         return null;
       }
-      if (_parameterModifications != null) {
-        changes.add(ModifyParameters(modifications: _parameterModifications));
-        _parameterModifications = null;
+      transformVariableScope = VariableScope.empty;
+      if (title == null ||
+          date == null ||
+          element == null ||
+          selector == null) {
+        // The error has already been reported.
+        return null;
       }
       return Transform(
           title: title,
           date: date,
           bulkApply: bulkApply,
           element: element,
-          changes: changes);
+          changesSelector: selector);
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }

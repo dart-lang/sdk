@@ -11,9 +11,9 @@
 namespace dart {
 
 #if defined(DEBUG)
-const intptr_t kSkipCount = 5;
+const intptr_t kSkipCount = 6;
 #elif !(defined(PRODUCT) || defined(DEBUG))
-const intptr_t kSkipCount = 4;
+const intptr_t kSkipCount = 5;
 #endif
 
 }  // namespace dart

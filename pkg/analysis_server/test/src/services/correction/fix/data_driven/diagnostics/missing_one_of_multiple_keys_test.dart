@@ -79,4 +79,18 @@ transforms:
       error(TransformSetErrorCode.missingOneOfMultipleKeys, 124, 22),
     ]);
   }
+
+  void test_transform() {
+    assertErrors('''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+''', [
+      error(TransformSetErrorCode.missingOneOfMultipleKeys, 0, 107),
+    ]);
+  }
 }

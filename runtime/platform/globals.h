@@ -374,12 +374,6 @@ typedef simd128_value_t fpu_register_t;
 #error Unknown architecture.
 #endif
 
-#if defined(ARCH_IS_32_BIT) || defined(IS_SIMARM_X64)
-#define TARGET_ARCH_IS_32_BIT 1
-#elif defined(ARCH_IS_64_BIT)
-#define TARGET_ARCH_IS_64_BIT 1
-#endif
-
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
     !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
     !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_WINDOWS)

@@ -62,6 +62,9 @@ class MallocAllocated {
 #endif
 };
 
+void* malloc(size_t size);
+void* realloc(void* ptr, size_t size);
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_ALLOCATION_H_

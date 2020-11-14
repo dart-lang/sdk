@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
@@ -946,8 +947,8 @@ abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
               kind: ElementKindUtilities.fromName(_kind),
               components: originalComponents),
           bulkApply: false,
-          changes: [
+          changesSelector: UnconditionalChangesSelector([
             ModifyParameters(modifications: modifications),
             if (newName != null) Rename(newName: newName),
-          ]);
+          ]));
 }

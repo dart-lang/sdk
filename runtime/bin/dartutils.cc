@@ -294,9 +294,6 @@ void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
   }
   *len = static_cast<intptr_t>(file_len);
   *data = reinterpret_cast<uint8_t*>(malloc(*len));
-  if (*data == NULL) {
-    OUT_OF_MEMORY();
-  }
   if (!file_stream->ReadFully(*data, *len)) {
     free(*data);
     *data = NULL;

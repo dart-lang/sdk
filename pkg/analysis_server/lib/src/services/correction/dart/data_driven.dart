@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
@@ -178,7 +179,11 @@ class DataDrivenFix extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var changes = _transform.changes;
+    var changes = _transform.changesSelector
+        .getChanges(TemplateContext.forInvocation(node, utils));
+    if (changes == null) {
+      return;
+    }
     var data = <Object>[];
     for (var change in changes) {
       var result = change.validate(this);

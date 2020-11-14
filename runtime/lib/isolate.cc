@@ -720,7 +720,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
     }
   }
 
-  uint8_t* data = reinterpret_cast<uint8_t*>(malloc(total_bytes));
+  uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(total_bytes));
   if (data == nullptr) {
     const Instance& exception =
         Instance::Handle(thread->isolate()->object_store()->out_of_memory());

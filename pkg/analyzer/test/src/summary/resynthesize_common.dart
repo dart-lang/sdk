@@ -23,10 +23,10 @@ import 'test_strategies.dart';
 /// The return type separator: →
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   DeclaredVariables declaredVariables = DeclaredVariables();
-  SourceFactory sourceFactory;
-  MockSdk sdk;
+  /*late final*/ SourceFactory sourceFactory;
+  /*late final*/ MockSdk sdk;
 
-  String testFile;
+  /*late final*/ String testFile;
   Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
@@ -12258,7 +12258,7 @@ int j;
 /// Mixin containing helper methods for testing summary resynthesis.  Intended
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
 mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
-  Future<LibraryElementImpl> checkLibrary(String text,
+  Future<LibraryElementImpl /*!*/ > checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
     throw 42;
 //    Source source = addTestSource(text);

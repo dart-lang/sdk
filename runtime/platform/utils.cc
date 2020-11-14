@@ -4,6 +4,8 @@
 
 #include "platform/utils.h"
 
+#include "platform/allocation.h"
+
 namespace dart {
 
 // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,

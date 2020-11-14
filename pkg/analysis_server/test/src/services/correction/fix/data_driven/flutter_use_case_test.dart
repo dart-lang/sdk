@@ -599,6 +599,150 @@ void f() {
 ''');
   }
 
+  Future<void> test_material_Scaffold_of_matchFirstCase() async {
+    setPackageContent('''
+class Scaffold {
+  static ScaffoldState of(BuildContext context) => ScaffoldState();
+  static ScaffoldState maybeOf(BuildContext context) => ScaffoldState();
+}
+class ScaffoldState {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context, nullOk: true);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.maybeOf(context);
+}
+''');
+  }
+
+  Future<void> test_material_Scaffold_of_matchNoCases() async {
+    setPackageContent('''
+class Scaffold {
+  static ScaffoldState of(BuildContext context) => ScaffoldState();
+  static ScaffoldState maybeOf(BuildContext context) => ScaffoldState();
+}
+class ScaffoldState {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context, nullOk: b);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_material_Scaffold_of_matchSecondCase() async {
+    setPackageContent('''
+class Scaffold {
+  static ScaffoldState of(BuildContext context) => ScaffoldState();
+  static ScaffoldState maybeOf(BuildContext context) => ScaffoldState();
+}
+class ScaffoldState {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context, nullOk: false);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context);
+}
+''');
+  }
+
   Future<void>
       test_material_Scaffold_resizeToAvoidBottomPadding_deprecated() async {
     setPackageContent('''

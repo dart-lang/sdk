@@ -944,7 +944,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       {bool isCovariant}) {
     assert(isCovariant != null);
     VariableDeclaration parameter = new VariableDeclaration(null)
-      ..isCovariant = isCovariant;
+      ..isCovariant = isCovariant
+      ..fileOffset = fileOffset;
     return new Procedure(
         null,
         ProcedureKind.Setter,
@@ -1537,7 +1538,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
     if (!isFinal) {
       VariableDeclaration parameter =
           new VariableDeclaration("#externalFieldValue")
-            ..isCovariant = isCovariant;
+            ..isCovariant = isCovariant
+            ..fileOffset = charOffset;
       _setter = new Procedure(
           null,
           ProcedureKind.Setter,

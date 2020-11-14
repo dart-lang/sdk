@@ -199,20 +199,6 @@ transforms:
     ]);
   }
 
-  void test_transform_changes() {
-    assertErrors('''
-version: 1
-transforms:
-- title: ''
-  date: 2020-09-14
-  element:
-    uris: ['test.dart']
-    function: 'f'
-''', [
-      error(TransformSetErrorCode.missingKey, 25, 82),
-    ]);
-  }
-
   void test_transform_date() {
     assertErrors('''
 version: 1
