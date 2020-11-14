@@ -275,10 +275,6 @@ class Driver implements ServerStarter {
   /// A directory to analyze in order to train an analysis server snapshot.
   static const String TRAIN_USING = 'train-using';
 
-  /// A flag indicating that the new code completion relevance computation
-  /// should be used to compute relevance scores.
-  static const String USE_NEW_RELEVANCE = 'use-new-relevance';
-
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
       CrashReportingAttachmentsBuilder.empty;
@@ -317,7 +313,6 @@ class Driver implements ServerStarter {
 
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
-    analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
@@ -784,13 +779,6 @@ class Driver implements ServerStarter {
         help: 'Path to the location of a code completion model.');
 
     //
-    // Temporary flags.
-    //
-    parser.addFlag(USE_NEW_RELEVANCE,
-        defaultsTo: true,
-        help: 'Use the new relevance computation for code completion.');
-
-    //
     // Deprecated options - no longer read from.
     //
 
@@ -806,6 +794,8 @@ class Driver implements ServerStarter {
     parser.addFlag('preview-dart-2', hide: true);
     // Removed 11/12/2020.
     parser.addFlag('useAnalysisHighlight2', hide: true);
+    // Removed 11/13/2020.
+    parser.addFlag('use-new-relevance', hide: true);
     // Removed 9/23/2020.
     parser.addFlag('use-fasta-parser', hide: true);
 
