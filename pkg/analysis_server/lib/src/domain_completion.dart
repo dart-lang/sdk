@@ -312,8 +312,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         recordRequest(performance, file, resolvedUnit.content, offset);
       }
-      var completionRequest = CompletionRequestImpl(
-          resolvedUnit, offset, server.options.useNewRelevance, performance);
+      var completionRequest =
+          CompletionRequestImpl(resolvedUnit, offset, performance);
 
       var completionId = (_nextCompletionId++).toString();
 

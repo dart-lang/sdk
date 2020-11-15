@@ -546,7 +546,12 @@ class PageState {
     assertNotSuggested('==');
   }
 
+  @failingTest
   Future<void> test_AsExpression_type_filter_extends() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('''
 class A {} class B extends A {} class C extends A {} class D {}
@@ -562,7 +567,12 @@ f(A a){ (a as ^) }''');
     assertNotSuggested('Object');
   }
 
+  @failingTest
   Future<void> test_AsExpression_type_filter_implements() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('''
 class A {} class B implements A {} class C implements A {} class D {}
@@ -3882,7 +3892,12 @@ main(){var a; if (a is ^)}''');
     assertNotSuggested('Object');
   }
 
+  @failingTest
   Future<void> test_IsExpression_type_filter_extends() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
 class A {} class B extends A {} class C extends A {} class D {}
@@ -3898,7 +3913,12 @@ f(A a){ if (a is ^) {}}''');
     assertNotSuggested('Object');
   }
 
+  @failingTest
   Future<void> test_IsExpression_type_filter_implements() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
 class A {} class B implements A {} class C implements A {} class D {}

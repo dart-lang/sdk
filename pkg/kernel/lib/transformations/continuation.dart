@@ -342,7 +342,7 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
 // This allows us to e.g. "shadow" the original parameter variables with copies
 // unique to given sub-closure to prevent shared variables being overwritten.
 class ShadowRewriter extends Transformer {
-  final enclosingFunction;
+  final FunctionNode enclosingFunction;
   Map<VariableDeclaration, VariableDeclaration> _shadowedParameters = {};
 
   ShadowRewriter(this.enclosingFunction) {

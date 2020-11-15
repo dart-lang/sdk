@@ -295,7 +295,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestAwait ',
             r'^#5      doTestsCausal ',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -307,7 +307,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -319,7 +319,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -338,7 +338,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -350,7 +350,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -362,7 +362,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -383,7 +383,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -395,7 +395,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -407,7 +407,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -428,7 +428,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -440,7 +440,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -452,7 +452,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#5      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#6      main ',
-            r'^#7      _startIsolate.<anonymous closure> ',
+            r'^#7      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#8      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -493,7 +493,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -505,7 +505,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -517,7 +517,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -537,7 +537,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -549,7 +549,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -561,7 +561,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -581,7 +581,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -593,7 +593,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -605,7 +605,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#4      doTestsCausal \(.+\)$',
             r'^<asynchronous suspension>$',
             r'^#5      main \(.+\)$',
-            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#6      _delayEntrypointInvocation.<anonymous closure> \(.+\)$',
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
           ],
       debugInfoFilename);
@@ -633,7 +633,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'#11     doTestsCausal ',
             r'<asynchronous suspension>$',
             r'#12     main \(.+\)$',
-            r'#13     _startIsolate.<anonymous closure> ',
+            r'#13     _delayEntrypointInvocation.<anonymous closure> ',
             r'#14     _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -645,7 +645,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'#11     doTestsCausal ',
             r'<asynchronous suspension>$',
             r'#12     main \(.+\)$',
-            r'#13     _startIsolate.<anonymous closure> ',
+            r'#13     _delayEntrypointInvocation.<anonymous closure> ',
             r'#14     _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -657,7 +657,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'#11     doTestsCausal ',
             r'<asynchronous suspension>$',
             r'#12     main \(.+\)$',
-            r'#13     _startIsolate.<anonymous closure> ',
+            r'#13     _delayEntrypointInvocation.<anonymous closure> ',
             r'#14     _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -675,7 +675,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#3      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#4      main \(.+\)$',
-            r'^#5      _startIsolate.<anonymous closure> ',
+            r'^#5      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#6      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -687,7 +687,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#3      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#4      main \(.+\)$',
-            r'^#5      _startIsolate.<anonymous closure> ',
+            r'^#5      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#6      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -699,7 +699,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#3      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#4      main \(.+\)$',
-            r'^#5      _startIsolate.<anonymous closure> ',
+            r'^#5      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#6      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -717,7 +717,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#3      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#4      main \(.+\)$',
-            r'^#5      _startIsolate.<anonymous closure> ',
+            r'^#5      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#6      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -729,7 +729,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#3      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#4      main \(.+\)$',
-            r'^#5      _startIsolate.<anonymous closure> ',
+            r'^#5      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#6      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
@@ -741,7 +741,7 @@ Future<void> doTestsCausal([String? debugInfoFilename]) async {
             r'^#3      doTestsCausal ',
             r'^<asynchronous suspension>$',
             r'^#4      main \(.+\)$',
-            r'^#5      _startIsolate.<anonymous closure> ',
+            r'^#5      _delayEntrypointInvocation.<anonymous closure> ',
             r'^#6      _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);

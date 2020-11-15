@@ -58,7 +58,6 @@ class ICData;
 class IsolateObjectStore;
 class IsolateProfilerData;
 class IsolateReloadContext;
-class IsolateSpawnState;
 class Log;
 class Message;
 class MessageHandler;
@@ -226,7 +225,7 @@ class IsolateGroupSource {
                      const uint8_t* kernel_buffer,
                      intptr_t kernel_buffer_size,
                      Dart_IsolateFlags flags)
-      : script_uri(script_uri),
+      : script_uri(script_uri == nullptr ? nullptr : Utils::StrDup(script_uri)),
         name(Utils::StrDup(name)),
         snapshot_data(snapshot_data),
         snapshot_instructions(snapshot_instructions),
@@ -237,14 +236,17 @@ class IsolateGroupSource {
         script_kernel_size(-1),
         loaded_blobs_(nullptr),
         num_blob_loads_(0) {}
-  ~IsolateGroupSource() { free(name); }
+  ~IsolateGroupSource() {
+    free(script_uri);
+    free(name);
+  }
 
   void add_loaded_blob(Zone* zone_,
                        const ExternalTypedData& external_typed_data);
 
   // The arguments used for spawning in
   // `Dart_CreateIsolateGroupFromKernel` / `Dart_CreateIsolate`.
-  const char* script_uri;
+  char* script_uri;
   char* name;
   const uint8_t* snapshot_data;
   const uint8_t* snapshot_instructions;
@@ -939,15 +941,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   const char* MakeRunnable();
   void MakeRunnableLocked();
-
-  // Runs the isolate if it was created inside the VM as a response to
-  // invocation of Dart's `Isolate.spawn` api.
-  //
-  // It will wake up a potential await'er (e.g. `await Isolate.spawn()`).
-  void RunViaSpawnApi();
-
-  // Runs the isolate if it was created by the embedder.
-  void RunViaEmbedder();
+  void Run();
 
   MessageHandler* message_handler() const { return message_handler_; }
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
@@ -960,11 +954,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       set_last_resume_timestamp();
     }
 #endif
-  }
-
-  IsolateSpawnState* spawn_state() const { return spawn_state_.get(); }
-  void set_spawn_state(std::unique_ptr<IsolateSpawnState> value) {
-    spawn_state_ = std::move(value);
   }
 
   Mutex* mutex() { return &mutex_; }
@@ -1609,7 +1598,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Mutex kernel_data_class_cache_mutex_;
   Mutex kernel_constants_mutex_;
   MessageHandler* message_handler_ = nullptr;
-  std::unique_ptr<IsolateSpawnState> spawn_state_;
   intptr_t defer_finalization_count_ = 0;
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_ = nullptr;
@@ -1755,78 +1743,6 @@ class EnterIsolateGroupScope {
   IsolateGroup* isolate_group_;
 
   DISALLOW_COPY_AND_ASSIGN(EnterIsolateGroupScope);
-};
-
-class IsolateSpawnState {
- public:
-  IsolateSpawnState(Dart_Port parent_port,
-                    Dart_Port origin_id,
-                    const char* script_url,
-                    const Function& func,
-                    SerializedObjectBuffer* message_buffer,
-                    const char* package_config,
-                    bool paused,
-                    bool errorsAreFatal,
-                    Dart_Port onExit,
-                    Dart_Port onError,
-                    const char* debug_name,
-                    IsolateGroup* group);
-  IsolateSpawnState(Dart_Port parent_port,
-                    const char* script_url,
-                    const char* package_config,
-                    SerializedObjectBuffer* args_buffer,
-                    SerializedObjectBuffer* message_buffer,
-                    bool paused,
-                    bool errorsAreFatal,
-                    Dart_Port onExit,
-                    Dart_Port onError,
-                    const char* debug_name,
-                    IsolateGroup* group);
-  ~IsolateSpawnState();
-
-  Isolate* isolate() const { return isolate_; }
-  void set_isolate(Isolate* value) { isolate_ = value; }
-
-  Dart_Port parent_port() const { return parent_port_; }
-  Dart_Port origin_id() const { return origin_id_; }
-  Dart_Port on_exit_port() const { return on_exit_port_; }
-  Dart_Port on_error_port() const { return on_error_port_; }
-  const char* script_url() const { return script_url_; }
-  const char* package_config() const { return package_config_; }
-  const char* library_url() const { return library_url_; }
-  const char* class_name() const { return class_name_; }
-  const char* function_name() const { return function_name_; }
-  const char* debug_name() const { return debug_name_; }
-  bool is_spawn_uri() const { return library_url_ == nullptr; }
-  bool paused() const { return paused_; }
-  bool errors_are_fatal() const { return errors_are_fatal_; }
-  Dart_IsolateFlags* isolate_flags() { return &isolate_flags_; }
-
-  ObjectPtr ResolveFunction();
-  InstancePtr BuildArgs(Thread* thread);
-  InstancePtr BuildMessage(Thread* thread);
-
-  IsolateGroup* isolate_group() const { return isolate_group_; }
-
- private:
-  Isolate* isolate_;
-  Dart_Port parent_port_;
-  Dart_Port origin_id_;
-  Dart_Port on_exit_port_;
-  Dart_Port on_error_port_;
-  const char* script_url_;
-  const char* package_config_;
-  const char* library_url_;
-  const char* class_name_;
-  const char* function_name_;
-  const char* debug_name_;
-  IsolateGroup* isolate_group_;
-  std::unique_ptr<Message> serialized_args_;
-  std::unique_ptr<Message> serialized_message_;
-
-  Dart_IsolateFlags isolate_flags_;
-  bool paused_;
-  bool errors_are_fatal_;
 };
 
 }  // namespace dart

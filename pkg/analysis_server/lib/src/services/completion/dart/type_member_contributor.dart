@@ -236,11 +236,8 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
       types.addAll(superclassConstraints);
     }
     for (var targetType in types) {
-      double inheritanceDistance;
-      if (request.useNewRelevance) {
-        inheritanceDistance = request.featureComputer
-            .inheritanceDistanceFeature(type.element, targetType.element);
-      }
+      var inheritanceDistance = request.featureComputer
+          .inheritanceDistanceFeature(type.element, targetType.element);
       for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {

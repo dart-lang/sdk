@@ -10369,10 +10369,9 @@ class Version extends Object {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! Version) return false;
-    return major == other.major && minor == other.minor;
+    return other is Version && major == other.major && minor == other.minor;
   }
 
   @override

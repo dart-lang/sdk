@@ -13,7 +13,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
-    defineReflectiveTests(TypeMemberContributorWithNewRelevanceTest);
   });
 }
 
@@ -4264,11 +4263,4 @@ class C with M {
     assertNotSuggested('x');
     assertNotSuggested('e');
   }
-}
-
-@reflectiveTest
-class TypeMemberContributorWithNewRelevanceTest
-    extends TypeMemberContributorTest {
-  @override
-  bool get useNewRelevance => true;
 }

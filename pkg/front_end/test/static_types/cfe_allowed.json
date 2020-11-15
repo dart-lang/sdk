@@ -1,0 +1,74 @@
+{
+  "pkg/front_end/lib/src/api_prototype/terminal_color_support.dart": {
+    "Dynamic invocation of 'split'.": 1
+  },
+  "pkg/front_end/lib/src/base/libraries_specification.dart": {
+    "Dynamic invocation of 'containsKey'.": 1,
+    "Dynamic invocation of '[]'.": 8,
+    "Dynamic invocation of 'forEach'.": 1,
+    "Dynamic invocation of 'toList'.": 1,
+    "Dynamic invocation of 'map'.": 1,
+    "Dynamic invocation of '[]='.": 1
+  },
+  "pkg/_fe_analyzer_shared/lib/src/util/colors.dart": {
+    "Dynamic access of 'supportsAnsiEscapes'.": 1,
+    "Dynamic invocation of 'split'.": 1
+  },
+  "pkg/_fe_analyzer_shared/lib/src/scanner/token_impl.dart": {
+    "Dynamic access of 'data'.": 1,
+    "Dynamic access of 'start'.": 1,
+    "Dynamic access of 'length'.": 1,
+    "Dynamic access of 'boolValue'.": 2
+  },
+  "pkg/kernel/lib/transformations/value_class.dart": {
+    "Dynamic access of 'text'.": 2,
+    "Dynamic access of 'name'.": 2,
+    "Dynamic access of 'type'.": 1
+  },
+  "pkg/front_end/lib/src/fasta/crash.dart": {
+    "Dynamic access of 'trace'.": 1,
+    "Dynamic access of 'uri'.": 1,
+    "Dynamic access of 'charOffset'.": 1,
+    "Dynamic access of 'error'.": 1
+  },
+  "pkg/front_end/lib/src/fasta/dill/dill_member_builder.dart": {
+    "Dynamic access of 'fileUri'.": 1
+  },
+  "pkg/_fe_analyzer_shared/lib/src/scanner/string_canonicalizer.dart": {
+    "Dynamic invocation of '[]'.": 2
+  },
+  "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": {
+    "Dynamic invocation of 'buildForEffect'.": 1
+  },
+  "pkg/kernel/lib/text/text_serializer.dart": {
+    "Dynamic access of 'first'.": 68,
+    "Dynamic invocation of 'getReference'.": 10,
+    "Dynamic access of 'second'.": 88,
+    "Dynamic access of 'third'.": 29,
+    "Dynamic access of 'fourth'.": 17,
+    "Dynamic access of 'fifth'.": 3,
+    "Dynamic access of 'sixth'.": 2,
+    "Dynamic invocation of 'fold'.": 9,
+    "Dynamic invocation of '|'.": 8,
+    "Dynamic access of 'value'.": 11,
+    "Dynamic access of 'key'.": 11,
+    "Dynamic update to 'name'.": 2,
+    "Dynamic invocation of 'addAnnotation'.": 1,
+    "Dynamic access of 'expressions'.": 1,
+    "Dynamic access of 'length'.": 3,
+    "Dynamic invocation of '+'.": 2,
+    "Dynamic invocation of 'toList'.": 5,
+    "Dynamic invocation of 'cast'.": 5,
+    "Dynamic invocation of 'where'.": 5,
+    "Dynamic access of 'seventh'.": 1
+  },
+  "pkg/_fe_analyzer_shared/lib/src/util/link.dart": {
+    "Dynamic access of 'isEmpty'.": 1
+  },
+  "pkg/_fe_analyzer_shared/lib/src/util/link_implementation.dart": {
+    "Dynamic access of 'isNotEmpty'.": 1,
+    "Dynamic access of 'head'.": 1,
+    "Dynamic access of 'tail'.": 1,
+    "Dynamic access of 'isEmpty'.": 1
+  }
+}

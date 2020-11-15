@@ -85,7 +85,6 @@ class RuntimeCompletionComputer {
     var request = CompletionRequestImpl(
       targetResult,
       targetOffset,
-      false,
       CompletionPerformance(),
     );
 

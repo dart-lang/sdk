@@ -205,7 +205,6 @@ main() {
   }
 
   Future<void> test_relevanceTags_constructorBeforeClass() async {
-    server.options.useNewRelevance = true;
     addTestFile(r'''
 void foo(List<int> a) {}
 
@@ -253,8 +252,7 @@ void f(MyEnum e) {
       testCode.indexOf(' // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -302,16 +300,6 @@ void f(MyEnum e) {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "package:test/a.dart::MyEnum",
-    "relevanceBoost": 1100
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_argumentList_named() async {
@@ -328,8 +316,7 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -377,16 +364,6 @@ main() {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::String",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_argumentList_positional() async {
@@ -403,8 +380,7 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.MIXIN",
@@ -460,16 +436,6 @@ main() {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::double",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_assignment() async {
@@ -485,8 +451,7 @@ main() {
       testCode.indexOf(' // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -534,16 +499,6 @@ main() {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::int",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_initializer() async {
@@ -556,8 +511,7 @@ int v = // ref;
       testCode.indexOf(' // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.MIXIN",
@@ -613,16 +567,6 @@ int v = // ref;
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::int",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_listLiteral() async {

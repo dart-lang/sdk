@@ -60,7 +60,6 @@ Future<void> main(List<String> args) async {
   var code = await CompletionMetricsComputer(root,
           availableSuggestions: result[AVAILABLE_SUGGESTIONS],
           overlay: result[OVERLAY],
-          skipOldRelevance: result[SKIP_OLD_RELEVANCE],
           verbose: result[VERBOSE])
       .compute();
   stopwatch.stop();
@@ -86,10 +85,6 @@ const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
 /// A mode indicating that the token whose offset is the same as the
 /// completion offset should be removed.
 const String OVERLAY_REMOVE_TOKEN = 'remove-token';
-
-/// A flag that causes metrics using the old relevance scores to not be
-/// produced.
-const String SKIP_OLD_RELEVANCE = 'skip-old-relevance';
 
 /// A flag that causes additional output to be produced.
 const String VERBOSE = 'verbose';
@@ -133,12 +128,7 @@ ArgParser createArgParser() {
             'Before attempting a completion at the location of each token, the '
             'token can be removed, or the rest of the file can be removed to test '
             'code completion with diverse methods. The default mode is to '
-            'complete at the start of the token without modifying the file.')
-    ..addFlag(SKIP_OLD_RELEVANCE,
-        help: 'Used to skip the computation of suggestions using the old '
-            'relevance scores.',
-        defaultsTo: false,
-        negatable: false);
+            'complete at the start of the token without modifying the file.');
 }
 
 /// Print usage information for this tool.
@@ -439,16 +429,12 @@ class CompletionMetricsComputer {
 
   final String overlay;
 
-  final bool skipOldRelevance;
-
   final bool verbose;
 
   ResolvedUnitResult _resolvedUnitResult;
 
   /// The int to be returned from the [compute] call.
   int resultCode;
-
-  CompletionMetrics metricsOldMode;
 
   CompletionMetrics metricsNewMode;
 
@@ -460,7 +446,6 @@ class CompletionMetricsComputer {
   CompletionMetricsComputer(this.rootPath,
       {@required this.availableSuggestions,
       @required this.overlay,
-      @required this.skipOldRelevance,
       @required this.verbose})
       : assert(overlay == OVERLAY_NONE ||
             overlay == OVERLAY_REMOVE_TOKEN ||
@@ -468,7 +453,6 @@ class CompletionMetricsComputer {
 
   Future<int> compute() async {
     resultCode = 0;
-    metricsOldMode = CompletionMetrics('useNewRelevance = false');
     metricsNewMode = CompletionMetrics('useNewRelevance = true');
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
@@ -476,9 +460,6 @@ class CompletionMetricsComputer {
     );
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot);
-    }
-    if (!skipOldRelevance) {
-      printMetrics(metricsOldMode);
     }
     printMetrics(metricsNewMode);
 
@@ -866,13 +847,11 @@ class CompletionMetricsComputer {
             Future<int> handleExpectedCompletion(
                 {MetricsSuggestionListener listener,
                 @required CompletionMetrics metrics,
-                @required bool printMissedCompletions,
-                @required bool useNewRelevance}) async {
+                @required bool printMissedCompletions}) async {
               var stopwatch = Stopwatch()..start();
               var request = CompletionRequestImpl(
                 resolvedUnitResult,
                 expectedCompletion.offset,
-                useNewRelevance,
                 CompletionPerformance(),
               );
               var directiveInfo = DartdocDirectiveInfo();
@@ -907,49 +886,12 @@ class CompletionMetricsComputer {
                   printMissedCompletions);
             }
 
-            // First we compute the completions useNewRelevance set to
-            // false:
-            int oldRank;
-            if (!skipOldRelevance) {
-              oldRank = await handleExpectedCompletion(
-                  metrics: metricsOldMode,
-                  printMissedCompletions: false,
-                  useNewRelevance: false);
-            }
-
-            // And again here with useNewRelevance set to true:
+            // Compute the completions.
             var listener = MetricsSuggestionListener();
-            var newRank = await handleExpectedCompletion(
+            await handleExpectedCompletion(
                 listener: listener,
                 metrics: metricsNewMode,
-                printMissedCompletions: verbose,
-                useNewRelevance: true);
-
-            if (!skipOldRelevance && newRank != -1 && oldRank != -1) {
-              if (newRank <= oldRank) {
-                oldVsNewComparison.count('new relevance');
-              } else {
-                oldVsNewComparison.count('old relevance');
-              }
-            }
-
-            if (!skipOldRelevance && verbose) {
-              if (newRank > 0 && oldRank < 0) {
-                print('    ===========');
-                print(
-                    '    The `useNewRelevance = true` generated a completion that `useNewRelevance = false` did not:');
-                print('    $expectedCompletion');
-                print('    ===========');
-                print('');
-              } else if (newRank < 0 && oldRank > 0) {
-                print('    ===========');
-                print(
-                    '    The `useNewRelevance = false` generated a completion that `useNewRelevance = true` did not:');
-                print('    $expectedCompletion');
-                print('    ===========');
-                print('');
-              }
-            }
+                printMissedCompletions: verbose);
 
             // If an overlay option is being used, remove the overlay applied
             // earlier
