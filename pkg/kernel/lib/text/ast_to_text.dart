@@ -971,7 +971,7 @@ class Printer extends Visitor<Null> {
     if (name.isRoot) throw 'unexpected root';
     if (name.name.startsWith('@')) throw 'unexpected @';
 
-    libraryString(CanonicalName lib) {
+    String libraryString(CanonicalName lib) {
       if (lib.reference?.node != null) {
         return getLibraryReference(lib.reference.asLibrary);
       }
@@ -979,7 +979,7 @@ class Printer extends Visitor<Null> {
           lib.reference, lib);
     }
 
-    classString(CanonicalName cls) =>
+    String classString(CanonicalName cls) =>
         libraryString(cls.parent) + '::' + cls.name;
 
     if (name.parent.isRoot) return libraryString(name);
@@ -2336,7 +2336,7 @@ class Printer extends Visitor<Null> {
     writeSymbol('<');
     writeList([node.keyType, node.valueType], writeType);
     writeSymbol('>{');
-    writeList(node.entries, (entry) {
+    writeList(node.entries, (ConstantMapEntry entry) {
       writeConstantReference(entry.key);
       writeSymbol(':');
       writeConstantReference(entry.value);

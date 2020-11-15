@@ -84,7 +84,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
     // To support using custom-uris in unit tests, we don't check directly
     // whether the scheme is 'file:', but instead we check that is not 'dart:'
     // or 'package:'.
-    bool isFileOrCustomScheme(uri) =>
+    bool isFileOrCustomScheme(Uri uri) =>
         uri.scheme != '' && uri.scheme != 'package' && uri.scheme != 'dart';
     bool isTargetSchemeFileOrCustom = isFileOrCustomScheme(targetUri);
     bool isReferenceSchemeFileOrCustom = isFileOrCustomScheme(referenceUri);

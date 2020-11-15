@@ -24,7 +24,7 @@ import 'package:_fe_analyzer_shared/src/util/colors.dart'
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
-import 'package:kernel/ast.dart' show Location, TreeNode;
+import 'package:kernel/ast.dart' show Location, Source, TreeNode;
 
 import '../compute_platform_binaries_location.dart' show translateSdk;
 
@@ -43,7 +43,8 @@ const bool hideWarnings = false;
 /// Formats [message] as a string that is suitable for output from a
 /// command-line tool. This includes source snippets and different colors based
 /// on [severity].
-String format(LocatedMessage message, Severity severity, {Location location}) {
+String format(LocatedMessage message, Severity severity,
+    {Location location, Map<Uri, Source> uriToSource}) {
   try {
     int length = message.length;
     if (length < 1) {
@@ -85,7 +86,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
       if (location?.line == TreeNode.noOffset) {
         location = null;
       }
-      String sourceLine = getSourceLine(location);
+      String sourceLine = getSourceLine(location, uriToSource);
       return formatErrorMessage(
           sourceLine, location, length, path, messageText);
     } else {

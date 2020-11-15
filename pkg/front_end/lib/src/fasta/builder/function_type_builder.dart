@@ -59,13 +59,13 @@ class FunctionTypeBuilder extends TypeBuilder {
     buffer.write("(");
     if (formals != null) {
       bool isFirst = true;
-      for (dynamic t in formals) {
+      for (FormalParameterBuilder t in formals) {
         if (!isFirst) {
           buffer.write(", ");
         } else {
           isFirst = false;
         }
-        buffer.write(t?.fullNameForErrors);
+        buffer.write(t.fullNameForErrors);
       }
     }
     buffer.write(") ->");

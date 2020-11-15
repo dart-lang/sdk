@@ -236,10 +236,10 @@ class TypeArgumentIssue {
     return hash;
   }
 
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     assert(other is TypeArgumentIssue);
-    if (other is! TypeArgumentIssue) return false;
-    return index == other.index &&
+    return other is TypeArgumentIssue &&
+        index == other.index &&
         argument == other.argument &&
         typeParameter == other.typeParameter &&
         enclosingType == other.enclosingType;

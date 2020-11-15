@@ -561,8 +561,7 @@ class ProcessedOptions {
             templateCantReadFile.withArguments(uri, e.message), Severity.error);
       }
     } catch (e) {
-      Message message =
-          templateExceptionReadingFile.withArguments(uri, e.message);
+      Message message = templateExceptionReadingFile.withArguments(uri, '$e');
       reportWithoutLocation(message, Severity.error);
       // We throw a new exception to ensure that the message include the uri
       // that led to the exception. Exceptions in Uri don't include the
