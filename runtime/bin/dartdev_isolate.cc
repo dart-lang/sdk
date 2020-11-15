@@ -213,15 +213,12 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   Dart_Handle send_port = Dart_NewSendPort(send_port_id);
   CHECK_RESULT(send_port);
 
-  const intptr_t kNumIsolateArgs = 7;
+  const intptr_t kNumIsolateArgs = 4;
   Dart_Handle isolate_args[kNumIsolateArgs];
-  isolate_args[0] = Dart_Null();   // parentPort
-  isolate_args[1] = main_closure;  // entryPoint
-  isolate_args[2] = runner->dart_options_->CreateRuntimeOptions();  // args
-  isolate_args[3] = send_port;                                      // message
-  isolate_args[4] = Dart_True();  // isSpawnUri
-  isolate_args[5] = Dart_Null();  // controlPort
-  isolate_args[6] = Dart_Null();  // capabilities
+  isolate_args[0] = main_closure;  // entryPoint
+  isolate_args[1] = runner->dart_options_->CreateRuntimeOptions();  // args
+  isolate_args[2] = send_port;                                      // message
+  isolate_args[3] = Dart_True();  // isSpawnUri
 
   Dart_Handle isolate_lib =
       Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));

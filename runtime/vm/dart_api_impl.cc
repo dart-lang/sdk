@@ -2166,7 +2166,7 @@ DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
   }
 
   Dart_ExitIsolate();
-  isolate->RunViaEmbedder();
+  isolate->Run();
   return true;
 }
 
