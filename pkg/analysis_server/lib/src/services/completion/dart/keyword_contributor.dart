@@ -47,15 +47,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   _KeywordVisitor(this.request, this.builder) : entity = request.target.entity;
 
-  int get defaultKeyword =>
-      request.useNewRelevance ? 800 : DART_RELEVANCE_KEYWORD;
-
   Token get droppedToken => request.target.droppedToken;
-
-  int get highKeyword => request.useNewRelevance ? 1000 : DART_RELEVANCE_HIGH;
-
-  int get lowKeyword =>
-      request.useNewRelevance ? 400 : DART_RELEVANCE_KEYWORD - 1;
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -97,9 +89,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitAsExpression(AsExpression node) {
     if (identical(entity, node.asOperator) &&
         node.expression is ParenthesizedExpression) {
-      _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
-      _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
-      _addSuggestion2(SYNC_STAR, relevance: highKeyword);
+      _addSuggestion(Keyword.ASYNC);
+      _addSuggestion2(ASYNC_STAR);
+      _addSuggestion2(SYNC_STAR);
     }
   }
 
@@ -142,7 +134,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     _addStatementKeywords(node);
     if (node.inCatchClause) {
-      _addSuggestion(Keyword.RETHROW, relevance: lowKeyword);
+      _addSuggestion(Keyword.RETHROW);
     }
   }
 
@@ -216,19 +208,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (previousMember == null || previousMember is Directive) {
       if (previousMember == null &&
           !node.directives.any((d) => d is LibraryDirective)) {
-        _addSuggestions([Keyword.LIBRARY], relevance: highKeyword);
+        _addSuggestions([Keyword.LIBRARY]);
       }
-      _addSuggestion2(IMPORT_STATEMENT, offset: 8, relevance: highKeyword);
-      _addSuggestion2(EXPORT_STATEMENT, offset: 8, relevance: highKeyword);
-      _addSuggestion2(PART_STATEMENT, offset: 6, relevance: highKeyword);
+      _addSuggestion2(IMPORT_STATEMENT, offset: 8);
+      _addSuggestion2(EXPORT_STATEMENT, offset: 8);
+      _addSuggestion2(PART_STATEMENT, offset: 6);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
           previousMember.functionExpression is FunctionExpression &&
           previousMember.functionExpression.body.isEmpty) {
-        _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
-        _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
-        _addSuggestion2(SYNC_STAR, relevance: highKeyword);
+        _addSuggestion(Keyword.ASYNC);
+        _addSuggestion2(ASYNC_STAR);
+        _addSuggestion2(SYNC_STAR);
       }
       _addCompilationUnitKeywords();
     }
@@ -340,7 +332,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestions(
             [Keyword.CONST, Keyword.FALSE, Keyword.NULL, Keyword.TRUE]);
       } else {
-        _addSuggestion(Keyword.IN, relevance: highKeyword);
+        _addSuggestion(Keyword.IN);
       }
     }
   }
@@ -396,7 +388,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         node is ForPartsWithDeclarations &&
         node.variables != null) {
       if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
-        _addSuggestion(Keyword.IN, relevance: highKeyword);
+        _addSuggestion(Keyword.IN);
       }
     }
   }
@@ -406,7 +398,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Actual: for (va^)
     // Parsed: for (va^; ;)
     if (node.forLoopParts == entity) {
-      _addSuggestion(Keyword.VAR, relevance: highKeyword);
+      _addSuggestion(Keyword.VAR);
     }
   }
 
@@ -425,10 +417,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.body) {
       var body = node.body;
       if (!body.isAsynchronous) {
-        _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
+        _addSuggestion(Keyword.ASYNC);
         if (body is! ExpressionFunctionBody) {
-          _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
-          _addSuggestion2(SYNC_STAR, relevance: highKeyword);
+          _addSuggestion2(ASYNC_STAR);
+          _addSuggestion2(SYNC_STAR);
         }
       }
       if (body is EmptyFunctionBody &&
@@ -452,14 +444,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       // analyzer parser
       // Actual: if (x i^)
       // Parsed: if (x) i^
-      _addSuggestion(Keyword.IS, relevance: highKeyword);
+      _addSuggestion(Keyword.IS);
     } else if (entity == node.rightParenthesis) {
       if (node.condition.endToken.next == droppedToken) {
         // fasta parser
         // Actual: if (x i^)
         // Parsed: if (x)
         //    where "i" is in the token stream but not part of the AST
-        _addSuggestion(Keyword.IS, relevance: highKeyword);
+        _addSuggestion(Keyword.IS);
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
@@ -472,7 +464,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     if (entity == node.asKeyword) {
       if (node.deferredKeyword == null) {
-        _addSuggestion(Keyword.DEFERRED, relevance: highKeyword);
+        _addSuggestion(Keyword.DEFERRED);
       }
     }
     // Handle degenerate case where import statement does not have a semicolon
@@ -497,7 +489,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitIsExpression(IsExpression node) {
     if (entity == node.isOperator) {
-      _addSuggestion(Keyword.IS, relevance: highKeyword);
+      _addSuggestion(Keyword.IS);
     } else {
       _addExpressionKeywords(node);
     }
@@ -523,10 +515,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
       } else {
-        _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
+        _addSuggestion(Keyword.ASYNC);
         if (node.body is! ExpressionFunctionBody) {
-          _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
-          _addSuggestion2(SYNC_STAR, relevance: highKeyword);
+          _addSuggestion2(ASYNC_STAR);
+          _addSuggestion2(SYNC_STAR);
         }
       }
     } else if (entity == node.returnType || entity == node.name) {
@@ -596,7 +588,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         if (next == entity || next == droppedToken) {
           // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
           // stream but not part of the ParenthesizedExpression.
-          _addSuggestion(Keyword.IS, relevance: highKeyword);
+          _addSuggestion(Keyword.IS);
           return;
         }
       }
@@ -655,8 +647,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
       if (node.members.isEmpty) {
-        _addSuggestion(Keyword.CASE, relevance: highKeyword);
-        _addSuggestion2(DEFAULT_COLON, relevance: highKeyword);
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion2(DEFAULT_COLON);
       } else {
         _addSuggestion(Keyword.CASE);
         _addSuggestion2(DEFAULT_COLON);
@@ -665,8 +657,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (node.members.contains(entity)) {
       if (entity == node.members.first) {
-        _addSuggestion(Keyword.CASE, relevance: highKeyword);
-        _addSuggestion2(DEFAULT_COLON, relevance: highKeyword);
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion2(DEFAULT_COLON);
       } else {
         _addSuggestion(Keyword.CASE);
         _addSuggestion2(DEFAULT_COLON);
@@ -746,12 +738,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Very simplistic suggestion because analyzer will warn if
     // the extends / with / implements keywords are out of order
     if (node.extendsClause == null) {
-      _addSuggestion(Keyword.EXTENDS, relevance: highKeyword);
+      _addSuggestion(Keyword.EXTENDS);
     } else if (node.withClause == null) {
-      _addSuggestion(Keyword.WITH, relevance: highKeyword);
+      _addSuggestion(Keyword.WITH);
     }
     if (node.implementsClause == null) {
-      _addSuggestion(Keyword.IMPLEMENTS, relevance: highKeyword);
+      _addSuggestion(Keyword.IMPLEMENTS);
     }
   }
 
@@ -775,12 +767,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
-    ], relevance: highKeyword);
+    ]);
     if (request.featureSet.isEnabled(Feature.extension_methods)) {
-      _addSuggestion(Keyword.EXTENSION, relevance: highKeyword);
+      _addSuggestion(Keyword.EXTENSION);
     }
     if (request.featureSet.isEnabled(Feature.non_nullable)) {
-      _addSuggestion(Keyword.LATE, relevance: highKeyword);
+      _addSuggestion(Keyword.LATE);
     }
   }
 
@@ -820,7 +812,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   void _addExtensionDeclarationKeywords(ExtensionDeclaration node) {
     if (node.onKeyword == null || node.onKeyword.isSynthetic) {
-      _addSuggestion(Keyword.ON, relevance: highKeyword);
+      _addSuggestion(Keyword.ON);
     }
   }
 
@@ -828,19 +820,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     var hasDeferredKeyword = node.deferredKeyword != null;
     var hasAsKeyword = node.asKeyword != null;
     if (!hasAsKeyword) {
-      _addSuggestion(Keyword.AS, relevance: highKeyword);
+      _addSuggestion(Keyword.AS);
     }
     if (!hasDeferredKeyword) {
       if (!hasAsKeyword) {
-        _addSuggestion2(DEFERRED_AS, relevance: highKeyword);
+        _addSuggestion2(DEFERRED_AS);
       } else if (entity == node.asKeyword) {
-        _addSuggestion(Keyword.DEFERRED, relevance: highKeyword);
+        _addSuggestion(Keyword.DEFERRED);
       }
     }
     if (!hasDeferredKeyword || hasAsKeyword) {
       if (node.combinators.isEmpty) {
-        _addSuggestion(Keyword.SHOW, relevance: highKeyword);
-        _addSuggestion(Keyword.HIDE, relevance: highKeyword);
+        _addSuggestion(Keyword.SHOW);
+        _addSuggestion(Keyword.HIDE);
       }
     }
   }
@@ -849,10 +841,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Very simplistic suggestion because analyzer will warn if
     // the on / implements clauses are out of order
     if (node.onClause == null) {
-      _addSuggestion(Keyword.ON, relevance: highKeyword);
+      _addSuggestion(Keyword.ON);
     }
     if (node.implementsClause == null) {
-      _addSuggestion(Keyword.IMPLEMENTS, relevance: highKeyword);
+      _addSuggestion(Keyword.IMPLEMENTS);
     }
   }
 
@@ -897,18 +889,17 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
-  void _addSuggestion(Keyword keyword, {int relevance}) {
-    _addSuggestion2(keyword.lexeme, relevance: relevance);
+  void _addSuggestion(Keyword keyword) {
+    _addSuggestion2(keyword.lexeme);
   }
 
-  void _addSuggestion2(String keyword, {int offset, int relevance}) {
-    builder.suggestKeyword(keyword,
-        offset: offset, relevance: relevance ?? defaultKeyword);
+  void _addSuggestion2(String keyword, {int offset}) {
+    builder.suggestKeyword(keyword, offset: offset);
   }
 
-  void _addSuggestions(List<Keyword> keywords, {int relevance}) {
+  void _addSuggestions(List<Keyword> keywords) {
     keywords.forEach((Keyword keyword) {
-      _addSuggestion(keyword, relevance: relevance);
+      _addSuggestion(keyword);
     });
   }
 

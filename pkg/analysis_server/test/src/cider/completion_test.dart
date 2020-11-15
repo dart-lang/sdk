@@ -325,8 +325,8 @@ main() {
 ''');
 
     _assertOrder([
-      _assertHasLocalVariable(text: 'a'),
       _assertHasLocalVariable(text: 'b'),
+      _assertHasLocalVariable(text: 'a'),
     ]);
   }
 

@@ -10,9 +10,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
-import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -54,10 +52,6 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager {
-  /// The [contributionSorter] is a long-lived object that isn't allowed
-  /// to maintain state between calls to [DartContributionSorter#sort(...)].
-  static DartContributionSorter contributionSorter = CommonUsageSorter();
-
   /// The object used to resolve macros in Dartdoc comments.
   final DartdocDirectiveInfo dartdocDirectiveInfo;
 
@@ -199,10 +193,7 @@ class DartCompletionManager {
                   'Failed to rerank completion suggestions',
                   exception,
                   stackTrace));
-          await contributionSorter.sort(dartRequest, suggestions);
         }
-      } else if (!request.useNewRelevance) {
-        await contributionSorter.sort(dartRequest, suggestions);
       }
     });
     request.checkAborted();
@@ -242,22 +233,19 @@ class DartCompletionManager {
   }
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
-    if (request.useNewRelevance) {
-      var location = request.opType.completionLocation;
-      if (location != null) {
-        var locationTable = elementKindRelevance[location];
-        if (locationTable != null) {
-          var inConstantContext = request.inConstantContext;
-          for (var entry in locationTable.entries) {
-            var kind = entry.key.toString();
-            var elementBoost = (entry.value.upper * 100).floor();
-            includedSuggestionRelevanceTags
-                .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
-            if (inConstantContext) {
-              includedSuggestionRelevanceTags.add(
-                  IncludedSuggestionRelevanceTag(
-                      '$kind+const', elementBoost + 100));
-            }
+    var location = request.opType.completionLocation;
+    if (location != null) {
+      var locationTable = elementKindRelevance[location];
+      if (locationTable != null) {
+        var inConstantContext = request.inConstantContext;
+        for (var entry in locationTable.entries) {
+          var kind = entry.key.toString();
+          var elementBoost = (entry.value.upper * 100).floor();
+          includedSuggestionRelevanceTags
+              .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
+          if (inConstantContext) {
+            includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
+                '$kind+const', elementBoost + 100));
           }
         }
       }
@@ -268,13 +256,10 @@ class DartCompletionManager {
       var element = type.element;
       var tag = '${element.librarySource.uri}::${element.name}';
       if (element.isEnum) {
-        var relevance = request.useNewRelevance
-            ? RelevanceBoost.availableEnumConstant
-            : DART_RELEVANCE_BOOST_AVAILABLE_ENUM;
         includedSuggestionRelevanceTags.add(
           IncludedSuggestionRelevanceTag(
             tag,
-            relevance,
+            RelevanceBoost.availableEnumConstant,
           ),
         );
       } else {
@@ -284,13 +269,10 @@ class DartCompletionManager {
         //  boost will almost always be ignored because the element boost will
         //  be bigger. Find a way to use this boost without negating the element
         //  boost, which is how we get constructors to come before classes.
-        var relevance = request.useNewRelevance
-            ? RelevanceBoost.availableDeclaration
-            : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
         includedSuggestionRelevanceTags.add(
           IncludedSuggestionRelevanceTag(
             tag,
-            relevance,
+            RelevanceBoost.availableDeclaration,
           ),
         );
       }
@@ -426,9 +408,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     }
     return '';
   }
-
-  @override
-  bool get useNewRelevance => _originalRequest.useNewRelevance;
 
   /// Throw [AbortCompletion] if the completion request has been aborted.
   @override

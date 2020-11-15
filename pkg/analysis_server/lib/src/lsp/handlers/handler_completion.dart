@@ -189,8 +189,8 @@ class CompletionHandler
     server.performanceStats.completion.add(performance);
 
     return await performance.runRequestOperation((perf) async {
-      final completionRequest = CompletionRequestImpl(
-          unit, offset, server.options.useNewRelevance, performance);
+      final completionRequest =
+          CompletionRequestImpl(unit, offset, performance);
       final directiveInfo =
           server.getDartdocDirectiveInfoFor(completionRequest.result);
       final dartCompletionRequest = await DartCompletionRequestImpl.from(

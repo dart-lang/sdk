@@ -6,7 +6,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
-import 'common_usage_sorter_test.dart' as common_usage_test;
 import 'completion_manager_test.dart' as completion_manager;
 import 'completion_ranking_internal_test.dart'
     as completion_ranking_internal_test;
@@ -35,7 +34,6 @@ void main() {
   defineReflectiveSuite(() {
     arglist_test.main();
     combinator_test.main();
-    common_usage_test.main();
     completion_manager.main();
     // TODO(lambdabaa): Run this test once we figure out how to suppress
     //   output from the tflite shared library

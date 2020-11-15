@@ -45,13 +45,6 @@ class OpType {
   /// have a non-[void] return type should be suggested.
   bool includeReturnValueSuggestions = false;
 
-  /// If [includeReturnValueSuggestions] is set to true, then this function may
-  /// be set to a non-default function to filter out potential suggestions
-  /// (null) based on their static [DartType], or change the relative relevance
-  /// by returning a higher or lower relevance.
-  SuggestionsFilter returnValueSuggestionsFilter =
-      (DartType _, int relevance) => relevance;
-
   /// Indicates whether named arguments should be suggested.
   bool includeNamedArgumentSuggestions = false;
 
@@ -190,17 +183,6 @@ class OpType {
       _requiredType = null;
       return;
     }
-
-    returnValueSuggestionsFilter = (DartType dartType, int relevance) {
-      if (dartType != null) {
-        if (dartType == _requiredType) {
-          return relevance + DART_RELEVANCE_BOOST_TYPE;
-        } else if (_isSubtypeOf(dartType, _requiredType)) {
-          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
-        }
-      }
-      return relevance;
-    };
   }
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].

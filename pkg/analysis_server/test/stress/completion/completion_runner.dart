@@ -97,8 +97,7 @@ class CompletionRunner {
           }
 
           timer.start();
-          var request =
-              CompletionRequestImpl(result, offset, false, statistics);
+          var request = CompletionRequestImpl(result, offset, statistics);
           var suggestions = await request.performance.runRequestOperation(
             (performance) async {
               return await contributor.computeSuggestions(

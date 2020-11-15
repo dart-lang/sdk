@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -144,11 +143,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
     for (var type in classElement.allSupertypes) {
-      double inheritanceDistance;
-      if (request.useNewRelevance) {
-        inheritanceDistance = request.featureComputer
-            .inheritanceDistanceFeature(classElement, type.element);
-      }
+      var inheritanceDistance = request.featureComputer
+          .inheritanceDistanceFeature(classElement, type.element);
       _addSuggestionsForType(type, request, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
@@ -188,10 +184,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// The op type associated with the request.
   final OpType opType;
 
-  /// A flag indicating whether the suggestions should use the new relevance
-  /// scores.
-  final bool useNewRelevance;
-
   /// A flag indicating whether the target of the request is a function-valued
   /// argument in an argument list.
   final bool targetIsFunctionalArgument;
@@ -203,44 +195,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// clause.
   bool inExtendsClause = false;
 
-  /// Only used when [useNewRelevance] is `false`.
-  int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
-
   _VisibilityTracker visibilityTracker;
 
   _LocalVisitor(this.request, this.builder, this.visibilityTracker,
       {@required this.suggestLocalFields})
       : assert(visibilityTracker != null),
         opType = request.opType,
-        useNewRelevance = request.useNewRelevance,
         targetIsFunctionalArgument = request.target.isFunctionalArgument(),
-        super(request.offset) {
-    // Suggestions for inherited members are provided by
-    // InheritedReferenceContributor.
-    if (!useNewRelevance) {
-      // If the user typed an identifier starting with '_' then do not suppress
-      // the relevance of private members.
-      var data = request.result != null
-          ? request.result.content
-          : request.sourceContents;
-      var offset = request.offset;
-      if (data != null && 0 < offset && offset <= data.length) {
-        bool isIdentifierChar(int index) {
-          var code = data.codeUnitAt(index);
-          return isLetterOrDigit(code) || code == CHAR_UNDERSCORE;
-        }
-
-        if (isIdentifierChar(offset - 1)) {
-          while (offset > 0 && isIdentifierChar(offset - 1)) {
-            --offset;
-          }
-          if (data.codeUnitAt(offset) == CHAR_UNDERSCORE) {
-            privateMemberRelevance = null;
-          }
-        }
-      }
-    }
-  }
+        super(request.offset);
 
   TypeProvider get typeProvider => request.libraryElement.typeProvider;
 
