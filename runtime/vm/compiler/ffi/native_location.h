@@ -12,8 +12,8 @@
 #include "platform/assert.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/ffi/native_type.h"
+#include "vm/constants.h"
 #include "vm/growable_array.h"
-#include "vm/thread.h"
 
 namespace dart {
 
@@ -97,6 +97,7 @@ class NativeLocation : public ZoneAllocated {
   }
 
   virtual void PrintTo(BaseTextBuffer* f) const;
+  const char* ToCString(Zone* zone) const;
   const char* ToCString() const;
 
   const NativeRegistersLocation& AsRegisters() const;
@@ -138,19 +139,21 @@ class NativeRegistersLocation : public NativeLocation {
                           const NativeType& container_type,
                           ZoneGrowableArray<Register>* registers)
       : NativeLocation(payload_type, container_type), regs_(registers) {}
-  NativeRegistersLocation(const NativeType& payload_type,
+  NativeRegistersLocation(Zone* zone,
+                          const NativeType& payload_type,
                           const NativeType& container_type,
                           Register reg)
       : NativeLocation(payload_type, container_type) {
-    regs_ = new ZoneGrowableArray<Register>();
+    regs_ = new (zone) ZoneGrowableArray<Register>(zone, 1);
     regs_->Add(reg);
   }
-  NativeRegistersLocation(const NativeType& payload_type,
+  NativeRegistersLocation(Zone* zone,
+                          const NativeType& payload_type,
                           const NativeType& container_type,
                           Register register1,
                           Register register2)
       : NativeLocation(payload_type, container_type) {
-    regs_ = new ZoneGrowableArray<Register>();
+    regs_ = new (zone) ZoneGrowableArray<Register>(zone, 2);
     regs_->Add(register1);
     regs_->Add(register2);
   }

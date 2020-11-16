@@ -9,9 +9,7 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#include <platform/globals.h>
-
-#include "vm/compiler/backend/locations.h"
+#include "platform/globals.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 
@@ -41,8 +39,10 @@ class NativeCallingConvention : public ZoneAllocated {
 
   intptr_t StackTopInBytes() const;
 
-  void PrintTo(BaseTextBuffer* f) const;
-  const char* ToCString() const;
+  void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
+  void PrintToMultiLine(BaseTextBuffer* f) const;
+  const char* ToCString(Zone* zone, bool multi_line = false) const;
+  const char* ToCString(bool multi_line = false) const;
 
  private:
   NativeCallingConvention(const NativeLocations& argument_locations,

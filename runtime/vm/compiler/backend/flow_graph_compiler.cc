@@ -2846,7 +2846,7 @@ void FlowGraphCompiler::EmitNativeMove(
     }
     const auto& intermediate =
         *new (zone_) compiler::ffi::NativeRegistersLocation(
-            dst_payload_type, dst_container_type, scratch);
+            zone_, dst_payload_type, dst_container_type, scratch);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     if (TMP == kNoRegister) {
