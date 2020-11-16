@@ -6430,11 +6430,11 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
   Future<void> test_this_inside_extension() async {
     var content = '''
 class C<T> {
   T field;
+  C(this.field);
 }
 extension on C<int> {
   f() {
@@ -6443,14 +6443,14 @@ extension on C<int> {
 }
 extension on C<List<int>> {
   f() {
-    this.field = null;
+    this.field = [null];
   }
 }
 ''';
     var expected = '''
-
 class C<T> {
   T field;
+  C(this.field);
 }
 extension on C<int?> {
   f() {
