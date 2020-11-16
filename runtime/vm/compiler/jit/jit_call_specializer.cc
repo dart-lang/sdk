@@ -205,6 +205,9 @@ void JitCallSpecializer::VisitStoreInstanceField(
       }
       ASSERT(field.IsOriginal());
       field.set_is_unboxing_candidate(false);
+      Thread* thread = Thread::Current();
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
       field.DeoptimizeDependentCode();
     } else {
       flow_graph()->parsed_function().AddToGuardedFields(&field);

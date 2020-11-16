@@ -2574,15 +2574,20 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   if (Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
-      Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
-      while (!field.IsNull()) {
-        if (FLAG_trace_optimization || FLAG_trace_field_guards) {
-          THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
+      {
+        SafepointWriteRwLocker ml(thread,
+                                  thread->isolate_group()->program_lock());
+        Field& field =
+            Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
+        while (!field.IsNull()) {
+          if (FLAG_trace_optimization || FLAG_trace_field_guards) {
+            THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
+          }
+          field.set_is_unboxing_candidate(false);
+          field.DeoptimizeDependentCode();
+          // Get next field.
+          field = isolate->GetDeoptimizingBoxedField();
         }
-        field.set_is_unboxing_candidate(false);
-        field.DeoptimizeDependentCode();
-        // Get next field.
-        field = isolate->GetDeoptimizingBoxedField();
       }
       if (!BackgroundCompiler::IsDisabled(isolate,
                                           /* optimizing_compiler = */ true) &&

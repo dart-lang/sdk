@@ -1242,6 +1242,8 @@ void IsolateReloadContext::DeoptimizeDependentCode() {
   Class& cls = Class::Handle();
   Array& fields = Array::Handle();
   Field& field = Field::Handle();
+  Thread* thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t cls_idx = bottom; cls_idx < top; cls_idx++) {
     if (!class_table->HasValidClassAt(cls_idx)) {
       // Skip.

@@ -744,6 +744,8 @@ ObjectPtr TypeFeedbackLoader::LoadFields() {
       fields_ = cls_.fields();
     }
 
+    SafepointWriteRwLocker ml(thread_,
+                              thread_->isolate_group()->program_lock());
     for (intptr_t i = 0; i < num_fields; i++) {
       field_name_ = ReadString();
       intptr_t guarded_cid = cid_map_[ReadInt()];

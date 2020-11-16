@@ -620,10 +620,13 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           CheckIfBackgroundCompilerIsBeingStopped(optimized());
         }
 
-        // Grab read program_lock outside of potential safepoint, that lock
+        // Grab write program_lock outside of potential safepoint, that lock
         // can't be waited for inside the safepoint.
-        SafepointReadRwLocker ml(thread(),
-                                 thread()->isolate_group()->program_lock());
+        // Initially read lock was added to guard direct_subclasses field
+        // access.
+        // Read lock was upgraded to write lock to guard dependent code updates.
+        SafepointWriteRwLocker ml(thread(),
+                                  thread()->isolate_group()->program_lock());
         // We have to ensure no mutators are running, because:
         //
         //   a) We allocate an instructions object, which might cause us to

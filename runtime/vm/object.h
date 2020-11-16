@@ -1541,7 +1541,7 @@ class Class : public Object {
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class
   // are finalized.
-  ArrayPtr dependent_code() const { return raw_ptr()->dependent_code_; }
+  ArrayPtr dependent_code() const;
   void set_dependent_code(const Array& array) const;
 
   bool TraceAllocation(Isolate* isolate) const;
