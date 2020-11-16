@@ -5,6 +5,9 @@
 // Testing that `noSuchMethod` forwarding properly handles optional, named and
 // type parameters, and result type checking.
 
+// VMOptions=--lazy-dispatchers
+// VMOptions=--no-lazy-dispatchers
+
 import 'package:expect/expect.dart';
 
 class A {
@@ -48,6 +51,16 @@ class A {
     } else if (invoke.memberName == #test8) {
       Expect.equals(1, invoke.positionalArguments.length);
       Expect.equals(null, invoke.positionalArguments[0]);
+    } else if (invoke.memberName == #test9) {
+      Expect.equals(invoke.typeArguments.length, 2);
+      Expect.equals(invoke.typeArguments[0].toString(), "num");
+      Expect.equals(invoke.typeArguments[1].toString(), "double");
+
+      Expect.equals(1, invoke.positionalArguments.length);
+      Expect.equals(4.2, invoke.positionalArguments[0]);
+
+      Expect.equals(1, invoke.namedArguments.length);
+      Expect.equals(3, invoke.namedArguments[#foo]);
     }
   }
 
@@ -63,6 +76,7 @@ class A {
   void set test7(int x);
 
   void test8([String? x]);
+  void test9<T, S extends T>(S x1, {T? foo});
 
   T allTogetherNow<T, S extends T>(S x1, {List<T> foo: const <Never>[]});
 }
@@ -97,6 +111,25 @@ main() {
   Expect.throwsTypeError(() => (a as dynamic).test7 = "hi");
 
   a.allTogetherNow<num, double>(2.0, foo: const <num>[3, 4]);
+  Expect.throwsTypeError(() =>
+      (a.allTogetherNow as dynamic)<int, double>(2.0, foo: const <num>[3, 4]));
+  Expect.throwsTypeError(() =>
+      (a.allTogetherNow as dynamic)<int, int>(2.0, foo: const <num>[3, 4]));
+  Expect.throwsTypeError(() => (a.allTogetherNow
+      as dynamic)<double, double>(2.0, foo: const <int>[3, 4]));
 
   a.test8();
+
+  a.test9<num, double>(4.2, foo: 3);
+  Expect.throwsTypeError(() => (a.test9 as dynamic)<int, double>(3, foo: 3));
+  Expect.throwsTypeError(
+      () => (a.test9 as dynamic)<double, double>(3, foo: 3.2));
+  // Added to check that uses of positions from the ArgumentsDescriptor in the
+  // VM properly offsets named argument positions if there are also type
+  // arguments. allTogetherNow doesn't work for this because the runtime type of
+  // the positional argument cannot be the same as the type of the named
+  // argument without the positional argument failing to match its own type,
+  // and positional argument types are usually checked first.
+  Expect.throwsTypeError(
+      () => (a.test9 as dynamic)<int, double>(4.2, foo: 3.2));
 }

@@ -8135,8 +8135,8 @@ ObjectPtr Function::DoArgumentTypesMatch(
   const intptr_t arg_offset = args_desc.FirstArgIndex();
   // Only check explicit arguments.
   const intptr_t arg_start = arg_offset + NumImplicitParameters();
-  const intptr_t num_positional_args = args_desc.PositionalCount();
-  for (intptr_t arg_index = arg_start; arg_index < num_positional_args;
+  const intptr_t end_positional_args = arg_offset + args_desc.PositionalCount();
+  for (intptr_t arg_index = arg_start; arg_index < end_positional_args;
        ++arg_index) {
     argument ^= args.At(arg_index);
     // Adjust for type arguments when they're present.
@@ -8166,7 +8166,7 @@ ObjectPtr Function::DoArgumentTypesMatch(
        named_index++) {
     argument_name = args_desc.NameAt(named_index);
     ASSERT(argument_name.IsSymbol());
-    argument ^= args.At(args_desc.PositionAt(named_index));
+    argument ^= args.At(arg_offset + args_desc.PositionAt(named_index));
 
     // Try to find the named parameter that matches the provided argument.
     // Even when annotated with @required, named parameters are still stored
