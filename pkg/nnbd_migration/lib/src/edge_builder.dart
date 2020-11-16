@@ -145,6 +145,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// being visited, or null.
   Element _currentClassOrExtension;
 
+  /// If an extension declaration is being visited, the decorated type of the
+  /// type appearing in the `on` clause (this is the type of `this` inside the
+  /// extension declaration).  Null if an extension declaration is not being
+  /// visited.
+  DecoratedType _currentExtendedType;
+
   /// The [DecoratedType] of the innermost list or set literal being visited, or
   /// `null` if the visitor is not inside any list or set.
   ///
@@ -792,9 +798,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
-    visitClassOrMixinOrExtensionDeclaration(node);
     _dispatch(node.typeParameters);
     _dispatch(node.extendedType);
+    _currentExtendedType =
+        _variables.decoratedTypeAnnotation(source, node.extendedType);
+    visitClassOrMixinOrExtensionDeclaration(node);
+    _currentExtendedType = null;
     return null;
   }
 
@@ -3148,22 +3157,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               .toList());
     } else {
       assert(_currentClassOrExtension is ExtensionElement);
-      final type = (_currentClassOrExtension as ExtensionElement).extendedType;
-
-      if (type is InterfaceType) {
-        var index = 0;
-        return DecoratedType(type, NullabilityNode.forInferredType(target),
-            typeArguments: type.typeArguments
-                .map((t) => DecoratedType(
-                    t,
-                    NullabilityNode.forInferredType(
-                        target.typeArgument(index++))))
-                .toList());
-      } else if (type is TypeParameterType) {
-        return DecoratedType(type, NullabilityNode.forInferredType(target));
-      } else {
-        _unimplemented(node, 'extension of $type (${type.runtimeType}');
-      }
+      assert(_currentExtendedType != null);
+      return _currentExtendedType;
     }
   }
 

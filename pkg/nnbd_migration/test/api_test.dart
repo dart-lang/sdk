@@ -2217,6 +2217,28 @@ void g() => f(null);
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_extension_on_generic_type() async {
+    var content = '''
+class C<T> {
+  final T value;
+  C(this.value);
+}
+extension E<T> on Future<C<T/*?*/>> {
+  Future<T> get asyncValue async => (await this).value;
+}
+''';
+    var expected = '''
+class C<T> {
+  final T value;
+  C(this.value);
+}
+extension E<T> on Future<C<T?>> {
+  Future<T?> get asyncValue async => (await this).value;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_on_type_param_implementation() async {
     var content = '''
 abstract class C {
