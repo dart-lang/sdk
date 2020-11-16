@@ -115,15 +115,18 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
   }
 
   set value(js.Expression value) {
-    assert(_value == null && value != null);
+    assert(!isFinalized && value != null);
     _value = value;
   }
 
   @override
   js.Expression get value {
-    assert(_value != null, 'StringReference is unassigned');
+    assert(isFinalized, 'StringReference is unassigned');
     return _value;
   }
+
+  @override
+  bool get isFinalized => _value != null;
 
   // Precedence will be CALL or LEFT_HAND_SIDE depending on what expression the
   // reference is resolved to.
@@ -139,7 +142,7 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
   }
 
   @override
-  Iterable<js.Node> get containedNodes => _value == null ? const [] : [_value];
+  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
 }
 
 /// A [StringReferenceResource] is a deferred JavaScript expression determined
@@ -159,18 +162,21 @@ class StringReferenceResource extends js.DeferredExpression
   StringReferenceResource._(this._value, this.sourceInformation);
 
   set value(js.Expression value) {
-    assert(_value == null && value != null);
+    assert(!isFinalized && value != null);
     _value = value;
   }
 
   @override
   js.Expression get value {
-    assert(_value != null, 'StringReferenceResource is unassigned');
+    assert(isFinalized, 'StringReferenceResource is unassigned');
     return _value;
   }
 
   @override
   int get precedenceLevel => value.precedenceLevel;
+
+  @override
+  bool get isFinalized => _value != null;
 
   @override
   StringReferenceResource withSourceInformation(
@@ -181,7 +187,7 @@ class StringReferenceResource extends js.DeferredExpression
   }
 
   @override
-  Iterable<js.Node> get containedNodes => _value == null ? const [] : [_value];
+  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
 
   @override
   void visitChildren<T>(js.NodeVisitor<T> visitor) {
