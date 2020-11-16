@@ -4,11 +4,10 @@
 
 #include "vm/compiler/ffi/native_calling_convention.h"
 
-#include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
-#include "vm/log.h"
-#include "vm/symbols.h"
+#include "vm/cpu.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -82,13 +81,13 @@ class ArgumentAllocator : public ValueObject {
           const Register register_1 = AllocateCpuRegister();
           const Register register_2 = AllocateCpuRegister();
           return *new (zone_) NativeRegistersLocation(
-              payload_type, container_type, register_1, register_2);
+              zone_, payload_type, container_type, register_1, register_2);
         }
       } else {
         ASSERT(payload_type.SizeInBytes() <= target::kWordSize);
         if (cpu_regs_used + 1 <= CallingConventions::kNumArgRegs) {
           return *new (zone_) NativeRegistersLocation(
-              payload_type, container_type, AllocateCpuRegister());
+              zone_, payload_type, container_type, AllocateCpuRegister());
         } else {
           // Transfer on stack.
         }
@@ -232,12 +231,12 @@ static const NativeLocation& ResultLocation(Zone* zone,
   ASSERT(container_type.IsInt() || container_type.IsVoid());
   if (container_type.SizeInBytes() == 8 && target::kWordSize == 4) {
     return *new (zone) NativeRegistersLocation(
-        payload_type, container_type, CallingConventions::kReturnReg,
+        zone, payload_type, container_type, CallingConventions::kReturnReg,
         CallingConventions::kSecondReturnReg);
   }
 
   ASSERT(container_type.SizeInBytes() <= target::kWordSize);
-  return *new (zone) NativeRegistersLocation(payload_type, container_type,
+  return *new (zone) NativeRegistersLocation(zone, payload_type, container_type,
                                              CallingConventions::kReturnReg);
 }
 
@@ -261,23 +260,41 @@ intptr_t NativeCallingConvention::StackTopInBytes() const {
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
 }
 
-const char* NativeCallingConvention::ToCString() const {
-  char buffer[1024];
-  BufferFormatter bf(buffer, 1024);
-  PrintTo(&bf);
-  return Thread::Current()->zone()->MakeCopyOfString(buffer);
-}
-
-void NativeCallingConvention::PrintTo(BaseTextBuffer* f) const {
-  f->AddString("(");
+void NativeCallingConvention::PrintTo(BaseTextBuffer* f,
+                                      bool multi_line) const {
+  if (!multi_line) {
+    f->AddString("(");
+  }
   for (intptr_t i = 0; i < argument_locations_.length(); i++) {
     if (i > 0) {
-      f->AddString(", ");
+      if (multi_line) {
+        f->AddString("\n");
+      } else {
+        f->AddString(", ");
+      }
     }
     argument_locations_[i]->PrintTo(f);
   }
-  f->AddString(") => ");
+  if (multi_line) {
+    f->AddString("\n=>\n");
+  } else {
+    f->AddString(") => ");
+  }
   return_location_.PrintTo(f);
+  if (multi_line) {
+    f->AddString("\n");
+  }
+}
+
+const char* NativeCallingConvention::ToCString(Zone* zone,
+                                               bool multi_line) const {
+  ZoneTextBuffer textBuffer(zone);
+  PrintTo(&textBuffer, multi_line);
+  return textBuffer.buffer();
+}
+
+const char* NativeCallingConvention::ToCString(bool multi_line) const {
+  return ToCString(Thread::Current()->zone(), multi_line);
 }
 
 }  // namespace ffi

@@ -7,11 +7,8 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/class_id.h"
-#include "vm/compiler/runtime_api.h"
-#include "vm/growable_array.h"
-#include "vm/log.h"
-#include "vm/object.h"
-#include "vm/symbols.h"
+#include "vm/constants.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/locations.h"
@@ -282,11 +279,14 @@ NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+const char* NativeType::ToCString(Zone* zone) const {
+  ZoneTextBuffer textBuffer(zone);
+  PrintTo(&textBuffer);
+  return textBuffer.buffer();
+}
+
 const char* NativeType::ToCString() const {
-  char buffer[1024];
-  BufferFormatter bf(buffer, 1024);
-  PrintTo(&bf);
-  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+  return ToCString(Thread::Current()->zone());
 }
 
 static const char* PrimitiveTypeToCString(PrimitiveType rep) {
@@ -328,11 +328,14 @@ void NativePrimitiveType::PrintTo(BaseTextBuffer* f) const {
   f->Printf("%s", PrimitiveTypeToCString(representation_));
 }
 
+const char* NativeFunctionType::ToCString(Zone* zone) const {
+  ZoneTextBuffer textBuffer(zone);
+  PrintTo(&textBuffer);
+  return textBuffer.buffer();
+}
+
 const char* NativeFunctionType::ToCString() const {
-  char buffer[1024];
-  BufferFormatter bf(buffer, 1024);
-  PrintTo(&bf);
-  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+  return ToCString(Thread::Current()->zone());
 }
 
 void NativeFunctionType::PrintTo(BaseTextBuffer* f) const {

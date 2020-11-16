@@ -5,12 +5,11 @@
 #ifndef RUNTIME_VM_COMPILER_FFI_NATIVE_TYPE_H_
 #define RUNTIME_VM_COMPILER_FFI_NATIVE_TYPE_H_
 
-#include <platform/globals.h>
-
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/allocation.h"
-#include "vm/compiler/runtime_api.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/locations.h"
@@ -58,7 +57,7 @@ class NativeType : public ZoneAllocated {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static NativePrimitiveType& FromUnboxedRepresentation(Zone* zone,
                                                         Representation rep);
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   virtual bool IsPrimitive() const { return false; }
   const NativePrimitiveType& AsPrimitive() const;
@@ -104,6 +103,7 @@ class NativeType : public ZoneAllocated {
   const NativeType& WidenTo4Bytes(Zone* zone) const;
 
   virtual void PrintTo(BaseTextBuffer* f) const;
+  const char* ToCString(Zone* zone) const;
   const char* ToCString() const;
 
   virtual ~NativeType() {}
@@ -180,6 +180,8 @@ class NativeFunctionType : public ZoneAllocated {
   const NativeType& return_type() const { return return_type_; }
 
   void PrintTo(BaseTextBuffer* f) const;
+  const char* ToCString(Zone* zone) const;
+
   const char* ToCString() const;
 
  private:

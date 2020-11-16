@@ -4,7 +4,7 @@
 
 #include "vm/compiler/ffi/native_location.h"
 
-#include "vm/compiler/backend/il_printer.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -41,7 +41,7 @@ NativeLocation& NativeLocation::FromLocation(Zone* zone,
   switch (loc.kind()) {
     case Location::Kind::kRegister:
       return *new (zone)
-          NativeRegistersLocation(native_rep, native_rep, loc.reg());
+          NativeRegistersLocation(zone, native_rep, native_rep, loc.reg());
     case Location::Kind::kFpuRegister:
       return *new (zone)
           NativeFpuRegistersLocation(native_rep, native_rep, loc.fpu_reg());
@@ -126,12 +126,13 @@ Location NativeStackLocation::AsLocation() const {
   }
   UNREACHABLE();
 }
+
 NativeRegistersLocation& NativeRegistersLocation::Split(Zone* zone,
                                                         intptr_t index) const {
   ASSERT(num_regs() == 2);
   return *new (zone) NativeRegistersLocation(
-      payload_type().Split(zone, index), container_type().Split(zone, index),
-      reg_at(index));
+      zone, payload_type().Split(zone, index),
+      container_type().Split(zone, index), reg_at(index));
 }
 
 NativeStackLocation& NativeStackLocation::Split(Zone* zone,
@@ -264,11 +265,14 @@ void NativeStackLocation::PrintTo(BaseTextBuffer* f) const {
   PrintRepresentations(f, *this);
 }
 
+const char* NativeLocation::ToCString(Zone* zone) const {
+  ZoneTextBuffer textBuffer(zone);
+  PrintTo(&textBuffer);
+  return textBuffer.buffer();
+}
+
 const char* NativeLocation::ToCString() const {
-  char buffer[1024];
-  BufferFormatter bf(buffer, 1024);
-  PrintTo(&bf);
-  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+  return ToCString(Thread::Current()->zone());
 }
 
 intptr_t SizeFromFpuRegisterKind(enum FpuRegisterKind kind) {
