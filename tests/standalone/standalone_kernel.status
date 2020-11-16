@@ -109,3 +109,6 @@ no_support_debugger_test: Skip # kernel-service snapshot not compatible with fla
 
 [ $builder_tag == crossword || $compiler != dartk && $compiler != dartkp || $compiler == dartkp && $system == windows ]
 entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe. Cannot run in cross-word environment as native extension is not built.
+
+[ $compiler != dartk || $runtime != vm ]
+check_for_aot_snapshot_jit_test: SkipByDesign # Test relies on paths, requires JIT test environment.
