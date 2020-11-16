@@ -74,17 +74,17 @@ final tests = <IsolateTest>[
     ]);
 
     expectFrames(result.asyncCausalFrames, [
-      [equals('AsyncCausal'), endsWith(' func10')],
-      [equals('AsyncCausal'), endsWith(' func9')],
-      [equals('AsyncCausal'), endsWith(' func8')],
-      [equals('AsyncCausal'), endsWith(' func7')],
-      [equals('AsyncCausal'), endsWith(' func6')],
-      [equals('AsyncCausal'), endsWith(' func5')],
-      [equals('AsyncCausal'), endsWith(' func4')],
-      [equals('AsyncCausal'), endsWith(' func3')],
-      [equals('AsyncCausal'), endsWith(' func2')],
-      [equals('AsyncCausal'), endsWith(' func1')],
-      [equals('AsyncCausal'), endsWith(' testMain')],
+      [equals('Regular'), endsWith(' func10')],
+      [equals('Regular'), endsWith(' func9')],
+      [equals('Regular'), endsWith(' func8')],
+      [equals('Regular'), endsWith(' func7')],
+      [equals('Regular'), endsWith(' func6')],
+      [equals('Regular'), endsWith(' func5')],
+      [equals('Regular'), endsWith(' func4')],
+      [equals('Regular'), endsWith(' func3')],
+      [equals('Regular'), endsWith(' func2')],
+      [equals('Regular'), endsWith(' func1')],
+      [equals('Regular'), endsWith(' testMain')],
     ]);
 
     expectFrames(result.awaiterFrames, [
@@ -126,7 +126,7 @@ final tests = <IsolateTest>[
     ]);
 
     expectFrames(result.asyncCausalFrames, [
-      [equals('AsyncCausal'), endsWith(' func10')],
+      [equals('Regular'), endsWith(' func10')],
       [equals('AsyncSuspensionMarker'), isNull],
       [equals('AsyncCausal'), endsWith(' func9')],
       [equals('AsyncSuspensionMarker'), isNull],
