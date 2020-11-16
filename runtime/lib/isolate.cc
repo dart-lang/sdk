@@ -713,9 +713,10 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
   bool EnqueueEntrypointInvocationAndNotifySpawner(Thread* thread) {
     auto isolate = thread->isolate();
+    auto zone = thread->zone();
 
     // Step 1) Resolve the entrypoint function.
-    auto& result = Object::Handle(thread->zone(), state_->ResolveFunction());
+    auto& result = Object::Handle(zone, state_->ResolveFunction());
     const bool is_spawn_uri = state_->is_spawn_uri();
     if (result.IsError()) {
       ASSERT(is_spawn_uri);
@@ -723,23 +724,22 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return false;
     }
     ASSERT(result.IsFunction());
-    auto& func = Function::Handle(thread->zone(), Function::Cast(result).raw());
+    auto& func = Function::Handle(zone, Function::Cast(result).raw());
     func = func.ImplicitClosureFunction();
     const auto& entrypoint_closure =
-        Object::Handle(func.ImplicitStaticClosure());
+        Object::Handle(zone, func.ImplicitStaticClosure());
 
     // Step 2) Enqueue delayed invocation of entrypoint callback.
-    const Array& args = Array::Handle(Array::New(4));
+    const Array& args = Array::Handle(zone, Array::New(4));
     args.SetAt(0, entrypoint_closure);
-    args.SetAt(1, Instance::Handle(state_->BuildArgs(thread)));
-    args.SetAt(2, Instance::Handle(state_->BuildMessage(thread)));
+    args.SetAt(1, Instance::Handle(zone, state_->BuildArgs(thread)));
+    args.SetAt(2, Instance::Handle(zone, state_->BuildMessage(thread)));
     args.SetAt(3, is_spawn_uri ? Bool::True() : Bool::False());
 
-    const auto& lib = Library::Handle(Library::IsolateLibrary());
-    const auto& entry_name =
-        String::Handle(String::New("_delayEntrypointInvocation"));
+    const auto& lib = Library::Handle(zone, Library::IsolateLibrary());
+    const auto& entry_name = String::Handle(zone, String::New("_startIsolate"));
     const auto& entry_point =
-        Function::Handle(lib.LookupLocalFunction(entry_name));
+        Function::Handle(zone, lib.LookupLocalFunction(entry_name));
     ASSERT(entry_point.IsFunction() && !entry_point.IsNull());
     result = DartEntry::InvokeFunction(entry_point, args);
     if (result.IsError()) {
@@ -749,15 +749,15 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     // Step 3) Pause the isolate if required & Notify parent isolate about
     // isolate creation.
-    const auto& capabilities = Array::Handle(thread->zone(), Array::New(2));
-    auto& capability = Capability::Handle(thread->zone());
+    const auto& capabilities = Array::Handle(zone, Array::New(2));
+    auto& capability = Capability::Handle(zone);
     capability = Capability::New(isolate->pause_capability());
     capabilities.SetAt(0, capability);
     capability = Capability::New(isolate->terminate_capability());
     capabilities.SetAt(1, capability);
     const auto& send_port =
-        SendPort::Handle(SendPort::New(isolate->main_port()));
-    const auto& message = Array::Handle(thread->zone(), Array::New(2));
+        SendPort::Handle(zone, SendPort::New(isolate->main_port()));
+    const auto& message = Array::Handle(zone, Array::New(2));
     message.SetAt(0, send_port);
     message.SetAt(1, capabilities);
     if (state_->paused()) {
