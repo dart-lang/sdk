@@ -25,7 +25,6 @@ dependencies:
     path: ../telemetry
   test: any
   path: any
-  tflite_native: any
   watcher: any
   yaml: any
 

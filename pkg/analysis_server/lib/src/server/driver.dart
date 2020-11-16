@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -24,11 +23,9 @@ import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -38,7 +35,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart';
 import 'package:linter/src/rules.dart' as linter;
-import 'package:path/path.dart' as path;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
@@ -265,13 +261,6 @@ class Driver implements ServerStarter {
   /// The name of the flag to use the Language Server Protocol (LSP).
   static const String USE_LSP = 'lsp';
 
-  /// Whether or not to enable ML ranking for code completion.
-  static const String ENABLE_COMPLETION_MODEL = 'enable-completion-model';
-
-  /// The path on disk to a directory containing language model files for smart
-  /// code completion.
-  static const String COMPLETION_MODEL_FOLDER = 'completion-model';
-
   /// A directory to analyze in order to train an analysis server snapshot.
   static const String TRAIN_USING = 'train-using';
 
@@ -317,35 +306,6 @@ class Driver implements ServerStarter {
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
-
-    // ML model configuration.
-    // TODO(brianwilkerson) Uncomment the line below and delete the second line
-    //  when there is a new completion model to query. Until then we ignore the
-    //  flag to enable the model so that we can't try to read from a file that
-    //  doesn't exist.
-//    final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
-    final enableCompletionModel = false;
-    analysisServerOptions.completionModelFolder =
-        results[COMPLETION_MODEL_FOLDER];
-    if (results.wasParsed(ENABLE_COMPLETION_MODEL) && !enableCompletionModel) {
-      // This is the case where the user has explicitly turned off model-based
-      // code completion.
-      analysisServerOptions.completionModelFolder = null;
-    }
-    // TODO(devoncarew): Simplify this logic and use the value from sdkConfig.
-    if (enableCompletionModel &&
-        analysisServerOptions.completionModelFolder == null) {
-      // The user has enabled ML code completion without explicitly setting a
-      // model for us to choose, so use the default one. We need to walk over
-      // from $SDK/bin/snapshots/analysis_server.dart.snapshot to
-      // $SDK/bin/model/lexeme.
-      analysisServerOptions.completionModelFolder = path.join(
-        File.fromUri(Platform.script).parent.path,
-        '..',
-        'model',
-        'lexeme',
-      );
-    }
 
     // Analytics
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
@@ -601,42 +561,11 @@ class Driver implements ServerStarter {
           socketServer.analysisServer.shutdown();
           if (sendPort == null) exit(0);
         });
-        startCompletionRanking(socketServer, null, analysisServerOptions);
       },
           print: results[INTERNAL_PRINT_TO_CONSOLE]
               ? null
               : httpServer.recordPrint);
     }
-  }
-
-  /// This will be invoked after createAnalysisServer has been called on the
-  /// socket server. At that point, we'll be able to send a server.error
-  /// notification in case model startup fails.
-  void startCompletionRanking(
-      SocketServer socketServer,
-      LspSocketServer lspSocketServer,
-      AnalysisServerOptions analysisServerOptions) {
-    // If ML completion is not enabled, or we're on a 32-bit machine, don't try
-    // and start the completion model.
-    if (analysisServerOptions.completionModelFolder == null ||
-        ffi.sizeOf<ffi.IntPtr>() == 4) {
-      return;
-    }
-
-    // Start completion model isolate if this is a 64 bit system and analysis
-    // server was configured to load a language model on disk.
-    CompletionRanking.instance =
-        CompletionRanking(analysisServerOptions.completionModelFolder);
-    CompletionRanking.instance.start().catchError((exception, stackTrace) {
-      // Disable smart ranking if model startup fails.
-      analysisServerOptions.completionModelFolder = null;
-      // TODO(brianwilkerson) Shutdown the isolates that have already been
-      //  started.
-      CompletionRanking.instance = null;
-      AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage(
-              'Failed to start ranking model isolate', exception, stackTrace));
-    });
   }
 
   void startLspServer(
@@ -681,7 +610,6 @@ class Driver implements ServerStarter {
           exit(0);
         }
       });
-      startCompletionRanking(null, socketServer, analysisServerOptions);
     });
   }
 
@@ -772,18 +700,16 @@ class Driver implements ServerStarter {
         help: 'Pass in a directory to analyze for purposes of training an '
             'analysis server snapshot.');
 
-    parser.addFlag(ENABLE_COMPLETION_MODEL,
-        help: 'Whether or not to turn on ML ranking for code completion.');
-    parser.addOption(COMPLETION_MODEL_FOLDER,
-        valueHelp: 'path',
-        help: 'Path to the location of a code completion model.');
-
     //
     // Deprecated options - no longer read from.
     //
 
+    // Removed 11/15/2020.
+    parser.addOption('completion-model', hide: true);
     // Removed 11/8/2020.
     parser.addFlag('dartpad', hide: true);
+    // Removed 11/15/2020.
+    parser.addFlag('enable-completion-model', hide: true);
     // Removed 10/30/2020.
     parser.addMultiOption('enable-experiment', hide: true);
     // Removed 9/23/2020.

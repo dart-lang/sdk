@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -36,7 +35,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -116,10 +114,6 @@ class DartCompletionManager {
 
     request.checkAborted();
 
-    final ranking = CompletionRanking.instance;
-    var probabilityFuture =
-        ranking != null ? ranking.predict(dartRequest) : Future.value(null);
-
     var range = dartRequest.target.computeReplacementRange(dartRequest.offset);
     (request as CompletionRequestImpl)
       ..replacementOffset = range.offset
@@ -169,35 +163,7 @@ class DartCompletionManager {
       throw AbortCompletion();
     }
 
-    // Adjust suggestion relevance before returning
-    var suggestions = builder.suggestions.toList();
-    const SORT_TAG = 'DartCompletionManager - sort';
-    await performance.runAsync(SORT_TAG, (_) async {
-      if (ranking != null) {
-        request.checkAborted();
-        try {
-          suggestions = await ranking.rerank(
-              probabilityFuture,
-              suggestions,
-              includedElementNames,
-              includedSuggestionRelevanceTags,
-              dartRequest,
-              request.result.unit.featureSet);
-        } catch (exception, stackTrace) {
-          // TODO(brianwilkerson) Shutdown the isolates that have already been
-          //  started.
-          // Disable smart ranking if prediction fails.
-          CompletionRanking.instance = null;
-          AnalysisEngine.instance.instrumentationService.logException(
-              CaughtException.withMessage(
-                  'Failed to rerank completion suggestions',
-                  exception,
-                  stackTrace));
-        }
-      }
-    });
-    request.checkAborted();
-    return suggestions;
+    return builder.suggestions.toList();
   }
 
   void _addIncludedElementKinds(DartCompletionRequestImpl request) {

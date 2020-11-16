@@ -107,7 +107,6 @@ test_process:third_party/pkg/test_process/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
 test_runner:pkg/test_runner/lib
 testing:pkg/testing/lib
-tflite_native:third_party/pkg/tflite_native/lib
 typed_data:third_party/pkg/typed_data/lib
 usage:third_party/pkg/usage/lib
 vector_math:third_party/pkg/vector_math/lib
