@@ -38,176 +38,12 @@ import 'package:linter/src/rules.dart' as linter;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
-/// Commandline argument parser. (Copied from analyzer/lib/options.dart)
-/// TODO(pquitslund): replaces with a simple [ArgParser] instance
-/// when the args package supports ignoring unrecognized
-/// options/flags (https://github.com/dart-lang/args/issues/9).
-/// TODO(devoncarew): Consider removing the ability to support unrecognized
-/// flags for the analysis server.
-class CommandLineParser {
-  final List<String> _knownFlags;
-  final ArgParser _parser;
-
-  /// Creates a new command line parser
-  CommandLineParser()
-      : _knownFlags = <String>[],
-        _parser = ArgParser(allowTrailingOptions: true);
-
-  ArgParser get parser => _parser;
-
-  /// Defines a flag.
-  /// See [ArgParser.addFlag()].
-  void addFlag(String name,
-      {String abbr,
-      String help,
-      bool defaultsTo = false,
-      bool negatable = true,
-      void Function(bool value) callback,
-      bool hide = false}) {
-    _knownFlags.add(name);
-    _parser.addFlag(name,
-        abbr: abbr,
-        help: help,
-        defaultsTo: defaultsTo,
-        negatable: negatable,
-        callback: callback,
-        hide: hide);
-  }
-
-  /// Defines an option that takes multiple values.
-  /// See [ArgParser.addMultiOption].
-  void addMultiOption(String name,
-      {String abbr,
-      String help,
-      String valueHelp,
-      Iterable<String> allowed,
-      Map<String, String> allowedHelp,
-      Iterable<String> defaultsTo,
-      void Function(List<String> values) callback,
-      bool splitCommas = true,
-      bool hide = false}) {
-    _knownFlags.add(name);
-    _parser.addMultiOption(name,
-        abbr: abbr,
-        help: help,
-        valueHelp: valueHelp,
-        allowed: allowed,
-        allowedHelp: allowedHelp,
-        defaultsTo: defaultsTo,
-        callback: callback,
-        splitCommas: splitCommas,
-        hide: hide);
-  }
-
-  /// Defines a value-taking option.
-  /// See [ArgParser.addOption()].
-  void addOption(String name,
-      {String abbr,
-      String help,
-      String valueHelp,
-      List<String> allowed,
-      Map<String, String> allowedHelp,
-      String defaultsTo,
-      void Function(Object) callback,
-      bool hide = false}) {
-    _knownFlags.add(name);
-    _parser.addOption(name,
-        abbr: abbr,
-        help: help,
-        valueHelp: valueHelp,
-        allowed: allowed,
-        allowedHelp: allowedHelp,
-        defaultsTo: defaultsTo,
-        callback: callback,
-        hide: hide);
-  }
-
-  /// Generates a string displaying usage information for the defined options.
-  /// See [ArgParser.usage].
-  String getUsage() => _parser.usage;
-
-  /// Parses [args], a list of command-line arguments, matches them against the
-  /// flags and options defined by this parser, and returns the result. The
-  /// values of any defined variables are captured in the given map.
-  /// See [ArgParser].
-  ArgResults parse(List<String> args, Map<String, String> definedVariables) =>
-      _parser.parse(
-          _filterUnknowns(parseDefinedVariables(args, definedVariables)));
-
-  List<String> parseDefinedVariables(
-      List<String> args, Map<String, String> definedVariables) {
-    var count = args.length;
-    var remainingArgs = <String>[];
-    for (var i = 0; i < count; i++) {
-      var arg = args[i];
-      if (arg == '--') {
-        while (i < count) {
-          remainingArgs.add(args[i++]);
-        }
-      } else if (arg.startsWith('-D')) {
-        definedVariables[arg.substring(2)] = args[++i];
-      } else {
-        remainingArgs.add(arg);
-      }
-    }
-    return remainingArgs;
-  }
-
-  List<String> _filterUnknowns(List<String> args) {
-    // TODO(devoncarew): Consider dropping support for the
-    // --ignore-unrecognized-flags option.
-
-    // Only filter args if the ignore flag is specified.
-    if (args.contains('--ignore-unrecognized-flags')) {
-      // Filter all unrecognized flags and options.
-      var filtered = <String>[];
-      for (var i = 0; i < args.length; ++i) {
-        var arg = args[i];
-        if (arg.startsWith('--') && arg.length > 2) {
-          var option = arg.substring(2);
-          // remove any leading 'no-'
-          if (option.startsWith('no-')) {
-            option = option.substring(3);
-          }
-          // strip the last '=value'
-          var equalsOffset = option.lastIndexOf('=');
-          if (equalsOffset != -1) {
-            option = option.substring(0, equalsOffset);
-          }
-          // check the option
-          if (!_knownFlags.contains(option)) {
-            //"eat" params by advancing to the next flag/option
-            i = _getNextFlagIndex(args, i);
-          } else {
-            filtered.add(arg);
-          }
-        } else {
-          filtered.add(arg);
-        }
-      }
-
-      return filtered;
-    } else {
-      return args;
-    }
-  }
-
-  int _getNextFlagIndex(List<String> args, int i) {
-    for (; i < args.length; ++i) {
-      if (args[i].startsWith('--')) {
-        return i;
-      }
-    }
-    return i;
-  }
-}
-
 /// The [Driver] class represents a single running instance of the analysis
 /// server application.  It is responsible for parsing command line options
 /// and starting the HTTP and/or stdio servers.
 class Driver implements ServerStarter {
   /// The name of the application that is used to start a server.
-  static const BINARY_NAME = 'server';
+  static const BINARY_NAME = 'analysis_server';
 
   /// The name of the option used to set the identifier for the client.
   static const String CLIENT_ID = 'client-id';
@@ -286,7 +122,7 @@ class Driver implements ServerStarter {
   @override
   void start(List<String> arguments, [SendPort sendPort]) {
     var parser = _createArgParser();
-    var results = parser.parse(arguments, <String, String>{});
+    var results = parser.parse(arguments);
 
     var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.newAnalysisDriverLog =
@@ -370,7 +206,7 @@ class Driver implements ServerStarter {
     }
 
     if (results[HELP_OPTION]) {
-      _printUsage(parser.parser, analytics, fromHelp: true);
+      _printUsage(parser, analytics, fromHelp: true);
       return null;
     }
 
@@ -418,7 +254,7 @@ class Driver implements ServerStarter {
       } on FormatException {
         print('Invalid port number: ${results[PORT_OPTION]}');
         print('');
-        _printUsage(parser.parser, analytics);
+        _printUsage(parser, analytics);
         exitCode = 1;
         return null;
       }
@@ -450,7 +286,7 @@ class Driver implements ServerStarter {
   void startAnalysisServer(
     ArgResults results,
     AnalysisServerOptions analysisServerOptions,
-    CommandLineParser parser,
+    ArgParser parser,
     DartSdkManager dartSdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
@@ -639,8 +475,8 @@ class Driver implements ServerStarter {
   }
 
   /// Create and return the parser used to parse the command-line arguments.
-  CommandLineParser _createArgParser() {
-    var parser = CommandLineParser();
+  ArgParser _createArgParser() {
+    var parser = ArgParser();
     parser.addFlag(HELP_OPTION,
         abbr: 'h', negatable: false, help: 'Print this usage information.');
     parser.addOption(CLIENT_ID,
@@ -716,6 +552,8 @@ class Driver implements ServerStarter {
     parser.addFlag('enable-instrumentation', hide: true);
     // Removed 11/12/2020.
     parser.addOption('file-read-mode', hide: true);
+    // Removed 11/12/2020.
+    parser.addFlag('ignore-unrecognized-flags', hide: true);
     // Removed 11/8/2020.
     parser.addFlag('preview-dart-2', hide: true);
     // Removed 11/12/2020.
@@ -752,8 +590,11 @@ class Driver implements ServerStarter {
   }
 
   /// Print information about how to use the server.
-  void _printUsage(ArgParser parser, telemetry.Analytics analytics,
-      {bool fromHelp = false}) {
+  void _printUsage(
+    ArgParser parser,
+    telemetry.Analytics analytics, {
+    bool fromHelp = false,
+  }) {
     print('Usage: $BINARY_NAME [flags]');
     print('');
     print('Supported flags are:');
