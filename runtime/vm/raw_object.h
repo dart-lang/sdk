@@ -1833,8 +1833,8 @@ class LocalVarDescriptorsLayout : public ObjectLayout {
   class KindBits : public BitField<int32_t, int8_t, kKindPos, kKindSize> {};
 
   struct VarInfo {
-    int32_t index_kind;  // Bitfield for slot index on stack or in context,
-                         // and Entry kind of type VarInfoKind.
+    int32_t index_kind = 0;  // Bitfield for slot index on stack or in context,
+                             // and Entry kind of type VarInfoKind.
     TokenPosition declaration_pos;  // Token position of declaration.
     TokenPosition begin_pos;        // Token position of scope start.
     TokenPosition end_pos;          // Token position of scope end.
