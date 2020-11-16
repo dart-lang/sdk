@@ -12,6 +12,7 @@ class List<E> {
   }
 
   @patch
+  @pragma("vm:recognized", "other")
   factory List([int? length]) native "List_new";
 
   @patch

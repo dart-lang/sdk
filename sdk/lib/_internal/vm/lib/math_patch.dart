@@ -14,6 +14,7 @@ import "dart:typed_data" show Uint32List;
 /// There are no parts of this patch library.
 
 @patch
+@pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 T min<T extends num>(T a, T b) {
   if (a > b) return b;
@@ -38,6 +39,7 @@ T min<T extends num>(T a, T b) {
 }
 
 @patch
+@pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 T max<T extends num>(T a, T b) {
   if (a > b) return a;
@@ -74,6 +76,7 @@ num pow(num x, num exponent) {
   return _doublePow(x.toDouble(), exponent.toDouble());
 }
 
+@pragma("vm:recognized", "other")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 double _doublePow(double base, double exponent) {
   if (exponent == 0.0) {
@@ -100,6 +103,7 @@ double _doublePow(double base, double exponent) {
 
 double _pow(double base, double exponent) native "Math_doublePow";
 
+@pragma("vm:recognized", "other")
 int _intPow(int base, int exponent) {
   // Exponentiation by squaring.
   int result = 1;
@@ -117,34 +121,42 @@ int _intPow(int base, int exponent) {
 }
 
 @patch
+@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
 @patch
+@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double sin(num radians) => _sin(radians.toDouble());
 @patch
+@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double cos(num radians) => _cos(radians.toDouble());
 @patch
+@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double tan(num radians) => _tan(radians.toDouble());
 @patch
+@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double acos(num x) => _acos(x.toDouble());
 @patch
+@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double asin(num x) => _asin(x.toDouble());
 @patch
+@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double atan(num x) => _atan(x.toDouble());
 @patch
+@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:never-inline")
 double sqrt(num x) => _sqrt(x.toDouble());
@@ -208,6 +220,7 @@ class _Random implements Random {
   // This is a native to prevent 64-bit operations in Dart, which
   // fail with --throw_on_javascript_int_overflow.
   // TODO(regis): Implement in Dart and remove Random_nextState in math.cc.
+  @pragma("vm:recognized", "asm-intrinsic")
   void _nextState() native "Random_nextState";
 
   int nextInt(int max) {

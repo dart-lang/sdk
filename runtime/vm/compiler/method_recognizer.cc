@@ -195,6 +195,27 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
   return "?";
 }
 
+// Is this method marked with the vm:recognized pragma?
+bool MethodRecognizer::IsMarkedAsRecognized(const Function& function,
+                                            const char* kind) {
+  const Function* functionp =
+      function.IsDynamicInvocationForwarder()
+          ? &Function::Handle(function.ForwardingTarget())
+          : &function;
+  Object& options = Object::Handle();
+  bool is_recognized =
+      Library::FindPragma(Thread::Current(), /*only_core=*/true, *functionp,
+                          Symbols::vm_recognized(), &options);
+  if (!is_recognized) return false;
+  if (kind == nullptr) return true;
+
+  ASSERT(options.IsString());
+  ASSERT(String::Cast(options).Equals("asm-intrinsic") ||
+         String::Cast(options).Equals("graph-intrinsic") ||
+         String::Cast(options).Equals("other"));
+  return String::Cast(options).Equals(kind);
+}
+
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   Libraries(&libs);

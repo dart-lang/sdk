@@ -768,6 +768,7 @@ class _Future<T> implements Future<T> {
     }
   }
 
+  @pragma("vm:recognized", "other")
   @pragma("vm:entry-point")
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
     if (_isComplete) return new _Future.immediate(this);

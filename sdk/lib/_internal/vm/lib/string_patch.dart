@@ -94,9 +94,11 @@ abstract class _StringBase implements String {
     throw new UnsupportedError("_StringBase can't be instaniated");
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "String_getHashCode";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get _identityHashCode native "String_getHashCode";
 
@@ -249,14 +251,17 @@ abstract class _StringBase implements String {
   static String _createFromCodePoints(List<int> codePoints, int start, int end)
       native "StringBase_createFromCodePoints";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   String operator [](int index) native "String_charAt";
 
   int codeUnitAt(int index); // Implemented in the subclasses.
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get length native "String_getLength";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool get isEmpty {
     return this.length == 0;
@@ -306,6 +311,7 @@ abstract class _StringBase implements String {
     return 0;
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool _substringMatches(int start, String other) {
     if (other.isEmpty) return true;
@@ -838,6 +844,7 @@ abstract class _StringBase implements String {
    * into a result string.
    * Modifies the input list if it contains non-`String` values.
    */
+  @pragma("vm:recognized", "other")
   @pragma("vm:entry-point", "call")
   static String _interpolate(final List values) {
     final numValues = values.length;
@@ -955,9 +962,11 @@ class _OneByteString extends _StringBase {
     throw "Unreachable";
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "String_getHashCode";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
@@ -965,11 +974,13 @@ class _OneByteString extends _StringBase {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     return super == other;
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _OneByteString)
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
@@ -1291,9 +1302,11 @@ class _TwoByteString extends _StringBase {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     return super == other;
@@ -1310,6 +1323,7 @@ class _ExternalOneByteString extends _StringBase {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
@@ -1328,6 +1342,7 @@ class _ExternalTwoByteString extends _StringBase {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 

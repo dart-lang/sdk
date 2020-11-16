@@ -464,7 +464,6 @@ class ObjectPointerVisitor;
   V(controller, "controller")                                                  \
   V(current_character, ":current_character")                                   \
   V(current_position, ":current_position")                                     \
-  V(getID, "getID")                                                            \
   V(hashCode, "get:hashCode")                                                  \
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
@@ -486,7 +485,6 @@ class ObjectPointerVisitor;
   V(start_index_param, ":start_index_param")                                   \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
-  V(timeout, "timeout")                                                        \
   V(toString, "toString")                                                      \
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \
@@ -494,6 +492,7 @@ class ObjectPointerVisitor;
   V(vm_inferred_type_metadata, "vm.inferred-type.metadata")                    \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
+  V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
   V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")
 
