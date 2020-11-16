@@ -49,18 +49,18 @@ void main(List<String> args) async {
     ..addFlag('sound-null-safety',
         help: 'Compile for sound null safety at runtime. Passed through to the '
             'DDC binary. Defaults to false.',
-        defaultsTo: false,
-        negatable: true)
+        defaultsTo: false)
     ..addFlag('null-assertions',
         help: 'Run with assertions that values passed to non-nullable method '
             'parameters are not null.',
-        defaultsTo: false,
-        negatable: true)
+        defaultsTo: false)
     ..addFlag('native-null-assertions',
         help: 'Run with assertions on non-nullable values returned from native '
             'APIs.',
         defaultsTo: true,
         negatable: true)
+    ..addFlag('weak-null-safety-errors',
+        help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
     ..addFlag('observe',
         help:
             'Run the compiler in the Dart VM with --observe. Implies --debug.',
@@ -86,7 +86,6 @@ void main(List<String> args) async {
         abbr: 'v',
         help: 'Echos the commands, arguments, and environment this script is '
             'running.',
-        negatable: false,
         defaultsTo: false)
     ..addOption('vm-service-port',
         help: 'Specify the observatory port. Implied --observe.');
@@ -115,19 +114,10 @@ void main(List<String> args) async {
   var compile = mode == 'compile' || mode == 'all';
   var run = mode == 'run' || mode == 'all';
   var verbose = options['verbose'] as bool;
+  var soundNullSafety = options['sound-null-safety'] as bool;
   var nonNullAsserts = options['null-assertions'] as bool;
   var nativeNonNullAsserts = options['null-assertions'] as bool;
-
-  var soundNullSafety = options['sound-null-safety'] as bool;
-  // Enable null safety either by passing the `non-nullable` experiment flag or
-  // `sound-null-safety`.
-  var nnbd = experiments.contains('non-nullable') || soundNullSafety;
-
-  // Ensure non-nullable is passed as a flag.
-  if (soundNullSafety && !experiments.contains('non-nullable')) {
-    experiments.add('non-nullable');
-  }
-
+  var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var entry = p.canonicalize(options.rest.first);
   var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
@@ -275,11 +265,12 @@ void main(List<String> args) async {
   require(['dart_sdk', '$basename'],
         function(sdk, app) {
     'use strict';
-    if ($nnbd) {
-      sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
-      sdk.dart.nonNullAsserts($nonNullAsserts);
-      sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
-    }
+
+    sdk.dart.weakNullSafetyWarnings(
+        !($weakNullSafetyErrors || $soundNullSafety));
+    sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+    sdk.dart.nonNullAsserts($nonNullAsserts);
+    sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main([]);
   });
@@ -311,11 +302,11 @@ let sdk = require(\"dart_sdk\");
 sdk.dart.global.self = sdk.dart.global;
 let main = require(\"./$basename\").$libname.main;
 try {
-  if ($nnbd) {
-    sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
-    sdk.dart.nonNullAsserts($nonNullAsserts);
-    sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
-  }
+  sdk.dart.weakNullSafetyWarnings(
+      !($weakNullSafetyErrors || $soundNullSafety));
+  sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+  sdk.dart.nonNullAsserts($nonNullAsserts);
+  sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
   if (!source_maps) {
@@ -346,14 +337,14 @@ load("$ddcPath/lib/js/legacy/dart_library.js");
 load("$sdkJsPath/dart_sdk.js");
 load("$out");
 
-let dart_sdk = dart_library.import('dart_sdk');
+let sdk = dart_library.import('dart_sdk');
 // Create a self reference for JS interop tests that set fields on self.
-dart_sdk.dart.global.self = dart_sdk.dart.global;
-if ($nnbd) {
-  dart_sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
-  dart_sdk.dart.nonNullAsserts($nonNullAsserts);
-  dart_sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
-}
+sdk.dart.global.self = sdk.dart.global;
+sdk.dart.weakNullSafetyWarnings(
+    !($weakNullSafetyErrors || $soundNullSafety));
+sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+sdk.dart.nonNullAsserts($nonNullAsserts);
+sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
 dart_library.start('$basename', '$libname');
 ''';
       var d8File = p.setExtension(out, '.d8.js');

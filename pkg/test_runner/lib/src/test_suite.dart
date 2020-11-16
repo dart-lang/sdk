@@ -925,8 +925,16 @@ class StandardTestSuite extends TestSuite {
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
         var nullAssertions =
             testFile.sharedOptions.contains('--null-assertions');
-        content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
-            configuration.compiler, configuration.nnbdMode, nullAssertions);
+        var weakNullSafetyErrors =
+            testFile.ddcOptions.contains('--weak-null-safety-errors');
+        content = dartdevcHtml(
+            nameNoExt,
+            nameFromModuleRootNoExt,
+            jsDir,
+            configuration.compiler,
+            configuration.nnbdMode,
+            nullAssertions,
+            weakNullSafetyErrors);
       }
     }
 
