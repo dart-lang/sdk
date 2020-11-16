@@ -339,17 +339,17 @@ typedef simd128_value_t fpu_register_t;
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-#if !defined(ARCH_IS_64_BIT)
+#if !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #error Mismatched Host/Target architectures.
-#endif  // !defined(ARCH_IS_64_BIT)
+#endif  // !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
 #if defined(HOST_ARCH_X64) && defined(TARGET_ARCH_ARM)
 // This is simarm_x64, which is the only case where host/target architecture
-// mismatch is allowed.
+// mismatch is allowed. Unless, we're running FFI unit tests.
 #define IS_SIMARM_X64 1
-#elif !defined(ARCH_IS_32_BIT)
+#elif !defined(ARCH_IS_32_BIT) && !defined(FFI_UNIT_TESTS)
 #error Mismatched Host/Target architectures.
-#endif  // !defined(ARCH_IS_32_BIT)
+#endif  // !defined(ARCH_IS_32_BIT) && !defined(FFI_UNIT_TESTS)
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
 
 // Determine whether we will be using the simulator.

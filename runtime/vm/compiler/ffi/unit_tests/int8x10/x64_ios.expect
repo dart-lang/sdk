@@ -1,0 +1,12 @@
+rdi int32[int8]
+rsi int32[int8]
+rdx int32[int8]
+rcx int32[int8]
+r8 int32[int8]
+r9 int32[int8]
+S+0 int32[int8]
+S+8 int32[int8]
+S+16 int32[int8]
+S+24 int32[int8]
+=>
+rax int8

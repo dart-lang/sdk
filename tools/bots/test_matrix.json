@@ -418,6 +418,9 @@
     "flutter-frontend": {
       "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
     },
+    "vm-ffi-unit-test": {
+      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
+    },
     "unittest-asserts-no-sdk-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -1102,9 +1105,25 @@
         "vm-precomp-ffi-qemu-linux-release-arm"
       ],
       "meta": {
-        "description": "This configuration is used for running FFI tests on qemu."
+        "description": "This configuration is used for running FFI tests on qemu and FFI unit tests."
       },
       "steps": [
+        {
+          "name": "build run_ffi_unit_tests",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=x64",
+            "--mode=debug",
+            "run_ffi_unit_tests"
+          ]
+        },
+        {
+          "name": "ffi unit tests",
+          "arguments": [
+            "-nvm-ffi-unit-test",
+            "ffi_unit"
+          ]
+        },
         {
           "name": "build dart",
           "script": "tools/build.py",

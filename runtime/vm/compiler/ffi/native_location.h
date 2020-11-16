@@ -10,16 +10,23 @@
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "platform/assert.h"
-#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/constants.h"
 #include "vm/growable_array.h"
+
+#if !defined(FFI_UNIT_TESTS)
+#include "vm/compiler/backend/locations.h"
+#endif
 
 namespace dart {
 
 class BaseTextBuffer;
 
 namespace compiler {
+
+namespace target {
+extern const int kWordSize;
+}
 
 namespace ffi {
 
@@ -55,6 +62,7 @@ class NativeStackLocation;
 // inequality cannot be used to determine disjointness.
 class NativeLocation : public ZoneAllocated {
  public:
+#if !defined(FFI_UNIT_TESTS)
   static bool LocationCanBeExpressed(Location loc, Representation rep);
   static NativeLocation& FromLocation(Zone* zone,
                                       Location loc,
@@ -63,6 +71,7 @@ class NativeLocation : public ZoneAllocated {
                                           Location loc,
                                           Representation rep,
                                           intptr_t index);
+#endif
 
   // The type of the data at this location.
   const NativeType& payload_type() const { return payload_type_; }
@@ -91,14 +100,18 @@ class NativeLocation : public ZoneAllocated {
   virtual bool IsStack() const { return false; }
 
   virtual bool IsExpressibleAsLocation() const { return false; }
+#if !defined(FFI_UNIT_TESTS)
   virtual Location AsLocation() const {
     ASSERT(IsExpressibleAsLocation());
     UNREACHABLE();
   }
+#endif
 
   virtual void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString(Zone* zone) const;
+#if !defined(FFI_UNIT_TESTS)
   const char* ToCString() const;
+#endif
 
   const NativeRegistersLocation& AsRegisters() const;
   const NativeFpuRegistersLocation& AsFpuRegisters() const;
@@ -171,7 +184,9 @@ class NativeRegistersLocation : public NativeLocation {
   virtual bool IsExpressibleAsLocation() const {
     return num_regs() == 1 || num_regs() == 2;
   }
+#if !defined(FFI_UNIT_TESTS)
   virtual Location AsLocation() const;
+#endif
   intptr_t num_regs() const { return regs_->length(); }
   Register reg_at(intptr_t index) const { return regs_->At(index); }
 
@@ -238,10 +253,12 @@ class NativeFpuRegistersLocation : public NativeLocation {
   virtual bool IsExpressibleAsLocation() const {
     return fpu_reg_kind_ == kQuadFpuReg;
   }
+#if !defined(FFI_UNIT_TESTS)
   virtual Location AsLocation() const {
     ASSERT(IsExpressibleAsLocation());
     return Location::FpuRegisterLocation(fpu_reg());
   }
+#endif
   FpuRegisterKind fpu_reg_kind() const { return fpu_reg_kind_; }
   FpuRegister fpu_reg() const {
     ASSERT(fpu_reg_kind_ == kQuadFpuReg);
@@ -299,6 +316,8 @@ class NativeStackLocation : public NativeLocation {
            size % compiler::target::kWordSize == 0 &&
            (size_slots == 1 || size_slots == 2);
   }
+
+#if !defined(FFI_UNIT_TESTS)
   virtual Location AsLocation() const;
 
   // ConstantInstr expects DoubleStackSlot for doubles, even on 64-bit systems.
@@ -308,6 +327,7 @@ class NativeStackLocation : public NativeLocation {
     ASSERT(compiler::target::kWordSize == 8);
     return Location::DoubleStackSlot(offset_in_words(), base_register_);
   }
+#endif
 
   virtual NativeStackLocation& Split(Zone* zone, intptr_t index) const;
 
@@ -334,9 +354,11 @@ class NativeStackLocation : public NativeLocation {
   DISALLOW_COPY_AND_ASSIGN(NativeStackLocation);
 };
 
+#if !defined(FFI_UNIT_TESTS)
 // Return a memory operand for stack slot locations.
 compiler::Address NativeLocationToStackSlotAddress(
     const NativeStackLocation& loc);
+#endif
 
 }  // namespace ffi
 
