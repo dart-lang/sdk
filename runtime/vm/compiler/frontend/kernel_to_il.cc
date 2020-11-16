@@ -741,6 +741,23 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
       KernelProgramInfo::Handle(script.kernel_program_info());
   ASSERT(info.IsNull() ||
          info.potential_natives() == GrowableObjectArray::null());
+
+  // Check that all functions that are explicitly marked as recognized with the
+  // vm:recognized annotation are in fact recognized. The check can't be done on
+  // function creation, since the recognized status isn't set until later.
+  if ((function.IsRecognized() !=
+       MethodRecognizer::IsMarkedAsRecognized(function)) &&
+      !function.IsDynamicInvocationForwarder()) {
+    if (function.IsRecognized()) {
+      FATAL1(
+          "Recognized method %s is not marked with the vm:recognized pragma.",
+          function.ToQualifiedCString());
+    } else {
+      FATAL1(
+          "Non-recognized method %s is marked with the vm:recognized pragma.",
+          function.ToQualifiedCString());
+    }
+  }
 #endif
 
   auto& kernel_data = ExternalTypedData::Handle(Z, function.KernelData());

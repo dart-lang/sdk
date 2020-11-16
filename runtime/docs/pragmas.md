@@ -17,6 +17,7 @@ These pragmas can cause unsound behavior if used incorrectly and therefore are o
 | Pragma | Meaning |
 | --- | --- |
 | `vm:exact-result-type` | [Declaring an exact result type of a method](compiler/pragmas_recognized_by_compiler.md#providing-an-exact-result-type) |
+| `vm:recognized` | [Marking this as a recognized method](compiler/pragmas_recognized_by_compiler.md#marking-recognized-methods) |
 
 ## Pragmas for internal testing
 

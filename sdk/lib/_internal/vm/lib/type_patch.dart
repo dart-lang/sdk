@@ -18,9 +18,11 @@ class _Type extends _AbstractType {
     throw "Unreachable";
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "Type_getHashCode";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool operator ==(other) native "Type_equality";
 }

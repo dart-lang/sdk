@@ -6,6 +6,7 @@
 
 @pragma("vm:entry-point")
 class ClassID {
+  @pragma("vm:recognized", "other")
   @pragma("vm:entry-point", "call")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int getID(Object value) native "ClassID_getID";

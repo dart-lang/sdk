@@ -350,9 +350,11 @@ class _RegExp implements RegExp {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ];
 
+  @pragma("vm:recognized", "asm-intrinsic")
   List<int>? _ExecuteMatch(String str, int start_index)
       native "RegExp_ExecuteMatch";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   List<int>? _ExecuteMatchSticky(String str, int start_index)
       native "RegExp_ExecuteMatchSticky";
 }

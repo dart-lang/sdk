@@ -3584,7 +3584,7 @@ class Function : public Object {
   int32_t SourceFingerprint() const;
 
   // Return false and report an error if the fingerprint does not match.
-  bool CheckSourceFingerprint(int32_t fp) const;
+  bool CheckSourceFingerprint(int32_t fp, const char* kind = nullptr) const;
 
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(

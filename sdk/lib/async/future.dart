@@ -361,6 +361,7 @@ abstract class Future<T> {
    * The call to [cleanUp] should not throw. If it does, the error will be an
    * uncaught asynchronous error.
    */
+  @pragma("vm:recognized", "other")
   @pragma("vm:entry-point")
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
       {bool eagerError = false, void cleanUp(T successValue)?}) {

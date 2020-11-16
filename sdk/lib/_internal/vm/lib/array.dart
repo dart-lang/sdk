@@ -6,6 +6,7 @@
 
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type",
       <dynamic>[_List, "result-type-uses-passed-type-arguments"])
   @pragma("vm:prefer-inline")
@@ -34,14 +35,18 @@ class _List<E> extends FixedLengthListBase<E> {
     return result;
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   E operator [](int index) native "List_getIndexed";
 
+  @pragma("vm:recognized", "other")
   void operator []=(int index, E value) {
     _setIndexed(index, value);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setIndexed(int index, E value) native "List_setIndexed";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get length native "List_getLength";
@@ -188,8 +193,10 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   factory _ImmutableList._from(List from, int offset, int length)
       native "ImmutableList_from";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   E operator [](int index) native "List_getIndexed";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get length native "List_getLength";

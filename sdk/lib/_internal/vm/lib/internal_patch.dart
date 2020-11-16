@@ -36,19 +36,21 @@ Object? extractTypeArguments<T>(T instance, Function extract)
     native "Internal_extractTypeArguments";
 
 /// The returned string is a [_OneByteString] with uninitialized content.
+@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:entry-point", "call")
 String allocateOneByteString(int length)
     native "Internal_allocateOneByteString";
 
 /// The [string] must be a [_OneByteString]. The [index] must be valid.
+@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:entry-point", "call")
 void writeIntoOneByteString(String string, int index, int codePoint)
     native "Internal_writeIntoOneByteString";
 
-/// This function is recognized by the VM and compiled into specialized code.
 /// It is assumed that [from] is a native [Uint8List] class and [to] is a
 /// [_OneByteString]. The [fromStart] and [toStart] indices together with the
 /// [length] must specify ranges within the bounds of the list / string.
+@pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 void copyRangeFromUint8ListToOneByteString(
     Uint8List from, String to, int fromStart, int toStart, int length) {
@@ -58,11 +60,13 @@ void copyRangeFromUint8ListToOneByteString(
 }
 
 /// The returned string is a [_TwoByteString] with uninitialized content.
+@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:entry-point", "call")
 String allocateTwoByteString(int length)
     native "Internal_allocateTwoByteString";
 
 /// The [string] must be a [_TwoByteString]. The [index] must be valid.
+@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:entry-point", "call")
 void writeIntoTwoByteString(String string, int index, int codePoint)
     native "Internal_writeIntoTwoByteString";
@@ -106,6 +110,7 @@ final bool is64Bit = _inquireIs64Bit();
 
 bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
 
+@pragma("vm:recognized", "other")
 @pragma("vm:entry-point", "call")
 @pragma("vm:exact-result-type", bool)
 @pragma("vm:prefer-inline")
@@ -163,7 +168,7 @@ T unsafeCast<T>(Object? v) native "Internal_unsafeCast";
 
 // This function can be used to keep an object alive til that point.
 //
-// This is implemented by a recognized method.
+@pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
 void reachabilityFence(Object object) native "Internal_reachabilityFence";
 
