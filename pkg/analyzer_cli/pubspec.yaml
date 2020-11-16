@@ -17,7 +17,7 @@ dependencies:
   meta: any
   path: any
   pub_semver: ^1.4.2
-  yaml: ^2.1.2
+  yaml: any
 
 dev_dependencies:
   pedantic: ^1.9.0

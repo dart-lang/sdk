@@ -18,7 +18,7 @@ dependencies:
   path: ^1.6.2
   pub_semver: ^1.4.2
   source_span: ^1.4.1
-  yaml: ^2.1.15
+  yaml: any
 
 dev_dependencies:
   analyzer_utilities:
