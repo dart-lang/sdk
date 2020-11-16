@@ -13,7 +13,7 @@ namespace dart {
 // debug mode to get the correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(::, identical, ObjectIdentical, 0x8fd6ea77)                                \
-  V(ClassID, getID, ClassIDgetID, 0x0401ffcc)                                  \
+  V(ClassID, getID, ClassIDgetID, 0x0401ffad)                                  \
   V(Object, Object., ObjectConstructor, 0x89c467da)                            \
   V(List, ., ListFactory, 0xbec87d52)                                          \
   V(_List, ., ObjectArrayAllocate, 0x6de199c0)                                 \
@@ -192,7 +192,7 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0xad39d0c5)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x288d0097)                          \
   V(_Future, timeout, FutureTimeout, 0xdea67277)                               \
-  V(Future, wait, FutureWait, 0x6c0c32b4)                                      \
+  V(Future, wait, FutureWait, 0x6c0c3295)                                      \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
@@ -388,10 +388,10 @@ namespace dart {
   V(::, _setAsyncThreadStackTrace, SetAsyncThreadStackTrace, 0x39346972)       \
 
 #define INTERNAL_LIB_INTRINSIC_LIST(V)                                         \
-  V(::, allocateOneByteString, AllocateOneByteString, 0xc86bec19)              \
-  V(::, allocateTwoByteString, AllocateTwoByteString, 0xd03127b6)              \
-  V(::, writeIntoOneByteString, WriteIntoOneByteString, 0xe0d28326)            \
-  V(::, writeIntoTwoByteString, WriteIntoTwoByteString, 0xd82789ef)            \
+  V(::, allocateOneByteString, AllocateOneByteString, 0xc86bebfa)              \
+  V(::, allocateTwoByteString, AllocateTwoByteString, 0xd0312797)              \
+  V(::, writeIntoOneByteString, WriteIntoOneByteString, 0xe0d28307)            \
+  V(::, writeIntoTwoByteString, WriteIntoTwoByteString, 0xd82789d0)            \
 
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   ASYNC_LIB_INTRINSIC_LIST(V)                                                  \

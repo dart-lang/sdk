@@ -217,6 +217,22 @@ class NativeCodeOracle {
   bool isMemberReferencedFromNativeCode(Member member) =>
       _membersReferencedFromNativeCode.contains(member);
 
+  PragmaRecognizedType recognizedType(Member member) {
+    for (var annotation in member.annotations) {
+      ParsedPragma pragma = _matcher.parsePragma(annotation);
+      if (pragma is ParsedRecognized) {
+        return pragma.type;
+      }
+    }
+    return null;
+  }
+
+  bool isRecognized(Member member, [List<PragmaRecognizedType> expectedTypes]) {
+    PragmaRecognizedType type = recognizedType(member);
+    return type != null &&
+        (expectedTypes == null || expectedTypes.contains(type));
+  }
+
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
   TypeExpr handleNativeProcedure(

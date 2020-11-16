@@ -160,6 +160,7 @@ class _Collect extends RecursiveVisitor<void> {
         shaker.typeFlowAnalysis.isTearOffTaken(member) ||
         shaker.typeFlowAnalysis.nativeCodeOracle
             .isMemberReferencedFromNativeCode(member) ||
+        shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
         getExternalName(member) != null) {
       info.eligible = false;
     }

@@ -362,7 +362,6 @@ abstract class Future<T> {
    * uncaught asynchronous error.
    */
   @pragma("vm:recognized", "other")
-  @pragma("vm:entry-point")
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
       {bool eagerError = false, void cleanUp(T successValue)?}) {
     // This is a VM recognised method, and the _future variable is deliberately
