@@ -315,45 +315,6 @@ if (is_win) {
   ]
 }
 
-if (target_cpu == "x64") {
-  if (is_linux || is_android || is_fuchsia) {
-    copy_tree_specs += [
-      {
-        target = "copy_libtensorflowlite_c"
-        visibility = [ ":create_common_sdk" ]
-        deps = [ ":copy_libraries" ]
-        source = "../third_party/pkg/tflite_native/lib/src/blobs"
-        dest = "$root_out_dir/dart-sdk/bin/snapshots"
-        ignore_patterns = "*.dll,*mac64.so"
-      },
-    ]
-  }
-  if (is_mac) {
-    copy_tree_specs += [
-      {
-        target = "copy_libtensorflowlite_c"
-        visibility = [ ":create_common_sdk" ]
-        deps = [ ":copy_libraries" ]
-        source = "../third_party/pkg/tflite_native/lib/src/blobs"
-        dest = "$root_out_dir/dart-sdk/bin/snapshots"
-        ignore_patterns = "*.dll,*linux64.so"
-      },
-    ]
-  }
-  if (is_win) {
-    copy_tree_specs += [
-      {
-        target = "copy_libtensorflowlite_c"
-        visibility = [ ":create_common_sdk" ]
-        deps = [ ":copy_libraries" ]
-        source = "../third_party/pkg/tflite_native/lib/src/blobs"
-        dest = "$root_out_dir/dart-sdk/bin/snapshots"
-        ignore_patterns = "*.so"
-      },
-    ]
-  }
-}
-
 # This generates targets for everything in copy_tree_specs. The targets have the
 # same name as the "target" fields in the scopes of copy_tree_specs.
 copy_trees("copy_trees") {
@@ -917,9 +878,6 @@ group("create_common_sdk") {
 
   if (is_win) {
     public_deps += [ ":copy_7zip" ]
-  }
-  if (target_cpu == "x64") {
-    public_deps += [ ":copy_libtensorflowlite_c" ]
   }
 
   # CIPD only has versions of the Rust compiler for linux and mac x64 hosts.

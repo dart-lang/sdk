@@ -625,11 +625,6 @@ class AnalysisServerOptions {
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
-  /// Base path to locate trained completion language model files.
-  ///
-  /// ML completion is enabled if this is non-null.
-  String completionModelFolder;
-
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
 }

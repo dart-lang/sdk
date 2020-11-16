@@ -689,12 +689,6 @@
       "languageVersion": "2.0"
     },
     {
-      "name": "tflite_native",
-      "rootUri": "../third_party/pkg/tflite_native",
-      "packageUri": "lib/",
-      "languageVersion": "2.6"
-    },
-    {
       "name": "typed_data",
       "rootUri": "../third_party/pkg/typed_data",
       "packageUri": "lib/",
