@@ -4,14 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'dart/test_all.dart' as dart;
-import 'filtering/test_all.dart' as filtering;
-import 'yaml/test_all.dart' as yaml;
+import 'analysis_options_generator_test.dart' as analysis_options_generator;
+import 'fix_data_generator_test.dart' as fix_data_generator;
+import 'pubspec_generator_test.dart' as pubspec_generator;
 
 void main() {
   defineReflectiveSuite(() {
-    dart.main();
-    filtering.main();
-    yaml.main();
-  }, name: 'completion');
+    analysis_options_generator.main();
+    fix_data_generator.main();
+    pubspec_generator.main();
+  }, name: 'yaml');
 }
