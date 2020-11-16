@@ -40,28 +40,6 @@
   "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": {
     "Dynamic invocation of 'buildForEffect'.": 1
   },
-  "pkg/kernel/lib/text/text_serializer.dart": {
-    "Dynamic access of 'first'.": 68,
-    "Dynamic invocation of 'getReference'.": 10,
-    "Dynamic access of 'second'.": 88,
-    "Dynamic access of 'third'.": 29,
-    "Dynamic access of 'fourth'.": 17,
-    "Dynamic access of 'fifth'.": 3,
-    "Dynamic access of 'sixth'.": 2,
-    "Dynamic invocation of 'fold'.": 9,
-    "Dynamic invocation of '|'.": 8,
-    "Dynamic access of 'value'.": 11,
-    "Dynamic access of 'key'.": 11,
-    "Dynamic update to 'name'.": 2,
-    "Dynamic invocation of 'addAnnotation'.": 1,
-    "Dynamic access of 'expressions'.": 1,
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of 'toList'.": 5,
-    "Dynamic invocation of 'cast'.": 5,
-    "Dynamic invocation of 'where'.": 5,
-    "Dynamic access of 'seventh'.": 1
-  },
   "pkg/_fe_analyzer_shared/lib/src/util/link.dart": {
     "Dynamic access of 'isEmpty'.": 1
   },
