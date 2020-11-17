@@ -466,7 +466,6 @@ class Object {
   static ClassPtr function_class() { return function_class_; }
   static ClassPtr closure_data_class() { return closure_data_class_; }
   static ClassPtr signature_data_class() { return signature_data_class_; }
-  static ClassPtr redirection_data_class() { return redirection_data_class_; }
   static ClassPtr ffi_trampoline_data_class() {
     return ffi_trampoline_data_class_;
   }
@@ -772,7 +771,6 @@ class Object {
   static ClassPtr function_class_;        // Class of the Function vm object.
   static ClassPtr closure_data_class_;    // Class of ClosureData vm obj.
   static ClassPtr signature_data_class_;  // Class of SignatureData vm obj.
-  static ClassPtr redirection_data_class_;  // Class of RedirectionData vm obj.
   static ClassPtr ffi_trampoline_data_class_;  // Class of FfiTrampolineData
                                                // vm obj.
   static ClassPtr field_class_;                // Class of the Field vm object.
@@ -2817,15 +2815,6 @@ class Function : public Object {
 
   intptr_t ComputeClosureHash() const;
 
-  // Redirection information for a redirecting factory.
-  bool IsRedirectingFactory() const;
-  TypePtr RedirectionType() const;
-  void SetRedirectionType(const Type& type) const;
-  StringPtr RedirectionIdentifier() const;
-  void SetRedirectionIdentifier(const String& identifier) const;
-  FunctionPtr RedirectionTarget() const;
-  void SetRedirectionTarget(const Function& target) const;
-
   FunctionPtr ForwardingTarget() const;
   void SetForwardingChecks(const Array& checks) const;
 
@@ -3670,7 +3659,6 @@ class Function : public Object {
   //            don't support during inlining (e.g., optional parameters),
   //            functions which are too big, etc.
   // native: Bridge to C/C++ code.
-  // redirecting: Redirecting generative or factory constructor.
   // external: Just a declaration that expects to be defined in another patch
   //           file.
   // generated_body: Has a generated body.
@@ -3688,7 +3676,6 @@ class Function : public Object {
   V(Inlinable, is_inlinable)                                                   \
   V(Intrinsic, is_intrinsic)                                                   \
   V(Native, is_native)                                                         \
-  V(Redirecting, is_redirecting)                                               \
   V(External, is_external)                                                     \
   V(GeneratedBody, is_generated_body)                                          \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
@@ -3881,33 +3868,6 @@ class SignatureData : public Object {
   static SignatureDataPtr New(Heap::Space space = Heap::kOld);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SignatureData, Object);
-  friend class Class;
-  friend class Function;
-  friend class HeapProfiler;
-};
-
-class RedirectionData : public Object {
- public:
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RedirectionDataLayout));
-  }
-
- private:
-  // The type specifies the class and type arguments of the target constructor.
-  TypePtr type() const { return raw_ptr()->type_; }
-  void set_type(const Type& value) const;
-
-  // The optional identifier specifies a named constructor.
-  StringPtr identifier() const { return raw_ptr()->identifier_; }
-  void set_identifier(const String& value) const;
-
-  // The resolved constructor or factory target of the redirection.
-  FunctionPtr target() const { return raw_ptr()->target_; }
-  void set_target(const Function& value) const;
-
-  static RedirectionDataPtr New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(RedirectionData, Object);
   friend class Class;
   friend class Function;
   friend class HeapProfiler;

@@ -1127,18 +1127,6 @@ class SignatureDataLayout : public ObjectLayout {
   friend class Function;
 };
 
-class RedirectionDataLayout : public ObjectLayout {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(RedirectionData);
-
-  VISIT_FROM(ObjectPtr, type_);
-  TypePtr type_;
-  StringPtr identifier_;
-  FunctionPtr target_;
-  VISIT_TO(ObjectPtr, target_);
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
 class FfiTrampolineDataLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);

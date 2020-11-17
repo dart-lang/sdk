@@ -23,7 +23,6 @@ typedef uint16_t ClassIdTagType;
   V(Function)                                                                  \
   V(ClosureData)                                                               \
   V(SignatureData)                                                             \
-  V(RedirectionData)                                                           \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
   V(Script)                                                                    \

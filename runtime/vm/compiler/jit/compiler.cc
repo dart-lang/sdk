@@ -978,8 +978,7 @@ ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.is_abstract() &&
-        !func.IsRedirectingFactory()) {
+    if (!func.HasCode() && !func.is_abstract()) {
       result = CompileFunction(thread, func);
       if (result.IsError()) {
         return Error::Cast(result).raw();

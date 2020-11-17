@@ -146,7 +146,6 @@ ClassPtr Object::patch_class_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::function_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::closure_data_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::signature_data_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::redirection_data_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::ffi_trampoline_data_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::field_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::script_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -788,9 +787,6 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<SignatureData, RTN::SignatureData>(isolate);
   signature_data_class_ = cls.raw();
 
-  cls = Class::New<RedirectionData, RTN::RedirectionData>(isolate);
-  redirection_data_class_ = cls.raw();
-
   cls = Class::New<FfiTrampolineData, RTN::FfiTrampolineData>(isolate);
   ffi_trampoline_data_class_ = cls.raw();
 
@@ -1221,7 +1217,6 @@ void Object::Cleanup() {
   function_class_ = static_cast<ClassPtr>(RAW_NULL);
   closure_data_class_ = static_cast<ClassPtr>(RAW_NULL);
   signature_data_class_ = static_cast<ClassPtr>(RAW_NULL);
-  redirection_data_class_ = static_cast<ClassPtr>(RAW_NULL);
   ffi_trampoline_data_class_ = static_cast<ClassPtr>(RAW_NULL);
   field_class_ = static_cast<ClassPtr>(RAW_NULL);
   script_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -1322,7 +1317,6 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(function, Function);
   SET_CLASS_NAME(closure_data, ClosureData);
   SET_CLASS_NAME(signature_data, SignatureData);
-  SET_CLASS_NAME(redirection_data, RedirectionData);
   SET_CLASS_NAME(ffi_trampoline_data, FfiTrampolineData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(script, Script);
@@ -4754,8 +4748,6 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::ClosureData().ToCString();
     case kSignatureDataCid:
       return Symbols::SignatureData().ToCString();
-    case kRedirectionDataCid:
-      return Symbols::RedirectionData().ToCString();
     case kFfiTrampolineDataCid:
       return Symbols::FfiTrampolineData().ToCString();
     case kFieldCid:
@@ -7271,68 +7263,8 @@ void Function::SetSignatureType(const Type& value) const {
   }
 }
 
-bool Function::IsRedirectingFactory() const {
-  if (!IsFactory() || !is_redirecting()) {
-    return false;
-  }
-  ASSERT(!IsClosureFunction());  // A factory cannot also be a closure.
-  return true;
-}
-
-TypePtr Function::RedirectionType() const {
-  ASSERT(IsRedirectingFactory());
-  ASSERT(!is_native());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(!obj.IsNull());
-  return RedirectionData::Cast(obj).type();
-}
-
 const char* Function::KindToCString(FunctionLayout::Kind kind) {
   return FunctionLayout::KindToCString(kind);
-}
-
-void Function::SetRedirectionType(const Type& type) const {
-  ASSERT(IsFactory());
-  Object& obj = Object::Handle(raw_ptr()->data_);
-  if (obj.IsNull()) {
-    obj = RedirectionData::New();
-    set_data(obj);
-  }
-  RedirectionData::Cast(obj).set_type(type);
-}
-
-StringPtr Function::RedirectionIdentifier() const {
-  ASSERT(IsRedirectingFactory());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(!obj.IsNull());
-  return RedirectionData::Cast(obj).identifier();
-}
-
-void Function::SetRedirectionIdentifier(const String& identifier) const {
-  ASSERT(IsFactory());
-  Object& obj = Object::Handle(raw_ptr()->data_);
-  if (obj.IsNull()) {
-    obj = RedirectionData::New();
-    set_data(obj);
-  }
-  RedirectionData::Cast(obj).set_identifier(identifier);
-}
-
-FunctionPtr Function::RedirectionTarget() const {
-  ASSERT(IsRedirectingFactory());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(!obj.IsNull());
-  return RedirectionData::Cast(obj).target();
-}
-
-void Function::SetRedirectionTarget(const Function& target) const {
-  ASSERT(IsFactory());
-  Object& obj = Object::Handle(raw_ptr()->data_);
-  if (obj.IsNull()) {
-    obj = RedirectionData::New();
-    set_data(obj);
-  }
-  RedirectionData::Cast(obj).set_target(target);
 }
 
 FunctionPtr Function::ForwardingTarget() const {
@@ -7362,7 +7294,6 @@ void Function::SetForwardingChecks(const Array& checks) const {
 //   field initializer:       Field
 //   noSuchMethod dispatcher: Array arguments descriptor
 //   invoke-field dispatcher: Array arguments descriptor
-//   redirecting constructor: RedirectionData
 //   closure function:        ClosureData
 //   irregexp function:       Array[0] = RegExp
 //                            Array[1] = Smi string specialization cid
@@ -8650,7 +8581,6 @@ FunctionPtr Function::New(const String& name,
   result.set_is_visible(true);      // Will be computed later.
   result.set_is_debuggable(true);   // Will be computed later.
   result.set_is_intrinsic(false);
-  result.set_is_redirecting(false);
   result.set_is_generated_body(false);
   result.set_has_pragma(false);
   result.set_is_polymorphic_target(false);
@@ -9893,40 +9823,6 @@ const char* SignatureData::ToCString() const {
                      "SignatureData parent_function: %s signature_type: %s",
                      parent.IsNull() ? "null" : parent.ToCString(),
                      type.IsNull() ? "null" : type.ToCString());
-}
-
-void RedirectionData::set_type(const Type& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->type_, value.raw());
-}
-
-void RedirectionData::set_identifier(const String& value) const {
-  StorePointer(&raw_ptr()->identifier_, value.raw());
-}
-
-void RedirectionData::set_target(const Function& value) const {
-  StorePointer(&raw_ptr()->target_, value.raw());
-}
-
-RedirectionDataPtr RedirectionData::New() {
-  ASSERT(Object::redirection_data_class() != Class::null());
-  ObjectPtr raw = Object::Allocate(RedirectionData::kClassId,
-                                   RedirectionData::InstanceSize(), Heap::kOld);
-  return static_cast<RedirectionDataPtr>(raw);
-}
-
-const char* RedirectionData::ToCString() const {
-  if (IsNull()) {
-    return "RedirectionData: null";
-  }
-  const Type& redir_type = Type::Handle(type());
-  const String& ident = String::Handle(identifier());
-  const Function& target_fun = Function::Handle(target());
-  return OS::SCreate(Thread::Current()->zone(),
-                     "RedirectionData: type: %s identifier: %s target: %s",
-                     redir_type.IsNull() ? "null" : redir_type.ToCString(),
-                     ident.IsNull() ? "null" : ident.ToCString(),
-                     target_fun.IsNull() ? "null" : target_fun.ToCString());
 }
 
 void FfiTrampolineData::set_signature_type(const Type& value) const {

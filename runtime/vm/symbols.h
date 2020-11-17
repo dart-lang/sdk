@@ -241,7 +241,6 @@ class ObjectPointerVisitor;
   V(QuoteIsNotASubtypeOf, "' is not a subtype of ")                            \
   V(RParenArrow, ") => ")                                                      \
   V(RangeError, "RangeError")                                                  \
-  V(RedirectionData, "RedirectionData")                                        \
   V(RegExp, "RegExp")                                                          \
   V(RightShiftOperator, ">>")                                                  \
   V(SavedTryContextVar, ":saved_try_context_var")                              \

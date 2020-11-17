@@ -962,13 +962,6 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
       continue;
     }
-    if (function.is_static()) {
-      if (function.IsRedirectingFactory()) {
-        Type& type = Type::Handle(zone, function.RedirectionType());
-        type ^= FinalizeType(type);
-        function.SetRedirectionType(type);
-      }
-    }
   }
 }
 

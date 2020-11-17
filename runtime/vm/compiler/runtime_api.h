@@ -774,12 +774,6 @@ class SignatureData : public AllStatic {
   static word NextFieldOffset();
 };
 
-class RedirectionData : public AllStatic {
- public:
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
 class FfiTrampolineData : public AllStatic {
  public:
   static word InstanceSize();

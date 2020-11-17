@@ -4511,26 +4511,6 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   constructor ^= result.raw();
 
   Instance& new_object = Instance::Handle(Z);
-  if (constructor.IsRedirectingFactory()) {
-    Type& redirect_type = Type::Handle(constructor.RedirectionType());
-    constructor = constructor.RedirectionTarget();
-    ASSERT(!constructor.IsNull());
-
-    if (!redirect_type.IsInstantiated()) {
-      // The type arguments of the redirection type are instantiated from the
-      // type arguments of the type argument.
-      // We do not support generic constructors.
-      ASSERT(redirect_type.IsInstantiated(kFunctions));
-      redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree, Heap::kNew);
-      redirect_type ^= redirect_type.Canonicalize(T, nullptr);
-    }
-
-    type_obj = redirect_type.raw();
-    type_arguments = redirect_type.arguments();
-
-    cls = type_obj.type_class();
-  }
   if (constructor.IsGenerativeConstructor()) {
     CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
 #if defined(DEBUG)

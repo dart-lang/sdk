@@ -352,10 +352,6 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
 void FfiTrampolineData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }

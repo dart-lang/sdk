@@ -348,7 +348,6 @@
   SIZEOF(PcDescriptors, HeaderSize, PcDescriptorsLayout)                       \
   SIZEOF(Pointer, InstanceSize, PointerLayout)                                 \
   SIZEOF(ReceivePort, InstanceSize, ReceivePortLayout)                         \
-  SIZEOF(RedirectionData, InstanceSize, RedirectionDataLayout)                 \
   SIZEOF(RegExp, InstanceSize, RegExpLayout)                                   \
   SIZEOF(Script, InstanceSize, ScriptLayout)                                   \
   SIZEOF(SendPort, InstanceSize, SendPortLayout)                               \
