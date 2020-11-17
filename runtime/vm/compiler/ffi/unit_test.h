@@ -39,6 +39,13 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
+extern const char* kArch;
+extern const char* kOs;
+
+void WriteToFile(char* path, const char* contents);
+
+void ReadFromFile(char* path, char** buffer_pointer);
+
 class TestCaseBase {
  public:
   explicit TestCaseBase(const char* name, const char* expectation);
