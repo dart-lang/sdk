@@ -235,13 +235,13 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   Future<String> assertErrorExit(
       MigrationCliRunner cliRunner, FutureOr<void> Function() callback,
-      {@required bool withUsage, dynamic expectedExitCode = anything}) async {
+      {@required bool withUsage, dynamic expectedExitCode}) async {
+    expectedExitCode ??= isNot(0);
     try {
       await callback();
       fail('Migration succeeded; expected it to abort with an error');
     } on MigrationExit catch (migrationExit) {
       expect(migrationExit.exitCode, isNotNull);
-      expect(migrationExit.exitCode, isNot(0));
       expect(migrationExit.exitCode, expectedExitCode);
     }
     expect(cliRunner.isPreviewServerRunning, isFalse);
@@ -305,7 +305,8 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   Future<String> assertRunFailure(List<String> args,
       {MigrationCli cli,
       bool withUsage = false,
-      dynamic expectedExitCode = anything}) async {
+      dynamic expectedExitCode}) async {
+    expectedExitCode ??= isNot(0);
     cli ??= _createCli();
     MigrationCliRunner cliRunner;
     try {
@@ -313,7 +314,6 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
           cli.decodeCommandLineArgs(MigrationCli.createParser().parse(args));
     } on MigrationExit catch (e) {
       expect(e.exitCode, isNotNull);
-      expect(e.exitCode, isNot(0));
       expect(e.exitCode, expectedExitCode);
       return assertStderr(withUsage: withUsage);
     }
@@ -802,6 +802,15 @@ int? f() => null
     // But it should not mention foo.dart or bar.dart, which are migrated
     expect(output, isNot(contains('package:foo/foo.dart')));
     expect(output, isNot(contains('package:bar/bar.dart')));
+  }
+
+  test_lifecycle_migration_already_performed() async {
+    var projectContents = simpleProject(migrated: true);
+    var projectDir = createProjectDir(projectContents);
+    await assertRunFailure([projectDir], expectedExitCode: 0);
+    var output = logger.stdoutBuffer.toString();
+    expect(output,
+        contains('All sources appear to be already migrated.  Nothing to do.'));
   }
 
   test_lifecycle_no_preview() async {

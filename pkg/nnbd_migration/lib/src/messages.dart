@@ -5,7 +5,7 @@
 import 'package:nnbd_migration/migration_cli.dart';
 
 const String migratedAlready =
-    "Seem to be migrating code that's already migrated";
+    'All sources appear to be already migrated.  Nothing to do.';
 const String nnbdExperimentOff =
     'Analyzer seems to need the nnbd experiment on in the SDK.';
 const String sdkNnbdOff = 'Analysis seems to have an SDK without NNBD enabled.';
@@ -34,7 +34,7 @@ are currently importing the following non-null-safe libraries:
 
 Please upgrade the packages containing these libraries to null safe versions
 before continuing.  To see what null safe package versions are available, run
-the following command: `dart pub outdated --mode=null-safety --prereleases`.
+the following command: `dart pub outdated --mode=null-safety`.
 
 To skip this check and try to migrate anyway, re-run with the flag
 `$_skipImportCheckFlag`.

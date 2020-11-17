@@ -4,9 +4,6 @@ import 'package:nnbd_migration/src/messages.dart';
 /// A [StateError] specific to the ways that the NNBD experiment can be
 /// misconfigured which may prevent the tool from working.
 class ExperimentStatusException extends StateError {
-  /// All files included in the migration dir have already been migrated.
-  ExperimentStatusException.migratedAlready() : super(migratedAlready);
-
   /// The SDK was analyzed without NNBD semantics.
   ExperimentStatusException.sdkExperimentDisabled() : super(nnbdExperimentOff);
 
