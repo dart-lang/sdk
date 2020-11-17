@@ -22,7 +22,7 @@ const char* kArch = "x64";
 
 #if defined(TARGET_OS_ANDROID)
 const char* kOs = "android";
-#elif defined(TARGET_OS_IOS)
+#elif defined(TARGET_OS_MACOS_IOS)
 const char* kOs = "ios";
 #elif defined(TARGET_OS_LINUX)
 const char* kOs = "linux";
