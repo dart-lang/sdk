@@ -1453,6 +1453,7 @@ void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const StackTrace& allocation_location_ =
       StackTrace::Handle(allocation_location());
   const String& debug_name_ = String::Handle(debug_name());
+  obj.AddServiceId(*this);
   obj.AddProperty("kind", "ReceivePort");
   obj.AddProperty64("portId", Id());
   obj.AddProperty("debugName", debug_name_.ToCString());
