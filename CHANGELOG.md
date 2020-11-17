@@ -1,3 +1,8 @@
+## 0.6.3
+
+* Broaden version ranges for `fixnum` and `protobuf` dependencies to make
+  `dart2js_info` compatible with null-safe `protobuf` version.
+
 ## 0.6.2
 
 * Update `protobuf` dependency.
