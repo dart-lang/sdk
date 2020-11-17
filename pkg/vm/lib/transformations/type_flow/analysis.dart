@@ -828,6 +828,10 @@ class _FieldValue extends _DependencyTracker {
   }
 
   bool _isDefaultValueOfFieldObservable() {
+    if (field.isLate) {
+      return false;
+    }
+
     if (field.isStatic) {
       return true;
     }
