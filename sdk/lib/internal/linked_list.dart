@@ -99,10 +99,7 @@ class _LinkedListIterator<T extends LinkedListEntry<T>> implements Iterator<T> {
   /// The current element of the iterator.
   T? _current;
 
-  T get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as T;
-  }
+  T get current => _current as T;
 
   /// The list the iterator iterates over.
   ///

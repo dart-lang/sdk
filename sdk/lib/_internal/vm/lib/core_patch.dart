@@ -133,10 +133,7 @@ class _SyncIterator<T> implements Iterator<T> {
   Iterable<T>? _yieldEachIterable;
 
   @override
-  T get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as T;
-  }
+  T get current => _current as T;
 
   _SyncIterator(this._moveNextFn);
 

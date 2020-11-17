@@ -181,10 +181,7 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
         _next = list._first,
         _visitedFirst = false;
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 
   bool moveNext() {
     if (_modificationCount != _list._modificationCount) {
