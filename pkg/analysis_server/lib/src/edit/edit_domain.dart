@@ -121,7 +121,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       );
       var changeBuilder = await processor.fixErrors(collection.contexts);
 
-      var response = EditBulkFixesResult(changeBuilder.sourceChange.edits)
+      var response = EditBulkFixesResult(
+              changeBuilder.sourceChange.edits, processor.fixDetails)
           .toResponse(request.id);
       server.sendResponse(response);
     } catch (exception, stackTrace) {

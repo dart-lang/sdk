@@ -5,6 +5,7 @@
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
@@ -359,6 +360,18 @@ class BulkFixProcessor {
   /// libraries in the [workspace].
   BulkFixProcessor(this.instrumentationService, this.workspace)
       : builder = ChangeBuilder(workspace: workspace);
+
+  List<BulkFix> get fixDetails {
+    var details = <BulkFix>[];
+    for (var change in changeMap.libraryMap.entries) {
+      var fixes = <BulkFixDetail>[];
+      for (var codeEntry in change.value.entries) {
+        fixes.add(BulkFixDetail(codeEntry.key, codeEntry.value));
+      }
+      details.add(BulkFix(change.key, fixes));
+    }
+    return details;
+  }
 
   /// Return a change builder that has been used to create fixes for the
   /// diagnostics in the libraries in the given [contexts].
