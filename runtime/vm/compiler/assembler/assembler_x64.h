@@ -683,6 +683,12 @@ class Assembler : public AssemblerBase {
                 JumpDistance distance = kFarJump) {
     j(condition, label, distance);
   }
+  void BranchIfZero(Register src,
+                    Label* label,
+                    JumpDistance distance = kFarJump) {
+    cmpq(src, Immediate(0));
+    j(ZERO, label, distance);
+  }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);

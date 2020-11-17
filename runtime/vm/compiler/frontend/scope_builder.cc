@@ -15,44 +15,6 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-// Returns true if the given method can skip type checks for all type arguments
-// that are not covariant or generic covariant in its implementation.
-bool MethodCanSkipTypeChecksForNonCovariantTypeArguments(
-    const Function& method) {
-  // Dart 2 type system at non-dynamic call sites statically guarantees that
-  // argument values match declared parameter types for all non-covariant
-  // and non-generic-covariant parameters. The same applies to type parameters
-  // bounds for type parameters of generic functions.
-  //
-  // Normally dynamic call sites will call dyn:* forwarders which perform type
-  // checks.
-  //
-  // Though for some kinds of methods (e.g. ffi trampolines called from native
-  // code) we do have to perform type checks for all parameters.
-  return !method.CanReceiveDynamicInvocation();
-}
-
-// Returns true if the given method can skip type checks for all arguments
-// that are not covariant or generic covariant in its implementation.
-bool MethodCanSkipTypeChecksForNonCovariantArguments(const Function& method) {
-  // Dart 2 type system at non-dynamic call sites statically guarantees that
-  // argument values match declarated parameter types for all non-covariant
-  // and non-generic-covariant parameters. The same applies to type parameters
-  // bounds for type parameters of generic functions.
-  //
-  // Normally dynamic call sites will call dyn:* forwarders which perform type
-  // checks.
-  //
-  // Though for some kinds of methods (e.g. ffi trampolines called from native
-  // code) we do have to perform type checks for all parameters.
-  //
-  // TODO(dartbug.com/40813): Remove the closure case when argument checks have
-  // been fully moved out of closures.
-  return !method.CanReceiveDynamicInvocation() &&
-         !(method.IsClosureFunction() &&
-           Function::ClosureBodiesContainNonCovariantArgumentChecks());
-}
-
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
     : result_(NULL),
       parsed_function_(parsed_function),
@@ -134,7 +96,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   }
 
   if (parsed_function_->has_arg_desc_var()) {
-    needs_expr_temp_ = true;
     scope_->AddVariable(parsed_function_->arg_desc_var());
   }
 
@@ -230,47 +191,34 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         result_->type_arguments_variable = variable;
       }
 
-      ParameterTypeCheckMode type_check_mode = kTypeCheckAllParameters;
+      ParameterTypeCheckMode type_check_mode =
+          kTypeCheckForNonDynamicallyInvokedMethod;
       if (function.IsSyncGenClosure()) {
         // Don't type check the parameter of sync-yielding since these calls are
         // all synthetic and types should always match.
-        ASSERT((function.NumParameters() - function.NumImplicitParameters()) ==
-               3);
+        ASSERT_EQUAL(
+            function.NumParameters() - function.NumImplicitParameters(), 3);
         ASSERT(
             Class::Handle(
                 AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
                 .ScrubbedName() == Symbols::_SyncIterator().raw());
         type_check_mode = kTypeCheckForStaticFunction;
-      } else if (function.IsNonImplicitClosureFunction()) {
-        type_check_mode = kTypeCheckAllParameters;
+      } else if (function.is_static()) {
+        // In static functions we don't check anything.
+        type_check_mode = kTypeCheckForStaticFunction;
       } else if (function.IsImplicitClosureFunction()) {
-        if (MethodCanSkipTypeChecksForNonCovariantTypeArguments(
-                Function::Handle(Z, function.parent_function())) &&
-            MethodCanSkipTypeChecksForNonCovariantArguments(
-                Function::Handle(Z, function.parent_function()))) {
-          // This is a tear-off of an instance method that can not be reached
-          // from any dynamic invocation. The method would not check any
-          // parameters except covariant ones and those annotated with
-          // generic-covariant-impl. Which means that we have to check
-          // the rest in the tear-off itself.
-          type_check_mode =
-              kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod;
-        }
-      } else {
-        if (function.is_static()) {
-          // In static functions we don't check anything.
-          type_check_mode = kTypeCheckForStaticFunction;
-        } else if (MethodCanSkipTypeChecksForNonCovariantTypeArguments(
-                       function) &&
-                   MethodCanSkipTypeChecksForNonCovariantArguments(function)) {
-          // If the current function is never a target of a dynamic invocation
-          // and this parameter is not marked with generic-covariant-impl
-          // (which means that among all super-interfaces no type parameters
-          // ever occur at the position of this parameter) then we don't need
-          // to check this parameter on the callee side, because strong mode
-          // guarantees that it was checked at the caller side.
-          type_check_mode = kTypeCheckForNonDynamicallyInvokedMethod;
-        }
+        // All non-covariant checks are either performed by the type system,
+        // or by a dynamic closure call dispatcher/mirror if dynamically
+        // invoked. For covariant checks, static targets never have covariant
+        // arguments and dynamic targets do their own covariant checking.
+        // Thus, implicit closure functions perform no checking internally.
+        type_check_mode = kTypeCheckForImplicitClosureFunction;
+      } else if (function.CanReceiveDynamicInvocation()) {
+        // If the current function can be the direct target of a dynamic
+        // invocation, that is, dynamic calls do not go through a dynamic
+        // invocation forwarder or dynamic closure call dispatcher, then we must
+        // check non-covariant parameters as well as covariant ones.
+        type_check_mode = kTypeCheckAllParameters;
       }
 
       // Continue reading FunctionNode:
@@ -336,9 +284,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         }
         scope_->InsertParameterAt(pos++, result_->setter_value);
 
-        if (is_method &&
-            MethodCanSkipTypeChecksForNonCovariantTypeArguments(function) &&
-            MethodCanSkipTypeChecksForNonCovariantArguments(function)) {
+        if (is_method && !function.CanReceiveDynamicInvocation()) {
           if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
           } else if (!field.is_generic_covariant_impl() ||
@@ -460,6 +406,12 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 #define ADD_VAR(Name, _, __) scope_->AddVariable(vars->Name);
         FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(ADD_VAR);
 #undef ADD_VAR
+        const auto& saved_args_desc =
+            Array::Handle(Z, function.saved_args_desc());
+        const ArgumentsDescriptor descriptor(saved_args_desc);
+        for (auto const& v : vars->named_argument_parameter_indices) {
+          scope_->AddVariable(v);
+        }
       }
     }
       FALL_THROUGH;
@@ -480,7 +432,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       UNREACHABLE();
   }
   if (needs_expr_temp_) {
-    scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
+    parsed_function_->EnsureExpressionTemp();
+  }
+  if (parsed_function_->has_expression_temp_var()) {
+    scope_->AddVariable(parsed_function_->expression_temp_var());
   }
   if (parsed_function_->function().MayHaveUncheckedEntryPoint()) {
     scope_->AddVariable(parsed_function_->EnsureEntryPointsTemp());
@@ -1539,7 +1494,8 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
       FunctionNodeHelper::kPositionalParameters);
 
   ProcedureAttributesMetadata default_attrs;
-  AddPositionalAndNamedParameters(0, kTypeCheckAllParameters, default_attrs);
+  AddPositionalAndNamedParameters(0, kTypeCheckForNonDynamicallyInvokedMethod,
+                                  default_attrs);
 
   // "Peek" is now done.
   helper_.SetOffset(offset);
@@ -1636,6 +1592,17 @@ void ScopeBuilder::AddVariableDeclarationParameter(
       } else {
         // Types of non-covariant parameters are guaranteed to match by
         // front-end enforcing strong mode types at call site.
+        variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+      }
+      break;
+    case kTypeCheckForImplicitClosureFunction:
+      if (needs_covariant_check_in_method) {
+        // Don't type check covariant parameters - they will be checked by
+        // a function we forward to. Their types however are not known.
+        variable->set_type_check_mode(LocalVariable::kSkipTypeCheck);
+      } else {
+        // All non-covariant checks are either checked by the type system or
+        // by a dynamic closure call dispatcher.
         variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
       }
       break;

@@ -86,6 +86,10 @@ namespace dart {
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(AssertSubtype)                                                             \
+  V(TypeIsTopTypeForSubtyping)                                                 \
+  V(TypeIsTopTypeForSubtypingNullSafe)                                         \
+  V(NullIsAssignableToType)                                                    \
+  V(NullIsAssignableToTypeNullSafe)                                            \
   V(Subtype1TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
   V(Subtype5TestCache)                                                         \

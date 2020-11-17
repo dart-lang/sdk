@@ -722,31 +722,6 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
   return body;
 }
 
-// If we run in checked mode or strong mode, we have to check the type of the
-// passed arguments.
-//
-// TODO(#34162): If we're building an extra entry-point to skip
-// type checks, we should substitute Redefinition nodes for the AssertAssignable
-// instructions to ensure that the argument types are known.
-void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
-    const Function& dart_function,
-    intptr_t type_parameters_offset,
-    Fragment* explicit_checks,
-    Fragment* implicit_checks,
-    Fragment* implicit_redefinitions) {
-  if (dart_function.NeedsTypeArgumentTypeChecks()) {
-    B->BuildTypeArgumentTypeChecks(
-        MethodCanSkipTypeChecksForNonCovariantTypeArguments(dart_function)
-            ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
-            : TypeChecksToBuild::kCheckAllTypeParameterBounds,
-        implicit_checks);
-  }
-  if (dart_function.NeedsArgumentTypeChecks()) {
-    B->BuildArgumentTypeChecks(explicit_checks, implicit_checks,
-                               implicit_redefinitions);
-  }
-}
-
 Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
     const Function& dart_function,
     LocalVariable* first_parameter) {
@@ -948,12 +923,21 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // regular methods.
   const Fragment type_args_handling = TypeArgumentsHandling(dart_function);
 
-  Fragment explicit_type_checks;
   Fragment implicit_type_checks;
+  if (dart_function.NeedsTypeArgumentTypeChecks()) {
+    B->BuildTypeArgumentTypeChecks(
+        dart_function.CanReceiveDynamicInvocation()
+            ? TypeChecksToBuild::kCheckAllTypeParameterBounds
+            : TypeChecksToBuild::kCheckCovariantTypeParameterBounds,
+        &implicit_type_checks);
+  }
+
+  Fragment explicit_type_checks;
   Fragment implicit_redefinitions;
-  CheckArgumentTypesAsNecessary(dart_function, type_parameters_offset,
-                                &explicit_type_checks, &implicit_type_checks,
-                                &implicit_redefinitions);
+  if (dart_function.NeedsArgumentTypeChecks()) {
+    B->BuildArgumentTypeChecks(&explicit_type_checks, &implicit_type_checks,
+                               &implicit_redefinitions);
+  }
 
   // The RawParameter variables should be set to null to avoid retaining more
   // objects than necessary during GC.

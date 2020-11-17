@@ -7007,13 +7007,13 @@ void Function::set_default_type_arguments(const TypeArguments& value) const {
   const auto& closure_data =
       ClosureData::Handle(ClosureData::RawCast(raw_ptr()->data_));
   ASSERT(!closure_data.IsNull());
+  intptr_t updated_info = closure_data.default_type_arguments_info();
   auto kind = DefaultTypeArgumentsKindFor(value);
   ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
-  const intptr_t num_parent_type_params = NumParentTypeParameters();
-  const intptr_t default_type_args_info =
-      DefaultTypeArgumentsKindField::encode(kind) |
-      NumParentTypeParametersField::encode(num_parent_type_params);
-  closure_data.set_default_type_arguments_info(default_type_args_info);
+  updated_info = DefaultTypeArgumentsKindField::update(kind, updated_info);
+  updated_info = NumParentTypeParametersField::update(NumParentTypeParameters(),
+                                                      updated_info);
+  closure_data.set_default_type_arguments_info(updated_info);
   // We could just store null for the ksharesFunction/kSharesInstantiator cases,
   // assuming all clients retrieve the DefaultTypeArgumentsKind to distinguish.
   closure_data.set_default_type_arguments(value);
@@ -9644,15 +9644,20 @@ bool Function::HasDynamicCallers(Zone* zone) const {
 }
 
 bool Function::PrologueNeedsArgumentsDescriptor() const {
+  // These functions have a saved compile-time arguments descriptor that is
+  // used in lieu of the runtime arguments descriptor in generated IL.
+  if (IsInvokeFieldDispatcher() || IsNoSuchMethodDispatcher()) {
+    return false;
+  }
   // The prologue of those functions need to examine the arg descriptor for
   // various purposes.
-  return IsGeneric() || HasOptionalParameters();
+  return IsGeneric() || HasOptionalParameters() ||
+         CanReceiveDynamicInvocation();
 }
 
 bool Function::MayHaveUncheckedEntryPoint() const {
   return FLAG_enable_multiple_entrypoints &&
-         (NeedsTypeArgumentTypeChecks() || NeedsArgumentTypeChecks() ||
-          IsImplicitClosureFunction());
+         (NeedsTypeArgumentTypeChecks() || NeedsArgumentTypeChecks());
 }
 
 const char* Function::ToCString() const {
@@ -9751,6 +9756,13 @@ void ClosureData::set_default_type_arguments(const TypeArguments& value) const {
 }
 
 intptr_t ClosureData::default_type_arguments_info() const {
+  const SmiPtr value = raw_ptr()->default_type_arguments_info_;
+  if (value == Smi::null()) {
+    static_assert(Function::DefaultTypeArgumentsKindField::decode(0) ==
+                      Function::DefaultTypeArgumentsKind::kInvalid,
+                  "Returning valid value for null Smi");
+    return 0;
+  }
   return Smi::Value(raw_ptr()->default_type_arguments_info_);
 }
 
@@ -18297,6 +18309,8 @@ bool Instance::NullIsInstanceOf(
   return other.IsLegacy() && (other.IsObjectType() || other.IsNeverType());
 }
 
+// Must be kept in sync with GenerateNullIsAssignableToType in
+// stub_code_compiler.cc if any changes are made.
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -19115,6 +19129,8 @@ bool AbstractType::IsTopTypeForInstanceOf() const {
   return false;
 }
 
+// Must be kept in sync with GenerateTypeIsTopTypeForSubtyping in
+// stub_code_compiler.cc if any changes are made.
 bool AbstractType::IsTopTypeForSubtyping() const {
   const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid) {
