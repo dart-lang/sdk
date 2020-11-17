@@ -21,6 +21,10 @@
 #include "vm/pointer_tagging.h"
 
 namespace dart {
+
+// Forward declarations.
+class RegisterSet;
+
 namespace compiler {
 
 class Immediate : public ValueObject {
@@ -726,6 +730,9 @@ class Assembler : public AssemblerBase {
     cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
          Immediate(value));
   }
+
+  void PushRegisters(const RegisterSet& registers);
+  void PopRegisters(const RegisterSet& registers);
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();

@@ -349,13 +349,17 @@ struct TypeTestABI {
       (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
 };
 
-// Calling convention when calling AssertSubtypeStub.
+// Calling convention when calling AssertSubtypeStub. Defined in terms of
+// TypeTestABI as that enables us to call the TypeIsTopTypeForSubtyping
+// stub without juggling registers.
 struct AssertSubtypeABI {
-  static const Register kSubTypeReg = R0;
-  static const Register kSuperTypeReg = R8;
-  static const Register kInstantiatorTypeArgumentsReg = R2;
-  static const Register kFunctionTypeArgumentsReg = R1;
-  static const Register kDstNameReg = R3;
+  static const Register kSubTypeReg = TypeTestABI::kScratchReg;
+  static const Register kSuperTypeReg = TypeTestABI::kDstTypeReg;
+  static const Register kInstantiatorTypeArgumentsReg =
+      TypeTestABI::kInstantiatorTypeArgumentsReg;
+  static const Register kFunctionTypeArgumentsReg =
+      TypeTestABI::kFunctionTypeArgumentsReg;
+  static const Register kDstNameReg = TypeTestABI::kSubtypeTestCacheReg;
 
   static const intptr_t kAbiRegisters =
       (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
