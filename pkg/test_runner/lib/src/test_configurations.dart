@@ -149,6 +149,12 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
           // vm tests contain both cc tests (added here) and dart tests (added
           // in [TEST_SUITE_DIRECTORIES]).
           testSuites.add(VMTestSuite(configuration));
+        } else if (key == 'ffi_unit') {
+          // 'ffi_unit' contains cc non-DartVM unit tests.
+          //
+          // This is a separate suite from 'ffi', because we want to run the
+          // 'ffi' suite on many architectures, but 'ffi_unit' only on one.
+          testSuites.add(FfiTestSuite(configuration));
         } else if (configuration.compiler == Compiler.dart2analyzer) {
           if (key == 'analyze_library') {
             testSuites.add(AnalyzeLibraryTestSuite(configuration));

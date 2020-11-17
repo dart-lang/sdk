@@ -4428,6 +4428,33 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
       Arguments arguments, InvocationExpression node) {
     var name = node.name.text;
+
+    /// Returns `true` when [node] represents an invocation of `List.add()` that
+    /// can be optimized.
+    ///
+    /// The optimized add operation can skip checks for a growable or modifiable
+    /// list and the element type is known to be invariant so it can skip the
+    /// type check.
+    bool isNativeListInvariantAdd(InvocationExpression node) {
+      if (node is MethodInvocation &&
+          node.isInvariant &&
+          node.name.name == 'add') {
+        // The call to add is marked as invariant, so the type check on the
+        // parameter to add is not needed.
+        var receiver = node.receiver;
+        if (receiver is VariableGet && receiver.variable.isFinal) {
+          // The receiver is a final variable, so it only contains the
+          // initializer value.
+          if (receiver.variable.initializer is ListLiteral) {
+            // The initializer is a list literal, so we know the list can be
+            // grown, modified, and is represented by a JavaScript Array.
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
     if (isOperatorMethodName(name) && arguments.named.isEmpty) {
       var argLength = arguments.positional.length;
       if (argLength == 0) {
@@ -4440,6 +4467,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var jsReceiver = _visitExpression(receiver);
     var args = _emitArgumentList(arguments, target: target);
+
+    if (isNativeListInvariantAdd(node)) {
+      return js.call('#.push(#)', [jsReceiver, args]);
+    }
 
     var isCallingDynamicField = target is Member &&
         target.hasGetter &&

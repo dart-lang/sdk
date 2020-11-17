@@ -3889,7 +3889,15 @@ void Class::RegisterCHACode(const Code& code) {
 }
 
 void Class::DisableCHAOptimizedCode(const Class& subclass) {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  // TODO(dartbug.com/36097): The program_lock acquisition has to move up the
+  // call chain to ClassFinalizer::AllocateFinalizeClass() so that:
+  //   - no two threads allocate-finalize a class at the same time(we should
+  // use the logic similar to what is used in EnsureIsAllocateFinalized()).
+  //   - code is deoptimized before we violate optimization assumptions
+  // potentially done concurrently (AddDirectSubclass/AddDirectImplementor).
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   CHACodeArray a(*this);
   if (FLAG_trace_deoptimization && a.HasCodes()) {
     if (subclass.IsNull()) {
@@ -3928,7 +3936,15 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
 #endif
 }
 
+ArrayPtr Class::dependent_code() const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+  return raw_ptr()->dependent_code_;
+}
+
 void Class::set_dependent_code(const Array& array) const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
 
@@ -10405,11 +10421,15 @@ InstancePtr Field::SetterClosure() const {
 }
 
 ArrayPtr Field::dependent_code() const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
   return raw_ptr()->dependent_code_;
 }
 
 void Field::set_dependent_code(const Array& array) const {
   ASSERT(IsOriginal());
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
 
@@ -11058,6 +11078,8 @@ void Field::RecordStore(const Object& value) const {
       THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
+    Thread* const thread = Thread::Current();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     DeoptimizeDependentCode();
   }
 }

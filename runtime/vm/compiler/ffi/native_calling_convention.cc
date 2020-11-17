@@ -6,8 +6,11 @@
 
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
-#include "vm/cpu.h"
 #include "vm/zone_text_buffer.h"
+
+#if !defined(FFI_UNIT_TESTS)
+#include "vm/cpu.h"
+#endif
 
 namespace dart {
 
@@ -17,6 +20,7 @@ namespace ffi {
 
 const intptr_t kNoFpuRegister = -1;
 
+#if !defined(FFI_UNIT_TESTS)
 // In Soft FP, floats and doubles get passed in integer registers.
 static bool SoftFpAbi() {
 #if defined(TARGET_ARCH_ARM)
@@ -25,6 +29,15 @@ static bool SoftFpAbi() {
   return false;
 #endif
 }
+#else  // !defined(FFI_UNIT_TESTS)
+static bool SoftFpAbi() {
+#if defined(TARGET_ARCH_ARM) && defined(TARGET_OS_ANDROID)
+  return true;
+#else
+  return false;
+#endif
+}
+#endif  // !defined(FFI_UNIT_TESTS)
 
 // In Soft FP, floats are treated as 4 byte ints, and doubles as 8 byte ints.
 static const NativeType& ConvertIfSoftFp(Zone* zone, const NativeType& rep) {
@@ -293,9 +306,11 @@ const char* NativeCallingConvention::ToCString(Zone* zone,
   return textBuffer.buffer();
 }
 
+#if !defined(FFI_UNIT_TESTS)
 const char* NativeCallingConvention::ToCString(bool multi_line) const {
   return ToCString(Thread::Current()->zone(), multi_line);
 }
+#endif
 
 }  // namespace ffi
 

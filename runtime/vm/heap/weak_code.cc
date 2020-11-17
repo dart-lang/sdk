@@ -69,6 +69,9 @@ void WeakCodeReferences::DisableCode() {
   }
 
   UpdateArrayTo(Object::null_array());
+
+  // TODO(dartbug.com/36097): This has to walk all mutator threads when
+  // disabling code.
   // Disable all code on stack.
   Code& code = Code::Handle();
   {

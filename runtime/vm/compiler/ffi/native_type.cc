@@ -10,9 +10,9 @@
 #include "vm/constants.h"
 #include "vm/zone_text_buffer.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 #include "vm/compiler/backend/locations.h"
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
 namespace dart {
 
@@ -127,7 +127,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesField() const {
   }
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
   switch (representation_) {
     case kInt8:
@@ -170,7 +170,7 @@ Representation NativePrimitiveType::AsRepresentation() const {
       UNREACHABLE();
   }
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
 bool NativePrimitiveType::Equals(const NativeType& other) const {
   if (!other.IsPrimitive()) {
@@ -249,12 +249,14 @@ NativeType& NativeType::FromTypedDataClassId(Zone* zone, classid_t class_id) {
   return *new (zone) NativePrimitiveType(fundamental_rep);
 }
 
+#if !defined(FFI_UNIT_TESTS)
 NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
   // TODO(36730): Support composites.
   return NativeType::FromTypedDataClassId(zone, type.type_class_id());
 }
+#endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 static PrimitiveType fundamental_rep(Representation rep) {
   switch (rep) {
     case kUnboxedDouble:
@@ -277,7 +279,7 @@ NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
                                                            Representation rep) {
   return *new (zone) NativePrimitiveType(fundamental_rep(rep));
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
 const char* NativeType::ToCString(Zone* zone) const {
   ZoneTextBuffer textBuffer(zone);
@@ -285,9 +287,11 @@ const char* NativeType::ToCString(Zone* zone) const {
   return textBuffer.buffer();
 }
 
+#if !defined(FFI_UNIT_TESTS)
 const char* NativeType::ToCString() const {
   return ToCString(Thread::Current()->zone());
 }
+#endif
 
 static const char* PrimitiveTypeToCString(PrimitiveType rep) {
   switch (rep) {
@@ -334,9 +338,11 @@ const char* NativeFunctionType::ToCString(Zone* zone) const {
   return textBuffer.buffer();
 }
 
+#if !defined(FFI_UNIT_TESTS)
 const char* NativeFunctionType::ToCString() const {
   return ToCString(Thread::Current()->zone());
 }
+#endif
 
 void NativeFunctionType::PrintTo(BaseTextBuffer* f) const {
   f->AddString("(");

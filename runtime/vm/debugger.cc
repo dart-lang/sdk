@@ -1919,8 +1919,11 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
 
   Code& code = Code::Handle(zone);
+  Code& inlined_code = Code::Handle(zone);
+  Array& deopt_frame = Array::Handle(zone);
   Smi& offset = Smi::Handle(zone);
   Function& function = Function::Handle(zone);
 
@@ -1932,8 +1935,16 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
   const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
   bool has_async = false;
+
+  std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
+    code = frame->LookupDartCode();
+    AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
+                     &inlined_code, &deopt_frame);
+  };
+
   StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
-                                     /*skip_frames=*/0, &has_async);
+                                     /*skip_frames=*/0, &on_sync_frame,
+                                     &has_async);
 
   // If the entire stack is sync, return no trace.
   if (!has_async) {
@@ -1941,11 +1952,19 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
   }
 
   const intptr_t length = code_array.Length();
-  for (intptr_t i = stack_trace->Length(); i < length; ++i) {
+  bool async_frames = false;
+  for (intptr_t i = 0; i < length; ++i) {
     code ^= code_array.At(i);
 
     if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
       stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
+      // Once we reach a gap, the rest is async.
+      async_frames = true;
+      continue;
+    }
+
+    // Skip the sync frames since they've been added (and un-inlined) above.
+    if (!async_frames) {
       continue;
     }
 

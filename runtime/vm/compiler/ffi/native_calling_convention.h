@@ -42,7 +42,9 @@ class NativeCallingConvention : public ZoneAllocated {
   void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
   void PrintToMultiLine(BaseTextBuffer* f) const;
   const char* ToCString(Zone* zone, bool multi_line = false) const;
+#if !defined(FFI_UNIT_TESTS)
   const char* ToCString(bool multi_line = false) const;
+#endif
 
  private:
   NativeCallingConvention(const NativeLocations& argument_locations,

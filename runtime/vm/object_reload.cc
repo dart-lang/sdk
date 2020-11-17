@@ -468,6 +468,8 @@ void Class::PatchFieldsAndFunctions() const {
     }
   }
 
+  Thread* thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Array& field_list = Array::Handle(fields());
   Field& field = Field::Handle();
   for (intptr_t i = 0; i < field_list.Length(); i++) {

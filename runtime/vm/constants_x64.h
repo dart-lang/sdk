@@ -473,7 +473,7 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-const uword kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
+const uint64_t kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
 
 }  // namespace dart
 

@@ -1,0 +1,12 @@
+r0 int32[int8]
+r1 int32[int8]
+r2 int32[int8]
+r3 int32[int8]
+S+0 int32[int8]
+S+4 int32[int8]
+S+8 int32[int8]
+S+12 int32[int8]
+S+16 int32[int8]
+S+20 int32[int8]
+=>
+r0 int32[int8]

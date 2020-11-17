@@ -101,6 +101,10 @@ class AnalysisEngine {
   /// The file name used for analysis options files.
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
+  /// The file name used for the files containing the data for the data-driven
+  /// fixes.
+  static const String FIX_DATA_FILE = 'fix_data.yaml';
+
   /// The file name used for pubspec files.
   static const String PUBSPEC_YAML_FILE = 'pubspec.yaml';
 

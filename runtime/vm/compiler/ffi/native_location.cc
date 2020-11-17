@@ -12,6 +12,7 @@ namespace compiler {
 
 namespace ffi {
 
+#if !defined(FFI_UNIT_TESTS)
 bool NativeLocation::LocationCanBeExpressed(Location loc, Representation rep) {
   switch (loc.kind()) {
     case Location::Kind::kRegister:
@@ -74,6 +75,7 @@ NativeLocation& NativeLocation::FromPairLocation(Zone* zone,
   const Location loc = pair_loc.AsPairLocation()->At(index);
   return FromLocation(zone, loc, rep);
 }
+#endif
 
 const NativeRegistersLocation& NativeLocation::AsRegisters() const {
   ASSERT(IsRegisters());
@@ -90,6 +92,7 @@ const NativeStackLocation& NativeLocation::AsStack() const {
   return static_cast<const NativeStackLocation&>(*this);
 }
 
+#if !defined(FFI_UNIT_TESTS)
 Location NativeRegistersLocation::AsLocation() const {
   ASSERT(IsExpressibleAsLocation());
   switch (num_regs()) {
@@ -126,6 +129,7 @@ Location NativeStackLocation::AsLocation() const {
   }
   UNREACHABLE();
 }
+#endif
 
 NativeRegistersLocation& NativeRegistersLocation::Split(Zone* zone,
                                                         intptr_t index) const {
@@ -206,10 +210,12 @@ bool NativeStackLocation::Equals(const NativeLocation& other) const {
   return other_stack.offset_in_bytes_ == offset_in_bytes_;
 }
 
+#if !defined(FFI_UNIT_TESTS)
 compiler::Address NativeLocationToStackSlotAddress(
     const NativeStackLocation& loc) {
   return compiler::Address(loc.base_register(), loc.offset_in_bytes());
 }
+#endif
 
 static void PrintRepresentations(BaseTextBuffer* f, const NativeLocation& loc) {
   f->AddString(" ");
@@ -271,9 +277,11 @@ const char* NativeLocation::ToCString(Zone* zone) const {
   return textBuffer.buffer();
 }
 
+#if !defined(FFI_UNIT_TESTS)
 const char* NativeLocation::ToCString() const {
   return ToCString(Thread::Current()->zone());
 }
+#endif
 
 intptr_t SizeFromFpuRegisterKind(enum FpuRegisterKind kind) {
   switch (kind) {

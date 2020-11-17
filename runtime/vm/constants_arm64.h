@@ -1400,7 +1400,7 @@ class Instr {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
-const uword kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+const uint64_t kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
 
 }  // namespace dart
 

@@ -646,6 +646,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
       AddAsync.newInstance,
     ],
+    CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY: [
+      AddAsync.missingReturn,
+    ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
@@ -958,6 +961,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
       AddMissingRequiredArgument.newInstance,
+    ],
+    HintCode.MISSING_RETURN: [
+      AddAsync.missingReturn,
     ],
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.newInstance,

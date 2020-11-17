@@ -9,10 +9,12 @@
 #include "platform/globals.h"
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
-#include "vm/object.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 #include "vm/compiler/backend/locations.h"
+#endif
+#if !defined(FFI_UNIT_TESTS)
+#include "vm/object.h"
 #endif
 
 namespace dart {
@@ -51,13 +53,15 @@ class NativePrimitiveType;
 // TODO(36730): Add composites.
 class NativeType : public ZoneAllocated {
  public:
+#if !defined(FFI_UNIT_TESTS)
   static NativeType& FromAbstractType(Zone* zone, const AbstractType& type);
+#endif
   static NativeType& FromTypedDataClassId(Zone* zone, classid_t class_id);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   static NativePrimitiveType& FromUnboxedRepresentation(Zone* zone,
                                                         Representation rep);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
   virtual bool IsPrimitive() const { return false; }
   const NativePrimitiveType& AsPrimitive() const;
@@ -79,7 +83,7 @@ class NativeType : public ZoneAllocated {
   // The alignment in bytes of this representation as member of a composite.
   virtual intptr_t AlignmentInBytesField() const = 0;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   // NativeTypes which are available as unboxed Representations.
   virtual bool IsExpressibleAsRepresentation() const { return false; }
 
@@ -91,7 +95,7 @@ class NativeType : public ZoneAllocated {
     const auto& widened = WidenTo4Bytes(zone_);
     return widened.AsRepresentation();
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
   virtual bool Equals(const NativeType& other) const { UNREACHABLE(); }
 
@@ -104,7 +108,9 @@ class NativeType : public ZoneAllocated {
 
   virtual void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString(Zone* zone) const;
+#if !defined(FFI_UNIT_TESTS)
   const char* ToCString() const;
+#endif
 
   virtual ~NativeType() {}
 
@@ -152,10 +158,10 @@ class NativePrimitiveType : public NativeType {
   virtual intptr_t AlignmentInBytesStack() const;
   virtual intptr_t AlignmentInBytesField() const;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   virtual bool IsExpressibleAsRepresentation() const;
   virtual Representation AsRepresentation() const;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
   virtual bool Equals(const NativeType& other) const;
   virtual NativePrimitiveType& Split(Zone* zone, intptr_t part) const;
@@ -181,8 +187,9 @@ class NativeFunctionType : public ZoneAllocated {
 
   void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString(Zone* zone) const;
-
+#if !defined(FFI_UNIT_TESTS)
   const char* ToCString() const;
+#endif
 
  private:
   const NativeTypes& argument_types_;

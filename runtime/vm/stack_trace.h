@@ -80,11 +80,15 @@ class StackTraceUtils : public AllStatic {
   ///       closure = closure.context[Context::kAsyncCompleterVarIndex]._future
   ///           ._resultOrListeners.callback;
   ///     }
+  ///
+  /// If [on_sync_frames] is non-nullptr, it will be called for every
+  /// synchronous frame which is collected.
   static void CollectFramesLazy(
       Thread* thread,
       const GrowableObjectArray& code_array,
       const GrowableObjectArray& pc_offset_array,
       int skip_frames,
+      std::function<void(StackFrame*)>* on_sync_frames = nullptr,
       bool* has_async = nullptr);
 
   /// Counts the number of stack frames.

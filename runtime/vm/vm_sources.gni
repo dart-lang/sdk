@@ -451,3 +451,15 @@ vm_sources_tests = [
   "virtual_memory_test.cc",
   "zone_test.cc",
 ]
+
+constants_sources = [
+  "constants_arm.cc",
+  "constants_arm.h",
+  "constants_arm64.cc",
+  "constants_arm64.h",
+  "constants_base.h",
+  "constants_ia32.cc",
+  "constants_ia32.h",
+  "constants_x64.cc",
+  "constants_x64.h",
+]
