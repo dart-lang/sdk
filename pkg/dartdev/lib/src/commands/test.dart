@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
@@ -43,7 +44,9 @@ No pubspec.yaml file found; please run this command from the root of your projec
     try {
       final testExecutable = await getExecutableForCommand('test:test');
       log.trace('dart $testExecutable ${argResults.rest.join(' ')}');
-      VmInteropHandler.run(testExecutable, argResults.rest);
+      VmInteropHandler.run(testExecutable, argResults.rest,
+          packageConfigOverride:
+              join(current, '.dart_tool', 'package_config.json'));
       return 0;
     } on CommandResolutionFailedException catch (e) {
       print(e.message);

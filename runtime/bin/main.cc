@@ -899,7 +899,9 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   file->Release();
 }
 
-bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
+void RunMainIsolate(const char* script_name,
+                    const char* package_config_override,
+                    CommandLineOptions* dart_options) {
   // Call CreateIsolateGroupAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
@@ -908,7 +910,9 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   Dart_IsolateFlagsInitialize(&flags);
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
-      /* is_main_isolate */ true, script_name, "main", Options::packages_file(),
+      /* is_main_isolate */ true, script_name, "main",
+      Options::packages_file() == nullptr ? package_config_override
+                                          : Options::packages_file(),
       &flags, NULL /* callback_data */, &error, &exit_code);
 
   if (isolate == NULL) {
@@ -1035,9 +1039,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
-
-  // No restart.
-  return false;
 }
 
 #undef CHECK_RESULT
@@ -1076,6 +1077,8 @@ static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 
 void main(int argc, char** argv) {
   char* script_name = nullptr;
+  // Allows the dartdev process to point to the desired package_config.
+  char* package_config_override = nullptr;
   const int EXTRA_VM_ARGUMENTS = 10;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions dart_options(argc + EXTRA_VM_ARGUMENTS);
@@ -1290,7 +1293,7 @@ void main(int argc, char** argv) {
   if (DartDevIsolate::should_run_dart_dev() && !Options::disable_dart_dev() &&
       Options::gen_snapshot_kind() == SnapshotKind::kNone) {
     DartDevIsolate::DartDev_Result dartdev_result = DartDevIsolate::RunDartDev(
-        CreateIsolateGroupAndSetup, Options::packages_file(), &script_name,
+        CreateIsolateGroupAndSetup, &package_config_override, &script_name,
         &dart_options);
     ASSERT(dartdev_result != DartDevIsolate::DartDev_Result_Unknown);
     ran_dart_dev = true;
@@ -1310,9 +1313,7 @@ void main(int argc, char** argv) {
       Platform::Exit(kErrorExitCode);
     } else {
       // Run the main isolate until we aren't told to restart.
-      while (RunMainIsolate(script_name, &dart_options)) {
-        Syslog::PrintErr("Restarting VM\n");
-      }
+      RunMainIsolate(script_name, package_config_override, &dart_options);
     }
   }
 

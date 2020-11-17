@@ -88,6 +88,39 @@ void run() {
     expect(result.exitCode, 0);
   });
 
+  test('from path-dependency with cyclic dependency', () {
+    p = project(name: 'foo');
+    final bar = TestProject(name: 'bar');
+    p.file('pubspec.yaml', '''
+name: foo
+environment:
+  sdk: '>=2.9.0<3.0.0'
+
+dependencies: { 'bar': {'path': '${bar.dir.path}'}}
+''');
+    p.file('lib/foo.dart', r'''
+import 'package:bar/bar.dart';
+final b = "FOO $bar";
+''');
+
+    try {
+      bar.file('lib/bar.dart', 'final bar = "BAR";');
+
+      bar.file('bin/main.dart', r'''
+import 'package:foo/foo.dart';
+void main(List<String> args) => print("$b $args");
+''');
+
+      ProcessResult result = p.runSync('run', ['bar:main', '--arg1', 'arg2']);
+
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
+      expect(result.exitCode, 0);
+    } finally {
+      bar.dispose();
+    }
+  });
+
   test('with absolute file path', () async {
     p = project();
     p.file('main.dart', 'void main(args) { print(args); }');
@@ -101,8 +134,8 @@ void run() {
     ]);
 
     // --enable-experiment and main.dart should not be passed.
-    expect(result.stdout, equals('[--argument1, argument2]\n'));
     expect(result.stderr, isEmpty);
+    expect(result.stdout, equals('[--argument1, argument2]\n'));
     expect(result.exitCode, 0);
   });
 
@@ -118,8 +151,8 @@ void run() {
     ]);
 
     // --enable-experiment and main.dart should not be passed.
-    expect(result.stdout, equals('[--argument1, argument2]\n'));
     expect(result.stderr, isEmpty);
+    expect(result.stdout, equals('[--argument1, argument2]\n'));
     expect(result.exitCode, 0);
   });
 

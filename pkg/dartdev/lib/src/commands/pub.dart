@@ -52,7 +52,7 @@ class PubCommand extends DartdevCommand {
     log.trace('$command ${args.first}');
 
     // Call 'pub help'
-    VmInteropHandler.run(command, args);
+    VmInteropHandler.run(command, args, packageConfigOverride: null);
   }
 
   @override
@@ -83,7 +83,7 @@ class PubCommand extends DartdevCommand {
     }
 
     log.trace('$command ${args.join(' ')}');
-    VmInteropHandler.run(command, args);
+    VmInteropHandler.run(command, args, packageConfigOverride: null);
     return 0;
   }
 }
