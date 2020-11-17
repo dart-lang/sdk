@@ -680,11 +680,11 @@ void Assembler::AddImmediateSetFlags(Register dest,
                                      Register rn,
                                      int64_t imm,
                                      OperandSize sz) {
-  ASSERT(sz == kDoubleWord || sz == kWord);
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, op);
     } else {
       addsw(dest, rn, op);
@@ -692,7 +692,7 @@ void Assembler::AddImmediateSetFlags(Register dest,
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, op);
     } else {
       subsw(dest, rn, op);
@@ -701,7 +701,7 @@ void Assembler::AddImmediateSetFlags(Register dest,
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, Operand(TMP2));
     } else {
       addsw(dest, rn, Operand(TMP2));
@@ -714,10 +714,10 @@ void Assembler::SubImmediateSetFlags(Register dest,
                                      int64_t imm,
                                      OperandSize sz) {
   Operand op;
-  ASSERT(sz == kDoubleWord || sz == kWord);
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, op);
     } else {
       subsw(dest, rn, op);
@@ -725,7 +725,7 @@ void Assembler::SubImmediateSetFlags(Register dest,
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, op);
     } else {
       addsw(dest, rn, op);
@@ -734,7 +734,7 @@ void Assembler::SubImmediateSetFlags(Register dest,
     // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, Operand(TMP2));
     } else {
       subsw(dest, rn, Operand(TMP2));
@@ -1141,7 +1141,7 @@ void Assembler::StoreInternalPointer(Register object,
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kWord);
+  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kFourBytes);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
@@ -1159,7 +1159,7 @@ void Assembler::LoadClassId(Register result, Register object) {
       target::Object::tags_offset() +
       target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
-                 kUnsignedHalfword);
+                 kUnsignedTwoBytes);
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
@@ -2033,7 +2033,7 @@ bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
 
 void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
   constexpr int32_t bit_no = 63;
-  constexpr OperandSize sz = kDoubleWord;
+  constexpr OperandSize sz = kEightBytes;
   ASSERT(rn != CSP);
   switch (cond) {
     case EQ:  // equal

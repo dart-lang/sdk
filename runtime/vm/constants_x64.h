@@ -161,6 +161,9 @@ struct TypeTestABI {
   // registers above, for it is also used internally as kNullReg in those stubs.
   static const Register kSubtypeTestCacheResultReg = R8;
 
+  // No registers need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters = 0;
+
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
@@ -281,7 +284,16 @@ enum ScaleFactor {
   // https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4
   // 3.7.5 Specifying an Offset
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt64SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt64SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 #define R(reg) (1 << (reg))

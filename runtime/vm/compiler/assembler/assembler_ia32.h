@@ -238,9 +238,6 @@ class Assembler : public AssemblerBase {
   }
   ~Assembler() {}
 
-  static const bool kNearJump = true;
-  static const bool kFarJump = false;
-
   /*
    * Emit Machine Instructions.
    */
@@ -556,12 +553,12 @@ class Assembler : public AssemblerBase {
   void int3();
   void hlt();
 
-  void j(Condition condition, Label* label, bool near = kFarJump);
+  void j(Condition condition, Label* label, JumpDistance distance = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
   void jmp(const Address& address);
-  void jmp(Label* label, bool near = kFarJump);
+  void jmp(Label* label, JumpDistance distance = kFarJump);
   void jmp(const ExternalLabel* label);
 
   void lock();
@@ -878,7 +875,7 @@ class Assembler : public AssemblerBase {
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
                             Label* trace,
-                            bool near_jump);
+                            JumpDistance distance);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -886,14 +883,14 @@ class Assembler : public AssemblerBase {
   // Only the tags field of the object is initialized.
   void TryAllocate(const Class& cls,
                    Label* failure,
-                   bool near_jump,
+                   JumpDistance distance,
                    Register instance_reg,
                    Register temp_reg);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
                         Label* failure,
-                        bool near_jump,
+                        JumpDistance distance,
                         Register instance,
                         Register end_address,
                         Register temp);

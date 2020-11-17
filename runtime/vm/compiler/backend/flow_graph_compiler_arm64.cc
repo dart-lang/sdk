@@ -271,17 +271,6 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
                                      is_not_instance_lbl);
 }
 
-void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
-                                      const GrowableArray<intptr_t>& class_ids,
-                                      compiler::Label* is_equal_lbl,
-                                      compiler::Label* is_not_equal_lbl) {
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    __ CompareImmediate(class_id_reg, class_ids[i]);
-    __ b(is_equal_lbl, EQ);
-  }
-  __ b(is_not_equal_lbl);
-}
-
 // Testing against an instantiated type with no arguments, without
 // SubtypeTestCache.
 // R0: instance being type checked (preserved).
@@ -653,13 +642,13 @@ void FlowGraphCompiler::EmitFrameEntry() {
            compiler::FieldAddress(CODE_REG, Code::owner_offset()));
 
     __ LoadFieldFromOffset(R7, function_reg, Function::usage_counter_offset(),
-                           kWord);
+                           compiler::kFourBytes);
     // Reoptimization of an optimized function is triggered by counting in
     // IC stubs, but not at the entry of the function.
     if (!is_optimizing()) {
       __ add(R7, R7, compiler::Operand(1));
       __ StoreFieldToOffset(R7, function_reg, Function::usage_counter_offset(),
-                            kWord);
+                            compiler::kFourBytes);
     }
     __ CompareImmediate(R7, GetOptimizationThreshold());
     ASSERT(function_reg == R6);
@@ -1305,16 +1294,16 @@ void FlowGraphCompiler::EmitMove(Location destination,
   }
 }
 
-static OperandSize BytesToOperandSize(intptr_t bytes) {
+static compiler::OperandSize BytesToOperandSize(intptr_t bytes) {
   switch (bytes) {
     case 8:
-      return OperandSize::kDoubleWord;
+      return compiler::OperandSize::kEightBytes;
     case 4:
-      return OperandSize::kWord;
+      return compiler::OperandSize::kFourBytes;
     case 2:
-      return OperandSize::kHalfword;
+      return compiler::OperandSize::kTwoBytes;
     case 1:
-      return OperandSize::kByte;
+      return compiler::OperandSize::kByte;
     default:
       UNIMPLEMENTED();
   }
@@ -1382,7 +1371,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       const auto& dst = destination.AsStack();
       ASSERT(!sign_or_zero_extend);
-      const OperandSize op_size = BytesToOperandSize(dst_size);
+      auto const op_size = BytesToOperandSize(dst_size);
       __ StoreToOffset(src.reg_at(0), dst.base_register(),
                        dst.offset_in_bytes(), op_size);
     }
@@ -1426,7 +1415,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
       ASSERT(!sign_or_zero_extend);
-      const OperandSize op_size = BytesToOperandSize(dst_size);
+      auto const op_size = BytesToOperandSize(dst_size);
       __ LoadFromOffset(dst_reg, src.base_register(), src.offset_in_bytes(),
                         op_size);
 

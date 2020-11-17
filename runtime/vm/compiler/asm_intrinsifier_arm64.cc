@@ -1556,8 +1556,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ LoadClassById(R2, R1);
   __ ldr(
       R3,
-      FieldAddress(R2, target::Class::num_type_arguments_offset(), kHalfword),
-      kHalfword);
+      FieldAddress(R2, target::Class::num_type_arguments_offset(), kTwoBytes),
+      kTwoBytes);
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
@@ -1597,8 +1597,8 @@ static void EquivalentClassIds(Assembler* assembler,
   __ LoadClassById(scratch, cid1);
   __ ldr(scratch,
          FieldAddress(scratch, target::Class::num_type_arguments_offset(),
-                      kHalfword),
-         kHalfword);
+                      kTwoBytes),
+         kTwoBytes);
   __ cbnz(normal_ir_body, scratch);
   __ b(equal);
 
@@ -1654,7 +1654,8 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
 void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
                                          Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::String::hash_offset()), kUnsignedWord);
+  __ ldr(R0, FieldAddress(R0, target::String::hash_offset()),
+         kUnsignedFourBytes);
   __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
   __ b(normal_ir_body, EQ);
   __ ret();
@@ -1729,8 +1730,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::String::hash_offset(), kWord),
-         kUnsignedWord);
+  __ ldr(R0, FieldAddress(R0, target::String::hash_offset(), kFourBytes),
+         kUnsignedFourBytes);
   __ SmiTag(R0);
   __ ret();
 }
@@ -1740,8 +1741,8 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Object.
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Value.
   __ SmiUntag(R1);
-  __ str(R1, FieldAddress(R0, target::String::hash_offset(), kWord),
-         kUnsignedWord);
+  __ str(R1, FieldAddress(R0, target::String::hash_offset(), kFourBytes),
+         kUnsignedFourBytes);
   __ ret();
 }
 
@@ -1795,10 +1796,10 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
 
   // this.codeUnitAt(i + start)
   __ ldr(R10, Address(R0, 0),
-         receiver_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+         receiver_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedTwoBytes);
   // other.codeUnitAt(i)
   __ ldr(R11, Address(R2, 0),
-         other_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+         other_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedTwoBytes);
   __ cmp(R10, Operand(R11));
   __ b(return_false, NE);
 
@@ -1883,7 +1884,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ b(normal_ir_body, NE);
   ASSERT(kSmiTagShift == 1);
   __ AddImmediate(R0, target::TwoByteString::data_offset() - kHeapObjectTag);
-  __ ldr(R1, Address(R0, R1), kUnsignedHalfword);
+  __ ldr(R1, Address(R0, R1), kUnsignedTwoBytes);
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
@@ -1910,7 +1911,8 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
                                                 Label* normal_ir_body) {
   Label compute_hash;
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // OneByteString object.
-  __ ldr(R0, FieldAddress(R1, target::String::hash_offset()), kUnsignedWord);
+  __ ldr(R0, FieldAddress(R1, target::String::hash_offset()),
+         kUnsignedFourBytes);
   __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
   __ b(&compute_hash, EQ);
   __ ret();  // Return if already computed.
@@ -1963,7 +1965,8 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // return hash_ == 0 ? 1 : hash_;
   __ Bind(&done);
   __ csinc(R0, R0, ZR, NE);  // R0 <- (R0 != 0) ? R0 : (ZR + 1).
-  __ str(R0, FieldAddress(R1, target::String::hash_offset()), kUnsignedWord);
+  __ str(R0, FieldAddress(R1, target::String::hash_offset()),
+         kUnsignedFourBytes);
   __ SmiTag(R0);
   __ ret();
 }
@@ -2127,7 +2130,7 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
   __ SmiUntag(R2);
   __ AddImmediate(R3, R0,
                   target::TwoByteString::data_offset() - kHeapObjectTag);
-  __ str(R2, Address(R3, R1), kUnsignedHalfword);
+  __ str(R2, Address(R3, R1), kUnsignedTwoBytes);
   __ ret();
 }
 
@@ -2200,8 +2203,8 @@ static void StringEquality(Assembler* assembler,
     __ AddImmediate(R0, 1);
     __ AddImmediate(R1, 1);
   } else if (string_cid == kTwoByteStringCid) {
-    __ ldr(R3, Address(R0), kUnsignedHalfword);
-    __ ldr(R4, Address(R1), kUnsignedHalfword);
+    __ ldr(R3, Address(R0), kUnsignedTwoBytes);
+    __ ldr(R4, Address(R1), kUnsignedTwoBytes);
     __ AddImmediate(R0, 2);
     __ AddImmediate(R1, 2);
   } else {

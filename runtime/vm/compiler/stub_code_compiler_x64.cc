@@ -172,8 +172,9 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
     std::function<void()> perform_runtime_call) {
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
-  __ PushRegisters(kDartAvailableCpuRegs,
-                   save_fpu_registers ? kAllFpuRegistersList : 0);
+  const RegisterSet saved_registers(
+      kDartAvailableCpuRegs, save_fpu_registers ? kAllFpuRegistersList : 0);
+  __ PushRegisters(saved_registers);
 
   const intptr_t kSavedCpuRegisterSlots =
       Utils::CountOneBitsWord(kDartAvailableCpuRegs);
@@ -197,8 +198,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
   // Copy up the return address (in case it was changed).
   __ popq(TMP);
   __ movq(Address(RSP, kAllSavedRegistersSlots * target::kWordSize), TMP);
-  __ PopRegisters(kDartAvailableCpuRegs,
-                  save_fpu_registers ? kAllFpuRegistersList : 0);
+  __ PopRegisters(saved_registers);
   __ ret();
 }
 
@@ -230,8 +230,7 @@ void StubCodeCompiler::GenerateSharedStub(
 void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
-  __ PushRegisters(all_registers.cpu_registers(),
-                   all_registers.fpu_registers());
+  __ PushRegisters(all_registers);
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
@@ -239,15 +238,14 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
-  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
+  __ PopRegisters(all_registers);
   __ ret();
 }
 
 void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
-  __ PushRegisters(all_registers.cpu_registers(),
-                   all_registers.fpu_registers());
+  __ PushRegisters(all_registers);
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
@@ -262,7 +260,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
-  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
+  __ PopRegisters(all_registers);
   __ ret();
 }
 
@@ -292,6 +290,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 }
 
 #if !defined(DART_PRECOMPILER)
+static const RegisterSet kArgumentRegisterSet(
+    CallingConventions::kArgumentRegisters,
+    CallingConventions::kFpuArgumentRegisters);
+
 void StubCodeCompiler::GenerateJITCallbackTrampolines(
     Assembler* assembler,
     intptr_t next_callback_id) {
@@ -324,8 +326,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ pushq(RAX);
 
   // Save all registers which might hold arguments.
-  __ PushRegisters(CallingConventions::kArgumentRegisters,
-                   CallingConventions::kFpuArgumentRegisters);
+  __ PushRegisters(kArgumentRegisterSet);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -346,8 +347,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   }
 
   // Restore the arguments.
-  __ PopRegisters(CallingConventions::kArgumentRegisters,
-                  CallingConventions::kFpuArgumentRegisters);
+  __ PopRegisters(kArgumentRegisterSet);
 
   // Restore the callback ID.
   __ popq(RAX);
@@ -765,9 +765,9 @@ static void PushArrayOfArguments(Assembler* assembler) {
   // RBX: address of first argument in array.
   Label loop, loop_condition;
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+  static auto const kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+  static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ jmp(&loop_condition, kJumpLength);
   __ Bind(&loop);
@@ -1138,9 +1138,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&init_loop);
     __ cmpq(RDI, RCX);
 #if defined(DEBUG)
-    static const bool kJumpLength = Assembler::kFarJump;
+    static auto const kJumpLength = Assembler::kFarJump;
 #else
-    static const bool kJumpLength = Assembler::kNearJump;
+    static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
     __ j(ABOVE_EQUAL, &done, kJumpLength);
     // No generational barrier needed, since we are storing null.
@@ -1180,7 +1180,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*near_jump=*/true,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -1200,7 +1200,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*near_jump=*/true,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -1214,6 +1214,10 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
       /*allow_return=*/true,
       /*store_runtime_result_in_result_register=*/true);
 }
+
+static const RegisterSet kCalleeSavedRegisterSet(
+    CallingConventions::kCalleeSaveCpuRegisters,
+    CallingConventions::kCalleeSaveXmmRegisters);
 
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
@@ -1245,8 +1249,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(kArgDescReg);
 
   // Save C++ ABI callee-saved registers.
-  __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
-                   CallingConventions::kCalleeSaveXmmRegisters);
+  __ PushRegisters(kCalleeSavedRegisterSet);
 
   // If any additional (or fewer) values are pushed, the offsets in
   // target::frame_layout.exit_link_slot_from_entry_fp will need to be changed.
@@ -1356,8 +1359,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #endif
 
   // Restore C++ ABI callee-saved registers.
-  __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
-                  CallingConventions::kCalleeSaveXmmRegisters);
+  __ PopRegisters(kCalleeSavedRegisterSet);
   __ set_constant_pool_allowed(false);
 
   // Restore the frame pointer.
@@ -1471,9 +1473,9 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
       Label loop, entry;
       __ leaq(R13, FieldAddress(RAX, target::Context::variable_offset(0)));
 #if defined(DEBUG)
-      static const bool kJumpLength = Assembler::kFarJump;
+      static auto const kJumpLength = Assembler::kFarJump;
 #else
-      static const bool kJumpLength = Assembler::kNearJump;
+      static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ jmp(&entry, kJumpLength);
       __ Bind(&loop);
@@ -1819,9 +1821,9 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ Bind(&init_loop);
       __ cmpq(kNextFieldReg, kNewTopReg);
 #if defined(DEBUG)
-      static const bool kJumpLength = Assembler::kFarJump;
+      static auto const kJumpLength = Assembler::kFarJump;
 #else
-      static const bool kJumpLength = Assembler::kNearJump;
+      static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ j(ABOVE_EQUAL, &done, kJumpLength);
       __ StoreIntoObjectNoBarrier(RAX, Address(kNextFieldReg, 0), kNullReg);
@@ -2566,9 +2568,9 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
   __ movzxb(RAX, Address(RAX, target::Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+  static auto const kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+  static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(NOT_EQUAL, &stepping, kJumpLength);
   __ Bind(&done_stepping);
@@ -2934,220 +2936,6 @@ void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 // See comment on [GenerateSubtypeNTestCacheStub].
 void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 6);
-}
-
-// The <X>TypeTestStubs are used to test whether a given value is of a given
-// type. All variants have the same calling convention:
-//
-// Inputs (from TypeTestABI struct):
-//   - kSubtypeTestCacheReg: RawSubtypeTestCache
-//   - kInstanceReg: instance to test against.
-//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (if needed).
-//   - kFunctionTypeArgumentsReg : function type arguments (if needed).
-//
-// See GenerateSubtypeNTestCacheStub for registers that may need saving by the
-// caller.
-//
-// Output (from TypeTestABI struct):
-//   - kResultReg: checked instance.
-//
-// Throws if the check is unsuccessful.
-//
-// Note of warning: The caller will not populate CODE_REG and we have therefore
-// no access to the pool.
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  __ movq(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-}
-
-// Used instead of DefaultTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  // Fast case for 'null'.
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ movq(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  __ Breakpoint();
-}
-
-static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
-                                            TypeCheckMode mode) {
-  __ PushObject(NullObject());  // Make room for result.
-  __ pushq(TypeTestABI::kInstanceReg);
-  __ pushq(TypeTestABI::kDstTypeReg);
-  __ pushq(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ pushq(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(NullObject());
-  __ pushq(TypeTestABI::kSubtypeTestCacheReg);
-  __ PushImmediate(Immediate(target::ToRawSmi(mode)));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
-  __ Drop(1);  // mode
-  __ popq(TypeTestABI::kSubtypeTestCacheReg);
-  __ Drop(1);
-  __ popq(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ popq(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ popq(TypeTestABI::kDstTypeReg);
-  __ popq(TypeTestABI::kInstanceReg);
-  __ Drop(1);  // Discard return value.
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  __ movq(
-      CODE_REG,
-      Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-  __ Ret();
-}
-
-// Used instead of LazySpecializeTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  // Fast case for 'null'.
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ movq(
-      CODE_REG,
-      Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-static void BuildTypeParameterTypeTestStub(Assembler* assembler,
-                                           bool allow_null) {
-  Label done;
-
-  if (allow_null) {
-    __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-    __ BranchIf(EQUAL, &done);
-  }
-
-  Label function_type_param;
-  __ cmpw(FieldAddress(TypeTestABI::kDstTypeReg,
-                       TypeParameter::parameterized_class_id_offset()),
-          Immediate(kFunctionCid));
-  __ BranchIf(EQUAL, &function_type_param);
-
-  auto handle_case = [&](Register tav) {
-    __ CompareObject(tav, NullObject());
-    __ BranchIf(EQUAL, &done);
-    __ movzxw(
-        TypeTestABI::kScratchReg,
-        FieldAddress(TypeTestABI::kDstTypeReg, TypeParameter::index_offset()));
-    __ movq(TypeTestABI::kScratchReg,
-            FieldAddress(tav, TypeTestABI::kScratchReg, TIMES_8,
-                         target::TypeArguments::InstanceSize()));
-    __ jmp(FieldAddress(TypeTestABI::kScratchReg,
-                        AbstractType::type_test_stub_entry_point_offset()));
-  };
-
-  // Class type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
-
-  // Function type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  __ Bind(&function_type_param);
-  handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
-    Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
-}
-
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  Label done, call_runtime;
-
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ movq(CODE_REG,
-            Address(THR, target::Thread::slow_type_test_stub_offset()));
-  }
-  __ EnterStubFrame();
-
-  // If the subtype-cache is null, it needs to be lazily-created by the runtime.
-  __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime);
-
-  // If this is not a [Type] object, we'll go to the runtime.
-  Label is_simple_case, is_complex_case;
-  __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
-  __ cmpq(TypeTestABI::kScratchReg, Immediate(kTypeCid));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is instantiated/uninstantiated.
-  __ cmpb(
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::type_state_offset()),
-      Immediate(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is a function type.
-  __ movq(
-      TypeTestABI::kScratchReg,
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::signature_offset()));
-  __ CompareObject(TypeTestABI::kScratchReg, NullObject());
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
-
-  // Fall through to &is_simple_case
-
-  __ Bind(&is_simple_case);
-  {
-    __ Call(StubCodeSubtype2TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime);
-  }
-
-  __ Bind(&is_complex_case);
-  {
-    __ Call(StubCodeSubtype6TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    // Fall through to runtime_call
-  }
-
-  __ Bind(&call_runtime);
-
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
-
-  __ Bind(&done);
-  __ LeaveStubFrame();
-  __ Ret();
 }
 
 // Return the current stack pointer address, used to stack alignment
@@ -3729,7 +3517,8 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   Label call_runtime;
   __ pushq(AllocateTypedDataArrayABI::kLengthReg);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, false));
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(cid, &call_runtime, Assembler::kFarJump));
   __ movq(RDI, AllocateTypedDataArrayABI::kLengthReg);
   /* Check that length is a positive Smi. */
   /* RDI: requested array length argument. */

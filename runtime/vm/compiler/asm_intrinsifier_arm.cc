@@ -1213,8 +1213,8 @@ void AsmIntrinsifier::Double_getIsInfinite(Assembler* assembler,
   if (TargetCPUFeatures::vfp_supported()) {
     __ ldr(R0, Address(SP, 0 * target::kWordSize));
     // R1 <- value[0:31], R2 <- value[32:63]
-    __ LoadFieldFromOffset(kWord, R1, R0, target::Double::value_offset());
-    __ LoadFieldFromOffset(kWord, R2, R0,
+    __ LoadFieldFromOffset(R1, R0, target::Double::value_offset());
+    __ LoadFieldFromOffset(R2, R0,
                            target::Double::value_offset() + target::kWordSize);
 
     // If the low word isn't 0, then it isn't infinity.
@@ -1382,13 +1382,13 @@ void AsmIntrinsifier::Random_nextState(Assembler* assembler,
       disp_0 + target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
 
   __ LoadImmediate(R0, a_int32_value);
-  __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
-  __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
+  __ LoadFieldFromOffset(R2, R1, disp_0);
+  __ LoadFieldFromOffset(R3, R1, disp_1);
   __ mov(R8, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
   // Unsigned 32-bit multiply and 64-bit accumulate into R8:R3.
   __ umlal(R3, R8, R0, R2);  // R8:R3 <- R8:R3 + R0 * R2.
-  __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
-  __ StoreToOffset(kWord, R8, R1, disp_1 - kHeapObjectTag);
+  __ StoreFieldToOffset(R3, R1, disp_0);
+  __ StoreFieldToOffset(R8, R1, disp_1);
   ASSERT(target::ToRawSmi(0) == 0);
   __ eor(R0, R0, Operand(R0));
   __ Ret();
@@ -1466,25 +1466,22 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ b(&not_double, NE);
 
   __ LoadIsolate(R0);
-  __ LoadFromOffset(kWord, R0, R0,
-                    target::Isolate::cached_object_store_offset());
-  __ LoadFromOffset(kWord, R0, R0, target::ObjectStore::double_type_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadFromOffset(R0, R0, target::ObjectStore::double_type_offset());
   __ Ret();
 
   __ Bind(&not_double);
   JumpIfNotInteger(assembler, R1, R0, &not_integer);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(kWord, R0, R0,
-                    target::Isolate::cached_object_store_offset());
-  __ LoadFromOffset(kWord, R0, R0, target::ObjectStore::int_type_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadFromOffset(R0, R0, target::ObjectStore::int_type_offset());
   __ Ret();
 
   __ Bind(&not_integer);
   JumpIfNotString(assembler, R1, R0, &use_declaration_type);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(kWord, R0, R0,
-                    target::Isolate::cached_object_store_offset());
-  __ LoadFromOffset(kWord, R0, R0, target::ObjectStore::string_type_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadFromOffset(R0, R0, target::ObjectStore::string_type_offset());
   __ Ret();
 
   __ Bind(&use_declaration_type);

@@ -285,17 +285,6 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
                                      is_not_instance_lbl);
 }
 
-void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
-                                      const GrowableArray<intptr_t>& class_ids,
-                                      compiler::Label* is_equal_lbl,
-                                      compiler::Label* is_not_equal_lbl) {
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    __ CompareImmediate(class_id_reg, class_ids[i]);
-    __ b(is_equal_lbl, EQ);
-  }
-  __ b(is_not_equal_lbl);
-}
-
 // Testing against an instantiated type with no arguments, without
 // SubtypeTestCache.
 // R0: instance being type checked (preserved).
@@ -663,15 +652,15 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     kPoolReg = PP;
   } else {
-    __ LoadFieldFromOffset(kWord, kPoolReg, CODE_REG,
+    __ LoadFieldFromOffset(kPoolReg, CODE_REG,
                            compiler::target::Code::object_pool_offset());
   }
   __ LoadImmediate(R4, type_arguments_field_offset);
   __ LoadFieldFromOffset(
-      kWord, R1, kPoolReg,
+      R1, kPoolReg,
       compiler::target::ObjectPool::element_offset(function_index));
   __ LoadFieldFromOffset(
-      kWord, CODE_REG, kPoolReg,
+      CODE_REG, kPoolReg,
       compiler::target::ObjectPool::element_offset(stub_index));
   __ Branch(compiler::FieldAddress(
       CODE_REG,
@@ -736,8 +725,7 @@ void FlowGraphCompiler::EmitPrologue() {
       const intptr_t slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : R0;
-      __ StoreToOffset(kWord, value_reg, FP,
-                       slot_index * compiler::target::kWordSize);
+      __ StoreToOffset(value_reg, FP, slot_index * compiler::target::kWordSize);
     }
   }
 
@@ -871,7 +859,7 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   bool old_use_far_branches = assembler_->use_far_branches();
   assembler_->set_use_far_branches(true);
 #endif  // DEBUG
-  __ LoadFieldFromOffset(kWord, R1, R0,
+  __ LoadFieldFromOffset(R1, R0,
                          compiler::target::Array::element_offset(edge_id));
   __ add(R1, R1, compiler::Operand(Smi::RawValue(1)));
   __ StoreIntoObjectNoBarrierOffset(
@@ -897,8 +885,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   // Pass the function explicitly, it is used in IC stub.
 
   __ LoadObject(R8, parsed_function().function());
-  __ LoadFromOffset(kWord, R0, SP,
-                    (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
+  __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, PcDescriptorsLayout::kIcCall,
                    locs, entry_kind);
@@ -915,8 +902,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
-  __ LoadFromOffset(kWord, R0, SP,
-                    (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
+  __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R9, ic_data);
   __ LoadUniqueObject(CODE_REG, stub);
   const intptr_t entry_point_offset =
@@ -946,7 +932,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   __ Comment("MegamorphicCall");
   // Load receiver into R0.
-  __ LoadFromOffset(kWord, R0, SP,
+  __ LoadFromOffset(R0, SP,
                     (args_desc.Count() - 1) * compiler::target::kWordSize);
   // Use same code pattern as instance call so it can be parsed by code patcher.
   if (FLAG_precompiled_mode) {
@@ -1019,7 +1005,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
 
   __ Comment("InstanceCallAOT (%s)", switchable_call_mode);
   __ LoadFromOffset(
-      kWord, R0, SP,
+      R0, SP,
       (ic_data.SizeWithoutTypeArgs() - 1) * compiler::target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
@@ -1207,8 +1193,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   __ Comment("EmitTestAndCall");
   // Load receiver into R0.
   __ LoadFromOffset(
-      kWord, R0, SP,
-      (count_without_type_args - 1) * compiler::target::kWordSize);
+      R0, SP, (count_without_type_args - 1) * compiler::target::kWordSize);
   __ LoadObject(R4, arguments_descriptor);
 }
 
@@ -1261,14 +1246,12 @@ void FlowGraphCompiler::EmitMove(Location destination,
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ StoreToOffset(kWord, source.reg(), destination.base_reg(),
-                       dest_offset);
+      __ StoreToOffset(source.reg(), destination.base_reg(), dest_offset);
     }
   } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
       const intptr_t source_offset = source.ToStackSlotOffset();
-      __ LoadFromOffset(kWord, destination.reg(), source.base_reg(),
-                        source_offset);
+      __ LoadFromOffset(destination.reg(), source.base_reg(), source_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
@@ -1282,8 +1265,8 @@ void FlowGraphCompiler::EmitMove(Location destination,
       // temporary as we know we're in a ParallelMove.
       const Register temp_reg = LR;
 
-      __ LoadFromOffset(kWord, temp_reg, source.base_reg(), source_offset);
-      __ StoreToOffset(kWord, temp_reg, destination.base_reg(), dest_offset);
+      __ LoadFromOffset(temp_reg, source.base_reg(), source_offset);
+      __ StoreToOffset(temp_reg, destination.base_reg(), dest_offset);
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
@@ -1359,14 +1342,14 @@ void FlowGraphCompiler::EmitMove(Location destination,
   }
 }
 
-static OperandSize BytesToOperandSize(intptr_t bytes) {
+static compiler::OperandSize BytesToOperandSize(intptr_t bytes) {
   switch (bytes) {
     case 4:
-      return OperandSize::kWord;
+      return compiler::OperandSize::kFourBytes;
     case 2:
-      return OperandSize::kHalfword;
+      return compiler::OperandSize::kTwoBytes;
     case 1:
-      return OperandSize::kByte;
+      return compiler::OperandSize::kByte;
     default:
       UNIMPLEMENTED();
   }
@@ -1425,9 +1408,9 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsStack();
       ASSERT(!sign_or_zero_extend);
       ASSERT(dst_size <= 4);
-      const OperandSize op_size = BytesToOperandSize(dst_size);
-      __ StoreToOffset(op_size, src.reg_at(0), dst.base_register(),
-                       dst.offset_in_bytes());
+      auto const op_size = BytesToOperandSize(dst_size);
+      __ StoreToOffset(src.reg_at(0), dst.base_register(),
+                       dst.offset_in_bytes(), op_size);
     }
 
   } else if (source.IsFpuRegisters()) {
@@ -1485,9 +1468,9 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto dst_reg = dst.reg_at(0);
       ASSERT(!sign_or_zero_extend);
       ASSERT(dst_size <= 4);
-      const OperandSize op_size = BytesToOperandSize(dst_size);
-      __ LoadFromOffset(op_size, dst_reg, src.base_register(),
-                        src.offset_in_bytes());
+      auto const op_size = BytesToOperandSize(dst_size);
+      __ LoadFromOffset(dst_reg, src.base_register(), src.offset_in_bytes(),
+                        op_size);
 
     } else if (destination.IsFpuRegisters()) {
       ASSERT(src_payload_type.Equals(dst_payload_type));
@@ -1665,8 +1648,8 @@ void ParallelMoveResolver::Exchange(Register reg,
                                     intptr_t stack_offset) {
   ScratchRegisterScope tmp(this, reg);
   __ mov(tmp.reg(), compiler::Operand(reg));
-  __ LoadFromOffset(kWord, reg, base_reg, stack_offset);
-  __ StoreToOffset(kWord, tmp.reg(), base_reg, stack_offset);
+  __ LoadFromOffset(reg, base_reg, stack_offset);
+  __ StoreToOffset(tmp.reg(), base_reg, stack_offset);
 }
 
 void ParallelMoveResolver::Exchange(Register base_reg1,
@@ -1675,10 +1658,10 @@ void ParallelMoveResolver::Exchange(Register base_reg1,
                                     intptr_t stack_offset2) {
   ScratchRegisterScope tmp1(this, kNoRegister);
   ScratchRegisterScope tmp2(this, tmp1.reg());
-  __ LoadFromOffset(kWord, tmp1.reg(), base_reg1, stack_offset1);
-  __ LoadFromOffset(kWord, tmp2.reg(), base_reg2, stack_offset2);
-  __ StoreToOffset(kWord, tmp1.reg(), base_reg2, stack_offset2);
-  __ StoreToOffset(kWord, tmp2.reg(), base_reg1, stack_offset1);
+  __ LoadFromOffset(tmp1.reg(), base_reg1, stack_offset1);
+  __ LoadFromOffset(tmp2.reg(), base_reg2, stack_offset2);
+  __ StoreToOffset(tmp1.reg(), base_reg2, stack_offset2);
+  __ StoreToOffset(tmp2.reg(), base_reg1, stack_offset1);
 }
 
 void ParallelMoveResolver::SpillScratch(Register reg) {

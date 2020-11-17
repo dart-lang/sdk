@@ -84,18 +84,17 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, FP, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(FP, THR, target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread exited generated code through a runtime call.
   __ LoadImmediate(R8, target::Thread::exit_through_runtime_call());
-  __ StoreToOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R8, THR, target::Thread::exit_through_ffi_offset());
 
 #if defined(DEBUG)
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
+    __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
     __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -104,7 +103,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the thread is executing VM code.
-  __ StoreToOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R9, THR, target::Thread::vm_tag_offset());
 
   // Reserve space for arguments and align frame before entering C++ world.
   // target::NativeArguments are passed in registers.
@@ -138,15 +137,14 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R2, THR, target::Thread::exit_through_ffi_offset());
 
   // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(kWord, R2, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R2, THR, target::Thread::top_exit_frame_info_offset());
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
@@ -447,9 +445,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   COMPILE_ASSERT(!IsArgumentRegister(R8));
 
   // Load the code object.
-  __ LoadFromOffset(kWord, R5, THR,
-                    compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(kWord, R5, R5,
+  __ LoadFromOffset(R5, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R5, R5,
                          compiler::target::GrowableObjectArray::data_offset());
   __ ldr(R5, __ ElementAddressForRegIndex(
                  /*is_load=*/true,
@@ -459,8 +456,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
                  /*index_unboxed=*/false,
                  /*array=*/R5,
                  /*index=*/R4));
-  __ LoadFieldFromOffset(kWord, R5, R5,
-                         compiler::target::Code::entry_point_offset());
+  __ LoadFieldFromOffset(R5, R5, compiler::target::Code::entry_point_offset());
 
   // On entry to the function, there will be four extra slots on the stack:
   // saved THR, R4, R5 and the return address. The target will know to skip
@@ -528,18 +524,17 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, FP, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(FP, THR, target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread exited generated code through a runtime call.
   __ LoadImmediate(R8, target::Thread::exit_through_runtime_call());
-  __ StoreToOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R8, THR, target::Thread::exit_through_ffi_offset());
 
 #if defined(DEBUG)
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
+    __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
     __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -548,7 +543,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 #endif
 
   // Mark that the thread is executing native code.
-  __ StoreToOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R9, THR, target::Thread::vm_tag_offset());
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -588,15 +583,14 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R2, THR, target::Thread::exit_through_ffi_offset());
 
   // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(kWord, R2, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R2, THR, target::Thread::top_exit_frame_info_offset());
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
@@ -1197,25 +1191,23 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #endif
 
   // Save the current VMTag on the stack.
-  __ LoadFromOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
+  __ LoadFromOffset(R9, THR, target::Thread::vm_tag_offset());
   __ Push(R9);
 
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(kWord, R4, THR, target::Thread::top_resource_offset());
+  __ LoadFromOffset(R4, THR, target::Thread::top_resource_offset());
   __ Push(R4);
   __ LoadImmediate(R8, 0);
-  __ StoreToOffset(kWord, R8, THR, target::Thread::top_resource_offset());
+  __ StoreToOffset(R8, THR, target::Thread::top_resource_offset());
 
-  __ LoadFromOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+  __ LoadFromOffset(R8, THR, target::Thread::exit_through_ffi_offset());
   __ Push(R8);
   __ LoadImmediate(R8, 0);
-  __ StoreToOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R8, THR, target::Thread::exit_through_ffi_offset());
 
-  __ LoadFromOffset(kWord, R9, THR,
-                    target::Thread::top_exit_frame_info_offset());
-  __ StoreToOffset(kWord, R8, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ LoadFromOffset(R9, THR, target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R8, THR, target::Thread::top_exit_frame_info_offset());
 
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
@@ -1231,7 +1223,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
   __ LoadImmediate(R9, VMTag::kDartTagId);
-  __ StoreToOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R9, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
   __ ldr(R4, Address(R1, target::VMHandles::kOffsetOfRawPtrInHandle));
@@ -1282,16 +1274,15 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure. Uses R9 as a temporary register for this.
   __ Pop(R9);
-  __ StoreToOffset(kWord, R9, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R9, THR, target::Thread::top_exit_frame_info_offset());
   __ Pop(R9);
-  __ StoreToOffset(kWord, R9, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(R9, THR, target::Thread::exit_through_ffi_offset());
   __ Pop(R9);
-  __ StoreToOffset(kWord, R9, THR, target::Thread::top_resource_offset());
+  __ StoreToOffset(R9, THR, target::Thread::top_resource_offset());
 
   // Restore the current VMTag from the stack.
   __ Pop(R4);
-  __ StoreToOffset(kWord, R4, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
@@ -2082,7 +2073,7 @@ static void EmitFastSmiOp(Assembler* assembler,
     // Update counter, ignore overflow.
     const intptr_t count_offset =
         target::ICData::CountIndexFor(num_args) * target::kWordSize;
-    __ LoadFromOffset(kWord, R1, R8, count_offset);
+    __ LoadFromOffset(R1, R8, count_offset);
     __ adds(R1, R1, Operand(target::ToRawSmi(1)));
     __ StoreIntoSmiField(Address(R8, count_offset), R1);
   }
@@ -2274,7 +2265,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ PushList(regs);
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
-    __ LoadFromOffset(kWord, TMP, R1, -i * target::kWordSize);
+    __ LoadFromOffset(TMP, R1, -i * target::kWordSize);
     __ Push(TMP);
   }
   // Pass IC data object.
@@ -2303,11 +2294,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       target::ICData::TargetIndexFor(num_args) * target::kWordSize;
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kWordSize;
-  __ LoadFromOffset(kWord, R0, R8, kIcDataOffset + target_offset);
+  __ LoadFromOffset(R0, R8, kIcDataOffset + target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
     __ Comment("Update caller's counter");
-    __ LoadFromOffset(kWord, R1, R8, kIcDataOffset + count_offset);
+    __ LoadFromOffset(R1, R8, kIcDataOffset + count_offset);
     // Ignore overflow.
     __ adds(R1, R1, Operand(target::ToRawSmi(1)));
     __ StoreIntoSmiField(Address(R8, kIcDataOffset + count_offset), R1);
@@ -2482,7 +2473,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 
   if (FLAG_optimization_counter_threshold >= 0) {
     // Increment count for this call, ignore overflow.
-    __ LoadFromOffset(kWord, R1, R8, count_offset);
+    __ LoadFromOffset(R1, R8, count_offset);
     __ adds(R1, R1, Operand(target::ToRawSmi(1)));
     __ StoreIntoSmiField(Address(R8, count_offset), R1);
   }
@@ -2492,7 +2483,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
          FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
 
   // Get function and call it, if possible.
-  __ LoadFromOffset(kWord, R0, R8, target_offset);
+  __ LoadFromOffset(R0, R8, target_offset);
   __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
 
   __ Branch(Address(R0, R3));
@@ -2838,229 +2829,6 @@ void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 6);
 }
 
-// The <X>TypeTestStubs are used to test whether a given value is of a given
-// type. All variants have the same calling convention:
-//
-// Inputs (from TypeTestABI struct):
-//   - kSubtypeTestCacheReg: RawSubtypeTestCache
-//   - kInstanceReg: instance to test against.
-//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (if needed).
-//   - kFunctionTypeArgumentsReg : function type arguments (if needed).
-//
-// See GenerateSubtypeNTestCacheStub for registers that may need saving by the
-// caller.
-//
-// Output (from TypeTestABI struct):
-//   - kResultReg: checked instance.
-//
-// Throws if the check is unsuccessful.
-//
-// Note of warning: The caller will not populate CODE_REG and we have therefore
-// no access to the pool.
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-}
-
-// Used instead of DefaultTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  // Fast case for 'null'.
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  __ Breakpoint();
-}
-
-static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
-                                            TypeCheckMode mode) {
-  __ PushObject(NullObject());  // Make room for result.
-  __ Push(TypeTestABI::kInstanceReg);
-  __ Push(TypeTestABI::kDstTypeReg);
-  __ Push(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Push(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(NullObject());
-  __ Push(TypeTestABI::kSubtypeTestCacheReg);
-  __ PushImmediate(target::ToRawSmi(mode));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
-  __ Drop(1);  // mode
-  __ Pop(TypeTestABI::kSubtypeTestCacheReg);
-  __ Drop(1);  // dst_name
-  __ Pop(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ Pop(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Pop(TypeTestABI::kDstTypeReg);
-  __ Pop(TypeTestABI::kInstanceReg);
-  __ Drop(1);  // Discard return value.
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-  __ Ret();
-}
-
-// Used instead of LazySpecializeTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-static void BuildTypeParameterTypeTestStub(Assembler* assembler,
-                                           bool allow_null) {
-  Label done;
-
-  if (allow_null) {
-    __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-    __ BranchIf(EQUAL, &done);
-  }
-
-  Label function_type_param;
-  __ ldrh(TypeTestABI::kScratchReg,
-          FieldAddress(TypeTestABI::kDstTypeReg,
-                       TypeParameter::parameterized_class_id_offset()));
-  __ cmp(TypeTestABI::kScratchReg, Operand(kFunctionCid));
-  __ BranchIf(EQUAL, &function_type_param);
-
-  auto handle_case = [&](Register tav) {
-    __ CompareObject(tav, NullObject());
-    __ BranchIf(EQUAL, &done);
-    __ ldrh(
-        TypeTestABI::kScratchReg,
-        FieldAddress(TypeTestABI::kDstTypeReg, TypeParameter::index_offset()));
-    __ add(TypeTestABI::kScratchReg, tav,
-           Operand(TypeTestABI::kScratchReg, LSL, 8));
-    __ ldr(TypeTestABI::kScratchReg,
-           FieldAddress(TypeTestABI::kScratchReg,
-                        target::TypeArguments::InstanceSize()));
-    __ Branch(FieldAddress(TypeTestABI::kScratchReg,
-                           AbstractType::type_test_stub_entry_point_offset()));
-  };
-
-  // Class type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
-
-  // Function type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  __ Bind(&function_type_param);
-  handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
-    Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
-}
-
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  Label done, call_runtime;
-
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ ldr(CODE_REG,
-           Address(THR, target::Thread::slow_type_test_stub_offset()));
-  }
-  __ EnterStubFrame();
-
-  // If the subtype-cache is null, it needs to be lazily-created by the runtime.
-  __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime);
-
-  // If this is not a [Type] object, we'll go to the runtime.
-  Label is_simple_case, is_complex_case;
-  __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
-  __ cmp(TypeTestABI::kScratchReg, Operand(kTypeCid));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is instantiated/uninstantiated.
-  __ ldrb(TypeTestABI::kScratchReg,
-          FieldAddress(TypeTestABI::kDstTypeReg,
-                       target::Type::type_state_offset()));
-  __ cmp(TypeTestABI::kScratchReg,
-         Operand(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is a function type.
-  __ ldr(
-      TypeTestABI::kScratchReg,
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::signature_offset()));
-  __ CompareObject(TypeTestABI::kScratchReg, NullObject());
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
-
-  // Fall through to &is_simple_case
-
-  const intptr_t kRegsToSave = (1 << TypeTestABI::kSubtypeTestCacheReg) |
-                               (1 << TypeTestABI::kDstTypeReg);
-
-  __ Bind(&is_simple_case);
-  {
-    __ PushList(kRegsToSave);
-    __ BranchLink(StubCodeSubtype2TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ PopList(kRegsToSave);
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime);
-  }
-
-  __ Bind(&is_complex_case);
-  {
-    __ PushList(kRegsToSave);
-    __ BranchLink(StubCodeSubtype6TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ PopList(kRegsToSave);
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    // Fall through to runtime_call
-  }
-
-  __ Bind(&call_runtime);
-
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
-
-  __ Bind(&done);
-  __ LeaveStubFrame();
-  __ Ret();
-}
-
 // Return the current stack pointer address, used to do stack alignment checks.
 void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ mov(R0, Operand(SP));
@@ -3090,7 +2858,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   Label exit_through_non_ffi;
   Register tmp1 = R0, tmp2 = R1;
   // Check if we exited generated from FFI. If so do transition.
-  __ LoadFromOffset(kWord, tmp1, THR,
+  __ LoadFromOffset(tmp1, THR,
                     compiler::target::Thread::exit_through_ffi_offset());
   __ LoadImmediate(tmp2, target::Thread::exit_through_ffi());
   __ cmp(tmp1, Operand(tmp2));
@@ -3101,11 +2869,10 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
+  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
   // Clear top exit frame.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR,
-                   target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R2, THR, target::Thread::top_exit_frame_info_offset());
   // Restore the pool pointer.
   __ RestoreCodePointer();
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -3123,20 +2890,20 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 // The arguments are stored in the Thread object.
 // Does not return.
 void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
-  __ LoadFromOffset(kWord, LR, THR, target::Thread::resume_pc_offset());
+  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
 
   word offset_from_thread = 0;
   bool ok = target::CanLoadFromThread(NullObject(), &offset_from_thread);
   ASSERT(ok);
-  __ LoadFromOffset(kWord, R2, THR, offset_from_thread);
+  __ LoadFromOffset(R2, THR, offset_from_thread);
 
   // Exception object.
-  __ LoadFromOffset(kWord, R0, THR, target::Thread::active_exception_offset());
-  __ StoreToOffset(kWord, R2, THR, target::Thread::active_exception_offset());
+  __ LoadFromOffset(R0, THR, target::Thread::active_exception_offset());
+  __ StoreToOffset(R2, THR, target::Thread::active_exception_offset());
 
   // StackTrace object.
-  __ LoadFromOffset(kWord, R1, THR, target::Thread::active_stacktrace_offset());
-  __ StoreToOffset(kWord, R2, THR, target::Thread::active_stacktrace_offset());
+  __ LoadFromOffset(R1, THR, target::Thread::active_stacktrace_offset());
+  __ StoreToOffset(R2, THR, target::Thread::active_stacktrace_offset());
 
   __ bx(LR);  // Jump to the exception handler code.
 }
@@ -3150,7 +2917,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ Push(IP);
 
   // Load the deopt pc into LR.
-  __ LoadFromOffset(kWord, LR, THR, target::Thread::resume_pc_offset());
+  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 
   // After we have deoptimized, jump to the correct frame.

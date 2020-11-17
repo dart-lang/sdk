@@ -339,6 +339,10 @@ struct TypeTestABI {
   // original value is needed after the call.
   static const Register kSubtypeTestCacheResultReg = kSubtypeTestCacheReg;
 
+  // Registers that need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
+      (1 << kSubtypeTestCacheReg) | (1 << kDstTypeReg);
+
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
@@ -700,6 +704,24 @@ enum InstructionFields {
   kOpc1Bits = 3,
 
   kBranchOffsetMask = 0x00ffffff
+};
+
+enum ScaleFactor {
+  TIMES_1 = 0,
+  TIMES_2 = 1,
+  TIMES_4 = 2,
+  TIMES_8 = 3,
+  TIMES_16 = 4,
+// Don't use (dart::)kWordSizeLog2, as this needs to work for crossword as
+// well. If this is included, we know the target is 32 bit.
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt32SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt32SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 // The class Instr enables access to individual fields defined in the ARM

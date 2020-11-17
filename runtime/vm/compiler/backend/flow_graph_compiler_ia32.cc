@@ -300,17 +300,6 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
                                      is_not_instance_lbl);
 }
 
-void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
-                                      const GrowableArray<intptr_t>& class_ids,
-                                      compiler::Label* is_equal_lbl,
-                                      compiler::Label* is_not_equal_lbl) {
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    __ cmpl(class_id_reg, compiler::Immediate(class_ids[i]));
-    __ j(EQUAL, is_equal_lbl);
-  }
-  __ jmp(is_not_equal_lbl);
-}
-
 // Testing against an instantiated type with no arguments, without
 // SubtypeTestCache.
 // EAX: instance to test against (preserved).

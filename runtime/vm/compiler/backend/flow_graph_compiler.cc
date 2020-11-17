@@ -2092,6 +2092,18 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
 }
 
 #define __ assembler()->
+
+void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
+                                      const GrowableArray<intptr_t>& class_ids,
+                                      compiler::Label* is_equal_lbl,
+                                      compiler::Label* is_not_equal_lbl) {
+  for (const auto& id : class_ids) {
+    __ CompareImmediate(class_id_reg, id);
+    __ BranchIf(EQUAL, is_equal_lbl);
+  }
+  __ Jump(is_not_equal_lbl);
+}
+
 void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         const String& function_name,
                                         ArgumentsInfo args_info,

@@ -171,6 +171,10 @@ struct TypeTestABI {
   // registers above, for it is also used internally as kNullReg in those stubs.
   static const Register kSubtypeTestCacheResultReg = R7;
 
+  // Registers that need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
+      (1 << kFunctionTypeArgumentsReg) | (1 << kSubtypeTestCacheReg);
+
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
@@ -490,64 +494,6 @@ enum Bits {
   B30 = (1 << 30),
   B31 = (1 << 31),
 };
-
-enum OperandSize {
-  kByte,
-  kUnsignedByte,
-  kHalfword,
-  kUnsignedHalfword,
-  kWord,
-  kUnsignedWord,
-  kDoubleWord,
-  kSWord,
-  kDWord,
-  kQWord,
-};
-
-static inline int Log2OperandSizeBytes(OperandSize os) {
-  switch (os) {
-    case kByte:
-    case kUnsignedByte:
-      return 0;
-    case kHalfword:
-    case kUnsignedHalfword:
-      return 1;
-    case kWord:
-    case kUnsignedWord:
-    case kSWord:
-      return 2;
-    case kDoubleWord:
-    case kDWord:
-      return 3;
-    case kQWord:
-      return 4;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return -1;
-}
-
-static inline bool IsSignedOperand(OperandSize os) {
-  switch (os) {
-    case kByte:
-    case kHalfword:
-    case kWord:
-      return true;
-    case kUnsignedByte:
-    case kUnsignedHalfword:
-    case kUnsignedWord:
-    case kDoubleWord:
-    case kSWord:
-    case kDWord:
-    case kQWord:
-      return false;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return false;
-}
 
 // Opcodes from C3
 // C3.1.
@@ -1099,6 +1045,24 @@ static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
   return result;
 }
 
+enum ScaleFactor {
+  TIMES_1 = 0,
+  TIMES_2 = 1,
+  TIMES_4 = 2,
+  TIMES_8 = 3,
+  TIMES_16 = 4,
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt64SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt64SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
+};
+
 // The class Instr enables access to individual fields defined in the ARM
 // architecture instruction set encoding as described in figure A3-1.
 //
@@ -1113,6 +1077,8 @@ static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
 class Instr {
  public:
   enum { kInstrSize = 4, kInstrSizeLog2 = 2, kPCReadOffset = 8 };
+
+  enum class WideSize { k32Bits, k64Bits };
 
   static const int32_t kNopInstruction = HINT;  // hint #0 === nop.
 
@@ -1157,10 +1123,9 @@ class Instr {
                               Register rd,
                               uint16_t imm,
                               int hw,
-                              OperandSize sz) {
+                              WideSize sz) {
     ASSERT((hw >= 0) && (hw <= 3));
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
-    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t size = (sz == WideSize::k64Bits) ? B31 : 0;
     SetInstructionBits(op | size | (static_cast<int32_t>(rd) << kRdShift) |
                        (static_cast<int32_t>(hw) << kHWShift) |
                        (static_cast<int32_t>(imm) << kImm16Shift));
