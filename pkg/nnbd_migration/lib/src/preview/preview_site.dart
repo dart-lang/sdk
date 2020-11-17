@@ -364,7 +364,9 @@ class PreviewSite extends Site
 
   Future<void> rerunMigration() async {
     migrationState = await rerunFunction();
-    reset();
+    if (!migrationState.hasErrors) {
+      reset();
+    }
   }
 
   void reset() {

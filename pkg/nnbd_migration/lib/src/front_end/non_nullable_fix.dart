@@ -122,7 +122,7 @@ class NonNullableFix {
   /// file, and the analysis_options.yaml file, each only if necessary.
   ///
   /// [neededPackages] is a map whose keys are the names of packages that should
-  /// be dependend upon by the package's pubspec, and whose values are the
+  /// be depended upon by the package's pubspec, and whose values are the
   /// minimum required versions of those packages.
   void processPackage(Folder pkgFolder, Map<String, Version> neededPackages) {
     var pubspecFile = pkgFolder.getChildAssumingFile('pubspec.yaml');
@@ -156,7 +156,6 @@ class NonNullableFix {
   Future<MigrationState> rerun() async {
     reset();
     var state = await rerunFunction();
-    await state.refresh(_logger);
     return state;
   }
 
