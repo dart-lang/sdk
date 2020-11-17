@@ -208,9 +208,7 @@ class _StreamManager {
         (_) => null,
         // Ignore 'stream not subscribed' errors and StateErrors which arise
         // when DDS is shutting down.
-        test: (e) =>
-            (e is json_rpc.RpcException) ||
-            (dds._shuttingDown && e is StateError),
+        test: (e) => (e is json_rpc.RpcException) || (e is StateError),
       );
     }
     // Notify other service clients of service extensions that are being
