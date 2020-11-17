@@ -104,7 +104,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTagged: {
       const auto out = locs()->out(0).reg();
       __ add(out, base_reg(), compiler::Operand(index, LSL, 1));
-      __ LoadFromOffset(kWord, out, out, offset());
+      __ LoadFromOffset(out, out, offset());
       break;
     }
     case kUnboxedInt64: {
@@ -112,9 +112,8 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const auto out_hi = locs()->out(0).AsPairLocation()->At(1).reg();
 
       __ add(out_hi, base_reg(), compiler::Operand(index, LSL, 1));
-      __ LoadFromOffset(kWord, out_lo, out_hi, offset());
-      __ LoadFromOffset(kWord, out_hi, out_hi,
-                        offset() + compiler::target::kWordSize);
+      __ LoadFromOffset(out_lo, out_hi, offset());
+      __ LoadFromOffset(out_hi, out_hi, offset() + compiler::target::kWordSize);
       break;
     }
     case kUnboxedDouble: {
@@ -428,7 +427,7 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         } else {
           ASSERT(value.IsStackSlot());
           const intptr_t value_offset = value.ToStackSlotOffset();
-          __ LoadFromOffset(kWord, reg, value.base_reg(), value_offset);
+          __ LoadFromOffset(reg, value.base_reg(), value_offset);
         }
         pusher.PushRegister(compiler, reg);
       }
@@ -637,7 +636,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(kWord, result, FP,
+  __ LoadFromOffset(result, FP,
                     compiler::target::FrameOffsetInBytesForVariable(&local()));
 }
 
@@ -651,7 +650,7 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ StoreToOffset(kWord, value, FP,
+  __ StoreToOffset(value, FP,
                    compiler::target::FrameOffsetInBytesForVariable(&local()));
 }
 
@@ -719,7 +718,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     } else {
       __ LoadObject(tmp, value_);
     }
-    __ StoreToOffset(kWord, tmp, destination.base_reg(), dest_offset);
+    __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
   }
 }
 
@@ -1377,8 +1376,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Restore top_resource.
   __ Pop(tmp);
-  __ StoreToOffset(kWord, tmp, THR,
-                   compiler::target::Thread::top_resource_offset());
+  __ StoreToOffset(tmp, THR, compiler::target::Thread::top_resource_offset());
 
   __ Pop(vm_tag_reg);
 
@@ -1466,24 +1464,24 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Save the current VMTag on the stack.
-  __ LoadFromOffset(kWord, R0, THR, compiler::target::Thread::vm_tag_offset());
+  __ LoadFromOffset(R0, THR, compiler::target::Thread::vm_tag_offset());
   __ Push(R0);
 
   // Save top resource.
   const intptr_t top_resource_offset =
       compiler::target::Thread::top_resource_offset();
-  __ LoadFromOffset(kWord, R0, THR, top_resource_offset);
+  __ LoadFromOffset(R0, THR, top_resource_offset);
   __ Push(R0);
   __ LoadImmediate(R0, 0);
-  __ StoreToOffset(kWord, R0, THR, top_resource_offset);
+  __ StoreToOffset(R0, THR, top_resource_offset);
 
-  __ LoadFromOffset(kWord, R0, THR,
+  __ LoadFromOffset(R0, THR,
                     compiler::target::Thread::exit_through_ffi_offset());
   __ Push(R0);
 
   // Save top exit frame info. Don't set it to 0 yet,
   // TransitionNativeToGenerated will handle that.
-  __ LoadFromOffset(kWord, R0, THR,
+  __ LoadFromOffset(R0, THR,
                     compiler::target::Thread::top_exit_frame_info_offset());
   __ Push(R0);
 
@@ -1498,16 +1496,15 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // handles.
 
   // Load the code object.
-  __ LoadFromOffset(kWord, R0, THR,
-                    compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(kWord, R0, R0,
+  __ LoadFromOffset(R0, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R0, R0,
                          compiler::target::GrowableObjectArray::data_offset());
-  __ LoadFieldFromOffset(kWord, CODE_REG, R0,
+  __ LoadFieldFromOffset(CODE_REG, R0,
                          compiler::target::Array::data_offset() +
                              callback_id_ * compiler::target::kWordSize);
 
   // Put the code object in the reserved slot.
-  __ StoreToOffset(kWord, CODE_REG, FPREG,
+  __ StoreToOffset(CODE_REG, FPREG,
                    kPcMarkerSlotFromFp * compiler::target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     __ SetupGlobalPoolAndDispatchTable();
@@ -1520,10 +1517,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
-  __ LoadFromOffset(kWord, LR, THR,
+  __ LoadFromOffset(LR, THR,
                     compiler::target::Thread::invoke_dart_code_stub_offset());
-  __ LoadFieldFromOffset(kWord, LR, LR,
-                         compiler::target::Code::entry_point_offset());
+  __ LoadFieldFromOffset(LR, LR, compiler::target::Code::entry_point_offset());
 
   FunctionEntryInstr::EmitNativeCode(compiler);
 }
@@ -1636,7 +1632,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label loop, loop_in;
 
   // Address of input bytes.
-  __ LoadFieldFromOffset(kWord, bytes_reg, bytes_reg,
+  __ LoadFieldFromOffset(bytes_reg, bytes_reg,
                          compiler::target::TypedDataBase::data_field_offset());
 
   // Table.
@@ -1684,11 +1680,9 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     decoder_reg = decoder_location.reg();
   }
   const auto scan_flags_field_offset = scan_flags_field_.offset_in_bytes();
-  __ LoadFieldFromOffset(kWord, flags_temp_reg, decoder_reg,
-                         scan_flags_field_offset);
+  __ LoadFieldFromOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
   __ orr(flags_temp_reg, flags_temp_reg, compiler::Operand(flags_reg));
-  __ StoreFieldToOffset(kWord, flags_temp_reg, decoder_reg,
-                        scan_flags_field_offset);
+  __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
 }
 
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
@@ -1702,15 +1696,15 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register obj = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   if (object()->definition()->representation() == kUntagged) {
-    __ LoadFromOffset(kWord, result, obj, offset());
+    __ LoadFromOffset(result, obj, offset());
   } else {
     ASSERT(object()->definition()->representation() == kTagged);
-    __ LoadFieldFromOffset(kWord, result, obj, offset());
+    __ LoadFieldFromOffset(result, obj, offset());
   }
 }
 
 DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
-  __ StoreToOffset(kWord, value, obj, instr->offset_from_tagged());
+  __ StoreToOffset(value, obj, instr->offset_from_tagged());
 }
 
 Representation LoadIndexedInstr::representation() const {
@@ -2767,11 +2761,11 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
                                       result, temp);
       __ eor(temp, temp, compiler::Operand(temp));
-      __ StoreToOffset(kWord, value, result,
-                       compiler::target::Mint::value_offset() - kHeapObjectTag);
-      __ StoreToOffset(kWord, temp, result,
-                       compiler::target::Mint::value_offset() - kHeapObjectTag +
-                           compiler::target::kWordSize);
+      __ StoreFieldToOffset(value, result,
+                            compiler::target::Mint::value_offset());
+      __ StoreFieldToOffset(
+          temp, result,
+          compiler::target::Mint::value_offset() + compiler::target::kWordSize);
       __ Bind(&done);
     }
   }
@@ -2856,11 +2850,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const Register value_lo = value_pair->At(0).reg();
       const Register value_hi = value_pair->At(1).reg();
       __ Comment("UnboxedIntegerStoreInstanceFieldInstr");
-      __ StoreToOffset(kWord, value_lo, instance_reg,
-                       offset_in_bytes - kHeapObjectTag);
-      __ StoreToOffset(
-          kWord, value_hi, instance_reg,
-          offset_in_bytes - kHeapObjectTag + compiler::target::kWordSize);
+      __ StoreFieldToOffset(value_lo, instance_reg, offset_in_bytes);
+      __ StoreFieldToOffset(value_hi, instance_reg,
+                            offset_in_bytes + compiler::target::kWordSize);
       return;
     }
 
@@ -3059,10 +3051,10 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler->used_static_fields().Add(&field());
 
-  __ LoadFromOffset(kWord, temp, THR,
+  __ LoadFromOffset(temp, THR,
                     compiler::target::Thread::field_table_values_offset());
   // Note: static fields ids won't be changed by hot-reload.
-  __ StoreToOffset(kWord, value, temp,
+  __ StoreToOffset(value, temp,
                    compiler::target::FieldTable::OffsetOf(field()));
 }
 
@@ -3292,21 +3284,21 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t offset_lo = OffsetInBytes() - kHeapObjectTag;
         const intptr_t offset_hi = offset_lo + compiler::target::kWordSize;
         __ Comment("UnboxedInt64LoadFieldInstr");
-        __ LoadFromOffset(kWord, out_lo, instance_reg, offset_lo);
-        __ LoadFromOffset(kWord, out_hi, instance_reg, offset_hi);
+        __ LoadFromOffset(out_lo, instance_reg, offset_lo);
+        __ LoadFromOffset(out_hi, instance_reg, offset_hi);
         break;
       }
       case kUnboxedUint32: {
         const Register result = locs()->out(0).reg();
         __ Comment("UnboxedUint32LoadFieldInstr");
-        __ LoadFieldFromOffset(kWord, result, instance_reg, OffsetInBytes());
+        __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes());
         break;
       }
       case kUnboxedUint8: {
         const Register result = locs()->out(0).reg();
         __ Comment("UnboxedUint8LoadFieldInstr");
-        __ LoadFieldFromOffset(kUnsignedByte, result, instance_reg,
-                               OffsetInBytes());
+        __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes(),
+                               compiler::kUnsignedByte);
         break;
       }
       default:
@@ -3346,7 +3338,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
 
     const Register temp = locs()->temp(0).reg();
-    __ LoadFieldFromOffset(kWord, temp, instance_reg, OffsetInBytes());
+    __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
@@ -3446,7 +3438,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&load_pointer);
   }
 
-  __ LoadFieldFromOffset(kWord, result_reg, instance_reg, OffsetInBytes());
+  __ LoadFieldFromOffset(result_reg, instance_reg, OffsetInBytes());
 
   if (calls_initializer()) {
     EmitNativeCodeForInitializerCall(compiler);
@@ -3704,12 +3696,12 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
       __ StoreToOffset(
-          kWord, kExceptionObjectReg, FP,
+          kExceptionObjectReg, FP,
           compiler::target::FrameOffsetInBytesForVariable(raw_exception_var_));
     }
     if (raw_stacktrace_var_ != nullptr) {
       __ StoreToOffset(
-          kWord, kStackTraceObjectReg, FP,
+          kStackTraceObjectReg, FP,
           compiler::target::FrameOffsetInBytesForVariable(raw_stacktrace_var_));
     }
   }
@@ -4860,8 +4852,8 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
     case kUnboxedInt64: {
       PairLocation* result = locs()->out(0).AsPairLocation();
       ASSERT(result->At(0).reg() != box);
-      __ LoadFieldFromOffset(kWord, result->At(0).reg(), box, ValueOffset());
-      __ LoadFieldFromOffset(kWord, result->At(1).reg(), box,
+      __ LoadFieldFromOffset(result->At(0).reg(), box, ValueOffset());
+      __ LoadFieldFromOffset(result->At(1).reg(), box,
                              ValueOffset() + compiler::target::kWordSize);
       break;
     }
@@ -4925,8 +4917,7 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   compiler::Label done;
   __ SmiUntag(result, value, &done);
-  __ LoadFieldFromOffset(kWord, result, value,
-                         compiler::target::Mint::value_offset());
+  __ LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset());
   __ Bind(&done);
 }
 
@@ -5007,11 +4998,10 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(from_representation() == kUnboxedUint32);
       __ eor(temp, temp, compiler::Operand(temp));
     }
-    __ StoreToOffset(kWord, value, out,
-                     compiler::target::Mint::value_offset() - kHeapObjectTag);
-    __ StoreToOffset(kWord, temp, out,
-                     compiler::target::Mint::value_offset() - kHeapObjectTag +
-                         compiler::target::kWordSize);
+    __ StoreFieldToOffset(value, out, compiler::target::Mint::value_offset());
+    __ StoreFieldToOffset(
+        temp, out,
+        compiler::target::Mint::value_offset() + compiler::target::kWordSize);
     __ Bind(&done);
   }
 }
@@ -5097,11 +5087,11 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                     out_reg, tmp);
   }
 
-  __ StoreToOffset(kWord, value_lo, out_reg,
-                   compiler::target::Mint::value_offset() - kHeapObjectTag);
-  __ StoreToOffset(kWord, value_hi, out_reg,
-                   compiler::target::Mint::value_offset() - kHeapObjectTag +
-                       compiler::target::kWordSize);
+  __ StoreFieldToOffset(value_lo, out_reg,
+                        compiler::target::Mint::value_offset());
+  __ StoreFieldToOffset(
+      value_hi, out_reg,
+      compiler::target::Mint::value_offset() + compiler::target::kWordSize);
   __ Bind(&done);
 }
 
@@ -5110,11 +5100,10 @@ static void LoadInt32FromMint(FlowGraphCompiler* compiler,
                               Register result,
                               Register temp,
                               compiler::Label* deopt) {
-  __ LoadFieldFromOffset(kWord, result, mint,
-                         compiler::target::Mint::value_offset());
+  __ LoadFieldFromOffset(result, mint, compiler::target::Mint::value_offset());
   if (deopt != NULL) {
     __ LoadFieldFromOffset(
-        kWord, temp, mint,
+        temp, mint,
         compiler::target::Mint::value_offset() + compiler::target::kWordSize);
     __ cmp(temp,
            compiler::Operand(result, ASR, compiler::target::kBitsPerWord - 1));
@@ -5293,7 +5282,7 @@ DEFINE_EMIT(Simd32x4BinaryOp,
       break;
     case SimdOpInstr::kFloat32x4Scale:
       __ vcvtsd(STMP, EvenDRegisterOf(left));
-      __ vdup(kWord, result, DTMP, 0);
+      __ vdup(compiler::kFourBytes, result, DTMP, 0);
       __ vmulqs(result, result, right);
       break;
     case SimdOpInstr::kInt32x4BitAnd:
@@ -5306,10 +5295,10 @@ DEFINE_EMIT(Simd32x4BinaryOp,
       __ veorq(result, left, right);
       break;
     case SimdOpInstr::kInt32x4Add:
-      __ vaddqi(kWord, result, left, right);
+      __ vaddqi(compiler::kFourBytes, result, left, right);
       break;
     case SimdOpInstr::kInt32x4Sub:
-      __ vsubqi(kWord, result, left, right);
+      __ vsubqi(compiler::kFourBytes, result, left, right);
       break;
     default:
       UNREACHABLE();
@@ -5363,13 +5352,13 @@ DEFINE_EMIT(Simd32x4Shuffle,
     case SimdOpInstr::kInt32x4Shuffle:
     case SimdOpInstr::kFloat32x4Shuffle: {
       if (instr->mask() == 0x00) {
-        __ vdup(kWord, result, value.d(0), 0);
+        __ vdup(compiler::kFourBytes, result, value.d(0), 0);
       } else if (instr->mask() == 0x55) {
-        __ vdup(kWord, result, value.d(0), 1);
+        __ vdup(compiler::kFourBytes, result, value.d(0), 1);
       } else if (instr->mask() == 0xAA) {
-        __ vdup(kWord, result, value.d(1), 0);
+        __ vdup(compiler::kFourBytes, result, value.d(1), 0);
       } else if (instr->mask() == 0xFF) {
-        __ vdup(kWord, result, value.d(1), 1);
+        __ vdup(compiler::kFourBytes, result, value.d(1), 1);
       } else {
         // TODO(zra): Investigate better instruction sequences for other
         // shuffle masks.
@@ -5442,7 +5431,7 @@ DEFINE_EMIT(Float32x4Splat, (QRegister result, QRegisterView value)) {
   __ vcvtsd(STMP, value.d(0));
 
   // Splat across all lanes.
-  __ vdup(kWord, result, DTMP, 0);
+  __ vdup(compiler::kFourBytes, result, DTMP, 0);
 }
 
 DEFINE_EMIT(Float32x4Sqrt,
@@ -6985,10 +6974,10 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
     // TODO(dartbug.com/33549): Clean this up when unboxed values
     // could be passed as arguments.
     __ StoreToOffset(
-        kWord, right_lo, THR,
+        right_lo, THR,
         compiler::target::Thread::unboxed_int64_runtime_arg_offset());
     __ StoreToOffset(
-        kWord, right_hi, THR,
+        right_hi, THR,
         compiler::target::Thread::unboxed_int64_runtime_arg_offset() +
             compiler::target::kWordSize);
   }
@@ -7126,10 +7115,10 @@ class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
     // TODO(dartbug.com/33549): Clean this up when unboxed values
     // could be passed as arguments.
     __ StoreToOffset(
-        kWord, right_lo, THR,
+        right_lo, THR,
         compiler::target::Thread::unboxed_int64_runtime_arg_offset());
     __ StoreToOffset(
-        kWord, right_hi, THR,
+        right_hi, THR,
         compiler::target::Thread::unboxed_int64_runtime_arg_offset() +
             compiler::target::kWordSize);
   }

@@ -4,6 +4,8 @@
 
 import 'dart:isolate';
 
+import 'package:meta/meta.dart';
+
 /// Contains methods used to communicate DartDev results back to the VM.
 abstract class VmInteropHandler {
   /// Initializes [VmInteropHandler] to utilize [port] to communicate with the
@@ -11,14 +13,22 @@ abstract class VmInteropHandler {
   static void initialize(SendPort port) => _port = port;
 
   /// Notifies the VM to run [script] with [args] upon DartDev exit.
-  static void run(String script, List<String> args) {
+  ///
+  /// If [packageConfigOverride] is given, that is where the packageConfig is found.
+  static void run(
+    String script,
+    List<String> args, {
+    @required String packageConfigOverride,
+  }) {
     assert(_port != null);
     if (_port == null) return;
-    final message = List<dynamic>.filled(3, null)
-      ..[0] = _kResultRun
-      ..[1] = script
+    final message = <dynamic>[
+      _kResultRun,
+      script,
+      packageConfigOverride,
       // Copy the list so it doesn't get GC'd underneath us.
-      ..[2] = args.toList();
+      args.toList()
+    ];
     _port.send(message);
   }
 
@@ -27,9 +37,7 @@ abstract class VmInteropHandler {
   static void exit(int exitCode) {
     assert(_port != null);
     if (_port == null) return;
-    final message = List<dynamic>.filled(2, null)
-      ..[0] = _kResultExit
-      ..[1] = exitCode;
+    final message = <dynamic>[_kResultExit, exitCode];
     _port.send(message);
   }
 

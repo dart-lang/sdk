@@ -470,7 +470,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
 
   // Build type_arguments vector (or null)
   Label no_type_args;
-  __ ldr(R3, Address(THR, target::Thread::object_null_offset()), kDoubleWord);
+  __ ldr(R3, Address(THR, target::Thread::object_null_offset()), kEightBytes);
   __ cmp(R4, Operand(0));
   __ b(&no_type_args, EQ);
   __ ldr(R0, Address(FP, kReceiverOffset * target::kWordSize));
@@ -1591,8 +1591,10 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     Label slow_case;
 
     // Load num. variable (int32) in the existing context.
-    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset(), kWord),
-           kWord);
+    __ ldr(
+        R1,
+        FieldAddress(R5, target::Context::num_variables_offset(), kFourBytes),
+        kFourBytes);
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
@@ -1693,12 +1695,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
          target::ObjectAlignment::kNewObjectBitPosition);
 
   if (cards) {
-    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kWord);
+    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
     __ tbnz(&remember_card, TMP, target::ObjectLayout::kCardRememberedBit);
   } else {
 #if defined(DEBUG)
     Label ok;
-    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kWord);
+    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
     __ tbz(&ok, TMP, target::ObjectLayout::kCardRememberedBit);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1718,17 +1720,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // background sweeper which is also manipulating this 32 bit word.
   Label retry;
   __ Bind(&retry);
-  __ ldxr(R2, R3, kWord);
+  __ ldxr(R2, R3, kFourBytes);
   __ AndImmediate(R2, R2,
                   ~(1 << target::ObjectLayout::kOldAndNotRememberedBit));
-  __ stxr(R4, R2, R3, kWord);
+  __ stxr(R4, R2, R3, kFourBytes);
   __ cbnz(&retry, R4);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
   __ LoadFromOffset(R4, THR, target::Thread::store_buffer_block_offset());
   __ LoadFromOffset(R2, R4, target::StoreBufferBlock::top_offset(),
-                    kUnsignedWord);
+                    kUnsignedFourBytes);
   __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
   __ StoreToOffset(R1, R3, target::StoreBufferBlock::pointers_offset());
 
@@ -1738,7 +1740,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   Label overflow;
   __ add(R2, R2, Operand(1));
   __ StoreToOffset(R2, R4, target::StoreBufferBlock::top_offset(),
-                   kUnsignedWord);
+                   kUnsignedFourBytes);
   __ CompareImmediate(R2, target::StoreBufferBlock::kSize);
   // Restore values.
   __ Pop(R4);
@@ -1771,20 +1773,20 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ sub(R3, R0, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   __ Bind(&marking_retry);
-  __ ldxr(R2, R3, kWord);
+  __ ldxr(R2, R3, kFourBytes);
   __ tbz(&lost_race, R2, target::ObjectLayout::kOldAndNotMarkedBit);
   __ AndImmediate(R2, R2, ~(1 << target::ObjectLayout::kOldAndNotMarkedBit));
-  __ stxr(R4, R2, R3, kWord);
+  __ stxr(R4, R2, R3, kFourBytes);
   __ cbnz(&marking_retry, R4);
 
   __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
   __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                    kUnsignedWord);
+                    kUnsignedFourBytes);
   __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
   __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
   __ add(R2, R2, Operand(1));
   __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                   kUnsignedWord);
+                   kUnsignedFourBytes);
   __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
   __ Pop(R4);  // Unspill.
   __ Pop(R3);  // Unspill.
@@ -1923,7 +1925,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
           FieldAddress(kTypeOffestReg,
                        target::Class::
                            host_type_arguments_field_offset_in_words_offset()),
-          kWord);
+          kFourBytes);
 
       // Set the type arguments in the new object.
       __ StoreIntoObjectNoBarrier(
@@ -2141,10 +2143,10 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
     __ LeaveStubFrame();
   }
   __ LoadFieldFromOffset(R7, func_reg, target::Function::usage_counter_offset(),
-                         kWord);
+                         kFourBytes);
   __ add(R7, R7, Operand(1));
   __ StoreFieldToOffset(R7, func_reg, target::Function::usage_counter_offset(),
-                        kWord);
+                        kFourBytes);
 }
 
 // Loads function into 'temp_reg'.
@@ -2160,11 +2162,11 @@ void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
     ASSERT(temp_reg == R6);
     __ Comment("Increment function counter");
     __ LoadFieldFromOffset(func_reg, ic_reg, target::ICData::owner_offset());
-    __ LoadFieldFromOffset(R7, func_reg,
-                           target::Function::usage_counter_offset(), kWord);
+    __ LoadFieldFromOffset(
+        R7, func_reg, target::Function::usage_counter_offset(), kFourBytes);
     __ AddImmediate(R7, 1);
     __ StoreFieldToOffset(R7, func_reg,
-                          target::Function::usage_counter_offset(), kWord);
+                          target::Function::usage_counter_offset(), kFourBytes);
   }
 }
 
@@ -2295,7 +2297,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
     __ LoadFromOffset(R6, R5,
                       target::ICData::state_bits_offset() - kHeapObjectTag,
-                      kUnsignedWord);
+                      kUnsignedFourBytes);
     ASSERT(target::ICData::NumArgsTestedShift() == 0);  // No shift needed.
     __ andi(R6, R6, Immediate(target::ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, num_args);
@@ -2609,7 +2611,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
     // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
     __ LoadFromOffset(R6, R5,
                       target::ICData::state_bits_offset() - kHeapObjectTag,
-                      kUnsignedWord);
+                      kUnsignedFourBytes);
     ASSERT(target::ICData::NumArgsTestedShift() == 0);  // No shift needed.
     __ andi(R6, R6, Immediate(target::ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, 0);
@@ -2872,7 +2874,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ LoadFieldFromOffset(
           kScratchReg, kScratchReg,
           target::Class::host_type_arguments_field_offset_in_words_offset(),
-          kWord);
+          kFourBytes);
       __ CompareImmediate(kScratchReg, target::Class::kNoTypeArguments);
       __ b(&has_no_type_arguments, EQ);
       __ add(kScratchReg, TypeTestABI::kInstanceReg,
@@ -2980,239 +2982,6 @@ void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 // See comment on [GenerateSubtypeNTestCacheStub].
 void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 6);
-}
-
-// The <X>TypeTestStubs are used to test whether a given value is of a given
-// type. All variants have the same calling convention:
-//
-// Inputs (from TypeTestABI struct):
-//   - kSubtypeTestCacheReg: RawSubtypeTestCache
-//   - kInstanceReg: instance to test against.
-//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (if needed).
-//   - kFunctionTypeArgumentsReg : function type arguments (if needed).
-//
-// See GenerateSubtypeNTestCacheStub for registers that may need saving by the
-// caller.
-//
-// Output (from TypeTestABI struct):
-//   - kResultReg: checked instance.
-//
-// Throws if the check is unsuccessful.
-//
-// Note of warning: The caller will not populate CODE_REG and we have therefore
-// no access to the pool.
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  // Tail call the [SubtypeTestCache]-based implementation.
-  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ ldr(R9, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ br(R9);
-}
-
-// Used instead of DefaultTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  // Fast case for 'null'.
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  // Tail call the [SubtypeTestCache]-based implementation.
-  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ ldr(R9, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ br(R9);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  __ Breakpoint();
-}
-
-static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
-                                            TypeCheckMode mode) {
-  __ PushObject(NullObject());  // Make room for result.
-  __ Push(TypeTestABI::kInstanceReg);
-  __ Push(TypeTestABI::kDstTypeReg);
-  __ Push(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Push(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(NullObject());
-  __ Push(TypeTestABI::kSubtypeTestCacheReg);
-  __ PushImmediate(target::ToRawSmi(mode));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
-  __ Drop(1);  // mode
-  __ Pop(TypeTestABI::kSubtypeTestCacheReg);
-  __ Drop(1);  // dst_name
-  __ Pop(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ Pop(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Pop(TypeTestABI::kDstTypeReg);
-  __ Pop(TypeTestABI::kInstanceReg);
-  __ Drop(1);  // Discard return value.
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-  __ Ret();
-}
-
-// Used instead of LazySpecializeTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-static void BuildTypeParameterTypeTestStub(Assembler* assembler,
-                                           bool allow_null) {
-  Label done;
-
-  if (allow_null) {
-    __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-    __ BranchIf(EQUAL, &done);
-  }
-
-  Label function_type_param;
-  __ ldr(TypeTestABI::kScratchReg,
-         FieldAddress(TypeTestABI::kDstTypeReg,
-                      TypeParameter::parameterized_class_id_offset()),
-         kUnsignedHalfword);
-  __ cmp(TypeTestABI::kScratchReg, Operand(kFunctionCid));
-  __ BranchIf(EQUAL, &function_type_param);
-
-  auto handle_case = [&](Register tav) {
-    __ CompareObject(tav, NullObject());
-    __ BranchIf(EQUAL, &done);
-    __ ldr(
-        TypeTestABI::kScratchReg,
-        FieldAddress(TypeTestABI::kDstTypeReg, TypeParameter::index_offset()),
-        kUnsignedHalfword);
-    __ add(TypeTestABI::kScratchReg, tav,
-           Operand(TypeTestABI::kScratchReg, LSL, 8));
-    __ ldr(TypeTestABI::kScratchReg,
-           FieldAddress(TypeTestABI::kScratchReg,
-                        target::TypeArguments::InstanceSize()));
-    __ ldr(TypeTestABI::kScratchReg,
-           FieldAddress(TypeTestABI::kScratchReg,
-                        AbstractType::type_test_stub_entry_point_offset()));
-    __ br(TypeTestABI::kScratchReg);
-  };
-
-  // Class type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
-
-  // Function type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  __ Bind(&function_type_param);
-  handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
-    Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
-}
-
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  Label done, call_runtime;
-
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ ldr(CODE_REG,
-           Address(THR, target::Thread::slow_type_test_stub_offset()));
-  }
-  __ EnterStubFrame();
-
-  // If the subtype-cache is null, it needs to be lazily-created by the runtime.
-  __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime);
-
-  // If this is not a [Type] object, we'll go to the runtime.
-  Label is_simple_case, is_complex_case;
-  __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
-  __ cmp(TypeTestABI::kScratchReg, Operand(kTypeCid));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is instantiated/uninstantiated.
-  __ ldr(TypeTestABI::kScratchReg,
-         FieldAddress(TypeTestABI::kDstTypeReg,
-                      target::Type::type_state_offset(), kByte),
-         kByte);
-  __ cmp(TypeTestABI::kScratchReg,
-         Operand(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is a function type.
-  __ ldr(
-      TypeTestABI::kScratchReg,
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::signature_offset()));
-  __ CompareObject(TypeTestABI::kScratchReg, NullObject());
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
-
-  // Fall through to &is_simple_case
-
-  __ Bind(&is_simple_case);
-  {
-    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
-                TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchLink(StubCodeSubtype2TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
-               TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime);
-  }
-
-  __ Bind(&is_complex_case);
-  {
-    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
-                TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchLink(StubCodeSubtype6TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
-               TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    // Fall through to runtime_call
-  }
-
-  __ Bind(&call_runtime);
-
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
-
-  __ Bind(&done);
-  __ LeaveStubFrame();
-  __ Ret();
 }
 
 void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
@@ -3629,12 +3398,12 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldr(R2,
          FieldAddress(R5, target::SingleTargetCache::lower_limit_offset(),
-                      kHalfword),
-         kUnsignedHalfword);
+                      kTwoBytes),
+         kUnsignedTwoBytes);
   __ ldr(R3,
          FieldAddress(R5, target::SingleTargetCache::upper_limit_offset(),
-                      kHalfword),
-         kUnsignedHalfword);
+                      kTwoBytes),
+         kUnsignedTwoBytes);
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);

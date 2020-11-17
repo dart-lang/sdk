@@ -27,6 +27,7 @@ namespace dart {
 
 // Forward declarations.
 class FlowGraphCompiler;
+class RegisterSet;
 
 namespace compiler {
 
@@ -292,9 +293,6 @@ class Assembler : public AssemblerBase {
 
   ~Assembler() {}
 
-  static const bool kNearJump = true;
-  static const bool kFarJump = false;
-
   /*
    * Emit Machine Instructions.
    */
@@ -307,6 +305,7 @@ class Assembler : public AssemblerBase {
   void pushq(const Address& address) { EmitUnaryL(address, 0xFF, 6); }
   void pushq(const Immediate& imm);
   void PushImmediate(const Immediate& imm);
+  void PushImmediate(int64_t value) { PushImmediate(Immediate(value)); }
 
   void popq(Register reg);
   void popq(const Address& address) { EmitUnaryL(address, 0x8F, 0); }
@@ -614,16 +613,12 @@ class Assembler : public AssemblerBase {
   REGULAR_UNARY(dec, 0xFF, 1)
 #undef REGULAR_UNARY
 
-  // We could use kWord, kDoubleWord, and kQuadWord here, but it is rather
-  // confusing since the same sizes mean something different on ARM.
-  enum OperandWidth { k32Bit, k64Bit };
-
   void imull(Register reg, const Immediate& imm);
 
   void imulq(Register dst, const Immediate& imm);
   void MulImmediate(Register reg,
                     const Immediate& imm,
-                    OperandWidth width = k64Bit);
+                    OperandSize width = kEightBytes);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -653,10 +648,10 @@ class Assembler : public AssemblerBase {
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
 
-  void j(Condition condition, Label* label, bool near = kFarJump);
+  void j(Condition condition, Label* label, JumpDistance distance = kFarJump);
   void jmp(Register reg) { EmitUnaryL(reg, 0xFF, 4); }
   void jmp(const Address& address) { EmitUnaryL(address, 0xFF, 4); }
-  void jmp(Label* label, bool near = kFarJump);
+  void jmp(Label* label, JumpDistance distance = kFarJump);
   void jmp(const ExternalLabel* label);
   void jmp(const Code& code);
 
@@ -683,7 +678,11 @@ class Assembler : public AssemblerBase {
   // Methods for High-level operations and implemented on all architectures.
   void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
-  void BranchIf(Condition condition, Label* label) { j(condition, label); }
+  void BranchIf(Condition condition,
+                Label* label,
+                JumpDistance distance = kFarJump) {
+    j(condition, label, distance);
+  }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
@@ -704,14 +703,16 @@ class Assembler : public AssemblerBase {
   // TODO(koda): Assert that these are not used for heap objects.
   void AddImmediate(Register reg,
                     const Immediate& imm,
-                    OperandWidth width = k64Bit);
-  void AddImmediate(Register reg, int32_t value, OperandWidth width = k64Bit) {
+                    OperandSize width = kEightBytes);
+  void AddImmediate(Register reg,
+                    int32_t value,
+                    OperandSize width = kEightBytes) {
     AddImmediate(reg, Immediate(value), width);
   }
   void AddImmediate(const Address& address, const Immediate& imm);
   void SubImmediate(Register reg,
                     const Immediate& imm,
-                    OperandWidth width = k64Bit);
+                    OperandSize width = kEightBytes);
   void SubImmediate(const Address& address, const Immediate& imm);
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
@@ -804,8 +805,8 @@ class Assembler : public AssemblerBase {
     cmpxchgl(address, reg);
   }
 
-  void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
-  void PopRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
+  void PushRegisters(const RegisterSet& registers);
+  void PopRegisters(const RegisterSet& registers);
 
   void CheckCodePointer();
 
@@ -868,9 +869,42 @@ class Assembler : public AssemblerBase {
 
   void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
-  void Jump(Label* label) { jmp(label); }
+  // Unconditional jump to a given label.
+  void Jump(Label* label, JumpDistance distance = kFarJump) {
+    jmp(label, distance);
+  }
+  // Unconditional jump to a given address in memory.
+  void Jump(const Address& address) { jmp(address); }
 
-  void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
+  // Arch-specific LoadFromOffset to choose the right operation for [sz].
+  void LoadFromOffset(Register dst,
+                      const Address& address,
+                      OperandSize sz = kEightBytes);
+  void LoadFromOffset(Register dst,
+                      Register base,
+                      int32_t offset,
+                      OperandSize sz = kEightBytes) {
+    LoadFromOffset(dst, Address(base, offset), sz);
+  }
+  void LoadField(Register dst,
+                 FieldAddress address,
+                 OperandSize sz = kEightBytes) {
+    LoadFromOffset(dst, address, sz);
+  }
+  void LoadFieldFromOffset(Register dst,
+                           Register base,
+                           int32_t offset,
+                           OperandSize sz = kEightBytes) {
+    LoadFromOffset(dst, FieldAddress(base, offset), sz);
+  }
+  void LoadIndexedPayload(Register dst,
+                          Register base,
+                          int32_t payload_offset,
+                          Register index,
+                          ScaleFactor scale,
+                          OperandSize sz = kEightBytes) {
+    LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
+  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movq(dst, Address(base, offset));
   }
@@ -956,7 +990,7 @@ class Assembler : public AssemblerBase {
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid, Label* trace, bool near_jump);
+  void MaybeTraceAllocation(intptr_t cid, Label* trace, JumpDistance distance);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -964,14 +998,14 @@ class Assembler : public AssemblerBase {
   // Only the tags field of the object is initialized.
   void TryAllocate(const Class& cls,
                    Label* failure,
-                   bool near_jump,
+                   JumpDistance distance,
                    Register instance_reg,
                    Register temp);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
                         Label* failure,
-                        bool near_jump,
+                        JumpDistance distance,
                         Register instance,
                         Register end_address,
                         Register temp);

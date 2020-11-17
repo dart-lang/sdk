@@ -52,7 +52,7 @@ class DartDevIsolate {
   // values.
   static DartDev_Result RunDartDev(
       Dart_IsolateGroupCreateCallback create_isolate,
-      const char* packages_file,
+      char** packages_file,
       char** script,
       CommandLineOptions* dart_options);
 
@@ -62,7 +62,7 @@ class DartDevIsolate {
     DartDevRunner() {}
 
     void Run(Dart_IsolateGroupCreateCallback create_isolate,
-             const char* packages_file,
+             char** package_config_override_,
              char** script,
              CommandLineOptions* dart_options);
 
@@ -76,6 +76,7 @@ class DartDevIsolate {
 
     static DartDev_Result result_;
     static char** script_;
+    static char** package_config_override_;
     static std::unique_ptr<char*[], void (*)(char**)> argv_;
     static intptr_t argc_;
 

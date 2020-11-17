@@ -92,12 +92,15 @@ class CompileJSCommand extends CompileSubcommandCommand {
       return 1;
     }
 
-    VmInteropHandler.run(sdk.dart2jsSnapshot, [
-      '--libraries-spec=$librariesPath',
-      if (argResults.enabledExperiments.isNotEmpty)
-        "--enable-experiment=${argResults.enabledExperiments.join(',')}",
-      ...argResults.arguments,
-    ]);
+    VmInteropHandler.run(
+        sdk.dart2jsSnapshot,
+        [
+          '--libraries-spec=$librariesPath',
+          if (argResults.enabledExperiments.isNotEmpty)
+            "--enable-experiment=${argResults.enabledExperiments.join(',')}",
+          ...argResults.arguments,
+        ],
+        packageConfigOverride: null);
 
     return 0;
   }

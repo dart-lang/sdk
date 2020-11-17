@@ -40,6 +40,7 @@ Monitor* DartDevIsolate::DartDevRunner::monitor_ = new Monitor();
 DartDevIsolate::DartDev_Result DartDevIsolate::DartDevRunner::result_ =
     DartDevIsolate::DartDev_Result_Unknown;
 char** DartDevIsolate::DartDevRunner::script_ = nullptr;
+char** DartDevIsolate::DartDevRunner::package_config_override_ = nullptr;
 std::unique_ptr<char*[], void (*)(char*[])>
     DartDevIsolate::DartDevRunner::argv_ =
         std::unique_ptr<char*[], void (*)(char**)>(nullptr, [](char**) {});
@@ -80,12 +81,12 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
 
 void DartDevIsolate::DartDevRunner::Run(
     Dart_IsolateGroupCreateCallback create_isolate,
-    const char* packages_file,
+    char** packages_file,
     char** script,
     CommandLineOptions* dart_options) {
   create_isolate_ = create_isolate;
   dart_options_ = dart_options;
-  packages_file_ = packages_file;
+  package_config_override_ = packages_file;
   script_ = script;
 
   MonitorLocker locker(monitor_);
@@ -111,18 +112,33 @@ static Dart_CObject* GetArrayItem(Dart_CObject* message, intptr_t index) {
 void DartDevIsolate::DartDevRunner::DartDevResultCallback(
     Dart_Port dest_port_id,
     Dart_CObject* message) {
+  // These messages are produced in pkg/dartdev/lib/src/vm_interop_handler.dart.
   ASSERT(message->type == Dart_CObject_kArray);
   int32_t type = GetArrayItem(message, 0)->value.as_int32;
   switch (type) {
     case DartDevIsolate::DartDev_Result_Run: {
       result_ = DartDevIsolate::DartDev_Result_Run;
       ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kString);
+      auto item2 = GetArrayItem(message, 2);
+
+      ASSERT(item2->type == Dart_CObject_kString ||
+             item2->type == Dart_CObject_kNull);
+
       if (*script_ != nullptr) {
         free(*script_);
       }
+      if (*package_config_override_ != nullptr) {
+        free(*package_config_override_);
+        *package_config_override_ = nullptr;
+      }
       *script_ = Utils::StrDup(GetArrayItem(message, 1)->value.as_string);
-      ASSERT(GetArrayItem(message, 2)->type == Dart_CObject_kArray);
-      Dart_CObject* args = GetArrayItem(message, 2);
+
+      if (item2->type == Dart_CObject_kString) {
+        *package_config_override_ = Utils::StrDup(item2->value.as_string);
+      }
+
+      ASSERT(GetArrayItem(message, 3)->type == Dart_CObject_kArray);
+      Dart_CObject* args = GetArrayItem(message, 3);
       argc_ = args->value.as_array.length;
       Dart_CObject** dart_args = args->value.as_array.values;
 
@@ -244,7 +260,7 @@ void DartDevIsolate::DartDevRunner::ProcessError(const char* msg,
 
 DartDevIsolate::DartDev_Result DartDevIsolate::RunDartDev(
     Dart_IsolateGroupCreateCallback create_isolate,
-    const char* packages_file,
+    char** packages_file,
     char** script,
     CommandLineOptions* dart_options) {
   runner_.Run(create_isolate, packages_file, script, dart_options);

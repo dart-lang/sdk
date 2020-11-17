@@ -461,9 +461,9 @@ ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
          Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadImmediate(R1, 0xffffffff);
-  __ str(R1, Address(SP, -4, Address::PreIndex, kWord), kWord);
-  __ ldr(R0, Address(SP), kWord);
-  __ ldr(R1, Address(SP, 4, Address::PostIndex, kWord), kWord);
+  __ str(R1, Address(SP, -4, Address::PreIndex, kFourBytes), kFourBytes);
+  __ ldr(R0, Address(SP), kFourBytes);
+  __ ldr(R1, Address(SP, 4, Address::PostIndex, kFourBytes), kFourBytes);
   __ RestoreCSP();
   __ ret();
 }
@@ -635,10 +635,10 @@ ASSEMBLER_TEST_GENERATE(Semaphore32, assembler) {
 
   Label retry;
   __ Bind(&retry);
-  __ ldxr(R0, SP, kWord);
+  __ ldxr(R0, SP, kFourBytes);
   // 32 bit operation should ignore the high word of R0 that was pushed on the
   // stack.
-  __ stxr(TMP, R1, SP, kWord);  // IP == 0, success
+  __ stxr(TMP, R1, SP, kFourBytes);  // IP == 0, success
   __ cmp(TMP, Operand(0));
   __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
   __ Pop(R0);        // 42 + 42 * 2**32
@@ -664,9 +664,9 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore32, assembler) {
   __ movz(R0, Immediate(40), 0);
   __ movz(R1, Immediate(42), 0);
 
-  __ ldxr(R0, SP, kWord);
+  __ ldxr(R0, SP, kFourBytes);
   __ clrex();                   // Simulate a context switch.
-  __ stxr(TMP, R1, SP, kWord);  // IP == 1, failure
+  __ stxr(TMP, R1, SP, kFourBytes);  // IP == 1, failure
   __ Pop(R0);                   // 40
   __ add(R0, R0, Operand(TMP));
   __ RestoreCSP();
@@ -692,14 +692,14 @@ ASSEMBLER_TEST_GENERATE(LoadAcquireStoreRelease, assembler) {
 
   // Test 64-bit ladr.
   __ PushImmediate(0x1122334455667788);
-  __ ldar(R1, SP, kDoubleWord);
+  __ ldar(R1, SP, kEightBytes);
   __ CompareImmediate(R1, 0x1122334455667788);
   __ BranchIf(NOT_EQUAL, &failed);
   __ Drop(1);
 
   // Test 32-bit ladr - must zero extend.
   __ PushImmediate(0x1122334455667788);
-  __ ldar(R1, SP, kWord);
+  __ ldar(R1, SP, kFourBytes);
   __ CompareImmediate(R1, 0x55667788);
   __ BranchIf(NOT_EQUAL, &failed);
   __ Drop(1);
@@ -707,7 +707,7 @@ ASSEMBLER_TEST_GENERATE(LoadAcquireStoreRelease, assembler) {
   // Test 64-bit stlr.
   __ PushImmediate(0);
   __ LoadImmediate(R1, 0x1122334455667788);
-  __ stlr(R1, SP, kDoubleWord);
+  __ stlr(R1, SP, kEightBytes);
   __ Pop(R1);
   __ CompareImmediate(R1, 0x1122334455667788);
   __ BranchIf(NOT_EQUAL, &failed);
@@ -715,7 +715,7 @@ ASSEMBLER_TEST_GENERATE(LoadAcquireStoreRelease, assembler) {
   // Test 32-bit stlr.
   __ PushImmediate(0);
   __ LoadImmediate(R1, 0x1122334455667788);
-  __ stlr(R1, SP, kWord);
+  __ stlr(R1, SP, kFourBytes);
   __ Pop(R1);
   __ CompareImmediate(R1, 0x55667788);
   __ BranchIf(NOT_EQUAL, &failed);
@@ -1048,7 +1048,7 @@ constexpr uint32_t kU32MaxInt32 = 0x7fffffffu;
 #define SHIFT_32_IMMEDIATE_TEST(macro_op, val, shift, expected)                \
   ASSEMBLER_TEST_GENERATE(macro_op##a_##val##_##shift, assembler) {            \
     __ LoadImmediate(R1, bit_cast<int32_t>(val));                              \
-    __ macro_op(R0, R1, (shift), kWord);                                       \
+    __ macro_op(R0, R1, (shift), kFourBytes);                                  \
     __ ret();                                                                  \
   }                                                                            \
                                                                                \
@@ -2373,7 +2373,7 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
-  __ ldr(R1, R0, kHalfword);
+  __ ldr(R1, R0, kTwoBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -2396,7 +2396,7 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
-  __ ldr(R1, R0, kUnsignedHalfword);
+  __ ldr(R1, R0, kUnsignedTwoBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -2418,7 +2418,7 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
 
 ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0xABCD);
-  __ str(R1, R0, kHalfword);
+  __ str(R1, R0, kTwoBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -2446,7 +2446,7 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
-  __ ldr(R1, R0, kUnsignedWord);
+  __ ldr(R1, R0, kUnsignedFourBytes);
   __ mov(R0, R1);
   __ ret();
 }
@@ -2476,7 +2476,7 @@ ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
 
 ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0x12345678);
-  __ str(R1, R0, kUnsignedWord);
+  __ str(R1, R0, kUnsignedFourBytes);
   __ mov(R0, R1);
   __ ret();
 }

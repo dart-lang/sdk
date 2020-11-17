@@ -17,20 +17,23 @@ const Timeout longTimeout = Timeout(Duration(minutes: 5));
 const String dartVersionFilePrefix2_9 = '// @dart = 2.9\n';
 
 TestProject project(
-        {String mainSrc, String analysisOptions, bool logAnalytics = false}) =>
+        {String mainSrc,
+        String analysisOptions,
+        bool logAnalytics = false,
+        String name = TestProject._defaultProjectName}) =>
     TestProject(
         mainSrc: mainSrc,
         analysisOptions: analysisOptions,
         logAnalytics: logAnalytics);
 
 class TestProject {
-  static String get defaultProjectName => 'dartdev_temp';
+  static const String _defaultProjectName = 'dartdev_temp';
 
   Directory dir;
 
   String get dirPath => dir.path;
 
-  String get name => defaultProjectName;
+  final String name;
 
   String get relativeFilePath => 'lib/main.dart';
 
@@ -39,9 +42,10 @@ class TestProject {
   TestProject({
     String mainSrc,
     String analysisOptions,
+    this.name = _defaultProjectName,
     this.logAnalytics = false,
   }) {
-    dir = Directory.systemTemp.createTempSync('dartdev');
+    dir = Directory.systemTemp.createTempSync(name);
     file('pubspec.yaml', '''
 name: $name
 environment:

@@ -210,4 +210,5 @@ ffi_sources_tests = [
   "ffi/native_location_test.cc",
   "ffi/native_type_test.cc",
   "ffi/unit_test_custom_zone.cc",
+  "ffi/unit_test.cc",
 ]

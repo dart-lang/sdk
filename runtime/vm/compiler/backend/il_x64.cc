@@ -337,6 +337,10 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
+static const RegisterSet kCalleeSaveRegistersSet(
+    CallingConventions::kCalleeSaveCpuRegisters,
+    CallingConventions::kCalleeSaveXmmRegisters);
+
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
@@ -369,8 +373,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Restore C++ ABI callee-saved registers.
-  __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
-                  CallingConventions::kCalleeSaveXmmRegisters);
+  __ PopRegisters(kCalleeSaveRegistersSet);
 
 #if defined(TARGET_OS_FUCHSIA)
   UNREACHABLE();  // Fuchsia does not allow dart:ffi.
@@ -1148,8 +1151,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushImmediate(compiler::Immediate(0));
 
   // Save ABI callee-saved registers.
-  __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
-                   CallingConventions::kCalleeSaveXmmRegisters);
+  __ PushRegisters(kCalleeSaveRegistersSet);
 
   // Load the address of DLRT_GetThreadForNativeCallback without using Thread.
   if (FLAG_precompiled_mode) {
@@ -4553,7 +4555,7 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler->intrinsic_mode()) {
     __ TryAllocate(compiler->mint_class(),
                    compiler->intrinsic_slow_path_label(),
-                   /*near_jump=*/true, out, temp);
+                   compiler::Assembler::kNearJump, out, temp);
   } else if (locs()->call_on_shared_slow_path()) {
     auto object_store = compiler->isolate()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;

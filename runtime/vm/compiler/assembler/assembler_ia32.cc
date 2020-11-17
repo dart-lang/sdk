@@ -1665,7 +1665,7 @@ void Assembler::hlt() {
   EmitUint8(0xF4);
 }
 
-void Assembler::j(Condition condition, Label* label, bool near) {
+void Assembler::j(Condition condition, Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
     static const int kShortSize = 2;
@@ -1680,7 +1680,7 @@ void Assembler::j(Condition condition, Label* label, bool near) {
       EmitUint8(0x80 + condition);
       EmitInt32(offset - kLongSize);
     }
-  } else if (near) {
+  } else if (distance == kNearJump) {
     EmitUint8(0x70 + condition);
     EmitNearLabelLink(label);
   } else {
@@ -1710,7 +1710,7 @@ void Assembler::jmp(const Address& address) {
   EmitOperand(4, address);
 }
 
-void Assembler::jmp(Label* label, bool near) {
+void Assembler::jmp(Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
     static const int kShortSize = 2;
@@ -1724,7 +1724,7 @@ void Assembler::jmp(Label* label, bool near) {
       EmitUint8(0xE9);
       EmitInt32(offset - kLongSize);
     }
-  } else if (near) {
+  } else if (distance == kNearJump) {
     EmitUint8(0xEB);
     EmitNearLabelLink(label);
   } else {
@@ -1917,7 +1917,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
     testl(value, Immediate(0xf));
   }
   Condition condition = how_to_jump == kJumpToNoUpdate ? NOT_ZERO : ZERO;
-  bool distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
+  auto const distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
   j(condition, label, distance);
 }
 
@@ -2429,7 +2429,7 @@ void Assembler::MoveMemoryToMemory(Address dst, Address src, Register tmp) {
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      Label* trace,
-                                     bool near_jump) {
+                                     JumpDistance distance) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
 
@@ -2446,13 +2446,13 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   cmpb(Address(temp_reg, class_offset), Immediate(0));
   // We are tracing for this class, jump to the trace label which will use
   // the allocation stub.
-  j(NOT_ZERO, trace, near_jump);
+  j(NOT_ZERO, trace, distance);
 }
 #endif  // !PRODUCT
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
-                            bool near_jump,
+                            JumpDistance distance,
                             Register instance_reg,
                             Register temp_reg) {
   ASSERT(failure != NULL);
@@ -2464,12 +2464,12 @@ void Assembler::TryAllocate(const Class& cls,
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     const classid_t cid = target::Class::GetId(cls);
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, near_jump));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, distance));
     movl(instance_reg, Address(THR, target::Thread::top_offset()));
     addl(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
     cmpl(instance_reg, Address(THR, target::Thread::end_offset()));
-    j(ABOVE_EQUAL, failure, near_jump);
+    j(ABOVE_EQUAL, failure, distance);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(THR, target::Thread::top_offset()), instance_reg);
@@ -2487,7 +2487,7 @@ void Assembler::TryAllocate(const Class& cls,
 void Assembler::TryAllocateArray(intptr_t cid,
                                  intptr_t instance_size,
                                  Label* failure,
-                                 bool near_jump,
+                                 JumpDistance distance,
                                  Register instance,
                                  Register end_address,
                                  Register temp_reg) {
@@ -2498,7 +2498,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, near_jump));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, distance));
     movl(instance, Address(THR, target::Thread::top_offset()));
     movl(end_address, instance);
 

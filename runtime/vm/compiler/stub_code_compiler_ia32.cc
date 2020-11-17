@@ -1060,9 +1060,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // EDX: number of context variables.
   __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+  static auto const kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+  static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(ABOVE_EQUAL, slow_case, kJumpLength);
 
@@ -2416,55 +2416,6 @@ void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 6);
 }
 
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
 // Return the current stack pointer address, used to do stack alignment checks.
 // TOS + 0: return address
 // Result in EAX.
@@ -2939,7 +2890,8 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   Label call_runtime;
   __ pushl(AllocateTypedDataArrayABI::kLengthReg);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, ECX, &call_runtime, false));
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
   __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
   /* Check that length is a positive Smi. */
   /* EDI: requested array length argument. */

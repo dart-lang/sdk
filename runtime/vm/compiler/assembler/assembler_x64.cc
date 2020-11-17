@@ -808,16 +808,17 @@ void Assembler::imulq(Register reg, const Immediate& imm) {
 
 void Assembler::MulImmediate(Register reg,
                              const Immediate& imm,
-                             OperandWidth width) {
+                             OperandSize width) {
+  ASSERT(width == kFourBytes || width == kEightBytes);
   if (imm.is_int32()) {
-    if (width == k32Bit) {
+    if (width == kFourBytes) {
       imull(reg, imm);
     } else {
       imulq(reg, imm);
     }
   } else {
     ASSERT(reg != TMP);
-    ASSERT(width != k32Bit);
+    ASSERT(width == kEightBytes);
     movq(TMP, imm);
     imulq(reg, TMP);
   }
@@ -967,7 +968,7 @@ void Assembler::nop(int size) {
   }
 }
 
-void Assembler::j(Condition condition, Label* label, bool near) {
+void Assembler::j(Condition condition, Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
     static const int kShortSize = 2;
@@ -982,7 +983,7 @@ void Assembler::j(Condition condition, Label* label, bool near) {
       EmitUint8(0x80 + condition);
       EmitInt32(offset - kLongSize);
     }
-  } else if (near) {
+  } else if (distance == kNearJump) {
     EmitUint8(0x70 + condition);
     EmitNearLabelLink(label);
   } else {
@@ -1000,7 +1001,7 @@ void Assembler::J(Condition condition, const Code& target, Register pp) {
   Bind(&no_jump);
 }
 
-void Assembler::jmp(Label* label, bool near) {
+void Assembler::jmp(Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
     static const int kShortSize = 2;
@@ -1014,7 +1015,7 @@ void Assembler::jmp(Label* label, bool near) {
       EmitUint8(0xE9);
       EmitInt32(offset - kLongSize);
     }
-  } else if (near) {
+  } else if (distance == kNearJump) {
     EmitUint8(0xEB);
     EmitNearLabelLink(label);
   } else {
@@ -1072,28 +1073,29 @@ void Assembler::PopRegister(Register r) {
 
 void Assembler::AddImmediate(Register reg,
                              const Immediate& imm,
-                             OperandWidth width) {
+                             OperandSize width) {
+  ASSERT(width == kFourBytes || width == kEightBytes);
   const int64_t value = imm.value();
   if (value == 0) {
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
     if (value == 1) {
-      if (width == k32Bit) {
+      if (width == kFourBytes) {
         incl(reg);
       } else {
         incq(reg);
       }
     } else {
-      if (imm.is_int32() || (width == k32Bit && imm.is_uint32())) {
-        if (width == k32Bit) {
+      if (imm.is_int32() || (width == kFourBytes && imm.is_uint32())) {
+        if (width == kFourBytes) {
           addl(reg, imm);
         } else {
           addq(reg, imm);
         }
       } else {
         ASSERT(reg != TMP);
-        ASSERT(width != k32Bit);
+        ASSERT(width == kEightBytes);
         LoadImmediate(TMP, imm);
         addq(reg, TMP);
       }
@@ -1126,29 +1128,30 @@ void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
 
 void Assembler::SubImmediate(Register reg,
                              const Immediate& imm,
-                             OperandWidth width) {
+                             OperandSize width) {
+  ASSERT(width == kFourBytes || width == kEightBytes);
   const int64_t value = imm.value();
   if (value == 0) {
     return;
   }
   if ((value > 0) || (value == kMinInt64) ||
-      (value == kMinInt32 && width == k32Bit)) {
+      (value == kMinInt32 && width == kFourBytes)) {
     if (value == 1) {
-      if (width == k32Bit) {
+      if (width == kFourBytes) {
         decl(reg);
       } else {
         decq(reg);
       }
     } else {
       if (imm.is_int32()) {
-        if (width == k32Bit) {
+        if (width == kFourBytes) {
           subl(reg, imm);
         } else {
           subq(reg, imm);
         }
       } else {
         ASSERT(reg != TMP);
-        ASSERT(width != k32Bit);
+        ASSERT(width == kEightBytes);
         LoadImmediate(TMP, imm);
         subq(reg, TMP);
       }
@@ -1361,7 +1364,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
     testl(value, Immediate(0x1f));
   }
   Condition condition = how_to_jump == kJumpToNoUpdate ? NOT_ZERO : ZERO;
-  bool distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
+  JumpDistance distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
   j(condition, label, distance);
 }
 
@@ -1532,6 +1535,28 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound);
 }
 
+void Assembler::LoadFromOffset(Register reg,
+                               const Address& address,
+                               OperandSize sz) {
+  switch (sz) {
+    case kByte:
+      return movsxb(reg, address);
+    case kUnsignedByte:
+      return movzxb(reg, address);
+    case kTwoBytes:
+      return movsxw(reg, address);
+    case kUnsignedTwoBytes:
+      return movzxw(reg, address);
+    case kFourBytes:
+      return movl(reg, address);
+    case kEightBytes:
+      return movq(reg, address);
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
 void Assembler::EnterFrame(intptr_t frame_size) {
   if (prologue_offset_ == -1) {
     prologue_offset_ = CodeSize();
@@ -1580,9 +1605,8 @@ void Assembler::EmitEntryFrameVerification() {
 #endif
 }
 
-void Assembler::PushRegisters(intptr_t cpu_register_set,
-                              intptr_t xmm_register_set) {
-  const intptr_t xmm_regs_count = RegisterSet::RegisterCount(xmm_register_set);
+void Assembler::PushRegisters(const RegisterSet& register_set) {
+  const intptr_t xmm_regs_count = register_set.FpuRegisterCount();
   if (xmm_regs_count > 0) {
     AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize));
     // Store XMM registers with the lowest register number at the lowest
@@ -1590,7 +1614,7 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
     intptr_t offset = 0;
     for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(i);
-      if (RegisterSet::Contains(xmm_register_set, xmm_reg)) {
+      if (register_set.ContainsFpuRegister(xmm_reg)) {
         movups(Address(RSP, offset), xmm_reg);
         offset += kFpuRegisterSize;
       }
@@ -1602,28 +1626,27 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
   // in which the registers are encoded in the safe point's stack map.
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
-    if (RegisterSet::Contains(cpu_register_set, reg)) {
+    if (register_set.ContainsRegister(reg)) {
       pushq(reg);
     }
   }
 }
 
-void Assembler::PopRegisters(intptr_t cpu_register_set,
-                             intptr_t xmm_register_set) {
+void Assembler::PopRegisters(const RegisterSet& register_set) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     Register reg = static_cast<Register>(i);
-    if (RegisterSet::Contains(cpu_register_set, reg)) {
+    if (register_set.ContainsRegister(reg)) {
       popq(reg);
     }
   }
 
-  const intptr_t xmm_regs_count = RegisterSet::RegisterCount(xmm_register_set);
+  const intptr_t xmm_regs_count = register_set.FpuRegisterCount();
   if (xmm_regs_count > 0) {
     // XMM registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
     for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(i);
-      if (RegisterSet::Contains(xmm_register_set, xmm_reg)) {
+      if (register_set.ContainsFpuRegister(xmm_reg)) {
         movups(xmm_reg, Address(RSP, offset));
         offset += kFpuRegisterSize;
       }
@@ -1632,6 +1655,10 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
     AddImmediate(RSP, Immediate(offset));
   }
 }
+
+static const RegisterSet kVolatileRegisterSet(
+    CallingConventions::kVolatileCpuRegisters,
+    CallingConventions::kVolatileXmmRegisters);
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
@@ -1642,8 +1669,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   }
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-  PushRegisters(CallingConventions::kVolatileCpuRegisters,
-                CallingConventions::kVolatileXmmRegisters);
+  PushRegisters(kVolatileRegisterSet);
 
   ReserveAlignedFrameSpace(frame_space);
 }
@@ -1665,8 +1691,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   leaq(RSP, Address(RBP, -kPushedRegistersSize));
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-  PopRegisters(CallingConventions::kVolatileCpuRegisters,
-               CallingConventions::kVolatileXmmRegisters);
+  PopRegisters(kVolatileRegisterSet);
 
   LeaveStubFrame();
 }
@@ -1889,7 +1914,7 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
-                                     bool near_jump) {
+                                     JumpDistance distance) {
   ASSERT(cid > 0);
   const intptr_t shared_table_offset =
       target::Isolate::shared_class_table_offset();
@@ -1904,13 +1929,13 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   cmpb(Address(temp_reg, class_offset), Immediate(0));
   // We are tracing for this class, jump to the trace label which will use
   // the allocation stub.
-  j(NOT_ZERO, trace, near_jump);
+  j(NOT_ZERO, trace, distance);
 }
 #endif  // !PRODUCT
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
-                            bool near_jump,
+                            JumpDistance distance,
                             Register instance_reg,
                             Register temp) {
   ASSERT(failure != NULL);
@@ -1921,12 +1946,12 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, near_jump));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, distance));
     movq(instance_reg, Address(THR, target::Thread::top_offset()));
     addq(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
     cmpq(instance_reg, Address(THR, target::Thread::end_offset()));
-    j(ABOVE_EQUAL, failure, near_jump);
+    j(ABOVE_EQUAL, failure, distance);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movq(Address(THR, target::Thread::top_offset()), instance_reg);
@@ -1946,7 +1971,7 @@ void Assembler::TryAllocate(const Class& cls,
 void Assembler::TryAllocateArray(intptr_t cid,
                                  intptr_t instance_size,
                                  Label* failure,
-                                 bool near_jump,
+                                 JumpDistance distance,
                                  Register instance,
                                  Register end_address,
                                  Register temp) {
@@ -1956,7 +1981,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, near_jump));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, distance));
     movq(instance, Address(THR, target::Thread::top_offset()));
     movq(end_address, instance);
 
