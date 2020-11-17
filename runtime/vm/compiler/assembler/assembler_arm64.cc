@@ -508,6 +508,21 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, true);
 }
 
+void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  ASSERT(depth >= 0);
+  LoadFromOffset(dst, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::StoreToStack(Register src, intptr_t depth) {
+  ASSERT(depth >= 0);
+  StoreToOffset(src, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::CompareToStack(Register src, intptr_t depth) {
+  LoadFromStack(TMP, depth);
+  CompareRegisters(src, TMP);
+}
+
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
@@ -1176,7 +1191,6 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
                                Register scratch) {
-  ASSERT(scratch == kNoRegister);
   LoadClassId(TMP, object);
   CompareImmediate(TMP, class_id);
 }

@@ -2184,15 +2184,16 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // TOS + 0: return address.
 // TOS + 1: function type arguments (only if n == 4, can be raw_null).
 // TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
+// TOS + 3: destination_type (only used if n >= 3).
+// TOS + 4: instance.
+// TOS + 5: SubtypeTestCache.
 //
 // No registers are preserved by this stub.
 //
 // Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
 // result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
+  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
 
   // We represent the depth of as a depth from the top of the stack at the
   // start of the stub. That is, depths for input values are non-negative and
@@ -2206,8 +2207,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Inputs use relative depths.
   static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
   static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
-  static constexpr intptr_t kInstanceDepth = 3;
-  static constexpr intptr_t kCacheDepth = 4;
+  static constexpr intptr_t kDestinationTypeDepth = 3;
+  static constexpr intptr_t kInstanceDepth = 4;
+  static constexpr intptr_t kCacheDepth = 5;
   // Others use absolute depths. We initialize conditionally pushed values to
   // kNoInput for extra checking.
   intptr_t kInstanceParentFunctionTypeArgumentsDepth = kNoDepth;
@@ -2224,15 +2226,13 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Loads a value at the given depth from the stack into dst.
   auto load_from_stack = [&](Register dst, intptr_t depth) {
     ASSERT(depth != kNoDepth);
-    __ movl(dst,
-            Address(ESP, (original_tos_offset + depth) * target::kWordSize));
+    __ LoadFromStack(dst, original_tos_offset + depth);
   };
 
   // Compares a value at the given depth from the stack to the value in src.
   auto compare_to_stack = [&](Register src, intptr_t depth) {
     ASSERT(depth != kNoDepth);
-    __ cmpl(src,
-            Address(ESP, (original_tos_offset + depth) * target::kWordSize));
+    __ CompareToStack(src, original_tos_offset + depth);
   };
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
@@ -2251,7 +2251,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
           Immediate(target::Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-  if (n >= 4) {
+  if (n >= 5) {
     __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   } else {
     __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
@@ -2264,12 +2264,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movl(kInstanceCidOrFunction,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
-    if (n >= 2) {
+    if (n >= 3) {
       __ movl(
           kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 6) {
+      if (n >= 7) {
         __ pushl(
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::delayed_type_arguments_offset()));
@@ -2284,7 +2284,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 2) {
+    if (n >= 3) {
       Label has_no_type_arguments;
       __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
       __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
@@ -2299,7 +2299,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
               FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_4, 0));
       __ Bind(&has_no_type_arguments);
 
-      if (n >= 6) {
+      if (n >= 7) {
         __ pushl(raw_null);  // delayed.
         __ pushl(raw_null);  // function.
       }
@@ -2307,7 +2307,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ SmiTag(kInstanceCidOrFunction);
   }
 
-  if (n >= 6) {
+  if (n >= 7) {
     // Now that instance handling is done, both the delayed and parent function
     // type arguments stack slots have been set, so any input uses must be
     // offset by the new values and the new values can now be accessed in
@@ -2332,11 +2332,17 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ movl(kScratchReg,
+            Address(kCacheArrayReg,
+                    target::kWordSize *
+                        target::SubtypeTestCache::kDestinationType));
+    compare_to_stack(kScratchReg, kDestinationTypeDepth);
+    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ cmpl(kInstanceInstantiatorTypeArgumentsReg,
             Address(kCacheArrayReg,
                     target::kWordSize *
                         target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 2) {
+    if (n == 3) {
       __ j(EQUAL, &done, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
@@ -2352,10 +2358,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                       target::kWordSize *
                           target::SubtypeTestCache::kFunctionTypeArguments));
       compare_to_stack(kScratchReg, kFunctionTypeArgumentsDepth);
-      if (n == 4) {
+      if (n == 5) {
         __ j(EQUAL, &done, Assembler::kNearJump);
       } else {
-        ASSERT(n == 6);
+        ASSERT(n == 7);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
         __ movl(kScratchReg,
@@ -2389,7 +2395,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
           Address(kCacheArrayReg,
                   target::kWordSize * target::SubtypeTestCache::kTestResult));
-  if (n >= 6) {
+  if (n >= 7) {
     __ Drop(2);
     original_tos_offset = 0;  // In case we add any input uses after this point.
   }
@@ -2402,18 +2408,18 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 2);
+void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 4);
+void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 6);
+void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.

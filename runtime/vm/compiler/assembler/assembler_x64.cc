@@ -1057,6 +1057,20 @@ void Assembler::CompareRegisters(Register a, Register b) {
   cmpq(a, b);
 }
 
+void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  ASSERT(depth >= 0);
+  movq(dst, Address(SPREG, depth * target::kWordSize));
+}
+
+void Assembler::StoreToStack(Register src, intptr_t depth) {
+  ASSERT(depth >= 0);
+  movq(Address(SPREG, depth * target::kWordSize), src);
+}
+
+void Assembler::CompareToStack(Register src, intptr_t depth) {
+  cmpq(Address(SPREG, depth * target::kWordSize), src);
+}
+
 void Assembler::MoveRegister(Register to, Register from) {
   if (to != from) {
     movq(to, from);
@@ -2200,7 +2214,6 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
                                Register scratch) {
-  ASSERT(scratch == kNoRegister);
   LoadClassId(TMP, object);
   cmpl(TMP, Immediate(class_id));
 }

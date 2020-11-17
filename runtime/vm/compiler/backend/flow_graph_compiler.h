@@ -1076,9 +1076,9 @@ class FlowGraphCompiler : public ValueObject {
 
   enum TypeTestStubKind {
     kTestTypeOneArg,
-    kTestTypeTwoArgs,
-    kTestTypeFourArgs,
-    kTestTypeSixArgs,
+    kTestTypeThreeArgs,
+    kTestTypeFiveArgs,
+    kTestTypeSevenArgs,
   };
 
   // Returns type test stub kind for a type test against type parameter type.

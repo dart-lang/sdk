@@ -118,7 +118,7 @@ struct TypeTestABI {
       EDI;  // On ia32 we don't use CODE_REG.
 
   // For call to InstanceOfStub.
-  static const Register kInstanceOfResultReg = kNoRegister;
+  static const Register kInstanceOfResultReg = kInstanceReg;
   // For call to SubtypeNTestCacheStub.
   static const Register kSubtypeTestCacheResultReg =
       TypeTestABI::kSubtypeTestCacheReg;

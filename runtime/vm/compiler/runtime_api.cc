@@ -252,12 +252,12 @@ const Code& StubCodeAllocateArray() {
   return dart::StubCode::AllocateArray();
 }
 
-const Code& StubCodeSubtype2TestCache() {
-  return dart::StubCode::Subtype2TestCache();
+const Code& StubCodeSubtype3TestCache() {
+  return dart::StubCode::Subtype3TestCache();
 }
 
-const Code& StubCodeSubtype6TestCache() {
-  return dart::StubCode::Subtype6TestCache();
+const Code& StubCodeSubtype7TestCache() {
+  return dart::StubCode::Subtype7TestCache();
 }
 
 #define DEFINE_ALIAS(name)                                                     \

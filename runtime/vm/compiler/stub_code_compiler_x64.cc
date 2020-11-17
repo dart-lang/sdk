@@ -2737,8 +2737,9 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Input registers (from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
 //   - kInstanceReg: instance to test against (must be preserved).
-//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n>=4).
-//   - kFunctionTypeArgumentsReg: function type arguments (for n>=4).
+//   - kDstTypeReg: destination type (for n>=3).
+//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (for n>=5).
+//   - kFunctionTypeArgumentsReg : function type arguments (for n>=5).
 // Inputs from stack:
 //   - TOS + 0: return address.
 //
@@ -2747,7 +2748,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
 // result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
+  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
 
   // Until we have the result, we use the result register to store the null
   // value for quick access. This has the side benefit of initializing the
@@ -2761,12 +2762,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Register kScratchReg = TypeTestABI::kScratchReg;
   const Register kInstanceCidOrFunction = R10;
   const Register kInstanceInstantiatorTypeArgumentsReg = R13;
-  // Only used for n >= 6, so set conditionally in that case to catch misuse.
+  // Only used for n >= 7, so set conditionally in that case to catch misuse.
   Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
   Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
 
-  // Free up these 2 registers to be used for 6-value test.
-  if (n >= 6) {
+  // Free up these 2 registers to be used for 7-value test.
+  if (n >= 7) {
     kInstanceParentFunctionTypeArgumentsReg = PP;
     kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
     __ pushq(kInstanceParentFunctionTypeArgumentsReg);
@@ -2785,7 +2786,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
           Immediate(target::Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-  if (n >= 4) {
+  if (n >= 5) {
     __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   } else {
     __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
@@ -2798,13 +2799,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movq(kInstanceCidOrFunction,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
-    if (n >= 2) {
+    if (n >= 3) {
       __ movq(
           kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 6) {
-        ASSERT(n == 6);
+      if (n >= 7) {
         __ movq(
             kInstanceParentFunctionTypeArgumentsReg,
             FieldAddress(TypeTestABI::kInstanceReg,
@@ -2820,7 +2820,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 2) {
+    if (n >= 3) {
       Label has_no_type_arguments;
       __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
       __ movq(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
@@ -2835,7 +2835,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
               FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_8, 0));
       __ Bind(&has_no_type_arguments);
 
-      if (n >= 6) {
+      if (n >= 7) {
         __ movq(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
         __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
@@ -2858,11 +2858,16 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ cmpq(TypeTestABI::kDstTypeReg,
+            Address(kCacheArrayReg,
+                    target::kWordSize *
+                        target::SubtypeTestCache::kDestinationType));
+    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ cmpq(kInstanceInstantiatorTypeArgumentsReg,
             Address(kCacheArrayReg,
                     target::kWordSize *
                         target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 2) {
+    if (n == 3) {
       __ j(EQUAL, &found, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
@@ -2877,10 +2882,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                       target::kWordSize *
                           target::SubtypeTestCache::kFunctionTypeArguments));
 
-      if (n == 4) {
+      if (n == 5) {
         __ j(EQUAL, &found, Assembler::kNearJump);
       } else {
-        ASSERT(n == 6);
+        ASSERT(n == 7);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
         __ cmpq(kInstanceParentFunctionTypeArgumentsReg,
@@ -2911,7 +2916,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                   target::kWordSize * target::SubtypeTestCache::kTestResult));
 
   __ Bind(&not_found);
-  if (n >= 6) {
+  if (n >= 7) {
     __ popq(kInstanceDelayedFunctionTypeArgumentsReg);
     __ popq(kInstanceParentFunctionTypeArgumentsReg);
   }
@@ -2924,18 +2929,18 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 2);
+void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 4);
+void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 6);
+void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to stack alignment

@@ -341,7 +341,7 @@ struct TypeTestABI {
 
   // Registers that need saving across SubtypeTestCacheStub calls.
   static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
-      (1 << kSubtypeTestCacheReg) | (1 << kDstTypeReg);
+      1 << kSubtypeTestCacheReg;
 
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |

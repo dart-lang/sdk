@@ -206,8 +206,8 @@ typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
                                          intptr_t);
 
 const Code& StubCodeAllocateArray();
-const Code& StubCodeSubtype2TestCache();
-const Code& StubCodeSubtype6TestCache();
+const Code& StubCodeSubtype3TestCache();
+const Code& StubCodeSubtype7TestCache();
 
 class RuntimeEntry : public ValueObject {
  public:
@@ -1201,6 +1201,7 @@ class SubtypeTestCache : public AllStatic {
 
   static const word kTestEntryLength;
   static const word kInstanceClassIdOrFunction;
+  static const word kDestinationType;
   static const word kInstanceTypeArguments;
   static const word kInstantiatorTypeArguments;
   static const word kFunctionTypeArguments;

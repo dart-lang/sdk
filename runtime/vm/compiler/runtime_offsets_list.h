@@ -54,6 +54,7 @@
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceClassIdOrFunction)                       \
+  CONSTANT(SubtypeTestCache, kDestinationType)                                 \
   CONSTANT(SubtypeTestCache, kInstanceDelayedFunctionTypeArguments)            \
   CONSTANT(SubtypeTestCache, kInstanceParentFunctionTypeArguments)             \
   CONSTANT(SubtypeTestCache, kInstanceTypeArguments)                           \

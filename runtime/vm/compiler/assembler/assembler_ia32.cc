@@ -1762,6 +1762,39 @@ void Assembler::CompareRegisters(Register a, Register b) {
   cmpl(a, b);
 }
 
+void Assembler::LoadFromOffset(Register reg,
+                               Register base,
+                               int32_t offset,
+                               OperandSize type) {
+  switch (type) {
+    case kByte:
+      return movsxb(reg, Address(base, offset));
+    case kUnsignedByte:
+      return movzxb(reg, Address(base, offset));
+    case kTwoBytes:
+      return movsxw(reg, Address(base, offset));
+    case kUnsignedTwoBytes:
+      return movzxw(reg, Address(base, offset));
+    case kFourBytes:
+      return movl(reg, Address(base, offset));
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  movl(dst, Address(ESP, depth * target::kWordSize));
+}
+
+void Assembler::StoreToStack(Register src, intptr_t depth) {
+  movl(Address(ESP, depth * target::kWordSize), src);
+}
+
+void Assembler::CompareToStack(Register src, intptr_t depth) {
+  cmpl(src, Address(ESP, depth * target::kWordSize));
+}
+
 void Assembler::MoveRegister(Register to, Register from) {
   if (to != from) {
     movl(to, from);

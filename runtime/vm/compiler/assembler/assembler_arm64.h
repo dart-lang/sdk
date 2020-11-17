@@ -1486,9 +1486,19 @@ class Assembler : public AssemblerBase {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) { tbnz(label, reg, kSmiTag); }
+  // For ARM, the near argument is ignored.
+  void BranchIfNotSmi(Register reg,
+                      Label* label,
+                      JumpDistance distance = kFarJump) {
+    tbnz(label, reg, kSmiTag);
+  }
 
-  void BranchIfSmi(Register reg, Label* label) { tbz(label, reg, kSmiTag); }
+  // For ARM, the near argument is ignored.
+  void BranchIfSmi(Register reg,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
+    tbz(label, reg, kSmiTag);
+  }
 
   void Branch(const Code& code,
               Register pp,
@@ -1578,6 +1588,10 @@ class Assembler : public AssemblerBase {
   void LoadQFieldFromOffset(VRegister dest, Register base, int32_t offset) {
     LoadQFromOffset(dest, base, offset - kHeapObjectTag);
   }
+
+  void LoadFromStack(Register dst, intptr_t depth);
+  void StoreToStack(Register src, intptr_t depth);
+  void CompareToStack(Register src, intptr_t depth);
 
   void StoreToOffset(Register src,
                      Register base,

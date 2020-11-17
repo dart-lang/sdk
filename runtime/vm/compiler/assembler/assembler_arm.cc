@@ -2733,6 +2733,21 @@ void Assembler::LoadFromOffset(Register reg,
   }
 }
 
+void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  ASSERT(depth >= 0);
+  LoadFromOffset(dst, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::StoreToStack(Register src, intptr_t depth) {
+  ASSERT(depth >= 0);
+  StoreToOffset(src, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::CompareToStack(Register src, intptr_t depth) {
+  LoadFromStack(TMP, depth);
+  CompareRegisters(src, TMP);
+}
+
 void Assembler::StoreToOffset(Register reg,
                               Register base,
                               int32_t offset,

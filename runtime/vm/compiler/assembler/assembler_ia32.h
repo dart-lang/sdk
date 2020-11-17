@@ -572,9 +572,33 @@ class Assembler : public AssemblerBase {
 
   void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
-  void BranchIf(Condition condition, Label* label) { j(condition, label); }
+  void BranchIf(Condition condition,
+                Label* label,
+                JumpDistance distance = kFarJump) {
+    j(condition, label, distance);
+  }
 
+  void LoadFromOffset(Register reg,
+                      Register base,
+                      int32_t offset,
+                      OperandSize type = kFourBytes);
   void LoadField(Register dst, FieldAddress address) { movl(dst, address); }
+  void LoadFieldFromOffset(Register reg,
+                           Register base,
+                           int32_t offset,
+                           OperandSize type = kFourBytes) {
+    LoadFromOffset(reg, base, offset - kHeapObjectTag, type);
+  }
+  void LoadIndexedFieldFromOffset(Register reg,
+                                  Register base,
+                                  int32_t offset,
+                                  Register index,
+                                  ScaleFactor scale) {
+    LoadField(reg, FieldAddress(base, index, scale, offset));
+  }
+  void LoadFromStack(Register dst, intptr_t depth);
+  void StoreToStack(Register src, intptr_t depth);
+  void CompareToStack(Register src, intptr_t depth);
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movl(dst, Address(base, offset));
   }
@@ -792,19 +816,25 @@ class Assembler : public AssemblerBase {
 
   void SmiUntag(Register reg) { sarl(reg, Immediate(kSmiTagSize)); }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
+  void BranchIfNotSmi(Register reg,
+                      Label* label,
+                      JumpDistance distance = kFarJump) {
     testl(reg, Immediate(kSmiTagMask));
-    j(NOT_ZERO, label);
+    j(NOT_ZERO, label, distance);
   }
 
-  void BranchIfSmi(Register reg, Label* label) {
+  void BranchIfSmi(Register reg,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
     testl(reg, Immediate(kSmiTagMask));
-    j(ZERO, label);
+    j(ZERO, label, distance);
   }
 
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
-  void Jump(Label* label) { jmp(label); }
+  void Jump(Label* label, JumpDistance distance = kFarJump) {
+    jmp(label, distance);
+  }
 
   // Moves one word from the memory at [from] to the memory at [to].
   // Needs a temporary register.
