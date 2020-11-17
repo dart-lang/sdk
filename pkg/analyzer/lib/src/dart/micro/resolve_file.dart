@@ -304,6 +304,17 @@ class FileResolver {
     removedCacheIds.clear();
   }
 
+  /// Remove cached [FileState]'s that were not used in the current analysis
+  /// session. The list of files analyzed is used to compute the set of unused
+  /// [FileState]'s. Adds the cache id's for the removed [FileState]'s to
+  /// [removedCacheIds].
+  void removeFilesNotNecessaryForAnalysisOf(List<String> files) {
+    var removedFiles = fsState.removeUnusedFiles(files);
+    for (var removedFile in removedFiles) {
+      removedCacheIds.add(removedFile.id);
+    }
+  }
+
   /// The [completionLine] and [completionColumn] are zero based.
   ResolvedUnitResult resolve({
     int completionLine,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -135,6 +136,18 @@ class FileState {
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
+
+  /// Recursively traverse imports, exports, and parts to collect all
+  /// files that are accessed.
+  void collectAllReferencedFiles(Set<String> referencedFiles) {
+    var deps = {...importedFiles, ...exportedFiles, ...partedFiles};
+    for (var file in deps) {
+      if (!referencedFiles.contains(file.path)) {
+        referencedFiles.add(file.path);
+        file.collectAllReferencedFiles(referencedFiles);
+      }
+    }
+  }
 
   /// Return the content of the file, the empty string if cannot be read.
   String getContent() {
@@ -601,10 +614,34 @@ class FileSystemState {
     }
     return source.fullName;
   }
+
+  /// Computes the set of [FileState]'s used/not used to analyze the given
+  /// [files]. Removes the [FileState]'s of the files not used for analysis from
+  /// the cache. Returns the set of unused [FileState]'s.
+  List<FileState> removeUnusedFiles(List<String> files) {
+    var removedFiles = <FileState>[];
+    var unusedFiles = _pathToFile.keys.toSet();
+    var deps = HashSet<String>();
+    for (var path in files) {
+      unusedFiles.remove(path);
+      _pathToFile[path].collectAllReferencedFiles(deps);
+    }
+    for (var path in deps) {
+      unusedFiles.remove(path);
+    }
+    for (var path in unusedFiles) {
+      var file = _pathToFile.remove(path);
+      _uriToFile.remove(file.uri);
+      removedFiles.add(file);
+    }
+    testView.unusedFiles = unusedFiles;
+    return removedFiles;
+  }
 }
 
 class FileSystemStateTestView {
   final List<String> refreshedFiles = [];
+  Set<String> unusedFiles = {};
 }
 
 class FileSystemStateTimer {

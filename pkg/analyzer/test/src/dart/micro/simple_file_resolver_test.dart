@@ -569,4 +569,65 @@ import 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
     ]);
   }
+
+  test_unusedFiles() async {
+    var bPath = '/workspace/dart/aaa/lib/b.dart';
+    var cPath = '/workspace/dart/aaa/lib/c.dart';
+
+    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(cPath, content: r'''
+import 'a.dart';
+''');
+
+    await resolveFile(bPath);
+    await resolveFile(cPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
+    expect(fileResolver.fsState.testView.unusedFiles.contains(bPath), true);
+    expect(fileResolver.fsState.testView.unusedFiles.length, 1);
+  }
+
+  test_unusedFiles_mutilple() async {
+    var dPath = '/workspace/dart/aaa/lib/d.dart';
+    var ePath = '/workspace/dart/aaa/lib/e.dart';
+    var fPath = '/workspace/dart/aaa/lib/f.dart';
+
+    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
+class A {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/b.dart', content: r'''
+class B {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/c.dart', content: r'''
+class C {}
+''');
+
+    newFile(dPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(ePath, content: r'''
+import 'a.dart';
+import 'b.dart';
+''');
+
+    newFile(fPath, content: r'''
+import 'c.dart';
+ ''');
+
+    await resolveFile(dPath);
+    await resolveFile(ePath);
+    await resolveFile(fPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
+    expect(fileResolver.fsState.testView.unusedFiles.contains(ePath), true);
+    expect(fileResolver.fsState.testView.unusedFiles.length, 2);
+  }
 }
