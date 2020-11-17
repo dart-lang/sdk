@@ -5486,8 +5486,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitAsExpression(AsExpression node) {
     var fromExpr = node.operand;
-    var to = node.type;
     var jsFrom = _visitExpression(fromExpr);
+
+    // The `_EventStreamSubscription.cancel()` method dart:html returns null in
+    // weak mode. This causes unwanted warnings/failures when you turn on the
+    // weak mode warnings/errors so we remove these specific runtime casts.
+    // TODO(44157) Remove this workaround once it returns a consistent type.
+    if (_isWebLibrary(currentLibraryUri) && node.parent is ReturnStatement) {
+      var parent = node.parent;
+      while (parent != null && parent is! FunctionNode) {
+        parent = parent?.parent;
+      }
+      parent = parent?.parent;
+      if (parent is Procedure) {
+        if (parent.enclosingClass != null &&
+            parent.enclosingClass.name == '_EventStreamSubscription' &&
+            parent.name.name == 'cancel') {
+          // Ignore these casts and just emit the expression.
+          return jsFrom;
+        }
+      }
+    }
+
+    var to = node.type;
     var from = fromExpr.getStaticType(_staticTypeContext);
 
     // If the check was put here by static analysis to ensure soundness, we

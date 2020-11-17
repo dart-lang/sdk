@@ -71,6 +71,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
@@ -351,11 +352,13 @@ class BulkFixProcessor {
   /// diagnostics.
   ChangeBuilder builder;
 
+  /// A map associating libraries to fixes with change counts.
+  final ChangeMap changeMap = ChangeMap();
+
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
-  BulkFixProcessor(this.instrumentationService, this.workspace) {
-    builder = ChangeBuilder(workspace: workspace);
-  }
+  BulkFixProcessor(this.instrumentationService, this.workspace)
+      : builder = ChangeBuilder(workspace: workspace);
 
   /// Return a change builder that has been used to create fixes for the
   /// diagnostics in the libraries in the given [contexts].
@@ -431,19 +434,38 @@ class BulkFixProcessor {
       }
     }
 
+    int computeChangeHash() {
+      var hash = 0;
+      var edits = builder.sourceChange.edits;
+      for (var i = 0; i < edits.length; ++i) {
+        hash = JenkinsSmiHash.combine(hash, edits[i].hashCode);
+      }
+      return JenkinsSmiHash.finish(hash);
+    }
+
+    Future<void> generate(CorrectionProducer producer, String code) async {
+      var oldHash = computeChangeHash();
+      await compute(producer);
+      var newHash = computeChangeHash();
+      if (newHash != oldHash) {
+        changeMap.add(result.path, code);
+      }
+    }
+
     var errorCode = diagnostic.errorCode;
     try {
+      var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var generators = lintProducerMap[errorCode.name];
+        var generators = lintProducerMap[codeName];
         if (generators != null) {
           for (var generator in generators) {
-            await compute(generator());
+            await generate(generator(), codeName);
           }
         }
       } else {
         var generator = nonLintProducerMap[errorCode];
         if (generator != null) {
-          await compute(generator());
+          await generate(generator(), codeName);
         }
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
@@ -451,7 +473,7 @@ class BulkFixProcessor {
             var multiProducer = multiGenerator();
             multiProducer.configure(context);
             for (var producer in multiProducer.producers) {
-              await compute(producer);
+              await generate(producer, codeName);
             }
           }
         }
@@ -462,5 +484,17 @@ class BulkFixProcessor {
           e,
           s);
     }
+  }
+}
+
+/// Maps changes to library paths.
+class ChangeMap {
+  /// Map of paths to maps of codes to counts.
+  final Map<String, Map<String, int>> libraryMap = {};
+
+  /// Add an entry for the given [code] in the given [libraryPath].
+  void add(String libraryPath, String code) {
+    var changes = libraryMap.putIfAbsent(libraryPath, () => {});
+    changes.update(code, (value) => value + 1, ifAbsent: () => 1);
   }
 }

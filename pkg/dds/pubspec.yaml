@@ -3,7 +3,7 @@ description: >-
   A library used to spawn the Dart Developer Service, used to communicate with
   a Dart VM Service instance.
 
-version: 1.5.0
+version: 1.5.1
 
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/dds
 
@@ -25,5 +25,5 @@ dependencies:
 dev_dependencies:
   shelf_static: ^0.2.8
   test: ^1.0.0
-  vm_service: ^4.0.0
+  vm_service: ^5.0.0
   webdriver: ^2.1.2

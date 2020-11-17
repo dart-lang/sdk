@@ -9,6 +9,7 @@ import 'add_const_test.dart' as add_const;
 import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_override_test.dart' as add_override;
+import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_map_from_iterable_to_for_literal_test.dart'
@@ -70,6 +71,7 @@ void main() {
     add_const.main();
     add_diagnostic_property_reference.main();
     add_override.main();
+    bulk_fix_processor.main();
     convert_documentation_into_line.main();
     convert_map_from_iterable_to_for_literal.main();
     convert_to_contains.main();

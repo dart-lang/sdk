@@ -38,7 +38,7 @@ dev_dependencies:
   vm_service:
     path: ../vm_service
   web_socket_channel: ^1.0.4
-  yaml: '^2.1.12'
+  yaml: any
 
 dependency_overrides:
   _fe_analyzer_shared:

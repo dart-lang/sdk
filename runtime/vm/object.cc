@@ -14518,7 +14518,7 @@ void CompressedStackMaps::Iterator::WriteToBuffer(BaseTextBuffer* buffer,
     if (!first_entry) {
       buffer->AddString(separator);
     }
-    buffer->Printf("0x%0.8" Px32 ": ", it.pc_offset());
+    buffer->Printf("0x%.8" Px32 ": ", it.pc_offset());
     for (intptr_t i = 0, n = it.Length(); i < n; i++) {
       buffer->AddString(it.IsObject(i) ? "1" : "0");
     }
@@ -24322,7 +24322,7 @@ const char* StackTrace::ToCString() const {
       const intptr_t length = isolate_instructions_image.build_id_length();
       buffer.Printf("build_id: '");
       for (intptr_t i = 0; i < length; i++) {
-        buffer.Printf("%02.2x", build_id[i]);
+        buffer.Printf("%2.2x", build_id[i]);
       }
       buffer.Printf("'\n");
     }

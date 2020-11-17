@@ -10,8 +10,8 @@ environment:
 
 dependencies:
   args: any
-  package_config: ^1.0.5
-  yaml: ^2.1.15
+  package_config: any
+  yaml: any
 
 dev_dependencies:
   async_helper:

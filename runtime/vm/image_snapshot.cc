@@ -1208,7 +1208,7 @@ intptr_t AssemblyImageWriter::WriteTargetWord(word value) {
   ASSERT(compiler::target::kBitsPerWord == kBitsPerWord ||
          Utils::IsAbsoluteUint(compiler::target::kBitsPerWord, value));
   // Padding is helpful for comparing the .S with --disassemble.
-  assembly_stream_->Printf("%s 0x%0.*" Px "\n", kWordDirective,
+  assembly_stream_->Printf("%s 0x%.*" Px "\n", kWordDirective,
                            2 * compiler::target::kWordSize, value);
   return compiler::target::kWordSize;
 }
@@ -1365,7 +1365,7 @@ intptr_t AssemblyImageWriter::WriteBytes(const void* bytes, intptr_t size) {
   if (end != end_of_words) {
     assembly_stream_->WriteString(kSizeDirectives[kInt8SizeLog2]);
     for (auto cursor = end_of_words; cursor < end; cursor++) {
-      assembly_stream_->Printf("%s 0x%0.2x", cursor != end_of_words ? "," : "",
+      assembly_stream_->Printf("%s 0x%.2x", cursor != end_of_words ? "," : "",
                                *cursor);
     }
     assembly_stream_->WriteString("\n");

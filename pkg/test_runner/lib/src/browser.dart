@@ -147,9 +147,16 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// [testJSDir] is the relative path to the build directory where the
 /// dartdevc-generated JS file is stored. [nonNullAsserts] enables non-null
 /// assertions for non-nullable method parameters when running with weak null
-/// safety.
-String dartdevcHtml(String testName, String testNameAlias, String testJSDir,
-    Compiler compiler, NnbdMode mode, bool nonNullAsserts) {
+/// safety. [weakNullSafetyErrors] enables null safety type violations to throw
+/// when running in weak mode.
+String dartdevcHtml(
+    String testName,
+    String testNameAlias,
+    String testJSDir,
+    Compiler compiler,
+    NnbdMode mode,
+    bool nonNullAsserts,
+    bool weakNullSafetyErrors) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
   var isNnbd = mode != NnbdMode.legacy;
@@ -233,7 +240,8 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   };
 
   if ($isNnbd) {
-    sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
+    sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $isNnbdStrong));
+    sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
     sdk.dart.nonNullAsserts($nonNullAsserts);
   }
 
