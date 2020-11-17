@@ -626,9 +626,6 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
-    // Redirecting factory must be resolved.
-    ASSERT(!function.IsRedirectingFactory() ||
-           function.RedirectionTarget() != Function::null());
     return function.raw();
   }
 }

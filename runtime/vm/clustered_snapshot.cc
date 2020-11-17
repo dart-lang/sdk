@@ -988,69 +988,6 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
   }
 };
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class RedirectionDataSerializationCluster : public SerializationCluster {
- public:
-  RedirectionDataSerializationCluster()
-      : SerializationCluster("RedirectionData") {}
-  ~RedirectionDataSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    RedirectionDataPtr data = RedirectionData::RawCast(object);
-    objects_.Add(data);
-    PushFromTo(data);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kRedirectionDataCid);
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RedirectionDataPtr data = objects_[i];
-      s->AssignRef(data);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RedirectionDataPtr data = objects_[i];
-      AutoTraceObject(data);
-      WriteFromTo(data);
-    }
-  }
-
- private:
-  GrowableArray<RedirectionDataPtr> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class RedirectionDataDeserializationCluster : public DeserializationCluster {
- public:
-  RedirectionDataDeserializationCluster()
-      : DeserializationCluster("RedirectionData") {}
-  ~RedirectionDataDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d, bool is_canonical) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, RedirectionData::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d, bool is_canonical) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RedirectionDataPtr data = static_cast<RedirectionDataPtr>(d->Ref(id));
-      Deserializer::InitializeHeader(data, kRedirectionDataCid,
-                                     RedirectionData::InstanceSize());
-      ReadFromTo(data);
-    }
-  }
-};
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class FieldSerializationCluster : public SerializationCluster {
@@ -5573,8 +5510,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ClosureDataSerializationCluster();
     case kSignatureDataCid:
       return new (Z) SignatureDataSerializationCluster();
-    case kRedirectionDataCid:
-      return new (Z) RedirectionDataSerializationCluster();
     case kFfiTrampolineDataCid:
       return new (Z) FfiTrampolineDataSerializationCluster();
     case kFieldCid:
@@ -6269,8 +6204,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ClosureDataDeserializationCluster();
     case kSignatureDataCid:
       return new (Z) SignatureDataDeserializationCluster();
-    case kRedirectionDataCid:
-      return new (Z) RedirectionDataDeserializationCluster();
     case kFfiTrampolineDataCid:
       return new (Z) FfiTrampolineDataDeserializationCluster();
     case kFieldCid:

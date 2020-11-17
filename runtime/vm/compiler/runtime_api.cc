@@ -978,10 +978,6 @@ word SignatureData::NextFieldOffset() {
   return -kWordSize;
 }
 
-word RedirectionData::NextFieldOffset() {
-  return -kWordSize;
-}
-
 word FfiTrampolineData::NextFieldOffset() {
   return -kWordSize;
 }

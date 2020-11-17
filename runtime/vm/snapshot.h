@@ -398,7 +398,6 @@ class SnapshotReader : public BaseReader {
   friend class MirrorReference;
   friend class Namespace;
   friend class PatchClass;
-  friend class RedirectionData;
   friend class RegExp;
   friend class Script;
   friend class SignatureData;

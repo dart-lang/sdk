@@ -633,7 +633,6 @@ void Precompiler::ProcessFunction(const Function& function) {
   }
 
   ASSERT(!function.is_abstract());
-  ASSERT(!function.IsRedirectingFactory());
 
   error_ = CompileFunction(this, thread_, zone_, function);
   if (!error_.IsNull()) {
@@ -781,9 +780,6 @@ void Precompiler::AddTypesOf(const Class& cls) {
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
   if (functions_to_retain_.ContainsKey(function)) return;
-  // We don't expect to see a reference to a redirecting factory. Only its
-  // target should remain.
-  ASSERT(!function.IsRedirectingFactory());
   functions_to_retain_.Insert(function);
 
   AddTypeArguments(TypeArguments::Handle(Z, function.type_parameters()));

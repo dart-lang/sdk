@@ -47,9 +47,6 @@ namespace dart {
   F(ClosureData, closure_)                                                     \
   F(SignatureData, parent_function_)                                           \
   F(SignatureData, signature_type_)                                            \
-  F(RedirectionData, type_)                                                    \
-  F(RedirectionData, identifier_)                                              \
-  F(RedirectionData, target_)                                                  \
   F(Field, name_)                                                              \
   F(Field, owner_)                                                             \
   F(Field, type_)                                                              \
