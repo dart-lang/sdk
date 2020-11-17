@@ -98,8 +98,7 @@ Iterable<Map<String, String>> makePackageConfigs(
           .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
           .toString(),
       if (hasLibDirectory) 'packageUri': 'lib/',
-      if (version != null)
-        'languageVersion': '${version.major}.${version.minor}'
+      'languageVersion': '${version.major}.${version.minor}'
     };
   }
 }
@@ -153,18 +152,29 @@ Iterable<String> listSubdirectories(String packagesDir) sync* {
 /// Returns `null` if there is no pubspec or no SDK constraint.
 Version pubspecLanguageVersion(String packageDir) {
   var pubspecFile = File(p.join(packageDir, 'pubspec.yaml'));
+  var relative = p.relative(packageDir, from: repoRoot);
 
-  if (!pubspecFile.existsSync()) return null;
+  if (!pubspecFile.existsSync()) {
+    print("Error: Missing pubspec for $relative.");
+    exit(1);
+  }
 
   var pubspec =
       loadYaml(pubspecFile.readAsStringSync()) as Map<dynamic, dynamic>;
-  if (!pubspec.containsKey('environment')) return null;
+  if (!pubspec.containsKey('environment')) {
+    print("Error: Pubspec for $relative has no SDK constraint.");
+    exit(1);
+  }
 
   var environment = pubspec['environment'] as Map<dynamic, dynamic>;
-  if (!environment.containsKey('sdk')) return null;
+  if (!environment.containsKey('sdk')) {
+    print("Error: Pubspec for $relative has no SDK constraint.");
+    exit(1);
+  }
 
   var sdkConstraint = VersionConstraint.parse(environment['sdk'] as String);
   if (sdkConstraint is VersionRange) return sdkConstraint.min;
 
-  return null;
+  print("Error: SDK constraint $relative is not a version range.");
+  exit(1);
 }
