@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.31.0</version>
+  <version>1.32.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2196,6 +2196,15 @@
           A list of source edits to apply the recommended changes.
         </p>
       </field>
+      <field name="details">
+        <list>
+          <ref>BulkFix</ref>
+        </list>
+        <p>
+          Details that summarize the fixes associated with the recommended
+          changes.
+        </p>
+      </field>
     </result>
   </request>
   <request method="dartfix" experimental="true">
@@ -3533,6 +3542,47 @@
         <p>
           The name of the current target of analysis. This field is
           omitted if analyzing is false.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="BulkFix">
+    <p>
+      A description of bulk fixes to a library.
+    </p>
+    <object>
+      <field name="path">
+        <ref>FilePath</ref>
+        <p>
+          The path of the library.
+        </p>
+      </field>
+      <field name="fixes">
+        <list>
+          <ref>BulkFixDetail</ref>
+        </list>
+        <p>
+          A list of bulk fix details.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="BulkFixDetail">
+    <p>
+      A description of a fix applied to a library.
+    </p>
+    <object>
+      <field name="code">
+        <ref>String</ref>
+        <p>
+          The code of the diagnostic associated with the fix.
+        </p>
+      </field>
+      <field name="occurrences">
+        <ref>int</ref>
+        <p>
+          The number times the associated diagnostic was fixed in the associated
+          source edit.
         </p>
       </field>
     </object>

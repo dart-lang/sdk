@@ -942,6 +942,10 @@ class Assembler : public AssemblerBase {
     add(reg, base, Operand(index, LSL, scale));
     LoadFromOffset(reg, reg, payload_start - kHeapObjectTag, type);
   }
+  void LoadFromStack(Register dst, intptr_t depth);
+  void StoreToStack(Register src, intptr_t depth);
+  void CompareToStack(Register src, intptr_t depth);
+
   void StoreToOffset(Register reg,
                      Register base,
                      int32_t offset,
@@ -1085,12 +1089,18 @@ class Assembler : public AssemblerBase {
     b(is_smi, CC);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
+  // For ARM, the near argument is ignored.
+  void BranchIfNotSmi(Register reg,
+                      Label* label,
+                      JumpDistance distance = kFarJump) {
     tst(reg, Operand(kSmiTagMask));
     b(label, NE);
   }
 
-  void BranchIfSmi(Register reg, Label* label) {
+  // For ARM, the near argument is ignored.
+  void BranchIfSmi(Register reg,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
     tst(reg, Operand(kSmiTagMask));
     b(label, EQ);
   }

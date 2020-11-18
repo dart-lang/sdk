@@ -10,6 +10,7 @@ static field core::int? _#nullableFinalTopLevelField;
 static field core::int? _#nonNullableFinalTopLevelField;
 static field core::int? _#nullableFinalTopLevelFieldWithInitializer;
 static field core::int? _#nonNullableFinalTopLevelFieldWithInitializer;
+static field Never? _#neverTopLevelField;
 static get nullableTopLevelField() → core::int?;
 static set nullableTopLevelField(core::int? #t1) → void;
 static get nonNullableTopLevelField() → core::int;
@@ -24,5 +25,7 @@ static get nonNullableFinalTopLevelField() → core::int;
 static set nonNullableFinalTopLevelField(core::int #t6) → void;
 static get nullableFinalTopLevelFieldWithInitializer() → core::int?;
 static get nonNullableFinalTopLevelFieldWithInitializer() → core::int;
+static get neverTopLevelField() → Never;
+static set neverTopLevelField(Never #t7) → void;
 static method main() → dynamic
   ;

@@ -17292,6 +17292,7 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
 
 void SubtypeTestCache::AddCheck(
     const Object& instance_class_id_or_function,
+    const AbstractType& destination_type,
     const TypeArguments& instance_type_arguments,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
@@ -17312,6 +17313,7 @@ void SubtypeTestCache::AddCheck(
   auto entry = entries[old_num];
   ASSERT(entry.Get<kInstanceClassIdOrFunction>() == Object::null());
   entry.Set<kInstanceClassIdOrFunction>(instance_class_id_or_function);
+  entry.Set<kDestinationType>(destination_type);
   entry.Set<kInstanceTypeArguments>(instance_type_arguments);
   entry.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
   entry.Set<kFunctionTypeArguments>(function_type_arguments);
@@ -17329,6 +17331,7 @@ void SubtypeTestCache::AddCheck(
 void SubtypeTestCache::GetCheck(
     intptr_t ix,
     Object* instance_class_id_or_function,
+    AbstractType* destination_type,
     TypeArguments* instance_type_arguments,
     TypeArguments* instantiator_type_arguments,
     TypeArguments* function_type_arguments,
@@ -17344,6 +17347,7 @@ void SubtypeTestCache::GetCheck(
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
   *instance_class_id_or_function = entry.Get<kInstanceClassIdOrFunction>();
+  *destination_type = entry.Get<kDestinationType>();
   *instance_type_arguments = entry.Get<kInstanceTypeArguments>();
   *instantiator_type_arguments = entry.Get<kInstantiatorTypeArguments>();
   *function_type_arguments = entry.Get<kFunctionTypeArguments>();

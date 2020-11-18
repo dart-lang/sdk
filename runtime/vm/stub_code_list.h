@@ -87,9 +87,9 @@ namespace dart {
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(AssertSubtype)                                                             \
   V(Subtype1TestCache)                                                         \
-  V(Subtype2TestCache)                                                         \
-  V(Subtype4TestCache)                                                         \
-  V(Subtype6TestCache)                                                         \
+  V(Subtype3TestCache)                                                         \
+  V(Subtype5TestCache)                                                         \
+  V(Subtype7TestCache)                                                         \
   VM_TYPE_TESTING_STUB_CODE_LIST(V)                                            \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \

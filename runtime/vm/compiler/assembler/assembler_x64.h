@@ -857,14 +857,18 @@ class Assembler : public AssemblerBase {
 
   void SmiUntag(Register reg) { sarq(reg, Immediate(kSmiTagSize)); }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
+  void BranchIfNotSmi(Register reg,
+                      Label* label,
+                      JumpDistance distance = kFarJump) {
     testq(reg, Immediate(kSmiTagMask));
-    j(NOT_ZERO, label);
+    j(NOT_ZERO, label, distance);
   }
 
-  void BranchIfSmi(Register reg, Label* label) {
+  void BranchIfSmi(Register reg,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
     testq(reg, Immediate(kSmiTagMask));
-    j(ZERO, label);
+    j(ZERO, label, distance);
   }
 
   void Align(int alignment, intptr_t offset);
@@ -905,6 +909,9 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
   }
+  void LoadFromStack(Register dst, intptr_t depth);
+  void StoreToStack(Register src, intptr_t depth);
+  void CompareToStack(Register src, intptr_t depth);
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movq(dst, Address(base, offset));
   }

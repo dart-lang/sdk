@@ -2270,6 +2270,8 @@ class FieldInvalidator {
          i += SubtypeTestCache::kTestEntryLength) {
       if ((entries_.At(i + SubtypeTestCache::kInstanceClassIdOrFunction) ==
            instance_cid_or_function_.raw()) &&
+          (entries_.At(i + SubtypeTestCache::kDestinationType) ==
+           type_.raw()) &&
           (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
            instance_type_arguments_.raw()) &&
           (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
@@ -2298,8 +2300,9 @@ class FieldInvalidator {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {
-        cache_.AddCheck(instance_cid_or_function_, instance_type_arguments_,
-                        instantiator_type_arguments_, function_type_arguments_,
+        cache_.AddCheck(instance_cid_or_function_, type_,
+                        instance_type_arguments_, instantiator_type_arguments_,
+                        function_type_arguments_,
                         parent_function_type_arguments_,
                         delayed_function_type_arguments_, Bool::True());
       }

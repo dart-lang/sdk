@@ -1587,6 +1587,11 @@ abstract class IntegrationTestMixin {
   /// edits: List<SourceFileEdit>
   ///
   ///   A list of source edits to apply the recommended changes.
+  ///
+  /// details: List<BulkFix>
+  ///
+  ///   Details that summarize the fixes associated with the recommended
+  ///   changes.
   Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included) async {
     var params = EditBulkFixesParams(included).toJson();
     var result = await server.send('edit.bulkFixes', params);

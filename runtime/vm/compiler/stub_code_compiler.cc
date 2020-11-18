@@ -381,7 +381,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Bind(&is_simple_case);
   {
     __ PushRegisters(caller_saved_registers);
-    __ Call(StubCodeSubtype2TestCache());
+    __ Call(StubCodeSubtype3TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ PopRegisters(caller_saved_registers);
@@ -392,7 +392,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Bind(&is_complex_case);
   {
     __ PushRegisters(caller_saved_registers);
-    __ Call(StubCodeSubtype6TestCache());
+    __ Call(StubCodeSubtype7TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ PopRegisters(caller_saved_registers);

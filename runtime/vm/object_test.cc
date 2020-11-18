@@ -3075,35 +3075,45 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   SafepointMutexLocker ml(thread->isolate_group()->subtype_test_cache_mutex());
 
-  String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
+  String& class1_name = String::Handle(Symbols::New(thread, "EmptyClass1"));
   Script& script = Script::Handle();
-  const Class& empty_class =
-      Class::Handle(CreateDummyClass(class_name, script));
+  const Class& empty_class1 =
+      Class::Handle(CreateDummyClass(class1_name, script));
+  String& class2_name = String::Handle(Symbols::New(thread, "EmptyClass2"));
+  const Class& empty_class2 =
+      Class::Handle(CreateDummyClass(class2_name, script));
   SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
   EXPECT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());
-  const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class.id()));
+  const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class1.id()));
+  const AbstractType& dest_type =
+      AbstractType::Handle(Type::NewNonParameterizedType(empty_class2));
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
   const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
   const TypeArguments& targ_3 = TypeArguments::Handle(TypeArguments::New(5));
   const TypeArguments& targ_4 = TypeArguments::Handle(TypeArguments::New(6));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, targ_3, targ_4,
-                 Bool::True());
+  cache.AddCheck(class_id_or_fun, dest_type, targ_0, targ_1, targ_2, targ_3,
+                 targ_4, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
+  AbstractType& test_dest_type = AbstractType::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   TypeArguments& test_targ_2 = TypeArguments::Handle();
   TypeArguments& test_targ_3 = TypeArguments::Handle();
   TypeArguments& test_targ_4 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
-  cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_targ_2, &test_targ_3, &test_targ_4, &test_result);
+  cache.GetCheck(0, &test_class_id_or_fun, &test_dest_type, &test_targ_0,
+                 &test_targ_1, &test_targ_2, &test_targ_3, &test_targ_4,
+                 &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
+  EXPECT_EQ(dest_type.raw(), test_dest_type.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
   EXPECT_EQ(targ_2.raw(), test_targ_2.raw());
+  EXPECT_EQ(targ_3.raw(), test_targ_3.raw());
+  EXPECT_EQ(targ_4.raw(), test_targ_4.raw());
   EXPECT_EQ(Bool::True().raw(), test_result.raw());
 }
 

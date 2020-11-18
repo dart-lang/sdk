@@ -556,21 +556,35 @@ static void PrintTypeCheck(const char* message,
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());
-  OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
+  if (function.IsInvokeFieldDispatcher() ||
+      function.IsNoSuchMethodDispatcher()) {
+    const auto& args_desc_array = Array::Handle(function.saved_args_desc());
+    const ArgumentsDescriptor args_desc(args_desc_array);
+    OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
+                 args_desc.ToCString());
+  } else {
+    OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
+  }
 }
 
-// This updates the type test cache, an array containing 5-value elements
-// (instance class (or function if the instance is a closure), instance type
-// arguments, instantiator type arguments, function type arguments,
-// and test_result). It can be applied to classes with type arguments in which
-// case it contains just the result of the class subtype test, not including the
-// evaluation of type arguments.
+// This updates the type test cache, an array containing 8 elements:
+// - instance class (or function if the instance is a closure)
+// - instance type arguments (null if the instance class is not generic)
+// - instantiator type arguments (null if the type is instantiated)
+// - function type arguments (null if the type is instantiated)
+// - instance parent function type arguments (null if instance is not a closure)
+// - instance delayed type arguments (null if instance is not a closure)
+// - destination type (null if the type was known at compile time)
+// - test result
+// It can be applied to classes with type arguments in which case it contains
+// just the result of the class subtype test, not including the evaluation of
+// type arguments.
 // This operation is currently very slow (lookup of code is not efficient yet).
 static void UpdateTypeTestCache(
     Zone* zone,
     Thread* thread,
     const Instance& instance,
-    const AbstractType& type,
+    const AbstractType& destination_type,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     const Bool& result,
@@ -628,6 +642,7 @@ static void UpdateTypeTestCache(
     ASSERT(instance_delayed_type_arguments.IsNull() ||
            instance_delayed_type_arguments.IsCanonical());
     auto& last_instance_class_id_or_function = Object::Handle(zone);
+    auto& last_destination_type = AbstractType::Handle(zone);
     auto& last_instance_type_arguments = TypeArguments::Handle(zone);
     auto& last_instantiator_type_arguments = TypeArguments::Handle(zone);
     auto& last_function_type_arguments = TypeArguments::Handle(zone);
@@ -636,11 +651,12 @@ static void UpdateTypeTestCache(
     auto& last_instance_delayed_type_arguments = TypeArguments::Handle(zone);
     Bool& last_result = Bool::Handle(zone);
     for (intptr_t i = 0; i < len; ++i) {
-      new_cache.GetCheck(
-          i, &last_instance_class_id_or_function, &last_instance_type_arguments,
-          &last_instantiator_type_arguments, &last_function_type_arguments,
-          &last_instance_parent_function_type_arguments,
-          &last_instance_delayed_type_arguments, &last_result);
+      new_cache.GetCheck(i, &last_instance_class_id_or_function,
+                         &last_destination_type, &last_instance_type_arguments,
+                         &last_instantiator_type_arguments,
+                         &last_function_type_arguments,
+                         &last_instance_parent_function_type_arguments,
+                         &last_instance_delayed_type_arguments, &last_result);
       if ((last_instance_class_id_or_function.raw() ==
            instance_class_id_or_function.raw()) &&
           (last_instance_type_arguments.raw() ==
@@ -652,57 +668,72 @@ static void UpdateTypeTestCache(
           (last_instance_parent_function_type_arguments.raw() ==
            instance_parent_function_type_arguments.raw()) &&
           (last_instance_delayed_type_arguments.raw() ==
-           instance_delayed_type_arguments.raw())) {
+           instance_delayed_type_arguments.raw()) &&
+          (last_destination_type.raw() == destination_type.raw())) {
+        if (!FLAG_enable_isolate_groups) {
+          FATAL("Duplicate subtype test cache entry");
+        }
         // Some other isolate might have updated the cache between entry was
         // found missing and now.
         return;
       }
     }
-    new_cache.AddCheck(instance_class_id_or_function, instance_type_arguments,
-                       instantiator_type_arguments, function_type_arguments,
+    new_cache.AddCheck(instance_class_id_or_function, destination_type,
+                       instance_type_arguments, instantiator_type_arguments,
+                       function_type_arguments,
                        instance_parent_function_type_arguments,
                        instance_delayed_type_arguments, result);
     if (FLAG_trace_type_checks) {
-      AbstractType& test_type = AbstractType::Handle(zone, type.raw());
+      AbstractType& test_type =
+          AbstractType::Handle(zone, destination_type.raw());
       if (!test_type.IsInstantiated()) {
-        test_type =
-            type.InstantiateFrom(instantiator_type_arguments,
-                                 function_type_arguments, kAllFree, Heap::kNew);
+        test_type = test_type.InstantiateFrom(instantiator_type_arguments,
+                                              function_type_arguments, kAllFree,
+                                              Heap::kNew);
       }
       const auto& type_class = Class::Handle(zone, test_type.type_class());
       const auto& instance_class_name =
           String::Handle(zone, instance_class.Name());
-      OS::PrintErr(
-          "  Updated test cache %#" Px " ix: %" Pd
-          " with (cid-or-fun:"
-          " %#" Px ", type-args: %#" Px ", i-type-args: %#" Px
-          ", "
-          "f-type-args: %#" Px ", p-type-args: %#" Px
-          ", "
-          "d-type-args: %#" Px
-          ", result: %s)\n"
-          "    instance  [class: (%#" Px " '%s' cid: %" Pd
-          "),    type-args: %#" Px
-          " %s]\n"
-          "    test-type [class: (%#" Px " '%s' cid: %" Pd
-          "), i-type-args: %#" Px " %s, f-type-args: %#" Px " %s]\n",
-          static_cast<uword>(new_cache.raw()), len,
+      TextBuffer buffer(256);
+      buffer.Printf("  Updated test cache %#" Px " ix: %" Pd " with ",
+                    static_cast<uword>(new_cache.raw()), len);
+      buffer.Printf(
+          "[ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px "",
           static_cast<uword>(instance_class_id_or_function.raw()),
           static_cast<uword>(instance_type_arguments.raw()),
           static_cast<uword>(instantiator_type_arguments.raw()),
           static_cast<uword>(function_type_arguments.raw()),
           static_cast<uword>(instance_parent_function_type_arguments.raw()),
-          static_cast<uword>(instance_delayed_type_arguments.raw()),
-          result.ToCString(), static_cast<uword>(instance_class.raw()),
-          instance_class_name.ToCString(), instance_class.id(),
-          static_cast<uword>(instance_type_arguments.raw()),
-          instance_type_arguments.ToCString(),
-          static_cast<uword>(type_class.raw()),
-          String::Handle(zone, type_class.Name()).ToCString(), type_class.id(),
-          static_cast<uword>(instantiator_type_arguments.raw()),
-          instantiator_type_arguments.ToCString(),
-          static_cast<uword>(function_type_arguments.raw()),
-          function_type_arguments.ToCString());
+          static_cast<uword>(instance_delayed_type_arguments.raw()));
+      buffer.Printf(", %#" Px "", static_cast<uword>(destination_type.raw()));
+      buffer.Printf(" %#" Px " ]\n", static_cast<uword>(result.raw()));
+      buffer.Printf("    tested type: %s (%" Pd ")\n", test_type.ToCString(),
+                    type_class.id());
+      buffer.Printf("    destination type: %s\n", destination_type.ToCString());
+      buffer.Printf("    instance: %s\n", instance.ToCString());
+      if (instance_class.IsClosureClass()) {
+        buffer.Printf("    function: %s\n",
+                      Function::Cast(instance_class_id_or_function)
+                          .ToFullyQualifiedCString());
+        buffer.Printf("    closure instantiator function type arguments: %s\n",
+                      instance_type_arguments.ToCString());
+        buffer.Printf("    closure parent function type arguments: %s\n",
+                      instance_parent_function_type_arguments.ToCString());
+        buffer.Printf("    closure delayed function type arguments: %s\n",
+                      instance_parent_function_type_arguments.ToCString());
+      } else {
+        buffer.Printf("    class: %s (%" Pd ")\n",
+                      instance_class_name.ToCString(),
+                      Smi::Cast(instance_class_id_or_function).Value());
+        buffer.Printf("    instance type arguments: %s\n",
+                      instance_type_arguments.ToCString());
+      }
+      buffer.Printf("    instantiator type arguments: %s\n",
+                    instantiator_type_arguments.ToCString());
+      buffer.Printf("    function type arguments: %s\n",
+                    function_type_arguments.ToCString());
+      buffer.Printf("    result: %s\n", result.ToCString());
+      OS::PrintErr("%s", buffer.buffer());
     }
   }
 }

@@ -6842,24 +6842,29 @@ class SubtypeTestCache : public Object {
   enum Entries {
     kTestResult = 0,
     kInstanceClassIdOrFunction = 1,
-    kInstanceTypeArguments = 2,
-    kInstantiatorTypeArguments = 3,
-    kFunctionTypeArguments = 4,
-    kInstanceParentFunctionTypeArguments = 5,
-    kInstanceDelayedFunctionTypeArguments = 6,
-    kTestEntryLength = 7,
+    kDestinationType = 2,
+    kInstanceTypeArguments = 3,
+    kInstantiatorTypeArguments = 4,
+    kFunctionTypeArguments = 5,
+    kInstanceParentFunctionTypeArguments = 6,
+    kInstanceDelayedFunctionTypeArguments = 7,
+    kTestEntryLength = 8,
   };
 
-  intptr_t NumberOfChecks() const;
+  virtual intptr_t NumberOfChecks() const;
+  // For a non-dynamic SubtypeTestCache, destination_type is unused.
   void AddCheck(const Object& instance_class_id_or_function,
+                const AbstractType& destination_type,
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
                 const TypeArguments& function_type_arguments,
                 const TypeArguments& instance_parent_function_type_arguments,
                 const TypeArguments& instance_delayed_type_arguments,
                 const Bool& test_result) const;
+  // For a non-dynamic SubtypeTestCache, destination_type is always set to null.
   void GetCheck(intptr_t ix,
                 Object* instance_class_id_or_function,
+                AbstractType* destination_type,
                 TypeArguments* instance_type_arguments,
                 TypeArguments* instantiator_type_arguments,
                 TypeArguments* function_type_arguments,
@@ -11375,6 +11380,7 @@ using StaticCallsTableEntry = StaticCallsTable::TupleView;
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,
                                                            Object,
+                                                           AbstractType,
                                                            TypeArguments,
                                                            TypeArguments,
                                                            TypeArguments,
