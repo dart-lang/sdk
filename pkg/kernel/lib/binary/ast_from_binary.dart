@@ -1115,8 +1115,10 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParametersOfFunctionType, node);
     node.positionalParameters.clear();
     node.positionalParameters.addAll(readAndPushVariableDeclarationList());
+    setParents(node.positionalParameters, node);
     node.namedParameters.clear();
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
+    setParents(node.namedParameters, node);
     typeParameterStack.length = 0;
     variableStack.length = 0;
     node.fileOffset = fileOffset;

@@ -11740,18 +11740,6 @@ FieldPtr Library::GetMetadataField(const String& metaname) const {
   return Field::null();
 }
 
-void Library::CloneMetadataFrom(const Library& from_library,
-                                const Function& from_fun,
-                                const Function& to_fun) const {
-  const String& metaname = String::Handle(MakeMetadataName(from_fun));
-  const Field& from_field =
-      Field::Handle(from_library.GetMetadataField(metaname));
-  if (!from_field.IsNull()) {
-    AddFunctionMetadata(to_fun, from_field.token_pos(),
-                        from_field.kernel_offset());
-  }
-}
-
 ObjectPtr Library::GetMetadata(const Object& obj) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Object::empty_array().raw();

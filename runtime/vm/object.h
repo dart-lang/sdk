@@ -4709,9 +4709,6 @@ class Library : public Object {
                           intptr_t kernel_offset) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
-  void CloneMetadataFrom(const Library& from_library,
-                         const Function& from_fun,
-                         const Function& to_fun) const;
   ObjectPtr GetMetadata(const Object& obj) const;
 
   // Tries to finds a @pragma annotation on [object].

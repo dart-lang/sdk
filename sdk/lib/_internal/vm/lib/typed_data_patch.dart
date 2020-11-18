@@ -4016,10 +4016,7 @@ class _TypedListIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 }
 
 abstract class _TypedListView extends _TypedListBase implements TypedData {

@@ -571,8 +571,8 @@ import 'foo:bar';
   }
 
   test_unusedFiles() async {
-    var bPath = '/workspace/dart/aaa/lib/b.dart';
-    var cPath = '/workspace/dart/aaa/lib/c.dart';
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
 
     newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
 class A {}
@@ -594,9 +594,9 @@ import 'a.dart';
   }
 
   test_unusedFiles_mutilple() async {
-    var dPath = '/workspace/dart/aaa/lib/d.dart';
-    var ePath = '/workspace/dart/aaa/lib/e.dart';
-    var fPath = '/workspace/dart/aaa/lib/f.dart';
+    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
+    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
+    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
 
     newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
 class A {}
