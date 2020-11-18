@@ -74,22 +74,26 @@ class Driver implements ServerStarter {
 
   /// The name of the option used to cause instrumentation to also be written to
   /// a local file.
-  static const String INSTRUMENTATION_LOG_FILE = 'instrumentation-log-file';
+  static const String PROTOCOL_TRAFFIC_LOG = 'protocol-traffic-log';
+  static const String PROTOCOL_TRAFFIC_LOG_ALIAS = 'instrumentation-log-file';
 
   /// The name of the option used to specify if [print] should print to the
   /// console instead of being intercepted.
   static const String INTERNAL_PRINT_TO_CONSOLE = 'internal-print-to-console';
 
   /// The name of the option used to describe the new analysis driver logger.
-  static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
+  static const String ANALYSIS_DRIVER_LOG = 'analysis-driver-log';
+  static const String ANALYSIS_DRIVER_LOG_ALIAS = 'new-analysis-driver-log';
 
   /// The option for specifying the http diagnostic port.
   /// If specified, users can review server status and performance information
   /// by opening a web browser on http://localhost:<port>
-  static const String PORT_OPTION = 'port';
+  static const String DIAGNOSTIC_PORT = 'diagnostic-port';
+  static const String DIAGNOSTIC_PORT_ALIAS = 'port';
 
   /// The path to the SDK.
-  static const String SDK_OPTION = 'sdk';
+  static const String DART_SDK = 'dart-sdk';
+  static const String DART_SDK_ALIAS = 'sdk';
 
   /// The path to the data cache.
   static const String CACHE_FOLDER = 'cache';
@@ -126,7 +130,7 @@ class Driver implements ServerStarter {
 
     var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.newAnalysisDriverLog =
-        results[NEW_ANALYSIS_DRIVER_LOG];
+        results[ANALYSIS_DRIVER_LOG] ?? results[ANALYSIS_DRIVER_LOG_ALIAS];
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
     // For clients that don't supply their own identifier, use a default based on
@@ -220,7 +224,8 @@ class Driver implements ServerStarter {
     //
     // Initialize the instrumentation service.
     //
-    String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    String logFilePath =
+        results[PROTOCOL_TRAFFIC_LOG] ?? results[PROTOCOL_TRAFFIC_LOG_ALIAS];
     var allInstrumentationServices = instrumentationService == null
         ? <InstrumentationService>[]
         : [instrumentationService];
@@ -248,11 +253,13 @@ class Driver implements ServerStarter {
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     int diagnosticServerPort;
-    if (results[PORT_OPTION] != null) {
+    final String portValue =
+        results[DIAGNOSTIC_PORT] ?? results[DIAGNOSTIC_PORT_ALIAS];
+    if (portValue != null) {
       try {
-        diagnosticServerPort = int.parse(results[PORT_OPTION]);
+        diagnosticServerPort = int.parse(portValue);
       } on FormatException {
-        print('Invalid port number: ${results[PORT_OPTION]}');
+        print('Invalid port number: $portValue');
         print('');
         _printUsage(parser, analytics);
         exitCode = 1;
@@ -480,32 +487,59 @@ class Driver implements ServerStarter {
     parser.addFlag(HELP_OPTION,
         abbr: 'h', negatable: false, help: 'Print this usage information.');
     parser.addOption(CLIENT_ID,
-        valueHelp: 'name', help: 'An identifier used to identify the client.');
+        valueHelp: 'name',
+        help: 'An identifier for the analysis server client.');
     parser.addOption(CLIENT_VERSION,
-        valueHelp: 'version', help: 'The version of the client.');
-
+        valueHelp: 'version',
+        help: 'The version of the analysis server client.');
+    parser.addOption(DART_SDK,
+        valueHelp: 'path', help: 'Override the Dart SDK to use for analysis.');
+    parser.addOption(DART_SDK_ALIAS, hide: true);
+    parser.addOption(CACHE_FOLDER,
+        valueHelp: 'path',
+        help: 'Override the location of the analysis server\'s cache.');
     parser.addFlag(USE_LSP,
         defaultsTo: false,
         negatable: false,
         help: 'Whether to use the Language Server Protocol (LSP).');
 
-    parser.addOption(SDK_OPTION,
-        valueHelp: 'path', help: 'The path to the Dart SDK.');
-    parser.addOption(CACHE_FOLDER,
-        valueHelp: 'path',
-        help: 'The path to the location to write cache data.');
+    parser.addSeparator('Server diagnostics:');
 
-    parser.addOption(INSTRUMENTATION_LOG_FILE,
+    parser.addOption(PROTOCOL_TRAFFIC_LOG,
         valueHelp: 'file path',
-        help: 'Write instrumentation data to the given file.');
-    parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
-        valueHelp: 'path',
-        help: "Set a destination for the new analysis driver's log.");
-    parser.addOption(PORT_OPTION,
-        valueHelp: 'port',
-        help: 'The http diagnostic port to serve status and performance '
-            'information.');
+        help: 'Write server protocol traffic to the given file.');
+    parser.addOption(PROTOCOL_TRAFFIC_LOG_ALIAS, hide: true);
 
+    parser.addOption(ANALYSIS_DRIVER_LOG,
+        valueHelp: 'file path',
+        help: 'Write analysis driver diagnostic data to the given file.');
+    parser.addOption(ANALYSIS_DRIVER_LOG_ALIAS, hide: true);
+
+    parser.addOption(DIAGNOSTIC_PORT,
+        valueHelp: 'port',
+        help: 'Serve a web UI for status and performance data on the given '
+            'port.');
+    parser.addOption(DIAGNOSTIC_PORT_ALIAS, hide: true);
+
+    //
+    // Hidden; these have not yet been made public.
+    //
+    parser.addFlag(ANALYTICS_FLAG,
+        help: 'enable or disable sending analytics information to Google',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
+    parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
+        negatable: false,
+        help: 'suppress analytics for this session',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
+
+    //
+    // Hidden; these are for internal development.
+    //
+    parser.addOption(TRAIN_USING,
+        valueHelp: 'path',
+        help: 'Pass in a directory to analyze for purposes of training an '
+            'analysis server snapshot.',
+        hide: true);
     parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
         // TODO(jcollins-g): Pipeline option through and apply to all
         // exception-nullifying runZoned() calls.
@@ -523,21 +557,8 @@ class Driver implements ServerStarter {
         negatable: false,
         hide: true);
 
-    parser.addFlag(ANALYTICS_FLAG,
-        help: 'enable or disable sending analytics information to Google',
-        hide: !telemetry.SHOW_ANALYTICS_UI);
-    parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
-        negatable: false,
-        help: 'suppress analytics for this session',
-        hide: !telemetry.SHOW_ANALYTICS_UI);
-
-    parser.addOption(TRAIN_USING,
-        valueHelp: 'path',
-        help: 'Pass in a directory to analyze for purposes of training an '
-            'analysis server snapshot.');
-
     //
-    // Deprecated options - no longer read from.
+    // Hidden; these are deprecated and no longer read from.
     //
 
     // Removed 11/15/2020.
@@ -582,8 +603,10 @@ class Driver implements ServerStarter {
   }
 
   String _getSdkPath(ArgResults args) {
-    if (args[SDK_OPTION] != null) {
-      return args[SDK_OPTION];
+    if (args[DART_SDK] != null) {
+      return args[DART_SDK];
+    } else if (args[DART_SDK_ALIAS] != null) {
+      return args[DART_SDK_ALIAS];
     } else {
       return getSdkPath();
     }
