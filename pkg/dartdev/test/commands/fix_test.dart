@@ -47,22 +47,28 @@ linter:
   test('dry-run', () {
     p = project(
       mainSrc: '''
-var x = "";
+class A { 
+  String a() => "";
+}
+
+class B extends A {
+  String a() => "";
+}
 ''',
       analysisOptions: '''
 linter:
   rules:
+    - annotate_overrides  
     - prefer_single_quotes
 ''',
     );
     var result = p.runSync('fix', ['--dry-run', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(
-        result.stdout,
-        contains("Running 'dart fix' without '--dry-run' "
-            'would apply changes in the following files:'));
+    expect(result.stdout, contains('3 proposed fixes in 1 file.'));
     expect(result.stdout, contains('lib${Platform.pathSeparator}main.dart'));
+    expect(result.stdout, contains('  annotate_overrides • 1 fix'));
+    expect(result.stdout, contains('  prefer_single_quotes • 2 fixes'));
   });
 
   test('.', () {

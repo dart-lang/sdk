@@ -16,7 +16,7 @@ import '../utils.dart';
 class FixCommand extends DartdevCommand {
   static const String cmdName = 'fix';
 
-  // This command is hidden as its currently experimental.
+  // This command is hidden as it's currently experimental.
   FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true) {
     argParser.addFlag('dry-run',
         abbr: 'n',
@@ -41,8 +41,10 @@ class FixCommand extends DartdevCommand {
       usageException("Directory doesn't exist: ${dir.path}");
     }
 
+    var modeText = dryRun ? ' (dry run)' : '';
+
     var progress = log.progress(
-        'Computing fixes in ${path.basename(path.canonicalize(dir.path))}');
+        'Computing fixes in ${path.basename(path.canonicalize(dir.path))}$modeText');
 
     var server = AnalysisServer(
       io.Directory(sdk.sdkPath),
@@ -71,16 +73,30 @@ class FixCommand extends DartdevCommand {
       log.stdout('Nothing to fix!');
     } else {
       if (dryRun) {
-        log.stdout("Running 'dart fix' without '--dry-run' would apply changes "
-            'in the following files:');
-        var files = <String>{};
-        for (var edit in edits) {
-          var file = edit.file;
-          files.add(path.relative(file, from: dir.path));
-        }
-        var paths = files.toList()..sort();
-        for (var path in paths) {
-          log.stdout(path);
+        var details = fixes.details;
+        details.sort((f1, f2) => path
+            .relative(f1.path, from: dir.path)
+            .compareTo(path.relative(f2.path, from: dir.path)));
+
+        var fileCount = 0;
+        var fixCount = 0;
+
+        details.forEach((d) {
+          ++fileCount;
+          d.fixes.forEach((f) {
+            fixCount += f.occurrences;
+          });
+        });
+
+        log.stdout(
+            '\n$fixCount proposed ${_pluralFix(fixCount)} in $fileCount ${pluralize("file", fileCount)}.\n');
+
+        for (var detail in details) {
+          log.stdout(path.relative(detail.path, from: dir.path));
+          for (var fix in detail.fixes) {
+            log.stdout(
+                '  ${fix.code} • ${fix.occurrences} ${_pluralFix(fix.occurrences)}');
+          }
         }
       } else {
         progress = log.progress('Applying fixes');
@@ -107,4 +123,6 @@ class FixCommand extends DartdevCommand {
     }
     return files.length;
   }
+
+  String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
 }
