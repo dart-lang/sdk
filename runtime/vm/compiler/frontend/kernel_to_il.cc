@@ -2069,7 +2069,6 @@ struct FlowGraphBuilder::ClosureCallInfo {
   LocalVariable* num_max_params = nullptr;
   LocalVariable* has_named_params = nullptr;
   LocalVariable* parameter_names = nullptr;
-  LocalVariable* parameter_types = nullptr;
   LocalVariable* type_parameters = nullptr;
   LocalVariable* closure_data = nullptr;
   LocalVariable* default_tav_info = nullptr;
@@ -2350,13 +2349,10 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
     loop_body += BranchIfEqual(&match, &mismatch);
     loop_body.current = mismatch;
 
-    // We have a match, so go to the next name after storing the corresponding
-    // parameter index on the stack and incrementing the number of matched
-    // arguments. (No need to check the required bit for provided parameters.)
+    // We have a match, so go to the next name after incrementing the number
+    // of matched arguments. (No need to check for the required bit, as this
+    // parameter was provided.)
     Fragment matched(match);
-    matched += LoadLocal(info.vars->current_param_index);
-    matched += StoreLocal(info.vars->named_argument_parameter_indices.At(i));
-    matched += Drop();
     matched += LoadLocal(info.vars->current_num_processed);
     matched += IntConstant(1);
     matched += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
@@ -2570,62 +2566,6 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   return Fragment(loop_init.entry, done);
 }
 
-Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeCheck(
-    const ClosureCallInfo& info,
-    intptr_t arg_index,
-    const String& arg_name) {
-  Fragment instructions;
-
-  // Load value.
-  instructions += LoadLocal(parsed_function_->ParameterVariable(arg_index));
-  // Load destination type.
-  instructions += LoadLocal(info.parameter_types);
-  instructions += LoadLocal(info.vars->current_param_index);
-  instructions += LoadIndexed(kArrayCid);
-  // Load instantiator type arguments.
-  instructions += LoadLocal(info.instantiator_type_args);
-  // Load the full set of function type arguments.
-  instructions += LoadLocal(info.vars->function_type_args);
-  // Check that the value has the right type.
-  instructions += AssertAssignable(TokenPosition::kNoSource, arg_name,
-                                   AssertAssignableInstr::kParameterCheck);
-  // Make sure to store the result to keep data dependencies accurate.
-  instructions += StoreLocal(parsed_function_->ParameterVariable(arg_index));
-  instructions += Drop();
-
-  return instructions;
-}
-
-Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeChecks(
-    const ClosureCallInfo& info) {
-  Fragment instructions;
-  instructions += LoadLocal(info.vars->current_param_index);
-  LocalVariable* old_param_index = MakeTemporary("old_param_index");
-
-  for (intptr_t i = 0; i < info.descriptor.PositionalCount(); i++) {
-    instructions += IntConstant(i);
-    instructions += StoreLocal(info.vars->current_param_index);
-    instructions += Drop();
-    // We don't have a compile-time name, so this symbol signals the runtime
-    // that it should recreate the type check using info from the stack.
-    instructions += BuildClosureCallArgumentTypeCheck(
-        info, i, Symbols::dynamic_assert_assignable_stc_check());
-  }
-
-  for (intptr_t i = 0; i < info.descriptor.NamedCount(); i++) {
-    const auto& arg_name = String::ZoneHandle(Z, info.descriptor.NameAt(i));
-    instructions +=
-        LoadLocal(info.vars->named_argument_parameter_indices.At(i));
-    instructions += StoreLocal(info.vars->current_param_index);
-    instructions += Drop();
-    instructions += BuildClosureCallArgumentTypeCheck(
-        info, info.descriptor.PositionAt(i), arg_name);
-  }
-  instructions += DropTemporary(&old_param_index);
-
-  return instructions;
-}
-
 Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
     LocalVariable* closure) {
   ClosureCallInfo info(closure, BuildThrowNoSuchMethod(),
@@ -2661,13 +2601,11 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += StrictCompare(Token::kNE_STRICT);
   info.has_named_params = MakeTemporary("has_named_params");
 
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_parameter_names());
-  info.parameter_names = MakeTemporary("parameter_names");
-
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_parameter_types());
-  info.parameter_types = MakeTemporary("parameter_types");
+  if (I->null_safety() || info.descriptor.NamedCount() > 0) {
+    body += LoadLocal(info.function);
+    body += LoadNativeField(Slot::Function_parameter_names());
+    info.parameter_names = MakeTemporary("parameter_names");
+  }
 
   body += LoadLocal(info.function);
   body += LoadNativeField(Slot::Function_type_parameters());
@@ -2750,16 +2688,18 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // and performing any needed type argument checking.
   body += TestClosureFunctionGeneric(info, generic, not_generic);
 
-  // Check that the values provided as arguments are assignable to the types
-  // of the corresponding closure function parameters.
-  body += BuildClosureCallArgumentTypeChecks(info);
+  // TODO(dartbug.com/40813): Move checks that are currently compiled
+  // in the closure body to here, using the dynamic versions of
+  // AssertAssignable to typecheck the parameters using the runtime types
+  // available in the closure object.
 
   // Drop all the read-only temporaries at the end of the fragment.
   body += DropTemporary(&info.parent_function_type_args);
   body += DropTemporary(&info.instantiator_type_args);
   body += DropTemporary(&info.type_parameters);
-  body += DropTemporary(&info.parameter_types);
-  body += DropTemporary(&info.parameter_names);
+  if (info.parameter_names != nullptr) {
+    body += DropTemporary(&info.parameter_names);
+  }
   body += DropTemporary(&info.has_named_params);
   body += DropTemporary(&info.num_max_params);
   body += DropTemporary(&info.num_opt_params);
@@ -3276,38 +3216,49 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   BlockEntryInstr* instruction_cursor =
       BuildPrologue(normal_entry, &prologue_info);
 
-  Fragment closure(instruction_cursor);
-  closure += CheckStackOverflowInPrologue(function.token_pos());
-  closure += BuildDefaultTypeHandling(function);
+  const Fragment prologue = CheckStackOverflowInPrologue(function.token_pos());
 
-  // For implicit closure functions, any non-covariant checks are either
-  // performed by the type system or a dynamic invocation layer (dynamic closure
-  // call dispatcher, mirror, etc.). Static targets never have covariant
-  // arguments, and for non-static targets, they already perform the covariant
-  // checks internally. Thus, no checks are needed and we just need to invoke
-  // the target with the right receiver (unless static).
-  //
-  // TODO(dartbug.com/44195): Consider replacing the argument pushes + static
-  // call with stack manipulation and a tail call instead.
+  const Fragment default_type_handling = BuildDefaultTypeHandling(function);
+
+  Fragment implicit_checks;
+  if (function.NeedsTypeArgumentTypeChecks() &&
+      (target.is_static() ||
+       MethodCanSkipTypeChecksForNonCovariantTypeArguments(parent))) {
+    BuildTypeArgumentTypeChecks(
+        target.is_static()
+            ? TypeChecksToBuild::kCheckAllTypeParameterBounds
+            : TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds,
+        &implicit_checks);
+  }
+  if (function.NeedsArgumentTypeChecks() &&
+      (target.is_static() ||
+       MethodCanSkipTypeChecksForNonCovariantArguments(parent))) {
+    // We're going to throw away the explicit checks because the target will
+    // always check them.
+    Fragment explicit_checks_unused;
+    BuildArgumentTypeChecks(&explicit_checks_unused, &implicit_checks, nullptr);
+  }
+
+  Fragment body;
 
   intptr_t type_args_len = 0;
   if (function.IsGeneric()) {
     type_args_len = function.NumTypeParameters();
     ASSERT(parsed_function_->function_type_arguments() != NULL);
-    closure += LoadLocal(parsed_function_->function_type_arguments());
+    body += LoadLocal(parsed_function_->function_type_arguments());
   }
 
   // Push receiver.
   if (!target.is_static()) {
     // The context has a fixed shape: a single variable which is the
     // closed-over receiver.
-    closure += LoadLocal(parsed_function_->ParameterVariable(0));
-    closure += LoadNativeField(Slot::Closure_context());
-    closure += LoadNativeField(Slot::GetContextVariableSlotFor(
+    body += LoadLocal(parsed_function_->ParameterVariable(0));
+    body += LoadNativeField(Slot::Closure_context());
+    body += LoadNativeField(Slot::GetContextVariableSlotFor(
         thread_, *parsed_function_->receiver_var()));
   }
 
-  closure += PushExplicitParameters(function);
+  body += PushExplicitParameters(function);
 
   // Forward parameters to the target.
   intptr_t argument_count = function.NumParameters() -
@@ -3318,12 +3269,48 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   Array& argument_names =
       Array::ZoneHandle(Z, GetOptionalParameterNames(function));
 
-  closure += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                        argument_names, ICData::kNoRebind,
-                        /* result_type = */ NULL, type_args_len);
+  body += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names, ICData::kNoRebind,
+                     /* result_type = */ NULL, type_args_len);
 
   // Return the result.
-  closure += Return(function.end_token_pos());
+  body += Return(function.end_token_pos());
+
+  // Setup multiple entrypoints if useful.
+  FunctionEntryInstr* extra_entry = nullptr;
+  if (function.MayHaveUncheckedEntryPoint()) {
+    // The prologue for a closure will always have context handling (e.g.
+    // setting up the receiver variable), but we don't need it on the unchecked
+    // entry because the only time we reference this is for loading the
+    // receiver, which we fetch directly from the context.
+    if (PrologueBuilder::PrologueSkippableOnUncheckedEntry(function)) {
+      // Use separate entry points since we can skip almost everything on the
+      // static entry.
+      extra_entry = BuildSeparateUncheckedEntryPoint(
+          /*normal_entry=*/instruction_cursor,
+          /*normal_prologue=*/prologue + default_type_handling +
+              implicit_checks,
+          /*extra_prologue=*/
+          CheckStackOverflowInPrologue(function.token_pos()),
+          /*shared_prologue=*/Fragment(),
+          /*body=*/body);
+    } else {
+      Fragment shared_prologue(normal_entry, instruction_cursor);
+      shared_prologue += prologue;
+      extra_entry = BuildSharedUncheckedEntryPoint(
+          /*shared_prologue_linked_in=*/shared_prologue,
+          /*skippable_checks=*/default_type_handling + implicit_checks,
+          /*redefinitions_if_skipped=*/Fragment(),
+          /*body=*/body);
+    }
+    RecordUncheckedEntryPoint(graph_entry_, extra_entry);
+  } else {
+    Fragment function(instruction_cursor);
+    function += prologue;
+    function += default_type_handling;
+    function += implicit_checks;
+    function += body;
+  }
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);

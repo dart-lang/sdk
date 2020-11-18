@@ -2766,7 +2766,10 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kClosureData_default_type_arguments_info:
-      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+      *range = Range(
+          RangeBoundary::FromConstant(0),
+          RangeBoundary::FromConstant(
+              (1 << Function::NumParentTypeParametersField::kNextBit) - 1));
   }
 }
 

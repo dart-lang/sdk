@@ -748,7 +748,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-simarm64": {
       "options": {
         "enable-asserts": true,
         "use-elf": true,
@@ -778,7 +778,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-simarm64": {
       "options": {
         "use-elf": true,
         "builder-tag": "vm_nnbd"

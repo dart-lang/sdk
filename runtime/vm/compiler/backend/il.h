@@ -3620,13 +3620,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   static const char* KindToCString(Kind kind);
   static bool ParseKind(const char* str, Kind* out);
 
-  enum {
-    kInstancePos = 0,
-    kDstTypePos = 1,
-    kInstantiatorTAVPos = 2,
-    kFunctionTAVPos = 3,
-  };
-
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
                         Value* dst_type,
@@ -3640,10 +3633,10 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
         dst_name_(dst_name),
         kind_(kind) {
     ASSERT(!dst_name.IsNull());
-    SetInputAt(kInstancePos, value);
-    SetInputAt(kDstTypePos, dst_type);
-    SetInputAt(kInstantiatorTAVPos, instantiator_type_arguments);
-    SetInputAt(kFunctionTAVPos, function_type_arguments);
+    SetInputAt(0, value);
+    SetInputAt(1, dst_type);
+    SetInputAt(2, instantiator_type_arguments);
+    SetInputAt(3, function_type_arguments);
   }
 
   virtual intptr_t statistics_tag() const;
@@ -3652,12 +3645,10 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
-  Value* value() const { return inputs_[kInstancePos]; }
-  Value* dst_type() const { return inputs_[kDstTypePos]; }
-  Value* instantiator_type_arguments() const {
-    return inputs_[kInstantiatorTAVPos];
-  }
-  Value* function_type_arguments() const { return inputs_[kFunctionTAVPos]; }
+  Value* value() const { return inputs_[0]; }
+  Value* dst_type() const { return inputs_[1]; }
+  Value* instantiator_type_arguments() const { return inputs_[2]; }
+  Value* function_type_arguments() const { return inputs_[3]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   const String& dst_name() const { return dst_name_; }

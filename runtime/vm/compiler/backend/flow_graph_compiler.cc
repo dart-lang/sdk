@@ -2286,22 +2286,15 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
 
 bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
     const LocationSummary& locs) {
-  ASSERT(locs.in(AssertAssignableInstr::kInstancePos).IsRegister() &&
-         locs.in(AssertAssignableInstr::kInstancePos).reg() ==
-             TypeTestABI::kInstanceReg);
-  ASSERT((locs.in(AssertAssignableInstr::kDstTypePos).IsConstant() &&
-          locs.in(AssertAssignableInstr::kDstTypePos)
-              .constant()
-              .IsAbstractType()) ||
-         (locs.in(AssertAssignableInstr::kDstTypePos).IsRegister() &&
-          locs.in(AssertAssignableInstr::kDstTypePos).reg() ==
-              TypeTestABI::kDstTypeReg));
-  ASSERT(locs.in(AssertAssignableInstr::kInstantiatorTAVPos).IsRegister() &&
-         locs.in(AssertAssignableInstr::kInstantiatorTAVPos).reg() ==
-             TypeTestABI::kInstantiatorTypeArgumentsReg);
-  ASSERT(locs.in(AssertAssignableInstr::kFunctionTAVPos).IsRegister() &&
-         locs.in(AssertAssignableInstr::kFunctionTAVPos).reg() ==
-             TypeTestABI::kFunctionTypeArgumentsReg);
+  ASSERT(locs.in(0).IsRegister() &&
+         locs.in(0).reg() == TypeTestABI::kInstanceReg);
+  ASSERT((locs.in(1).IsConstant() && locs.in(1).constant().IsAbstractType()) ||
+         (locs.in(1).IsRegister() &&
+          locs.in(1).reg() == TypeTestABI::kDstTypeReg));
+  ASSERT(locs.in(2).IsRegister() &&
+         locs.in(2).reg() == TypeTestABI::kInstantiatorTypeArgumentsReg);
+  ASSERT(locs.in(3).IsRegister() &&
+         locs.in(3).reg() == TypeTestABI::kFunctionTypeArgumentsReg);
   ASSERT(locs.out(0).IsRegister() &&
          locs.out(0).reg() == TypeTestABI::kInstanceReg);
   return true;
@@ -2767,49 +2760,23 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   ASSERT(!token_pos.IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
-  // Non-null if we have a constant destination type.
-  const auto& dst_type =
-      locs->in(AssertAssignableInstr::kDstTypePos).IsConstant()
-          ? AbstractType::Cast(
-                locs->in(AssertAssignableInstr::kDstTypePos).constant())
-          : Object::null_abstract_type();
-
-  if (!dst_type.IsNull()) {
-    ASSERT(dst_type.IsFinalized());
-    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
+  if (!locs->in(1).IsConstant()) {
+    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
+    UNREACHABLE();
   }
+  const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
+  ASSERT(dst_type.IsFinalized());
+
+  if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
 
   compiler::Label done;
-  Register type_reg = TypeTestABI::kDstTypeReg;
-  // Generate caller-side checks to perform prior to calling the TTS.
-  if (dst_type.IsNull()) {
-    __ Comment("AssertAssignable for runtime type");
-    // kDstTypeReg should already contain the destination type.
-    const bool null_safety = isolate()->null_safety();
-    GenerateStubCall(token_pos,
-                     StubCode::GetTypeIsTopTypeForSubtyping(null_safety),
-                     PcDescriptorsLayout::kOther, locs, deopt_id);
-    // TypeTestABI::kSubtypeTestCacheReg is 0 if the type is a top type.
-    __ BranchIfZero(TypeTestABI::kSubtypeTestCacheReg, &done,
-                    compiler::Assembler::kNearJump);
 
-    GenerateStubCall(token_pos,
-                     StubCode::GetNullIsAssignableToType(null_safety),
-                     PcDescriptorsLayout::kOther, locs, deopt_id);
-    // TypeTestABI::kSubtypeTestCacheReg is 0 if the object is null and is
-    // assignable.
-    __ BranchIfZero(TypeTestABI::kSubtypeTestCacheReg, &done,
-                    compiler::Assembler::kNearJump);
-  } else {
-    __ Comment("AssertAssignable for compile-time type");
-    GenerateCallerChecksForAssertAssignable(receiver_type, dst_type, &done);
-    if (dst_type.IsTypeParameter()) {
-      // The resolved type parameter is in the scratch register.
-      type_reg = TypeTestABI::kScratchReg;
-    }
-  }
+  GenerateCallerChecksForAssertAssignable(receiver_type, dst_type, &done);
 
-  GenerateTTSCall(token_pos, deopt_id, type_reg, dst_type, dst_name, locs);
+  GenerateTTSCall(token_pos, deopt_id,
+                  dst_type.IsTypeParameter() ? TypeTestABI::kScratchReg
+                                             : TypeTestABI::kDstTypeReg,
+                  dst_type, dst_name, locs);
   __ Bind(&done);
 }
 
@@ -2822,7 +2789,8 @@ void FlowGraphCompiler::GenerateTTSCall(TokenPosition token_pos,
                                         const AbstractType& dst_type,
                                         const String& dst_name,
                                         LocationSummary* locs) {
-  ASSERT(!dst_name.IsNull());
+  // For now, we don't allow dynamic (non-compile-time) dst_type/dst_name.
+  ASSERT(!dst_type.IsNull() && !dst_name.IsNull());
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,
   // but it will be used by the code throwing a TypeError if the type test fails
@@ -2836,11 +2804,9 @@ void FlowGraphCompiler::GenerateTTSCall(TokenPosition token_pos,
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
   ASSERT(__ constant_pool_allowed());
 
-  __ Comment("TTSCall");
   // If the dst_type is known at compile time and instantiated, we know the
   // target TTS stub and so can use a PC-relative call when available.
-  if (!dst_type.IsNull() && dst_type.IsInstantiated() &&
-      CanPcRelativeCall(dst_type)) {
+  if (dst_type.IsInstantiated() && CanPcRelativeCall(dst_type)) {
     __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
                              sub_type_cache_index);
     __ GenerateUnRelocatedPcRelativeCall();

@@ -1070,8 +1070,8 @@ bool GuardFieldTypeInstr::AttributesEqual(Instruction* other) const {
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
-  // If all inputs needed to check instantation are constant, instantiate the
-  // sub and super type and remove the instruction if the subtype test succeeds.
+  // If all inputs are constant, we can instantiate the sub and super type and
+  // remove this instruction if the subtype test succeeds.
   if (super_type()->BindsToConstant() && sub_type()->BindsToConstant() &&
       instantiator_type_arguments()->BindsToConstant() &&
       function_type_arguments()->BindsToConstant()) {
@@ -5286,7 +5286,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(value()->Type(), token_pos(), deopt_id(),
                                      dst_name(), locs());
-  ASSERT(locs()->in(kInstancePos).reg() == locs()->out(0).reg());
+  ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 
 LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,

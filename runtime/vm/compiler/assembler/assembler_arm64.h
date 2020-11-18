@@ -1109,11 +1109,6 @@ class Assembler : public AssemblerBase {
                 JumpDistance distance = kFarJump) {
     b(label, condition);
   }
-  void BranchIfZero(Register rn,
-                    Label* label,
-                    JumpDistance distance = kFarJump) {
-    cbz(label, rn);
-  }
 
   void cbz(Label* label, Register rt, OperandSize sz = kEightBytes) {
     EmitCompareAndBranch(CBZ, rt, label, sz);

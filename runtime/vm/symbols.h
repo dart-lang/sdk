@@ -463,9 +463,6 @@ class ObjectPointerVisitor;
   V(controller, "controller")                                                  \
   V(current_character, ":current_character")                                   \
   V(current_position, ":current_position")                                     \
-  V(dynamic_assert_assignable_stc_check,                                       \
-    ":dynamic_assert_assignable_stc_check")                                    \
-  V(getID, "getID")                                                            \
   V(hashCode, "get:hashCode")                                                  \
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \

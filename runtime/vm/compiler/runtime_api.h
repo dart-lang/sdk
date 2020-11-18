@@ -893,7 +893,6 @@ class TypeParameter : public AllStatic {
   static word NextFieldOffset();
   static word parameterized_class_id_offset();
   static word index_offset();
-  static word nullability_offset();
 };
 
 class LibraryPrefix : public AllStatic {

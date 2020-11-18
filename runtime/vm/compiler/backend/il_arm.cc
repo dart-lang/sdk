@@ -790,14 +790,12 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
 
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallCalleeSafe);
-  summary->set_in(kInstancePos,
-                  Location::RegisterLocation(TypeTestABI::kInstanceReg));
-  summary->set_in(kDstTypePos, dst_type_loc);
+  summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_in(1, dst_type_loc);
+  summary->set_in(2, Location::RegisterLocation(
+                         TypeTestABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
-      kInstantiatorTAVPos,
-      Location::RegisterLocation(TypeTestABI::kInstantiatorTypeArgumentsReg));
-  summary->set_in(kFunctionTAVPos, Location::RegisterLocation(
-                                       TypeTestABI::kFunctionTypeArgumentsReg));
+      3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::SameAsFirstInput());
 
   // Let's reserve all registers except for the input ones.
