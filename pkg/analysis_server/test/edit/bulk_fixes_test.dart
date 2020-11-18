@@ -158,7 +158,7 @@ linter:
     - unnecessary_new
 ''');
 
-    var fileA = '$projectPath${Platform.pathSeparator}a.dart';
+    var fileA = convertPath('$projectPath/a.dart');
     newFile(fileA, content: '''
 class A {
   A f() => new A();
