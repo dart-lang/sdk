@@ -476,7 +476,10 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
 
   ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
   ASSERT(!supertype.IsNull() && !supertype.IsTypeRef());
-  ASSERT(!supertype.IsTopTypeForSubtyping());
+
+  // Now that AssertSubtype may be checking types only available at runtime,
+  // we can't guarantee the supertype isn't the top type.
+  if (supertype.IsTopTypeForSubtyping()) return;
 
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(

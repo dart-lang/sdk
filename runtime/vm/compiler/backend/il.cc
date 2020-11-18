@@ -5311,40 +5311,6 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler::Label done;
-  if (!super_type()->BindsToConstant()) {
-    RegisterSet saved_registers;
-    // The TypeIsTopTypeForSubtyping stub clobbers
-    // TypeTestABI::kSubtypeTestCacheReg for its output.
-    static_assert(
-        TypeTestABI::kSubtypeTestCacheReg == AssertSubtypeABI::kDstNameReg,
-        "Different register will be clobbered by stub");
-    saved_registers.Add(locs()->in(kDstNamePos));
-#if !defined(TARGET_ARCH_IA32)
-    // It also clobbers TypeTestABI::kScratchReg on non-IA32.
-    static_assert(TypeTestABI::kScratchReg == AssertSubtypeABI::kSubTypeReg,
-                  "Different register will be clobbered by stub");
-    saved_registers.Add(locs()->in(kSubTypePos));
-#else
-    // On IA32 it also uses TypeTestABI::kFunctionTypeArgumentsReg as scratch,
-    // but it saves it on the stack and restores it before returning, so it
-    // does not need to be preserved here.
-#endif
-    // The runtime entry assumes it is not be called with a top type as the
-    // super type, so check this on the caller side.
-    const bool null_safety = Isolate::Current()->null_safety();
-    static_assert(
-        TypeTestABI::kSubtypeTestCacheReg == AssertSubtypeABI::kDstNameReg,
-        "Different register will be clobbered by stub");
-    __ PushRegisters(saved_registers);
-    compiler->GenerateStubCall(
-        token_pos(), StubCode::GetTypeIsTopTypeForSubtyping(null_safety),
-        PcDescriptorsLayout::kOther, locs());
-    // AssertSubtypeABI::kDstNameReg is 0 if the type is a top type.
-    __ CompareImmediate(AssertSubtypeABI::kDstNameReg, 0);
-    __ PopRegisters(saved_registers);
-    __ BranchIf(EQUAL, &done, compiler::Assembler::kNearJump);
-  }
 #if defined(TARGET_ARCH_IA32)
   __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
   __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
@@ -5353,12 +5319,12 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushRegister(AssertSubtypeABI::kDstNameReg);
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
                                 kSubtypeCheckRuntimeEntry, 5, locs());
+
   __ Drop(5);
 #else
   compiler->GenerateStubCall(token_pos(), StubCode::AssertSubtype(),
                              PcDescriptorsLayout::kOther, locs());
 #endif
-  __ Bind(&done);
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,

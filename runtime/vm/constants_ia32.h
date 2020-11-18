@@ -124,25 +124,15 @@ struct TypeTestABI {
       TypeTestABI::kSubtypeTestCacheReg;
 };
 
-// Calling convention when calling AssertSubtypeStub. Defined in terms of
-// TypeTestABI as that enables us to call the TypeIsTopTypeForSubtyping
-// stub without juggling registers.
-//
-// Note that we don't generate a call to AssertSubtypeStub because we need
-// CODE_REG to store a fifth argument, so instead a runtime call is generated.
+// Calling convention when calling kSubtypeCheckRuntimeEntry, to match other
+// architectures. We don't generate a call to the AssertSubtypeStub because we
+// need CODE_REG to store a fifth argument.
 struct AssertSubtypeABI {
-  static const Register kSubTypeReg = TypeTestABI::kInstanceReg;
-  static const Register kSuperTypeReg = TypeTestABI::kDstTypeReg;
-  static const Register kInstantiatorTypeArgumentsReg =
-      TypeTestABI::kInstantiatorTypeArgumentsReg;
-  static const Register kFunctionTypeArgumentsReg =
-      TypeTestABI::kFunctionTypeArgumentsReg;
-  static const Register kDstNameReg = TypeTestABI::kSubtypeTestCacheReg;
-
-  static const intptr_t kAbiRegisters =
-      (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
-      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kDstNameReg);
+  static const Register kSubTypeReg = EAX;
+  static const Register kSuperTypeReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kDstNameReg = EDI;  /// On ia32 we don't use CODE_REG.
 
   // No result register, as AssertSubtype is only run for side effect
   // (throws if the subtype check fails).
