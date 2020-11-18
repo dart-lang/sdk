@@ -8194,69 +8194,141 @@ void f() {}
 ''');
   }
 
-  test_instanceInference_operator_equal_legacy() async {
-    var library = await checkLibrary(r'''
-class A1 {
+  test_instanceInference_operator_equal_legacy_from_legacy() async {
+    addLibrarySource('/legacy.dart', r'''
+// @dart = 2.7
+class LegacyDefault {
   bool operator==(other) => false;
 }
-class A2 {
+class LegacyObject {
+  bool operator==(Object other) => false;
+}
+class LegacyInt {
   bool operator==(int other) => false;
 }
-class B1 extends A1 {
+''');
+    var library = await checkLibrary(r'''
+import 'legacy.dart';
+class X1 extends LegacyDefault  {
   bool operator==(other) => false;
 }
-class B2 extends A2 {
+class X2 extends LegacyObject {
+  bool operator==(other) => false;
+}
+class X3 extends LegacyInt {
   bool operator==(other) => false;
 }
 ''');
     checkElementText(
         library,
         r'''
-class A1 {
+import 'legacy.dart';
+class X1 extends LegacyDefault* {
   bool* ==(dynamic other) {}
 }
-class A2 {
-  bool* ==(int* other) {}
+class X2 extends LegacyObject* {
+  bool* ==(Object* other) {}
 }
-class B1 extends A1* {
-  bool* ==(dynamic other) {}
-}
-class B2 extends A2* {
+class X3 extends LegacyInt* {
   bool* ==(int* other) {}
 }
 ''',
         annotateNullability: true);
   }
 
-  test_instanceInference_operator_equal_nnbd() async {
+  test_instanceInference_operator_equal_legacy_from_legacy_nullSafe() async {
     featureSet = enableNnbd;
-    var library = await checkLibrary(r'''
-class A1 {
+    addLibrarySource('/legacy.dart', r'''
+// @dart = 2.7
+class LegacyDefault {
   bool operator==(other) => false;
 }
-class A2 {
+class LegacyObject {
+  bool operator==(Object other) => false;
+}
+class LegacyInt {
   bool operator==(int other) => false;
 }
-class B1 extends A1 {
+''');
+    addLibrarySource('/nullSafe.dart', r'''
+class NullSafeDefault {
   bool operator==(other) => false;
 }
-class B2 extends A2 {
+class NullSafeObject {
+  bool operator==(Object other) => false;
+}
+class NullSafeInt {
+  bool operator==(int other) => false;
+}
+''');
+    var library = await checkLibrary(r'''
+// @dart = 2.7
+import 'legacy.dart';
+import 'nullSafe.dart';
+class X1 extends LegacyDefault implements NullSafeDefault {
+  bool operator==(other) => false;
+}
+class X2 extends LegacyObject implements NullSafeObject {
+  bool operator==(other) => false;
+}
+class X3 extends LegacyInt implements NullSafeInt {
   bool operator==(other) => false;
 }
 ''');
     checkElementText(
         library,
         r'''
-class A1 {
+import 'legacy.dart';
+import 'nullSafe.dart';
+class X1 extends LegacyDefault* implements NullSafeDefault* {
+  bool* ==(dynamic other) {}
+}
+class X2 extends LegacyObject* implements NullSafeObject* {
+  bool* ==(Object* other) {}
+}
+class X3 extends LegacyInt* implements NullSafeInt* {
+  bool* ==(int* other) {}
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_instanceInference_operator_equal_nullSafe_from_nullSafe() async {
+    featureSet = enableNnbd;
+    addLibrarySource('/nullSafe.dart', r'''
+class NullSafeDefault {
+  bool operator==(other) => false;
+}
+class NullSafeObject {
+  bool operator==(Object other) => false;
+}
+class NullSafeInt {
+  bool operator==(int other) => false;
+}
+''');
+    var library = await checkLibrary(r'''
+import 'nullSafe.dart';
+class X1 extends NullSafeDefault {
+  bool operator==(other) => false;
+}
+class X2 extends NullSafeObject {
+  bool operator==(other) => false;
+}
+class X3 extends NullSafeInt {
+  bool operator==(other) => false;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'nullSafe.dart';
+class X1 extends NullSafeDefault {
   bool ==(Object other) {}
 }
-class A2 {
-  bool ==(int other) {}
-}
-class B1 extends A1 {
+class X2 extends NullSafeObject {
   bool ==(Object other) {}
 }
-class B2 extends A2 {
+class X3 extends NullSafeInt {
   bool ==(int other) {}
 }
 ''',
