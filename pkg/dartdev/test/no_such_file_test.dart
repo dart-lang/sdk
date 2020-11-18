@@ -24,4 +24,16 @@ void main() {
     expect(argsResult.stdout, isEmpty);
     expect(argsResult.exitCode, 64);
   });
+
+  test('Providing --snapshot VM option with invalid script fails gracefully',
+      () {
+    // Regression test for https://github.com/dart-lang/sdk/issues/43785
+    p = project();
+    final result = p.runSync('--snapshot=abc', ['foo.dart']);
+    expect(result.stderr, isNotEmpty);
+    expect(result.stderr,
+        contains("Error when reading 'foo.dart': No such file or directory"));
+    expect(result.stdout, isEmpty);
+    expect(result.exitCode, 254);
+  });
 }
