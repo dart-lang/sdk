@@ -46,5 +46,10 @@ static method test() → dynamic {
   final core::int? nonNullableFinalTopLevelLocalWithInitializer;
   function #nonNullableFinalTopLevelLocalWithInitializer#get() → core::int
     return let final core::int? #t14 = nonNullableFinalTopLevelLocalWithInitializer in #t14.==(null) ?{core::int} nonNullableFinalTopLevelLocalWithInitializer = 0 : #t14{core::int};
+  Null neverLocal;
+  function #neverLocal#get() → Never
+    return let final Never? #t15 = neverLocal in #t15.==(null) ?{Never} throw new _in::LateError::localNI("neverLocal") : #t15{Never};
+  function #neverLocal#set(Never #t16) → dynamic
+    return neverLocal = #t16;
 }
 static method main() → dynamic {}

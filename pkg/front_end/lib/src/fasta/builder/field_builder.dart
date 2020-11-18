@@ -811,6 +811,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..isInternalImplementation = true;
     switch (_isSetStrategy) {
       case late_lowering.IsSetStrategy.useSentinelOrNull:
+      case late_lowering.IsSetStrategy.forceUseSentinel:
         // [_lateIsSetField] is never needed.
         break;
       case late_lowering.IsSetStrategy.forceUseIsSetField:

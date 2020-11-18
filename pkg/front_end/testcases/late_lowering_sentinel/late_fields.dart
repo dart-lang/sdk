@@ -10,5 +10,6 @@ late final int? nullableFinalTopLevelField;
 late final int nonNullableFinalTopLevelField;
 late final int? nullableFinalTopLevelFieldWithInitializer = null;
 late final int nonNullableFinalTopLevelFieldWithInitializer = 0;
+late Never neverTopLevelField;
 
 main() {}

@@ -538,6 +538,11 @@ enum IsSetStrategy {
   /// been initialized.
   forceUseIsSetField,
 
+  /// Always use `createSentinel`and `isSentinel` from `dart:_internal` to
+  /// generate and check a sentinel value to signal an uninitialized
+  /// field/local.
+  forceUseSentinel,
+
   /// For potentially nullable fields/locals use an `isSet` field/local to track
   /// whether the field/local has been initialized. Otherwise use `null` as
   /// sentinel value to signal an uninitialized field/local.
@@ -557,7 +562,13 @@ enum IsSetStrategy {
 IsSetStrategy computeIsSetStrategy(SourceLibraryBuilder libraryBuilder) {
   IsSetStrategy isSetStrategy = IsSetStrategy.useIsSetFieldOrNull;
   if (libraryBuilder.loader.target.backendTarget.supportsLateLoweringSentinel) {
-    isSetStrategy = IsSetStrategy.useSentinelOrNull;
+    if (libraryBuilder.loader.nnbdMode != NnbdMode.Strong) {
+      // Non-nullable fields/locals might contain `null` so we always use the
+      // sentinel.
+      isSetStrategy = IsSetStrategy.forceUseSentinel;
+    } else {
+      isSetStrategy = IsSetStrategy.useSentinelOrNull;
+    }
   } else if (libraryBuilder.loader.nnbdMode != NnbdMode.Strong) {
     isSetStrategy = IsSetStrategy.forceUseIsSetField;
   }
@@ -568,6 +579,8 @@ IsSetEncoding computeIsSetEncoding(DartType type, IsSetStrategy isSetStrategy) {
   switch (isSetStrategy) {
     case IsSetStrategy.forceUseIsSetField:
       return IsSetEncoding.useIsSetField;
+    case IsSetStrategy.forceUseSentinel:
+      return IsSetEncoding.useSentinel;
     case IsSetStrategy.useIsSetFieldOrNull:
       return type.isPotentiallyNullable
           ? IsSetEncoding.useIsSetField
