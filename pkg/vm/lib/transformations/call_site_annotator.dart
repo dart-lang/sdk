@@ -30,7 +30,7 @@ void transformLibraries(Component component, List<Library> libraries,
   libraries.forEach(transformer.visitLibrary);
 }
 
-class AnnotateWithStaticTypes extends RecursiveVisitor {
+class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
   final CallSiteAttributesMetadataRepository _metadata;
   final TypeEnvironment env;
   StaticTypeContext _staticTypeContext;

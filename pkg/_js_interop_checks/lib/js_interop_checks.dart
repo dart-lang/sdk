@@ -21,7 +21,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 
 import 'src/js_interop.dart';
 
-class JsInteropChecks extends RecursiveVisitor {
+class JsInteropChecks extends RecursiveVisitor<void> {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   bool _classHasJSAnnotation = false;

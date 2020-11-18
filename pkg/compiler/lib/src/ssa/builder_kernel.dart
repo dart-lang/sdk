@@ -84,7 +84,7 @@ class StackFrame {
       this.staticTypeProvider);
 }
 
-class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
+class KernelSsaGraphBuilder extends ir.Visitor {
   /// Holds the resulting SSA graph.
   final HGraph graph = new HGraph();
 
@@ -6536,8 +6536,7 @@ class KernelTypeBuilder extends TypeBuilder {
   }
 }
 
-class _ErroneousInitializerVisitor extends ir.Visitor<bool>
-    with ir.VisitorDefaultValueMixin<bool> {
+class _ErroneousInitializerVisitor extends ir.Visitor<bool> {
   _ErroneousInitializerVisitor();
 
   // TODO(30809): Use const constructor.
@@ -6557,7 +6556,7 @@ class _ErroneousInitializerVisitor extends ir.Visitor<bool>
 
   // Expressions: Does the expression always throw?
   @override
-  bool get defaultValue => false;
+  bool defaultExpression(ir.Expression node) => false;
 
   @override
   bool visitThrow(ir.Throw node) => true;
@@ -6816,7 +6815,7 @@ class InlineDataCache {
   }
 }
 
-class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
+class InlineWeeder extends ir.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 15;
   static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
@@ -7374,8 +7373,7 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
 /// Visitor to detect environment-rewriting that prevents inlining
 /// (e.g. closures).
-class InlineWeederBodyClosure extends ir.Visitor<void>
-    with ir.VisitorVoidMixin {
+class InlineWeederBodyClosure extends ir.Visitor<void> {
   bool tooDifficult = false;
 
   InlineWeederBodyClosure();

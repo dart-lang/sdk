@@ -37,8 +37,7 @@ import 'type_system.dart';
 /// Calling [run] will start the work of visiting the body of the code to
 /// construct a set of inference-nodes that abstractly represent what the code
 /// is doing.
-class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
-    with ir.VisitorNullMixin<TypeInformation> {
+class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final CompilerOptions _options;
   final JsClosedWorld _closedWorld;
   final InferrerEngine _inferrer;

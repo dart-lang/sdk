@@ -100,7 +100,7 @@ void main() {}
 
 /// Visitor that verifies that all [AssertStatement]s in the Kernel AST
 /// have expected spans for their conditions.
-class VerifyingVisitor extends RecursiveVisitor {
+class VerifyingVisitor extends RecursiveVisitor<Null> {
   final Test test;
 
   /// Set of names of verified [Procedure]s.

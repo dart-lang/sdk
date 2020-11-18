@@ -212,7 +212,7 @@ abstract class ProcedureScanner<Y extends TreeNode>
 }
 
 abstract class ExpressionScanner<Y extends TreeNode>
-    extends RecursiveResultVisitor<void> implements Scanner<Expression, Y> {
+    extends RecursiveVisitor<void> implements Scanner<Expression, Y> {
   final Scanner<Y, TreeNode> next;
   ScanResult<Expression, Y> _result;
 
@@ -236,7 +236,7 @@ abstract class ExpressionScanner<Y extends TreeNode>
 }
 
 abstract class MethodInvocationScanner<Y extends TreeNode>
-    extends RecursiveVisitor implements Scanner<MethodInvocation, Y> {
+    extends RecursiveVisitor<void> implements Scanner<MethodInvocation, Y> {
   final Scanner<Y, TreeNode> next;
   ScanResult<MethodInvocation, Y> _result;
 

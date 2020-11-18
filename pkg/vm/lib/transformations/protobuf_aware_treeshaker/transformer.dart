@@ -249,16 +249,11 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
       }
     }
   }
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    // Do nothing by default.
-  }
 }
 
 /// Finds all subclasses of [GeneratedMessage] and all methods invoked on them
 /// (potentially in a dynamic call).
-class InfoCollector extends RecursiveVisitor {
+class InfoCollector extends RecursiveVisitor<void> {
   final dynamicSelectors = Set<Selector>();
   final Class generatedMessageClass;
   final gmSubclasses = Set<Class>();

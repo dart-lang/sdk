@@ -749,7 +749,7 @@ class ConstantsTransformer extends Transformer {
   }
 }
 
-class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
+class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   ConstantIntFolder intFolder;

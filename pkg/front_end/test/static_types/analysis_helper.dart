@@ -40,7 +40,7 @@ run(Uri entryPoint, String allowedListPath,
       .run(verbose: verbose, generate: generate);
 }
 
-class StaticTypeVisitorBase extends RecursiveVisitor {
+class StaticTypeVisitorBase extends RecursiveVisitor<void> {
   final TypeEnvironment typeEnvironment;
 
   StaticTypeContext staticTypeContext;

@@ -6,8 +6,7 @@ part of 'serialization.dart';
 
 /// Visitor that ascribes an index to all [ir.TreeNode]s that potentially
 /// needed for serialization and deserialization.
-class _TreeNodeIndexerVisitor extends ir.Visitor<void>
-    with ir.VisitorVoidMixin {
+class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
   int _currentIndex = 0;
   final Map<int, ir.TreeNode> _indexToNodeMap;
   final Map<ir.TreeNode, int> _nodeToIndexMap;

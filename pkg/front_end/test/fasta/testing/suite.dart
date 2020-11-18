@@ -85,15 +85,14 @@ import 'package:kernel/ast.dart'
         TreeNode,
         UnevaluatedConstant,
         Version,
-        Visitor,
-        VisitorVoidMixin;
+        Visitor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart'
-    show RecursiveResultVisitor, loadComponentFromBytes;
+    show RecursiveVisitor, loadComponentFromBytes;
 
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 
@@ -821,7 +820,7 @@ class StressConstantEvaluatorStep
   }
 }
 
-class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
+class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
     implements ErrorReporter {
   ConstantEvaluator constantEvaluator;
   ConstantEvaluator constantEvaluatorWithEmptyEnvironment;
@@ -1260,7 +1259,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
 /// Visitor that checks that the component has been transformed properly.
 // TODO(johnniwinther): Add checks for all nodes that are unsupported after
 // transformation.
-class VerifyTransformed extends Visitor<void> with VisitorVoidMixin {
+class VerifyTransformed extends Visitor<void> {
   List<String> errors = [];
 
   @override

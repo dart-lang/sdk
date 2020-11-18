@@ -144,7 +144,7 @@ class TFADevirtualization extends Devirtualization {
 }
 
 /// Annotates kernel AST with metadata using results of type flow analysis.
-class AnnotateKernel extends RecursiveVisitor {
+class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final FieldMorpher fieldMorpher;
   final DirectCallMetadataRepository _directCallMetadataRepository;
@@ -743,7 +743,7 @@ class FieldMorpher {
 /// Visits Dart types and collects all classes and typedefs used in types.
 /// This visitor is used during pass 1 of tree shaking. It is a separate
 /// visitor because [Transformer] does not provide a way to traverse types.
-class _TreeShakerTypeVisitor extends RecursiveVisitor {
+class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
   final TreeShaker shaker;
 
   _TreeShakerTypeVisitor(this.shaker);

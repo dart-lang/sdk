@@ -153,7 +153,7 @@ class DeduplicateMixinsTransformer extends Transformer {
 
 /// Rewrites references to the deduplicated mixin application
 /// classes. Updates interface targets and types.
-class ReferenceUpdater extends RecursiveVisitor {
+class ReferenceUpdater extends RecursiveVisitor<void> {
   final DeduplicateMixinsTransformer transformer;
   final _visitedConstants = new Set<Constant>.identity();
 
