@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
@@ -26,8 +27,8 @@ class FixCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    log.stdout('\n*** The `fix` command is provisional and subject to change '
-        'or removal in future releases. ***\n');
+    log.stdout('\n${log.ansi.emphasized('Note:')} The `fix` command is '
+        'provisional and subject to change or removal in future releases.\n');
 
     var dryRun = argResults['dry-run'];
     if (argResults.rest.length - (dryRun ? 1 : 0) > 1) {
@@ -43,8 +44,9 @@ class FixCommand extends DartdevCommand {
 
     var modeText = dryRun ? ' (dry run)' : '';
 
+    final projectName = path.basename(path.canonicalize(dir.path));
     var progress = log.progress(
-        'Computing fixes in ${path.basename(path.canonicalize(dir.path))}$modeText');
+        'Computing fixes in ${log.ansi.emphasized(projectName)}$modeText');
 
     var server = AnalysisServer(
       io.Directory(sdk.sdkPath),
@@ -88,24 +90,30 @@ class FixCommand extends DartdevCommand {
           });
         });
 
-        log.stdout(
-            '\n$fixCount proposed ${_pluralFix(fixCount)} in $fileCount ${pluralize("file", fileCount)}.\n');
+        log.stdout('');
 
         final bullet = log.ansi.bullet;
 
         for (var detail in details) {
           log.stdout(path.relative(detail.path, from: dir.path));
-          for (var fix in detail.fixes) {
-            log.stdout(
-                '  ${fix.code} $bullet ${fix.occurrences} ${_pluralFix(fix.occurrences)}');
+          final fixes = detail.fixes.toList();
+          fixes.sort((a, b) => a.code.compareTo(b.code));
+          for (var fix in fixes) {
+            log.stdout('  ${fix.code} $bullet '
+                '${_format(fix.occurrences)} ${_pluralFix(fix.occurrences)}');
           }
+          log.stdout('');
         }
+
+        log.stdout('${_format(fixCount)} proposed ${_pluralFix(fixCount)} '
+            'in ${_format(fileCount)} ${pluralize("file", fileCount)}.');
       } else {
         progress = log.progress('Applying fixes');
         var fileCount = await _applyFixes(edits);
         progress.finish(showTiming: true);
         if (fileCount > 0) {
-          log.stdout('Fixed $fileCount ${pluralize("file", fileCount)}.');
+          log.stdout(
+              'Fixed ${_format(fileCount)} ${pluralize("file", fileCount)}.');
         }
       }
     }
@@ -127,4 +135,8 @@ class FixCommand extends DartdevCommand {
   }
 
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
+
+  static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
+
+  static String _format(int value) => _numberFormat.format(value);
 }
