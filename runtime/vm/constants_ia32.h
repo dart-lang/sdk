@@ -285,7 +285,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How fields in composites are aligned.
-#if defined(_WIN32)
+#if defined(TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else
   static constexpr AlignmentStrategy kFieldAlignment =

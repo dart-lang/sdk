@@ -26,6 +26,7 @@ namespace compiler {
 namespace ffi {
 
 class NativePrimitiveType;
+class NativeCompoundType;
 
 // NativeTypes are the types used in calling convention specifications:
 // integers, floats, and composites.
@@ -40,17 +41,15 @@ class NativePrimitiveType;
 //
 // Instead, NativeTypes support representations not supported in Dart's unboxed
 // Representations, such as:
-// * Primitive types:
+// * Primitive types (https://en.cppreference.com/w/cpp/language/types):
 //   * int8_t
 //   * int16_t
 //   * uint8_t
 //   * uint16t
 //   * void
-// * Compound types:
+// * Compound types (https://en.cppreference.com/w/cpp/language/type):
 //   * Struct
 //   * Union
-//
-// TODO(36730): Add composites.
 class NativeType : public ZoneAllocated {
  public:
 #if !defined(FFI_UNIT_TESTS)
@@ -65,6 +64,8 @@ class NativeType : public ZoneAllocated {
 
   virtual bool IsPrimitive() const { return false; }
   const NativePrimitiveType& AsPrimitive() const;
+  virtual bool IsCompound() const { return false; }
+  const NativeCompoundType& AsCompound() const;
 
   virtual bool IsInt() const { return false; }
   virtual bool IsFloat() const { return false; }
@@ -106,10 +107,10 @@ class NativeType : public ZoneAllocated {
   // Otherwise, return original representation.
   const NativeType& WidenTo4Bytes(Zone* zone) const;
 
-  virtual void PrintTo(BaseTextBuffer* f) const;
-  const char* ToCString(Zone* zone) const;
+  virtual void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
+  const char* ToCString(Zone* zone, bool multi_line = false) const;
 #if !defined(FFI_UNIT_TESTS)
-  const char* ToCString() const;
+  const char* ToCString(bool multi_line = false) const;
 #endif
 
   virtual ~NativeType() {}
@@ -166,7 +167,7 @@ class NativePrimitiveType : public NativeType {
   virtual bool Equals(const NativeType& other) const;
   virtual NativePrimitiveType& Split(Zone* zone, intptr_t part) const;
 
-  virtual void PrintTo(BaseTextBuffer* f) const;
+  virtual void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
 
   virtual ~NativePrimitiveType() {}
 
@@ -175,6 +176,72 @@ class NativePrimitiveType : public NativeType {
 };
 
 using NativeTypes = ZoneGrowableArray<const NativeType*>;
+
+// Struct
+//
+// TODO(dartbug.com/38491): Support unions.
+// TODO(dartbug.com/37271): Support nested compound types.
+// TODO(dartbug.com/35763): Support inline fixed-length arrays.
+class NativeCompoundType : public NativeType {
+ public:
+  static NativeCompoundType& FromNativeTypes(Zone* zone,
+                                             const NativeTypes& members);
+
+  const NativeTypes& members() const { return members_; }
+  const ZoneGrowableArray<intptr_t>& member_offsets() const {
+    return member_offsets_;
+  }
+
+  virtual bool IsCompound() const { return true; }
+
+  virtual intptr_t SizeInBytes() const { return size_; }
+  virtual intptr_t AlignmentInBytesField() const { return alignment_field_; }
+  virtual intptr_t AlignmentInBytesStack() const { return alignment_stack_; }
+
+  virtual bool Equals(const NativeType& other) const;
+
+  virtual void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
+
+  // Whether a range within a struct contains only floats.
+  //
+  // Useful for determining whether struct is passed in FP registers on x64.
+  bool ContainsOnlyFloats(intptr_t offset_in_bytes,
+                          intptr_t size_in_bytes) const;
+
+  // Returns how many word-sized chuncks _only_ contain floats.
+  //
+  // Useful for determining whether struct is passed in FP registers on x64.
+  intptr_t NumberOfWordSizeChunksOnlyFloat() const;
+
+  // Returns how many word-sized chunks do not _only_ contain floats.
+  //
+  // Useful for determining whether struct is passed in FP registers on x64.
+  intptr_t NumberOfWordSizeChunksNotOnlyFloat() const;
+
+  // Whether this type has only same-size floating point members.
+  //
+  // Useful for determining whether struct is passed in FP registers in hardfp
+  // and arm64.
+  bool ContainsHomogenuousFloats() const;
+
+ private:
+  NativeCompoundType(const NativeTypes& members,
+                     const ZoneGrowableArray<intptr_t>& member_offsets,
+                     intptr_t size,
+                     intptr_t alignment_field,
+                     intptr_t alignment_stack)
+      : members_(members),
+        member_offsets_(member_offsets),
+        size_(size),
+        alignment_field_(alignment_field),
+        alignment_stack_(alignment_stack) {}
+
+  const NativeTypes& members_;
+  const ZoneGrowableArray<intptr_t>& member_offsets_;
+  const intptr_t size_;
+  const intptr_t alignment_field_;
+  const intptr_t alignment_stack_;
+};
 
 class NativeFunctionType : public ZoneAllocated {
  public:

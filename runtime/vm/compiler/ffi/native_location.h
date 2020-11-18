@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "vm/compiler/ffi/native_type.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/growable_array.h"
 
@@ -23,10 +24,6 @@ namespace dart {
 class BaseTextBuffer;
 
 namespace compiler {
-
-namespace target {
-extern const int kWordSize;
-}
 
 namespace ffi {
 

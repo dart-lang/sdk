@@ -610,8 +610,8 @@ DART_EXPORT int64_t* NullableInt64ElemAt1(int64_t* a) {
 }
 
 // A struct designed to exercise all kinds of alignment rules.
-// Note that offset32A (System V ia32) aligns doubles on 4 bytes while offset32B
-// (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
+// Note that offset32A (System V ia32, iOS arm) aligns doubles on 4 bytes while
+// offset32B (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
 // TODO(37271): Support nested structs.
 // TODO(37470): Add uncommon primitive data types when we want to support them.
 struct VeryLargeStruct {
