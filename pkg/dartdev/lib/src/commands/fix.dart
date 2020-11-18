@@ -91,11 +91,13 @@ class FixCommand extends DartdevCommand {
         log.stdout(
             '\n$fixCount proposed ${_pluralFix(fixCount)} in $fileCount ${pluralize("file", fileCount)}.\n');
 
+        final bullet = log.ansi.bullet;
+
         for (var detail in details) {
           log.stdout(path.relative(detail.path, from: dir.path));
           for (var fix in detail.fixes) {
             log.stdout(
-                '  ${fix.code} • ${fix.occurrences} ${_pluralFix(fix.occurrences)}');
+                '  ${fix.code} $bullet ${fix.occurrences} ${_pluralFix(fix.occurrences)}');
           }
         }
       } else {
