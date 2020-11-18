@@ -438,7 +438,7 @@ void ArgumentsDescriptor::PrintTo(BaseTextBuffer* buffer) const {
         buffer->AddString(", ");
       }
       str = NameAt(i);
-      buffer->Printf("'%s'", str.ToCString());
+      buffer->Printf("'%s' (%" Pd ")", str.ToCString(), PositionAt(i));
     }
     buffer->Printf("]");
   }

@@ -1023,6 +1023,12 @@ class Assembler : public AssemblerBase {
                 JumpDistance distance = kFarJump) {
     b(label, condition);
   }
+  void BranchIfZero(Register rn,
+                    Label* label,
+                    JumpDistance distance = kFarJump) {
+    cmp(rn, Operand(0));
+    b(label, ZERO);
+  }
 
   void MoveRegister(Register rd, Register rm, Condition cond = AL);
 
