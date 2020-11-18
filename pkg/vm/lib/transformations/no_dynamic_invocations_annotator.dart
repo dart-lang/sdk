@@ -149,7 +149,7 @@ class NoDynamicUsesAnnotator {
   }
 }
 
-class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
+class DynamicSelectorsCollector extends RecursiveVisitor {
   final Set<Selector> dynamicSelectors = new Set<Selector>();
   final Set<Selector> nonThisSelectors = new Set<Selector>();
   final Set<Selector> tearOffSelectors = new Set<Selector>();

@@ -45,7 +45,7 @@ enum TypedefState { Done, BeingChecked }
 /// Checks that a kernel component is well-formed.
 ///
 /// This does not include any kind of type checking.
-class VerifyingVisitor extends RecursiveVisitor<void> {
+class VerifyingVisitor extends RecursiveResultVisitor<void> {
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
@@ -844,14 +844,14 @@ class VerifyGetStaticType extends RecursiveVisitor {
       : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     _staticTypeContext.enterLibrary(node);
     super.visitLibrary(node);
     _staticTypeContext.leaveLibrary(node);
   }
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     currentMember = node;
     _staticTypeContext.enterMember(node);
     super.visitField(node);
@@ -860,7 +860,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     currentMember = node;
     _staticTypeContext.enterMember(node);
     super.visitProcedure(node);
@@ -869,7 +869,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 
   @override
-  visitConstructor(Constructor node) {
+  void visitConstructor(Constructor node) {
     currentMember = node;
     _staticTypeContext.enterMember(node);
     super.visitConstructor(node);
@@ -878,7 +878,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     try {
       node.getStaticType(_staticTypeContext);
     } catch (_) {
@@ -890,7 +890,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 }
 
-class CheckParentPointers extends Visitor {
+class CheckParentPointers extends Visitor<void> with VisitorVoidMixin {
   static void check(TreeNode node) {
     node.accept(new CheckParentPointers(node.parent));
   }

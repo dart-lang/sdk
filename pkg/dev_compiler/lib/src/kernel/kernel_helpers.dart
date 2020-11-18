@@ -320,6 +320,9 @@ class LabelContinueFinder extends StatementVisitor<void> {
     visit(node.body);
     visit(node.finalizer);
   }
+
+  @override
+  void defaultStatement(Statement node) {}
 }
 
 /// Ensures that all of the known DartType implementors are handled.

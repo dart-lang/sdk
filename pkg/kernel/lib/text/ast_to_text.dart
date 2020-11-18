@@ -26,7 +26,7 @@ class NormalNamer<T> extends Namer<T> {
   NormalNamer(this.prefix);
 }
 
-class ConstantNamer extends RecursiveVisitor<Null> with Namer<Constant> {
+class ConstantNamer extends RecursiveResultVisitor<Null> with Namer<Constant> {
   final String prefix;
   ConstantNamer(this.prefix);
 
@@ -268,7 +268,7 @@ abstract class Annotator {
 }
 
 /// A quick and dirty ambiguous text printer.
-class Printer extends Visitor<Null> {
+class Printer extends Visitor<void> with VisitorVoidMixin {
   final NameSystem syntheticNames;
   final StringSink sink;
   final Annotator annotator;

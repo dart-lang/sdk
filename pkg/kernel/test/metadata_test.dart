@@ -94,7 +94,7 @@ typedef NodePredicate = bool Function(TreeNode node);
 
 /// Visitor calling [handle] function on every node which can have metadata
 /// associated with it and also satisfies the given [predicate].
-class Visitor extends RecursiveVisitor<Null> {
+class Visitor extends RecursiveVisitor {
   final NodePredicate predicate;
   final void Function(TreeNode) handle;
 

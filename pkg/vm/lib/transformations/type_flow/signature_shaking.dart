@@ -133,7 +133,7 @@ class _ParameterInfo {
   }
 }
 
-class _Collect extends RecursiveVisitor<void> {
+class _Collect extends RecursiveVisitor {
   final SignatureShaker shaker;
 
   final Map<VariableDeclaration, _ParameterInfo> localParameters = {};
@@ -240,7 +240,7 @@ class _Collect extends RecursiveVisitor<void> {
   }
 }
 
-class _Transform extends RecursiveVisitor<void> {
+class _Transform extends RecursiveVisitor {
   final SignatureShaker shaker;
 
   StaticTypeContext typeContext;

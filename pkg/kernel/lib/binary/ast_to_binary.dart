@@ -2560,7 +2560,7 @@ class SwitchCaseIndexer {
   int operator [](SwitchCase node) => index[node];
 }
 
-class ConstantIndexer extends RecursiveVisitor {
+class ConstantIndexer extends RecursiveResultVisitor {
   final StringIndexer stringIndexer;
 
   final List<Constant> entries = <Constant>[];

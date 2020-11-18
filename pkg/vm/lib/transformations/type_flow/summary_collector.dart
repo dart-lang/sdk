@@ -308,7 +308,7 @@ class _FallthroughDetector extends ast.StatementVisitor<bool> {
 
 /// Collects sets of captured variables, as well as variables
 /// modified in loops and try blocks.
-class _VariablesInfoCollector extends RecursiveVisitor<Null> {
+class _VariablesInfoCollector extends RecursiveVisitor {
   /// Maps declared variables to their declaration index.
   final Map<VariableDeclaration, int> varIndex = <VariableDeclaration, int>{};
 
@@ -514,7 +514,7 @@ Iterable<Name> getSelectors(ClassHierarchy hierarchy, Class cls,
 enum FieldSummaryType { kFieldGuard, kInitializer }
 
 /// Create a type flow summary for a member from the kernel AST.
-class SummaryCollector extends RecursiveVisitor<TypeExpr> {
+class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   final Target target;
   final TypeEnvironment _environment;
   final ClosedWorldClassHierarchy _hierarchy;
