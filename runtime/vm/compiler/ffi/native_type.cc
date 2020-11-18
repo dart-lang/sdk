@@ -14,6 +14,10 @@
 #include "vm/compiler/backend/locations.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
+#if !defined(FFI_UNIT_TESTS)
+#include "vm/symbols.h"
+#endif
+
 namespace dart {
 
 namespace compiler {
@@ -23,6 +27,11 @@ namespace ffi {
 const NativePrimitiveType& NativeType::AsPrimitive() const {
   ASSERT(IsPrimitive());
   return static_cast<const NativePrimitiveType&>(*this);
+}
+
+const NativeCompoundType& NativeType::AsCompound() const {
+  ASSERT(IsCompound());
+  return static_cast<const NativeCompoundType&>(*this);
 }
 
 bool NativePrimitiveType::IsInt() const {
@@ -127,6 +136,57 @@ intptr_t NativePrimitiveType::AlignmentInBytesField() const {
   }
 }
 
+static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types);
+
+// Keep consistent with
+// pkg/vm/lib/transformations/ffi_definitions.dart:_calculateSizeAndOffsets.
+NativeCompoundType& NativeCompoundType::FromNativeTypes(
+    Zone* zone,
+    const NativeTypes& members) {
+  intptr_t offset = 0;
+
+  const intptr_t kAtLeast1ByteAligned = 1;
+  // If this struct is nested in another struct, it should be aligned to the
+  // largest alignment of its members.
+  intptr_t alignment_field = kAtLeast1ByteAligned;
+  // If this struct is passed on the stack, it should be aligned to the largest
+  // alignment of its members when passing those members on the stack.
+  intptr_t alignment_stack = kAtLeast1ByteAligned;
+#if defined(TARGET_OS_MACOS_IOS) && defined(TARGET_ARCH_ARM64)
+  // On iOS64 stack values can be less aligned than wordSize, which deviates
+  // from the arm64 ABI.
+  ASSERT(CallingConventions::kArgumentStackAlignment == kAlignedToValueSize);
+  // Because the arm64 ABI aligns primitives to word size on the stack, every
+  // struct will be automatically aligned to word size. iOS64 does not align
+  // the primitives to word size, so we set structs to align to word size for
+  // iOS64.
+  // However, homogenous structs are treated differently. They are aligned to
+  // their member alignment. (Which is 4 in case of a homogenous float).
+  // Source: manual testing.
+  if (!ContainsHomogenuousFloatsInternal(members)) {
+    alignment_stack = compiler::target::kWordSize;
+  }
+#endif
+
+  auto& member_offsets =
+      *new (zone) ZoneGrowableArray<intptr_t>(zone, members.length());
+  for (intptr_t i = 0; i < members.length(); i++) {
+    const NativeType& member = *members[i];
+    const intptr_t member_size = member.SizeInBytes();
+    const intptr_t member_align_field = member.AlignmentInBytesField();
+    const intptr_t member_align_stack = member.AlignmentInBytesStack();
+    offset = Utils::RoundUp(offset, member_align_field);
+    member_offsets.Add(offset);
+    offset += member_size;
+    alignment_field = Utils::Maximum(alignment_field, member_align_field);
+    alignment_stack = Utils::Maximum(alignment_stack, member_align_stack);
+  }
+  const intptr_t size = Utils::RoundUp(offset, alignment_field);
+
+  return *new (zone) NativeCompoundType(members, member_offsets, size,
+                                        alignment_field, alignment_stack);
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
   switch (representation_) {
@@ -139,7 +199,7 @@ bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
     case kInt32:
     case kUint32:
     case kInt64:
-    case kUint64:
+    case kUint64:  // We don't actually have a kUnboxedUint64.
     case kFloat:
     case kDouble:
       return true;
@@ -177,6 +237,23 @@ bool NativePrimitiveType::Equals(const NativeType& other) const {
     return false;
   }
   return other.AsPrimitive().representation_ == representation_;
+}
+
+bool NativeCompoundType::Equals(const NativeType& other) const {
+  if (!other.IsCompound()) {
+    return false;
+  }
+  const auto& other_compound = other.AsCompound();
+  const auto& other_members = other_compound.members_;
+  if (other_members.length() != members_.length()) {
+    return false;
+  }
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    if (!members_[i]->Equals(*other_members[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 static PrimitiveType split_fundamental(PrimitiveType in) {
@@ -243,16 +320,52 @@ static PrimitiveType TypeRepresentation(classid_t class_id) {
   }
 }
 
+static bool IsPredefinedFfiCid(classid_t class_id) {
+  switch (class_id) {
+#define CASE_FFI_CID_TRUE(name)                                                \
+  case kFfi##name##Cid:                                                        \
+    return true;
+    CLASS_LIST_FFI(CASE_FFI_CID_TRUE)
+    default:
+      return false;
+  }
+  UNREACHABLE();
+}
+
 NativeType& NativeType::FromTypedDataClassId(Zone* zone, classid_t class_id) {
-  // TODO(36730): Support composites.
+  ASSERT(IsPredefinedFfiCid(class_id));
   const auto fundamental_rep = TypeRepresentation(class_id);
   return *new (zone) NativePrimitiveType(fundamental_rep);
 }
 
 #if !defined(FFI_UNIT_TESTS)
 NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
-  // TODO(36730): Support composites.
-  return NativeType::FromTypedDataClassId(zone, type.type_class_id());
+  const classid_t class_id = type.type_class_id();
+  if (IsPredefinedFfiCid(class_id)) {
+    return NativeType::FromTypedDataClassId(zone, class_id);
+  }
+
+  // User-defined structs.
+  const auto& cls = Class::Handle(zone, type.type_class());
+
+  auto& options = Object::Handle(zone);
+  Library::FindPragma(dart::Thread::Current(), /*only_core=*/false, cls,
+                      Symbols::vm_ffi_struct_fields(), &options);
+  ASSERT(!options.IsNull());
+  ASSERT(options.IsArray());
+
+  const auto& field_types = Array::Cast(options);
+  auto& field_type = AbstractType::Handle(zone);
+  auto& field_native_types = *new (zone) ZoneGrowableArray<const NativeType*>(
+      zone, field_types.Length());
+  for (intptr_t i = 0; i < field_types.Length(); i++) {
+    field_type ^= field_types.At(i);
+    const NativeType& field_native_type =
+        NativeType::FromAbstractType(zone, field_type);
+    field_native_types.Add(&field_native_type);
+  }
+
+  return NativeCompoundType::FromNativeTypes(zone, field_native_types);
 }
 #endif
 
@@ -281,15 +394,15 @@ NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
-const char* NativeType::ToCString(Zone* zone) const {
+const char* NativeType::ToCString(Zone* zone, bool multi_line) const {
   ZoneTextBuffer textBuffer(zone);
-  PrintTo(&textBuffer);
+  PrintTo(&textBuffer, multi_line);
   return textBuffer.buffer();
 }
 
 #if !defined(FFI_UNIT_TESTS)
-const char* NativeType::ToCString() const {
-  return ToCString(Thread::Current()->zone());
+const char* NativeType::ToCString(bool multi_line) const {
+  return ToCString(Thread::Current()->zone(), multi_line);
 }
 #endif
 
@@ -324,11 +437,11 @@ static const char* PrimitiveTypeToCString(PrimitiveType rep) {
   }
 }
 
-void NativeType::PrintTo(BaseTextBuffer* f) const {
+void NativeType::PrintTo(BaseTextBuffer* f, bool multi_line) const {
   f->AddString("I");
 }
 
-void NativePrimitiveType::PrintTo(BaseTextBuffer* f) const {
+void NativePrimitiveType::PrintTo(BaseTextBuffer* f, bool multi_line) const {
   f->Printf("%s", PrimitiveTypeToCString(representation_));
 }
 
@@ -336,6 +449,35 @@ const char* NativeFunctionType::ToCString(Zone* zone) const {
   ZoneTextBuffer textBuffer(zone);
   PrintTo(&textBuffer);
   return textBuffer.buffer();
+}
+
+void NativeCompoundType::PrintTo(BaseTextBuffer* f, bool multi_line) const {
+  f->AddString("Compound(");
+  f->Printf("size: %" Pd ", ", SizeInBytes());
+  f->Printf("field alignment: %" Pd ", ", AlignmentInBytesField());
+  f->Printf("stack alignment: %" Pd ", ", AlignmentInBytesStack());
+  f->AddString("members: {");
+  if (multi_line) {
+    f->AddString("\n  ");
+  }
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    if (i > 0) {
+      if (multi_line) {
+        f->AddString(",\n  ");
+      } else {
+        f->AddString(", ");
+      }
+    }
+    f->Printf("%" Pd ": ", member_offsets_[i]);
+    members_[i]->PrintTo(f);
+  }
+  if (multi_line) {
+    f->AddString("\n");
+  }
+  f->AddString("})");
+  if (multi_line) {
+    f->AddString("\n");
+  }
 }
 
 #if !defined(FFI_UNIT_TESTS)
@@ -354,6 +496,88 @@ void NativeFunctionType::PrintTo(BaseTextBuffer* f) const {
   }
   f->AddString(") => ");
   return_type_.PrintTo(f);
+}
+
+bool NativeCompoundType::ContainsOnlyFloats(intptr_t offset_in_bytes,
+                                            intptr_t size_in_bytes) const {
+  ASSERT(size_in_bytes >= 0);
+  const intptr_t first_byte = offset_in_bytes;
+  const intptr_t last_byte = offset_in_bytes + size_in_bytes - 1;
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    const intptr_t member_first_byte = member_offsets_[i];
+    const intptr_t member_last_byte =
+        member_first_byte + members_[i]->SizeInBytes() - 1;
+    if ((first_byte <= member_first_byte && member_first_byte <= last_byte) ||
+        (first_byte <= member_last_byte && member_last_byte <= last_byte)) {
+      if (members_[i]->IsPrimitive() && !members_[i]->IsFloat()) {
+        return false;
+      }
+      if (members_[i]->IsCompound()) {
+        const auto& nested = members_[i]->AsCompound();
+        const bool nested_only_floats = nested.ContainsOnlyFloats(
+            offset_in_bytes - member_first_byte, size_in_bytes);
+        if (!nested_only_floats) {
+          return false;
+        }
+      }
+    }
+    if (member_first_byte > last_byte) {
+      // None of the remaining members fits the range.
+      break;
+    }
+  }
+  return true;
+}
+
+intptr_t NativeCompoundType::NumberOfWordSizeChunksOnlyFloat() const {
+  // O(n^2) implementation, but only invoked for small structs.
+  ASSERT(SizeInBytes() <= 16);
+  const intptr_t size = SizeInBytes();
+  intptr_t float_only_chunks = 0;
+  for (intptr_t offset = 0; offset < size;
+       offset += compiler::target::kWordSize) {
+    if (ContainsOnlyFloats(
+            offset, Utils::Minimum<intptr_t>(size - offset,
+                                             compiler::target::kWordSize))) {
+      float_only_chunks++;
+    }
+  }
+  return float_only_chunks;
+}
+
+intptr_t NativeCompoundType::NumberOfWordSizeChunksNotOnlyFloat() const {
+  const intptr_t total_chunks =
+      Utils::RoundUp(SizeInBytes(), compiler::target::kWordSize) /
+      compiler::target::kWordSize;
+  return total_chunks - NumberOfWordSizeChunksOnlyFloat();
+}
+
+static void ContainsHomogenuousFloatsRecursive(const NativeTypes& types,
+                                               bool* only_float,
+                                               bool* only_double) {
+  for (intptr_t i = 0; i < types.length(); i++) {
+    const auto& member_type = types.At(i);
+    if (member_type->IsPrimitive()) {
+      PrimitiveType type = member_type->AsPrimitive().representation();
+      *only_float = *only_float && (type == kFloat);
+      *only_double = *only_double && (type == kDouble);
+    }
+    if (member_type->IsCompound()) {
+      ContainsHomogenuousFloatsRecursive(member_type->AsCompound().members(),
+                                         only_float, only_double);
+    }
+  }
+}
+
+static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types) {
+  bool only_float = true;
+  bool only_double = true;
+  ContainsHomogenuousFloatsRecursive(types, &only_float, &only_double);
+  return (only_double || only_float) && types.length() > 0;
+}
+
+bool NativeCompoundType::ContainsHomogenuousFloats() const {
+  return ContainsHomogenuousFloatsInternal(this->members());
 }
 
 const NativeType& NativeType::WidenTo4Bytes(Zone* zone) const {

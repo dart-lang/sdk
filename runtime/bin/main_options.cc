@@ -478,6 +478,7 @@ int Options::ParseArguments(int argc,
     bool is_potential_file_path = true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     if (Options::disable_dart_dev() ||
+        (Options::snapshot_filename() != nullptr) ||
         (is_potential_file_path && !enable_vm_service_)) {
       *script_name = Utils::StrDup(argv[i]);
       run_script = true;

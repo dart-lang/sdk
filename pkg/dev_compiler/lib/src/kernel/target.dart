@@ -151,8 +151,7 @@ class DevCompilerTarget extends Target {
       ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(
-              coreTypes,
+      JsInteropChecks(coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }

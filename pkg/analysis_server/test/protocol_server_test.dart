@@ -9,9 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;

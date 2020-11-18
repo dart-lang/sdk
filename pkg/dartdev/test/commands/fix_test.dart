@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -14,6 +15,8 @@ void main() {
 
 void defineFix() {
   TestProject p;
+
+  final bullet = Logger.standard().ansi.bullet;
 
   setUp(() => p = null);
 
@@ -67,8 +70,8 @@ linter:
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('3 proposed fixes in 1 file.'));
     expect(result.stdout, contains('lib${Platform.pathSeparator}main.dart'));
-    expect(result.stdout, contains('  annotate_overrides • 1 fix'));
-    expect(result.stdout, contains('  prefer_single_quotes • 2 fixes'));
+    expect(result.stdout, contains('  annotate_overrides $bullet 1 fix'));
+    expect(result.stdout, contains('  prefer_single_quotes $bullet 2 fixes'));
   });
 
   test('.', () {

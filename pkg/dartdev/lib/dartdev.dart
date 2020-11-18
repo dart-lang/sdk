@@ -156,8 +156,10 @@ class DartdevRunner extends CommandRunner<int> {
   final Analytics analytics;
 
   @override
-  final ArgParser argParser =
-      ArgParser(usageLineLength: dartdevUsageLineLength);
+  final ArgParser argParser = ArgParser(
+    usageLineLength: dartdevUsageLineLength,
+    allowTrailingOptions: false,
+  );
 
   static const String dartdevDescription =
       'A command-line utility for Dart development';

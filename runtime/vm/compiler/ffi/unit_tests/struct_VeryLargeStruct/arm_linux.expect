@@ -1,0 +1,17 @@
+Compound(size: 72, field alignment: 8, stack alignment: 8, members: {
+  0: int8,
+  2: int16,
+  4: int32,
+  8: int64,
+  16: uint8,
+  18: uint16,
+  20: uint32,
+  24: uint64,
+  32: int32,
+  40: double,
+  48: float,
+  52: int32,
+  56: int32,
+  60: int32,
+  64: int8
+})
