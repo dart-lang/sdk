@@ -1,3 +1,7 @@
+# 1.6.0
+- Added `errorCode` to `DartDevelopmentServiceException` to communicate the
+  underlying reason of the failure.
+
 # 1.5.1
 - Improve internal error handling for situations with less than graceful
   shutdowns.
