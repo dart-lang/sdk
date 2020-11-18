@@ -31,8 +31,7 @@ void main() {
     p = project();
     final result = p.runSync('--snapshot=abc', ['foo.dart']);
     expect(result.stderr, isNotEmpty);
-    expect(result.stderr,
-        contains("Error when reading 'foo.dart': No such file or directory"));
+    expect(result.stderr, contains("Error when reading 'foo.dart':"));
     expect(result.stdout, isEmpty);
     expect(result.exitCode, 254);
   });
