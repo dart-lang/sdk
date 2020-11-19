@@ -577,6 +577,12 @@ class Assembler : public AssemblerBase {
                 JumpDistance distance = kFarJump) {
     j(condition, label, distance);
   }
+  void BranchIfZero(Register src,
+                    Label* label,
+                    JumpDistance distance = kFarJump) {
+    cmpl(src, Immediate(0));
+    j(ZERO, label, distance);
+  }
 
   void LoadFromOffset(Register reg,
                       Register base,
@@ -714,6 +720,11 @@ class Assembler : public AssemblerBase {
   void LockCmpxchgl(const Address& address, Register reg) {
     lock();
     cmpxchgl(address, reg);
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
+         Immediate(value));
   }
 
   void EnterFrame(intptr_t frame_space);

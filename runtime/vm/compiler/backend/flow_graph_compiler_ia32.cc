@@ -342,38 +342,62 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   ASSERT(!token_pos.IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
-  if (!locs->in(1).IsConstant()) {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
+  const auto& dst_type =
+      locs->in(AssertAssignableInstr::kDstTypePos).IsConstant()
+          ? AbstractType::Cast(
+                locs->in(AssertAssignableInstr::kDstTypePos).constant())
+          : Object::null_abstract_type();
+
+  if (!dst_type.IsNull()) {
+    ASSERT(dst_type.IsFinalized());
+    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
   }
-
-  ASSERT(locs->in(1).constant().IsAbstractType());
-  const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
-  ASSERT(dst_type.IsFinalized());
-
-  if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
 
   compiler::Label is_assignable, runtime_call;
-  if (Instance::NullIsAssignableTo(dst_type)) {
-    const compiler::Immediate& raw_null =
-        compiler::Immediate(static_cast<intptr_t>(Object::null()));
-    __ cmpl(TypeTestABI::kInstanceReg, raw_null);
-    __ j(EQUAL, &is_assignable);
-  }
+  auto& test_cache = SubtypeTestCache::ZoneHandle(zone());
+  if (dst_type.IsNull()) {
+    __ Comment("AssertAssignable for runtime type");
+    // kDstTypeReg should already contain the destination type.
+    const bool null_safety = Isolate::Current()->null_safety();
+    GenerateStubCall(token_pos,
+                     StubCode::GetTypeIsTopTypeForSubtyping(null_safety),
+                     PcDescriptorsLayout::kOther, locs, deopt_id);
+    // TypeTestABI::kSubtypeTestCacheReg is 0 if the type is a top type.
+    __ BranchIfZero(TypeTestABI::kSubtypeTestCacheReg, &is_assignable,
+                    compiler::Assembler::kNearJump);
 
-  // Generate inline type check, linking to runtime call if not assignable.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
-  test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
-                                        &runtime_call);
+    GenerateStubCall(token_pos,
+                     StubCode::GetNullIsAssignableToType(null_safety),
+                     PcDescriptorsLayout::kOther, locs, deopt_id);
+    // TypeTestABI::kSubtypeTestCacheReg is 0 if the object is null and is
+    // assignable.
+    __ BranchIfZero(TypeTestABI::kSubtypeTestCacheReg, &is_assignable,
+                    compiler::Assembler::kNearJump);
+
+    // Use the full-arg version of the cache.
+    test_cache = GenerateCallSubtypeTestStub(kTestTypeSevenArgs, &is_assignable,
+                                             &runtime_call);
+  } else {
+    __ Comment("AssertAssignable for compile-time type");
+
+    if (Instance::NullIsAssignableTo(dst_type)) {
+      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+      __ BranchIf(EQUAL, &is_assignable);
+    }
+
+    // Generate inline type check, linking to runtime call if not assignable.
+    test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
+                                          &runtime_call);
+  }
 
   __ Bind(&runtime_call);
   __ PushObject(Object::null_object());            // Make room for the result.
   __ pushl(TypeTestABI::kInstanceReg);             // Push the source object.
-  if (locs->in(1).IsConstant()) {
-    __ PushObject(locs->in(1).constant());  // Push the type of the destination.
+  // Push the type of the destination.
+  if (!dst_type.IsNull()) {
+    __ PushObject(dst_type);
   } else {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
+    __ pushl(TypeTestABI::kDstTypeReg);
   }
   __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
   __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);

@@ -120,6 +120,20 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // function is generic.
   Fragment BuildClosureCallTypeArgumentsTypeCheck(const ClosureCallInfo& info);
 
+  // Builds checks for type checking a given argument of the closure call using
+  // parameter information from the closure function retrieved at runtime.
+  //
+  // For named arguments, arg_name is a compile-time constant retrieved from
+  // the saved arguments descriptor. For positional arguments, null is passed.
+  Fragment BuildClosureCallArgumentTypeCheck(const ClosureCallInfo& info,
+                                             LocalVariable* param_index,
+                                             intptr_t arg_index,
+                                             const String& arg_name);
+
+  // Builds checks for type checking the arguments of a call using parameter
+  // information for the function retrieved at runtime from the closure.
+  Fragment BuildClosureCallArgumentTypeChecks(const ClosureCallInfo& info);
+
   // Main entry point for building checks.
   Fragment BuildDynamicClosureCallChecks(LocalVariable* closure);
 

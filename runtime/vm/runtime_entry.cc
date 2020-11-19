@@ -806,10 +806,10 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   ASSERT(mode == kTypeCheckFromInline);
 #endif
 
-  ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
-  // A null instance is already detected and allowed in inlined code, unless
-  // strong checking is enabled.
+  // These are guaranteed on the calling side.
+  ASSERT(!dst_type.IsDynamicType());
   ASSERT(!src_instance.IsNull() || isolate->null_safety());
+
   const bool is_instance_of = src_instance.IsAssignableTo(
       dst_type, instantiator_type_arguments, function_type_arguments);
 
@@ -819,16 +819,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
                    Bool::Get(is_instance_of));
   }
   if (!is_instance_of) {
-    // Throw a dynamic type error.
-    const TokenPosition location = GetCallerLocation();
-    const AbstractType& src_type =
-        AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
-    if (!dst_type.IsInstantiated()) {
-      // Instantiate dst_type before reporting the error.
-      dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
-                                          function_type_arguments, kAllFree,
-                                          Heap::kNew);
-    }
     if (dst_name.IsNull()) {
 #if !defined(TARGET_ARCH_IA32)
       // Can only come here from type testing stub.
@@ -852,6 +842,56 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 #endif
     }
 
+    if (dst_name.raw() ==
+        Symbols::dynamic_assert_assignable_stc_check().raw()) {
+#if !defined(TARGET_ARCH_IA32)
+      // Can only come here from type testing stub via dynamic AssertAssignable.
+      ASSERT(mode != kTypeCheckFromInline);
+#endif
+      // This was a dynamic closure call where the destination name was not
+      // known at compile-time. Thus, fetch the original arguments and arguments
+      // descriptor and re-do the type check  in the runtime, which causes the
+      // error with the proper destination name to be thrown.
+      DartFrameIterator iterator(thread,
+                                 StackFrameIterator::kNoCrossThreadIteration);
+      StackFrame* caller_frame = iterator.NextFrame();
+      const auto& dispatcher =
+          Function::Handle(zone, caller_frame->LookupDartFunction());
+      ASSERT(dispatcher.IsInvokeFieldDispatcher());
+      const auto& orig_arguments_desc =
+          Array::Handle(zone, dispatcher.saved_args_desc());
+      const ArgumentsDescriptor args_desc(orig_arguments_desc);
+      const intptr_t arg_count = args_desc.CountWithTypeArgs();
+      const auto& orig_arguments = Array::Handle(zone, Array::New(arg_count));
+      auto& obj = Object::Handle(zone);
+      for (intptr_t i = 0; i < arg_count; i++) {
+        obj = *reinterpret_cast<ObjectPtr*>(
+            ParamAddress(caller_frame->fp(), arg_count - i));
+        orig_arguments.SetAt(i, obj);
+      }
+      const auto& receiver = Closure::CheckedHandle(
+          zone, orig_arguments.At(args_desc.FirstArgIndex()));
+      const auto& function = Function::Handle(zone, receiver.function());
+      const auto& result = Object::Handle(
+          zone, function.DoArgumentTypesMatch(orig_arguments, args_desc));
+      if (result.IsError()) {
+        Exceptions::PropagateError(Error::Cast(result));
+      }
+      // IsAssignableTo returned false, so we should have thrown a type
+      // error in DoArgumentsTypesMatch.
+      UNREACHABLE();
+    }
+
+    // Throw a dynamic type error.
+    const TokenPosition location = GetCallerLocation();
+    const AbstractType& src_type =
+        AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
+    if (!dst_type.IsInstantiated()) {
+      // Instantiate dst_type before reporting the error.
+      dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
+                                          function_type_arguments, kAllFree,
+                                          Heap::kNew);
+    }
     Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name);
     UNREACHABLE();
   }

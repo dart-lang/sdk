@@ -277,6 +277,16 @@ CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
   return Code::null();
 }
 
+const Code& StubCode::GetTypeIsTopTypeForSubtyping(bool null_safety) {
+  return null_safety ? StubCode::TypeIsTopTypeForSubtypingNullSafe()
+                     : StubCode::TypeIsTopTypeForSubtyping();
+}
+
+const Code& StubCode::GetNullIsAssignableToType(bool null_safety) {
+  return null_safety ? StubCode::NullIsAssignableToTypeNullSafe()
+                     : StubCode::NullIsAssignableToType();
+}
+
 #if !defined(TARGET_ARCH_IA32)
 CodePtr StubCode::GetBuildMethodExtractorStub(
     compiler::ObjectPoolBuilder* pool) {

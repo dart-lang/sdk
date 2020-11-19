@@ -1355,7 +1355,7 @@ Future<void> doTestsLazy([String? debugInfoFilename]) async {
   final awaitTimeoutExpected = const <String>[
     r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      Future.timeout.<anonymous closure> \(dart:async/future_impl.dart\)$',
+    r'^#1      Future.timeout.<anonymous closure> \(dart:async/future_impl.dart',
     r'^<asynchronous suspension>$',
     r'^#2      awaitTimeout ',
     r'^<asynchronous suspension>$',
@@ -1386,7 +1386,7 @@ Future<void> doTestsLazy([String? debugInfoFilename]) async {
   final awaitWaitExpected = const <String>[
     r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      Future.wait.<anonymous closure> \(dart:async/future.dart\)$',
+    r'^#1      Future.wait.<anonymous closure> \(dart:async/future.dart',
     r'^<asynchronous suspension>$',
     r'^#2      awaitWait ',
     r'^<asynchronous suspension>$',

@@ -2694,23 +2694,20 @@ class Function : public Object {
                     (1 << kDefaultTypeArgumentsKindFieldSize),
                 "Wrong bit size chosen for default TAV kind field");
 
-  // Fields encoded in an integer stored alongside a default TAV.
+  // Fields encoded in an integer stored alongside a default TAV. The size of
+  // the integer should be <= the size of a target Smi.
   using DefaultTypeArgumentsKindField =
       BitField<intptr_t,
                DefaultTypeArgumentsKind,
                0,
                kDefaultTypeArgumentsKindFieldSize>;
-  // If more space is needed, we can almost certainly reduce the size of this
-  // field.
+  // Just use the rest of the space for the number of parent type parameters.
   using NumParentTypeParametersField =
       BitField<intptr_t,
-               uint16_t,
+               intptr_t,
                DefaultTypeArgumentsKindField::kNextBit,
-               kBitsPerByte * sizeof(uint16_t)>;
-
-  static_assert(NumParentTypeParametersField::kNextBit <=
-                    compiler::target::kSmiBits,
-                "Default TAV info does not fit in a target Smi");
+               compiler::target::kSmiBits -
+                   DefaultTypeArgumentsKindField::kNextBit>;
 
   // Returns a canonicalized vector of the type parameters instantiated
   // to bounds. If non-generic, the empty type arguments vector is returned.
@@ -2839,10 +2836,6 @@ class Function : public Object {
     return (kind() == FunctionLayout::kConstructor) && is_static();
   }
 
-  static bool ClosureBodiesContainNonCovariantArgumentChecks() {
-    return FLAG_precompiled_mode || FLAG_lazy_dispatchers;
-  }
-
   // Whether this function can receive an invocation where the number and names
   // of arguments have not been checked.
   bool CanReceiveDynamicInvocation() const { return IsFfiTrampoline(); }
@@ -2910,13 +2903,11 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  bool NeedsArgumentTypeChecks() const {
-    return (IsClosureFunction() &&
-            ClosureBodiesContainNonCovariantArgumentChecks()) ||
-           !(is_static() || (kind() == FunctionLayout::kConstructor));
+  bool NeedsTypeArgumentTypeChecks() const {
+    return !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
-  bool NeedsTypeArgumentTypeChecks() const {
+  bool NeedsArgumentTypeChecks() const {
     return !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
@@ -6889,12 +6880,10 @@ class SubtypeTestCache : public Object {
   ArrayPtr cache() const;
 
  private:
-  // A VM heap allocated preinitialized empty subtype entry array.
-  static ArrayPtr cached_array_;
-
   void set_cache(const Array& value) const;
 
-  intptr_t TestEntryLength() const;
+  // A VM heap allocated preinitialized empty subtype entry array.
+  static ArrayPtr cached_array_;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
@@ -8163,6 +8152,9 @@ class TypeParameter : public AbstractType {
     return TypeParameterLayout::DeclarationBit::decode(raw_ptr()->flags_);
   }
   void SetDeclaration(bool value) const;
+  static intptr_t nullability_offset() {
+    return OFFSET_OF(TypeParameterLayout, nullability_);
+  }
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }

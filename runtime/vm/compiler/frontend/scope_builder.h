@@ -73,6 +73,10 @@ class ScopeBuilder {
 
     // No parameters will be checked.
     kTypeCheckForStaticFunction,
+
+    // No non-covariant checks are performed, and any covariant checks are
+    // performed by the target.
+    kTypeCheckForImplicitClosureFunction,
   };
 
   // This assumes that the reader is at a FunctionNode,
@@ -229,15 +233,6 @@ class ScopeBuildingResult : public ZoneAllocated {
  private:
   DISALLOW_COPY_AND_ASSIGN(ScopeBuildingResult);
 };
-
-// Returns true if the given method can skip type checks for all type arguments
-// that are not covariant or generic covariant in its implementation.
-bool MethodCanSkipTypeChecksForNonCovariantTypeArguments(
-    const Function& method);
-
-// Returns true if the given method can skip type checks for all arguments
-// that are not covariant or generic covariant in its implementation.
-bool MethodCanSkipTypeChecksForNonCovariantArguments(const Function& method);
 
 }  // namespace kernel
 }  // namespace dart

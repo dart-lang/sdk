@@ -1784,10 +1784,12 @@ void Assembler::LoadFromOffset(Register reg,
 }
 
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  ASSERT(depth >= 0);
   movl(dst, Address(ESP, depth * target::kWordSize));
 }
 
 void Assembler::StoreToStack(Register src, intptr_t depth) {
+  ASSERT(depth >= 0);
   movl(Address(ESP, depth * target::kWordSize), src);
 }
 

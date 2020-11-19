@@ -440,6 +440,17 @@ class Expect {
     _fail("$defaultMessage$diff");
   }
 
+  /// Checks that [haystack] contains a given substring [needle].
+  ///
+  /// For example, this succeeds:
+  ///
+  ///     Expect.contains("a", "abcdefg");
+  static void contains(String needle, String haystack) {
+    if (!haystack.contains(needle)) {
+      _fail("String '$needle' not found within '$haystack'");
+    }
+  }
+
   /// Checks that [actual] contains a given list of [substrings] in order.
   ///
   /// For example, this succeeds:

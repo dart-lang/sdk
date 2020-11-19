@@ -267,6 +267,7 @@
   FIELD(Type, nullability_offset)                                              \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
+  FIELD(TypeParameter, nullability_offset)                                     \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \

@@ -159,9 +159,36 @@ abstract class DartDevelopmentService {
 }
 
 class DartDevelopmentServiceException implements Exception {
-  DartDevelopmentServiceException._(this.message);
+  /// Set when `DartDeveloperService.startDartDevelopmentService` is called and
+  /// the target VM service already has a Dart Developer Service instance
+  /// connected.
+  static const int existingDdsInstanceError = 1;
+
+  /// Set when the connection to the remote VM service terminates unexpectedly
+  /// during Dart Development Service startup.
+  static const int failedToStartError = 2;
+
+  /// Set when a connection error has occurred after startup.
+  static const int connectionError = 3;
+
+  factory DartDevelopmentServiceException._existingDdsInstanceError(
+      String message) {
+    return DartDevelopmentServiceException._(existingDdsInstanceError, message);
+  }
+
+  factory DartDevelopmentServiceException._failedToStartError() {
+    return DartDevelopmentServiceException._(
+        failedToStartError, 'Failed to start Dart Development Service');
+  }
+
+  factory DartDevelopmentServiceException._connectionError(String message) {
+    return DartDevelopmentServiceException._(connectionError, message);
+  }
+
+  DartDevelopmentServiceException._(this.errorCode, this.message);
 
   String toString() => 'DartDevelopmentServiceException: $message';
 
+  final int errorCode;
   final String message;
 }

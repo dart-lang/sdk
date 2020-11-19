@@ -49,17 +49,14 @@ class _DartDevelopmentService implements DartDevelopmentService {
           shutdown();
           if (!started && !completer.isCompleted) {
             completer.completeError(
-              DartDevelopmentServiceException._(
-                'Failed to start Dart Development Service',
-              ),
-            );
+                DartDevelopmentServiceException._failedToStartError());
           }
         },
         onError: (e, st) {
           shutdown();
           if (!completer.isCompleted) {
             completer.completeError(
-              DartDevelopmentServiceException._(e.toString()),
+              DartDevelopmentServiceException._connectionError(e.toString()),
               st,
             );
           }
@@ -118,7 +115,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     } on json_rpc.RpcException catch (e) {
       await _server.close(force: true);
       // _yieldControlToDDS fails if DDS is not the only VM service client.
-      throw DartDevelopmentServiceException._(
+      throw DartDevelopmentServiceException._existingDdsInstanceError(
         e.data != null ? e.data['details'] : e.toString(),
       );
     }
