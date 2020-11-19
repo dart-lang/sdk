@@ -24247,6 +24247,8 @@ const char* StackTrace::ToCString() const {
   // for each frame.
   intptr_t frame_index = 0;
   uint32_t frame_skip = 0;
+  // If we're already in a gap, don't print multiple gap markers.
+  bool in_gap = false;
   do {
     for (intptr_t i = frame_skip; i < stack_trace.Length(); i++) {
       code_object = stack_trace.CodeAtFrame(i);
@@ -24260,72 +24262,87 @@ const char* StackTrace::ToCString() const {
           // To account for gap frames.
           frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
-      } else if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
-        buffer.AddString("<asynchronous suspension>\n");
-      } else {
-        intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
-        ASSERT(code_object.IsCode());
-        code ^= code_object.raw();
-        ASSERT(code.IsFunctionCode());
-        function = code.function();
-        const uword pc = code.PayloadStart() + pc_offset;
-#if defined(DART_PRECOMPILED_RUNTIME)
-        // When printing non-symbolic frames, we normally print call
-        // addresses, not return addresses, by subtracting one from the PC to
-        // get an address within the preceding instruction.
-        //
-        // The one exception is a normal closure registered as a listener on a
-        // future. In this case, the returned pc_offset is 0, as the closure
-        // is invoked with the value of the resolved future. Thus, we must
-        // report the return address, as returning a value before the closure
-        // payload will cause failures to decode the frame using DWARF info.
-        const bool is_future_listener = pc_offset == 0;
-        const uword call_addr = is_future_listener ? pc : pc - 1;
-        if (FLAG_dwarf_stack_traces_mode) {
-          // If we have access to the owning function and it would be
-          // invisible in a symbolic stack trace, don't show this frame.
-          // (We can't do the same for inlined functions, though.)
-          if (!FLAG_show_invisible_frames && !function.IsNull() &&
-              !function.is_visible()) {
-            continue;
-          }
-          // This output is formatted like Android's debuggerd. Note debuggerd
-          // prints call addresses instead of return addresses.
-          buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
-          PrintNonSymbolicStackFrameBody(&buffer, call_addr,
-                                         isolate_instructions, vm_instructions);
-          frame_index++;
-          continue;
-        } else if (function.IsNull()) {
-          // We can't print the symbolic information since the owner was not
-          // retained, so instead print the static symbol + offset like the
-          // non-symbolic stack traces.
-          PrintSymbolicStackFrameIndex(&buffer, frame_index);
-          PrintNonSymbolicStackFrameBody(&buffer, call_addr,
-                                         isolate_instructions, vm_instructions);
-          frame_index++;
-          continue;
-        }
-#endif
-        if (code.is_optimized() && stack_trace.expand_inlined()) {
-          code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
-                                                  &inlined_token_positions);
-          ASSERT(inlined_functions.length() >= 1);
-          for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
-            const auto& inlined = *inlined_functions[j];
-            auto const pos = inlined_token_positions[j];
-            if (FLAG_show_invisible_frames || function.is_visible()) {
-              PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index);
-              frame_index++;
-            }
-          }
-        } else if (FLAG_show_invisible_frames || function.is_visible()) {
-          auto const pos = code.GetTokenIndexOfPC(pc);
-          PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
-          frame_index++;
-        }
+        continue;
       }
+
+      if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
+        if (!in_gap) {
+          buffer.AddString("<asynchronous suspension>\n");
+        }
+        in_gap = true;
+        continue;
+      }
+
+      intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
+      ASSERT(code_object.IsCode());
+      code ^= code_object.raw();
+      ASSERT(code.IsFunctionCode());
+      function = code.function();
+      const uword pc = code.PayloadStart() + pc_offset;
+
+      // If the function is not to be shown, skip.
+      if (!FLAG_show_invisible_frames && !function.IsNull() &&
+          !function.is_visible()) {
+        continue;
+      }
+
+      // A visible frame ends any gap we might be in.
+      in_gap = false;
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+      // When printing non-symbolic frames, we normally print call
+      // addresses, not return addresses, by subtracting one from the PC to
+      // get an address within the preceding instruction.
+      //
+      // The one exception is a normal closure registered as a listener on a
+      // future. In this case, the returned pc_offset is 0, as the closure
+      // is invoked with the value of the resolved future. Thus, we must
+      // report the return address, as returning a value before the closure
+      // payload will cause failures to decode the frame using DWARF info.
+      const bool is_future_listener = pc_offset == 0;
+      const uword call_addr = is_future_listener ? pc : pc - 1;
+
+      if (FLAG_dwarf_stack_traces_mode) {
+        // This output is formatted like Android's debuggerd. Note debuggerd
+        // prints call addresses instead of return addresses.
+        buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
+        PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
+                                       vm_instructions);
+        frame_index++;
+        continue;
+      }
+
+      if (function.IsNull()) {
+        in_gap = false;
+        // We can't print the symbolic information since the owner was not
+        // retained, so instead print the static symbol + offset like the
+        // non-symbolic stack traces.
+        PrintSymbolicStackFrameIndex(&buffer, frame_index);
+        PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
+                                       vm_instructions);
+        frame_index++;
+        continue;
+      }
+#endif
+
+      if (code.is_optimized() && stack_trace.expand_inlined()) {
+        code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
+                                                &inlined_token_positions);
+        ASSERT(inlined_functions.length() >= 1);
+        for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
+          const auto& inlined = *inlined_functions[j];
+          auto const pos = inlined_token_positions[j];
+          PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index);
+          frame_index++;
+        }
+        continue;
+      }
+
+      auto const pos = code.GetTokenIndexOfPC(pc);
+      PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
+      frame_index++;
     }
+
     // Follow the link.
     frame_skip = stack_trace.skip_sync_start_in_parent_stack()
                      ? StackTrace::kSyncAsyncCroppedFrames
