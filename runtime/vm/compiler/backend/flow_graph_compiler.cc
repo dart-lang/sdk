@@ -3255,8 +3255,10 @@ void FlowGraphCompiler::EmitNativeMove(
       !destination.IsFpuRegisters()) {
     // TODO(40209): If this is stack to stack, we could use FpuTMP.
     // Test the impact on code size and speed.
-    EmitNativeMove(destination.Split(zone_, 0), source.Split(zone_, 0), temp);
-    EmitNativeMove(destination.Split(zone_, 1), source.Split(zone_, 1), temp);
+    EmitNativeMove(destination.Split(zone_, 2, 0), source.Split(zone_, 2, 0),
+                   temp);
+    EmitNativeMove(destination.Split(zone_, 2, 1), source.Split(zone_, 2, 1),
+                   temp);
     return;
   }
 
@@ -3331,7 +3333,7 @@ void FlowGraphCompiler::EmitMoveToNative(
     for (intptr_t i : {0, 1}) {
       const auto& src_split = compiler::ffi::NativeLocation::FromPairLocation(
           zone_, src_loc, src_type, i);
-      EmitNativeMove(dst.Split(zone_, i), src_split, temp);
+      EmitNativeMove(dst.Split(zone_, 2, i), src_split, temp);
     }
   } else {
     const auto& src =
@@ -3351,7 +3353,7 @@ void FlowGraphCompiler::EmitMoveFromNative(
     for (intptr_t i : {0, 1}) {
       const auto& dest_split = compiler::ffi::NativeLocation::FromPairLocation(
           zone_, dst_loc, dst_type, i);
-      EmitNativeMove(dest_split, src.Split(zone_, i), temp);
+      EmitNativeMove(dest_split, src.Split(zone_, 2, i), temp);
     }
   } else {
     const auto& dest =
@@ -3398,7 +3400,7 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
             compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
                                                         src_type_split);
         EmitMove(intermediate, src.AsPairLocation()->At(i), temp);
-        EmitNativeMove(dst.Split(zone_, i), intermediate_native, temp);
+        EmitNativeMove(dst.Split(zone_, 2, i), intermediate_native, temp);
       }
     } else {
       const auto& intermediate_native =

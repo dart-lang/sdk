@@ -107,10 +107,14 @@ class NativeType : public ZoneAllocated {
   // Otherwise, return original representation.
   const NativeType& WidenTo4Bytes(Zone* zone) const;
 
-  virtual void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
-  const char* ToCString(Zone* zone, bool multi_line = false) const;
+  virtual void PrintTo(BaseTextBuffer* f,
+                       bool multi_line = false,
+                       bool verbose = true) const;
+  const char* ToCString(Zone* zone,
+                        bool multi_line = false,
+                        bool verbose = true) const;
 #if !defined(FFI_UNIT_TESTS)
-  const char* ToCString(bool multi_line = false) const;
+  const char* ToCString() const;
 #endif
 
   virtual ~NativeType() {}
@@ -134,6 +138,8 @@ enum PrimitiveType {
   kVoid,
   // TODO(37470): Add packed data structures.
 };
+
+PrimitiveType PrimitiveTypeFromSizeInBytes(intptr_t size);
 
 // Represents a primitive native type.
 //
@@ -167,7 +173,9 @@ class NativePrimitiveType : public NativeType {
   virtual bool Equals(const NativeType& other) const;
   virtual NativePrimitiveType& Split(Zone* zone, intptr_t part) const;
 
-  virtual void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
+  virtual void PrintTo(BaseTextBuffer* f,
+                       bool multi_line = false,
+                       bool verbose = true) const;
 
   virtual ~NativePrimitiveType() {}
 
@@ -200,7 +208,9 @@ class NativeCompoundType : public NativeType {
 
   virtual bool Equals(const NativeType& other) const;
 
-  virtual void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
+  virtual void PrintTo(BaseTextBuffer* f,
+                       bool multi_line = false,
+                       bool verbose = true) const;
 
   // Whether a range within a struct contains only floats.
   //

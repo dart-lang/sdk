@@ -1,0 +1,15 @@
+S+4 Compound(size: 16)
+S+20 float
+S+24 Compound(size: 16)
+S+40 Compound(size: 16)
+S+56 Compound(size: 16)
+S+72 Compound(size: 16)
+S+88 Compound(size: 16)
+S+104 Compound(size: 16)
+S+120 Compound(size: 16)
+S+136 Compound(size: 16)
+S+152 float
+S+156 int32[int8]
+S+160 Compound(size: 16)
+=>
+P(S+0 uint32, ret:eax uint32) Compound(size: 16)

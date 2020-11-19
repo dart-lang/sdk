@@ -346,7 +346,8 @@ class CallingConventions {
   // The native ABI uses R8 to pass the pointer to the memory preallocated for
   // struct return values. Arm64 is the only ABI in which this pointer is _not_
   // in ArgumentRegisters[0] or on the stack.
-  static const Register kPointerToReturnStructRegister = R8;
+  static const Register kPointerToReturnStructRegisterCall = R8;
+  static const Register kPointerToReturnStructRegisterReturn = R8;
 
   static const FpuRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters =
@@ -363,6 +364,9 @@ class CallingConventions {
 
   // How stack arguments are aligned.
 #if defined(TARGET_OS_MACOS_IOS)
+  // > Function arguments may consume slots on the stack that are not multiples
+  // > of 8 bytes.
+  // https://developer.apple.com/documentation/xcode/writing_arm64_code_for_apple_platforms
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToValueSize;
 #else
@@ -395,7 +399,7 @@ class CallingConventions {
 
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
-       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
 #undef R

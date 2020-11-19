@@ -24,7 +24,7 @@ abstract class YamlCompletionGenerator {
 
   /// Return the completion suggestions appropriate for the given [offset] in
   /// the file at the given [filePath].
-  List<CompletionSuggestion> getSuggestions(String filePath, int offset) {
+  YamlCompletionResults getSuggestions(String filePath, int offset) {
     var file = resourceProvider.getFile(filePath);
     String content;
     try {
@@ -32,12 +32,12 @@ abstract class YamlCompletionGenerator {
     } on FileSystemException {
       // If the file doesn't exist or can't be read, then there are no
       // suggestions.
-      return const <CompletionSuggestion>[];
+      return const YamlCompletionResults.empty();
     }
     var root = _parseYaml(content);
     if (root == null) {
       // If the contents can't be parsed, then there are no suggestions.
-      return const <CompletionSuggestion>[];
+      return const YamlCompletionResults.empty();
     }
     var path = _pathToOffset(root, offset);
     var completionNode = path.last;
@@ -52,17 +52,16 @@ abstract class YamlCompletionGenerator {
       return getSuggestionsForPath(path, offset);
     }
     // There are no completions at the given location.
-    return const <CompletionSuggestion>[];
+    return const YamlCompletionResults.empty();
   }
 
   /// Given a [path] to the node in which completions are being requested and
   /// the offset of the cursor, return the completions appropriate at that
   /// location.
-  List<CompletionSuggestion> getSuggestionsForPath(
-      List<YamlNode> path, int offset) {
+  YamlCompletionResults getSuggestionsForPath(List<YamlNode> path, int offset) {
     var producer = _producerForPath(path);
     if (producer == null) {
-      return const <CompletionSuggestion>[];
+      return const YamlCompletionResults.empty();
     }
     var invalidSuggestions = _siblingsOnPath(path);
     var suggestions = <CompletionSuggestion>[];
@@ -71,7 +70,12 @@ abstract class YamlCompletionGenerator {
         suggestions.add(suggestion);
       }
     }
-    return suggestions;
+    final node = path.isNotEmpty ? path.last : null;
+    final replaceNode = node is YamlScalar && node.containsOffset(offset);
+    final replacementOffset = replaceNode ? node.span.start.offset : offset;
+    final replacementLength = replaceNode ? node.span.length : 0;
+    return YamlCompletionResults(
+        suggestions, replacementOffset, replacementLength);
   }
 
   /// Return the result of parsing the file [content] into a YAML node.
@@ -162,6 +166,20 @@ abstract class YamlCompletionGenerator {
     }
     return const <String>[];
   }
+}
+
+class YamlCompletionResults {
+  final List<CompletionSuggestion> suggestions;
+  final int replacementOffset;
+  final int replacementLength;
+
+  const YamlCompletionResults(
+      this.suggestions, this.replacementOffset, this.replacementLength);
+
+  const YamlCompletionResults.empty()
+      : suggestions = const [],
+        replacementOffset = 0,
+        replacementLength = 0;
 }
 
 extension on YamlMap {
