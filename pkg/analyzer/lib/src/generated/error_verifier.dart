@@ -5041,6 +5041,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
         return true;
       } else if (parent is FunctionExpression) {
+        var parent2 = parent.parent;
+        if (parent2 is FunctionDeclaration && parent2.externalKeyword != null) {
+          return false;
+        } else if (parent.body is NativeFunctionBody) {
+          return false;
+        }
         return true;
       } else if (parent is MethodDeclaration) {
         if (parent.isAbstract) {

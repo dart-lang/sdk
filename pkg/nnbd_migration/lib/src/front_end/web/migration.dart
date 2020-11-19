@@ -163,6 +163,13 @@ void addClickHandlers(String selector, bool clearEditDetails) {
   });
 }
 
+/// Creates an icon using a `<span>` element and the Material Icons font.
+Element createIcon([String name = '']) {
+  return document.createElement('span')
+    ..classes.add('material-icons')
+    ..innerText = name;
+}
+
 /// Perform a GET request on the path, return the json decoded response.
 ///
 /// Returns a T so that the various json objects can be requested (lists, maps,
@@ -423,7 +430,8 @@ void loadNavigationTree() async {
     final response = await doGet<List<Object>>(path);
     var navTree = document.querySelector('.nav-tree');
     navTree.innerHtml = '';
-    writeNavigationSubtree(navTree, NavigationTreeNode.listFromJson(response));
+    writeNavigationSubtree(navTree, NavigationTreeNode.listFromJson(response),
+        enablePartialMigration: false);
   } catch (e, st) {
     handleError('Could not load navigation tree', e, st);
   }
@@ -659,6 +667,53 @@ void removeHighlight(int offset, int lineNumber) {
   }
 }
 
+void toggleMigrationStatus(NavigationTreeNode entity) {
+  // TODO(srawlins): Handle toggling directories.
+  switch (entity.migrationStatus) {
+    case UnitMigrationStatus.alreadyMigrated:
+      break;
+    case UnitMigrationStatus.migrating:
+      entity.migrationStatus = entity.wasExplicitlyOptedOut
+          ? UnitMigrationStatus.keepingOptedOut
+          : UnitMigrationStatus.optingOut;
+      break;
+    case UnitMigrationStatus.optingOut:
+    case UnitMigrationStatus.keepingOptedOut:
+      entity.migrationStatus = UnitMigrationStatus.migrating;
+  }
+}
+
+void updateIconForStatus(Element icon, UnitMigrationStatus status) {
+  switch (status) {
+    case UnitMigrationStatus.alreadyMigrated:
+      icon.innerText = 'check_box';
+      icon.classes.add('already-migrated');
+      icon.setAttribute('title', 'Already migrated');
+      break;
+    case UnitMigrationStatus.keepingOptedOut:
+      icon.innerText = 'check_box_outline_blank';
+      icon.classes.remove('migrating');
+      icon.classes.add('opted-out');
+      icon.setAttribute('title', 'Keeping unmigrated');
+      break;
+    case UnitMigrationStatus.migrating:
+      icon.innerText = 'check_box';
+      icon.classes.remove('keeping-opted-out');
+      icon.classes.remove('opting-out');
+      icon.classes.add('migrating');
+      icon.setAttribute('title', 'Migrating to null safety');
+      break;
+    case UnitMigrationStatus.optingOut:
+      icon.innerText = 'check_box_outline_blank';
+      icon.classes.remove('migrating');
+      icon.classes.add('opted-out');
+      icon.setAttribute('title', 'Opting out of null safety');
+      break;
+    default:
+      throw StateError('Unrecognized unit migration status: $status');
+  }
+}
+
 /// Update the heading and navigation links.
 ///
 /// Call this after updating page content on a navigation.
@@ -692,7 +747,8 @@ void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
 }
 
 void writeNavigationSubtree(
-    Element parentElement, List<NavigationTreeNode> tree) {
+    Element parentElement, List<NavigationTreeNode> tree,
+    {bool enablePartialMigration = false}) {
   Element ul = document.createElement('ul');
   parentElement.append(ul);
   for (var entity in tree) {
@@ -704,14 +760,25 @@ void writeNavigationSubtree(
       li.append(arrow);
       arrow.classes.add('arrow');
       arrow.innerHtml = '&#x25BC;';
-      Element icon = document.createElement('span');
-      li.append(icon);
-      icon.innerHtml = '<span class="material-icons">folder_open</span>';
+      if (enablePartialMigration) {
+        li.append(createIcon('indeterminate_check_box'));
+      }
+      li.append(createIcon('folder_open'));
       li.append(Text(entity.name));
-      writeNavigationSubtree(li, entity.subtree);
+      writeNavigationSubtree(li, entity.subtree,
+          enablePartialMigration: enablePartialMigration);
       addArrowClickHandler(arrow);
     } else {
-      li.innerHtml = '<span class="material-icons">insert_drive_file</span>';
+      if (enablePartialMigration) {
+        var statusIcon = createIcon();
+        updateIconForStatus(statusIcon, entity.migrationStatus);
+        statusIcon.onClick.listen((MouseEvent event) {
+          toggleMigrationStatus(entity);
+          updateIconForStatus(statusIcon, entity.migrationStatus);
+        });
+        li.append(statusIcon);
+      }
+      li.append(createIcon('insert_drive_file'));
       Element a = document.createElement('a');
       li.append(a);
       a.classes.add('nav-link');
@@ -725,7 +792,7 @@ void writeNavigationSubtree(
         li.append(editsBadge);
         editsBadge.classes.add('edit-count');
         editsBadge.setAttribute(
-            'title', '$editCount ${pluralize(editCount, 'edit')}');
+            'title', '$editCount ${pluralize(editCount, 'proposed edit')}');
         editsBadge.append(Text(editCount.toString()));
       }
     }

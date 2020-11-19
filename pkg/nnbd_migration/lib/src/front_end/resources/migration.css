@@ -9,7 +9,7 @@
 
 /* Text selection */
 ::selection {
-  background: #6e8eb1; /* $dark-selection-color */;
+  background: #6e8eb1; /* $dark-selection-color */
 }
 
 /* Material icons configuration */
@@ -219,7 +219,19 @@ footer .sdk-version {
   position: relative;
   top: 5px;
   margin-right: 8px;
-  color: #676767;
+  color: #676767; /* $secondary-color */
+}
+
+.nav-tree .material-icons.already-migrated {
+  color: #007a27; /* $light-green */
+}
+
+.nav-tree .material-icons.opted-out {
+  color: #676767; /* $secondary-color */
+}
+
+.nav-tree .material-icons.migrating {
+  color: #51c686; /* $dark-green */
 }
 
 .nav-inner ul {
