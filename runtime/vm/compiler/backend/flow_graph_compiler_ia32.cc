@@ -361,14 +361,16 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
     const bool null_safety =
         Isolate::Current()->use_strict_null_safety_checks();
     GenerateStubCall(token_pos,
-                     StubCode::GetTypeIsTopTypeForSubtyping(null_safety),
+                     null_safety ? StubCode::TypeIsTopTypeForSubtypingNullSafe()
+                                 : StubCode::TypeIsTopTypeForSubtyping(),
                      PcDescriptorsLayout::kOther, locs, deopt_id);
     // TypeTestABI::kSubtypeTestCacheReg is 0 if the type is a top type.
     __ BranchIfZero(TypeTestABI::kSubtypeTestCacheReg, &is_assignable,
                     compiler::Assembler::kNearJump);
 
     GenerateStubCall(token_pos,
-                     StubCode::GetNullIsAssignableToType(null_safety),
+                     null_safety ? StubCode::NullIsAssignableToTypeNullSafe()
+                                 : StubCode::NullIsAssignableToType(),
                      PcDescriptorsLayout::kOther, locs, deopt_id);
     // TypeTestABI::kSubtypeTestCacheReg is 0 if the object is null and is
     // assignable.
