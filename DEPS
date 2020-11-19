@@ -70,7 +70,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
   "async_rev": "695b3ac280f107c84adf7488743abfdfaaeea68f",
-  "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
+  "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
   "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
@@ -84,7 +84,7 @@ vars = {
   "convert_rev": "dd3bd28f63be7cb8ab961f38bc73229e4473b555",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
-  "dart2js_info_rev" : "0632a623b08e1f601c7eba99e0186a581ae799e9",
+  "dart2js_info_rev" : "83504e459e13862cc6a61c147147ef7892a0d285",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
@@ -131,7 +131,7 @@ vars = {
   "pedantic_rev": "a884ea2db943b8756cc94385990bd750aec06928",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "eedbd5fde84f9a1a8da643b475305a81841da599",
-  "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
+  "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
   "pub_rev": "228e69e53862879c283c42b98086aa7536012a66",
   "pub_semver_tag": "v1.4.4",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",

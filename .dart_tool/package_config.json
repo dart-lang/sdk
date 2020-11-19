@@ -118,7 +118,7 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "benchmark_harness",
@@ -495,7 +495,7 @@
       "name": "protobuf",
       "rootUri": "../third_party/pkg/protobuf/protobuf",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "pub",
