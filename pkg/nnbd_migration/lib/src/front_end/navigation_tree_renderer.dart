@@ -60,6 +60,8 @@ class NavigationTreeRenderer {
           path: pathContext.joinAll(link.pathParts),
           href: pathMapper.map(link.fullPath),
           editCount: link.editCount,
+          wasExplicitlyOptedOut: link.wasExplicitlyOptedOut,
+          migrationStatus: link.migrationStatus,
         ),
     ];
   }

@@ -27,19 +27,29 @@ class NavigationTreeNode {
   /// otherwise `null`.
   final int editCount;
 
+  final bool wasExplicitlyOptedOut;
+
+  /// If this is a file node, the migration status of the file,
+  /// otherwise `null`.
+  UnitMigrationStatus migrationStatus;
+
   /// Creates a navigation tree node representing a directory.
   NavigationTreeNode.directory({@required this.name, @required this.subtree})
       : type = NavigationTreeNodeType.directory,
         path = null,
         href = null,
-        editCount = null;
+        editCount = null,
+        wasExplicitlyOptedOut = null,
+        migrationStatus = null;
 
   /// Creates a navigation tree node representing a file.
   NavigationTreeNode.file(
       {@required this.name,
       @required this.path,
       @required this.href,
-      @required this.editCount})
+      @required this.editCount,
+      @required this.wasExplicitlyOptedOut,
+      @required this.migrationStatus})
       : type = NavigationTreeNodeType.file,
         subtree = null;
 
@@ -49,7 +59,10 @@ class NavigationTreeNode {
         subtree = listFromJsonOrNull(json['subtree']),
         path = json['path'] as String,
         href = json['href'] as String,
-        editCount = json['editCount'] as int;
+        editCount = json['editCount'] as int,
+        wasExplicitlyOptedOut = json['wasExplicitlyOptedOut'] as bool,
+        migrationStatus =
+            _decodeMigrationStatus(json['migrationStatus'] as int);
 
   Map<String, Object> toJson() => {
         'type': _encodeType(type),
@@ -57,7 +70,10 @@ class NavigationTreeNode {
         if (subtree != null) 'subtree': listToJson(subtree),
         if (path != null) 'path': path,
         if (href != null) 'href': href,
-        if (editCount != null) 'editCount': editCount
+        if (editCount != null) 'editCount': editCount,
+        if (wasExplicitlyOptedOut != null)
+          'wasExplicitlyOptedOut': wasExplicitlyOptedOut,
+        if (migrationStatus != null) 'migrationStatus': migrationStatus.index,
       };
 
   /// Deserializes a list of navigation tree nodes from a JSON list.
@@ -72,6 +88,11 @@ class NavigationTreeNode {
   /// Serializes a list of navigation tree nodes into JSON.
   static List<Map<String, Object>> listToJson(List<NavigationTreeNode> nodes) =>
       [for (var node in nodes) node.toJson()];
+
+  static UnitMigrationStatus _decodeMigrationStatus(int migrationStatus) {
+    if (migrationStatus == null) return null;
+    return UnitMigrationStatus.values[migrationStatus];
+  }
 
   static NavigationTreeNodeType _decodeType(String json) {
     switch (json) {
@@ -99,4 +120,27 @@ class NavigationTreeNode {
 enum NavigationTreeNodeType {
   directory,
   file,
+}
+
+/// Enum representing the different statuses a compilation unit can have.
+enum UnitMigrationStatus {
+  /// Indicates that a library was already migrated to null safety at the start
+  /// of the current migration.
+  alreadyMigrated,
+
+  /// Indicates that a library was already opted out of null safety at the start
+  /// of the current migration, and that the current migration does not migrate
+  /// the library.
+  keepingOptedOut,
+
+  /// Indicates that a library was not migrated to null safety at the start of
+  /// the current migration (either the package was not opted in, or the library
+  /// was explicitly opted out), and that the current migration does migrate the
+  /// library.
+  migrating,
+
+  /// Indicates that a library was not yet migrated to null safety at the start
+  /// of the current migration, because the package was not opted in, and that
+  /// the current migration opts the library out of null safety.
+  optingOut,
 }
