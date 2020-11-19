@@ -157,7 +157,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Skip: function(LinkedHashSet()); when function(LinkedHashSet mySet) or
       // function(LinkedHashMap()); when function(LinkedHashMap myMap)
       if (parent is ArgumentList) {
-        final paramType = parent.arguments.first.staticParameterElement?.type;
+        final paramType = node.staticParameterElement.type;
         if (paramType != null && !typeCheck(paramType)) {
           return true;
         }

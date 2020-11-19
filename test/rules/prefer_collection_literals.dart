@@ -53,7 +53,9 @@ void main() {
 
   printSet(Set()); // LINT
   printSet(LinkedHashSet<int>()); // LINT
+  printIndentedSet(0, LinkedHashSet<int>()); // LINT
   printHashSet(LinkedHashSet<int>()); // OK
+  printIndentedHashSet(0, LinkedHashSet<int>()); // OK
 
   Set<int> ss7 = LinkedHashSet.from([1, 2, 3]); // LINT
   LinkedHashSet<int> ss8 =  LinkedHashSet.from([1, 2, 3]); // OK
@@ -75,6 +77,8 @@ void main() {
 }
 
 void printSet(Set<int> ids) => print('$ids!');
+void printIndentedSet(int indent, Set<int> ids) => print('$ids!');
 void printHashSet(LinkedHashSet<int> ids) => printSet(ids);
+void printIndentedHashSet(int indent, LinkedHashSet<int> ids) => printSet(ids);
 void printMap(Map map) => print('$map!');
 void printHashMap(LinkedHashMap map) => printMap(map);

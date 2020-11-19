@@ -1,3 +1,9 @@
+# 0.1.126-dev
+
+* fixed false negatives for `prefer_collection_literals` when a Set
+  instantiation is passed as the argument to a function in any position other
+  than the first.
+
 # 0.1.125
 
 * (internal): update to new `PhysicalResourceProvider` API
