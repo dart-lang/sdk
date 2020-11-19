@@ -17,7 +17,9 @@ import '../utils.dart';
 class FixCommand extends DartdevCommand {
   static const String cmdName = 'fix';
 
-  // This command is hidden as it's currently experimental.
+  static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
+
+  /// This command is hidden as it's currently experimental.
   FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true) {
     argParser.addFlag('dry-run',
         abbr: 'n',
@@ -74,69 +76,67 @@ class FixCommand extends DartdevCommand {
     if (edits.isEmpty) {
       log.stdout('Nothing to fix!');
     } else {
-      if (dryRun) {
-        var details = fixes.details;
-        details.sort((f1, f2) => path
-            .relative(f1.path, from: dir.path)
-            .compareTo(path.relative(f2.path, from: dir.path)));
+      var details = fixes.details;
+      details.sort((f1, f2) => path
+          .relative(f1.path, from: dir.path)
+          .compareTo(path.relative(f2.path, from: dir.path)));
 
-        var fileCount = 0;
-        var fixCount = 0;
+      var fileCount = 0;
+      var fixCount = 0;
 
-        details.forEach((d) {
-          ++fileCount;
-          d.fixes.forEach((f) {
-            fixCount += f.occurrences;
-          });
+      details.forEach((d) {
+        ++fileCount;
+        d.fixes.forEach((f) {
+          fixCount += f.occurrences;
         });
+      });
 
+      if (dryRun) {
         log.stdout('');
-
-        final bullet = log.ansi.bullet;
-
-        for (var detail in details) {
-          log.stdout(path.relative(detail.path, from: dir.path));
-          final fixes = detail.fixes.toList();
-          fixes.sort((a, b) => a.code.compareTo(b.code));
-          for (var fix in fixes) {
-            log.stdout('  ${fix.code} $bullet '
-                '${_format(fix.occurrences)} ${_pluralFix(fix.occurrences)}');
-          }
-          log.stdout('');
-        }
-
         log.stdout('${_format(fixCount)} proposed ${_pluralFix(fixCount)} '
             'in ${_format(fileCount)} ${pluralize("file", fileCount)}.');
+        _printDetails(details, dir);
       } else {
         progress = log.progress('Applying fixes');
-        var fileCount = await _applyFixes(edits);
+        _applyFixes(edits);
         progress.finish(showTiming: true);
-        if (fileCount > 0) {
-          log.stdout(
-              'Fixed ${_format(fileCount)} ${pluralize("file", fileCount)}.');
-        }
+        _printDetails(details, dir);
+        log.stdout('${_format(fixCount)} ${_pluralFix(fixCount)} made in '
+            '${_format(fileCount)} ${pluralize("file", fileCount)}.');
       }
     }
 
     return 0;
   }
 
-  Future<int> _applyFixes(List<SourceFileEdit> edits) async {
-    var files = <String>{};
+  void _applyFixes(List<SourceFileEdit> edits) {
     for (var edit in edits) {
       var fileName = edit.file;
-      files.add(fileName);
       var file = io.File(fileName);
-      var code = await file.exists() ? await file.readAsString() : '';
+      var code = file.existsSync() ? file.readAsStringSync() : '';
       code = SourceEdit.applySequence(code, edit.edits);
-      await file.writeAsString(code);
+      file.writeAsStringSync(code);
     }
-    return files.length;
   }
 
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
 
-  static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
+  void _printDetails(List<BulkFix> details, io.Directory workingDir) {
+    log.stdout('');
+
+    final bullet = log.ansi.bullet;
+
+    for (var detail in details) {
+      log.stdout(path.relative(detail.path, from: workingDir.path));
+      final fixes = detail.fixes.toList();
+      fixes.sort((a, b) => a.code.compareTo(b.code));
+      for (var fix in fixes) {
+        log.stdout('  ${fix.code} $bullet '
+            '${_format(fix.occurrences)} ${_pluralFix(fix.occurrences)}');
+      }
+      log.stdout('');
+    }
+  }
 
   static String _format(int value) => _numberFormat.format(value);
 }
