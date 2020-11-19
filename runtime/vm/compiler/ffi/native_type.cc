@@ -24,6 +24,23 @@ namespace compiler {
 
 namespace ffi {
 
+PrimitiveType PrimitiveTypeFromSizeInBytes(intptr_t size) {
+  ASSERT(size <= 8);
+  ASSERT(size > 0);
+  switch (size) {
+    case 1:
+      return kUint8;
+    case 2:
+      return kUint16;
+    case 4:
+      return kUint32;
+    case 8:
+      // Dart unboxed Representation for unsigned and signed is equal.
+      return kInt64;
+  }
+  UNREACHABLE();
+}
+
 const NativePrimitiveType& NativeType::AsPrimitive() const {
   ASSERT(IsPrimitive());
   return static_cast<const NativePrimitiveType&>(*this);
@@ -394,15 +411,17 @@ NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
-const char* NativeType::ToCString(Zone* zone, bool multi_line) const {
+const char* NativeType::ToCString(Zone* zone,
+                                  bool multi_line,
+                                  bool verbose) const {
   ZoneTextBuffer textBuffer(zone);
-  PrintTo(&textBuffer, multi_line);
+  PrintTo(&textBuffer, multi_line, verbose);
   return textBuffer.buffer();
 }
 
 #if !defined(FFI_UNIT_TESTS)
-const char* NativeType::ToCString(bool multi_line) const {
-  return ToCString(Thread::Current()->zone(), multi_line);
+const char* NativeType::ToCString() const {
+  return ToCString(Thread::Current()->zone());
 }
 #endif
 
@@ -437,11 +456,15 @@ static const char* PrimitiveTypeToCString(PrimitiveType rep) {
   }
 }
 
-void NativeType::PrintTo(BaseTextBuffer* f, bool multi_line) const {
+void NativeType::PrintTo(BaseTextBuffer* f,
+                         bool multi_line,
+                         bool verbose) const {
   f->AddString("I");
 }
 
-void NativePrimitiveType::PrintTo(BaseTextBuffer* f, bool multi_line) const {
+void NativePrimitiveType::PrintTo(BaseTextBuffer* f,
+                                  bool multi_line,
+                                  bool verbose) const {
   f->Printf("%s", PrimitiveTypeToCString(representation_));
 }
 
@@ -451,30 +474,35 @@ const char* NativeFunctionType::ToCString(Zone* zone) const {
   return textBuffer.buffer();
 }
 
-void NativeCompoundType::PrintTo(BaseTextBuffer* f, bool multi_line) const {
+void NativeCompoundType::PrintTo(BaseTextBuffer* f,
+                                 bool multi_line,
+                                 bool verbose) const {
   f->AddString("Compound(");
-  f->Printf("size: %" Pd ", ", SizeInBytes());
-  f->Printf("field alignment: %" Pd ", ", AlignmentInBytesField());
-  f->Printf("stack alignment: %" Pd ", ", AlignmentInBytesStack());
-  f->AddString("members: {");
-  if (multi_line) {
-    f->AddString("\n  ");
-  }
-  for (intptr_t i = 0; i < members_.length(); i++) {
-    if (i > 0) {
-      if (multi_line) {
-        f->AddString(",\n  ");
-      } else {
-        f->AddString(", ");
-      }
+  f->Printf("size: %" Pd "", SizeInBytes());
+  if (verbose) {
+    f->Printf(", field alignment: %" Pd ", ", AlignmentInBytesField());
+    f->Printf("stack alignment: %" Pd ", ", AlignmentInBytesStack());
+    f->AddString("members: {");
+    if (multi_line) {
+      f->AddString("\n  ");
     }
-    f->Printf("%" Pd ": ", member_offsets_[i]);
-    members_[i]->PrintTo(f);
+    for (intptr_t i = 0; i < members_.length(); i++) {
+      if (i > 0) {
+        if (multi_line) {
+          f->AddString(",\n  ");
+        } else {
+          f->AddString(", ");
+        }
+      }
+      f->Printf("%" Pd ": ", member_offsets_[i]);
+      members_[i]->PrintTo(f);
+    }
+    if (multi_line) {
+      f->AddString("\n");
+    }
+    f->AddString("}");
   }
-  if (multi_line) {
-    f->AddString("\n");
-  }
-  f->AddString("})");
+  f->AddString(")");
   if (multi_line) {
     f->AddString("\n");
   }

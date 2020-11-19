@@ -309,12 +309,12 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters =
       R(kArg1Reg) | R(kArg2Reg) | R(kArg3Reg) | R(kArg4Reg);
   static const intptr_t kNumArgRegs = 4;
+  static const Register kPointerToReturnStructRegisterCall = kArg1Reg;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters =
       R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
   static const intptr_t kNumFpuArgRegs = 4;
-  static const intptr_t kPointerToReturnStructRegister = kArg1Reg;
 
   // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
   // same time? (Windows no, rest yes)
@@ -354,6 +354,7 @@ class CallingConventions {
   static constexpr Register kReturnReg = RAX;
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
@@ -384,7 +385,7 @@ class CallingConventions {
                                              R(kArg3Reg) | R(kArg4Reg) |
                                              R(kArg5Reg) | R(kArg6Reg);
   static const intptr_t kNumArgRegs = 6;
-  static const Register kPointerToReturnStructRegister = kArg1Reg;
+  static const Register kPointerToReturnStructRegisterCall = kArg1Reg;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
@@ -415,8 +416,10 @@ class CallingConventions {
   static const XmmRegister xmmFirstNonParameterReg = XMM8;
 
   static constexpr Register kReturnReg = RAX;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = RDX;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+  static constexpr FpuRegister kSecondReturnFpuReg = XMM1;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
@@ -451,7 +454,7 @@ class CallingConventions {
 
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
-       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
 #undef R

@@ -1,0 +1,12 @@
+M(rdi int64) Compound(size: 3)
+M(rsi int64) Compound(size: 3)
+M(rdx int64) Compound(size: 3)
+M(rcx int64) Compound(size: 3)
+M(r8 int64) Compound(size: 3)
+M(r9 int64) Compound(size: 3)
+S+0 Compound(size: 3)
+S+8 Compound(size: 3)
+S+16 Compound(size: 3)
+S+24 Compound(size: 3)
+=>
+M(rax int64) Compound(size: 3)

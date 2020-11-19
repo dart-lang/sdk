@@ -487,7 +487,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 4;
-  static const Register kPointerToReturnStructRegister = R0;
+  static const Register kPointerToReturnStructRegisterCall = R0;
 
   static const intptr_t kFpuArgumentRegisters = 0;
 
@@ -527,6 +527,7 @@ class CallingConventions {
   static constexpr Register kReturnReg = R0;
   static constexpr Register kSecondReturnReg = R1;
   static constexpr FpuRegister kReturnFpuReg = Q0;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // We choose these to avoid overlap between themselves and reserved registers.
   static constexpr Register kFirstNonArgumentRegister = R8;
@@ -536,7 +537,7 @@ class CallingConventions {
 
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
-       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
 #undef R

@@ -28,8 +28,8 @@ UNIT_TEST_CASE_WITH_ZONE(NativeStackLocation_Split) {
   const auto& native_location =
       *new (Z) NativeStackLocation(native_type, native_type, SPREG, 0);
 
-  const auto& half_0 = native_location.Split(Z, 0);
-  const auto& half_1 = native_location.Split(Z, 1);
+  const auto& half_0 = native_location.Split(Z, 2, 0);
+  const auto& half_1 = native_location.Split(Z, 2, 1);
 
   EXPECT_EQ(0, half_0.offset_in_bytes());
   EXPECT_EQ(4, half_1.offset_in_bytes());

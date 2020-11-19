@@ -251,7 +251,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = 0;
   static const intptr_t kFpuArgumentRegisters = 0;
   static const intptr_t kNumArgRegs = 0;
-  static const Register kPointerToReturnStructRegister = kNoRegister;
+  static const Register kPointerToReturnStructRegisterCall = kNoRegister;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kXmmArgumentRegisters = 0;
@@ -264,6 +264,7 @@ class CallingConventions {
 
   static constexpr Register kReturnReg = EAX;
   static constexpr Register kSecondReturnReg = EDX;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Floating point values are returned on the "FPU stack" (in "ST" registers).
   // However, we use XMM0 in our compiler pipeline as the location.

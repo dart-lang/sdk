@@ -24,7 +24,6 @@ bool NativeLocation::LocationCanBeExpressed(Location loc, Representation rep) {
       break;
   }
   if (loc.IsPairLocation()) {
-    // TODO(36730): We could possibly consume a pair location as struct.
     return false;
   }
   return false;
@@ -33,7 +32,6 @@ bool NativeLocation::LocationCanBeExpressed(Location loc, Representation rep) {
 NativeLocation& NativeLocation::FromLocation(Zone* zone,
                                              Location loc,
                                              Representation rep) {
-  // TODO(36730): We could possibly consume a pair location as struct.
   ASSERT(LocationCanBeExpressed(loc, rep));
 
   const NativeType& native_rep =
@@ -61,7 +59,6 @@ NativeLocation& NativeLocation::FromLocation(Zone* zone,
   UNREACHABLE();
 }
 
-// TODO(36730): Remove when being able to consume as struct.
 NativeLocation& NativeLocation::FromPairLocation(Zone* zone,
                                                  Location pair_loc,
                                                  Representation pair_rep,
@@ -90,6 +87,16 @@ const NativeFpuRegistersLocation& NativeLocation::AsFpuRegisters() const {
 const NativeStackLocation& NativeLocation::AsStack() const {
   ASSERT(IsStack());
   return static_cast<const NativeStackLocation&>(*this);
+}
+
+const MultipleNativeLocations& NativeLocation::AsMultiple() const {
+  ASSERT(IsMultiple());
+  return static_cast<const MultipleNativeLocations&>(*this);
+}
+
+const PointerToMemoryLocation& NativeLocation::AsPointerToMemory() const {
+  ASSERT(IsPointerToMemory());
+  return static_cast<const PointerToMemoryLocation&>(*this);
 }
 
 #if !defined(FFI_UNIT_TESTS)
@@ -132,21 +139,46 @@ Location NativeStackLocation::AsLocation() const {
 #endif
 
 NativeRegistersLocation& NativeRegistersLocation::Split(Zone* zone,
+                                                        intptr_t num_parts,
                                                         intptr_t index) const {
-  ASSERT(num_regs() == 2);
+  ASSERT(num_parts == 2);
+  ASSERT(num_regs() == num_parts);
   return *new (zone) NativeRegistersLocation(
       zone, payload_type().Split(zone, index),
       container_type().Split(zone, index), reg_at(index));
 }
 
 NativeStackLocation& NativeStackLocation::Split(Zone* zone,
+                                                intptr_t num_parts,
                                                 intptr_t index) const {
-  ASSERT(index == 0 || index == 1);
   const intptr_t size = payload_type().SizeInBytes();
 
-  return *new (zone) NativeStackLocation(
-      payload_type().Split(zone, index), container_type().Split(zone, index),
-      base_register_, offset_in_bytes_ + size / 2 * index);
+  if (payload_type().IsPrimitive()) {
+    ASSERT(num_parts == 2);
+    return *new (zone) NativeStackLocation(
+        payload_type().Split(zone, index), container_type().Split(zone, index),
+        base_register_, offset_in_bytes_ + size / num_parts * index);
+  } else {
+    const intptr_t size_rounded_up =
+        Utils::RoundUp(size, compiler::target::kWordSize);
+    ASSERT(size_rounded_up / compiler::target::kWordSize == num_parts);
+
+    // Blocks of compiler::target::kWordSize.
+    return *new (zone) NativeStackLocation(
+        *new (zone) NativePrimitiveType(
+            compiler::target::kWordSize == 8 ? kInt64 : kInt32),
+        *new (zone) NativePrimitiveType(
+            compiler::target::kWordSize == 8 ? kInt64 : kInt32),
+        base_register_, offset_in_bytes_ + compiler::target::kWordSize * index);
+  }
+}
+
+intptr_t MultipleNativeLocations::StackTopInBytes() const {
+  intptr_t height = 0;
+  for (int i = 0; i < locations_.length(); i++) {
+    height = Utils::Maximum(height, locations_[i]->StackTopInBytes());
+  }
+  return height;
 }
 
 NativeLocation& NativeLocation::WidenTo4Bytes(Zone* zone) const {
@@ -210,6 +242,17 @@ bool NativeStackLocation::Equals(const NativeLocation& other) const {
   return other_stack.offset_in_bytes_ == offset_in_bytes_;
 }
 
+bool PointerToMemoryLocation::Equals(const NativeLocation& other) const {
+  if (!other.IsPointerToMemory()) {
+    return false;
+  }
+  const auto& other_pointer = other.AsPointerToMemory();
+  if (!other_pointer.pointer_location_.Equals(pointer_location_)) {
+    return false;
+  }
+  return other_pointer.payload_type().Equals(payload_type());
+}
+
 #if !defined(FFI_UNIT_TESTS)
 compiler::Address NativeLocationToStackSlotAddress(
     const NativeStackLocation& loc) {
@@ -219,10 +262,10 @@ compiler::Address NativeLocationToStackSlotAddress(
 
 static void PrintRepresentations(BaseTextBuffer* f, const NativeLocation& loc) {
   f->AddString(" ");
-  loc.container_type().PrintTo(f);
+  loc.container_type().PrintTo(f, /*multi_line=*/false, /*verbose=*/false);
   if (!loc.container_type().Equals(loc.payload_type())) {
     f->AddString("[");
-    loc.payload_type().PrintTo(f);
+    loc.payload_type().PrintTo(f, /*multi_line=*/false, /*verbose=*/false);
     f->AddString("]");
   }
 }
@@ -238,7 +281,9 @@ void NativeRegistersLocation::PrintTo(BaseTextBuffer* f) const {
   } else {
     f->AddString("(");
     for (intptr_t i = 0; i < num_regs(); i++) {
-      if (i != 0) f->Printf(", ");
+      if (i != 0) {
+        f->Printf(", ");
+      }
       f->Printf("%s", RegisterNames::RegisterName(regs_->At(i)));
     }
     f->AddString(")");
@@ -275,6 +320,27 @@ const char* NativeLocation::ToCString(Zone* zone) const {
   ZoneTextBuffer textBuffer(zone);
   PrintTo(&textBuffer);
   return textBuffer.buffer();
+}
+
+void PointerToMemoryLocation::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("P(");
+  pointer_location().PrintTo(f);
+  if (!pointer_location().Equals(pointer_return_location())) {
+    f->Printf(", ret:");
+    pointer_return_location().PrintTo(f);
+  }
+  f->Printf(")");
+  PrintRepresentations(f, *this);
+}
+
+void MultipleNativeLocations::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("M(");
+  for (intptr_t i = 0; i < locations_.length(); i++) {
+    if (i != 0) f->Printf(", ");
+    locations_[i]->PrintTo(f);
+  }
+  f->Printf(")");
+  PrintRepresentations(f, *this);
 }
 
 #if !defined(FFI_UNIT_TESTS)

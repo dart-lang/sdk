@@ -1,0 +1,4 @@
+S+4 Compound(size: 128)
+S+132 int32
+=>
+P(S+0 uint32, ret:eax uint32) Compound(size: 128)
