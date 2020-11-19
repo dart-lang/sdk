@@ -75,6 +75,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// A fix producer that produces changes to fix multiple diagnostics.
 class BulkFixProcessor {
@@ -391,6 +392,92 @@ class BulkFixProcessor {
     }
 
     return builder;
+  }
+
+  /// Return a change builder that has been used to create all fixes for a
+  /// specific diagnostic code in the given [unit].
+  Future<ChangeBuilder> fixOfTypeInUnit(
+    ResolvedUnitResult unit,
+    String errorCode,
+  ) async {
+    final errorCodeLowercase = errorCode.toLowerCase();
+    final errors = unit.errors.where(
+      (error) => error.errorCode.name.toLowerCase() == errorCodeLowercase,
+    );
+
+    final analysisOptions = unit.session.analysisContext.analysisOptions;
+    final fixContext = DartFixContextImpl(
+      instrumentationService,
+      workspace,
+      unit,
+      null,
+      (name) => [],
+    );
+
+    for (var error in errors) {
+      final processor = ErrorProcessor.getProcessor(analysisOptions, error);
+      // Only fix errors not filtered out in analysis options.
+      if (processor == null || processor.severity != null) {
+        await _fixSingleError(fixContext, unit, error);
+      }
+    }
+
+    return builder;
+  }
+
+  /// Returns the potential [FixKind]s that may be available for a given diagnostic.
+  ///
+  /// The presence of a kind does not guarantee a fix will be produced, nor does
+  /// the absence of a kind mean that it definitely will not (some producers
+  /// do not provide FixKinds up-front). These results are intended as a hint
+  /// for populating something like a quick-fix menu with possible apply-all fixes.
+  Iterable<FixKind> producableFixesForError(
+    ResolvedUnitResult result,
+    AnalysisError diagnostic,
+  ) sync* {
+    final errorCode = diagnostic.errorCode;
+    if (errorCode is LintCode) {
+      final generators = lintProducerMap[errorCode.name];
+      if (generators != null) {
+        yield* generators.map((g) => g().fixKind).where((k) => k != null);
+      }
+      return;
+    }
+
+    final generator = nonLintProducerMap[errorCode];
+    if (generator != null) {
+      final kind = generator().fixKind;
+      if (kind != null) yield kind;
+    }
+
+    final multiGenerators = nonLintMultiProducerMap[errorCode];
+    if (multiGenerators != null) {
+      final fixContext = DartFixContextImpl(
+        instrumentationService,
+        workspace,
+        result,
+        null,
+        (name) => [],
+      );
+
+      var context = CorrectionProducerContext(
+        applyingBulkFixes: true,
+        dartFixContext: fixContext,
+        diagnostic: diagnostic,
+        resolvedResult: result,
+        selectionOffset: diagnostic.offset,
+        selectionLength: diagnostic.length,
+        workspace: workspace,
+      );
+
+      for (final multiGenerator in multiGenerators) {
+        final multiProducer = multiGenerator();
+        multiProducer.configure(context);
+        yield* multiProducer.producers
+            .map((p) => p.fixKind)
+            .where((k) => k != null);
+      }
+    }
   }
 
   /// Use the change [builder] to create fixes for the diagnostics in the

@@ -589,18 +589,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     /// logic.
     void validateChangesCanBeApplied() {
       /// Check if a position is before (but not equal) to another position.
-      bool isBefore(Position p, Position other) =>
+      bool isBeforeOrEqual(Position p, Position other) =>
           p.line < other.line ||
-          (p.line == other.line && p.character < other.character);
+          (p.line == other.line && p.character <= other.character);
 
       /// Check if a position is after (but not equal) to another position.
-      bool isAfter(Position p, Position other) =>
+      bool isAfterOrEqual(Position p, Position other) =>
           p.line > other.line ||
-          (p.line == other.line && p.character > other.character);
-      // Check if two ranges intersect or touch.
+          (p.line == other.line && p.character >= other.character);
+      // Check if two ranges intersect.
       bool rangesIntersect(Range r1, Range r2) {
-        var endsBefore = isBefore(r1.end, r2.start);
-        var startsAfter = isAfter(r1.start, r2.end);
+        var endsBefore = isBeforeOrEqual(r1.end, r2.start);
+        var startsAfter = isAfterOrEqual(r1.start, r2.end);
         return !(endsBefore || startsAfter);
       }
 
@@ -1225,7 +1225,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (p1.line > p2.line) return 1;
 
     if (p1.character < p2.character) return -1;
-    if (p1.character > p2.character) return -1;
+    if (p1.character > p2.character) return 1;
 
     return 0;
   }

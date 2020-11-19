@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'bulk_fix_processor.dart';
@@ -30,6 +33,7 @@ void main() {
     defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsMethodTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsTest);
+    defineReflectiveTests(NoProducerOverlapsTest);
   });
 }
 
@@ -489,6 +493,39 @@ class A extends Old {}
 class B extends Old {}
 ''');
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class NoProducerOverlapsTest {
+  void test_noProducerOverlaps() {
+    // Ensure that no error code is used by both data-driven fixes and
+    // non-data-driven fixes, as this could result in an LSP "Apply-all" code
+    // action accidentally executing data-driven fixes.
+
+    final dataDrivenCodes = <String>{};
+    final nonDataDrivenCodes = <String>{
+      ...BulkFixProcessor.lintProducerMap.keys,
+      ...BulkFixProcessor.nonLintProducerMap.keys.map((c) => c.uniqueName),
+    };
+
+    for (final code in BulkFixProcessor.nonLintMultiProducerMap.keys) {
+      for (final producerFunc
+          in BulkFixProcessor.nonLintMultiProducerMap[code]) {
+        final producer = producerFunc();
+        if (producer is DataDriven) {
+          dataDrivenCodes.add(code.uniqueName);
+        } else {
+          nonDataDrivenCodes.add(code.uniqueName);
+        }
+      }
+    }
+
+    final intersection = dataDrivenCodes.intersection(nonDataDrivenCodes);
+    if (intersection.isNotEmpty) {
+      fail(
+          'Error codes $intersection have both data-driven and non-data-driven fixes');
+    }
   }
 }
 

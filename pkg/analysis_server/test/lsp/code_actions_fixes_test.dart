@@ -12,6 +12,7 @@ import 'code_actions_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixesCodeActionsTest);
+    defineReflectiveTests(FixesCodeActionsWithNullSafetyTest);
   });
 }
 
@@ -207,5 +208,117 @@ ProcessInfo b;
 
     final codeActions = await getCodeActions(otherFileUri.toString());
     expect(codeActions, isEmpty);
+  }
+}
+
+@reflectiveTest
+class FixesCodeActionsWithNullSafetyTest extends AbstractCodeActionsTest {
+  @override
+  String get testPackageLanguageVersion => latestLanguageVersion;
+
+  Future<void> test_fixAll_notForAmbigiousProducers() async {
+    // The ReplaceWithIsEmpty producer does not provide a FixKind up-front, as
+    // it may produce `REPLACE_WITH_IS_EMPTY` or `REPLACE_WITH_IS_NOT_EMPTY`
+    // depending on the code.
+    // This test ensures this does not crash, and does not produce an apply-all.
+    registerLintRules();
+    newFile(analysisOptionsPath, content: '''
+linter:
+  rules:
+    - prefer_is_empty
+    ''');
+
+    const content = '''
+var a = [];
+var b = a.[[length]] == 0;
+var c = a.length == 0;
+    ''';
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final allFixes = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+
+    // Expect only the single-fix, there should be no apply-all.
+    expect(allFixes, hasLength(1));
+    final fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
+    expect(fixTitle, equals("Replace with \'isEmpty\'"));
+  }
+
+  Future<void> test_fixAll_notWhenNoBatchFix() async {
+    // Some fixes (for example 'create function foo') are not available in the
+    // batch processor, so should not generate Apply-all fixes even if there
+    // are multiple.
+    const content = '''
+var a = [[foo]]();
+var b = bar();
+    ''';
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final allFixes = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+
+    // Expect only the single-fix, there should be no apply-all.
+    expect(allFixes, hasLength(1));
+    final fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
+    expect(fixTitle, equals("Create function 'foo'"));
+  }
+
+  Future<void> test_fixAll_notWhenSingle() async {
+    const content = '''
+void f(String a) {
+  [[print(a!)]];
+}
+    ''';
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final fixAction = await getFixAllAction(
+        "Apply all: Remove the '!'", mainFileUri, content);
+
+    // Should not appear if there was only a single error.
+    expect(fixAction, isNull);
+  }
+
+  Future<void> test_fixAll_whenMultiple() async {
+    const content = '''
+void f(String a) {
+  [[print(a!!)]];
+  print(a!!);
+}
+    ''';
+
+    const expectedContent = '''
+void f(String a) {
+  print(a);
+  print(a);
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final fixAction = await getFixAllAction(
+        "Apply all: Remove the '!'", mainFileUri, content);
+
+    expect(fixAction, isNotNull);
+
+    await verifyCodeActionEdits(
+        fixAction, withoutMarkers(content), expectedContent);
   }
 }
