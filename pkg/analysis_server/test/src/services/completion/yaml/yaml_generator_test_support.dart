@@ -59,6 +59,6 @@ abstract class YamlGeneratorTest with ResourceProviderMixin {
     // Add the file to the file system.
     var file = newFile('/home/test/$fileName', content: content);
     // Generate completions.
-    results = generator.getSuggestions(file.path, completionOffset);
+    results = generator.getSuggestions(file.path, completionOffset).suggestions;
   }
 }
