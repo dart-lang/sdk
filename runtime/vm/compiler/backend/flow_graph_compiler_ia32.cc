@@ -358,7 +358,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   if (dst_type.IsNull()) {
     __ Comment("AssertAssignable for runtime type");
     // kDstTypeReg should already contain the destination type.
-    const bool null_safety = Isolate::Current()->null_safety();
+    const bool null_safety =
+        Isolate::Current()->use_strict_null_safety_checks();
     GenerateStubCall(token_pos,
                      StubCode::GetTypeIsTopTypeForSubtyping(null_safety),
                      PcDescriptorsLayout::kOther, locs, deopt_id);

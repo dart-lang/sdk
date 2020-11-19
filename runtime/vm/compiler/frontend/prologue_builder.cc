@@ -306,7 +306,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   } else {
     ASSERT(num_opt_named_params > 0);
 
-    bool null_safety = Isolate::Current()->null_safety();
+    bool check_required_params =
+        Isolate::Current()->use_strict_null_safety_checks();
     const intptr_t first_name_offset =
         compiler::target::ArgumentsDescriptor::first_named_entry_offset() -
         compiler::target::Array::data_offset();
@@ -371,8 +372,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
         good += Drop();
       }
 
-      const bool required =
-          null_safety && function_.IsRequiredAt(opt_param_position[i]);
+      const bool required = check_required_params &&
+                            function_.IsRequiredAt(opt_param_position[i]);
 
       // If this function cannot be invoked dynamically and this is a required
       // named argument, then we can just add this fragment directly without

@@ -1337,6 +1337,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
   }
 
+  bool use_strict_null_safety_checks() const {
+    return null_safety() || FLAG_strict_null_safety_checks;
+  }
+
   bool has_attempted_stepping() const {
     return HasAttemptedSteppingBit::decode(isolate_flags_);
   }

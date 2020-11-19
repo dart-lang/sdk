@@ -44,7 +44,13 @@ linter:
     var result = p.runSync('fix', [], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Fixed 1 file.'));
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_single_quotes $bullet 1 fix',
+        ]));
   });
 
   test('dry-run', () {
@@ -68,10 +74,14 @@ linter:
     var result = p.runSync('fix', ['--dry-run', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('3 proposed fixes in 1 file.'));
-    expect(result.stdout, contains('lib${Platform.pathSeparator}main.dart'));
-    expect(result.stdout, contains('  annotate_overrides $bullet 1 fix'));
-    expect(result.stdout, contains('  prefer_single_quotes $bullet 2 fixes'));
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          '3 proposed fixes in 1 file.',
+          'lib${Platform.pathSeparator}main.dart',
+          '  annotate_overrides $bullet 1 fix',
+          '  prefer_single_quotes $bullet 2 fixes',
+        ]));
   });
 
   test('.', () {
@@ -88,7 +98,14 @@ linter:
     var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Fixed 1 file.'));
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_single_quotes $bullet 1 fix',
+          '1 fix made in 1 file.',
+        ]));
   });
 
   test('excludes', () {
