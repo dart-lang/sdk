@@ -96,7 +96,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
-  Future<void> test_noDuplicates() async {
+  Future<void> test_noDuplicates_sameFix() async {
     const content = '''
     var a = [Test, Test, Te[[]]st];
     ''';
@@ -320,5 +320,43 @@ void f(String a) {
 
     await verifyCodeActionEdits(
         fixAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_noDuplicates_differentFix() async {
+    // For convenience, quick-fixes are usually returned for the entire line,
+    // though this can lead to duplicate entries (by title) when multiple
+    // diagnostics have their own fixes of the same type.
+    //
+    // Expect only the only one nearest to the start of the range to be returned.
+    const content = '''
+    main() {
+      var a = [];
+      print(a!!);^
+    }
+    ''';
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final caretPos = positionFromMarker(content);
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: Range(start: caretPos, end: caretPos));
+    final removeNnaAction = findEditActions(codeActions,
+        CodeActionKind('quickfix.remove.nonNullAssertion'), "Remove the '!'");
+
+    // Expect only one of the fixes.
+    expect(removeNnaAction, hasLength(1));
+
+    // Ensure the action is for the diagnostic on the second bang which was
+    // closest to the range requested.
+    final secondBangPos =
+        positionFromOffset(withoutMarkers(content).indexOf('!);'), content);
+    expect(removeNnaAction.first.diagnostics, hasLength(1));
+    final diagStart = removeNnaAction.first.diagnostics.first.range.start;
+    expect(diagStart, equals(secondBangPos));
   }
 }

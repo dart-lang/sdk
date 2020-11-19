@@ -12,7 +12,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol_server.dart' hide Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
@@ -92,6 +92,21 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     });
   }
 
+  /// Creates a comparer for [CodeActions] that compares the column distance from [pos].
+  Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
+      Position pos) {
+    Position posOf(CodeAction action) => action.diagnostics.isNotEmpty
+        ? action.diagnostics.first.range.start
+        : pos;
+
+    return (a, b) => _columnDistance(posOf(a), pos)
+        .compareTo(_columnDistance(posOf(b), pos));
+  }
+
+  /// Returns the distance (in columns, ignoring lines) between two positions.
+  int _columnDistance(Position a, Position b) =>
+      (a.character - b.character).abs();
+
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
   Either2<Command, CodeAction> _commandOrCodeAction(
@@ -152,33 +167,60 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     );
   }
 
-  /// Dedupes actions that perform the same edit and merge their diagnostics
-  /// together. This avoids duplicates where there are multiple errors on
-  /// the same line that have the same fix (for example importing a
-  /// library that fixes multiple unresolved types).
-  List<CodeAction> _dedupeActions(Iterable<CodeAction> actions) {
-    final groups = groupBy(actions, (CodeAction action) => action.edit);
-    return groups.keys.map((edit) {
-      final first = groups[edit].first;
-      // Avoid constructing new CodeActions if there was only one in this group.
-      if (groups[edit].length == 1) {
-        return first;
+  /// Dedupes/merges actions that have the same title, selecting the one nearest [pos].
+  ///
+  /// If actions perform the same edit/command, their diagnostics will be merged
+  /// together. Otherwise, the additional accounts are just dropped.
+  ///
+  /// The first diagnostic for an action is used to determine the position (using
+  /// its `start`). If there is no diagnostic, it will be treated as being at [pos].
+  ///
+  /// If multiple actions have the same position, one will arbitrarily be chosen.
+  List<CodeAction> _dedupeActions(Iterable<CodeAction> actions, Position pos) {
+    final groups = groupBy(actions, (CodeAction action) => action.title);
+    return groups.keys.map((title) {
+      final actions = groups[title];
+
+      // If there's only one in the group, just return it.
+      if (actions.length == 1) {
+        return actions.single;
       }
+
+      // Otherwise, find the action nearest to the caret.
+      actions.sort(_codeActionColumnDistanceComparer(pos));
+      final first = actions.first;
+
+      // Get any actions with the same fix (edit/command) for merging diagnostics.
+      final others = actions.skip(1).where(
+            (other) =>
+                // Compare either edits or commands based on which the selected action has.
+                first.edit != null
+                    ? first.edit == other.edit
+                    : first.command != null
+                        ? first.command == other.command
+                        : false,
+          );
+
       // Build a new CodeAction that merges the diagnostics from each same
       // code action onto a single one.
       return CodeAction(
-          title: first.title,
-          kind: first.kind,
-          // Merge diagnostics from all of the CodeActions.
-          diagnostics: groups[edit].expand((r) => r.diagnostics).toList(),
-          edit: first.edit,
-          command: first.command);
+        title: first.title,
+        kind: first.kind,
+        // Merge diagnostics from all of the matching CodeActions.
+        diagnostics: [
+          ...?first.diagnostics,
+          for (final other in others) ...?other.diagnostics,
+        ],
+        edit: first.edit,
+        command: first.command,
+      );
     }).toList();
   }
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
+    Range range,
     int offset,
     int length,
     ResolvedUnitResult unit,
@@ -201,7 +243,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       final assists = await processor.compute();
       assists.sort(Assist.SORT_BY_RELEVANCE);
 
-      final assistActions = _dedupeActions(assists.map(_createAssistAction));
+      final assistActions =
+          _dedupeActions(assists.map(_createAssistAction), range.start);
 
       return assistActions
           .map((action) => Either2<Command, CodeAction>.t2(action))
@@ -228,7 +271,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final results = await Future.wait([
       _getSourceActions(
           kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
-      _getAssistActions(kinds, supportsLiterals, offset, length, unit),
+      _getAssistActions(kinds, supportsLiterals, range, offset, length, unit),
       _getRefactorActions(kinds, supportsLiterals, path, offset, length, unit),
       _getFixActions(
           kinds, supportsLiterals, supportedDiagnosticTags, range, unit),
@@ -328,7 +371,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       // Append all fix-alls to the very end.
       codeActions.addAll(fixAllCodeActions);
 
-      final dedupedActions = _dedupeActions(codeActions);
+      final dedupedActions = _dedupeActions(codeActions, range.start);
 
       return dedupedActions
           .map((action) => Either2<Command, CodeAction>.t2(action))
