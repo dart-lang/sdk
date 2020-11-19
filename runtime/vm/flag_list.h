@@ -109,6 +109,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
   R(null_assertions, false, bool, false,                                       \
     "Enable null assertions for parameters.")                                  \
+  R(strict_null_safety_checks, false, bool, false,                             \
+    "Enable strict type checks for non-nullable types and required "           \
+    "parameters.")                                                             \
   P(enable_kernel_expression_compilation, bool, true,                          \
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \

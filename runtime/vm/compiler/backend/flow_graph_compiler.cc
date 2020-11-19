@@ -2414,7 +2414,8 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   // Check immediate superclass equality. If type_class is Object, then testing
   // supertype may yield a wrong result for Null in NNBD strong mode (because
   // Null also extends Object).
-  if (!type_class.IsObjectClass() || !Isolate::Current()->null_safety()) {
+  if (!type_class.IsObjectClass() ||
+      !Isolate::Current()->use_strict_null_safety_checks()) {
     // We don't use TypeTestABI::kScratchReg for the first scratch register as
     // it is not defined on IA32. Instead, we use the subtype test cache
     // register, as it is clobbered by the subtype test cache stub call anyway.
@@ -2785,7 +2786,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   if (dst_type.IsNull()) {
     __ Comment("AssertAssignable for runtime type");
     // kDstTypeReg should already contain the destination type.
-    const bool null_safety = isolate()->null_safety();
+    const bool null_safety = isolate()->use_strict_null_safety_checks();
     GenerateStubCall(token_pos,
                      StubCode::GetTypeIsTopTypeForSubtyping(null_safety),
                      PcDescriptorsLayout::kOther, locs, deopt_id);
@@ -2906,7 +2907,8 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
 
   if (dst_type.IsObjectType()) {
     // Special case: non-nullable Object.
-    ASSERT(dst_type.IsNonNullable() && isolate()->null_safety());
+    ASSERT(dst_type.IsNonNullable() &&
+           isolate()->use_strict_null_safety_checks());
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(NOT_EQUAL, done);
     // Fall back to type testing stub in caller to throw the exception.
@@ -2928,7 +2930,8 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     // Special case: Instantiate the type parameter on the caller side, invoking
     // the TTS of the corresponding type parameter in the caller.
     const TypeParameter& type_param = TypeParameter::Cast(dst_type);
-    if (isolate()->null_safety() && !type_param.IsNonNullable()) {
+    if (isolate()->use_strict_null_safety_checks() &&
+        !type_param.IsNonNullable()) {
       // If the type parameter is nullable when running in strong mode, we need
       // to handle null before calling the TTS because the type parameter may be
       // instantiated with a non-nullable type, where the TTS rejects null.

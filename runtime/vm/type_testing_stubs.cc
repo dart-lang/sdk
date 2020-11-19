@@ -95,8 +95,9 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
   auto isolate = Isolate::Current();
 
   if (type.IsTypeRef()) {
-    return isolate->null_safety() ? StubCode::DefaultTypeTest().raw()
-                                  : StubCode::DefaultNullableTypeTest().raw();
+    return isolate->use_strict_null_safety_checks()
+               ? StubCode::DefaultTypeTest().raw()
+               : StubCode::DefaultNullableTypeTest().raw();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -281,7 +282,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     __ Bind(&continue_checking);
 
   } else if (type.IsObjectType()) {
-    ASSERT(type.IsNonNullable() && Isolate::Current()->null_safety());
+    ASSERT(type.IsNonNullable() &&
+           Isolate::Current()->use_strict_null_safety_checks());
     compiler::Label continue_checking;
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(EQUAL, &continue_checking);
@@ -493,8 +495,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
     // We don't need to check nullability of LHS for nullable and legacy RHS
     // ("Right Legacy", "Right Nullable" rules).
-    if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
-        !type_arg.IsLegacy()) {
+    if (Isolate::Current()->use_strict_null_safety_checks() &&
+        !type_arg.IsNullable() && !type_arg.IsLegacy()) {
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
       // and avoid reloading it.
