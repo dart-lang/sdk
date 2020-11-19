@@ -68,10 +68,6 @@ class StubCode : public AllStatic {
   static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool);
 #endif
 
-  static const Code& GetTypeIsTopTypeForSubtyping(bool null_safety);
-
-  static const Code& GetNullIsAssignableToType(bool null_safety);
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Generate the stub and finalize the generated code into the stub
   // code executable area.

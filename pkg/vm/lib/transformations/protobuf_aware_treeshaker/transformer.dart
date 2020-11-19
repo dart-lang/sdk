@@ -213,6 +213,17 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
     node.body.accept(this);
   }
 
+  String _extractFieldName(Expression expression) {
+    if (expression is StringLiteral) {
+      return expression.value;
+    }
+    if (expression is ConditionalExpression) {
+      return _extractFieldName(expression.otherwise);
+    }
+    throw ArgumentError.value(
+        expression, 'expression', 'Unsupported  expression');
+  }
+
   void _changeCascadeEntry(Expression initializer) {
     if (initializer is MethodInvocation &&
         initializer.interfaceTarget?.enclosingClass == builderInfoClass &&
@@ -222,7 +233,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
       if (!usedTagNumbers.contains(tagNumber)) {
         if (info != null) {
           final fieldName =
-              (initializer.arguments.positional[1] as StringLiteral).value;
+              _extractFieldName(initializer.arguments.positional[1]);
           info.removedMessageFields.add("${visitedClass.name}.$fieldName");
         }
 

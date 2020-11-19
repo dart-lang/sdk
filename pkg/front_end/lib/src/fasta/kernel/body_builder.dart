@@ -1415,7 +1415,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
-
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        typeInferrer?.flowAnalysis?.declare(formals[i].variable, true);
+      }
+    }
     Statement inferredStatement = typeInferrer?.inferFunctionBody(
         this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
     assert(

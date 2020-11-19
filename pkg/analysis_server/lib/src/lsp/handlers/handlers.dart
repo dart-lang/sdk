@@ -55,6 +55,15 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 mixin Handler<P, R> {
   LspAnalysisServer server;
 
+  final fileModifiedError = error<R>(ErrorCodes.ContentModified,
+      'Document was modified before operation completed', null);
+
+  bool fileHasBeenModified(String path, int clientVersion) {
+    final serverDocIdentifier = server.getVersionedDocumentIdentifier(path);
+    return clientVersion != null &&
+        clientVersion != serverDocIdentifier.version;
+  }
+
   ErrorOr<LineInfo> getLineInfo(String path) {
     final lineInfo = server.getLineInfo(path);
 
