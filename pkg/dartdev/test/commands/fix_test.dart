@@ -145,4 +145,73 @@ linter:
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
   });
+
+  group('compare-to-golden', () {
+    test('different', () {
+      p = project(
+        mainSrc: '''
+class A { 
+  String a() => "";
+}
+
+class B extends A {
+  String a() => "";
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - annotate_overrides  
+    - prefer_single_quotes
+''',
+      );
+      p.file('lib/main.dart.expect', '''
+class A { 
+  String a() => '';
+}
+
+class B extends A {
+  String a() => '';
+}
+''');
+      var result =
+          p.runSync('fix', ['--compare-to-golden', '.'], workingDir: p.dirPath);
+      expect(result.exitCode, 1);
+      expect(result.stderr, isEmpty);
+    });
+
+    test('same', () {
+      p = project(
+        mainSrc: '''
+class A { 
+  String a() => "";
+}
+
+class B extends A {
+  String a() => "";
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - annotate_overrides  
+    - prefer_single_quotes
+''',
+      );
+      p.file('lib/main.dart.expect', '''
+class A { 
+  String a() => '';
+}
+
+class B extends A {
+  @override
+  String a() => '';
+}
+''');
+      var result =
+          p.runSync('fix', ['--compare-to-golden', '.'], workingDir: p.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+    });
+  });
 }

@@ -25,6 +25,11 @@ class FixCommand extends DartdevCommand {
         abbr: 'n',
         defaultsTo: false,
         help: 'Show which files would be modified but make no changes.');
+    argParser.addFlag('compare-to-golden',
+        defaultsTo: false,
+        help:
+            'Compare the result of applying fixes to a golden file for testing.',
+        hide: true);
   }
 
   @override
@@ -33,13 +38,15 @@ class FixCommand extends DartdevCommand {
         'provisional and subject to change or removal in future releases.\n');
 
     var dryRun = argResults['dry-run'];
-    if (argResults.rest.length - (dryRun ? 1 : 0) > 1) {
+    var testMode = argResults['compare-to-golden'];
+    var arguments = argResults.rest;
+    var argumentCount = arguments.length;
+    if (argumentCount > 1) {
       usageException('Only one file or directory is expected.');
     }
 
-    var dir = argResults.rest.isEmpty
-        ? io.Directory.current
-        : io.Directory(argResults.rest.single);
+    var dir =
+        argumentCount == 0 ? io.Directory.current : io.Directory(arguments[0]);
     if (!dir.existsSync()) {
       usageException("Directory doesn't exist: ${dir.path}");
     }
@@ -73,7 +80,11 @@ class FixCommand extends DartdevCommand {
 
     progress.finish(showTiming: true);
 
-    if (edits.isEmpty) {
+    if (testMode) {
+      if (_compareFixes(edits)) {
+        return 1;
+      }
+    } else if (edits.isEmpty) {
       log.stdout('Nothing to fix!');
     } else {
       var details = fixes.details;
@@ -119,6 +130,34 @@ class FixCommand extends DartdevCommand {
     }
   }
 
+  /// Return `true` if any of the fixes fail to create the same content as is
+  /// found in the golden file.
+  bool _compareFixes(List<SourceFileEdit> edits) {
+    var passCount = 0;
+    var failCount = 0;
+    for (var edit in edits) {
+      var filePath = edit.file;
+      var baseName = path.basename(filePath);
+      var expectFileName = baseName + '.expect';
+      var expectFilePath = path.join(path.dirname(filePath), expectFileName);
+      try {
+        var originalCode = io.File(filePath).readAsStringSync();
+        var expectedCode = io.File(expectFilePath).readAsStringSync();
+        var actualCode = SourceEdit.applySequence(originalCode, edit.edits);
+        if (actualCode != expectedCode) {
+          failCount++;
+          _reportFailure(filePath, actualCode, expectedCode);
+        } else {
+          passCount++;
+        }
+      } on io.FileSystemException {
+        // Ignored for now.
+      }
+    }
+    log.stdout('Passed: $passCount, Failed: $failCount');
+    return failCount > 0;
+  }
+
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
 
   void _printDetails(List<BulkFix> details, io.Directory workingDir) {
@@ -136,6 +175,17 @@ class FixCommand extends DartdevCommand {
       }
       log.stdout('');
     }
+  }
+
+  /// Report that the [actualCode] produced by applying fixes to the content of
+  /// [filePath] did not match the [expectedCode].
+  void _reportFailure(String filePath, String actualCode, String expectedCode) {
+    log.stdout('Failed when applying fixes to $filePath');
+    log.stdout('Expected:');
+    log.stdout(expectedCode);
+    log.stdout('');
+    log.stdout('Actual:');
+    log.stdout(actualCode);
   }
 
   static String _format(int value) => _numberFormat.format(value);
