@@ -337,20 +337,8 @@ static PrimitiveType TypeRepresentation(classid_t class_id) {
   }
 }
 
-static bool IsPredefinedFfiCid(classid_t class_id) {
-  switch (class_id) {
-#define CASE_FFI_CID_TRUE(name)                                                \
-  case kFfi##name##Cid:                                                        \
-    return true;
-    CLASS_LIST_FFI(CASE_FFI_CID_TRUE)
-    default:
-      return false;
-  }
-  UNREACHABLE();
-}
-
 NativeType& NativeType::FromTypedDataClassId(Zone* zone, classid_t class_id) {
-  ASSERT(IsPredefinedFfiCid(class_id));
+  ASSERT(IsFfiPredefinedClassId(class_id));
   const auto fundamental_rep = TypeRepresentation(class_id);
   return *new (zone) NativePrimitiveType(fundamental_rep);
 }
@@ -358,7 +346,7 @@ NativeType& NativeType::FromTypedDataClassId(Zone* zone, classid_t class_id) {
 #if !defined(FFI_UNIT_TESTS)
 NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
   const classid_t class_id = type.type_class_id();
-  if (IsPredefinedFfiCid(class_id)) {
+  if (IsFfiPredefinedClassId(class_id)) {
     return NativeType::FromTypedDataClassId(zone, class_id);
   }
 
