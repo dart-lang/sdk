@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
-import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 import '../ir/constants.dart';
 import 'closure.dart';
