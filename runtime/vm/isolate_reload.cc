@@ -19,6 +19,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -1099,20 +1100,25 @@ ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
-  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
-  if (tmp.IsError()) {
-    return tmp.raw();
-  }
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
+    if (tmp.IsError()) {
+      return tmp.raw();
+    }
 
-  // If main method disappeared or were not there to begin with then
-  // KernelLoader will return null. In this case lookup library by
-  // URL.
-  auto& lib = Library::Handle(Library::RawCast(tmp.raw()));
-  if (lib.IsNull()) {
-    lib = Library::LookupLibrary(thread, root_lib_url);
+    // If main method disappeared or were not there to begin with then
+    // KernelLoader will return null. In this case lookup library by
+    // URL.
+    auto& lib = Library::Handle(Library::RawCast(tmp.raw()));
+    if (lib.IsNull()) {
+      lib = Library::LookupLibrary(thread, root_lib_url);
+    }
+    isolate_->object_store()->set_root_library(lib);
+    return Object::null();
+  } else {
+    return thread->StealStickyError();
   }
-  isolate_->object_store()->set_root_library(lib);
-  return Object::null();
 }
 
 void IsolateReloadContext::ReloadPhase3FinalizeLoading() {
