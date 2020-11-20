@@ -928,7 +928,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var importElement = node.element as ImportElement;
+    var importElement = node.element;
     var importedLibrary = importElement.importedLibrary;
     if (importedLibrary == null || importedLibrary.isNonNullableByDefault) {
       return;

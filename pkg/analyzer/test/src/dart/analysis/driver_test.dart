@@ -3325,7 +3325,7 @@ var v = 0
 
   ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
     var import = unit.directives[directiveIndex] as ImportDirective;
-    return import.element as ImportElement;
+    return import.element;
   }
 
   Source _getImportSource(CompilationUnit unit, int directiveIndex) {

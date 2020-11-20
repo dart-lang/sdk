@@ -569,7 +569,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element as ExportElement;
+    var exportElement = node.element;
     if (exportElement != null) {
       LibraryElement exportedLibrary = exportElement.exportedLibrary;
       _checkForAmbiguousExport(node, exportElement, exportedLibrary);
@@ -824,7 +824,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element as ImportElement;
+    var importElement = node.element;
     if (node.prefix != null) {
       _checkForBuiltInIdentifierAsName(
           node.prefix, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME);
@@ -2410,7 +2410,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.element as ExportElement;
+    var element = node.element;
     // TODO(scheglov) Expose from ExportElement.
     var namespace =
         NamespaceBuilder().createExportNamespaceForDirective(element);

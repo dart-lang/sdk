@@ -1978,7 +1978,10 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 ///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExportDirective implements NamespaceDirective {}
+abstract class ExportDirective implements NamespaceDirective {
+  @override
+  ExportElement get element;
+}
 
 /// A node that represents an expression.
 ///
@@ -3222,6 +3225,9 @@ abstract class ImportDirective implements NamespaceDirective {
 
   /// Set the token representing the 'deferred' keyword to the given [token].
   set deferredKeyword(Token token);
+
+  @override
+  ImportElement get element;
 
   /// Return the prefix to be used with the imported names, or `null` if the
   /// imported names are not prefixed.
