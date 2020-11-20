@@ -153,6 +153,7 @@ next_through_simple_linear_2_test: SkipByDesign
 next_through_simple_linear_test: SkipByDesign
 parameters_in_scope_at_entry_test: Skip, Timeout
 pause_idle_isolate_test: Skip, Timeout
+pause_on_exception_from_slow_path_test: SkipByDesign
 pause_on_exceptions_test: SkipByDesign
 pause_on_start_then_step_test: SkipByDesign
 pause_on_unhandled_async_exceptions2_test: SkipByDesign
