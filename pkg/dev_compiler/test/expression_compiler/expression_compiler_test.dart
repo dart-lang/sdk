@@ -290,7 +290,7 @@ class TestDriver {
 }
 
 void main() {
-  group('Unsound null safety', () {
+  group('Unsound null safety:', () {
     var options = SetupCompilerOptions(false);
 
     group('Expression compiler tests in extension method:', () {
@@ -1274,7 +1274,7 @@ void main() {
       });
     });
 
-    group('Expression compiler tests in method with no type use', () {
+    group('Expression compiler tests in method with no type use:', () {
       var source = '''
         ${options.dartLangComment}
         abstract class Key {
@@ -1672,7 +1672,7 @@ void main() {
       });
     });
 
-    group('Expression compiler tests in loops:', () {
+    group('Expression compiler tests in simple loops:', () {
       var source = '''
         ${options.dartLangComment}
         int globalFunction() {
@@ -1724,6 +1724,46 @@ void main() {
               1,
               null,
               0
+            ))
+            ''');
+      });
+    });
+
+    group('Expression compiler tests in iterator loops:', () {
+      var source = '''
+        ${options.dartLangComment}
+        int globalFunction() {
+          var l = <String>['1', '2', '3'];
+
+          for(var e in l) {
+            /* evaluation placeholder */
+            print(e);
+          };
+          return 0;
+        }
+
+        main() => 0;
+        ''';
+
+      TestDriver driver;
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('expression loop variable', () async {
+        await driver.check(
+            scope: <String, String>{'l': 'null', 'e': '1'},
+            expression: 'e',
+            expectedResult: '''
+            (function(l, e) {
+              return e;
+            }(
+              null,
+              1
             ))
             ''');
       });
@@ -1888,7 +1928,7 @@ void main() {
     });
   });
 
-  group('Sound null safety', () {
+  group('Sound null safety:', () {
     var options = SetupCompilerOptions(true);
 
     group('Expression compiler tests in extension method:', () {
@@ -1939,7 +1979,7 @@ void main() {
               1234
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('local (full scope)', () async {
         // Test evalution in extension methods in the future when the mapping
@@ -2011,7 +2051,7 @@ void main() {
               3
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('formal', () async {
         await driver.check(
@@ -2026,7 +2066,7 @@ void main() {
               3
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('named formal', () async {
         await driver.check(
@@ -2041,7 +2081,7 @@ void main() {
               3
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('function', () async {
         await driver.check(
@@ -2127,7 +2167,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('this', () async {
         await driver.check(
@@ -2153,7 +2193,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using static fields', () async {
         await driver.check(
@@ -2166,7 +2206,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using private static fields', () async {
         await driver.check(
@@ -2179,7 +2219,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using fields', () async {
         await driver.check(
@@ -2192,7 +2232,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using private fields', () async {
         await driver.check(
@@ -2206,7 +2246,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using globals', () async {
         await driver.check(
@@ -2219,7 +2259,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('method call', () async {
         await driver.check(
@@ -2374,7 +2414,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using private static fields', () async {
         await driver.check(
@@ -2387,7 +2427,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using fields', () async {
         await driver.check(
@@ -2400,7 +2440,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using private fields', () async {
         await driver.check(
@@ -2414,7 +2454,7 @@ void main() {
             1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('private field modification', () async {
         await driver.check(
@@ -2515,7 +2555,7 @@ void main() {
             1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('this', () async {
         await driver.check(
@@ -2599,7 +2639,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('local object', () async {
         await driver.check(
@@ -2613,7 +2653,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('create new object', () async {
         await driver.check(
@@ -2677,7 +2717,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('access private field', () async {
         await driver.check(
@@ -2692,7 +2732,7 @@ void main() {
                 null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('method call', () async {
         await driver.check(
@@ -2706,7 +2746,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('async method call', () async {
         await driver.check(
@@ -2720,7 +2760,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('extension method call', () async {
         await driver.check(
@@ -2749,7 +2789,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('field modification', () async {
         await driver.check(
@@ -2763,7 +2803,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('private static field modification', () async {
         await driver.check(
@@ -2798,7 +2838,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
     });
 
     group('Expression compiler tests in closures:', () {
@@ -2853,7 +2893,7 @@ void main() {
               0
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using captured variables', () async {
         await driver.check(
@@ -2869,10 +2909,10 @@ void main() {
               0
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
     });
 
-    group('Expression compiler tests in method with no type use', () {
+    group('Expression compiler tests in method with no type use:', () {
       var source = '''
         ${options.dartLangComment}
         abstract class Key {
@@ -2931,7 +2971,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('call function using type', () async {
         await driver.check(
@@ -2939,13 +2979,12 @@ void main() {
             expression: 'baz(p as String)',
             expectedResult: '''
             (function(p) {
-              var StringL = () => (StringL = dart.constFn(dart.legacy(core.String)))();
-              return foo.baz(StringL().as(p));
+              return foo.baz(core.String.as(p));
             }(
-            0
+              0
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('evaluate new const expression', () async {
         await driver.check(
@@ -3083,7 +3122,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('this', () async {
         await driver.check(
@@ -3109,7 +3148,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using static fields', () async {
         await driver.check(
@@ -3122,7 +3161,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using private static fields', () async {
         await driver.check(
@@ -3135,7 +3174,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using fields', () async {
         await driver.check(
@@ -3148,7 +3187,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using private fields', () async {
         await driver.check(
@@ -3162,7 +3201,7 @@ void main() {
                 1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using globals', () async {
         await driver.check(
@@ -3175,7 +3214,7 @@ void main() {
               1
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('method call', () async {
         await driver.check(
@@ -3309,7 +3348,7 @@ void main() {
               0
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using loop variable', () async {
         await driver.check(
@@ -3325,7 +3364,47 @@ void main() {
             ))
             ''');
       });
-    }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+    });
+
+    group('Expression compiler tests in iterator loops:', () {
+      var source = '''
+        ${options.dartLangComment}
+        int globalFunction() {
+          var l = <String>['1', '2', '3'];
+
+          for(var e in l) {
+            /* evaluation placeholder */
+            print(e);
+          };
+          return 0;
+        }
+
+        main() => 0;
+        ''';
+
+      TestDriver driver;
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('expression loop variable', () async {
+        await driver.check(
+            scope: <String, String>{'l': 'null', 'e': '1'},
+            expression: 'e',
+            expectedResult: '''
+            (function(l, e) {
+              return e;
+            }(
+              null,
+              1
+            ))
+            ''');
+      });
+    });
 
     group('Expression compiler tests in conditional (then):', () {
       var source = '''
@@ -3370,7 +3449,7 @@ void main() {
               3
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using local out of scope', () async {
         await driver.check(
@@ -3423,7 +3502,7 @@ void main() {
               3
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using local out of scope', () async {
         await driver.check(
@@ -3475,7 +3554,7 @@ void main() {
               null
             ))
             ''');
-      }, skip: 'https://github.com/dart-lang/sdk/issues/44235');
+      });
 
       test('expression using local out of scope', () async {
         await driver.check(
