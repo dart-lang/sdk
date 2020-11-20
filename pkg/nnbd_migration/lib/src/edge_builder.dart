@@ -1129,27 +1129,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var type = node.type;
     _dispatch(type);
     var decoratedType = _variables.decoratedTypeAnnotation(source, type);
-    if (type is NamedType) {
-      // The main type of the is check historically could not be nullable.
-      // Making it nullable could change runtime behavior.
-      _graph.makeNonNullable(
-          decoratedType.node, IsCheckMainTypeOrigin(source, type));
-      _conditionInfo = _ConditionInfo(node,
-          isPure: expression is SimpleIdentifier,
-          postDominatingIntent:
-              _postDominatedLocals.isReferenceInScope(expression),
-          trueDemonstratesNonNullIntent: expressionNode);
-      if (node.notOperator != null) {
-        _conditionInfo = _conditionInfo.not(node);
-      }
-      if (!_assumeNonNullabilityInCasts) {
-        // TODO(mfairhurst): wire this to handleDowncast if we do not assume
-        // nullability.
-        assert(false);
-      }
-    } else if (type is GenericFunctionType) {
-      // TODO(brianwilkerson)
-      _unimplemented(node, 'Is expression with GenericFunctionType');
+    // The main type of the is check historically could not be nullable.
+    // Making it nullable could change runtime behavior.
+    _graph.makeNonNullable(
+        decoratedType.node, IsCheckMainTypeOrigin(source, type));
+    _conditionInfo = _ConditionInfo(node,
+        isPure: expression is SimpleIdentifier,
+        postDominatingIntent:
+            _postDominatedLocals.isReferenceInScope(expression),
+        trueDemonstratesNonNullIntent: expressionNode);
+    if (node.notOperator != null) {
+      _conditionInfo = _conditionInfo.not(node);
+    }
+    if (!_assumeNonNullabilityInCasts) {
+      // TODO(mfairhurst): wire this to handleDowncast if we do not assume
+      // nullability.
+      assert(false);
     }
     _flowAnalysis.isExpression_end(
         node, expression, node.notOperator != null, decoratedType);

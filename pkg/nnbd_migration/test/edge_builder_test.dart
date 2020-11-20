@@ -4431,7 +4431,6 @@ bool f(List<num> list) => list is List<int>
         hard: false);
   }
 
-  @failingTest
   Future<void> test_isExpression_genericFunctionType() async {
     await analyze('''
 bool f(a) => a is int Function(String);
