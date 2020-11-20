@@ -381,6 +381,9 @@ class WidgetCreatorTracker {
         isFinal: true,
         getterReference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
+            ?.reference,
+        setterReference: clazz.reference.canonicalName
+            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
     clazz.addField(locationField);
 
