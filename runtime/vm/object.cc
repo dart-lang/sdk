@@ -10128,8 +10128,8 @@ void Field::InitializeNew(const Field& result,
       FLAG_precompiled_mode ||
       (isolate->use_field_guards() && !isolate->HasAttemptedReload());
 #endif  // !defined(PRODUCT)
-  result.set_guarded_cid(use_guarded_cid ? kIllegalCid : kDynamicCid);
-  result.set_is_nullable(use_guarded_cid ? false : true);
+  result.set_guarded_cid_unsafe(use_guarded_cid ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable_unsafe(use_guarded_cid ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   // Presently, we only attempt to remember the list length for final fields.
   if (is_final && use_guarded_cid) {
@@ -10961,6 +10961,8 @@ void Field::RecordStore(const Object& value) const {
   // We should never try to record a sentinel.
   ASSERT(value.raw() != Object::sentinel().raw());
 
+  Thread* const thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if ((guarded_cid() == kDynamicCid) ||
       (is_nullable() && value.raw() == Object::null())) {
     // Nothing to do: the field is not guarded or we are storing null into
@@ -10986,8 +10988,6 @@ void Field::RecordStore(const Object& value) const {
       THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
-    Thread* const thread = Thread::Current();
-    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     DeoptimizeDependentCode();
   }
 }

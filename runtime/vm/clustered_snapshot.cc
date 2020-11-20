@@ -1165,8 +1165,8 @@ class FieldDeserializationCluster : public DeserializationCluster {
     if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
-        field.set_guarded_cid(kDynamicCid);
-        field.set_is_nullable(true);
+        field.set_guarded_cid_unsafe(kDynamicCid);
+        field.set_is_nullable_unsafe(true);
         field.set_guarded_list_length(Field::kNoFixedLength);
         field.set_guarded_list_length_in_object_offset(
             Field::kUnknownLengthOffset);

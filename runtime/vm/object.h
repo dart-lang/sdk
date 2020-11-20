@@ -4162,6 +4162,11 @@ class Field : public Object {
   }
 
   void set_guarded_cid(intptr_t cid) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_guarded_cid_unsafe(cid);
+  }
+  void set_guarded_cid_unsafe(intptr_t cid) const {
 #if defined(DEBUG)
     Thread* thread = Thread::Current();
     ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
@@ -4246,6 +4251,11 @@ class Field : public Object {
     return raw_ptr()->is_nullable_ == kNullCid;
   }
   void set_is_nullable(bool val) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_is_nullable_unsafe(val);
+  }
+  void set_is_nullable_unsafe(bool val) const {
     ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&raw_ptr()->is_nullable_, val ? kNullCid : kIllegalCid);
   }
