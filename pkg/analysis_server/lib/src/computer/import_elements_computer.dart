@@ -341,7 +341,7 @@ class ImportElementsComputer {
   /// [importedElements]. They will match if they import the same library using
   /// the same prefix.
   bool _matches(ImportDirective import, ImportedElements importedElements) {
-    var library = (import.element as ImportElement).importedLibrary;
+    var library = import.element.importedLibrary;
     return library != null &&
         library.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;

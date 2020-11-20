@@ -30,7 +30,7 @@ class ImportAddShow extends CorrectionProducer {
       return;
     }
     // prepare whole import namespace
-    ImportElement importElement = importDirective.element;
+    var importElement = importDirective.element;
     if (importElement == null) {
       return;
     }

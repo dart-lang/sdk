@@ -277,7 +277,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element as ExportElement;
+    var exportElement = node.element;
     if (exportElement != null) {
       Element libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -287,7 +287,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element as ImportElement;
+    var importElement = node.element;
     if (importElement != null) {
       Element libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
