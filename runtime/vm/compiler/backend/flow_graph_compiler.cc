@@ -174,11 +174,13 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
   // The `field.is_non_nullable_integer()` is set in the kernel loader and can
   // only be set if we consume a AOT kernel (annotated with inferred types).
   ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
+  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
   const bool valid_class =
-      (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
-      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
-      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
-      field.is_non_nullable_integer();
+      (FLAG_precompiled_mode || !FLAG_enable_isolate_groups) &&
+      ((SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
+       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
+       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
+       field.is_non_nullable_integer());
   return field.is_unboxing_candidate() && !field.is_nullable() && valid_class;
 }
 
@@ -189,7 +191,8 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
     // proven to be correct.
     return IsUnboxedField(field);
   }
-  return field.is_unboxing_candidate() &&
+  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
+  return !FLAG_enable_isolate_groups && field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
 }
