@@ -46,8 +46,9 @@ main(List<String> args) async {
     result['commit_time'] = commitTime;
     result['build_number'] = buildNumber;
     result['builder_name'] = builderName;
-    result['flaky'] = (flaky != null);
-    result['previous_flaky'] = (priorFlaky != null);
+    result['flaky'] = flaky != null && (flaky['active'] ?? true) == true;
+    result['previous_flaky'] =
+        priorFlaky != null && (priorFlaky['active'] ?? true) == true;
     if (firstPriorResult != null) {
       result['previous_commit_hash'] = firstPriorResult['commit_hash'];
       result['previous_commit_time'] = firstPriorResult['commit_time'];

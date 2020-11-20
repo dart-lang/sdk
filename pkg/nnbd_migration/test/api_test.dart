@@ -4066,6 +4066,24 @@ bool f(a) => a is List<int>;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_isExpression_with_function_type() async {
+    var content = '''
+void test(Function f) {
+  if (f is void Function()) {
+    f();
+  }
+}
+''';
+    var expected = '''
+void test(Function f) {
+  if (f is void Function()) {
+    f();
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_issue_40181() async {
     // This contrived example created an "exact nullable" type parameter bound
     // which propagated back to *all* instantiations of that parameter.
