@@ -19,17 +19,37 @@ class FixCommand extends DartdevCommand {
 
   static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
 
+  // todo (pq): add go link once redirect is live (https://github.com/dart-lang/sdk/issues/44261)
+  static const String cmdDescription = '''Fix Dart source code.
+
+This tool looks for and fixes analysis issues that have associated automated
+fixes or issues that have associated package API migration information.
+
+To use the tool, run one of:
+- 'dart fix --dry-run' for a preview of the proposed changes for a project
+- 'dart fix --apply' to apply the changes''';
+
   /// This command is hidden as it's currently experimental.
-  FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true) {
+  FixCommand() : super(cmdName, cmdDescription, hidden: true) {
     argParser.addFlag('dry-run',
         abbr: 'n',
         defaultsTo: false,
+        negatable: false,
         help: 'Show which files would be modified but make no changes.');
-    argParser.addFlag('compare-to-golden',
-        defaultsTo: false,
-        help:
-            'Compare the result of applying fixes to a golden file for testing.',
-        hide: true);
+    argParser.addFlag(
+      'apply',
+      defaultsTo: false,
+      negatable: false,
+      help: 'Apply the proposed changes.',
+    );
+    argParser.addFlag(
+      'compare-to-golden',
+      defaultsTo: false,
+      negatable: false,
+      help:
+          'Compare the result of applying fixes to a golden file for testing.',
+      hide: true,
+    );
   }
 
   @override
@@ -39,10 +59,16 @@ class FixCommand extends DartdevCommand {
 
     var dryRun = argResults['dry-run'];
     var testMode = argResults['compare-to-golden'];
+    var apply = argResults['apply'];
     var arguments = argResults.rest;
     var argumentCount = arguments.length;
     if (argumentCount > 1) {
       usageException('Only one file or directory is expected.');
+    }
+
+    if (!apply && !dryRun && !testMode) {
+      printUsage();
+      return 0;
     }
 
     var dir =

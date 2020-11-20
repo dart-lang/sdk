@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/src/commands/fix.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -12,6 +14,9 @@ import '../utils.dart';
 void main() {
   group('fix', defineFix, timeout: longTimeout);
 }
+
+/// Enable to run from local source (useful in development).
+const runFromSource = false;
 
 void defineFix() {
   TestProject p;
@@ -22,15 +27,35 @@ void defineFix() {
 
   tearDown(() => p?.dispose());
 
+  ProcessResult runFix(List<String> args, {String workingDir}) {
+    if (runFromSource) {
+      var binary = path.join(Directory.current.path, 'bin', 'dartdev.dart');
+      return p.runSync(binary, ['fix', ...?args], workingDir: workingDir);
+    }
+    return p.runSync('fix', args, workingDir: workingDir);
+  }
+
   test('none', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('fix', [p.dirPath]);
+
+    var result = runFix([p.dirPath]);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(FixCommand.cmdDescription));
+  });
+
+  test('--apply (none)', () {
+    p = project(mainSrc: 'int get foo => 1;\n');
+
+    var result = runFix(['--apply', p.dirPath]);
+
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
   });
 
-  test('no args', () {
+  test('--apply (no args)', () {
     p = project(
       mainSrc: '''
 var x = "";
@@ -41,7 +66,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', [], workingDir: p.dirPath);
+    var result = runFix(['--apply'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -53,10 +78,10 @@ linter:
         ]));
   });
 
-  test('dry-run', () {
+  test('--dry-run', () {
     p = project(
       mainSrc: '''
-class A { 
+class A {
   String a() => "";
 }
 
@@ -67,11 +92,11 @@ class B extends A {
       analysisOptions: '''
 linter:
   rules:
-    - annotate_overrides  
+    - annotate_overrides
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['--dry-run', '.'], workingDir: p.dirPath);
+    var result = runFix(['--dry-run', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -84,7 +109,7 @@ linter:
         ]));
   });
 
-  test('.', () {
+  test('--apply (.)', () {
     p = project(
       mainSrc: '''
 var x = "";
@@ -95,7 +120,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    var result = runFix(['--apply', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -108,7 +133,7 @@ linter:
         ]));
   });
 
-  test('excludes', () {
+  test('--apply (excludes)', () {
     p = project(
       mainSrc: '''
 var x = "";
@@ -122,13 +147,13 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    var result = runFix(['--apply', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
   });
 
-  test('ignores', () {
+  test('--apply (ignores)', () {
     p = project(
       mainSrc: '''
 // ignore: prefer_single_quotes
@@ -140,7 +165,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    var result = runFix(['--apply', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
@@ -150,7 +175,7 @@ linter:
     test('different', () {
       p = project(
         mainSrc: '''
-class A { 
+class A {
   String a() => "";
 }
 
@@ -161,12 +186,12 @@ class B extends A {
         analysisOptions: '''
 linter:
   rules:
-    - annotate_overrides  
+    - annotate_overrides
     - prefer_single_quotes
 ''',
       );
       p.file('lib/main.dart.expect', '''
-class A { 
+class A {
   String a() => '';
 }
 
@@ -174,8 +199,7 @@ class B extends A {
   String a() => '';
 }
 ''');
-      var result =
-          p.runSync('fix', ['--compare-to-golden', '.'], workingDir: p.dirPath);
+      var result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
       expect(result.exitCode, 1);
       expect(result.stderr, isEmpty);
     });
@@ -183,7 +207,7 @@ class B extends A {
     test('same', () {
       p = project(
         mainSrc: '''
-class A { 
+class A {
   String a() => "";
 }
 
@@ -194,12 +218,12 @@ class B extends A {
         analysisOptions: '''
 linter:
   rules:
-    - annotate_overrides  
+    - annotate_overrides
     - prefer_single_quotes
 ''',
       );
       p.file('lib/main.dart.expect', '''
-class A { 
+class A {
   String a() => '';
 }
 
@@ -208,8 +232,7 @@ class B extends A {
   String a() => '';
 }
 ''');
-      var result =
-          p.runSync('fix', ['--compare-to-golden', '.'], workingDir: p.dirPath);
+      var result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
     });
