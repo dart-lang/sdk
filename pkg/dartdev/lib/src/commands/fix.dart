@@ -19,11 +19,12 @@ class FixCommand extends DartdevCommand {
 
   static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
 
-  // todo (pq): add go link once redirect is live (https://github.com/dart-lang/sdk/issues/44261)
   static const String cmdDescription = '''Fix Dart source code.
 
 This tool looks for and fixes analysis issues that have associated automated
-fixes or issues that have associated package API migration information.
+fixes or issues that have associated package API migration information. See 
+dart.dev/go/dart-fix for more information about how the automated package API
+changes work.
 
 To use the tool, run one of:
 - 'dart fix --dry-run' for a preview of the proposed changes for a project
