@@ -507,7 +507,7 @@
       "name": "pub_semver",
       "rootUri": "../third_party/pkg/pub_semver",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "resource",
