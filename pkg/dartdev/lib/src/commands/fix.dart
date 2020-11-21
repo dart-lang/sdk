@@ -21,22 +21,29 @@ class FixCommand extends DartdevCommand {
 
   static const String cmdDescription = '''Fix Dart source code.
 
-This tool looks for and fixes analysis issues that have associated automated
-fixes or issues that have associated package API migration information. See 
-dart.dev/go/dart-fix for more information about how the automated package API
-changes work.
+This tool looks for and fixes analysis issues that have associated automated fixes or issues that have associated package API migration information. See dart.dev/go/dart-fix for more information about how automated package API changes work.
 
-To use the tool, run one of:
-- 'dart fix --dry-run' for a preview of the proposed changes for a project
-- 'dart fix --apply' to apply the changes''';
+To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed changes for a project, or ['dart fix --apply'] to apply the changes.''';
 
-  /// This command is hidden as it's currently experimental.
-  FixCommand() : super(cmdName, cmdDescription, hidden: true) {
+  @override
+  String get description {
+    if (log != null && log.ansi.useAnsi) {
+      return cmdDescription
+          .replaceAll('[', log.ansi.bold)
+          .replaceAll(']', log.ansi.none);
+    } else {
+      return cmdDescription.replaceAll('[', '').replaceAll(']', '');
+    }
+  }
+
+  // This command is hidden as it's currently experimental.
+  FixCommand({bool verbose = false})
+      : super(cmdName, cmdDescription, hidden: true) {
     argParser.addFlag('dry-run',
         abbr: 'n',
         defaultsTo: false,
         negatable: false,
-        help: 'Show which files would be modified but make no changes.');
+        help: 'Preview the proposed changes but make no changes.');
     argParser.addFlag(
       'apply',
       defaultsTo: false,
@@ -49,7 +56,7 @@ To use the tool, run one of:
       negatable: false,
       help:
           'Compare the result of applying fixes to a golden file for testing.',
-      hide: true,
+      hide: !verbose,
     );
   }
 
