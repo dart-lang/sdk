@@ -957,26 +957,13 @@ mixin _M {}
     ]);
   }
 
-  test_optionalParameter_constructor_named_notUsed() async {
-    await assertErrorsInCode(r'''
-class A {
-  A._([int a]);
-}
-f() => A._();
-''', [
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
-    ]);
-  }
-
-  test_optionalParameter_constructor_unnamed_notUsed() async {
-    await assertErrorsInCode(r'''
+  test_optionalParameter_isUsed_constructor() async {
+    await assertNoErrorsInCode(r'''
 class _A {
-  _A([int a]);
+  _A([int a = 0]);
 }
-f() => _A();
-''', [
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
-    ]);
+f() => _A(0);
+''');
   }
 
   test_optionalParameter_isUsed_functionTearoff() async {
@@ -1102,6 +1089,28 @@ class A {
 }
 f() => A()._m(0);
 ''');
+  }
+
+  test_optionalParameter_notUsed_constructor_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._([int a]);
+}
+f() => A._();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+    ]);
+  }
+
+  test_optionalParameter_notUsed_constructor_unnamed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  _A([int a]);
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+    ]);
   }
 
   test_optionalParameter_notUsed_extension() async {
