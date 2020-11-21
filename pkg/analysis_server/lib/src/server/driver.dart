@@ -186,9 +186,6 @@ class Driver implements ServerStarter {
     final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
     final crashReportSender =
         CrashReportSender.prod(crashProductId, shouldSendCallback);
-    // TODO(mfairhurst): send these to prod or disable.
-    final crashReportSenderAngular = CrashReportSender.staging(
-        'Dart_angular_analysis_plugin', shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
@@ -236,8 +233,8 @@ class Driver implements ServerStarter {
     }
 
     var errorNotifier = ErrorNotifier();
-    allInstrumentationServices.add(CrashReportingInstrumentation(
-        crashReportSender, crashReportSenderAngular));
+    allInstrumentationServices
+        .add(CrashReportingInstrumentation(crashReportSender));
     instrumentationService =
         MulticastInstrumentationService(allInstrumentationServices);
 
