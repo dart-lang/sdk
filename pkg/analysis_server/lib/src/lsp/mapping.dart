@@ -1072,7 +1072,8 @@ ErrorOr<int> toOffset(
   lsp.Position pos, {
   failureIsCritial = false,
 }) {
-  if (pos.line > lineInfo.lineCount) {
+  // line is zero-based so cannot equal lineCount
+  if (pos.line >= lineInfo.lineCount) {
     return ErrorOr<int>.error(lsp.ResponseError(
         code: failureIsCritial
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
