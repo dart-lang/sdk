@@ -888,8 +888,11 @@ void Isolate::ValidateClassTable() {
 }
 #endif  // DEBUG
 
-void Isolate::RegisterStaticField(const Field& field) {
+void Isolate::RegisterStaticField(const Field& field,
+                                  const Instance& initial_value) {
+  ASSERT(field.is_static());
   field_table()->Register(field);
+  field.SetStaticValue(initial_value, /*save_initial_value=*/true);
 }
 
 void Isolate::RehashConstants() {
