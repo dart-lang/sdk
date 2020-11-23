@@ -81,210 +81,230 @@ import "dart:collection" as col;
 
 static method test1(Never n1, Never? n2, Null n3) → dynamic {
   core::List<Never> l1 = block {
-    final core::List<Never> #t1 = core::List::of<Never>(let final Never #t2 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+    final core::List<Never> #t1 = <Never>[];
+    for (final Never #t2 in let final Never #t3 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."))
+      #t1.{core::List::add}{Invariant}(#t2);
   } =>#t1;
   core::List<Never> l2 = block {
-    final core::List<Never> #t3 = <Never>[];
-    final core::Iterable<Never>? #t4 = let final Never #t5 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
-    if(!#t4.{core::Object::==}(null))
-      #t3.{core::List::addAll}{Invariant}(#t4{core::Iterable<Never>});
-  } =>#t3;
+    final core::List<Never> #t4 = <Never>[];
+    final core::Iterable<Never>? #t5 = let final Never #t6 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    if(!#t5.{core::Object::==}(null))
+      for (final Never #t7 in #t5{core::Iterable<Never>})
+        #t4.{core::List::add}{Invariant}(#t7);
+  } =>#t4;
   core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:8:16: Error: Can't spread a value with static type 'Never?'.
   var l3 = [...n2];
                ^"];
   core::List<Never> l4 = block {
-    final core::List<Never> #t6 = <Never>[];
-    final core::Iterable<Never>? #t7 = n2;
-    if(!#t7.{core::Object::==}(null))
-      #t6.{core::List::addAll}{Invariant}(#t7{core::Iterable<Never>});
-  } =>#t6;
+    final core::List<Never> #t8 = <Never>[];
+    final core::Iterable<Never>? #t9 = n2;
+    if(!#t9.{core::Object::==}(null))
+      for (final Never #t10 in #t9{core::Iterable<Never>})
+        #t8.{core::List::add}{Invariant}(#t10);
+  } =>#t8;
   core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:10:16: Error: Can't spread a value with static type 'Null'.
   var l5 = [...n3];
                ^"];
   core::List<Never> l6 = block {
-    final core::List<Never> #t8 = <Never>[];
-    final core::Iterable<Never>? #t9 = n3;
-    if(!#t9.{core::Object::==}(null))
-      #t8.{core::List::addAll}{Invariant}(#t9{core::Iterable<Never>});
-  } =>#t8;
+    final core::List<Never> #t11 = <Never>[];
+    final core::Iterable<Never>? #t12 = n3;
+    if(!#t12.{core::Object::==}(null))
+      for (final Never #t13 in #t12{core::Iterable<Never>})
+        #t11.{core::List::add}{Invariant}(#t13);
+  } =>#t11;
   core::Set<Never> s1 = block {
-    final core::Set<Never> #t10 = col::LinkedHashSet::of<Never>(let final Never #t11 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-    #t10.{core::Set::add}{Invariant}(let final Never #t12 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t10;
+    final core::Set<Never> #t14 = col::LinkedHashSet::•<Never>();
+    for (final Never #t15 in let final Never #t16 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."))
+      #t14.{core::Set::add}{Invariant}(#t15);
+    #t14.{core::Set::add}{Invariant}(let final Never #t17 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t14;
   core::Set<Never> s2 = block {
-    final core::Set<Never> #t13 = col::LinkedHashSet::•<Never>();
-    final core::Iterable<Never>? #t14 = let final Never #t15 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
-    if(!#t14.{core::Object::==}(null))
-      #t13.{core::Set::addAll}{Invariant}(#t14{core::Iterable<Never>});
-    #t13.{core::Set::add}{Invariant}(let final Never #t16 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t13;
+    final core::Set<Never> #t18 = col::LinkedHashSet::•<Never>();
+    final core::Iterable<Never>? #t19 = let final Never #t20 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    if(!#t19.{core::Object::==}(null))
+      for (final Never #t21 in #t19{core::Iterable<Never>})
+        #t18.{core::Set::add}{Invariant}(#t21);
+    #t18.{core::Set::add}{Invariant}(let final Never #t22 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t18;
   core::Set<dynamic> s3 = block {
-    final core::Set<dynamic> #t17 = col::LinkedHashSet::•<dynamic>();
-    #t17.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:14:16: Error: Can't spread a value with static type 'Never?'.
+    final core::Set<dynamic> #t23 = col::LinkedHashSet::•<dynamic>();
+    #t23.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:14:16: Error: Can't spread a value with static type 'Never?'.
   var s3 = {...n2, n1};
                ^");
-    #t17.{core::Set::add}{Invariant}(let final Never #t18 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t17;
+    #t23.{core::Set::add}{Invariant}(let final Never #t24 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t23;
   core::Set<Never> s4 = block {
-    final core::Set<Never> #t19 = col::LinkedHashSet::•<Never>();
-    final core::Iterable<Never>? #t20 = n2;
-    if(!#t20.{core::Object::==}(null))
-      #t19.{core::Set::addAll}{Invariant}(#t20{core::Iterable<Never>});
-    #t19.{core::Set::add}{Invariant}(let final Never #t21 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t19;
+    final core::Set<Never> #t25 = col::LinkedHashSet::•<Never>();
+    final core::Iterable<Never>? #t26 = n2;
+    if(!#t26.{core::Object::==}(null))
+      for (final Never #t27 in #t26{core::Iterable<Never>})
+        #t25.{core::Set::add}{Invariant}(#t27);
+    #t25.{core::Set::add}{Invariant}(let final Never #t28 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t25;
   core::Set<dynamic> s5 = block {
-    final core::Set<dynamic> #t22 = col::LinkedHashSet::•<dynamic>();
-    #t22.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:16:16: Error: Can't spread a value with static type 'Null'.
+    final core::Set<dynamic> #t29 = col::LinkedHashSet::•<dynamic>();
+    #t29.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:16:16: Error: Can't spread a value with static type 'Null'.
   var s5 = {...n3, n1};
                ^");
-    #t22.{core::Set::add}{Invariant}(let final Never #t23 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t22;
+    #t29.{core::Set::add}{Invariant}(let final Never #t30 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t29;
   core::Set<Never> s6 = block {
-    final core::Set<Never> #t24 = col::LinkedHashSet::•<Never>();
-    final core::Iterable<Never>? #t25 = n3;
-    if(!#t25.{core::Object::==}(null))
-      #t24.{core::Set::addAll}{Invariant}(#t25{core::Iterable<Never>});
-    #t24.{core::Set::add}{Invariant}(let final Never #t26 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t24;
+    final core::Set<Never> #t31 = col::LinkedHashSet::•<Never>();
+    final core::Iterable<Never>? #t32 = n3;
+    if(!#t32.{core::Object::==}(null))
+      for (final Never #t33 in #t32{core::Iterable<Never>})
+        #t31.{core::Set::add}{Invariant}(#t33);
+    #t31.{core::Set::add}{Invariant}(let final Never #t34 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t31;
   core::Map<Never, Never> m1 = block {
-    final core::Map<Never, Never> #t27 = <Never, Never>{};
-    for (final core::MapEntry<Never, Never> #t28 in (let final Never #t29 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries})
-      #t27.{core::Map::[]=}{Invariant}(#t28.{core::MapEntry::key}, #t28.{core::MapEntry::value});
-    #t27.{core::Map::[]=}{Invariant}(let final Never #t30 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t31 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t27;
+    final core::Map<Never, Never> #t35 = <Never, Never>{};
+    for (final core::MapEntry<Never, Never> #t36 in (let final Never #t37 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries})
+      #t35.{core::Map::[]=}{Invariant}(#t36.{core::MapEntry::key}, #t36.{core::MapEntry::value});
+    #t35.{core::Map::[]=}{Invariant}(let final Never #t38 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t39 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t35;
   core::Map<Never, Never> m2 = block {
-    final core::Map<Never, Never> #t32 = <Never, Never>{};
-    final core::Map<Never, Never>? #t33 = let final Never #t34 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
-    if(!#t33.{core::Object::==}(null))
-      for (final core::MapEntry<Never, Never> #t35 in #t33{core::Map<Never, Never>}.{core::Map::entries})
-        #t32.{core::Map::[]=}{Invariant}(#t35.{core::MapEntry::key}, #t35.{core::MapEntry::value});
-    #t32.{core::Map::[]=}{Invariant}(let final Never #t36 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t37 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t32;
+    final core::Map<Never, Never> #t40 = <Never, Never>{};
+    final core::Map<Never, Never>? #t41 = let final Never #t42 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    if(!#t41.{core::Object::==}(null))
+      for (final core::MapEntry<Never, Never> #t43 in #t41{core::Map<Never, Never>}.{core::Map::entries})
+        #t40.{core::Map::[]=}{Invariant}(#t43.{core::MapEntry::key}, #t43.{core::MapEntry::value});
+    #t40.{core::Map::[]=}{Invariant}(let final Never #t44 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t45 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t40;
   core::Map<dynamic, dynamic> m3 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:20:16: Error: Can't spread a value with static type 'Never?'.
   var m3 = {...n2, n1: n1};
-               ^": null, let final Never #t38 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final Never #t39 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
+               ^": null, let final Never #t46 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final Never #t47 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
   core::Map<Never, Never> m4 = block {
-    final core::Map<Never, Never> #t40 = <Never, Never>{};
-    final core::Map<Never, Never>? #t41 = n2;
-    if(!#t41.{core::Object::==}(null))
-      for (final core::MapEntry<Never, Never> #t42 in #t41{core::Map<Never, Never>}.{core::Map::entries})
-        #t40.{core::Map::[]=}{Invariant}(#t42.{core::MapEntry::key}, #t42.{core::MapEntry::value});
-    #t40.{core::Map::[]=}{Invariant}(let final Never #t43 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t44 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t40;
+    final core::Map<Never, Never> #t48 = <Never, Never>{};
+    final core::Map<Never, Never>? #t49 = n2;
+    if(!#t49.{core::Object::==}(null))
+      for (final core::MapEntry<Never, Never> #t50 in #t49{core::Map<Never, Never>}.{core::Map::entries})
+        #t48.{core::Map::[]=}{Invariant}(#t50.{core::MapEntry::key}, #t50.{core::MapEntry::value});
+    #t48.{core::Map::[]=}{Invariant}(let final Never #t51 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t52 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t48;
   core::Map<dynamic, dynamic> m5 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:22:16: Error: Can't spread a value with static type 'Null'.
   var m5 = {...n3, n1: n1};
-               ^": null, let final Never #t45 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final Never #t46 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
+               ^": null, let final Never #t53 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final Never #t54 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
   core::Map<Never, Never> m6 = block {
-    final core::Map<Never, Never> #t47 = <Never, Never>{};
-    final core::Map<Never, Never>? #t48 = n3;
-    if(!#t48.{core::Object::==}(null))
-      for (final core::MapEntry<Never, Never> #t49 in #t48{core::Map<Never, Never>}.{core::Map::entries})
-        #t47.{core::Map::[]=}{Invariant}(#t49.{core::MapEntry::key}, #t49.{core::MapEntry::value});
-    #t47.{core::Map::[]=}{Invariant}(let final Never #t50 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t51 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t47;
+    final core::Map<Never, Never> #t55 = <Never, Never>{};
+    final core::Map<Never, Never>? #t56 = n3;
+    if(!#t56.{core::Object::==}(null))
+      for (final core::MapEntry<Never, Never> #t57 in #t56{core::Map<Never, Never>}.{core::Map::entries})
+        #t55.{core::Map::[]=}{Invariant}(#t57.{core::MapEntry::key}, #t57.{core::MapEntry::value});
+    #t55.{core::Map::[]=}{Invariant}(let final Never #t58 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t59 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t55;
 }
 static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 extends Null = Null>(self::test2::N1 n1, self::test2::N2% n2, self::test2::N3% n3) → dynamic {
   core::List<Never> l1 = block {
-    final core::List<Never> #t52 = core::List::of<Never>(let final self::test2::N1 #t53 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t52;
+    final core::List<Never> #t60 = <Never>[];
+    for (final Never #t61 in let final self::test2::N1 #t62 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."))
+      #t60.{core::List::add}{Invariant}(#t61);
+  } =>#t60;
   core::List<Never> l2 = block {
-    final core::List<Never> #t54 = <Never>[];
-    final core::Iterable<Never>? #t55 = let final self::test2::N1 #t56 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
-    if(!#t55.{core::Object::==}(null))
-      #t54.{core::List::addAll}{Invariant}(#t55{core::Iterable<Never>});
-  } =>#t54;
+    final core::List<Never> #t63 = <Never>[];
+    final core::Iterable<Never>? #t64 = let final self::test2::N1 #t65 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    if(!#t64.{core::Object::==}(null))
+      for (final Never #t66 in #t64{core::Iterable<Never>})
+        #t63.{core::List::add}{Invariant}(#t66);
+  } =>#t63;
   core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:30:16: Error: Can't spread a value with static type 'N2'.
   var l3 = [...n2];
                ^"];
   core::List<Never> l4 = block {
-    final core::List<Never> #t57 = <Never>[];
-    final core::Iterable<Never>? #t58 = n2;
-    if(!#t58.{core::Object::==}(null))
-      #t57.{core::List::addAll}{Invariant}(#t58{core::Iterable<Never>});
-  } =>#t57;
+    final core::List<Never> #t67 = <Never>[];
+    final core::Iterable<Never>? #t68 = n2;
+    if(!#t68.{core::Object::==}(null))
+      for (final Never #t69 in #t68{core::Iterable<Never>})
+        #t67.{core::List::add}{Invariant}(#t69);
+  } =>#t67;
   core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:32:16: Error: Can't spread a value with static type 'N3'.
   var l5 = [...n3];
                ^"];
   core::List<Never> l6 = block {
-    final core::List<Never> #t59 = <Never>[];
-    final core::Iterable<Never>? #t60 = n3;
-    if(!#t60.{core::Object::==}(null))
-      #t59.{core::List::addAll}{Invariant}(#t60{core::Iterable<Never>});
-  } =>#t59;
+    final core::List<Never> #t70 = <Never>[];
+    final core::Iterable<Never>? #t71 = n3;
+    if(!#t71.{core::Object::==}(null))
+      for (final Never #t72 in #t71{core::Iterable<Never>})
+        #t70.{core::List::add}{Invariant}(#t72);
+  } =>#t70;
   core::Set<self::test2::N1> s1 = block {
-    final core::Set<self::test2::N1> #t61 = col::LinkedHashSet::of<self::test2::N1>(let final self::test2::N1 #t62 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-    #t61.{core::Set::add}{Invariant}(let final self::test2::N1 #t63 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t61;
+    final core::Set<self::test2::N1> #t73 = col::LinkedHashSet::•<self::test2::N1>();
+    for (final self::test2::N1 #t74 in let final self::test2::N1 #t75 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."))
+      #t73.{core::Set::add}{Invariant}(#t74);
+    #t73.{core::Set::add}{Invariant}(let final self::test2::N1 #t76 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t73;
   core::Set<self::test2::N1> s2 = block {
-    final core::Set<self::test2::N1> #t64 = col::LinkedHashSet::•<self::test2::N1>();
-    final core::Iterable<self::test2::N1>? #t65 = let final self::test2::N1 #t66 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
-    if(!#t65.{core::Object::==}(null))
-      #t64.{core::Set::addAll}{Invariant}(#t65{core::Iterable<self::test2::N1>});
-    #t64.{core::Set::add}{Invariant}(let final self::test2::N1 #t67 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t64;
+    final core::Set<self::test2::N1> #t77 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Iterable<self::test2::N1>? #t78 = let final self::test2::N1 #t79 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    if(!#t78.{core::Object::==}(null))
+      for (final self::test2::N1 #t80 in #t78{core::Iterable<self::test2::N1>})
+        #t77.{core::Set::add}{Invariant}(#t80);
+    #t77.{core::Set::add}{Invariant}(let final self::test2::N1 #t81 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t77;
   core::Set<dynamic> s3 = block {
-    final core::Set<dynamic> #t68 = col::LinkedHashSet::•<dynamic>();
-    #t68.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:36:16: Error: Can't spread a value with static type 'N2'.
+    final core::Set<dynamic> #t82 = col::LinkedHashSet::•<dynamic>();
+    #t82.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:36:16: Error: Can't spread a value with static type 'N2'.
   var s3 = {...n2, n1};
                ^");
-    #t68.{core::Set::add}{Invariant}(let final self::test2::N1 #t69 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t68;
+    #t82.{core::Set::add}{Invariant}(let final self::test2::N1 #t83 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t82;
   core::Set<self::test2::N1> s4 = block {
-    final core::Set<self::test2::N1> #t70 = col::LinkedHashSet::•<self::test2::N1>();
-    final core::Iterable<self::test2::N1>? #t71 = n2;
-    if(!#t71.{core::Object::==}(null))
-      #t70.{core::Set::addAll}{Invariant}(#t71{core::Iterable<self::test2::N1>});
-    #t70.{core::Set::add}{Invariant}(let final self::test2::N1 #t72 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t70;
+    final core::Set<self::test2::N1> #t84 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Iterable<self::test2::N1>? #t85 = n2;
+    if(!#t85.{core::Object::==}(null))
+      for (final self::test2::N1 #t86 in #t85{core::Iterable<self::test2::N1>})
+        #t84.{core::Set::add}{Invariant}(#t86);
+    #t84.{core::Set::add}{Invariant}(let final self::test2::N1 #t87 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t84;
   core::Set<dynamic> s5 = block {
-    final core::Set<dynamic> #t73 = col::LinkedHashSet::•<dynamic>();
-    #t73.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:38:16: Error: Can't spread a value with static type 'N3'.
+    final core::Set<dynamic> #t88 = col::LinkedHashSet::•<dynamic>();
+    #t88.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:38:16: Error: Can't spread a value with static type 'N3'.
   var s5 = {...n3, n1};
                ^");
-    #t73.{core::Set::add}{Invariant}(let final self::test2::N1 #t74 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t73;
+    #t88.{core::Set::add}{Invariant}(let final self::test2::N1 #t89 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t88;
   core::Set<self::test2::N1> s6 = block {
-    final core::Set<self::test2::N1> #t75 = col::LinkedHashSet::•<self::test2::N1>();
-    final core::Iterable<self::test2::N1>? #t76 = n3;
-    if(!#t76.{core::Object::==}(null))
-      #t75.{core::Set::addAll}{Invariant}(#t76{core::Iterable<self::test2::N1>});
-    #t75.{core::Set::add}{Invariant}(let final self::test2::N1 #t77 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t75;
+    final core::Set<self::test2::N1> #t90 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Iterable<self::test2::N1>? #t91 = n3;
+    if(!#t91.{core::Object::==}(null))
+      for (final self::test2::N1 #t92 in #t91{core::Iterable<self::test2::N1>})
+        #t90.{core::Set::add}{Invariant}(#t92);
+    #t90.{core::Set::add}{Invariant}(let final self::test2::N1 #t93 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t90;
   core::Map<self::test2::N1, self::test2::N1> m1 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t78 = <self::test2::N1, self::test2::N1>{};
-    for (final core::MapEntry<self::test2::N1, self::test2::N1> #t79 in (let final self::test2::N1 #t80 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries})
-      #t78.{core::Map::[]=}{Invariant}(#t79.{core::MapEntry::key}, #t79.{core::MapEntry::value});
-    #t78.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t81 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t82 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t78;
+    final core::Map<self::test2::N1, self::test2::N1> #t94 = <self::test2::N1, self::test2::N1>{};
+    for (final core::MapEntry<self::test2::N1, self::test2::N1> #t95 in (let final self::test2::N1 #t96 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries})
+      #t94.{core::Map::[]=}{Invariant}(#t95.{core::MapEntry::key}, #t95.{core::MapEntry::value});
+    #t94.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t97 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t98 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t94;
   core::Map<self::test2::N1, self::test2::N1> m2 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t83 = <self::test2::N1, self::test2::N1>{};
-    final core::Map<self::test2::N1, self::test2::N1>? #t84 = let final self::test2::N1 #t85 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
-    if(!#t84.{core::Object::==}(null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t86 in #t84{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
-        #t83.{core::Map::[]=}{Invariant}(#t86.{core::MapEntry::key}, #t86.{core::MapEntry::value});
-    #t83.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t87 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t88 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t83;
+    final core::Map<self::test2::N1, self::test2::N1> #t99 = <self::test2::N1, self::test2::N1>{};
+    final core::Map<self::test2::N1, self::test2::N1>? #t100 = let final self::test2::N1 #t101 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    if(!#t100.{core::Object::==}(null))
+      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t102 in #t100{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
+        #t99.{core::Map::[]=}{Invariant}(#t102.{core::MapEntry::key}, #t102.{core::MapEntry::value});
+    #t99.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t103 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t104 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t99;
   core::Map<dynamic, dynamic> m3 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:42:16: Error: Can't spread a value with static type 'N2'.
   var m3 = {...n2, n1: n1};
-               ^": null, let final self::test2::N1 #t89 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final self::test2::N1 #t90 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
+               ^": null, let final self::test2::N1 #t105 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final self::test2::N1 #t106 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
   core::Map<self::test2::N1, self::test2::N1> m4 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t91 = <self::test2::N1, self::test2::N1>{};
-    final core::Map<self::test2::N1, self::test2::N1>? #t92 = n2;
-    if(!#t92.{core::Object::==}(null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t93 in #t92{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
-        #t91.{core::Map::[]=}{Invariant}(#t93.{core::MapEntry::key}, #t93.{core::MapEntry::value});
-    #t91.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t94 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t95 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t91;
+    final core::Map<self::test2::N1, self::test2::N1> #t107 = <self::test2::N1, self::test2::N1>{};
+    final core::Map<self::test2::N1, self::test2::N1>? #t108 = n2;
+    if(!#t108.{core::Object::==}(null))
+      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t109 in #t108{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
+        #t107.{core::Map::[]=}{Invariant}(#t109.{core::MapEntry::key}, #t109.{core::MapEntry::value});
+    #t107.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t110 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t111 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t107;
   core::Map<dynamic, dynamic> m5 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:44:16: Error: Can't spread a value with static type 'N3'.
   var m5 = {...n3, n1: n1};
-               ^": null, let final self::test2::N1 #t96 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final self::test2::N1 #t97 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
+               ^": null, let final self::test2::N1 #t112 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."): let final self::test2::N1 #t113 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")};
   core::Map<self::test2::N1, self::test2::N1> m6 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t98 = <self::test2::N1, self::test2::N1>{};
-    final core::Map<self::test2::N1, self::test2::N1>? #t99 = n3;
-    if(!#t99.{core::Object::==}(null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t100 in #t99{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
-        #t98.{core::Map::[]=}{Invariant}(#t100.{core::MapEntry::key}, #t100.{core::MapEntry::value});
-    #t98.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t101 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t102 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
-  } =>#t98;
+    final core::Map<self::test2::N1, self::test2::N1> #t114 = <self::test2::N1, self::test2::N1>{};
+    final core::Map<self::test2::N1, self::test2::N1>? #t115 = n3;
+    if(!#t115.{core::Object::==}(null))
+      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t116 in #t115{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
+        #t114.{core::Map::[]=}{Invariant}(#t116.{core::MapEntry::key}, #t116.{core::MapEntry::value});
+    #t114.{core::Map::[]=}{Invariant}(let final self::test2::N1 #t117 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final self::test2::N1 #t118 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+  } =>#t114;
 }
 static method main() → dynamic {}

@@ -79,8 +79,7 @@
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
         "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -102,8 +101,7 @@
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
         "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -125,8 +123,7 @@
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
         "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -148,8 +145,7 @@
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
         "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -179,6 +175,7 @@
         "/testcases/runtime_checks",
         "/testcases/runtime_checks_new",
         "/testcases/set_literals",
+        "/testcases/unified_collections",
         "/testcases/variance"
       ]
     },
