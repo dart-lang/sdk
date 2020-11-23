@@ -1,0 +1,155 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method useAddAll() → void {
+  dynamic dynamicList1 = <core::int*>[0, 1, 2];
+  dynamic dynamicList2 = <core::num*>[3, 4, 5];
+  core::Iterable<core::int*>* iterableIntList = <core::int*>[6, 7, 8];
+  core::Iterable<core::num*>* iterableNumList1 = <core::int*>[9, 10, 11];
+  core::Iterable<core::num*>* iterableNumList2 = <core::num*>[12, 13, 14];
+  core::List<core::int*>* intList = <core::int*>[15, 16, 17];
+  core::List<core::num*>* numList1 = <core::int*>[18, 19, 20];
+  core::List<core::num*>* numList2 = <core::num*>[21, 22, 23];
+  core::List<core::int*>* list1 = block {
+    final core::List<core::int*>* #t1 = <core::int*>[];
+    for (final dynamic #t2 in dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::int* #t3 = #t2 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t3);
+    }
+    for (final dynamic #t4 in dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::int* #t5 = #t4 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t5);
+    }
+    #t1.{core::List::addAll}{Invariant}(iterableIntList);
+    for (final dynamic #t6 in iterableNumList1) {
+      final core::int* #t7 = #t6 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t7);
+    }
+    for (final dynamic #t8 in iterableNumList2) {
+      final core::int* #t9 = #t8 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t9);
+    }
+    #t1.{core::List::addAll}{Invariant}(intList);
+    for (final dynamic #t10 in numList1) {
+      final core::int* #t11 = #t10 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t11);
+    }
+    for (final dynamic #t12 in numList2) {
+      final core::int* #t13 = #t12 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t13);
+    }
+  } =>#t1;
+  self::expect(core::List::generate<core::int*>(24, (core::int* i) → core::int* => i), list1);
+  core::List<core::num*>* list2 = block {
+    final core::List<core::num*>* #t14 = <core::num*>[];
+    for (final dynamic #t15 in dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::num* #t16 = #t15 as{TypeError} core::num*;
+      #t14.{core::List::add}{Invariant}(#t16);
+    }
+    for (final dynamic #t17 in dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::num* #t18 = #t17 as{TypeError} core::num*;
+      #t14.{core::List::add}{Invariant}(#t18);
+    }
+    #t14.{core::List::addAll}{Invariant}(iterableIntList);
+    #t14.{core::List::addAll}{Invariant}(iterableNumList1);
+    #t14.{core::List::addAll}{Invariant}(iterableNumList2);
+    #t14.{core::List::addAll}{Invariant}(intList);
+    #t14.{core::List::addAll}{Invariant}(numList1);
+    #t14.{core::List::addAll}{Invariant}(numList2);
+  } =>#t14;
+  self::expect(core::List::generate<core::num*>(24, (core::int* i) → core::int* => i), list2);
+  core::List<core::int*>* list3 = block {
+    final core::List<core::int*>* #t19 = <core::int*>[];
+    final core::Iterable<dynamic>* #t20 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!#t20.{core::Object::==}(null))
+      for (final dynamic #t21 in #t20) {
+        final core::int* #t22 = #t21 as{TypeError} core::int*;
+        #t19.{core::List::add}{Invariant}(#t22);
+      }
+    final core::Iterable<dynamic>* #t23 = dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!#t23.{core::Object::==}(null))
+      for (final dynamic #t24 in #t23) {
+        final core::int* #t25 = #t24 as{TypeError} core::int*;
+        #t19.{core::List::add}{Invariant}(#t25);
+      }
+    final core::Iterable<core::int*>* #t26 = iterableIntList;
+    if(!#t26.{core::Object::==}(null))
+      #t19.{core::List::addAll}{Invariant}(#t26);
+    final core::Iterable<dynamic>* #t27 = iterableNumList1;
+    if(!#t27.{core::Object::==}(null))
+      for (final dynamic #t28 in #t27) {
+        final core::int* #t29 = #t28 as{TypeError} core::int*;
+        #t19.{core::List::add}{Invariant}(#t29);
+      }
+    final core::Iterable<dynamic>* #t30 = iterableNumList2;
+    if(!#t30.{core::Object::==}(null))
+      for (final dynamic #t31 in #t30) {
+        final core::int* #t32 = #t31 as{TypeError} core::int*;
+        #t19.{core::List::add}{Invariant}(#t32);
+      }
+    final core::Iterable<core::int*>* #t33 = intList;
+    if(!#t33.{core::Object::==}(null))
+      #t19.{core::List::addAll}{Invariant}(#t33);
+    final core::Iterable<dynamic>* #t34 = numList1;
+    if(!#t34.{core::Object::==}(null))
+      for (final dynamic #t35 in #t34) {
+        final core::int* #t36 = #t35 as{TypeError} core::int*;
+        #t19.{core::List::add}{Invariant}(#t36);
+      }
+    final core::Iterable<dynamic>* #t37 = numList2;
+    if(!#t37.{core::Object::==}(null))
+      for (final dynamic #t38 in #t37) {
+        final core::int* #t39 = #t38 as{TypeError} core::int*;
+        #t19.{core::List::add}{Invariant}(#t39);
+      }
+  } =>#t19;
+  self::expect(core::List::generate<core::int*>(24, (core::int* i) → core::int* => i), list3);
+  core::List<core::num*>* list4 = block {
+    final core::List<core::num*>* #t40 = <core::num*>[];
+    final core::Iterable<dynamic>* #t41 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!#t41.{core::Object::==}(null))
+      for (final dynamic #t42 in #t41) {
+        final core::num* #t43 = #t42 as{TypeError} core::num*;
+        #t40.{core::List::add}{Invariant}(#t43);
+      }
+    final core::Iterable<dynamic>* #t44 = dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!#t44.{core::Object::==}(null))
+      for (final dynamic #t45 in #t44) {
+        final core::num* #t46 = #t45 as{TypeError} core::num*;
+        #t40.{core::List::add}{Invariant}(#t46);
+      }
+    final core::Iterable<core::num*>* #t47 = iterableIntList;
+    if(!#t47.{core::Object::==}(null))
+      #t40.{core::List::addAll}{Invariant}(#t47);
+    final core::Iterable<core::num*>* #t48 = iterableNumList1;
+    if(!#t48.{core::Object::==}(null))
+      #t40.{core::List::addAll}{Invariant}(#t48);
+    final core::Iterable<core::num*>* #t49 = iterableNumList2;
+    if(!#t49.{core::Object::==}(null))
+      #t40.{core::List::addAll}{Invariant}(#t49);
+    final core::Iterable<core::num*>* #t50 = intList;
+    if(!#t50.{core::Object::==}(null))
+      #t40.{core::List::addAll}{Invariant}(#t50);
+    final core::Iterable<core::num*>* #t51 = numList1;
+    if(!#t51.{core::Object::==}(null))
+      #t40.{core::List::addAll}{Invariant}(#t51);
+    final core::Iterable<core::num*>* #t52 = numList2;
+    if(!#t52.{core::Object::==}(null))
+      #t40.{core::List::addAll}{Invariant}(#t52);
+  } =>#t40;
+  self::expect(core::List::generate<core::num*>(24, (core::int* i) → core::int* => i), list4);
+}
+static method main() → dynamic {
+  self::useAddAll();
+}
+static method expect(core::List<dynamic>* list1, core::List<dynamic>* list2) → void {
+  if(!list1.{core::List::length}.{core::num::==}(list2.{core::List::length})) {
+    throw "Unexpected length. Expected ${list1.{core::List::length}}, actual ${list2.{core::List::length}}.";
+  }
+  for (core::int* i = 0; i.{core::num::<}(list1.{core::List::length}); i = i.{core::num::+}(1)) {
+    if(!list1.{core::List::[]}(i).{core::Object::==}(list2.{core::List::[]}(i))) {
+      throw "Unexpected element at index ${i}. Expected ${list1.{core::List::[]}(i)}, actual ${list2.{core::List::[]}(i)}.";
+    }
+  }
+}

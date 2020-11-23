@@ -1,0 +1,242 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method foldInitialElements() → void {
+  dynamic element0 = 0;
+  core::num* element1 = 1;
+  core::int* element2 = 2;
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t1 = <core::int*>[element0 as{TypeError,ForDynamic} core::int*, element1 as{TypeError} core::int*, element2];
+    if(true)
+      #t1.{core::List::add}{Invariant}(3);
+    #t1.{core::List::add}{Invariant}(4);
+    #t1.{core::List::add}{Invariant}(5);
+    #t1.{core::List::add}{Invariant}(6);
+  } =>#t1;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>();
+    #t2.{core::Set::add}{Invariant}(element0 as{TypeError,ForDynamic} core::int*);
+    #t2.{core::Set::add}{Invariant}(element1 as{TypeError} core::int*);
+    #t2.{core::Set::add}{Invariant}(element2);
+    if(true)
+      #t2.{core::Set::add}{Invariant}(3);
+    #t2.{core::Set::add}{Invariant}(4);
+    #t2.{core::Set::add}{Invariant}(5);
+    #t2.{core::Set::add}{Invariant}(6);
+  } =>#t2;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
+}
+static method foldInitialSpread1() → void {
+  dynamic initial = <core::int*>[0, 1, 2];
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t3 = <core::int*>[];
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int* #t5 = #t4 as{TypeError} core::int*;
+          #t3.{core::List::add}{Invariant}(#t5);
+        }
+      }
+    }
+    if(true)
+      #t3.{core::List::add}{Invariant}(3);
+    #t3.{core::List::add}{Invariant}(4);
+    #t3.{core::List::add}{Invariant}(5);
+    #t3.{core::List::add}{Invariant}(6);
+  } =>#t3;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t6 = new col::_CompactLinkedHashSet::•<core::int*>();
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int* #t8 = #t7 as{TypeError} core::int*;
+          #t6.{core::Set::add}{Invariant}(#t8);
+        }
+      }
+    }
+    if(true)
+      #t6.{core::Set::add}{Invariant}(3);
+    #t6.{core::Set::add}{Invariant}(4);
+    #t6.{core::Set::add}{Invariant}(5);
+    #t6.{core::Set::add}{Invariant}(6);
+  } =>#t6;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
+}
+static method foldInitialSpread2() → void {
+  core::Iterable<core::num*>* initial = <core::num*>[0, 1, 2];
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t9 = <core::int*>[];
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int* #t11 = #t10 as{TypeError} core::int*;
+          #t9.{core::List::add}{Invariant}(#t11);
+        }
+      }
+    }
+    if(true)
+      #t9.{core::List::add}{Invariant}(3);
+    #t9.{core::List::add}{Invariant}(4);
+    #t9.{core::List::add}{Invariant}(5);
+    #t9.{core::List::add}{Invariant}(6);
+  } =>#t9;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t12 = new col::_CompactLinkedHashSet::•<core::int*>();
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int* #t14 = #t13 as{TypeError} core::int*;
+          #t12.{core::Set::add}{Invariant}(#t14);
+        }
+      }
+    }
+    if(true)
+      #t12.{core::Set::add}{Invariant}(3);
+    #t12.{core::Set::add}{Invariant}(4);
+    #t12.{core::Set::add}{Invariant}(5);
+    #t12.{core::Set::add}{Invariant}(6);
+  } =>#t12;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
+}
+static method foldInitialSpread3() → void {
+  core::List<core::num*>* initial = <core::num*>[0, 1, 2];
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t15 = <core::int*>[];
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t16 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int* #t17 = #t16 as{TypeError} core::int*;
+          #t15.{core::List::add}{Invariant}(#t17);
+        }
+      }
+    }
+    if(true)
+      #t15.{core::List::add}{Invariant}(3);
+    #t15.{core::List::add}{Invariant}(4);
+    #t15.{core::List::add}{Invariant}(5);
+    #t15.{core::List::add}{Invariant}(6);
+  } =>#t15;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t18 = new col::_CompactLinkedHashSet::•<core::int*>();
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t19 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int* #t20 = #t19 as{TypeError} core::int*;
+          #t18.{core::Set::add}{Invariant}(#t20);
+        }
+      }
+    }
+    if(true)
+      #t18.{core::Set::add}{Invariant}(3);
+    #t18.{core::Set::add}{Invariant}(4);
+    #t18.{core::Set::add}{Invariant}(5);
+    #t18.{core::Set::add}{Invariant}(6);
+  } =>#t18;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
+}
+static method foldInitialSpread4() → void {
+  core::Iterable<core::int*>* initial = <core::int*>[0, 1, 2];
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t21 = core::List::of<core::int*>(initial);
+    if(true)
+      #t21.{core::List::add}{Invariant}(3);
+    #t21.{core::List::add}{Invariant}(4);
+    #t21.{core::List::add}{Invariant}(5);
+    #t21.{core::List::add}{Invariant}(6);
+  } =>#t21;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t22 = col::LinkedHashSet::of<core::int*>(initial);
+    if(true)
+      #t22.{core::Set::add}{Invariant}(3);
+    #t22.{core::Set::add}{Invariant}(4);
+    #t22.{core::Set::add}{Invariant}(5);
+    #t22.{core::Set::add}{Invariant}(6);
+  } =>#t22;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
+}
+static method foldInitialSpread5() → void {
+  core::List<core::int*>* initial = <core::int*>[0, 1, 2];
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t23 = core::List::of<core::int*>(initial);
+    if(true)
+      #t23.{core::List::add}{Invariant}(3);
+    #t23.{core::List::add}{Invariant}(4);
+    #t23.{core::List::add}{Invariant}(5);
+    #t23.{core::List::add}{Invariant}(6);
+  } =>#t23;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t24 = col::LinkedHashSet::of<core::int*>(initial);
+    if(true)
+      #t24.{core::Set::add}{Invariant}(3);
+    #t24.{core::Set::add}{Invariant}(4);
+    #t24.{core::Set::add}{Invariant}(5);
+    #t24.{core::Set::add}{Invariant}(6);
+  } =>#t24;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
+}
+static method foldInitialSpread6() → void {
+  core::List<core::int*>* initial = <core::int*>[0, 1, 2];
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t25 = <core::int*>[];
+    final core::Iterable<core::int*>* #t26 = initial;
+    if(!#t26.{core::Object::==}(null))
+      #t25.{core::List::addAll}{Invariant}(#t26);
+    if(true)
+      #t25.{core::List::add}{Invariant}(3);
+    #t25.{core::List::add}{Invariant}(4);
+    #t25.{core::List::add}{Invariant}(5);
+    #t25.{core::List::add}{Invariant}(6);
+  } =>#t25;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t27 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Iterable<core::int*>* #t28 = initial;
+    if(!#t28.{core::Object::==}(null))
+      #t27.{core::Set::addAll}{Invariant}(#t28);
+    if(true)
+      #t27.{core::Set::add}{Invariant}(3);
+    #t27.{core::Set::add}{Invariant}(4);
+    #t27.{core::Set::add}{Invariant}(5);
+    #t27.{core::Set::add}{Invariant}(6);
+  } =>#t27;
+  self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
+}
+static method main() → dynamic {
+  self::foldInitialElements();
+  self::foldInitialSpread1();
+  self::foldInitialSpread2();
+  self::foldInitialSpread3();
+  self::foldInitialSpread4();
+  self::foldInitialSpread5();
+  self::foldInitialSpread6();
+}
+static method expect(core::List<dynamic>* list1, core::List<dynamic>* list2) → void {
+  if(!list1.{core::List::length}.{core::num::==}(list2.{core::List::length})) {
+    throw "Unexpected length. Expected ${list1.{core::List::length}}, actual ${list2.{core::List::length}}.";
+  }
+  for (core::int* i = 0; i.{core::num::<}(list1.{core::List::length}); i = i.{core::num::+}(1)) {
+    if(!list1.{core::List::[]}(i).{core::Object::==}(list2.{core::List::[]}(i))) {
+      throw "Unexpected element at index ${i}. Expected ${list1.{core::List::[]}(i)}, actual ${list2.{core::List::[]}(i)}.";
+    }
+  }
+}

@@ -51,8 +51,6 @@ abstract class AbstractLspAnalysisServerTest
   TestPluginManager pluginManager;
   LspAnalysisServer server;
 
-  final testWorkDoneToken = Either2<num, String>.t2('test');
-
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   @override
@@ -473,6 +471,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   static const allMarkers = [positionMarker, rangeMarkerStart, rangeMarkerEnd];
   static final allMarkersPattern =
       RegExp(allMarkers.map(RegExp.escape).join('|'));
+
+  /// A progress token used in tests where the client-provides the token, which
+  /// should not be validated as being created by the server first.
+  final clientProvidedTestWorkDoneToken =
+      Either2<num, String>.t2('client-test');
 
   int _id = 0;
   String projectFolderPath, mainFilePath, pubspecFilePath, analysisOptionsPath;
@@ -1105,6 +1108,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       }
     });
 
+    notificationsFromServer.listen((notification) async {
+      if (notification.method == Method.progress) {
+        await _handleProgress(notification);
+      }
+    });
+
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
     if (rootPath == null &&
@@ -1436,10 +1445,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           }
 
           final params = ProgressParams.fromJson(message.params);
-          if (!validProgressTokens.contains(params.token)) {
-            throw Exception('Server sent a progress notification for a token '
-                'that has not been created: ${params.token}');
-          }
 
           // Skip unrelated progress notifications.
           if (params.token != analyzingProgressToken) {
@@ -1539,6 +1544,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           T Function(Map<String, dynamic>) fromJson) =>
       (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
 
+  Future<void> _handleProgress(NotificationMessage request) async {
+    final params = ProgressParams.fromJson(request.params);
+    if (params.token != clientProvidedTestWorkDoneToken &&
+        !validProgressTokens.contains(params.token)) {
+      throw Exception('Server sent a progress notification for a token '
+          'that has not been created: ${params.token}');
+    }
+
+    if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
+      validProgressTokens.remove(params.token);
+    }
+  }
+
   Future<void> _handleWorkDoneProgressCreate(RequestMessage request) async {
     if (_clientCapabilities.window?.workDoneProgress != true) {
       throw Exception('Server sent ${Method.window_workDoneProgress_create} '
@@ -1546,7 +1564,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
     final params = WorkDoneProgressCreateParams.fromJson(request.params);
     if (validProgressTokens.contains(params.token)) {
-      throw Exception('Server tried to create the same progress token twice');
+      throw Exception('Server tried to create already-active progress token');
     }
     validProgressTokens.add(params.token);
   }
