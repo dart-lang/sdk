@@ -80,230 +80,210 @@ import "dart:collection" as col;
 
 static method test1(Never n1, Never? n2, Null n3) → dynamic {
   core::List<Never> l1 = block {
-    final core::List<Never> #t1 = <Never>[];
-    for (final Never #t2 in n1)
-      #t1.{core::List::add}{Invariant}(#t2);
+    final core::List<Never> #t1 = core::List::of<Never>(n1);
   } =>#t1;
   core::List<Never> l2 = block {
-    final core::List<Never> #t3 = <Never>[];
-    final core::Iterable<Never>? #t4 = n1;
-    if(!#t4.{core::Object::==}(null))
-      for (final Never #t5 in #t4{core::Iterable<Never>})
-        #t3.{core::List::add}{Invariant}(#t5);
-  } =>#t3;
+    final core::List<Never> #t2 = <Never>[];
+    final core::Iterable<Never>? #t3 = n1;
+    if(!#t3.{core::Object::==}(null))
+      #t2.{core::List::addAll}{Invariant}(#t3{core::Iterable<Never>});
+  } =>#t2;
   core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:8:16: Error: Can't spread a value with static type 'Never?'.
   var l3 = [...n2];
                ^"];
   core::List<Never> l4 = block {
-    final core::List<Never> #t6 = <Never>[];
-    final core::Iterable<Never>? #t7 = n2;
-    if(!#t7.{core::Object::==}(null))
-      for (final Never #t8 in #t7{core::Iterable<Never>})
-        #t6.{core::List::add}{Invariant}(#t8);
-  } =>#t6;
+    final core::List<Never> #t4 = <Never>[];
+    final core::Iterable<Never>? #t5 = n2;
+    if(!#t5.{core::Object::==}(null))
+      #t4.{core::List::addAll}{Invariant}(#t5{core::Iterable<Never>});
+  } =>#t4;
   core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:10:16: Error: Can't spread a value with static type 'Null'.
   var l5 = [...n3];
                ^"];
   core::List<Never> l6 = block {
-    final core::List<Never> #t9 = <Never>[];
-    final core::Iterable<Never>? #t10 = n3;
-    if(!#t10.{core::Object::==}(null))
-      for (final Never #t11 in #t10{core::Iterable<Never>})
-        #t9.{core::List::add}{Invariant}(#t11);
-  } =>#t9;
+    final core::List<Never> #t6 = <Never>[];
+    final core::Iterable<Never>? #t7 = n3;
+    if(!#t7.{core::Object::==}(null))
+      #t6.{core::List::addAll}{Invariant}(#t7{core::Iterable<Never>});
+  } =>#t6;
   core::Set<Never> s1 = block {
-    final core::Set<Never> #t12 = col::LinkedHashSet::•<Never>();
-    for (final Never #t13 in n1)
-      #t12.{core::Set::add}{Invariant}(#t13);
-    #t12.{core::Set::add}{Invariant}(n1);
-  } =>#t12;
+    final core::Set<Never> #t8 = col::LinkedHashSet::of<Never>(n1);
+    #t8.{core::Set::add}{Invariant}(n1);
+  } =>#t8;
   core::Set<Never> s2 = block {
-    final core::Set<Never> #t14 = col::LinkedHashSet::•<Never>();
-    final core::Iterable<Never>? #t15 = n1;
-    if(!#t15.{core::Object::==}(null))
-      for (final Never #t16 in #t15{core::Iterable<Never>})
-        #t14.{core::Set::add}{Invariant}(#t16);
-    #t14.{core::Set::add}{Invariant}(n1);
-  } =>#t14;
+    final core::Set<Never> #t9 = col::LinkedHashSet::•<Never>();
+    final core::Iterable<Never>? #t10 = n1;
+    if(!#t10.{core::Object::==}(null))
+      #t9.{core::Set::addAll}{Invariant}(#t10{core::Iterable<Never>});
+    #t9.{core::Set::add}{Invariant}(n1);
+  } =>#t9;
   core::Set<dynamic> s3 = block {
-    final core::Set<dynamic> #t17 = col::LinkedHashSet::•<dynamic>();
-    #t17.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:14:16: Error: Can't spread a value with static type 'Never?'.
+    final core::Set<dynamic> #t11 = col::LinkedHashSet::•<dynamic>();
+    #t11.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:14:16: Error: Can't spread a value with static type 'Never?'.
   var s3 = {...n2, n1};
                ^");
-    #t17.{core::Set::add}{Invariant}(n1);
-  } =>#t17;
+    #t11.{core::Set::add}{Invariant}(n1);
+  } =>#t11;
   core::Set<Never> s4 = block {
-    final core::Set<Never> #t18 = col::LinkedHashSet::•<Never>();
-    final core::Iterable<Never>? #t19 = n2;
-    if(!#t19.{core::Object::==}(null))
-      for (final Never #t20 in #t19{core::Iterable<Never>})
-        #t18.{core::Set::add}{Invariant}(#t20);
-    #t18.{core::Set::add}{Invariant}(n1);
-  } =>#t18;
+    final core::Set<Never> #t12 = col::LinkedHashSet::•<Never>();
+    final core::Iterable<Never>? #t13 = n2;
+    if(!#t13.{core::Object::==}(null))
+      #t12.{core::Set::addAll}{Invariant}(#t13{core::Iterable<Never>});
+    #t12.{core::Set::add}{Invariant}(n1);
+  } =>#t12;
   core::Set<dynamic> s5 = block {
-    final core::Set<dynamic> #t21 = col::LinkedHashSet::•<dynamic>();
-    #t21.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:16:16: Error: Can't spread a value with static type 'Null'.
+    final core::Set<dynamic> #t14 = col::LinkedHashSet::•<dynamic>();
+    #t14.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:16:16: Error: Can't spread a value with static type 'Null'.
   var s5 = {...n3, n1};
                ^");
-    #t21.{core::Set::add}{Invariant}(n1);
-  } =>#t21;
+    #t14.{core::Set::add}{Invariant}(n1);
+  } =>#t14;
   core::Set<Never> s6 = block {
-    final core::Set<Never> #t22 = col::LinkedHashSet::•<Never>();
-    final core::Iterable<Never>? #t23 = n3;
-    if(!#t23.{core::Object::==}(null))
-      for (final Never #t24 in #t23{core::Iterable<Never>})
-        #t22.{core::Set::add}{Invariant}(#t24);
-    #t22.{core::Set::add}{Invariant}(n1);
-  } =>#t22;
+    final core::Set<Never> #t15 = col::LinkedHashSet::•<Never>();
+    final core::Iterable<Never>? #t16 = n3;
+    if(!#t16.{core::Object::==}(null))
+      #t15.{core::Set::addAll}{Invariant}(#t16{core::Iterable<Never>});
+    #t15.{core::Set::add}{Invariant}(n1);
+  } =>#t15;
   core::Map<Never, Never> m1 = block {
-    final core::Map<Never, Never> #t25 = <Never, Never>{};
-    for (final core::MapEntry<Never, Never> #t26 in n1.{core::Map::entries})
-      #t25.{core::Map::[]=}{Invariant}(#t26.{core::MapEntry::key}, #t26.{core::MapEntry::value});
-    #t25.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t25;
+    final core::Map<Never, Never> #t17 = <Never, Never>{};
+    for (final core::MapEntry<Never, Never> #t18 in n1.{core::Map::entries})
+      #t17.{core::Map::[]=}{Invariant}(#t18.{core::MapEntry::key}, #t18.{core::MapEntry::value});
+    #t17.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t17;
   core::Map<Never, Never> m2 = block {
-    final core::Map<Never, Never> #t27 = <Never, Never>{};
-    final core::Map<Never, Never>? #t28 = n1;
-    if(!#t28.{core::Object::==}(null))
-      for (final core::MapEntry<Never, Never> #t29 in #t28{core::Map<Never, Never>}.{core::Map::entries})
-        #t27.{core::Map::[]=}{Invariant}(#t29.{core::MapEntry::key}, #t29.{core::MapEntry::value});
-    #t27.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t27;
+    final core::Map<Never, Never> #t19 = <Never, Never>{};
+    final core::Map<Never, Never>? #t20 = n1;
+    if(!#t20.{core::Object::==}(null))
+      for (final core::MapEntry<Never, Never> #t21 in #t20{core::Map<Never, Never>}.{core::Map::entries})
+        #t19.{core::Map::[]=}{Invariant}(#t21.{core::MapEntry::key}, #t21.{core::MapEntry::value});
+    #t19.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t19;
   core::Map<dynamic, dynamic> m3 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:20:16: Error: Can't spread a value with static type 'Never?'.
   var m3 = {...n2, n1: n1};
                ^": null, n1: n1};
   core::Map<Never, Never> m4 = block {
-    final core::Map<Never, Never> #t30 = <Never, Never>{};
-    final core::Map<Never, Never>? #t31 = n2;
-    if(!#t31.{core::Object::==}(null))
-      for (final core::MapEntry<Never, Never> #t32 in #t31{core::Map<Never, Never>}.{core::Map::entries})
-        #t30.{core::Map::[]=}{Invariant}(#t32.{core::MapEntry::key}, #t32.{core::MapEntry::value});
-    #t30.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t30;
+    final core::Map<Never, Never> #t22 = <Never, Never>{};
+    final core::Map<Never, Never>? #t23 = n2;
+    if(!#t23.{core::Object::==}(null))
+      for (final core::MapEntry<Never, Never> #t24 in #t23{core::Map<Never, Never>}.{core::Map::entries})
+        #t22.{core::Map::[]=}{Invariant}(#t24.{core::MapEntry::key}, #t24.{core::MapEntry::value});
+    #t22.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t22;
   core::Map<dynamic, dynamic> m5 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:22:16: Error: Can't spread a value with static type 'Null'.
   var m5 = {...n3, n1: n1};
                ^": null, n1: n1};
   core::Map<Never, Never> m6 = block {
-    final core::Map<Never, Never> #t33 = <Never, Never>{};
-    final core::Map<Never, Never>? #t34 = n3;
-    if(!#t34.{core::Object::==}(null))
-      for (final core::MapEntry<Never, Never> #t35 in #t34{core::Map<Never, Never>}.{core::Map::entries})
-        #t33.{core::Map::[]=}{Invariant}(#t35.{core::MapEntry::key}, #t35.{core::MapEntry::value});
-    #t33.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t33;
+    final core::Map<Never, Never> #t25 = <Never, Never>{};
+    final core::Map<Never, Never>? #t26 = n3;
+    if(!#t26.{core::Object::==}(null))
+      for (final core::MapEntry<Never, Never> #t27 in #t26{core::Map<Never, Never>}.{core::Map::entries})
+        #t25.{core::Map::[]=}{Invariant}(#t27.{core::MapEntry::key}, #t27.{core::MapEntry::value});
+    #t25.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t25;
 }
 static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 extends Null = Null>(self::test2::N1 n1, self::test2::N2% n2, self::test2::N3% n3) → dynamic {
   core::List<Never> l1 = block {
-    final core::List<Never> #t36 = <Never>[];
-    for (final Never #t37 in n1)
-      #t36.{core::List::add}{Invariant}(#t37);
-  } =>#t36;
+    final core::List<Never> #t28 = core::List::of<Never>(n1);
+  } =>#t28;
   core::List<Never> l2 = block {
-    final core::List<Never> #t38 = <Never>[];
-    final core::Iterable<Never>? #t39 = n1;
-    if(!#t39.{core::Object::==}(null))
-      for (final Never #t40 in #t39{core::Iterable<Never>})
-        #t38.{core::List::add}{Invariant}(#t40);
-  } =>#t38;
+    final core::List<Never> #t29 = <Never>[];
+    final core::Iterable<Never>? #t30 = n1;
+    if(!#t30.{core::Object::==}(null))
+      #t29.{core::List::addAll}{Invariant}(#t30{core::Iterable<Never>});
+  } =>#t29;
   core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:30:16: Error: Can't spread a value with static type 'N2'.
   var l3 = [...n2];
                ^"];
   core::List<Never> l4 = block {
-    final core::List<Never> #t41 = <Never>[];
-    final core::Iterable<Never>? #t42 = n2;
-    if(!#t42.{core::Object::==}(null))
-      for (final Never #t43 in #t42{core::Iterable<Never>})
-        #t41.{core::List::add}{Invariant}(#t43);
-  } =>#t41;
+    final core::List<Never> #t31 = <Never>[];
+    final core::Iterable<Never>? #t32 = n2;
+    if(!#t32.{core::Object::==}(null))
+      #t31.{core::List::addAll}{Invariant}(#t32{core::Iterable<Never>});
+  } =>#t31;
   core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:32:16: Error: Can't spread a value with static type 'N3'.
   var l5 = [...n3];
                ^"];
   core::List<Never> l6 = block {
-    final core::List<Never> #t44 = <Never>[];
-    final core::Iterable<Never>? #t45 = n3;
-    if(!#t45.{core::Object::==}(null))
-      for (final Never #t46 in #t45{core::Iterable<Never>})
-        #t44.{core::List::add}{Invariant}(#t46);
-  } =>#t44;
+    final core::List<Never> #t33 = <Never>[];
+    final core::Iterable<Never>? #t34 = n3;
+    if(!#t34.{core::Object::==}(null))
+      #t33.{core::List::addAll}{Invariant}(#t34{core::Iterable<Never>});
+  } =>#t33;
   core::Set<self::test2::N1> s1 = block {
-    final core::Set<self::test2::N1> #t47 = col::LinkedHashSet::•<self::test2::N1>();
-    for (final self::test2::N1 #t48 in n1)
-      #t47.{core::Set::add}{Invariant}(#t48);
-    #t47.{core::Set::add}{Invariant}(n1);
-  } =>#t47;
+    final core::Set<self::test2::N1> #t35 = col::LinkedHashSet::of<self::test2::N1>(n1);
+    #t35.{core::Set::add}{Invariant}(n1);
+  } =>#t35;
   core::Set<self::test2::N1> s2 = block {
-    final core::Set<self::test2::N1> #t49 = col::LinkedHashSet::•<self::test2::N1>();
-    final core::Iterable<self::test2::N1>? #t50 = n1;
-    if(!#t50.{core::Object::==}(null))
-      for (final self::test2::N1 #t51 in #t50{core::Iterable<self::test2::N1>})
-        #t49.{core::Set::add}{Invariant}(#t51);
-    #t49.{core::Set::add}{Invariant}(n1);
-  } =>#t49;
+    final core::Set<self::test2::N1> #t36 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Iterable<self::test2::N1>? #t37 = n1;
+    if(!#t37.{core::Object::==}(null))
+      #t36.{core::Set::addAll}{Invariant}(#t37{core::Iterable<self::test2::N1>});
+    #t36.{core::Set::add}{Invariant}(n1);
+  } =>#t36;
   core::Set<dynamic> s3 = block {
-    final core::Set<dynamic> #t52 = col::LinkedHashSet::•<dynamic>();
-    #t52.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:36:16: Error: Can't spread a value with static type 'N2'.
+    final core::Set<dynamic> #t38 = col::LinkedHashSet::•<dynamic>();
+    #t38.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:36:16: Error: Can't spread a value with static type 'N2'.
   var s3 = {...n2, n1};
                ^");
-    #t52.{core::Set::add}{Invariant}(n1);
-  } =>#t52;
+    #t38.{core::Set::add}{Invariant}(n1);
+  } =>#t38;
   core::Set<self::test2::N1> s4 = block {
-    final core::Set<self::test2::N1> #t53 = col::LinkedHashSet::•<self::test2::N1>();
-    final core::Iterable<self::test2::N1>? #t54 = n2;
-    if(!#t54.{core::Object::==}(null))
-      for (final self::test2::N1 #t55 in #t54{core::Iterable<self::test2::N1>})
-        #t53.{core::Set::add}{Invariant}(#t55);
-    #t53.{core::Set::add}{Invariant}(n1);
-  } =>#t53;
+    final core::Set<self::test2::N1> #t39 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Iterable<self::test2::N1>? #t40 = n2;
+    if(!#t40.{core::Object::==}(null))
+      #t39.{core::Set::addAll}{Invariant}(#t40{core::Iterable<self::test2::N1>});
+    #t39.{core::Set::add}{Invariant}(n1);
+  } =>#t39;
   core::Set<dynamic> s5 = block {
-    final core::Set<dynamic> #t56 = col::LinkedHashSet::•<dynamic>();
-    #t56.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:38:16: Error: Can't spread a value with static type 'N3'.
+    final core::Set<dynamic> #t41 = col::LinkedHashSet::•<dynamic>();
+    #t41.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:38:16: Error: Can't spread a value with static type 'N3'.
   var s5 = {...n3, n1};
                ^");
-    #t56.{core::Set::add}{Invariant}(n1);
-  } =>#t56;
+    #t41.{core::Set::add}{Invariant}(n1);
+  } =>#t41;
   core::Set<self::test2::N1> s6 = block {
-    final core::Set<self::test2::N1> #t57 = col::LinkedHashSet::•<self::test2::N1>();
-    final core::Iterable<self::test2::N1>? #t58 = n3;
-    if(!#t58.{core::Object::==}(null))
-      for (final self::test2::N1 #t59 in #t58{core::Iterable<self::test2::N1>})
-        #t57.{core::Set::add}{Invariant}(#t59);
-    #t57.{core::Set::add}{Invariant}(n1);
-  } =>#t57;
+    final core::Set<self::test2::N1> #t42 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Iterable<self::test2::N1>? #t43 = n3;
+    if(!#t43.{core::Object::==}(null))
+      #t42.{core::Set::addAll}{Invariant}(#t43{core::Iterable<self::test2::N1>});
+    #t42.{core::Set::add}{Invariant}(n1);
+  } =>#t42;
   core::Map<self::test2::N1, self::test2::N1> m1 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t60 = <self::test2::N1, self::test2::N1>{};
-    for (final core::MapEntry<self::test2::N1, self::test2::N1> #t61 in n1.{core::Map::entries})
-      #t60.{core::Map::[]=}{Invariant}(#t61.{core::MapEntry::key}, #t61.{core::MapEntry::value});
-    #t60.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t60;
+    final core::Map<self::test2::N1, self::test2::N1> #t44 = <self::test2::N1, self::test2::N1>{};
+    for (final core::MapEntry<self::test2::N1, self::test2::N1> #t45 in n1.{core::Map::entries})
+      #t44.{core::Map::[]=}{Invariant}(#t45.{core::MapEntry::key}, #t45.{core::MapEntry::value});
+    #t44.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t44;
   core::Map<self::test2::N1, self::test2::N1> m2 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t62 = <self::test2::N1, self::test2::N1>{};
-    final core::Map<self::test2::N1, self::test2::N1>? #t63 = n1;
-    if(!#t63.{core::Object::==}(null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t64 in #t63{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
-        #t62.{core::Map::[]=}{Invariant}(#t64.{core::MapEntry::key}, #t64.{core::MapEntry::value});
-    #t62.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t62;
+    final core::Map<self::test2::N1, self::test2::N1> #t46 = <self::test2::N1, self::test2::N1>{};
+    final core::Map<self::test2::N1, self::test2::N1>? #t47 = n1;
+    if(!#t47.{core::Object::==}(null))
+      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t48 in #t47{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
+        #t46.{core::Map::[]=}{Invariant}(#t48.{core::MapEntry::key}, #t48.{core::MapEntry::value});
+    #t46.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t46;
   core::Map<dynamic, dynamic> m3 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:42:16: Error: Can't spread a value with static type 'N2'.
   var m3 = {...n2, n1: n1};
                ^": null, n1: n1};
   core::Map<self::test2::N1, self::test2::N1> m4 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t65 = <self::test2::N1, self::test2::N1>{};
-    final core::Map<self::test2::N1, self::test2::N1>? #t66 = n2;
-    if(!#t66.{core::Object::==}(null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t67 in #t66{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
-        #t65.{core::Map::[]=}{Invariant}(#t67.{core::MapEntry::key}, #t67.{core::MapEntry::value});
-    #t65.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t65;
+    final core::Map<self::test2::N1, self::test2::N1> #t49 = <self::test2::N1, self::test2::N1>{};
+    final core::Map<self::test2::N1, self::test2::N1>? #t50 = n2;
+    if(!#t50.{core::Object::==}(null))
+      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t51 in #t50{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
+        #t49.{core::Map::[]=}{Invariant}(#t51.{core::MapEntry::key}, #t51.{core::MapEntry::value});
+    #t49.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t49;
   core::Map<dynamic, dynamic> m5 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:44:16: Error: Can't spread a value with static type 'N3'.
   var m5 = {...n3, n1: n1};
                ^": null, n1: n1};
   core::Map<self::test2::N1, self::test2::N1> m6 = block {
-    final core::Map<self::test2::N1, self::test2::N1> #t68 = <self::test2::N1, self::test2::N1>{};
-    final core::Map<self::test2::N1, self::test2::N1>? #t69 = n3;
-    if(!#t69.{core::Object::==}(null))
-      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t70 in #t69{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
-        #t68.{core::Map::[]=}{Invariant}(#t70.{core::MapEntry::key}, #t70.{core::MapEntry::value});
-    #t68.{core::Map::[]=}{Invariant}(n1, n1);
-  } =>#t68;
+    final core::Map<self::test2::N1, self::test2::N1> #t52 = <self::test2::N1, self::test2::N1>{};
+    final core::Map<self::test2::N1, self::test2::N1>? #t53 = n3;
+    if(!#t53.{core::Object::==}(null))
+      for (final core::MapEntry<self::test2::N1, self::test2::N1> #t54 in #t53{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries})
+        #t52.{core::Map::[]=}{Invariant}(#t54.{core::MapEntry::key}, #t54.{core::MapEntry::value});
+    #t52.{core::Map::[]=}{Invariant}(n1, n1);
+  } =>#t52;
 }
 static method main() → dynamic {}

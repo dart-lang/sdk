@@ -1,0 +1,176 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+import "dart:_internal" as _in;
+
+static method useAddAll() → void {
+  dynamic dynamicSet1 = block {
+    final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>();
+    #t1.{core::Set::add}{Invariant}(0);
+    #t1.{core::Set::add}{Invariant}(1);
+    #t1.{core::Set::add}{Invariant}(2);
+  } =>#t1;
+  dynamic dynamicSet2 = block {
+    final core::Set<core::num> #t2 = col::LinkedHashSet::•<core::num>();
+    #t2.{core::Set::add}{Invariant}(3);
+    #t2.{core::Set::add}{Invariant}(4);
+    #t2.{core::Set::add}{Invariant}(5);
+  } =>#t2;
+  dynamic dynamicSet3 = block {
+    final core::Set<core::int?> #t3 = col::LinkedHashSet::•<core::int?>();
+    #t3.{core::Set::add}{Invariant}(6);
+    #t3.{core::Set::add}{Invariant}(7);
+    #t3.{core::Set::add}{Invariant}(8);
+  } =>#t3;
+  core::Iterable<core::int> iterableIntSet = block {
+    final core::Set<core::int> #t4 = col::LinkedHashSet::•<core::int>();
+    #t4.{core::Set::add}{Invariant}(9);
+    #t4.{core::Set::add}{Invariant}(10);
+    #t4.{core::Set::add}{Invariant}(11);
+  } =>#t4;
+  core::Set<core::int> intSet = block {
+    final core::Set<core::int> #t5 = col::LinkedHashSet::•<core::int>();
+    #t5.{core::Set::add}{Invariant}(12);
+    #t5.{core::Set::add}{Invariant}(13);
+    #t5.{core::Set::add}{Invariant}(14);
+  } =>#t5;
+  core::Set<core::int> set1 = block {
+    final core::Set<core::int> #t6 = col::LinkedHashSet::•<core::int>();
+    for (final dynamic #t7 in dynamicSet1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+      final core::int #t8 = #t7 as{TypeError,ForNonNullableByDefault} core::int;
+      #t6.{core::Set::add}{Invariant}(#t8);
+    }
+    for (final dynamic #t9 in dynamicSet2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+      final core::int #t10 = #t9 as{TypeError,ForNonNullableByDefault} core::int;
+      #t6.{core::Set::add}{Invariant}(#t10);
+    }
+    for (final dynamic #t11 in dynamicSet3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+      final core::int #t12 = #t11 as{TypeError,ForNonNullableByDefault} core::int;
+      #t6.{core::Set::add}{Invariant}(#t12);
+    }
+    #t6.{core::Set::addAll}{Invariant}(iterableIntSet);
+    #t6.{core::Set::addAll}{Invariant}(intSet);
+  } =>#t6;
+  self::expect(core::List::generate<core::int>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(), set1);
+  core::Set<core::num> set2 = block {
+    final core::Set<core::num> #t13 = col::LinkedHashSet::•<core::num>();
+    for (final dynamic #t14 in dynamicSet1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+      final core::num #t15 = #t14 as{TypeError,ForNonNullableByDefault} core::num;
+      #t13.{core::Set::add}{Invariant}(#t15);
+    }
+    for (final dynamic #t16 in dynamicSet2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+      final core::num #t17 = #t16 as{TypeError,ForNonNullableByDefault} core::num;
+      #t13.{core::Set::add}{Invariant}(#t17);
+    }
+    for (final dynamic #t18 in dynamicSet3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+      final core::num #t19 = #t18 as{TypeError,ForNonNullableByDefault} core::num;
+      #t13.{core::Set::add}{Invariant}(#t19);
+    }
+    #t13.{core::Set::addAll}{Invariant}(iterableIntSet);
+    #t13.{core::Set::addAll}{Invariant}(intSet);
+  } =>#t13;
+  self::expect(core::List::generate<core::num>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(), set2);
+}
+static method useAddAllNullable() → void {
+  dynamic dynamicSet1 = block {
+    final core::Set<core::int> #t20 = col::LinkedHashSet::•<core::int>();
+    #t20.{core::Set::add}{Invariant}(0);
+    #t20.{core::Set::add}{Invariant}(1);
+    #t20.{core::Set::add}{Invariant}(2);
+  } =>#t20;
+  dynamic dynamicSet2 = block {
+    final core::Set<core::num> #t21 = col::LinkedHashSet::•<core::num>();
+    #t21.{core::Set::add}{Invariant}(3);
+    #t21.{core::Set::add}{Invariant}(4);
+    #t21.{core::Set::add}{Invariant}(5);
+  } =>#t21;
+  dynamic dynamicSet3 = block {
+    final core::Set<core::int?> #t22 = col::LinkedHashSet::•<core::int?>();
+    #t22.{core::Set::add}{Invariant}(6);
+    #t22.{core::Set::add}{Invariant}(7);
+    #t22.{core::Set::add}{Invariant}(8);
+  } =>#t22;
+  core::Iterable<core::int>? iterableIntSet = true ?{core::Set<core::int>?} block {
+    final core::Set<core::int> #t23 = col::LinkedHashSet::•<core::int>();
+    #t23.{core::Set::add}{Invariant}(9);
+    #t23.{core::Set::add}{Invariant}(10);
+    #t23.{core::Set::add}{Invariant}(11);
+  } =>#t23 : null;
+  core::Set<core::int>? intSet = true ?{core::Set<core::int>?} block {
+    final core::Set<core::int> #t24 = col::LinkedHashSet::•<core::int>();
+    #t24.{core::Set::add}{Invariant}(12);
+    #t24.{core::Set::add}{Invariant}(13);
+    #t24.{core::Set::add}{Invariant}(14);
+  } =>#t24 : null;
+  core::Set<core::int> set1 = block {
+    final core::Set<core::int> #t25 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t26 = dynamicSet1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    if(!#t26.{core::Object::==}(null))
+      for (final dynamic #t27 in #t26{core::Iterable<dynamic>}) {
+        final core::int #t28 = #t27 as{TypeError,ForNonNullableByDefault} core::int;
+        #t25.{core::Set::add}{Invariant}(#t28);
+      }
+    final core::Iterable<dynamic>? #t29 = dynamicSet2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    if(!#t29.{core::Object::==}(null))
+      for (final dynamic #t30 in #t29{core::Iterable<dynamic>}) {
+        final core::int #t31 = #t30 as{TypeError,ForNonNullableByDefault} core::int;
+        #t25.{core::Set::add}{Invariant}(#t31);
+      }
+    final core::Iterable<dynamic>? #t32 = dynamicSet3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    if(!#t32.{core::Object::==}(null))
+      for (final dynamic #t33 in #t32{core::Iterable<dynamic>}) {
+        final core::int #t34 = #t33 as{TypeError,ForNonNullableByDefault} core::int;
+        #t25.{core::Set::add}{Invariant}(#t34);
+      }
+    final core::Iterable<core::int>? #t35 = iterableIntSet;
+    if(!#t35.{core::Object::==}(null))
+      #t25.{core::Set::addAll}{Invariant}(#t35{core::Iterable<core::int>});
+    final core::Iterable<core::int>? #t36 = intSet;
+    if(!#t36.{core::Object::==}(null))
+      #t25.{core::Set::addAll}{Invariant}(#t36{core::Iterable<core::int>});
+  } =>#t25;
+  self::expect(core::List::generate<core::int>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(), set1);
+  core::Set<core::num> set2 = block {
+    final core::Set<core::num> #t37 = col::LinkedHashSet::•<core::num>();
+    final core::Iterable<dynamic>? #t38 = dynamicSet1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    if(!#t38.{core::Object::==}(null))
+      for (final dynamic #t39 in #t38{core::Iterable<dynamic>}) {
+        final core::num #t40 = #t39 as{TypeError,ForNonNullableByDefault} core::num;
+        #t37.{core::Set::add}{Invariant}(#t40);
+      }
+    final core::Iterable<dynamic>? #t41 = dynamicSet2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    if(!#t41.{core::Object::==}(null))
+      for (final dynamic #t42 in #t41{core::Iterable<dynamic>}) {
+        final core::num #t43 = #t42 as{TypeError,ForNonNullableByDefault} core::num;
+        #t37.{core::Set::add}{Invariant}(#t43);
+      }
+    final core::Iterable<dynamic>? #t44 = dynamicSet3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    if(!#t44.{core::Object::==}(null))
+      for (final dynamic #t45 in #t44{core::Iterable<dynamic>}) {
+        final core::num #t46 = #t45 as{TypeError,ForNonNullableByDefault} core::num;
+        #t37.{core::Set::add}{Invariant}(#t46);
+      }
+    final core::Iterable<core::num>? #t47 = iterableIntSet;
+    if(!#t47.{core::Object::==}(null))
+      #t37.{core::Set::addAll}{Invariant}(#t47{core::Iterable<core::num>});
+    final core::Iterable<core::num>? #t48 = intSet;
+    if(!#t48.{core::Object::==}(null))
+      #t37.{core::Set::addAll}{Invariant}(#t48{core::Iterable<core::num>});
+  } =>#t37;
+  self::expect(core::List::generate<core::num>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(), set2);
+}
+static method main() → dynamic {
+  self::useAddAll();
+  self::useAddAllNullable();
+}
+static method expect(core::Set<dynamic> set1, core::Set<dynamic> set2) → void {
+  if(!set1.{_in::EfficientLengthIterable::length}.{core::num::==}(set2.{_in::EfficientLengthIterable::length})) {
+    throw "Unexpected length. Expected ${set1.{_in::EfficientLengthIterable::length}}, actual ${set2.{_in::EfficientLengthIterable::length}}.";
+  }
+  for (dynamic element in set1) {
+    if(!set2.{core::Set::contains}(element)) {
+      throw "Element ${element} not found. Expected ${set1}, actual ${set2}.";
+    }
+  }
+}
