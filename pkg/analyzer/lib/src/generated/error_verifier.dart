@@ -3209,7 +3209,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
         for (var member in statement.members) {
           if (member is SwitchCase) {
-            var expression = member.expression;
+            var expression = member.expression.unParenthesized;
             if (expression is NullLiteral) {
               hasCaseNull = true;
             } else {
