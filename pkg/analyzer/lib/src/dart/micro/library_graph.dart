@@ -519,6 +519,13 @@ class FileSystemState {
     }
   }
 
+  /// Clears all the cached files. Returns the list of ids of all the removed
+  /// files.
+  Set<int> collectSharedDataIdentifiers() {
+    var files = _pathToFile.values.map((file) => file.id).toSet();
+    return files;
+  }
+
   FeatureSet contextFeatureSet(
     String path,
     Uri uri,

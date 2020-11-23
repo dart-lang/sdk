@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:matcher/matcher.dart';
@@ -307,6 +308,19 @@ var b = 1 + 2;
     assertElement(findNode.simple('int a'), intElement);
 
     assertType(findElement.topVar('b').type, 'int');
+  }
+
+  test_collectSharedDataIdentifiers() async {
+    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
+
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    await resolveFile(aPath);
+    fileResolver.collectSharedDataIdentifiers();
+    expect(fileResolver.removedCacheIds.length,
+        (fileResolver.byteStore as CiderCachedByteStore).testView.length);
   }
 
   test_getErrors() {

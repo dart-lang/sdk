@@ -147,6 +147,13 @@ class FileResolver {
     }
   }
 
+  /// Collects all the cached artifacts and add all the cache id's for the
+  /// removed artifacts to [removedCacheIds].
+  void collectSharedDataIdentifiers() {
+    removedCacheIds.addAll(fsState.collectSharedDataIdentifiers());
+    removedCacheIds.addAll(libraryContext.collectSharedDataIdentifiers());
+  }
+
   @deprecated
   void dispose() {}
 
@@ -629,6 +636,14 @@ class _LibraryContext {
       contextObjects.analysisSession,
       Reference.root(),
     );
+  }
+
+  /// Clears all the loaded libraries. Returns the cache ids for the removed
+  /// artifacts.
+  Set<int> collectSharedDataIdentifiers() {
+    var ids = loadedBundles.map((cycle) => cycle.id).toSet();
+    loadedBundles.clear();
+    return ids;
   }
 
   /// Load data required to access elements of the given [targetLibrary].
