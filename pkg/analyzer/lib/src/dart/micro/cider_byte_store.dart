@@ -35,9 +35,16 @@ abstract class CiderByteStore {
   void release(Iterable<int> ids);
 }
 
+class CiderByteStoreTestView {
+  int length = 0;
+}
+
 class CiderCachedByteStore implements CiderByteStore {
   final Cache<String, CiderCacheEntry> _cache;
   int idCounter = 0;
+
+  /// This field gets value only during testing.
+  CiderByteStoreTestView testView;
 
   CiderCachedByteStore(int maxCacheSize)
       : _cache = Cache<String, CiderCacheEntry>(
@@ -59,6 +66,7 @@ class CiderCachedByteStore implements CiderByteStore {
     idCounter++;
     var entry = CiderCacheEntry(signature, CacheData(idCounter, bytes));
     _cache.put(key, entry);
+    testView?.length++;
     return entry.data;
   }
 

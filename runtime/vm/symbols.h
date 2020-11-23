@@ -481,10 +481,12 @@ class ObjectPointerVisitor;
   V(position_registers, ":position_registers")                                 \
   V(print, "print")                                                            \
   V(removeLast, "removeLast")                                                  \
-  V(result, ":result")                                                         \
+  V(c_result, ":result")                                                       \
+  V(result, "result")                                                          \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
   V(start_index_param, ":start_index_param")                                   \
+  V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
   V(toString, "toString")                                                      \

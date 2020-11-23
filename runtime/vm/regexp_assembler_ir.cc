@@ -166,7 +166,7 @@ void IRRegExpMacroAssembler::InitializeLocals() {
   char_in_capture_ = Local(Symbols::char_in_capture());
   char_in_match_ = Local(Symbols::char_in_match());
   index_temp_ = Local(Symbols::index_temp());
-  result_ = Local(Symbols::result());
+  result_ = Local(Symbols::c_result());
 
   string_param_ = Parameter(Symbols::string_param(),
                             RegExpMacroAssembler::kParamStringIndex);

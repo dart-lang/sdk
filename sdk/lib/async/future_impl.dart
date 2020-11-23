@@ -74,15 +74,22 @@ class _FutureListener<S, T> {
   static const int maskType =
       maskValue | maskError | maskTestError | maskWhencomplete;
   static const int stateIsAwait = 16;
+
   // Listeners on the same future are linked through this link.
   _FutureListener? _nextListener;
+
   // The future to complete when this listener is activated.
+  @pragma("vm:entry-point")
   final _Future<T> result;
+
   // Which fields means what.
+  @pragma("vm:entry-point")
   final int state;
+
   // Used for then/whenDone callback and error test
   @pragma("vm:entry-point")
   final Function? callback;
+
   // Used for error callbacks.
   final Function? errorCallback;
 
