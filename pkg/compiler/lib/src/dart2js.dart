@@ -285,6 +285,10 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setCfeOnly(String argument) {
+    if (writeStrategy == WriteStrategy.toClosedWorld) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized closed world simultaneously.");
+    }
     if (writeStrategy == WriteStrategy.toData) {
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized data simultaneously.");
@@ -644,7 +648,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     case WriteStrategy.toKernel:
       out ??= Uri.base.resolve('out.dill');
       options.add(Flags.cfeOnly);
-      if (readStrategy == ReadStrategy.fromData) {
+      if (readStrategy == ReadStrategy.fromClosedWorld) {
+        fail("Cannot use ${Flags.cfeOnly} "
+            "and read serialized closed world simultaneously.");
+      } else if (readStrategy == ReadStrategy.fromData) {
         fail("Cannot use ${Flags.cfeOnly} "
             "and read serialized data simultaneously.");
       } else if (readStrategy == ReadStrategy.fromCodegen) {
