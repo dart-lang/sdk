@@ -796,7 +796,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void ValidateClassTable();
 #endif
   // Register a newly introduced static field.
-  void RegisterStaticField(const Field& field);
+  void RegisterStaticField(const Field& field, const Instance& initial_value);
 
   void RehashConstants();
 #if defined(DEBUG)

@@ -133,7 +133,7 @@ vars = {
   "pool_rev": "eedbd5fde84f9a1a8da643b475305a81841da599",
   "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
   "pub_rev": "228e69e53862879c283c42b98086aa7536012a66",
-  "pub_semver_tag": "v1.4.4",
+  "pub_semver_rev": "10569a1e867e909cf5db201f73118020453e5db8",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
@@ -388,7 +388,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/protobuf":
        Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
-      Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_tag"),
+      Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/pub":
       Var("dart_git") + "pub.git" + "@" + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/resource":

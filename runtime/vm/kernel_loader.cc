@@ -214,6 +214,7 @@ KernelLoader::KernelLoader(Program* program,
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
+      static_field_value_(Instance::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -479,6 +480,7 @@ KernelLoader::KernelLoader(const Script& script,
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
+      static_field_value_(Instance::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -1234,11 +1236,15 @@ void KernelLoader::FinishTopLevelClassLoading(
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     intptr_t field_initializer_offset = helper_.ReaderOffset();
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+
     {
       // GenerateFieldAccessors reads (some of) the initializer.
       AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
-      GenerateFieldAccessors(toplevel_class, field, &field_helper);
+      static_field_value_ =
+          GenerateFieldAccessors(toplevel_class, field, &field_helper);
     }
+    I->RegisterStaticField(field, static_field_value_);
+
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
       library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
@@ -1606,10 +1612,15 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+
       {
         // GenerateFieldAccessors reads (some of) the initializer.
         AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
-        GenerateFieldAccessors(klass, field, &field_helper);
+        static_field_value_ =
+            GenerateFieldAccessors(klass, field, &field_helper);
+      }
+      if (field.is_static()) {
+        I->RegisterStaticField(field, static_field_value_);
       }
       if ((FLAG_enable_mirrors || has_pragma_annotation) &&
           annotation_count > 0) {
@@ -1631,6 +1642,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      /* is_reflectable = */ false,
                      /* is_late = */ false, klass, Object::dynamic_type(),
                      TokenPosition::kNoSource, TokenPosition::kNoSource);
+      I->RegisterStaticField(deleted_enum_sentinel, Instance::Handle());
       fields_.Add(&deleted_enum_sentinel);
     }
 
@@ -2135,20 +2147,19 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   return script.raw();
 }
 
-void KernelLoader::GenerateFieldAccessors(const Class& klass,
-                                          const Field& field,
-                                          FieldHelper* field_helper) {
+InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
+                                                 const Field& field,
+                                                 FieldHelper* field_helper) {
   const Tag tag = helper_.PeekTag();
   const bool has_initializer = (tag == kSomething);
+
   if (has_initializer) {
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);  // ignore the tag.
     if (has_simple_initializer) {
       if (field_helper->IsStatic()) {
-        // We do not need a getter.
-        field.SetStaticValue(converter.SimpleValue(), true);
-        return;
+        return converter.SimpleValue().raw();
       } else {
         // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
         // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
@@ -2166,12 +2177,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     if (!has_initializer && !field_helper->IsLate()) {
       // Static fields without an initializer are implicitly initialized to
       // null. We do not need a getter.
-      field.SetStaticValue(Instance::null_instance(), true);
-      return;
+      return Instance::null();
     }
-
-    // We do need a getter that evaluates the initializer if necessary.
-    field.SetStaticValue(Object::sentinel(), true);
   }
   ASSERT(field.NeedsGetter());
 
@@ -2230,6 +2237,10 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     T.SetupUnboxingInfoMetadataForFieldAccessors(setter,
                                                  library_kernel_offset_);
   }
+
+  // If static, we do need a getter that evaluates the initializer if necessary.
+  return field_helper->IsStatic() ? Instance::sentinel().raw()
+                                  : Instance::null();
 }
 
 LibraryPtr KernelLoader::LookupLibraryOrNull(NameIndex library) {

@@ -2950,12 +2950,13 @@ static ClassPtr CreateTestClass(const char* name) {
 }
 
 static FieldPtr CreateTestField(const char* name) {
+  auto thread = Thread::Current();
   const Class& cls = Class::Handle(CreateTestClass("global:"));
-  const String& field_name =
-      String::Handle(Symbols::New(Thread::Current(), name));
+  const String& field_name = String::Handle(Symbols::New(thread, name));
   const Field& field = Field::Handle(Field::New(
       field_name, true, false, false, true, false, cls, Object::dynamic_type(),
       TokenPosition::kMinSource, TokenPosition::kMinSource));
+  thread->isolate()->RegisterStaticField(field, Instance::sentinel());
   return field.raw();
 }
 

@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/commands/fix.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -42,7 +41,7 @@ void defineFix() {
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(FixCommand.cmdDescription));
+    expect(result.stdout, contains('Fix Dart source code.'));
   });
 
   test('--apply (none)', () {

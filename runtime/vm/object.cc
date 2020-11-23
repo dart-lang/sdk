@@ -4377,8 +4377,9 @@ bool Class::InjectCIDFields() const {
     return false;
   }
 
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
+  auto thread = Thread::Current();
+  auto isolate = thread->isolate();
+  auto zone = thread->zone();
   Field& field = Field::Handle(zone);
   Smi& value = Smi::Handle(zone);
   String& field_name = String::Handle(zone);
@@ -4416,7 +4417,7 @@ bool Class::InjectCIDFields() const {
                        /* is_late = */ false, *this, field_type,
                        TokenPosition::kMinSource, TokenPosition::kMinSource);
     value = Smi::New(cid_fields[i].cid);
-    field.SetStaticValue(value, true);
+    isolate->RegisterStaticField(field, value);
     AddField(field);
   }
 
@@ -10088,7 +10089,9 @@ void Field::InitializeNew(const Field& result,
   result.set_kind_bits(0);
   result.set_name(name);
   result.set_is_static(is_static);
-  if (!is_static) {
+  if (is_static) {
+    result.set_field_id(-1);
+  } else {
     result.SetOffset(0, 0);
   }
   result.set_is_final(is_final);
@@ -10113,9 +10116,6 @@ void Field::InitializeNew(const Field& result,
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
   Isolate* isolate = Isolate::Current();
-  if (is_static) {
-    isolate->RegisterStaticField(result);
-  }
 
 // Use field guards if they are enabled and the isolate has never reloaded.
 // TODO(johnmccutchan): The reload case assumes the worst case (everything is
@@ -10730,9 +10730,11 @@ static bool FindInstantiationOf(const Type& type,
 void Field::SetStaticValue(const Instance& value,
                            bool save_initial_value) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+
   ASSERT(is_static());  // Valid only for static dart fields.
   Isolate* isolate = Isolate::Current();
   const intptr_t id = field_id();
+  ASSERT(id >= 0);
   isolate->field_table()->SetAt(id, value.raw());
   if (save_initial_value) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -11659,8 +11661,9 @@ void Library::AddMetadata(const Object& owner,
                                              owner, token_pos, token_pos));
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
-  field.SetStaticValue(Array::empty_array(), true);
   field.set_kernel_offset(kernel_offset);
+  thread->isolate()->RegisterStaticField(field, Array::empty_array());
+
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -13365,16 +13368,20 @@ void Namespace::set_metadata_field(const Field& value) const {
 void Namespace::AddMetadata(const Object& owner,
                             TokenPosition token_pos,
                             intptr_t kernel_offset) {
-  ASSERT(Field::Handle(metadata_field()).IsNull());
-  Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
-                                                  false,  // is_final
-                                                  false,  // is_const
-                                                  false,  // is_late
-                                                  owner, token_pos, token_pos));
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto isolate = thread->isolate();
+  ASSERT(Field::Handle(zone, metadata_field()).IsNull());
+  Field& field =
+      Field::Handle(zone, Field::NewTopLevel(Symbols::TopLevel(),
+                                             false,  // is_final
+                                             false,  // is_const
+                                             false,  // is_late
+                                             owner, token_pos, token_pos));
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
-  field.SetStaticValue(Array::empty_array(), true);
   field.set_kernel_offset(kernel_offset);
+  isolate->RegisterStaticField(field, Array::empty_array());
   set_metadata_field(field);
 }
 

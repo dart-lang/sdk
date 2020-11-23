@@ -849,6 +849,7 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
 CompilerDeoptInfo* FlowGraphCompiler::AddSlowPathDeoptInfo(intptr_t deopt_id,
                                                            Environment* env) {
   ASSERT(deopt_id != DeoptId::kNone);
+  deopt_id = DeoptId::ToDeoptAfter(deopt_id);
   CompilerDeoptInfo* info =
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptUnknown, 0, env);
   info->set_pc_offset(assembler()->CodeSize());
@@ -3083,7 +3084,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
                           instruction()->token_pos(), try_index_);
   AddMetadataForRuntimeCall(compiler);
   compiler->RecordSafepoint(locs, num_args);
-  if ((try_index_ != kInvalidTryIndex) ||
+  if (!FLAG_precompiled_mode || (try_index_ != kInvalidTryIndex) ||
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), num_args);
