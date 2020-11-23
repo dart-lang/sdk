@@ -54,6 +54,8 @@ class CallerClosureFinder {
 
   Field& future_result_or_listeners_field;
   Field& callback_field;
+  Field& future_listener_state_field;
+  Field& future_listener_result_field;
   Field& controller_controller_field;
   Field& var_data_field;
   Field& state_field;
