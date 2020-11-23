@@ -205,7 +205,7 @@ void newMethod() {
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent,
-        workDoneToken: testWorkDoneToken);
+        workDoneToken: clientProvidedTestWorkDoneToken);
   }
 
   Future<void> test_progress_notSupported() async {

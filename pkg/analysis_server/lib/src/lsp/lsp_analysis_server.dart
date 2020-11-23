@@ -155,9 +155,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     channel.listen(handleMessage, onDone: done, onError: socketError);
     _pluginChangeSubscription =
         pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
-
-    analyzingProgressReporter =
-        ProgressReporter.serverCreated(this, analyzingProgressToken);
   }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
@@ -549,7 +546,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
-  void sendStatusNotification(nd.AnalysisStatus status) {
+  Future<void> sendStatusNotification(nd.AnalysisStatus status) async {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
@@ -563,9 +560,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
 
     if (status.isAnalyzing) {
-      analyzingProgressReporter.begin('Analyzing…');
+      analyzingProgressReporter ??=
+          ProgressReporter.serverCreated(this, analyzingProgressToken)
+            ..begin('Analyzing…');
     } else {
-      analyzingProgressReporter.end();
+      if (analyzingProgressReporter != null) {
+        // Do not null this out until after end completes, otherwise we may try
+        // to create a new token before it's really completed.
+        await analyzingProgressReporter.end();
+        analyzingProgressReporter = null;
+      }
     }
   }
 
