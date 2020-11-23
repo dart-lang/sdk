@@ -12,19 +12,19 @@ import "dart:_internal" as _in;
   }
   return true;
 }
-static method nThPrimeNumber() → core::int* {
+[@vm.unboxing-info.metadata=(i)->b]static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi (value: 50000)] core::int* n) → core::int* {
   core::int* counter = 0;
   for (core::int* i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     if([@vm.inferred-type.metadata=dart.core::bool] self::isPrime(i))
       counter = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] counter.{core::num::+}(1);
-    if([@vm.inferred-type.metadata=dart.core::bool] counter.{core::num::==}(#C1)) {
+    if([@vm.inferred-type.metadata=dart.core::bool] counter.{core::num::==}(n)) {
       return i;
     }
   }
 }
 static method run() → void {
   core::int* e = 611953;
-  core::int* p = [@vm.inferred-type.metadata=int?] self::nThPrimeNumber();
+  core::int* p = [@vm.inferred-type.metadata=int?] self::nThPrimeNumber(50000);
   if(![@vm.inferred-type.metadata=dart.core::bool] p.{core::num::==}(e)) {
     throw core::Exception::•("Unexpected result: ${p} != ${e}");
   }

@@ -19,32 +19,23 @@ import '../../metadata/procedure_attributes.dart';
 /// are grouped by table selector ID and thus can cover several implementations.
 ///
 /// Definitions:
-/// - A parameter is checked if it requires a runtime check, either because it
-///   is covariant or it is non-nullable and sound null safety is not enabled.
-///   If sound null safety is not enabled, the analysis currently conservatively
-///   assumes that null assertions are enabled. If we add a flag for null
-///   assertions to gen_kernel, this flag can form part of the definition.
 /// - A parameter is used if it is mentioned in the body (or, for constructors,
-///   an initializer) of any implementation, or it is checked. An occurrence as
-///   an argument to a call (a use dependency) is only considered a use if the
-///   corresponding target parameter is used.
+///   an initializer) of any implementation.
 /// - A parameter can be eliminated if either:
-///   1. it is not used,
-///   2. it is never passed and is not written to in any implementation, or
-///   3. it is a constant (though not necessarily the same constant) in every
-///      implementation and is neither written to nor checked.
+///   1. it is not used; or
+///   2. it is never passed and is not written to in any implementation.
 /// - A function is eligible if it is not external and is guaranteed to not be
 ///   called with an unknown call signature.
 ///
 /// All eligible signatures are transformed such that they contain, in order:
-/// 1. All positional parameters that are always passed and can't be
-///    eliminated, as required positional parameters.
-/// 2. All named parameters that are always passed and can't be eliminated,
-///    as required positional parameters, alphabetically by name.
-/// 3. All positional parameters that are not always passed and can't be
+/// 1. All used positional parameters that are always passed, as required
+///    positional parameters.
+/// 2. All used named parameters that are always passed, as required positional
+///    parameters, alphabetically by name.
+/// 3. All used positional parameters that are not always passed and can't be
 ///    eliminated, as positional parameters, each one required iff it was
 ///    originally required.
-/// 4. All named parameters that are not always passed and can't be
+/// 4. All used named parameters that are not always passed and can't be
 ///    eliminated, as named parameters in alphabetical order.
 class SignatureShaker {
   final TypeFlowAnalysis typeFlowAnalysis;
@@ -73,47 +64,7 @@ class SignatureShaker {
 
   void transformComponent(Component component) {
     _Collect(this).visitComponent(component);
-    _resolveUseDependencies();
     _Transform(this).visitComponent(component);
-  }
-
-  void _resolveUseDependencies() {
-    List<_ParameterInfo> worklist = [];
-    for (_ProcedureInfo info in _memberInfo.values) {
-      _addUseDependenciesForProcedure(info, worklist);
-    }
-    for (_ProcedureInfo info in _selectorInfo.values) {
-      _addUseDependenciesForProcedure(info, worklist);
-    }
-    while (worklist.isNotEmpty) {
-      _ParameterInfo param = worklist.removeLast();
-      for (_ParameterInfo dependencyParam in param.useDependencies) {
-        if (!dependencyParam.isRead) {
-          dependencyParam.isRead = true;
-          if (dependencyParam.useDependencies != null) {
-            worklist.add(dependencyParam);
-          }
-        }
-      }
-    }
-  }
-
-  void _addUseDependenciesForProcedure(
-      _ProcedureInfo info, List<_ParameterInfo> worklist) {
-    for (_ParameterInfo param in info.positional) {
-      _addUseDependenciesForParameter(param, worklist);
-    }
-    for (_ParameterInfo param in info.named.values) {
-      _addUseDependenciesForParameter(param, worklist);
-    }
-  }
-
-  void _addUseDependenciesForParameter(
-      _ParameterInfo param, List<_ParameterInfo> worklist) {
-    if ((param.isUsed || !param.info.eligible) &&
-        param.useDependencies != null) {
-      worklist.add(param);
-    }
   }
 }
 
@@ -152,48 +103,32 @@ class _ParameterInfo {
   int passCount = 0;
   bool isRead = false;
   bool isWritten = false;
-  bool isChecked = false;
-  bool isConstant = true;
-
-  /// List of parameter variables which were passed as arguments via this
-  /// parameter. When this parameter is considered used, all [useDependencies]
-  /// parameters should be transitively marked as read.
-  List<_ParameterInfo> useDependencies = null;
 
   _ParameterInfo(this.info, this.index);
 
   bool get isNamed => index == null;
 
-  bool get isUsed => isRead || isWritten || isChecked;
+  bool get isUsed => isRead || isWritten;
 
   bool get isAlwaysPassed => passCount == info.callCount;
 
   bool get isNeverPassed => passCount == 0;
 
-  bool get canBeEliminated =>
-      !isUsed || (isNeverPassed || isConstant && !isChecked) && !isWritten;
+  bool get canBeEliminated => !isUsed || isNeverPassed && !isWritten;
 
-  void observeParameter(
+  void observeImplicitChecks(
       Member member, VariableDeclaration param, SignatureShaker shaker) {
-    final Type type = shaker.typeFlowAnalysis.argumentType(member, param);
-
-    // A parameter is considered constant if the TFA has inferred it to have a
-    // constant value in every implementation. The constant value inferred does
-    // not have to be the same across implementations, as it is specialized in
-    // each implementation individually.
-    if (!(type is ConcreteType && type.constant != null ||
-        type is NullableType && type.baseType is EmptyType)) {
-      isConstant = false;
-    }
-
-    // Covariant parameters have implicit type checks, which count as reads.
-    // When run in weak mode with null assertions enabled, parameters with
-    // non-nullable types have implicit null checks, which count as reads.
-    if ((param.isCovariant || param.isGenericCovariantImpl) ||
-        (!shaker.typeFlowAnalysis.target.flags.enableNullSafety &&
-            param.type.nullability == Nullability.nonNullable &&
-            (type == null || type is NullableType))) {
-      isChecked = true;
+    if (param.isCovariant || param.isGenericCovariantImpl) {
+      // Covariant parameters have implicit type checks, which count as reads.
+      isRead = true;
+    } else if (param.type.nullability == Nullability.nonNullable) {
+      // When run in weak mode with null assertions enabled, parameters with
+      // non-nullable types have implicit null checks, which count as reads.
+      Type type = shaker.typeFlowAnalysis.argumentType(member, param);
+      if (type == null || type is NullableType) {
+        // TFA can't guarantee that the value isn't null. Preserve check.
+        isRead = true;
+      }
     }
   }
 }
@@ -201,13 +136,7 @@ class _ParameterInfo {
 class _Collect extends RecursiveVisitor<void> {
   final SignatureShaker shaker;
 
-  /// Parameters of the current function.
   final Map<VariableDeclaration, _ParameterInfo> localParameters = {};
-
-  /// Set of [VariableGet] nodes corresponding to parameters in the current
-  /// function which are passed as arguments to eligible calls. They are tracked
-  /// via [_ParameterInfo.useDependencies] and not marked as read immediately.
-  final Set<VariableGet> useDependencies = {};
 
   _Collect(this.shaker);
 
@@ -216,16 +145,15 @@ class _Collect extends RecursiveVisitor<void> {
     if (info == null) return;
 
     localParameters.clear();
-    useDependencies.clear();
     final FunctionNode fun = member.function;
     for (int i = 0; i < fun.positionalParameters.length; i++) {
       final VariableDeclaration param = fun.positionalParameters[i];
       localParameters[param] = info.ensurePositional(i)
-        ..observeParameter(member, param, shaker);
+        ..observeImplicitChecks(member, param, shaker);
     }
     for (VariableDeclaration param in fun.namedParameters) {
       localParameters[param] = info.ensureNamed(param.name)
-        ..observeParameter(member, param, shaker);
+        ..observeImplicitChecks(member, param, shaker);
     }
 
     if (shaker.typeFlowAnalysis.isCalledDynamically(member) ||
@@ -252,10 +180,7 @@ class _Collect extends RecursiveVisitor<void> {
 
   @override
   void visitVariableGet(VariableGet node) {
-    // Variable reads marked as use dependencies are not considered reads
-    // immediately. Their status as a read or not will be computed after all use
-    // dependencies have been collected.
-    localParameters[node.variable]?.isRead |= !useDependencies.contains(node);
+    localParameters[node.variable]?.isRead = true;
     super.visitVariableGet(node);
   }
 
@@ -265,32 +190,15 @@ class _Collect extends RecursiveVisitor<void> {
     super.visitVariableSet(node);
   }
 
-  void addUseDependency(Expression arg, _ParameterInfo param) {
-    if (arg is VariableGet) {
-      _ParameterInfo localParam = localParameters[arg.variable];
-      if (localParam != null && !localParam.isUsed) {
-        // This is a parameter passed as an argument. Mark it as a use
-        // dependency.
-        param.useDependencies ??= [];
-        param.useDependencies.add(localParam);
-        useDependencies.add(arg);
-      }
-    }
-  }
-
   void collectCall(Member member, Arguments args) {
     final _ProcedureInfo info = shaker._infoForMember(member);
     if (info == null) return;
 
     for (int i = 0; i < args.positional.length; i++) {
-      _ParameterInfo param = info.ensurePositional(i);
-      param.passCount++;
-      addUseDependency(args.positional[i], param);
+      info.ensurePositional(i).passCount++;
     }
     for (NamedExpression named in args.named) {
-      _ParameterInfo param = info.ensureNamed(named.name);
-      param.passCount++;
-      addUseDependency(named.value, param);
+      info.ensureNamed(named.name).passCount++;
     }
     info.callCount++;
   }
@@ -336,36 +244,15 @@ class _Transform extends RecursiveVisitor<void> {
   final SignatureShaker shaker;
 
   StaticTypeContext typeContext;
-  final Map<VariableDeclaration, Constant> eliminatedParams = {};
-  final Set<VariableDeclaration> unusedParams = {};
+  final Set<VariableDeclaration> eliminatedParams = {};
   final List<LocalInitializer> addedInitializers = [];
 
   _Transform(this.shaker);
-
-  void eliminateUsedParameter(
-      Member member, _ParameterInfo param, VariableDeclaration variable) {
-    Constant value;
-    if (param.isConstant) {
-      Type type = shaker.typeFlowAnalysis.argumentType(member, variable);
-      if (type is ConcreteType) {
-        assert(type.constant != null);
-        value = type.constant;
-      } else {
-        assert(type is NullableType && type.baseType is EmptyType);
-        value = NullConstant();
-      }
-    } else {
-      value = (variable.initializer as ConstantExpression)?.constant ??
-          NullConstant();
-    }
-    eliminatedParams[variable] = value;
-  }
 
   void transformMemberSignature(Member member) {
     typeContext =
         StaticTypeContext(member, shaker.typeFlowAnalysis.environment);
     eliminatedParams.clear();
-    unusedParams.clear();
 
     final _ProcedureInfo info = shaker._infoForMember(member);
     if (info == null || !info.eligible || info.callCount == 0) return;
@@ -376,61 +263,42 @@ class _Transform extends RecursiveVisitor<void> {
 
     final List<VariableDeclaration> positional = [];
     final List<VariableDeclaration> named = [];
-    // 1. All positional parameters that are always passed and can't be
-    //    eliminated, as required positional parameters.
-    int firstNotAlwaysPassed = function.positionalParameters.length;
+    // 1. All used positional parameters that are always passed, as required
+    //    positional parameters.
     for (int i = 0; i < function.positionalParameters.length; i++) {
       final _ParameterInfo param = info.positional[i];
-      if (!param.isAlwaysPassed) {
-        firstNotAlwaysPassed = i;
-        break;
-      }
-      final VariableDeclaration variable = function.positionalParameters[i];
+      if (!param.isAlwaysPassed) break;
       if (param.isUsed) {
-        if (param.canBeEliminated) {
-          eliminateUsedParameter(member, param, variable);
-        } else {
-          positional.add(variable);
-          variable.initializer = null;
-        }
-      } else {
-        unusedParams.add(variable);
+        final VariableDeclaration variable = function.positionalParameters[i];
+        positional.add(variable);
+        variable.initializer = null;
       }
     }
-    // 2. All named parameters that are always passed and can't be eliminated,
-    //    as required positional parameters, alphabetically by name.
+    // 2. All used named parameters that are always passed, as required
+    //    positional parameters, alphabetically by name.
     final List<VariableDeclaration> sortedNamed = function.namedParameters
         .toList()
           ..sort((var1, var2) => var1.name.compareTo(var2.name));
     for (VariableDeclaration variable in sortedNamed) {
       final _ParameterInfo param = info.named[variable.name];
-      if (param.isAlwaysPassed) {
-        if (param.isUsed) {
-          if (param.canBeEliminated) {
-            eliminateUsedParameter(member, param, variable);
-          } else {
-            variable.initializer = null;
-            variable.isRequired = false;
-            positional.add(variable);
-          }
-        } else {
-          unusedParams.add(variable);
-        }
+      if (param.isUsed && param.isAlwaysPassed) {
+        variable.initializer = null;
+        variable.isRequired = false;
+        positional.add(variable);
       }
     }
     int requiredParameterCount = positional.length;
-    // 3. All positional parameters that are not always passed and can't be
+    // 3. All used positional parameters that are not always passed and can't be
     //    eliminated, as positional parameters, each one required iff it was
     //    originally required.
-    for (int i = firstNotAlwaysPassed;
-        i < function.positionalParameters.length;
-        i++) {
+    for (int i = 0; i < function.positionalParameters.length; i++) {
       final _ParameterInfo param = info.positional[i];
-      assert(!param.isAlwaysPassed);
-      final VariableDeclaration variable = function.positionalParameters[i];
       if (param.isUsed) {
+        final VariableDeclaration variable = function.positionalParameters[i];
         if (param.canBeEliminated) {
-          eliminateUsedParameter(member, param, variable);
+          assert(variable.initializer == null ||
+              variable.initializer is ConstantExpression);
+          eliminatedParams.add(variable);
         } else if (!param.isAlwaysPassed) {
           positional.add(variable);
           if (i < function.requiredParameterCount) {
@@ -441,23 +309,19 @@ class _Transform extends RecursiveVisitor<void> {
             requiredParameterCount++;
           }
         }
-      } else {
-        unusedParams.add(variable);
       }
     }
-    // 4. All named parameters that are not always passed and can't be
+    // 4. All used named parameters that are not always passed and can't be
     //    eliminated, as named parameters in alphabetical order.
     for (VariableDeclaration variable in sortedNamed) {
       final _ParameterInfo param = info.named[variable.name];
-      if (!param.isAlwaysPassed) {
-        if (param.isUsed) {
-          if (param.canBeEliminated) {
-            eliminateUsedParameter(member, param, variable);
-          } else {
-            named.add(variable);
-          }
-        } else {
-          unusedParams.add(variable);
+      if (param.isUsed) {
+        if (param.canBeEliminated) {
+          assert(variable.initializer == null ||
+              variable.initializer is ConstantExpression);
+          eliminatedParams.add(variable);
+        } else if (!param.isAlwaysPassed) {
+          named.add(variable);
         }
       }
     }
@@ -472,9 +336,10 @@ class _Transform extends RecursiveVisitor<void> {
 
   @override
   void visitVariableGet(VariableGet node) {
-    Constant constantValue = eliminatedParams[node.variable];
-    if (constantValue != null) {
-      node.replaceWith(ConstantExpression(constantValue));
+    if (eliminatedParams.contains(node.variable)) {
+      final ConstantExpression initializer = node.variable.initializer;
+      node.replaceWith(
+          ConstantExpression(initializer?.constant ?? NullConstant()));
     }
   }
 
@@ -518,7 +383,7 @@ class _Transform extends RecursiveVisitor<void> {
     bool hoistingNeeded = false;
     forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
       assert(!param.isNeverPassed);
-      if (param.canBeEliminated || param.isNamed && param.isAlwaysPassed) {
+      if (!param.isUsed || param.isNamed && param.isAlwaysPassed) {
         transformNeeded = true;
         if (mayHaveSideEffects(arg)) {
           hoistingNeeded = true;
@@ -528,16 +393,12 @@ class _Transform extends RecursiveVisitor<void> {
 
     if (!transformNeeded) return;
 
-    bool isUnusedParam(Expression exp) {
-      return exp is VariableGet && unusedParams.contains(exp.variable);
-    }
-
     Map<Expression, VariableDeclaration> hoisted = {};
     if (hoistingNeeded) {
       if (call is Initializer) {
         final Constructor constructor = call.parent;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
-          if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
+          if (mayHaveOrSeeSideEffects(arg)) {
             VariableDeclaration argVar = VariableDeclaration(null,
                 initializer: arg,
                 type: arg.getStaticType(typeContext),
@@ -551,7 +412,7 @@ class _Transform extends RecursiveVisitor<void> {
         final TreeNode parent = call.parent;
         Expression current = call;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
-          if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
+          if (mayHaveOrSeeSideEffects(arg)) {
             VariableDeclaration argVar = VariableDeclaration(null,
                 initializer: arg,
                 type: arg.getStaticType(typeContext),
@@ -561,7 +422,6 @@ class _Transform extends RecursiveVisitor<void> {
           }
         });
         if (receiver != null && mayHaveOrSeeSideEffects(receiver)) {
-          assert(!isUnusedParam(receiver));
           assert(receiver.parent == call);
           final VariableDeclaration receiverVar = VariableDeclaration(null,
               initializer: receiver,
@@ -583,41 +443,41 @@ class _Transform extends RecursiveVisitor<void> {
 
     final List<Expression> positional = [];
     final List<NamedExpression> named = [];
-    // 1. All positional parameters that are always passed and can't be
-    //    eliminated, as required positional parameters.
+    // 1. All used positional parameters that are always passed, as required
+    //    positional parameters.
     for (int i = 0; i < args.positional.length; i++) {
       final _ParameterInfo param = info.positional[i];
       final Expression arg = args.positional[i];
-      if (param.isAlwaysPassed && !param.canBeEliminated) {
+      if (param.isUsed && param.isAlwaysPassed) {
         positional.add(getMaybeHoistedArg(arg));
       }
     }
-    // 2. All named parameters that are always passed and can't be eliminated,
-    //    as required positional parameters, alphabetically by name.
+    // 2. All used named parameters that are always passed, as required
+    //    positional parameters, alphabetically by name.
     final List<NamedExpression> sortedNamed = args.named.toList()
       ..sort((var1, var2) => var1.name.compareTo(var2.name));
     for (NamedExpression arg in sortedNamed) {
       final _ParameterInfo param = info.named[arg.name];
-      if (param.isAlwaysPassed && !param.canBeEliminated) {
+      if (param.isUsed && param.isAlwaysPassed) {
         positional.add(getMaybeHoistedArg(arg.value));
       }
     }
-    // 3. All positional parameters that are not always passed and can't be
+    // 3. All used positional parameters that are not always passed and can't be
     //    eliminated, as positional parameters, each one required iff it was
     //    originally required.
     for (int i = 0; i < args.positional.length; i++) {
       final _ParameterInfo param = info.positional[i];
       final Expression arg = args.positional[i];
-      if (!param.isAlwaysPassed && !param.canBeEliminated) {
+      if (param.isUsed && !param.isAlwaysPassed) {
         positional.add(getMaybeHoistedArg(arg));
       }
     }
-    // 4. All named parameters that are not always passed and can't be
+    // 4. All used named parameters that are not always passed and can't be
     //    eliminated, as named parameters in alphabetical order.
     //    (Arguments are kept in original order.)
     for (NamedExpression arg in args.named) {
       final _ParameterInfo param = info.named[arg.name];
-      if (!param.isAlwaysPassed && !param.canBeEliminated) {
+      if (param.isUsed && !param.isAlwaysPassed) {
         arg.value = getMaybeHoistedArg(arg.value)..parent = arg;
         named.add(arg);
       }
