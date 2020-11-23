@@ -46,17 +46,16 @@ Future main() async {
 
 Future runCompiler(Uri compiler, Uri input, Uri output) async {
   Uri dartVm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
-  String executable = dartVm.toFilePath();
-  List<String> arguments = <String>[
-    compiler.toFilePath(),
-    "${Flags.compileSdk}=sdk/",
-    "${Flags.output}=${output.toFilePath()}",
-    Flags.verify,
-    input.toFilePath(),
-  ];
-  print('Running: $executable ${arguments.join(' ')}');
-  StdioProcess result =
-      await StdioProcess.run(executable, arguments, suppressOutput: false);
+  StdioProcess result = await StdioProcess.run(
+      dartVm.toFilePath(),
+      <String>[
+        compiler.toFilePath(),
+        "${Flags.compileSdk}=sdk/",
+        "${Flags.output}=${output.toFilePath()}",
+        Flags.verify,
+        input.toFilePath(),
+      ],
+      suppressOutput: false);
   if (result.exitCode != 0) {
     throw "Compilation failed:\n${result.output}";
   }

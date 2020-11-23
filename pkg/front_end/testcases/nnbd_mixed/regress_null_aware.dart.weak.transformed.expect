@@ -10,10 +10,16 @@ class Class extends core::Object {
     ;
   method method(core::String* node, core::Set<core::String*>* set) → core::List<core::String*>*
     return set.{core::Set::add}(node) ?{core::List<core::String*>*} block {
-      final core::List<core::String*>* #t1 = <core::String*>[node];
+      final core::List<core::String*>* #t1 = <core::String*>[];
+      #t1.{core::List::add}{Invariant}(node);
       final core::Iterable<core::String*>* #t2 = let final core::Iterable<core::String*>* #t3 = let final core::Set<core::String*>* #t4 = this.{self::Class::map}.{core::Map::[]}(node) in #t4.{core::Object::==}(null) ?{core::Iterable<core::String*>*} null : #t4.{core::Iterable::expand}<core::String*>((core::String* node) → core::List<core::String*>* => this.{self::Class::method}(node, set)) in #t3.{core::Object::==}(null) ?{core::List<core::String*>*} null : #t3.{core::Iterable::toList}();
-      if(!#t2.{core::Object::==}(null))
-        #t1.{core::List::addAll}{Invariant}(#t2);
+      if(!#t2.{core::Object::==}(null)) {
+        core::Iterator<core::String*>* :sync-for-iterator = #t2.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final core::String* #t5 = :sync-for-iterator.{core::Iterator::current};
+          #t1.{core::List::add}{Invariant}(#t5);
+        }
+      }
     } =>#t1 : <core::String*>[];
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -29,6 +35,6 @@ class Class extends core::Object {
 static method main(dynamic args) → dynamic {
   if(false)
     new self::Class::•().{self::Class::method}("", block {
-      final core::Set<core::String*>* #t5 = new col::_CompactLinkedHashSet::•<core::String*>();
-    } =>#t5);
+      final core::Set<core::String*>* #t6 = new col::_CompactLinkedHashSet::•<core::String*>();
+    } =>#t6);
 }
