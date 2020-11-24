@@ -16,8 +16,6 @@
 // The advantage is that finalizers can be used when passing ownership of data
 // (buffers) from C to Dart.
 
-// @dart = 2.9
-
 import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -79,8 +77,8 @@ void myCallback2(int a) {
 }
 
 class CppRequest {
-  final SendPort replyPort;
-  final int pendingCall;
+  final SendPort? replyPort;
+  final int? pendingCall;
   final String method;
   final Uint8List data;
 
@@ -114,9 +112,9 @@ void handleCppRequests(dynamic message) {
     final int argument = cppRequest.data[0];
     final int result = myCallback1(argument);
     final cppResponse =
-        CppResponse(cppRequest.pendingCall, Uint8List.fromList([result]));
+        CppResponse(cppRequest.pendingCall!, Uint8List.fromList([result]));
     print('Dart:   Responding: $cppResponse');
-    cppRequest.replyPort.send(cppResponse.toCppMessage());
+    cppRequest.replyPort!.send(cppResponse.toCppMessage());
   } else if (cppRequest.method == 'myCallback2') {
     final int argument = cppRequest.data[0];
     myCallback2(argument);

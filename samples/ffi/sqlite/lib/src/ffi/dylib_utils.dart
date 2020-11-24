@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:ffi';
 import 'dart:io' show Platform;
 
-String _platformPath(String name, {String path}) {
-  if (path == null) path = "";
+String _platformPath(String name, String path) {
   if (Platform.isLinux || Platform.isAndroid)
     return path + "lib" + name + ".so";
   if (Platform.isMacOS) return path + "lib" + name + ".dylib";
@@ -16,7 +13,7 @@ String _platformPath(String name, {String path}) {
   throw Exception("Platform not implemented");
 }
 
-DynamicLibrary dlopenPlatformSpecific(String name, {String path}) {
-  String fullPath = _platformPath(name, path: path);
+DynamicLibrary dlopenPlatformSpecific(String name, {String path = ""}) {
+  String fullPath = _platformPath(name, path);
   return DynamicLibrary.open(fullPath);
 }

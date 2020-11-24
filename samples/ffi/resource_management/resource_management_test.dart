@@ -6,8 +6,6 @@
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
-// @dart = 2.9
-
 import 'pool_isolate_shutdown_sample.dart' as pool_isolate;
 import 'pool_sample.dart' as pool;
 import 'pool_zoned_sample.dart' as pool_zoned;

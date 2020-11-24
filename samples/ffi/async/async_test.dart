@@ -6,8 +6,6 @@
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
-// @dart = 2.9
-
 import 'sample_async_callback.dart' as sample0;
 import 'sample_native_port_call.dart' as sample1;
 

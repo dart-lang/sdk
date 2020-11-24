@@ -4,8 +4,6 @@
 //
 // Sample illustrating resources are not cleaned up when isolate is shutdown.
 
-// @dart = 2.9
-
 import 'dart:io';
 import "dart:isolate";
 import 'dart:ffi';
@@ -24,7 +22,7 @@ void main() {
       receiveFromHelper.sendPort,
     );
     print("Main: Helper started.");
-    Pointer<SomeResource> resource;
+    Pointer<SomeResource> resource = nullptr;
     receiveFromHelper.listen((message) {
       if (message is int) {
         resource = Pointer<SomeResource>.fromAddress(message);
