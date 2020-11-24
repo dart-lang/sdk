@@ -285,7 +285,7 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V remove(Object? key) {
+  V? remove(Object? key) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
