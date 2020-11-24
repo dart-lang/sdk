@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.batch_util;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
