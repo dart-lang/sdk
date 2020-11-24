@@ -2914,17 +2914,17 @@
         },
         {
           "name": "analyze pkg/build_integration",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/build_integration"
           ]
         },
         {
           "name": "analyze pkg/compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/compiler"
           ]
         },
@@ -2939,9 +2939,9 @@
         },
         {
           "name": "analyze pkg/dart2js_tools",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/dart2js_tools"
           ]
         },
@@ -2973,33 +2973,33 @@
         },
         {
           "name": "analyze pkg/front_end",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/front_end"
           ]
         },
         {
           "name": "analyze pkg/js",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/js"
           ]
         },
         {
           "name": "analyze pkg/js_ast",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/js_ast"
           ]
         },
         {
           "name": "analyze pkg/kernel",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/kernel"
           ]
         },
@@ -3111,8 +3111,9 @@
         },
         {
           "name": "analyze runtime/observatory",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
+            "analyze",
             "runtime/observatory"
           ]
         },
