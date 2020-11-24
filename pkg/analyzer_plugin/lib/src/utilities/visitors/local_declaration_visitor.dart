@@ -109,6 +109,23 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachPartsWithDeclaration) {
+      var loopVariable = forLoopParts.loopVariable;
+      declaredLocalVar(loopVariable.identifier, loopVariable.type);
+    } else if (forLoopParts is ForPartsWithDeclarations) {
+      var varList = forLoopParts.variables;
+      if (varList != null) {
+        varList.variables.forEach((VariableDeclaration varDecl) {
+          declaredLocalVar(varDecl.name, varList.type);
+        });
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {

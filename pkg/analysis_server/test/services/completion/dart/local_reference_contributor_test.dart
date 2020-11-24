@@ -2977,6 +2977,55 @@ main() {
     assertNotSuggested('Object');
   }
 
+  Future<void> test_forElement_body() async {
+    addTestSource('var x = [for (int i; i < 10; ++i) ^];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestLocalVariable('i', 'int');
+    assertNotSuggested('Object');
+  }
+
+  Future<void> test_forElement_condition() async {
+    addTestSource('var x = [for (int index = 0; i^)];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
+  Future<void> test_forElement_initializer() async {
+    addTestSource('var x = [for (^)];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('Object');
+    assertNotSuggested('int');
+  }
+
+  Future<void> test_forElement_updaters() async {
+    addTestSource('var x = [for (int index = 0; index < 10; i^)];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
+  Future<void> test_forElement_updaters_prefix_expression() async {
+    addTestSource('''
+var x = [for (int index = 0; index < 10; ++i^)];
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
   Future<void> test_FormalParameterList() async {
     // FormalParameterList MethodDeclaration
     addTestSource('''
