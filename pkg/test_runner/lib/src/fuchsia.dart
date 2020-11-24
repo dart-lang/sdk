@@ -147,6 +147,9 @@ class FuchsiaEmulator {
 
   Future<void> _publishPackage(String buildDir, String mode) async {
     var packageFile = '$buildDir/gen/dart_test_$mode/dart_test_$mode.far';
+    if (!File(packageFile).existsSync()) {
+      throw 'File $packageFile does not exist. Please build fuchsia_test_package.';
+    }
     DebugLogger.info('Publishing package: $packageFile');
     var result = await Process.run(fpubTool, [packageFile]);
     if (result.exitCode != 0) {
