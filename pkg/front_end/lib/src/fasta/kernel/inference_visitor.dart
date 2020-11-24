@@ -1149,8 +1149,12 @@ class InferenceVisitor
             lhsResult.inferredType, equalsName, node.fileOffset)
         .member;
 
+    // This ends any shorting in `node.left`.
+    Expression left = lhsResult.expression;
+
     inferrer.flowAnalysis
         .ifNullExpression_rightBegin(node.left, lhsResult.inferredType);
+
     // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
     ExpressionInferenceResult rhsResult;
@@ -1173,15 +1177,13 @@ class InferenceVisitor
         .getStandardUpperBound(nonNullableLhsType, rhsResult.inferredType,
             inferrer.library.library);
     Expression replacement;
-    if (lhsResult.expression is ThisExpression) {
-      replacement = lhsResult.expression;
+    if (left is ThisExpression) {
+      replacement = left;
     } else {
       VariableDeclaration variable =
-          createVariable(lhsResult.expression, lhsResult.inferredType);
+          createVariable(left, lhsResult.inferredType);
       MethodInvocation equalsNull = createEqualsNull(
-          lhsResult.expression.fileOffset,
-          createVariableGet(variable),
-          equalsMember);
+          left.fileOffset, createVariableGet(variable), equalsMember);
       VariableGet variableGet = createVariableGet(variable);
       if (inferrer.library.isNonNullableByDefault &&
           !identical(nonNullableLhsType, originalLhsType)) {

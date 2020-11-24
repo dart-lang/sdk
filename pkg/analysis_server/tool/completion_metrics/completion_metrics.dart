@@ -89,10 +89,9 @@ const String OVERLAY_REMOVE_TOKEN = 'remove-token';
 /// A flag that causes additional output to be produced.
 const String VERBOSE = 'verbose';
 
-/// A [Counter] to track the performance of the new relevance to the old
-/// relevance.
-Counter oldVsNewComparison =
-    Counter('use old vs new relevance rank comparison');
+/// A [Counter] to track the performance of each of the completion strategies
+/// that are being compared.
+Counter rankComparison = Counter('relevance rank comparison');
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
@@ -184,6 +183,12 @@ class CompletionMetrics {
 
   /// The name associated with this set of metrics.
   final String name;
+
+  /// The function to be executed when this metrics collector is enabled.
+  final void Function() enableFunction;
+
+  /// The function to be executed when this metrics collector is disabled.
+  final void Function() disableFunction;
 
   Counter completionCounter = Counter('successful/ unsuccessful completions');
 
@@ -289,7 +294,23 @@ class CompletionMetrics {
   /// longest top compute for top-level declarations.
   List<CompletionResult> topLevelSlowestResults = [];
 
-  CompletionMetrics(this.name);
+  CompletionMetrics(this.name, this.enableFunction, this.disableFunction);
+
+  /// Perform any operations required in order to revert computing the kind of
+  /// completions represented by this metrics collector.
+  void disable() {
+    if (disableFunction != null) {
+      disableFunction();
+    }
+  }
+
+  /// Perform any initialization required in order to compute the kind of
+  /// completions represented by this metrics collector.
+  void enable() {
+    if (enableFunction != null) {
+      enableFunction();
+    }
+  }
 
   /// Record this completion result, this method handles the worst ranked items
   /// as well as the longest sets of results to compute.
@@ -436,7 +457,8 @@ class CompletionMetricsComputer {
   /// The int to be returned from the [compute] call.
   int resultCode;
 
-  CompletionMetrics metricsNewMode;
+  /// A list of the metrics to be computed.
+  final List<CompletionMetrics> targetMetrics = [];
 
   final OverlayResourceProvider _provider =
       OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
@@ -453,7 +475,9 @@ class CompletionMetricsComputer {
 
   Future<int> compute() async {
     resultCode = 0;
-    metricsNewMode = CompletionMetrics('useNewRelevance = true');
+    // To compare two or more changes to completions, add a `CompletionMetrics`
+    // object with enable and disable functions to the list of `targetMetrics`.
+    targetMetrics.add(CompletionMetrics('shipping', null, null));
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -461,17 +485,19 @@ class CompletionMetricsComputer {
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot);
     }
-    printMetrics(metricsNewMode);
+    for (var metrics in targetMetrics) {
+      printMetrics(metrics);
 
-    print('');
-    print('====================');
-    oldVsNewComparison.printCounterValues();
-    print('====================');
+      print('');
+      print('====================');
+      rankComparison.printCounterValues();
+      print('====================');
 
-    if (verbose) {
-      printWorstResults(metricsNewMode);
-      printSlowestResults(metricsNewMode);
-      printMissingInformation(metricsNewMode);
+      if (verbose) {
+        printWorstResults(metrics);
+        printSlowestResults(metrics);
+        printMissingInformation(metrics);
+      }
     }
     return resultCode;
   }
@@ -522,7 +548,7 @@ class CompletionMetricsComputer {
           }
         }
 
-        print('missing completion (`useNewRelevance = true`):');
+        print('missing completion (${metrics.name}):');
         print('$expectedCompletion');
         if (closeMatchSuggestion != null) {
           print('    close matching completion that was in the list:');
@@ -886,12 +912,23 @@ class CompletionMetricsComputer {
                   printMissedCompletions);
             }
 
-            // Compute the completions.
-            var listener = MetricsSuggestionListener();
-            await handleExpectedCompletion(
-                listener: listener,
-                metrics: metricsNewMode,
-                printMissedCompletions: verbose);
+            var bestRank = -1;
+            var bestName = '';
+            for (var metrics in targetMetrics) {
+              // Compute the completions.
+              metrics.enable();
+              var listener = MetricsSuggestionListener();
+              var rank = await handleExpectedCompletion(
+                  listener: listener,
+                  metrics: metrics,
+                  printMissedCompletions: verbose);
+              if (bestRank < 0 || rank < bestRank) {
+                bestRank = rank;
+                bestName = metrics.name;
+              }
+              metrics.disable();
+            }
+            rankComparison.count(bestName);
 
             // If an overlay option is being used, remove the overlay applied
             // earlier
@@ -899,9 +936,10 @@ class CompletionMetricsComputer {
               _provider.removeOverlay(filePath);
             }
           }
-        } catch (e) {
+        } catch (exception, stackTrace) {
           print('Exception caught analyzing: $filePath');
-          print(e.toString());
+          print(exception.toString());
+          print(stackTrace);
           resultCode = 1;
         }
       }

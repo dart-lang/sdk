@@ -15,7 +15,7 @@ import 'repository.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = [
-  'samples',
+  'samples_2',
   'standalone_2',
   'corelib_2',
   'language_2',

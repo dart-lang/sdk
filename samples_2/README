@@ -1,0 +1,4 @@
+This directory contains sample Dart programs.
+
+The samples in this directory have not been migrated to non-nullable by
+default. Please see directory `samples` for migrated samples.

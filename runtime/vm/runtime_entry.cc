@@ -618,6 +618,32 @@ static void UpdateTypeTestCache(
       instance_type_arguments = instance.GetTypeArguments();
     }
   }
+  if (FLAG_trace_type_checks) {
+    const auto& instance_class_name =
+        String::Handle(zone, instance_class.Name());
+    TextBuffer buffer(256);
+    buffer.Printf("  Updating test cache %#" Px " with result %s for:\n",
+                  static_cast<uword>(new_cache.raw()), result.ToCString());
+    if (instance.IsString()) {
+      buffer.Printf("    instance: '%s'\n", instance.ToCString());
+    } else {
+      buffer.Printf("    instance: %s\n", instance.ToCString());
+    }
+    buffer.Printf("    class: %s (%" Pd ")\n", instance_class_name.ToCString(),
+                  instance_class.id());
+    buffer.Printf(
+        "    raw entry: [ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
+        ", %#" Px ", %#" Px ", %#" Px " ]\n",
+        static_cast<uword>(instance_class_id_or_function.raw()),
+        static_cast<uword>(destination_type.raw()),
+        static_cast<uword>(instance_type_arguments.raw()),
+        static_cast<uword>(instantiator_type_arguments.raw()),
+        static_cast<uword>(function_type_arguments.raw()),
+        static_cast<uword>(instance_parent_function_type_arguments.raw()),
+        static_cast<uword>(instance_delayed_type_arguments.raw()),
+        static_cast<uword>(result.raw()));
+    OS::PrintErr("%s", buffer.buffer());
+  }
   {
     SafepointMutexLocker ml(
         thread->isolate_group()->subtype_test_cache_mutex());
@@ -641,42 +667,31 @@ static void UpdateTypeTestCache(
            instance_parent_function_type_arguments.IsCanonical());
     ASSERT(instance_delayed_type_arguments.IsNull() ||
            instance_delayed_type_arguments.IsCanonical());
-    auto& last_instance_class_id_or_function = Object::Handle(zone);
-    auto& last_destination_type = AbstractType::Handle(zone);
-    auto& last_instance_type_arguments = TypeArguments::Handle(zone);
-    auto& last_instantiator_type_arguments = TypeArguments::Handle(zone);
-    auto& last_function_type_arguments = TypeArguments::Handle(zone);
-    auto& last_instance_parent_function_type_arguments =
-        TypeArguments::Handle(zone);
-    auto& last_instance_delayed_type_arguments = TypeArguments::Handle(zone);
-    Bool& last_result = Bool::Handle(zone);
-    for (intptr_t i = 0; i < len; ++i) {
-      new_cache.GetCheck(i, &last_instance_class_id_or_function,
-                         &last_destination_type, &last_instance_type_arguments,
-                         &last_instantiator_type_arguments,
-                         &last_function_type_arguments,
-                         &last_instance_parent_function_type_arguments,
-                         &last_instance_delayed_type_arguments, &last_result);
-      if ((last_instance_class_id_or_function.raw() ==
-           instance_class_id_or_function.raw()) &&
-          (last_instance_type_arguments.raw() ==
-           instance_type_arguments.raw()) &&
-          (last_instantiator_type_arguments.raw() ==
-           instantiator_type_arguments.raw()) &&
-          (last_function_type_arguments.raw() ==
-           function_type_arguments.raw()) &&
-          (last_instance_parent_function_type_arguments.raw() ==
-           instance_parent_function_type_arguments.raw()) &&
-          (last_instance_delayed_type_arguments.raw() ==
-           instance_delayed_type_arguments.raw()) &&
-          (last_destination_type.raw() == destination_type.raw())) {
-        if (!FLAG_enable_isolate_groups) {
-          FATAL("Duplicate subtype test cache entry");
-        }
-        // Some other isolate might have updated the cache between entry was
-        // found missing and now.
-        return;
+    intptr_t colliding_index = -1;
+    auto& old_result = Bool::Handle(zone);
+    if (new_cache.HasCheck(
+            instance_class_id_or_function, destination_type,
+            instance_type_arguments, instantiator_type_arguments,
+            function_type_arguments, instance_parent_function_type_arguments,
+            instance_delayed_type_arguments, &colliding_index, &old_result)) {
+      if (FLAG_trace_type_checks) {
+        TextBuffer buffer(256);
+        buffer.Printf("  Collision for test cache %#" Px " at index %" Pd ":\n",
+                      static_cast<uword>(new_cache.raw()), colliding_index);
+        buffer.Printf("    entry: ");
+        new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
+        OS::PrintErr("%s\n", buffer.buffer());
       }
+      if (!FLAG_enable_isolate_groups) {
+        FATAL("Duplicate subtype test cache entry");
+      }
+      if (old_result.raw() != result.raw()) {
+        FATAL("Existing subtype test cache entry has result %s, not %s",
+              old_result.ToCString(), result.ToCString());
+      }
+      // Some other isolate might have updated the cache between entry was
+      // found missing and now.
+      return;
     }
     new_cache.AddCheck(instance_class_id_or_function, destination_type,
                        instance_type_arguments, instantiator_type_arguments,
@@ -684,56 +699,13 @@ static void UpdateTypeTestCache(
                        instance_parent_function_type_arguments,
                        instance_delayed_type_arguments, result);
     if (FLAG_trace_type_checks) {
-      AbstractType& test_type =
-          AbstractType::Handle(zone, destination_type.raw());
-      if (!test_type.IsInstantiated()) {
-        test_type = test_type.InstantiateFrom(instantiator_type_arguments,
-                                              function_type_arguments, kAllFree,
-                                              Heap::kNew);
-      }
-      const auto& type_class = Class::Handle(zone, test_type.type_class());
-      const auto& instance_class_name =
-          String::Handle(zone, instance_class.Name());
       TextBuffer buffer(256);
-      buffer.Printf("  Updated test cache %#" Px " ix: %" Pd " with ",
+      buffer.Printf("  Added new entry to test cache %#" Px " at index %" Pd
+                    ":\n",
                     static_cast<uword>(new_cache.raw()), len);
-      buffer.Printf(
-          "[ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px "",
-          static_cast<uword>(instance_class_id_or_function.raw()),
-          static_cast<uword>(instance_type_arguments.raw()),
-          static_cast<uword>(instantiator_type_arguments.raw()),
-          static_cast<uword>(function_type_arguments.raw()),
-          static_cast<uword>(instance_parent_function_type_arguments.raw()),
-          static_cast<uword>(instance_delayed_type_arguments.raw()));
-      buffer.Printf(", %#" Px "", static_cast<uword>(destination_type.raw()));
-      buffer.Printf(" %#" Px " ]\n", static_cast<uword>(result.raw()));
-      buffer.Printf("    tested type: %s (%" Pd ")\n", test_type.ToCString(),
-                    type_class.id());
-      buffer.Printf("    destination type: %s\n", destination_type.ToCString());
-      buffer.Printf("    instance: %s\n", instance.ToCString());
-      if (instance_class.IsClosureClass()) {
-        buffer.Printf("    function: %s\n",
-                      Function::Cast(instance_class_id_or_function)
-                          .ToFullyQualifiedCString());
-        buffer.Printf("    closure instantiator function type arguments: %s\n",
-                      instance_type_arguments.ToCString());
-        buffer.Printf("    closure parent function type arguments: %s\n",
-                      instance_parent_function_type_arguments.ToCString());
-        buffer.Printf("    closure delayed function type arguments: %s\n",
-                      instance_parent_function_type_arguments.ToCString());
-      } else {
-        buffer.Printf("    class: %s (%" Pd ")\n",
-                      instance_class_name.ToCString(),
-                      Smi::Cast(instance_class_id_or_function).Value());
-        buffer.Printf("    instance type arguments: %s\n",
-                      instance_type_arguments.ToCString());
-      }
-      buffer.Printf("    instantiator type arguments: %s\n",
-                    instantiator_type_arguments.ToCString());
-      buffer.Printf("    function type arguments: %s\n",
-                    function_type_arguments.ToCString());
-      buffer.Printf("    result: %s\n", result.ToCString());
-      OS::PrintErr("%s", buffer.buffer());
+      buffer.Printf("    new entry: ");
+      new_cache.WriteEntryToBuffer(zone, &buffer, len, "      ");
+      OS::PrintErr("%s\n", buffer.buffer());
     }
   }
 }
@@ -882,6 +854,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       UNREACHABLE();
     }
 
+    ASSERT(!dst_name.IsNull());
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
     const AbstractType& src_type =

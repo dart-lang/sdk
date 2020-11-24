@@ -26,7 +26,7 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -113,7 +113,7 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -200,6 +200,7 @@
       "runtime/tests/",
       "samples-dev/",
       "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -303,6 +304,7 @@
       "xcodebuild/ReleaseSIMARM64/",
       "xcodebuild/ReleaseX64/",
       "samples/",
+      "samples_2/",
       "samples-dev/",
       "tools/",
       "third_party/android_tools/sdk/platform-tools/adb",
@@ -510,7 +512,9 @@
     "dart2js-(linux|mac|win)-chrome-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-weak-(linux|mac|win)-x64-d8": {
@@ -527,7 +531,9 @@
     "dart2js-(linux|win)-firefox-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-win-ie11": {
@@ -540,7 +546,9 @@
       "options": {
         "use-sdk": true,
         "babel": "{\"presets\":[\"es2015\"]}",
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-win-edge": {
@@ -551,7 +559,9 @@
     "dart2js-win-edge-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-mac-safari": {
@@ -562,7 +572,9 @@
     "dart2js-mac-safari-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-minified-csp-(linux|mac|win)-chrome": {
@@ -577,7 +589,9 @@
         "minified": true,
         "csp": true,
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-minified-(linux|mac|win)-d8": {
@@ -590,7 +604,9 @@
       "options": {
         "minified": true,
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-production-(linux|mac|win)-d8": {
@@ -610,7 +626,9 @@
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8-unsound": {
       "options": {
         "host-checked": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {

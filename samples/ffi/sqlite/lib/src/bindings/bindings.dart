@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
@@ -13,7 +11,7 @@ import "signatures.dart";
 import "types.dart";
 
 class _SQLiteBindings {
-  DynamicLibrary sqlite;
+  late DynamicLibrary sqlite;
 
   /// Opening A New Database Connection
   ///
@@ -29,10 +27,13 @@ class _SQLiteBindings {
   /// [sqlite3_errmsg] or sqlite3_errmsg16() routines can be used to obtain
   /// an English language description of the error following a failure of any
   /// of the sqlite3_open() routines.
-  int Function(Pointer<Utf8> filename, Pointer<Pointer<Database>> databaseOut,
-      int flags, Pointer<Utf8> vfs) sqlite3_open_v2;
+  late int Function(
+      Pointer<Utf8> filename,
+      Pointer<Pointer<Database>> databaseOut,
+      int flags,
+      Pointer<Utf8> vfs) sqlite3_open_v2;
 
-  int Function(Pointer<Database> database) sqlite3_close_v2;
+  late int Function(Pointer<Database> database) sqlite3_close_v2;
 
   /// Compiling An SQL Statement
   ///
@@ -81,7 +82,7 @@ class _SQLiteBindings {
   /// that is returned (the sqlite3_stmt object) contains a copy of the
   /// original SQL text. This causes the [sqlite3_step] interface to
   /// behave differently in three ways:
-  int Function(
+  late int Function(
       Pointer<Database> database,
       Pointer<Utf8> query,
       int nbytes,
@@ -164,7 +165,7 @@ class _SQLiteBindings {
   /// of the legacy [sqlite3_prepare()] and [sqlite3_prepare16()] interfaces,
   /// then the more specific [error codes] are returned directly
   /// by sqlite3_step().  The use of the "v2" interface is recommended.
-  int Function(Pointer<Statement> statement) sqlite3_step;
+  late int Function(Pointer<Statement> statement) sqlite3_step;
 
   /// CAPI3REF: Reset A Prepared Statement Object
   ///
@@ -187,7 +188,7 @@ class _SQLiteBindings {
   /// [sqlite3_reset] returns an appropriate [Errors].
   ///
   /// ^The [sqlite3_reset] interface does not change the values
-  int Function(Pointer<Statement> statement) sqlite3_reset;
+  late int Function(Pointer<Statement> statement) sqlite3_reset;
 
   /// Destroy A Prepared Statement Object
   ///
@@ -212,14 +213,14 @@ class _SQLiteBindings {
   /// a prepared statement after it has been finalized.  Any use of a prepared
   /// statement after it has been finalized can result in undefined and
   /// undesirable behavior such as segfaults and heap corruption.
-  int Function(Pointer<Statement> statement) sqlite3_finalize;
+  late int Function(Pointer<Statement> statement) sqlite3_finalize;
 
   /// Number Of Columns In A Result Set
   ///
   /// ^Return the number of columns in the result set returned by the
   /// prepared statement. ^This routine returns 0 if pStmt is an SQL
   /// statement that does not return data (for example an [UPDATE]).
-  int Function(Pointer<Statement> statement) sqlite3_column_count;
+  late int Function(Pointer<Statement> statement) sqlite3_column_count;
 
   /// Column Names In A Result Set
   ///
@@ -244,7 +245,7 @@ class _SQLiteBindings {
   /// ^The name of a result column is the value of the "AS" clause for
   /// that column, if there is an AS clause.  If there is no AS clause
   /// then the name of the column is unspecified and may change from
-  Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
+  late Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
       sqlite3_column_name;
 
   /// CAPI3REF: Declared Datatype Of A Query Result
@@ -274,28 +275,28 @@ class _SQLiteBindings {
   /// strongly typed, but the typing is dynamic not static.  ^Type
   /// is associated with individual values, not with the containers
   /// used to hold those values.
-  Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
+  late Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
       sqlite3_column_decltype;
 
-  int Function(Pointer<Statement> statement, int columnIndex)
+  late int Function(Pointer<Statement> statement, int columnIndex)
       sqlite3_column_type;
 
-  Pointer<Value> Function(Pointer<Statement> statement, int columnIndex)
+  late Pointer<Value> Function(Pointer<Statement> statement, int columnIndex)
       sqlite3_column_value;
 
-  double Function(Pointer<Statement> statement, int columnIndex)
+  late double Function(Pointer<Statement> statement, int columnIndex)
       sqlite3_column_double;
 
-  int Function(Pointer<Statement> statement, int columnIndex)
+  late int Function(Pointer<Statement> statement, int columnIndex)
       sqlite3_column_int;
 
-  Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
+  late Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
       sqlite3_column_text;
 
   /// The sqlite3_errstr() interface returns the English-language text that
   /// describes the result code, as UTF-8. Memory to hold the error message
   /// string is managed internally and must not be freed by the application.
-  Pointer<Utf8> Function(int code) sqlite3_errstr;
+  late Pointer<Utf8> Function(int code) sqlite3_errstr;
 
   /// Error Codes And Messages
   ///
@@ -328,7 +329,7 @@ class _SQLiteBindings {
   /// If an interface fails with SQLITE_MISUSE, that means the interface
   /// was invoked incorrectly by the application.  In that case, the
   /// error code and message may or may not be set.
-  Pointer<Utf8> Function(Pointer<Database> database) sqlite3_errmsg;
+  late Pointer<Utf8> Function(Pointer<Database> database) sqlite3_errmsg;
 
   _SQLiteBindings() {
     sqlite = dlopenPlatformSpecific("sqlite3");
@@ -392,5 +393,5 @@ class _SQLiteBindings {
   }
 }
 
-_SQLiteBindings _cachedBindings;
+_SQLiteBindings? _cachedBindings;
 _SQLiteBindings get bindings => _cachedBindings ??= _SQLiteBindings();

@@ -1,0 +1,7 @@
+class Base {
+  int? value1;
+  int? value2;
+}
+
+int? fun() {}
+void main() {}
