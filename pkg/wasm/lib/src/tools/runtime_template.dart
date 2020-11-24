@@ -52,12 +52,17 @@ class WasmExportDescriptor {
   }
 }
 
+class _WasmTrapsEntry {
+  dynamic exception;
+  _WasmTrapsEntry(this.exception);
+}
+
 class WasmRuntime {
   static WasmRuntime? _inst;
 
   DynamicLibrary _lib;
   late Pointer<WasmerEngine> _engine;
-  Map<int, dynamic> traps = {};
+  Map<int, _WasmTrapsEntry> traps = {};
 /* <RUNTIME_MEMB> */
 
   factory WasmRuntime() {
@@ -104,14 +109,23 @@ class WasmRuntime {
       : _lib = DynamicLibrary.open(path.join(_getLibDir(), _getLibName())) {
 /* <RUNTIME_LOAD> */
 
+    if (_Dart_InitializeApiDL(NativeApi.initializeApiDLData) != 0) {
+      throw Exception("Failed to initialize Dart API");
+    }
     _engine = _engine_new();
+    _checkNotEqual(_engine, nullptr, "Failed to initialize Wasm engine.");
+    _set_finalizer_for_engine(this, _engine);
   }
 
-  Pointer<WasmerStore> newStore() {
-    return _store_new(_engine);
+  Pointer<WasmerStore> newStore(Object owner) {
+    Pointer<WasmerStore> store = _checkNotEqual(
+        _store_new(_engine), nullptr, "Failed to create Wasm store.");
+    _set_finalizer_for_store(owner, store);
+    return store;
   }
 
-  Pointer<WasmerModule> compile(Pointer<WasmerStore> store, Uint8List data) {
+  Pointer<WasmerModule> compile(
+      Object owner, Pointer<WasmerStore> store, Uint8List data) {
     var dataPtr = allocate<Uint8>(count: data.length);
     for (int i = 0; i < data.length; ++i) {
       dataPtr[i] = data[i];
@@ -125,7 +139,9 @@ class WasmRuntime {
     free(dataPtr);
     free(dataVec);
 
-    return _checkNotEqual(modulePtr, nullptr, "Wasm module compile failed.");
+    _checkNotEqual(modulePtr, nullptr, "Wasm module compile failed.");
+    _set_finalizer_for_module(owner, modulePtr);
+    return modulePtr;
   }
 
   List<WasmExportDescriptor> exportDescriptors(Pointer<WasmerModule> module) {
@@ -169,35 +185,49 @@ class WasmRuntime {
 
   void maybeThrowTrap(Pointer<WasmerTrap> trap, String source) {
     if (trap != nullptr) {
-      var stashedException = traps[trap.address];
-      if (stashedException != null) {
-        traps.remove(stashedException);
-        throw stashedException;
+      // There are 2 kinds of trap, and their memory is managed differently.
+      // Traps created in the newTrap method below are stored in the traps map
+      // with a corresponding exception, and their memory is managed using a
+      // finalizer on the _WasmTrapsEntry. Traps can also be created by WASM
+      // code, and in that case we delete them in this function.
+      var entry = traps[trap.address];
+      if (entry != null) {
+        traps.remove(entry);
+        throw entry.exception;
       } else {
         var trapMessage = allocate<WasmerByteVec>();
         _trap_message(trap, trapMessage);
         var message = "Wasm trap when calling $source: ${trapMessage.ref}";
-        free(trapMessage.ref.data);
+        _byte_vec_delete(trapMessage);
         free(trapMessage);
+        _trap_delete(trap);
         throw Exception(message);
       }
     }
   }
 
-  Pointer<WasmerInstance> instantiate(Pointer<WasmerStore> store,
+  Pointer<WasmerInstance> instantiate(Object owner, Pointer<WasmerStore> store,
       Pointer<WasmerModule> module, Pointer<WasmerExternVec> imports) {
     var trap = allocate<Pointer<WasmerTrap>>();
     trap.value = nullptr;
     var inst = _instance_new(store, module, imports, trap);
     maybeThrowTrap(trap.value, "module initialization function");
     free(trap);
-    return _checkNotEqual(inst, nullptr, "Wasm module instantiation failed.");
+    _checkNotEqual(inst, nullptr, "Wasm module instantiation failed.");
+    _set_finalizer_for_instance(owner, inst);
+    return inst;
   }
 
+  // Clean up the exports after use, with deleteExports.
   Pointer<WasmerExternVec> exports(Pointer<WasmerInstance> instancePtr) {
     var exports = allocate<WasmerExternVec>();
     _instance_exports(instancePtr, exports);
     return exports;
+  }
+
+  void deleteExports(Pointer<WasmerExternVec> exports) {
+    _extern_vec_delete(exports);
+    free(exports);
   }
 
   int externKind(Pointer<WasmerExtern> extern) {
@@ -245,14 +275,18 @@ class WasmRuntime {
   }
 
   Pointer<WasmerMemory> newMemory(
-      Pointer<WasmerStore> store, int pages, int? maxPages) {
+      Object owner, Pointer<WasmerStore> store, int pages, int? maxPages) {
     var limPtr = allocate<WasmerLimits>();
     limPtr.ref.min = pages;
     limPtr.ref.max = maxPages ?? wasm_limits_max_default;
     var memType = _memorytype_new(limPtr);
     free(limPtr);
-    return _checkNotEqual(
+    _checkNotEqual(memType, nullptr, "Failed to create memory type.");
+    _set_finalizer_for_memorytype(owner, memType);
+    var memory = _checkNotEqual(
         _memory_new(store, memType), nullptr, "Failed to create memory.");
+    _set_finalizer_for_memory(owner, memory);
+    return memory;
   }
 
   void growMemory(Pointer<WasmerMemory> memory, int deltaPages) {
@@ -269,13 +303,17 @@ class WasmRuntime {
   }
 
   Pointer<WasmerFunc> newFunc(
+      Object owner,
       Pointer<WasmerStore> store,
       Pointer<WasmerFunctype> funcType,
       Pointer func,
       Pointer env,
       Pointer finalizer) {
-    return _func_new_with_env(
+    var f = _func_new_with_env(
         store, funcType, func.cast(), env.cast(), finalizer.cast());
+    _checkNotEqual(f, nullptr, "Failed to create function.");
+    _set_finalizer_for_func(owner, f);
+    return f;
   }
 
   Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, dynamic exception) {
@@ -284,10 +322,13 @@ class WasmRuntime {
     msg.ref.data[0] = 0;
     msg.ref.length = 0;
     var trap = _trap_new(store, msg);
-    traps[trap.address] = exception;
     free(msg.ref.data);
     free(msg);
-    return _checkNotEqual(trap, nullptr, "Failed to create trap.");
+    _checkNotEqual(trap, nullptr, "Failed to create trap.");
+    var entry = _WasmTrapsEntry(exception);
+    _set_finalizer_for_trap(entry, trap);
+    traps[trap.address] = entry;
+    return trap;
   }
 
   Pointer<WasmerWasiConfig> newWasiConfig() {
