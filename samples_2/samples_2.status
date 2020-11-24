@@ -1,0 +1,38 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $arch == arm ]
+sample_extension/test/*: Skip # Issue 14705
+
+[ $builder_tag == asan ]
+ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
+
+[ $builder_tag == optimization_counter_threshold ]
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This test is too slow for testing with low optimization counter threshold.
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
+sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
+
+[ $compiler == none && $runtime == vm && $system == fuchsia ]
+*: Skip # Not yet triaged.
+
+[ $arch == simarm || $arch == simarm64 ]
+ffi/*: SkipByDesign # FFI skips, see ffi.status
+
+[ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
+ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so not available.
+
+[ $compiler == app_jitk || $compiler == dartkp ]
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign
+sample_extension/test/sample_extension_test: SkipByDesign
+
+[ $runtime == d8 || $browser ]
+ffi/*: SkipByDesign # Skip tests that use dart:ffi.
+sample_extension/*: SkipByDesign # Skip tests that use dart:io.
+
+[ $hot_reload || $hot_reload_rollback ]
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.

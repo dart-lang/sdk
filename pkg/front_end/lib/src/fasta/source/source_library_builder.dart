@@ -480,6 +480,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'ffi_2',
     'language_2/',
     'lib_2/',
+    'samples_2/',
     'service_2/',
     'standalone_2/',
     'vm/dart_2/', // in runtime/tests
