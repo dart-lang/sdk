@@ -4378,7 +4378,7 @@ bool Class::InjectCIDFields() const {
   }
 
   auto thread = Thread::Current();
-  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   auto zone = thread->zone();
   Field& field = Field::Handle(zone);
   Smi& value = Smi::Handle(zone);
@@ -4417,7 +4417,7 @@ bool Class::InjectCIDFields() const {
                        /* is_late = */ false, *this, field_type,
                        TokenPosition::kMinSource, TokenPosition::kMinSource);
     value = Smi::New(cid_fields[i].cid);
-    isolate->RegisterStaticField(field, value);
+    isolate_group->RegisterStaticField(field, value);
     AddField(field);
   }
 
@@ -10457,6 +10457,7 @@ ErrorPtr Field::InitializeInstance(const Instance& instance) const {
   ASSERT(is_instance());
   ASSERT(instance.GetField(*this) == Object::sentinel().raw());
   Object& value = Object::Handle();
+
   if (has_nontrivial_initializer()) {
     const Function& initializer = Function::Handle(EnsureInitializerFunction());
     const Array& args = Array::Handle(Array::New(1));
@@ -10473,7 +10474,9 @@ ErrorPtr Field::InitializeInstance(const Instance& instance) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    value = saved_initial_value();
+    // Our trivial initializer is `null`. Any non-`null` initializer is
+    // non-trivial (see `KernelLoader::CheckForInitializer()`).
+    value = Object::null();
 #endif
   }
   ASSERT(value.IsNull() || value.IsInstance());
@@ -10513,8 +10516,9 @@ ErrorPtr Field::InitializeStatic() const {
       }
     }
     ASSERT(value.IsNull() || value.IsInstance());
-    SetStaticValue(value.IsNull() ? Instance::null_instance()
-                                  : Instance::Cast(value));
+    SetStaticValue(
+        value.IsNull() ? Instance::null_instance() : Instance::Cast(value),
+        is_const());
     return Error::null();
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
     ASSERT(!is_late());
@@ -10738,7 +10742,7 @@ void Field::SetStaticValue(const Instance& value,
   isolate->field_table()->SetAt(id, value.raw());
   if (save_initial_value) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
+    isolate->group()->initial_field_table()->SetAt(field_id(), value.raw());
 #endif
   }
 }
@@ -11662,7 +11666,7 @@ void Library::AddMetadata(const Object& owner,
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
   field.set_kernel_offset(kernel_offset);
-  thread->isolate()->RegisterStaticField(field, Array::empty_array());
+  thread->isolate_group()->RegisterStaticField(field, Array::empty_array());
 
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
@@ -13370,7 +13374,7 @@ void Namespace::AddMetadata(const Object& owner,
                             intptr_t kernel_offset) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
-  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   ASSERT(Field::Handle(zone, metadata_field()).IsNull());
   Field& field =
       Field::Handle(zone, Field::NewTopLevel(Symbols::TopLevel(),
@@ -13381,7 +13385,7 @@ void Namespace::AddMetadata(const Object& owner,
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
   field.set_kernel_offset(kernel_offset);
-  isolate->RegisterStaticField(field, Array::empty_array());
+  isolate_group->RegisterStaticField(field, Array::empty_array());
   set_metadata_field(field);
 }
 

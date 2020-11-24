@@ -202,7 +202,6 @@ namespace dart {
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
   F(Function, unoptimized_code_)                                               \
-  F(Field, saved_initial_value_)                                               \
   F(Field, type_test_cache_)                                                   \
   F(WeakSerializationReference, target_)
 

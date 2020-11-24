@@ -353,6 +353,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
+      initial_field_table_(new FieldTable(/*is_isolate_field_table=*/false)),
       symbols_lock_(new SafepointRwLock()),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
@@ -888,11 +889,18 @@ void Isolate::ValidateClassTable() {
 }
 #endif  // DEBUG
 
-void Isolate::RegisterStaticField(const Field& field,
-                                  const Instance& initial_value) {
+void IsolateGroup::RegisterStaticField(const Field& field,
+                                       const Instance& initial_value) {
   ASSERT(field.is_static());
-  field_table()->Register(field);
-  field.SetStaticValue(initial_value, /*save_initial_value=*/true);
+  initial_field_table()->Register(field);
+  initial_field_table()->SetAt(field.field_id(), initial_value.raw());
+
+  // TODO(dartbug.com/36097): When we start sharing the object stores (and
+  // therefore libraries, classes, fields) we'll have to register the initial
+  // static field value in all isolates.
+  auto current = Isolate::Current();
+  current->field_table()->AllocateIndex(field.field_id());
+  current->field_table()->SetAt(field.field_id(), initial_value.raw());
 }
 
 void Isolate::RehashConstants() {
@@ -1607,7 +1615,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
       shared_class_table_(isolate_group->shared_class_table()),
-      field_table_(new FieldTable()),
+      field_table_(new FieldTable(/*is_isolate_field_table=*/true)),
       isolate_group_(isolate_group),
       isolate_object_store_(
           new IsolateObjectStore(isolate_group->object_store())),
@@ -2787,9 +2795,7 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     object_store()->VisitObjectPointers(visitor);
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
-  if (saved_initial_field_table() != nullptr) {
-    saved_initial_field_table()->VisitObjectPointers(visitor);
-  }
+  initial_field_table()->VisitObjectPointers(visitor);
   VisitStackPointers(visitor, validate_frames);
 }
 

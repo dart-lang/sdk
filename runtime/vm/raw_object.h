@@ -1169,11 +1169,6 @@ class FieldLayout : public ObjectLayout {
   // - for instance fields: offset in words to the value in the class instance.
   // - for static fields: index into field_table.
   SmiPtr host_offset_or_field_id_;
-
-  // When generating APPJIT snapshots after running the application it is
-  // necessary to save the initial value of static fields so that we can
-  // restore the value back to the original initial value.
-  NOT_IN_PRECOMPILED(InstancePtr saved_initial_value_);  // Saved initial value
   SmiPtr guarded_list_length_;
   ArrayPtr dependent_code_;
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {

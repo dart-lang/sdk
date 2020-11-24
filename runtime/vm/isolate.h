@@ -614,17 +614,17 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ArrayPtr saved_unlinked_calls() const { return saved_unlinked_calls_; }
   void set_saved_unlinked_calls(const Array& saved_unlinked_calls);
 
-  FieldTable* saved_initial_field_table() const {
-    return saved_initial_field_table_.get();
+  FieldTable* initial_field_table() const { return initial_field_table_.get(); }
+  std::shared_ptr<FieldTable> initial_field_table_shareable() {
+    return initial_field_table_;
   }
-  std::shared_ptr<FieldTable> saved_initial_field_table_shareable() {
-    return saved_initial_field_table_;
-  }
-  void set_saved_initial_field_table(std::shared_ptr<FieldTable> field_table) {
-    saved_initial_field_table_ = field_table;
+  void set_initial_field_table(std::shared_ptr<FieldTable> field_table) {
+    initial_field_table_ = field_table;
   }
 
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
+
+  void RegisterStaticField(const Field& field, const Instance& initial_value);
 
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
@@ -709,7 +709,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   const uint8_t* dispatch_table_snapshot_ = nullptr;
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
-  std::shared_ptr<FieldTable> saved_initial_field_table_;
+  std::shared_ptr<FieldTable> initial_field_table_;
   uint32_t isolate_group_flags_ = 0;
 
   std::unique_ptr<SafepointRwLock> symbols_lock_;
@@ -795,8 +795,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #if defined(DEBUG)
   void ValidateClassTable();
 #endif
-  // Register a newly introduced static field.
-  void RegisterStaticField(const Field& field, const Instance& initial_value);
 
   void RehashConstants();
 #if defined(DEBUG)

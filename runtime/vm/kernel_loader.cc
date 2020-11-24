@@ -29,6 +29,7 @@ namespace kernel {
 
 #define Z (zone_)
 #define I (isolate_)
+#define IG (isolate_->group())
 #define T (type_translator_)
 #define H (translation_helper_)
 
@@ -1243,7 +1244,7 @@ void KernelLoader::FinishTopLevelClassLoading(
       static_field_value_ =
           GenerateFieldAccessors(toplevel_class, field, &field_helper);
     }
-    I->RegisterStaticField(field, static_field_value_);
+    IG->RegisterStaticField(field, static_field_value_);
 
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
@@ -1620,7 +1621,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
             GenerateFieldAccessors(klass, field, &field_helper);
       }
       if (field.is_static()) {
-        I->RegisterStaticField(field, static_field_value_);
+        IG->RegisterStaticField(field, static_field_value_);
       }
       if ((FLAG_enable_mirrors || has_pragma_annotation) &&
           annotation_count > 0) {
@@ -1642,7 +1643,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      /* is_reflectable = */ false,
                      /* is_late = */ false, klass, Object::dynamic_type(),
                      TokenPosition::kNoSource, TokenPosition::kNoSource);
-      I->RegisterStaticField(deleted_enum_sentinel, Instance::Handle());
+      IG->RegisterStaticField(deleted_enum_sentinel, Instance::Handle());
       fields_.Add(&deleted_enum_sentinel);
     }
 
