@@ -9829,7 +9829,7 @@ abstract class BinarySource {
 
   int readByte();
   List<int> readBytes(int length);
-  int readUInt();
+  int readUInt30();
   int readUint32();
 
   /// Read List<Byte> from the source.
