@@ -17365,7 +17365,23 @@ void SubtypeTestCache::GetCheck(
              ->isolate_group()
              ->subtype_test_cache_mutex()
              ->IsOwnedByCurrentThread());
+  GetCurrentCheck(ix, instance_class_id_or_function, destination_type,
+                  instance_type_arguments, instantiator_type_arguments,
+                  function_type_arguments,
+                  instance_parent_function_type_arguments,
+                  instance_delayed_type_arguments, test_result);
+}
 
+void SubtypeTestCache::GetCurrentCheck(
+    intptr_t ix,
+    Object* instance_class_id_or_function,
+    AbstractType* destination_type,
+    TypeArguments* instance_type_arguments,
+    TypeArguments* instantiator_type_arguments,
+    TypeArguments* function_type_arguments,
+    TypeArguments* instance_parent_function_type_arguments,
+    TypeArguments* instance_delayed_type_arguments,
+    Bool* test_result) const {
   Array& data = Array::Handle(cache());
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
@@ -17381,12 +17397,166 @@ void SubtypeTestCache::GetCheck(
   *test_result ^= entry.Get<kTestResult>();
 }
 
+bool SubtypeTestCache::HasCheck(
+    const Object& instance_class_id_or_function,
+    const AbstractType& destination_type,
+    const TypeArguments& instance_type_arguments,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
+    const TypeArguments& instance_parent_function_type_arguments,
+    const TypeArguments& instance_delayed_type_arguments,
+    intptr_t* index,
+    Bool* result) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+  const intptr_t last_index = NumberOfChecks();
+  const auto& data = Array::Handle(cache());
+
+  SubtypeTestCacheTable entries(data);
+  for (intptr_t i = 0; i < last_index; i++) {
+    const auto entry = entries[i];
+    if (entry.Get<kInstanceClassIdOrFunction>() ==
+            instance_class_id_or_function.raw() &&
+        entry.Get<kDestinationType>() == destination_type.raw() &&
+        entry.Get<kInstanceTypeArguments>() == instance_type_arguments.raw() &&
+        entry.Get<kInstantiatorTypeArguments>() ==
+            instantiator_type_arguments.raw() &&
+        entry.Get<kFunctionTypeArguments>() == function_type_arguments.raw() &&
+        entry.Get<kInstanceParentFunctionTypeArguments>() ==
+            instance_parent_function_type_arguments.raw() &&
+        entry.Get<kInstanceDelayedFunctionTypeArguments>() ==
+            instance_delayed_type_arguments.raw()) {
+      if (index != nullptr) {
+        *index = i;
+      }
+      if (result != nullptr) {
+        *result ^= entry.Get<kTestResult>();
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+void SubtypeTestCache::WriteEntryToBuffer(Zone* zone,
+                                          BaseTextBuffer* buffer,
+                                          intptr_t index,
+                                          const char* line_prefix) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+  WriteCurrentEntryToBuffer(zone, buffer, index, line_prefix);
+}
+
+void SubtypeTestCache::WriteCurrentEntryToBuffer(
+    Zone* zone,
+    BaseTextBuffer* buffer,
+    intptr_t index,
+    const char* line_prefix) const {
+  const char* separator =
+      line_prefix == nullptr ? ", " : OS::SCreate(zone, "\n%s", line_prefix);
+  auto& instance_class_id_or_function = Object::Handle(zone);
+  auto& destination_type = AbstractType::Handle(zone);
+  auto& instance_type_arguments = TypeArguments::Handle(zone);
+  auto& instantiator_type_arguments = TypeArguments::Handle(zone);
+  auto& function_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
+  auto& result = Bool::Handle(zone);
+  GetCurrentCheck(index, &instance_class_id_or_function, &destination_type,
+                  &instance_type_arguments, &instantiator_type_arguments,
+                  &function_type_arguments,
+                  &instance_parent_function_type_arguments,
+                  &instance_delayed_type_arguments, &result);
+  ASSERT(!result.IsNull());
+  buffer->Printf(
+      "[ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
+      ", %#" Px " ]",
+      static_cast<uword>(instance_class_id_or_function.raw()),
+      static_cast<uword>(destination_type.raw()),
+      static_cast<uword>(instance_type_arguments.raw()),
+      static_cast<uword>(instantiator_type_arguments.raw()),
+      static_cast<uword>(function_type_arguments.raw()),
+      static_cast<uword>(instance_parent_function_type_arguments.raw()),
+      static_cast<uword>(instance_delayed_type_arguments.raw()),
+      static_cast<uword>(result.raw()));
+  if (instance_class_id_or_function.IsSmi()) {
+    buffer->Printf("%sclass id: %" Pd "", separator,
+                   Smi::Cast(instance_class_id_or_function).Value());
+  } else {
+    ASSERT(instance_class_id_or_function.IsFunction());
+    buffer->Printf("%sfunction: %s", separator,
+                   Function::Cast(instance_class_id_or_function)
+                       .ToFullyQualifiedCString());
+  }
+  if (!destination_type.IsNull()) {
+    buffer->Printf("%sdestination type: %s", separator,
+                   destination_type.ToCString());
+    if (!destination_type.IsInstantiated()) {
+      AbstractType& test_type = AbstractType::Handle(
+          zone, destination_type.InstantiateFrom(instantiator_type_arguments,
+                                                 function_type_arguments,
+                                                 kAllFree, Heap::kNew));
+      const auto& type_class = Class::Handle(zone, test_type.type_class());
+      buffer->Printf("%sinstantiated type: %s", separator,
+                     test_type.ToCString());
+      buffer->Printf("%sinstantiated type class id: %" Pd "", separator,
+                     type_class.id());
+    }
+  }
+  if (!instance_type_arguments.IsNull()) {
+    if (instance_class_id_or_function.IsSmi()) {
+      buffer->Printf("%sinstance type arguments: %s", separator,
+                     instance_type_arguments.ToCString());
+    } else {
+      ASSERT(instance_class_id_or_function.IsFunction());
+      buffer->Printf("%sclosure instantiator function type arguments: %s",
+                     separator, instance_type_arguments.ToCString());
+    }
+  }
+  if (!instantiator_type_arguments.IsNull()) {
+    buffer->Printf("%sinstantiator type arguments: %s", separator,
+                   instantiator_type_arguments.ToCString());
+  }
+  if (!function_type_arguments.IsNull()) {
+    buffer->Printf("%sfunction type arguments: %s", separator,
+                   function_type_arguments.ToCString());
+  }
+  if (!instance_parent_function_type_arguments.IsNull()) {
+    ASSERT(instance_class_id_or_function.IsFunction());
+    buffer->Printf("%sclosure parent function type arguments: %s", separator,
+                   instance_parent_function_type_arguments.ToCString());
+  }
+  if (!instance_delayed_type_arguments.IsNull()) {
+    ASSERT(instance_class_id_or_function.IsFunction());
+    buffer->Printf("%sclosure delayed function type arguments: %s", separator,
+                   instance_delayed_type_arguments.ToCString());
+  }
+  buffer->Printf("%sresult: %s", separator, result.ToCString());
+}
+
 void SubtypeTestCache::Reset() const {
   set_cache(Array::Handle(cached_array_));
 }
 
 const char* SubtypeTestCache::ToCString() const {
-  return "SubtypeTestCache";
+  auto const zone = Thread::Current()->zone();
+  ZoneTextBuffer buffer(zone);
+  const intptr_t num_checks = NumberOfChecks();
+  buffer.AddString("SubtypeTestCache(");
+  for (intptr_t i = 0; i < num_checks; i++) {
+    if (i != 0) {
+      buffer.AddString(",");
+    }
+    buffer.AddString("{ entry: ");
+    WriteCurrentEntryToBuffer(zone, &buffer, i);
+    buffer.AddString(" }");
+  }
+  buffer.AddString(")");
+  return buffer.buffer();
 }
 
 LoadingUnitPtr LoadingUnit::New() {

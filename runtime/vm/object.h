@@ -6846,7 +6846,6 @@ class SubtypeTestCache : public Object {
   };
 
   virtual intptr_t NumberOfChecks() const;
-  // For a non-dynamic SubtypeTestCache, destination_type is unused.
   void AddCheck(const Object& instance_class_id_or_function,
                 const AbstractType& destination_type,
                 const TypeArguments& instance_type_arguments,
@@ -6855,7 +6854,6 @@ class SubtypeTestCache : public Object {
                 const TypeArguments& instance_parent_function_type_arguments,
                 const TypeArguments& instance_delayed_type_arguments,
                 const Bool& test_result) const;
-  // For a non-dynamic SubtypeTestCache, destination_type is always set to null.
   void GetCheck(intptr_t ix,
                 Object* instance_class_id_or_function,
                 AbstractType* destination_type,
@@ -6865,6 +6863,50 @@ class SubtypeTestCache : public Object {
                 TypeArguments* instance_parent_function_type_arguments,
                 TypeArguments* instance_delayed_type_arguments,
                 Bool* test_result) const;
+
+  // Like GetCheck(), but does not require the subtype test cache mutex and so
+  // may see an outdated view of the cache.
+  void GetCurrentCheck(intptr_t ix,
+                       Object* instance_class_id_or_function,
+                       AbstractType* destination_type,
+                       TypeArguments* instance_type_arguments,
+                       TypeArguments* instantiator_type_arguments,
+                       TypeArguments* function_type_arguments,
+                       TypeArguments* instance_parent_function_type_arguments,
+                       TypeArguments* instance_delayed_type_arguments,
+                       Bool* test_result) const;
+
+  // Returns whether all the elements of an existing cache entry, excluding
+  // the result, match the non-pointer arguments. The pointer arguments are
+  // out parameters as follows:
+  //
+  // If [index] is not nullptr, then it is set to the matching entry's index.
+  // If [result] is not nullptr, then it is set to the matching entry's result.
+  bool HasCheck(const Object& instance_class_id_or_function,
+                const AbstractType& destination_type,
+                const TypeArguments& instance_type_arguments,
+                const TypeArguments& instantiator_type_arguments,
+                const TypeArguments& function_type_arguments,
+                const TypeArguments& instance_parent_function_type_arguments,
+                const TypeArguments& instance_delayed_type_arguments,
+                intptr_t* index,
+                Bool* result) const;
+
+  // Writes the cache entry at index [index] to the given text buffer.
+  //
+  // The output is comma separated on a single line if [line_prefix] is nullptr,
+  // otherwise line breaks followed by [line_prefix] is used as a separator.
+  void WriteEntryToBuffer(Zone* zone,
+                          BaseTextBuffer* buffer,
+                          intptr_t index,
+                          const char* line_prefix = nullptr) const;
+
+  // Like WriteEntryToBuffer(), but does not require the subtype test cache
+  // mutex and so may see an outdated view of the cache.
+  void WriteCurrentEntryToBuffer(Zone* zone,
+                                 BaseTextBuffer* buffer,
+                                 intptr_t index,
+                                 const char* line_prefix = nullptr) const;
   void Reset() const;
 
   static SubtypeTestCachePtr New();
