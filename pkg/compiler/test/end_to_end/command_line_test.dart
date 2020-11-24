@@ -27,10 +27,16 @@ main() {
     await test([Flags.cfeOnly], exitCode: 1);
     await test([Flags.cfeOnly, 'foo.dart'], out: 'out.dill');
     await test([Flags.cfeOnly, 'foo.dart', '--out=out.dill'], out: 'out.dill');
+    await test([Flags.cfeOnly, 'foo.dart', Flags.readClosedWorld], exitCode: 1);
+    await test(['foo.dart', Flags.readClosedWorld, Flags.cfeOnly], exitCode: 1);
     await test([Flags.cfeOnly, 'foo.dart', Flags.readData], exitCode: 1);
     await test(['foo.dart', Flags.readData, Flags.cfeOnly], exitCode: 1);
     await test([Flags.cfeOnly, 'foo.dart', Flags.readCodegen], exitCode: 1);
     await test(['foo.dart', Flags.readCodegen, Flags.cfeOnly], exitCode: 1);
+    await test([Flags.cfeOnly, 'foo.dart', Flags.writeClosedWorld],
+        exitCode: 1);
+    await test(['foo.dart', Flags.writeClosedWorld, Flags.cfeOnly],
+        exitCode: 1);
     await test([Flags.cfeOnly, 'foo.dart', Flags.writeData], exitCode: 1);
     await test(['foo.dart', Flags.writeData, Flags.cfeOnly], exitCode: 1);
     await test([Flags.cfeOnly, 'foo.dart', Flags.writeCodegen], exitCode: 1);
@@ -40,10 +46,50 @@ main() {
         out: 'out.dill', writeData: 'out.dill.data');
     await test(['${Flags.writeData}=foo.data', 'foo.dart', '--out=foo.dill'],
         out: 'foo.dill', writeData: 'foo.data');
+    await test([Flags.readClosedWorld, Flags.writeClosedWorld, 'foo.dart'],
+        exitCode: 1);
+    await test([Flags.writeClosedWorld, Flags.readClosedWorld, 'foo.dart'],
+        exitCode: 1);
     await test([Flags.readData, Flags.writeData, 'foo.dart'], exitCode: 1);
     await test([Flags.writeData, Flags.readData, 'foo.dart'], exitCode: 1);
+    await test([Flags.readCodegen, Flags.writeClosedWorld, 'foo.dart'],
+        exitCode: 1);
     await test([Flags.readCodegen, Flags.writeData, 'foo.dart'], exitCode: 1);
+    await test([Flags.writeClosedWorld, Flags.readData, 'foo.dart'],
+        exitCode: 1);
+    await test([Flags.writeClosedWorld, Flags.readCodegen, 'foo.dart'],
+        exitCode: 1);
     await test([Flags.writeData, Flags.readCodegen, 'foo.dart'], exitCode: 1);
+
+    await test([
+      Flags.writeClosedWorld,
+      'foo.dart',
+    ], out: 'out.dill', writeClosedWorld: 'out.dill.world');
+    await test(
+        ['${Flags.writeClosedWorld}=foo.world', 'foo.dart', '--out=foo.dill'],
+        out: 'foo.dill', writeClosedWorld: 'foo.world');
+
+    await test([Flags.readClosedWorld, 'foo.dill'],
+        out: 'out.js', readClosedWorld: 'foo.dill.world');
+    await test([Flags.readClosedWorld, 'foo.dill', '--out=foo.js'],
+        out: 'foo.js', readClosedWorld: 'foo.dill.world');
+    await test(['${Flags.readClosedWorld}=out.world', 'foo.world'],
+        out: 'out.js', readClosedWorld: 'out.world');
+    await test(
+        ['${Flags.readClosedWorld}=out.world', 'foo.world', '--out=foo.js'],
+        out: 'foo.js', readClosedWorld: 'out.world');
+    await test(
+      [Flags.readClosedWorld, Flags.writeData, 'foo.dill'],
+      out: 'out.dill',
+      readClosedWorld: 'foo.dill.world',
+      writeData: 'out.dill.data',
+    );
+    await test([
+      '${Flags.readClosedWorld}=foo.world',
+      '${Flags.writeData}=foo.data',
+      'foo.dart',
+      '--out=foo.dill'
+    ], out: 'foo.dill', readClosedWorld: 'foo.world', writeData: 'foo.data');
 
     await test([Flags.readData, 'foo.dill'],
         out: 'out.js', readData: 'foo.dill.data');
@@ -199,6 +245,8 @@ main() {
 Future test(List<String> arguments,
     {int exitCode,
     String out,
+    String readClosedWorld,
+    String writeClosedWorld,
     String readData,
     String writeData,
     String readCodegen,
@@ -231,6 +279,10 @@ Future test(List<String> arguments,
   if (actualExitCode == null) {
     Expect.isNotNull(options, "Missing options object");
     Expect.equals(toUri(out), options.outputUri, "Unexpected output uri.");
+    Expect.equals(toUri(readClosedWorld), options.readClosedWorldUri,
+        "Unexpected readClosedWorld uri");
+    Expect.equals(toUri(writeClosedWorld), options.writeClosedWorldUri,
+        "Unexpected writeClosedWorld uri");
     Expect.equals(
         toUri(readData), options.readDataUri, "Unexpected readData uri");
     Expect.equals(

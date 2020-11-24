@@ -4039,13 +4039,6 @@ class Field : public Object {
   inline intptr_t field_id() const;
   inline void set_field_id(intptr_t field_id) const;
 
-#ifndef DART_PRECOMPILED_RUNTIME
-  InstancePtr saved_initial_value() const {
-    return raw_ptr()->saved_initial_value_;
-  }
-  inline void set_saved_initial_value(const Instance& value) const;
-#endif
-
   ClassPtr Owner() const;
   ClassPtr Origin() const;  // Either mixin class, or same as owner().
   ScriptPtr Script() const;
@@ -11096,12 +11089,6 @@ void Field::set_field_id(intptr_t field_id) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   StoreSmi(&raw_ptr()->host_offset_or_field_id_, Smi::New(field_id));
 }
-
-#ifndef DART_PRECOMPILED_RUNTIME
-void Field::set_saved_initial_value(const Instance& value) const {
-  StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
-}
-#endif
 
 void Context::SetAt(intptr_t index, const Object& value) const {
   StorePointer(ObjectAddr(index), value.raw());

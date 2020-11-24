@@ -2956,7 +2956,7 @@ static FieldPtr CreateTestField(const char* name) {
   const Field& field = Field::Handle(Field::New(
       field_name, true, false, false, true, false, cls, Object::dynamic_type(),
       TokenPosition::kMinSource, TokenPosition::kMinSource));
-  thread->isolate()->RegisterStaticField(field, Instance::sentinel());
+  thread->isolate_group()->RegisterStaticField(field, Instance::sentinel());
   return field.raw();
 }
 

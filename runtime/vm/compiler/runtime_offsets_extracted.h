@@ -124,13 +124,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 16;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 20;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 48;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 44;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 56;
+    Field_guarded_list_length_in_object_offset_offset = 52;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    28;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 50;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
+    24;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 46;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 54;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_data_offset = 36;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -463,7 +463,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     24;
-static constexpr dart::compiler::target::word Field_InstanceSize = 64;
+static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 96;
@@ -642,13 +642,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 40;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 88;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 80;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 96;
+    Field_guarded_list_length_in_object_offset_offset = 88;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    56;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 90;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
+    48;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 82;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 90;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_data_offset = 72;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -986,7 +986,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     24;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     48;
-static constexpr dart::compiler::target::word Field_InstanceSize = 104;
+static constexpr dart::compiler::target::word Field_InstanceSize = 96;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;
@@ -1164,13 +1164,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 16;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 20;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 48;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 44;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 56;
+    Field_guarded_list_length_in_object_offset_offset = 52;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    28;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 50;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
+    24;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 46;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 54;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_data_offset = 36;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -1500,7 +1500,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     24;
-static constexpr dart::compiler::target::word Field_InstanceSize = 64;
+static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 96;
@@ -1679,13 +1679,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 40;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 88;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 80;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 96;
+    Field_guarded_list_length_in_object_offset_offset = 88;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    56;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 90;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
+    48;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 82;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 90;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_data_offset = 72;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -2024,7 +2024,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     24;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     48;
-static constexpr dart::compiler::target::word Field_InstanceSize = 104;
+static constexpr dart::compiler::target::word Field_InstanceSize = 96;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;
@@ -2202,13 +2202,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 16;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 20;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 48;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 44;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 56;
+    Field_guarded_list_length_in_object_offset_offset = 52;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    28;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 50;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
+    24;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 46;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 54;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_data_offset = 36;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -2537,7 +2537,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     24;
-static constexpr dart::compiler::target::word Field_InstanceSize = 64;
+static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 96;
@@ -2714,13 +2714,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 40;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 88;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 80;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 96;
+    Field_guarded_list_length_in_object_offset_offset = 88;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    56;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 90;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
+    48;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 82;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 90;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_data_offset = 72;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -3054,7 +3054,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     24;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     48;
-static constexpr dart::compiler::target::word Field_InstanceSize = 104;
+static constexpr dart::compiler::target::word Field_InstanceSize = 96;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;
@@ -3230,13 +3230,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 16;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 20;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 48;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 44;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 56;
+    Field_guarded_list_length_in_object_offset_offset = 52;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    28;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 50;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
+    24;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 46;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 54;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_data_offset = 36;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -3562,7 +3562,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     24;
-static constexpr dart::compiler::target::word Field_InstanceSize = 64;
+static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 96;
@@ -3739,13 +3739,13 @@ static constexpr dart::compiler::target::word
     Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     Field_host_offset_or_field_id_offset = 40;
-static constexpr dart::compiler::target::word Field_guarded_cid_offset = 88;
+static constexpr dart::compiler::target::word Field_guarded_cid_offset = 80;
 static constexpr dart::compiler::target::word
-    Field_guarded_list_length_in_object_offset_offset = 96;
+    Field_guarded_list_length_in_object_offset_offset = 88;
 static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
-    56;
-static constexpr dart::compiler::target::word Field_is_nullable_offset = 90;
-static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
+    48;
+static constexpr dart::compiler::target::word Field_is_nullable_offset = 82;
+static constexpr dart::compiler::target::word Field_kind_bits_offset = 90;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_data_offset = 72;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
@@ -4080,7 +4080,7 @@ static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     24;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
     48;
-static constexpr dart::compiler::target::word Field_InstanceSize = 104;
+static constexpr dart::compiler::target::word Field_InstanceSize = 96;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;

@@ -110,8 +110,8 @@ class ProcedureAttributesMetadataRepository
     final bool hasNonThisUses = (flags & kNonThisUsesBit) != 0;
     final bool hasTearOffUses = (flags & kTearOffUsesBit) != 0;
 
-    final int methodOrSetterSelectorId = source.readUInt();
-    final int getterSelectorId = source.readUInt();
+    final int methodOrSetterSelectorId = source.readUInt30();
+    final int getterSelectorId = source.readUInt30();
 
     return new ProcedureAttributesMetadata(
         methodOrSetterCalledDynamically: methodOrSetterCalledDynamically,

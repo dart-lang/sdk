@@ -23,7 +23,7 @@ class UnboxingInfoMetadata {
 
   UnboxingInfoMetadata.readFromBinary(BinarySource source)
       : unboxedArgsInfo = List<int>.generate(
-            source.readUInt(), (_) => source.readByte(),
+            source.readUInt30(), (_) => source.readByte(),
             growable: true),
         returnInfo = source.readByte();
 
