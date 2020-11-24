@@ -809,7 +809,10 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
-    assert(accessor.enclosingElement is CompilationUnitElement);
+    assert(
+        accessor.enclosingElement is CompilationUnitElement,
+        'Enclosing element of ${accessor.runtimeType} is '
+        '${accessor.enclosingElement.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a

@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
@@ -203,8 +202,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         opType = request.opType,
         targetIsFunctionalArgument = request.target.isFunctionalArgument(),
         super(request.offset);
-
-  TypeProvider get typeProvider => request.libraryElement.typeProvider;
 
   CompletionSuggestionKind get _defaultKind => targetIsFunctionalArgument
       ? CompletionSuggestionKind.IDENTIFIER
