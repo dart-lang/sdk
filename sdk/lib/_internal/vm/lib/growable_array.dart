@@ -211,6 +211,9 @@ class _GrowableList<T> extends ListBase<T> {
       var cap = _capacity;
       // Pregrow if we know iterable.length.
       var iterLen = iterable.length;
+      if (iterLen == 0) {
+        return;
+      }
       var newLen = len + iterLen;
       if (newLen > cap) {
         do {
