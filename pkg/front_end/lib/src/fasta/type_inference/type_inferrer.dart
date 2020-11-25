@@ -1644,17 +1644,13 @@ class TypeInferrerImpl implements TypeInferrer {
       VariableDeclarationImpl variable) {
     assert(variable.isImplicitlyTyped);
     assert(variable.initializer != null);
-    ExpressionInferenceResult result = inferExpression(
+    ExpressionInferenceResult result = inferNullAwareExpression(
         variable.initializer, const UnknownType(), true,
         isVoidAllowed: true);
-    Link<NullAwareGuard> nullAwareGuards;
-    if (isNonNullableByDefault) {
-      variable.initializer = result.nullAwareAction..parent = variable;
-      nullAwareGuards = result.nullAwareGuards;
-    } else {
-      variable.initializer = result.expression..parent = variable;
-      nullAwareGuards = const Link<NullAwareGuard>();
-    }
+
+    Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
+    variable.initializer = result.nullAwareAction..parent = variable;
+
     DartType inferredType =
         inferDeclarationType(result.inferredType, forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
@@ -1713,7 +1709,7 @@ class TypeInferrerImpl implements TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
-  ExpressionInferenceResult inferExpression(
+  ExpressionInferenceResult _inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed: false, bool forEffect: false}) {
     registerIfUnreachableForTesting(expression);
@@ -1766,6 +1762,28 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     return result;
+  }
+
+  ExpressionInferenceResult inferExpression(
+      Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed: false, bool forEffect: false}) {
+    ExpressionInferenceResult result = _inferExpression(
+        expression, typeContext, typeNeeded,
+        isVoidAllowed: isVoidAllowed, forEffect: forEffect);
+    return result.stopShorting();
+  }
+
+  ExpressionInferenceResult inferNullAwareExpression(
+      Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed: false, bool forEffect: false}) {
+    ExpressionInferenceResult result = _inferExpression(
+        expression, typeContext, typeNeeded,
+        isVoidAllowed: isVoidAllowed, forEffect: forEffect);
+    if (isNonNullableByDefault) {
+      return result;
+    } else {
+      return result.stopShorting();
+    }
   }
 
   @override
@@ -3965,6 +3983,8 @@ class ExpressionInferenceResult {
 
   DartType get nullAwareActionType => inferredType;
 
+  ExpressionInferenceResult stopShorting() => this;
+
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
 
@@ -4045,24 +4065,26 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
   @override
   final Expression nullAwareAction;
 
-  Expression _expression;
-
   NullAwareExpressionInferenceResult(this.inferredType,
       this.nullAwareActionType, this.nullAwareGuards, this.nullAwareAction)
       : assert(nullAwareGuards.isNotEmpty),
         assert(nullAwareAction != null);
 
   Expression get expression {
-    if (_expression == null) {
-      _expression = nullAwareAction;
-      Link<NullAwareGuard> nullAwareGuard = nullAwareGuards;
-      while (nullAwareGuard.isNotEmpty) {
-        _expression =
-            nullAwareGuard.head.createExpression(inferredType, _expression);
-        nullAwareGuard = nullAwareGuard.tail;
-      }
+    throw new UnsupportedError('Shorting must be explicitly stopped before'
+        'accessing the expression result of a '
+        'NullAwareExpressionInferenceResult');
+  }
+
+  ExpressionInferenceResult stopShorting() {
+    Expression expression = nullAwareAction;
+    Link<NullAwareGuard> nullAwareGuard = nullAwareGuards;
+    while (nullAwareGuard.isNotEmpty) {
+      expression =
+          nullAwareGuard.head.createExpression(inferredType, expression);
+      nullAwareGuard = nullAwareGuard.tail;
     }
-    return _expression;
+    return new ExpressionInferenceResult(inferredType, expression);
   }
 
   String toString() =>

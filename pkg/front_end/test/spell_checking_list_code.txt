@@ -1062,6 +1062,7 @@ stdlib
 stdout
 sticky
 stmt
+stopped
 str
 strategies
 streak
