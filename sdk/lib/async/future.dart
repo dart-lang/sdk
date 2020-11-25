@@ -147,8 +147,11 @@ abstract class FutureOr<T> {
  */
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
-  static final _Future<Null> _nullFuture =
-      new _Future<Null>.zoneValue(null, _rootZone);
+  ///
+  /// Currently shared with `dart:internal`.
+  /// If that future can be removed, then change this back to
+  /// `_Future<Null>.zoneValue(null, _rootZone);`
+  static final _Future<Null> _nullFuture = nullFuture as _Future<Null>;
 
   /// A `Future<bool>` completed with `false`.
   static final _Future<bool> _falseFuture =

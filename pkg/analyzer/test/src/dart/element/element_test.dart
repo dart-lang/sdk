@@ -36,6 +36,7 @@ main() {
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(LibraryElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
+    defineReflectiveTests(UniqueLocationTest);
   });
 }
 
@@ -2285,6 +2286,50 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
       result?.getDisplayString(withNullability: true),
       expected,
     );
+  }
+}
+
+@reflectiveTest
+class UniqueLocationTest extends PubPackageResolutionTest {
+  test_ambiguous_closure_in_executable() async {
+    await resolveTestCode('''
+void f() => [() => 0, () => 1];
+''');
+    expect(findNode.functionExpression('() => 0').declaredElement.location,
+        isNot(findNode.functionExpression('() => 1').declaredElement.location));
+  }
+
+  test_ambiguous_closure_in_local_variable() async {
+    await resolveTestCode('''
+void f() {
+  var x = [() => 0, () => 1];
+}
+''');
+    expect(findNode.functionExpression('() => 0').declaredElement.location,
+        isNot(findNode.functionExpression('() => 1').declaredElement.location));
+  }
+
+  test_ambiguous_closure_in_top_level_variable() async {
+    await resolveTestCode('''
+var x = [() => 0, () => 1];
+''');
+    expect(findNode.functionExpression('() => 0').declaredElement.location,
+        isNot(findNode.functionExpression('() => 1').declaredElement.location));
+  }
+
+  test_ambiguous_local_variable_in_executable() async {
+    await resolveTestCode('''
+f() {
+  {
+    int x = 0;
+  }
+  {
+    int x = 1;
+  }
+}
+''');
+    expect(findNode.variableDeclaration('x = 0').declaredElement.location,
+        isNot(findNode.variableDeclaration('x = 1').declaredElement.location));
   }
 }
 
