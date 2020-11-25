@@ -119,6 +119,28 @@ int parseHexByte(String source, int index) {
   return digit1 * 16 + digit2 - (digit2 & 256);
 }
 
+/// A resusable `null`-valued future used by `dart:async`.
+///
+/// **DO NOT USE.**
+///
+/// This future is used in situations where a future is expected,
+/// but no asynchronous computation actually happens,
+/// like cancelling a stream from a controller with no `onCancel` callback.
+/// *Some code depends on recognizing this future in order to react
+/// synchronously.*
+/// It does so to avoid changing event interleaving during the null safety
+/// migration where, for example, the [StreamSubscription.cancel] method
+/// stopped being able to return `null`.
+/// The code that would be broken by such a timing change is fragile,
+/// but we are not able to simply change it.
+/// For better or worse, code depends on the precise timing that our libraries
+/// have so far exhibited.
+///
+/// This future will be removed again if we can ever do so.
+/// Do not use it for anything other than preserving timing
+/// during the null safety migration.
+final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
+
 /// A default hash function used by the platform in various places.
 ///
 /// This is currently the [Jenkins hash function][1] but using masking to keep
