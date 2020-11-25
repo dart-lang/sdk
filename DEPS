@@ -104,7 +104,8 @@ vars = {
   "dartdoc_rev" : "d79877d0764ce23ffea7055049f8da5dffce0308",
   "ffi_rev": "a5d4232cd38562c75a3ed847baa340e399538028",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
-  "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
+  "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
+  "glob_rev": "7c0ef8d4fa086f6b185c4dd724b700e7d7ad8f79",
   "html_rev": "22f17e97fedeacaa1e945cf84d8016284eed33a6",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "f1d1c9c024a293ab0a0e16f8b7632e87c708b448",
@@ -335,6 +336,9 @@ deps = {
       Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_rev"),
+  Var("dart_root") + "/third_party/pkg/file":
+      Var("dart_git") + "external/github.com/google/file.dart/"
+      + "@" + Var("file_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       Var("dart_git") + "glob.git" + "@" + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
