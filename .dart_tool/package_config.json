@@ -258,6 +258,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "file",
+      "rootUri": "../third_party/pkg/file/packages/file",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
@@ -284,7 +290,7 @@
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "html",
