@@ -4933,7 +4933,7 @@ class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_parameters)..add(_body);
+      ChildEntities()..add(_typeParameters)..add(_parameters)..add(_body);
 
   @override
   Token get endToken {

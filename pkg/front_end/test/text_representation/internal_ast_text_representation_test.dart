@@ -581,7 +581,18 @@ foo ?? foo = 1''');
 
 void _testCompoundExtensionSet() {}
 
-void _testCompoundPropertySet() {}
+void _testCompoundPropertySet() {
+  testExpression(
+      new CompoundPropertySet(
+          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          binaryOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          readOnlyReceiver: false,
+          forEffect: false),
+      '''
+0.foo += 1''');
+}
 
 void _testPropertyPostIncDec() {}
 
@@ -607,9 +618,40 @@ void _testIfNullExtensionIndexSet() {}
 
 void _testCompoundIndexSet() {}
 
-void _testNullAwareCompoundSet() {}
+void _testNullAwareCompoundSet() {
+  testExpression(
+      new NullAwareCompoundSet(
+          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          binaryOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forPostIncDec: false,
+          forEffect: false),
+      '''
+0?.foo += 1''');
+  testExpression(
+      new NullAwareCompoundSet(
+          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          binaryOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forPostIncDec: true,
+          forEffect: false),
+      '''
+0?.foo++''');
+}
 
-void _testNullAwareIfNullSet() {}
+void _testNullAwareIfNullSet() {
+  testExpression(
+      new NullAwareIfNullSet(
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          testOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forEffect: false),
+      '''
+0?.foo ??= 1''');
+}
 
 void _testCompoundSuperIndexSet() {}
 

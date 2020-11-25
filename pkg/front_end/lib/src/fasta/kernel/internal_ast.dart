@@ -1937,6 +1937,17 @@ class CompoundPropertySet extends InternalExpression {
   String toString() {
     return "CompoundPropertySet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('.');
+    printer.writeName(propertyName);
+    printer.write(' ');
+    printer.writeName(binaryName);
+    printer.write('= ');
+    printer.writeExpression(rhs);
+  }
 }
 
 /// Internal expression representing an compound property assignment.
@@ -2939,6 +2950,28 @@ class NullAwareCompoundSet extends InternalExpression {
   String toString() {
     return "NullAwareCompoundSet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('?.');
+    printer.writeName(propertyName);
+    if (forPostIncDec &&
+        rhs is IntLiteral &&
+        (rhs as IntLiteral).value == 1 &&
+        (binaryName == plusName || binaryName == minusName)) {
+      if (binaryName == plusName) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    } else {
+      printer.write(' ');
+      printer.writeName(binaryName);
+      printer.write('= ');
+      printer.writeExpression(rhs);
+    }
+  }
 }
 
 /// Internal expression representing an null-aware if-null property set.
@@ -3025,6 +3058,15 @@ class NullAwareIfNullSet extends InternalExpression {
   @override
   String toString() {
     return "NullAwareIfNullSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('?.');
+    printer.writeName(name);
+    printer.write(' ??= ');
+    printer.writeExpression(value);
   }
 }
 

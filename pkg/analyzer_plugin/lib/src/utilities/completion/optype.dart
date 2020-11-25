@@ -883,9 +883,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.expression)) {
       optype.completionLocation = 'InterpolationExpression_expression';
       optype.includeReturnValueSuggestions = true;
-      // Only include type names in a ${ } expression
-      optype.includeTypeNameSuggestions =
-          node.leftBracket != null && node.leftBracket.length > 1;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 

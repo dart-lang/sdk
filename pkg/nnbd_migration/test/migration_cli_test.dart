@@ -1055,9 +1055,10 @@ void call_g() => g(null);
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var navRoots = jsonDecode(treeResponse.body);
       for (final root in navRoots) {
-        var navTree = NavigationTreeNode.fromJson(root);
+        var navTree =
+            NavigationTreeNode.fromJson(root) as NavigationTreeDirectoryNode;
         for (final file in navTree.subtree) {
-          if (file.href != null) {
+          if (file is NavigationTreeFileNode) {
             final contentsResponse = await httpGet(
                 uri
                     .resolve(file.href)

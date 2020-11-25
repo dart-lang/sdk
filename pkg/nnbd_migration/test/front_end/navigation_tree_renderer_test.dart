@@ -17,7 +17,10 @@ void main() {
   });
 }
 
-const isNavigationTreeNode = TypeMatcher<NavigationTreeNode>();
+const isNavigationTreeDirectoryNode =
+    TypeMatcher<NavigationTreeDirectoryNode>();
+
+const isNavigationTreeFileNode = TypeMatcher<NavigationTreeFileNode>();
 
 @reflectiveTest
 class NavigationTreeRendererTest extends NnbdMigrationTestBase {
@@ -40,13 +43,13 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
       convertPath('$projectPath/lib/c.dart'): 'int c = null;\nint d = null;',
     });
 
-    var libNode = response[0];
+    var libNode = response[0] as NavigationTreeDirectoryNode;
     expect(
         libNode,
-        isNavigationTreeNode.havingSubtree([
-          isNavigationTreeNode.havingEditCount(0),
-          isNavigationTreeNode.havingEditCount(1),
-          isNavigationTreeNode.havingEditCount(2)
+        isNavigationTreeDirectoryNode.havingSubtree([
+          isNavigationTreeFileNode.havingEditCount(0),
+          isNavigationTreeFileNode.havingEditCount(1),
+          isNavigationTreeFileNode.havingEditCount(2)
         ]));
   }
 
@@ -60,15 +63,16 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var libNode = response[0];
     expect(
         libNode,
-        isNavigationTreeNode.named('lib').havingSubtree([
-          isNavigationTreeNode.named('src').havingSubtree([
-            isNavigationTreeNode.havingHref(
+        isNavigationTreeDirectoryNode.named('lib').havingSubtree([
+          isNavigationTreeDirectoryNode.named('src').havingSubtree([
+            isNavigationTreeFileNode.havingHref(
                 '$projectPath/lib/src/b.dart', pathMapper)
           ]),
-          isNavigationTreeNode.havingHref('$projectPath/lib/a.dart', pathMapper)
+          isNavigationTreeFileNode.havingHref(
+              '$projectPath/lib/a.dart', pathMapper)
         ]));
 
-    var toolNode = response[1];
+    var toolNode = response[1] as NavigationTreeFileNode;
     expect(
         toolNode.href, pathMapper.map(convertPath('$projectPath/tool.dart')));
   }
@@ -84,11 +88,11 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var libNode = response[0];
     expect(
         libNode,
-        isNavigationTreeNode.named('lib').havingSubtree([
-          isNavigationTreeNode
+        isNavigationTreeDirectoryNode.named('lib').havingSubtree([
+          isNavigationTreeDirectoryNode
               .named('src')
-              .havingSubtree([isNavigationTreeNode.named('b.dart')]),
-          isNavigationTreeNode.named('a.dart')
+              .havingSubtree([isNavigationTreeFileNode.named('b.dart')]),
+          isNavigationTreeFileNode.named('a.dart')
         ]));
 
     var toolNode = response[1];
@@ -102,12 +106,12 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     });
     expect(response, hasLength(2));
 
-    var binNode = response[0];
+    var binNode = response[0] as NavigationTreeDirectoryNode;
     expect(binNode.type, equals(NavigationTreeNodeType.directory));
     expect(binNode.name, equals('bin'));
     expect(binNode.subtree, hasLength(1));
 
-    var libNode = response[1];
+    var libNode = response[1] as NavigationTreeDirectoryNode;
     expect(libNode.type, equals(NavigationTreeNodeType.directory));
     expect(libNode.name, equals('lib'));
     expect(libNode.subtree, hasLength(1));
@@ -123,12 +127,12 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var libNode = response[0];
     expect(
         libNode,
-        isNavigationTreeNode.named('lib').havingSubtree([
-          isNavigationTreeNode
+        isNavigationTreeDirectoryNode.named('lib').havingSubtree([
+          isNavigationTreeFileNode
               .named('a.dart')
               .havingPath(convertPath('lib/a.dart'))
               .havingHref('$projectPath/lib/a.dart', pathMapper),
-          isNavigationTreeNode
+          isNavigationTreeFileNode
               .named('b.dart')
               .havingPath(convertPath('lib/b.dart'))
               .havingHref('$projectPath/lib/b.dart', pathMapper)
@@ -145,10 +149,11 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var libNode = response[0];
     expect(
         libNode,
-        isNavigationTreeNode.named('lib').havingSubtree([
-          isNavigationTreeNode.named('src').havingSubtree(
-              [isNavigationTreeNode.havingPath(convertPath('lib/src/b.dart'))]),
-          isNavigationTreeNode.havingPath(convertPath('lib/a.dart'))
+        isNavigationTreeDirectoryNode.named('lib').havingSubtree([
+          isNavigationTreeDirectoryNode.named('src').havingSubtree([
+            isNavigationTreeFileNode.havingPath(convertPath('lib/src/b.dart'))
+          ]),
+          isNavigationTreeFileNode.havingPath(convertPath('lib/a.dart'))
         ]));
 
     var toolNode = response[1];
@@ -164,9 +169,9 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var libNode = response[0];
     expect(
         libNode,
-        isNavigationTreeNode.named('lib').havingSubtree([
-          isNavigationTreeNode.named('src').havingSubtree([
-            isNavigationTreeNode
+        isNavigationTreeDirectoryNode.named('lib').havingSubtree([
+          isNavigationTreeDirectoryNode.named('src').havingSubtree([
+            isNavigationTreeFileNode
                 .named('a.dart')
                 .havingPath(convertPath('lib/src/a.dart'))
                 .havingHref('$projectPath/lib/src/a.dart', pathMapper)
@@ -180,27 +185,174 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     });
     expect(response, hasLength(1));
 
-    var aNode = response[0];
+    var aNode = response[0] as NavigationTreeFileNode;
     expect(aNode.name, 'a.dart');
     expect(aNode.path, 'a.dart');
     expect(aNode.href, pathMapper.map(convertPath('$projectPath/a.dart')));
   }
+
+  Future<void> test_migrationStatus_directory_allMigrated() async {
+    var response = await renderNavigationTree({
+      convertPath('$projectPath/lib/a.dart'): 'int a = null;',
+      convertPath('$projectPath/lib/src/b.dart'): 'int b = null;',
+    });
+
+    var libNode = response[0] as NavigationTreeDirectoryNode;
+    ((libNode.subtree[0] as NavigationTreeDirectoryNode).subtree[0]
+            as NavigationTreeFileNode)
+        .migrationStatus = UnitMigrationStatus.alreadyMigrated;
+    (libNode.subtree[1] as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.alreadyMigrated;
+    expect(
+        libNode,
+        isNavigationTreeDirectoryNode
+            .named('lib')
+            .havingMigrationStatus(UnitMigrationStatus.alreadyMigrated)
+            .havingSubtree([
+          isNavigationTreeDirectoryNode
+              .named('src')
+              .havingMigrationStatus(UnitMigrationStatus.alreadyMigrated),
+          isNavigationTreeFileNode
+        ]));
+  }
+
+  Future<void> test_migrationStatus_directory_allMigrating() async {
+    var response = await renderNavigationTree({
+      convertPath('$projectPath/lib/a.dart'): 'int a = null;',
+      convertPath('$projectPath/lib/src/b.dart'): 'int b = null;',
+    });
+
+    var libNode = response[0];
+    expect(
+        libNode,
+        isNavigationTreeDirectoryNode
+            .named('lib')
+            .havingMigrationStatus(UnitMigrationStatus.migrating)
+            .havingSubtree([
+          isNavigationTreeDirectoryNode
+              .named('src')
+              .havingMigrationStatus(UnitMigrationStatus.migrating),
+          isNavigationTreeFileNode
+        ]));
+  }
+
+  Future<void> test_migrationStatus_directory_allOptingOut() async {
+    var response = await renderNavigationTree({
+      convertPath('$projectPath/lib/a.dart'): 'int a = null;',
+      convertPath('$projectPath/lib/src/b.dart'): 'int b = null;',
+    });
+
+    var libNode = response[0] as NavigationTreeDirectoryNode;
+    ((libNode.subtree[0] as NavigationTreeDirectoryNode).subtree[0]
+            as NavigationTreeFileNode)
+        .migrationStatus = UnitMigrationStatus.optingOut;
+    (libNode.subtree[1] as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    expect(
+        libNode,
+        isNavigationTreeDirectoryNode
+            .named('lib')
+            .havingMigrationStatus(UnitMigrationStatus.optingOut)
+            .havingSubtree([
+          isNavigationTreeDirectoryNode
+              .named('src')
+              .havingMigrationStatus(UnitMigrationStatus.optingOut),
+          isNavigationTreeFileNode
+        ]));
+  }
+
+  Future<void> test_migrationStatus_directory_mixedInAndOut() async {
+    var response = await renderNavigationTree({
+      convertPath('$projectPath/lib/a.dart'): 'int a = null;',
+      convertPath('$projectPath/lib/src/b.dart'): 'int b = null;',
+      convertPath('$projectPath/lib/src/c.dart'): 'int b = null;',
+    });
+
+    var libNode = response[0] as NavigationTreeDirectoryNode;
+    var libSrcNode = libNode.subtree[0] as NavigationTreeDirectoryNode;
+    (libSrcNode.subtree[0] as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    expect(
+        libNode,
+        isNavigationTreeDirectoryNode
+            .named('lib')
+            .havingMigrationStatus(UnitMigrationStatus.indeterminate)
+            .havingSubtree([
+          isNavigationTreeDirectoryNode
+              .named('src')
+              .havingMigrationStatus(UnitMigrationStatus.indeterminate),
+          isNavigationTreeFileNode
+        ]));
+  }
+
+  Future<void> test_migrationStatus_directory_mixedInAndOutAndMigrated() async {
+    var response = await renderNavigationTree({
+      convertPath('$projectPath/lib/a.dart'): 'int a = null;',
+      convertPath('$projectPath/lib/src/b.dart'): 'int b = null;',
+      convertPath('$projectPath/lib/src/c.dart'): 'int b = null;',
+    });
+
+    var libNode = response[0] as NavigationTreeDirectoryNode;
+    var libSrcNode = libNode.subtree[0] as NavigationTreeDirectoryNode;
+    (libSrcNode.subtree[0] as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    (libSrcNode.subtree[1] as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.alreadyMigrated;
+    expect(
+        libNode,
+        isNavigationTreeDirectoryNode
+            .named('lib')
+            .havingMigrationStatus(UnitMigrationStatus.indeterminate)
+            .havingSubtree([
+          isNavigationTreeDirectoryNode
+              .named('src')
+              .havingMigrationStatus(UnitMigrationStatus.optingOut),
+          isNavigationTreeFileNode
+        ]));
+  }
+
+  Future<void> test_migrationStatus_file() async {
+    var response = await renderNavigationTree({
+      convertPath('$projectPath/lib/a.dart'): 'int a = 1;',
+      convertPath('$projectPath/lib/b.dart'): '// @dart=2.9\nint b = null;',
+    });
+
+    var libNode = response[0] as NavigationTreeDirectoryNode;
+    expect(
+        libNode,
+        isNavigationTreeDirectoryNode.havingSubtree([
+          isNavigationTreeFileNode
+              .havingMigrationStatus(UnitMigrationStatus.migrating),
+          isNavigationTreeFileNode
+              .havingMigrationStatus(UnitMigrationStatus.migrating),
+        ]));
+  }
 }
 
-extension on TypeMatcher<NavigationTreeNode> {
-  TypeMatcher<NavigationTreeNode> havingSubtree(dynamic matcher) =>
-      having((node) => node.subtree, 'subtree', matcher);
-
-  TypeMatcher<NavigationTreeNode> havingEditCount(dynamic matcher) =>
-      having((node) => node.editCount, 'editCount', matcher);
-
-  TypeMatcher<NavigationTreeNode> named(dynamic matcher) =>
+extension<T extends NavigationTreeNode> on TypeMatcher<T> {
+  TypeMatcher<T> named(dynamic matcher) =>
       having((node) => node.name, 'name', matcher);
 
-  TypeMatcher<NavigationTreeNode> havingHref(
+  TypeMatcher<T> havingMigrationStatus(dynamic matcher) =>
+      having((node) => node.migrationStatus, 'migrationStatus', matcher);
+}
+
+extension on TypeMatcher<NavigationTreeDirectoryNode> {
+  TypeMatcher<NavigationTreeDirectoryNode> havingSubtree(dynamic matcher) =>
+      having((node) => node.subtree, 'subtree', matcher);
+}
+
+extension on TypeMatcher<NavigationTreeFileNode> {
+  TypeMatcher<NavigationTreeFileNode> havingEditCount(dynamic matcher) =>
+      having((node) => node.editCount, 'editCount', matcher);
+
+  //TypeMatcher<NavigationTreeFileNode> named(dynamic matcher) =>
+  //    having((node) => node.name, 'name', matcher);
+
+  TypeMatcher<NavigationTreeFileNode> havingHref(
           String path, PathMapper pathMapper) =>
       having((node) => node.href, 'href', pathMapper.map(path));
 
-  TypeMatcher<NavigationTreeNode> havingPath(dynamic matcher) =>
+  TypeMatcher<NavigationTreeFileNode> havingPath(dynamic matcher) =>
       having((node) => node.path, 'path', matcher);
 }

@@ -2949,11 +2949,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void ifNullExpression_end() {
-    // TODO(paulberry): CFE sometimes calls ifNullExpression_end and
-    // nullAwareAccess_end out of order, so as a workaround we cast to the
-    // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
-    _SimpleContext<Variable, Type> context =
-        _stack.removeLast() as _SimpleContext<Variable, Type>;
+    _IfNullExpressionContext<Variable, Type> context =
+        _stack.removeLast() as _IfNullExpressionContext<Variable, Type>;
     _current = _merge(_current, context._previous);
   }
 
@@ -3123,11 +3120,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void nullAwareAccess_end() {
-    // TODO(paulberry): CFE sometimes calls ifNullExpression_end and
-    // nullAwareAccess_end out of order, so as a workaround we cast to the
-    // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
-    _SimpleContext<Variable, Type> context =
-        _stack.removeLast() as _SimpleContext<Variable, Type>;
+    _NullAwareAccessContext<Variable, Type> context =
+        _stack.removeLast() as _NullAwareAccessContext<Variable, Type>;
     _current = _merge(_current, context._previous);
   }
 

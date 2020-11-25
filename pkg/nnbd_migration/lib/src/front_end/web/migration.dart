@@ -667,19 +667,43 @@ void removeHighlight(int offset, int lineNumber) {
   }
 }
 
-void toggleMigrationStatus(NavigationTreeNode entity) {
-  // TODO(srawlins): Handle toggling directories.
+void toggleDirectoryMigrationStatus(NavigationTreeDirectoryNode entity) {
   switch (entity.migrationStatus) {
     case UnitMigrationStatus.alreadyMigrated:
+      // This tree cannot be toggled.
       break;
     case UnitMigrationStatus.migrating:
-      entity.migrationStatus = entity.wasExplicitlyOptedOut
-          ? UnitMigrationStatus.keepingOptedOut
-          : UnitMigrationStatus.optingOut;
+      // At least one child file is 'migrating' (some may be 'already
+      // migrated'). Toggle all 'migrating' children to opt out.
+      entity.toggleChildrenToOptOut();
       break;
     case UnitMigrationStatus.optingOut:
-    case UnitMigrationStatus.keepingOptedOut:
+      // At least one child file is 'opting out' (some may be 'already
+      // migrated'). Toggle all 'migrating' children to migrate.
+      entity.toggleChildrenToMigrate();
+      break;
+    case UnitMigrationStatus.indeterminate:
+      // At least one child file is 'migrating' and at least one child file is
+      // 'opting out' (some may be 'already migrated'). Toggle all 'migrating'
+      // children to migrate.
+      entity.toggleChildrenToMigrate();
+  }
+}
+
+void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
+  switch (entity.migrationStatus) {
+    case UnitMigrationStatus.alreadyMigrated:
+      // This file cannot be toggled.
+      break;
+    case UnitMigrationStatus.migrating:
+      entity.migrationStatus = UnitMigrationStatus.optingOut;
+      break;
+    case UnitMigrationStatus.optingOut:
       entity.migrationStatus = UnitMigrationStatus.migrating;
+      break;
+    case UnitMigrationStatus.indeterminate:
+      throw StateError('File ${entity.path} should not have '
+          'indeterminate migration status');
   }
 }
 
@@ -690,16 +714,9 @@ void updateIconForStatus(Element icon, UnitMigrationStatus status) {
       icon.classes.add('already-migrated');
       icon.setAttribute('title', 'Already migrated');
       break;
-    case UnitMigrationStatus.keepingOptedOut:
-      icon.innerText = 'check_box_outline_blank';
-      icon.classes.remove('migrating');
-      icon.classes.add('opted-out');
-      icon.setAttribute('title', 'Keeping unmigrated');
-      break;
     case UnitMigrationStatus.migrating:
       icon.innerText = 'check_box';
-      icon.classes.remove('keeping-opted-out');
-      icon.classes.remove('opting-out');
+      icon.classes.remove('opted-out');
       icon.classes.add('migrating');
       icon.setAttribute('title', 'Migrating to null safety');
       break;
@@ -710,7 +727,13 @@ void updateIconForStatus(Element icon, UnitMigrationStatus status) {
       icon.setAttribute('title', 'Opting out of null safety');
       break;
     default:
-      throw StateError('Unrecognized unit migration status: $status');
+      icon.innerText = 'indeterminate_check_box';
+      icon.classes.remove('migrating');
+      // 'opted-out' is the same style as 'indeterminate'.
+      icon.classes.add('opted-out');
+      icon.setAttribute(
+          'title', "Mixed statuses of 'migrating' and 'opting out'");
+      break;
   }
 }
 
@@ -730,6 +753,34 @@ void updatePage(String path, [int offset]) {
       link.classes.remove('selected-file');
     }
   });
+}
+
+/// Updates the parent icons of [entity] with list item [element] in the
+/// navigation tree.
+void updateParentIcons(Element element, NavigationTreeNode entity) {
+  var parent = entity.parent;
+  if (parent != null) {
+    var parentElement = (element.parentNode as Element).parentNode as Element;
+    var statusIcon = parentElement.querySelector(':scope > .status-icon');
+    updateIconForStatus(statusIcon, parent.migrationStatus);
+    updateParentIcons(parentElement, parent);
+  }
+}
+
+/// Updates subtree icons for the children [entity] with list item [element].
+void updateSubtreeIcons(Element element, NavigationTreeDirectoryNode entity) {
+  for (var child in entity.subtree) {
+    var childNode = element.querySelector('[data-name*="${child.path}"]');
+    if (child is NavigationTreeDirectoryNode) {
+      updateSubtreeIcons(childNode, child);
+      var childIcon = childNode.querySelector(':scope > .status-icon');
+      updateIconForStatus(childIcon, entity.migrationStatus);
+    } else {
+      var childIcon = (childNode.parentNode as Element)
+          .querySelector(':scope > .status-icon');
+      updateIconForStatus(childIcon, child.migrationStatus);
+    }
+  }
 }
 
 /// Load data from [data] into the .code and the .regions divs.
@@ -754,27 +805,39 @@ void writeNavigationSubtree(
   for (var entity in tree) {
     Element li = document.createElement('li');
     ul.append(li);
-    if (entity.type == NavigationTreeNodeType.directory) {
+    if (entity is NavigationTreeDirectoryNode) {
       li.classes.add('dir');
+      li.dataset['name'] = entity.path;
       Element arrow = document.createElement('span');
       li.append(arrow);
       arrow.classes.add('arrow');
       arrow.innerHtml = '&#x25BC;';
-      if (enablePartialMigration) {
-        li.append(createIcon('indeterminate_check_box'));
-      }
-      li.append(createIcon('folder_open'));
+      var folderIcon = createIcon('folder_open');
+      li.append(folderIcon);
       li.append(Text(entity.name));
       writeNavigationSubtree(li, entity.subtree,
           enablePartialMigration: enablePartialMigration);
-      addArrowClickHandler(arrow);
-    } else {
       if (enablePartialMigration) {
-        var statusIcon = createIcon();
+        var statusIcon = createIcon('indeterminate_check_box')
+          ..classes.add('status-icon');
         updateIconForStatus(statusIcon, entity.migrationStatus);
         statusIcon.onClick.listen((MouseEvent event) {
-          toggleMigrationStatus(entity);
+          toggleDirectoryMigrationStatus(entity);
+          updateSubtreeIcons(li, entity);
           updateIconForStatus(statusIcon, entity.migrationStatus);
+          updateParentIcons(li, entity);
+        });
+        li.insertBefore(statusIcon, folderIcon);
+      }
+      addArrowClickHandler(arrow);
+    } else if (entity is NavigationTreeFileNode) {
+      if (enablePartialMigration) {
+        var statusIcon = createIcon()..classes.add('status-icon');
+        updateIconForStatus(statusIcon, entity.migrationStatus);
+        statusIcon.onClick.listen((MouseEvent event) {
+          toggleFileMigrationStatus(entity);
+          updateIconForStatus(statusIcon, entity.migrationStatus);
+          updateParentIcons(li, entity);
         });
         li.append(statusIcon);
       }
