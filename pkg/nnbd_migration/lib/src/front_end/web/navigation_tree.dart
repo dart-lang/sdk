@@ -4,21 +4,107 @@
 
 import 'package:meta/meta.dart';
 
-/// Information about a node in the migration tool's navigation tree.
-class NavigationTreeNode {
-  /// Type of the node.
-  final NavigationTreeNodeType type;
-
-  /// Name of the node.
-  final String name;
-
+class NavigationTreeDirectoryNode extends NavigationTreeNode {
   /// If this is a directory node, list of nodes nested under this one.
   /// Otherwise `null`.
   final List<NavigationTreeNode> subtree;
 
-  /// If this is a file node, full path to the file.  Otherwise `null`.
-  final String path;
+  /// Creates a navigation tree node representing a directory.
+  NavigationTreeDirectoryNode(
+      {@required String name, @required String path, @required this.subtree})
+      : super._(name: name, path: path);
 
+  /// Returns the status by examining [subtree]:
+  ///
+  /// * If all children nodes have the same status, then that status is returned.
+  /// * Otherwise, if all children nodes are either 'alreadyMigrated' or
+  ///   'migrating', then [UnitMigrationStatus.migrating] is returned.
+  /// * Otherwise, if all children nodes are either 'alreadyMigrated' or
+  ///   'opting out', then [UnitMigrationStatus.optingOut] is returned.
+  /// * Otherwise, [UnitMigrationStatus.indeterminate] is returned.
+  UnitMigrationStatus get migrationStatus {
+    if (subtree.isEmpty) return UnitMigrationStatus.alreadyMigrated;
+    var sharedStatus = subtree.first.migrationStatus;
+    var allAreMigratedOrMigrating = true;
+    var allAreMigratedOrOptingOut = true;
+    for (var child in subtree) {
+      var childMigrationStatus = child.migrationStatus;
+
+      if (childMigrationStatus != sharedStatus) {
+        sharedStatus = null;
+      }
+      if (childMigrationStatus != UnitMigrationStatus.alreadyMigrated &&
+          childMigrationStatus != UnitMigrationStatus.migrating) {
+        allAreMigratedOrMigrating = false;
+      }
+      if (childMigrationStatus != UnitMigrationStatus.alreadyMigrated &&
+          childMigrationStatus != UnitMigrationStatus.optingOut) {
+        allAreMigratedOrOptingOut = false;
+      }
+    }
+    if (sharedStatus != null) {
+      return sharedStatus;
+    }
+    if (allAreMigratedOrMigrating) {
+      return UnitMigrationStatus.migrating;
+    }
+    if (allAreMigratedOrOptingOut) {
+      // TODO(srawlins): Is this confusing? Should there be an 'optingOutStar'
+      // which indicates that all opted out files will remain opted out, though
+      // some files exist in the subtree which are already migrated.
+      return UnitMigrationStatus.optingOut;
+    }
+    return UnitMigrationStatus.indeterminate;
+  }
+
+  NavigationTreeNodeType get type => NavigationTreeNodeType.directory;
+
+  void setSubtreeParents() {
+    if (subtree != null) {
+      for (var child in subtree) {
+        child.parent = this;
+      }
+    }
+  }
+
+  /// Toggle child nodes (recursively) to migrate to null safety.
+  ///
+  /// Only child nodes with 'opting out' or 'keep opted out' status are changed.
+  void toggleChildrenToMigrate() {
+    //assert(type == NavigationTreeNodeType.directory);
+    for (var child in subtree) {
+      if (child is NavigationTreeDirectoryNode) {
+        child.toggleChildrenToMigrate();
+      } else if (child is NavigationTreeFileNode &&
+          child.migrationStatus == UnitMigrationStatus.optingOut) {
+        child.migrationStatus = UnitMigrationStatus.migrating;
+      }
+    }
+  }
+
+  /// Toggle child nodes (recursively) to opt out of null safety.
+  ///
+  /// Only child nodes with 'migrating' status are changed.
+  void toggleChildrenToOptOut() {
+    for (var child in subtree) {
+      if (child is NavigationTreeDirectoryNode) {
+        child.toggleChildrenToOptOut();
+      } else if (child is NavigationTreeFileNode &&
+          child.migrationStatus == UnitMigrationStatus.migrating) {
+        child.migrationStatus = UnitMigrationStatus.optingOut;
+      }
+    }
+  }
+
+  Map<String, Object> toJson() => {
+        'type': 'directory',
+        'name': name,
+        'subtree': NavigationTreeNode.listToJson(subtree),
+        if (path != null) 'path': path,
+      };
+}
+
+class NavigationTreeFileNode extends NavigationTreeNode {
   /// If this is a file node, href that should be used if the file is clicked
   /// on, otherwise `null`.
   final String href;
@@ -29,45 +115,23 @@ class NavigationTreeNode {
 
   final bool wasExplicitlyOptedOut;
 
-  /// If this is a file node, the migration status of the file,
-  /// otherwise `null`.
   UnitMigrationStatus migrationStatus;
 
-  /// Creates a navigation tree node representing a directory.
-  NavigationTreeNode.directory({@required this.name, @required this.subtree})
-      : type = NavigationTreeNodeType.directory,
-        path = null,
-        href = null,
-        editCount = null,
-        wasExplicitlyOptedOut = null,
-        migrationStatus = null;
-
   /// Creates a navigation tree node representing a file.
-  NavigationTreeNode.file(
-      {@required this.name,
-      @required this.path,
+  NavigationTreeFileNode(
+      {@required String name,
+      @required String path,
       @required this.href,
       @required this.editCount,
       @required this.wasExplicitlyOptedOut,
       @required this.migrationStatus})
-      : type = NavigationTreeNodeType.file,
-        subtree = null;
+      : super._(name: name, path: path);
 
-  NavigationTreeNode.fromJson(dynamic json)
-      : type = _decodeType(json['type'] as String),
-        name = json['name'] as String,
-        subtree = listFromJsonOrNull(json['subtree']),
-        path = json['path'] as String,
-        href = json['href'] as String,
-        editCount = json['editCount'] as int,
-        wasExplicitlyOptedOut = json['wasExplicitlyOptedOut'] as bool,
-        migrationStatus =
-            _decodeMigrationStatus(json['migrationStatus'] as int);
+  NavigationTreeNodeType get type => NavigationTreeNodeType.file;
 
   Map<String, Object> toJson() => {
-        'type': _encodeType(type),
+        'type': 'file',
         'name': name,
-        if (subtree != null) 'subtree': listToJson(subtree),
         if (path != null) 'path': path,
         if (href != null) 'href': href,
         if (editCount != null) 'editCount': editCount,
@@ -75,6 +139,47 @@ class NavigationTreeNode {
           'wasExplicitlyOptedOut': wasExplicitlyOptedOut,
         if (migrationStatus != null) 'migrationStatus': migrationStatus.index,
       };
+}
+
+/// Information about a node in the migration tool's navigation tree.
+abstract class NavigationTreeNode {
+  /// Name of the node.
+  final String name;
+
+  /// Parent of this node, or `null` if this is a top-level node.
+  /*late final*/ NavigationTreeNode parent;
+
+  /// Relative path to the file or directory from the package root.
+  final String path;
+
+  factory NavigationTreeNode.fromJson(dynamic json) {
+    var type = _decodeType(json['type'] as String);
+    if (type == NavigationTreeNodeType.directory) {
+      return NavigationTreeDirectoryNode(
+          name: json['name'] as String,
+          path: json['path'] as String,
+          subtree: listFromJsonOrNull(json['subtree']))
+        ..setSubtreeParents();
+    } else {
+      return NavigationTreeFileNode(
+          name: json['name'] as String,
+          path: json['path'] as String,
+          href: json['href'] as String,
+          editCount: json['editCount'] as int,
+          wasExplicitlyOptedOut: json['wasExplicitlyOptedOut'] as bool,
+          migrationStatus:
+              _decodeMigrationStatus(json['migrationStatus'] as int));
+    }
+  }
+
+  NavigationTreeNode._({@required this.name, @required this.path});
+
+  /// The migration status of the file or directory.
+  UnitMigrationStatus get migrationStatus;
+
+  NavigationTreeNodeType get type;
+
+  Map<String, Object> toJson();
 
   /// Deserializes a list of navigation tree nodes from a JSON list.
   static List<NavigationTreeNode> listFromJson(dynamic json) =>
@@ -104,16 +209,6 @@ class NavigationTreeNode {
         throw StateError('Unrecognized navigation tree node type: $json');
     }
   }
-
-  static String _encodeType(NavigationTreeNodeType type) {
-    switch (type) {
-      case NavigationTreeNodeType.directory:
-        return 'directory';
-      case NavigationTreeNodeType.file:
-        return 'file';
-    }
-    throw StateError('Unrecognized navigation tree node type: $type');
-  }
 }
 
 /// Enum representing the different types of [NavigationTreeNode]s.
@@ -128,10 +223,9 @@ enum UnitMigrationStatus {
   /// of the current migration.
   alreadyMigrated,
 
-  /// Indicates that a library was already opted out of null safety at the start
-  /// of the current migration, and that the current migration does not migrate
-  /// the library.
-  keepingOptedOut,
+  /// Indicates that a directory's status is indeterminate, because the statuses
+  /// of it's children libraries (recursive) are mixed.
+  indeterminate,
 
   /// Indicates that a library was not migrated to null safety at the start of
   /// the current migration (either the package was not opted in, or the library
@@ -139,8 +233,10 @@ enum UnitMigrationStatus {
   /// library.
   migrating,
 
-  /// Indicates that a library was not yet migrated to null safety at the start
-  /// of the current migration, because the package was not opted in, and that
-  /// the current migration opts the library out of null safety.
+  /// Indicates that the current migration opts the library out of null safety.
+  ///
+  /// This may mean that the library is explicitly opted out with a Dart
+  /// language version comment, or that the package is currently opted out of
+  /// null safety.
   optingOut,
 }
