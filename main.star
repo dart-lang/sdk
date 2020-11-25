@@ -813,7 +813,10 @@ dart_ci_sandbox_builder(
     triggered_by = ["dart-gitiles-trigger-flutter"],
     properties = {
         "bisection_enabled": True,
-        "flutter_test_suites": ["web_tests"],
+        "flutter_test_suites": [
+            "web_tests",
+            "web_tool_tests",
+        ],
     },
 )
 
