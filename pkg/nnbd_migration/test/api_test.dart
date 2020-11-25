@@ -247,6 +247,28 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_ambiguous_closure_parameter_in_local_variable() async {
+    var content = '''
+Object f<T>(Object Function(T) callback, Object obj) => 0;
+g() {
+  var y = f<Map<String, int>>(
+      (x) => x.keys,
+      f<List<bool>>(
+          (x) => x.last, 0));
+}
+''';
+    var expected = '''
+Object f<T>(Object Function(T) callback, Object obj) => 0;
+g() {
+  var y = f<Map<String, int>>(
+      (x) => x.keys,
+      f<List<bool>>(
+          (x) => x.last, 0));
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
     var content = '''
 void f(int i) {

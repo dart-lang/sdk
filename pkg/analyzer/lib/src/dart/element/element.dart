@@ -4392,7 +4392,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   String get identifier {
     String identifier = super.identifier;
     Element enclosing = enclosingElement;
-    if (enclosing is ExecutableElement) {
+    if (enclosing is ExecutableElement || enclosing is VariableElement) {
       identifier += "@$nameOffset";
     }
     return identifier;
