@@ -63,6 +63,7 @@ class FinalizablePersistentHandle;
 class FlowGraphCompiler;
 class HierarchyInfo;
 class LocalScope;
+class CallSiteResetter;
 class CodeStatistics;
 class IsolateGroupReloadContext;
 
@@ -1862,6 +1863,16 @@ class CallSiteData : public Object {
   StringPtr target_name() const { return raw_ptr()->target_name_; }
   ArrayPtr arguments_descriptor() const { return raw_ptr()->args_descriptor_; }
 
+  intptr_t TypeArgsLen() const;
+
+  intptr_t CountWithTypeArgs() const;
+
+  intptr_t CountWithoutTypeArgs() const;
+
+  intptr_t SizeWithoutTypeArgs() const;
+
+  intptr_t SizeWithTypeArgs() const;
+
   static intptr_t target_name_offset() {
     return OFFSET_OF(CallSiteDataLayout, target_name_);
   }
@@ -1921,16 +1932,6 @@ class ICData : public CallSiteData {
 
   intptr_t NumArgsTested() const;
 
-  intptr_t TypeArgsLen() const;
-
-  intptr_t CountWithTypeArgs() const;
-
-  intptr_t CountWithoutTypeArgs() const;
-
-  intptr_t SizeWithoutTypeArgs() const;
-
-  intptr_t SizeWithTypeArgs() const;
-
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -1946,20 +1947,12 @@ class ICData : public CallSiteData {
   AbstractTypePtr receivers_static_type() const {
     return raw_ptr()->receivers_static_type_;
   }
-  void SetReceiversStaticType(const AbstractType& type) const;
   bool is_tracking_exactness() const {
     return TrackingExactnessBit::decode(raw_ptr()->state_bits_);
-  }
-  void set_tracking_exactness(bool value) const {
-    StoreNonPointer(
-        &raw_ptr()->state_bits_,
-        TrackingExactnessBit::update(value, raw_ptr()->state_bits_));
   }
 #else
   bool is_tracking_exactness() const { return false; }
 #endif
-
-  void Reset(Zone* zone) const;
 
 // Note: only deopts with reasons before Unknown in this list are recorded in
 // the ICData. All other reasons are used purely for informational messages
@@ -2025,7 +2018,6 @@ class ICData : public CallSiteData {
   static const char* RebindRuleToCString(RebindRule r);
   static bool ParseRebindRule(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
-  void set_rebind_rule(uint32_t rebind_rule) const;
 
   void set_is_megamorphic(bool value) const {
     // We don't have concurrent RW access to [state_bits_].
@@ -2077,14 +2069,20 @@ class ICData : public CallSiteData {
 #endif
 
   // Replaces entry |index| with the sentinel.
-  void WriteSentinelAt(intptr_t index) const;
+  // NOTE: Can only be called during reload.
+  void WriteSentinelAt(intptr_t index,
+                       const CallSiteResetter& proof_of_reload) const;
 
   // Clears the count for entry |index|.
-  void ClearCountAt(intptr_t index) const;
+  // NOTE: Can only be called during reload.
+  void ClearCountAt(intptr_t index,
+                    const CallSiteResetter& proof_of_reload) const;
 
   // Clear all entries with the sentinel value and reset the first entry
   // with the dummy target entry.
-  void ClearAndSetStaticTarget(const Function& func) const;
+  // NOTE: Can only be called during reload.
+  void ClearAndSetStaticTarget(const Function& func,
+                               const CallSiteResetter& proof_of_reload) const;
 
   void DebugDump() const;
 
@@ -2112,9 +2110,6 @@ class ICData : public CallSiteData {
                         StaticTypeExactnessState exactness =
                             StaticTypeExactnessState::NotTracking()) const;
 
-  // Does entry |index| contain the sentinel value?
-  bool IsSentinelAt(intptr_t index) const;
-
   // Retrieving checks.
 
   void GetCheckAt(intptr_t index,
@@ -2134,10 +2129,6 @@ class ICData : public CallSiteData {
 
   FunctionPtr GetTargetAt(intptr_t index) const;
 
-  ObjectPtr GetTargetOrCodeAt(intptr_t index) const;
-  void SetCodeAt(intptr_t index, const Code& value) const;
-  void SetEntryPointAt(intptr_t index, const Smi& value) const;
-
   void IncrementCountAt(intptr_t index, intptr_t value) const;
   void SetCountAt(intptr_t index, intptr_t value) const;
   intptr_t GetCountAt(intptr_t index) const;
@@ -2148,8 +2139,6 @@ class ICData : public CallSiteData {
   // Returns only used entries.
   ICDataPtr AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
   ICDataPtr AsUnaryClassChecks() const { return AsUnaryClassChecksForArgNr(0); }
-  ICDataPtr AsUnaryClassChecksForCid(intptr_t cid,
-                                     const Function& target) const;
 
   // Returns ICData with aggregated receiver count, sorted by highest count.
   // Smi not first!! (the convention for ICData used in code generation is that
@@ -2239,11 +2228,21 @@ class ICData : public CallSiteData {
   // for the new entry.
   ArrayPtr Grow(intptr_t* index) const;
 
-  void set_owner(const Function& value) const;
   void set_deopt_id(intptr_t value) const;
-  void SetNumArgsTested(intptr_t value) const;
   void set_entries(const Array& value) const;
+  void set_owner(const Function& value) const;
+  void set_rebind_rule(uint32_t rebind_rule) const;
   void set_state_bits(uint32_t bits) const;
+  void set_tracking_exactness(bool value) const {
+    StoreNonPointer(
+        &raw_ptr()->state_bits_,
+        TrackingExactnessBit::update(value, raw_ptr()->state_bits_));
+  }
+
+  // Does entry |index| contain the sentinel value?
+  bool IsSentinelAt(intptr_t index) const;
+  void SetNumArgsTested(intptr_t value) const;
+  void SetReceiversStaticType(const AbstractType& type) const;
 
   // This bit is set when a call site becomes megamorphic and starts using a
   // MegamorphicCache instead of ICData. It means that the entries in the
