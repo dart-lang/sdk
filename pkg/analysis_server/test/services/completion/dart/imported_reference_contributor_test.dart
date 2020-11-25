@@ -2885,7 +2885,6 @@ main() {
     }
     assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', null);
-    assertNotSuggested('D1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');

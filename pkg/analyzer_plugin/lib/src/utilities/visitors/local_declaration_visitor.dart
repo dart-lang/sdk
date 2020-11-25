@@ -150,7 +150,14 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    _visitTypeParameters(node, node.typeParameters);
     _visitParamList(node.parameters);
+    visitNode(node);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    _visitTypeParameters(node, node.typeParameters);
     visitNode(node);
   }
 
@@ -169,6 +176,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    _visitTypeParameters(node, node.typeParameters);
     _visitParamList(node.parameters);
     visitNode(node);
   }
