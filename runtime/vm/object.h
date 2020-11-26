@@ -4497,7 +4497,6 @@ class Script : public Object {
 
   LibraryPtr FindLibrary() const;
   StringPtr GetLine(intptr_t line_number, Heap::Space space = Heap::kNew) const;
-  StringPtr GetSnippet(TokenPosition from, TokenPosition to) const;
   StringPtr GetSnippet(intptr_t from_line,
                        intptr_t from_column,
                        intptr_t to_line,
