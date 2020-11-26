@@ -43,14 +43,14 @@ class NameManglingKeep extends pro::GeneratedMessage {
     ;
   static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int*>] core::List<core::int> i) → self::NameManglingKeep
     return let final self::NameManglingKeep #t3 = [@vm.inferred-type.metadata=name_mangling.pb.dart::NameManglingKeep] self::NameManglingKeep::create() in block {
-      [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pro::GeneratedMessage::mergeFromBuffer}(i, #C7);
+      [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pro::GeneratedMessage::mergeFromBuffer}(i);
     } =>#t3;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::NameManglingKeep::_i;
   @#C5
   static method create() → self::NameManglingKeep
     return new self::NameManglingKeep::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  @#C9
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  @#C8
   method hasClone_10() → core::bool
-    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}(0);
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}();
 }
