@@ -405,26 +405,32 @@ def dart_recipe(name):
         cipd_package = "dart/recipe_bundles/dart.googlesource.com/recipes",
     )
 
-def with_goma_rbe(goma_rbe, channel, dimensions, properties):
-    """Sets the $build/goma property when goma on RBE is used.
+def with_goma(goma, channel, dimensions, properties):
+    """Decorates the properties to setup goma.
+
+       Adds the $build/goma property when goma is used and disables goma via
+       the $dart/build property if not.
 
     Args:
-        goma_rbe: Opt-in (True), opt-out (False) or default (None).
+        goma: Opt-in (True), opt-out (False) or default (None).
         channel: The channel of the builder.
         dimensions: The dimensions of the builder.
         properties: The properties object to set $build/goma on (if opted-in).
 
     Returns:
-        A copy of the properties with GOMA on RBE properties set if applicable.
+        A copy of the properties with goma related properties set if applicable.
     """
-    if goma_rbe in (None, True):
+    updated_properties = dict(properties)
+    if goma in (None, True):
         goma_properties = {}
         goma_properties.update(GOMA_RBE)
         goma_properties["enable_ats"] = dimensions["os"] != "Mac"
-        updated_properties = dict(properties)
         updated_properties.setdefault("$build/goma", goma_properties)
-        return updated_properties
-    return properties
+    else:
+        updated_properties = dict(properties)
+        updated_properties.setdefault("$dart/build", {})
+        updated_properties["$dart/build"].setdefault("disable_goma", True)
+    return updated_properties
 
 def dart_try_builder(
         name,
@@ -433,7 +439,7 @@ def dart_try_builder(
         dimensions = None,
         execution_timeout = None,
         experiment_percentage = None,
-        goma_rbe = None,
+        goma = None,
         location_regexp = None,
         properties = None,
         on_cq = False):
@@ -446,7 +452,7 @@ def dart_try_builder(
         dimensions: Extra swarming dimensions required by this builder.
         execution_timeout: Time to allow for the build to run.
         experiment_percentage: What experiment percentage to use.
-        goma_rbe: Whether to use goma on RBE or not.
+        goma: Whether to use goma or not.
         location_regexp: Locations that trigger this tryjob.
         properties: Extra properties to set for builds.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
@@ -456,7 +462,7 @@ def dart_try_builder(
     dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
     properties = defaults.properties(properties)
-    builder_properties = with_goma_rbe(goma_rbe, "try", dimensions, properties)
+    builder_properties = with_goma(goma, "try", dimensions, properties)
     builder = name + "-try"
 
     luci.builder(
@@ -508,7 +514,7 @@ def dart_builder(
         executable = None,
         execution_timeout = None,
         expiration_timeout = None,
-        goma_rbe = None,
+        goma = None,
         fyi = False,
         notifies = "dart",
         priority = NORMAL,
@@ -535,7 +541,7 @@ def dart_builder(
         executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
         expiration_timeout: How long builds should wait for a bot to run on.
-        goma_rbe: Whether to use goma on RBE or not.
+        goma: Whether to use goma or not.
         fyi: Whether this is an FYI builder or not.
         notifies: Which luci notifier group to notify (default: "dart").
         priority: What swarming priority this builder gets (default: NORMAL).
@@ -573,12 +579,12 @@ def dart_builder(
                 on_cq = on_cq,
                 execution_timeout = execution_timeout,
                 experiment_percentage = experiment_percentage,
-                goma_rbe = goma_rbe,
+                goma = goma,
                 location_regexp = location_regexp,
             )
         else:
-            builder_properties = with_goma_rbe(
-                goma_rbe,
+            builder_properties = with_goma(
+                goma if service_account == TRY_ACCOUNT else False,
                 channel,
                 dimensions,
                 properties,
@@ -1127,7 +1133,7 @@ dart_vm_sanitizer_builder(
 dart_vm_sanitizer_builder(
     "vm-kernel-ubsan-linux-release-x64",
     category = "vm|misc|u",
-    goma_rbe = False,
+    goma = False,
 )  # ubsan is not compatible with our sysroot.
 dart_vm_sanitizer_builder(
     "vm-kernel-precomp-asan-linux-release-x64",
@@ -1144,7 +1150,7 @@ dart_vm_sanitizer_builder(
 dart_vm_sanitizer_builder(
     "vm-kernel-precomp-ubsan-linux-release-x64",
     category = "vm|misc|aot|u",
-    goma_rbe = False,
+    goma = False,
 )  # ubsan is not compatible with our sysroot.
 nightly_builder(
     "vm-kernel-reload-linux-debug-x64",
@@ -1338,6 +1344,11 @@ dart_ci_builder(
     category = "sdk|l",
     channels = CHANNELS,
     lkgr = True,
+    properties = {
+        "$dart/build": {
+            "timeout": 80 * 60,  # 80 minutes,
+        },
+    },
 )
 dart_ci_builder(
     "dart-sdk-mac",
@@ -1494,7 +1505,7 @@ dart_ci_sandbox_builder(
 dart_try_builder("benchmark-linux", on_cq = True)
 
 # Our sysroot does not support gcc, we can't use goma on RBE for this builder
-dart_try_builder("vm-kernel-gcc-linux", goma_rbe = False)
+dart_try_builder("vm-kernel-gcc-linux", goma = False)
 dart_try_builder(
     "presubmit",
     bucket = "try.shared",
