@@ -2382,10 +2382,9 @@ void FlowGraph::PopulateWithICData(const Function& function) {
           int num_args_checked =
               MethodRecognizer::NumArgsCheckedForStaticCall(target);
           const ICData& ic_data = ICData::ZoneHandle(
-              zone, ICData::New(function, String::Handle(zone, target.name()),
-                                arguments_descriptor, call->deopt_id(),
-                                num_args_checked, ICData::kStatic));
-          ic_data.AddTarget(target);
+              zone, ICData::NewForStaticCall(
+                        function, target, arguments_descriptor,
+                        call->deopt_id(), num_args_checked, ICData::kStatic));
           call->set_ic_data(&ic_data);
         }
       }

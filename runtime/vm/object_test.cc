@@ -3146,10 +3146,9 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
-  const ICData& scall_icdata =
-      ICData::Handle(ICData::New(function, target_name, args_descriptor, 57,
-                                 kNumArgsChecked, ICData::kInstance));
-  scall_icdata.AddTarget(target1);
+  const ICData& scall_icdata = ICData::Handle(
+      ICData::NewForStaticCall(function, target1, args_descriptor, 57,
+                               kNumArgsChecked, ICData::kInstance));
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }
 
