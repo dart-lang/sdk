@@ -14962,27 +14962,27 @@ void ICData::SetNumArgsTested(intptr_t value) const {
                   NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
 }
 
-intptr_t ICData::TypeArgsLen() const {
+intptr_t CallSiteData::TypeArgsLen() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.TypeArgsLen();
 }
 
-intptr_t ICData::CountWithTypeArgs() const {
+intptr_t CallSiteData::CountWithTypeArgs() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.CountWithTypeArgs();
 }
 
-intptr_t ICData::CountWithoutTypeArgs() const {
+intptr_t CallSiteData::CountWithoutTypeArgs() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.Count();
 }
 
-intptr_t ICData::SizeWithoutTypeArgs() const {
+intptr_t CallSiteData::SizeWithoutTypeArgs() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.Size();
 }
 
-intptr_t ICData::SizeWithTypeArgs() const {
+intptr_t CallSiteData::SizeWithTypeArgs() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.SizeWithTypeArgs();
 }
@@ -15134,11 +15134,14 @@ intptr_t ICData::FindCheck(const GrowableArray<intptr_t>& cids) const {
   return -1;
 }
 
-void ICData::WriteSentinelAt(intptr_t index) const {
+void ICData::WriteSentinelAt(intptr_t index,
+                             const CallSiteResetter& proof_of_reload) const {
+  USE(proof_of_reload);  // This method can only be called during reload.
+
+  Thread* thread = Thread::Current();
   const intptr_t len = Length();
   ASSERT(index >= 0);
   ASSERT(index < len);
-  Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   Array& data = thread->ArrayHandle();
   data = entries();
@@ -15149,13 +15152,20 @@ void ICData::WriteSentinelAt(intptr_t index) const {
   }
 }
 
-void ICData::ClearCountAt(intptr_t index) const {
+void ICData::ClearCountAt(intptr_t index,
+                          const CallSiteResetter& proof_of_reload) const {
+  USE(proof_of_reload);  // This method can only be called during reload.
+
   ASSERT(index >= 0);
   ASSERT(index < NumberOfChecks());
   SetCountAt(index, 0);
 }
 
-void ICData::ClearAndSetStaticTarget(const Function& func) const {
+void ICData::ClearAndSetStaticTarget(
+    const Function& func,
+    const CallSiteResetter& proof_of_reload) const {
+  USE(proof_of_reload);  // This method can only be called during reload.
+
   if (IsImmutable()) {
     return;
   }
@@ -15163,12 +15173,13 @@ void ICData::ClearAndSetStaticTarget(const Function& func) const {
   if (len == 0) {
     return;
   }
+  Thread* thread = Thread::Current();
+
   // The final entry is always the sentinel.
   ASSERT(IsSentinelAt(len - 1));
   const intptr_t num_args_tested = NumArgsTested();
   if (num_args_tested == 0) {
     // No type feedback is being collected.
-    Thread* thread = Thread::Current();
     REUSABLE_ARRAY_HANDLESCOPE(thread);
     Array& data = thread->ArrayHandle();
     data = entries();
@@ -15186,9 +15197,8 @@ void ICData::ClearAndSetStaticTarget(const Function& func) const {
     // Type feedback on arguments is being collected.
     // Fill all but the first entry with the sentinel.
     for (intptr_t i = len - 1; i > 0; i--) {
-      WriteSentinelAt(i);
+      WriteSentinelAt(i, proof_of_reload);
     }
-    Thread* thread = Thread::Current();
     REUSABLE_ARRAY_HANDLESCOPE(thread);
     Array& data = thread->ArrayHandle();
     data = entries();
@@ -15557,15 +15567,6 @@ FunctionPtr ICData::GetTargetAt(intptr_t index) const {
 #endif
 }
 
-ObjectPtr ICData::GetTargetOrCodeAt(intptr_t index) const {
-  const intptr_t data_pos =
-      index * TestEntryLength() + TargetIndexFor(NumArgsTested());
-
-  NoSafepointScope no_safepoint;
-  ArrayPtr raw_data = entries();
-  return raw_data->ptr()->data()[data_pos];
-}
-
 void ICData::IncrementCountAt(intptr_t index, intptr_t value) const {
   ASSERT(0 <= value);
   ASSERT(value <= Smi::kMaxValue);
@@ -15616,46 +15617,7 @@ intptr_t ICData::AggregateCount() const {
   return count;
 }
 
-void ICData::SetCodeAt(intptr_t index, const Code& value) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  Thread* thread = Thread::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  data = entries();
-  const intptr_t data_pos =
-      index * TestEntryLength() + CodeIndexFor(NumArgsTested());
-  data.SetAt(data_pos, value);
-#endif
-}
-
-void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  Thread* thread = Thread::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  data = entries();
-  const intptr_t data_pos =
-      index * TestEntryLength() + EntryPointIndexFor(NumArgsTested());
-  data.SetAt(data_pos, value);
-#endif
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-ICDataPtr ICData::AsUnaryClassChecksForCid(intptr_t cid,
-                                           const Function& target) const {
-  ASSERT(!IsNull());
-  const intptr_t kNumArgsTested = 1;
-  ICData& result = ICData::Handle(ICData::NewFrom(*this, kNumArgsTested));
-
-  // Copy count so that we copy the state "count == 0" vs "count > 0".
-  result.AddReceiverCheck(cid, target, GetCountAt(0));
-  return result.raw();
-}
-
 ICDataPtr ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   ASSERT(!IsNull());
   ASSERT(NumArgsTested() > arg_nr);

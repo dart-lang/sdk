@@ -3357,6 +3357,25 @@ class R {}
     assertNotSuggested('Object');
   }
 
+  @failingTest
+  Future<void> test_functionExpression_expressionBody() async {
+    // This test fails because the OpType at the completion location doesn't
+    // allow for functions that return `void`. But because the expected return
+    // type is `dynamic` we probably want to allow it.
+    addTestSource('''
+void f() {
+  g(() => ^);
+}
+void g(dynamic Function() h) {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestFunction('f', 'void');
+    assertSuggestFunction('g', 'void');
+  }
+
   Future<void> test_functionExpression_parameterList() async {
     addTestSource('''
 var c = <T>(^) {};
@@ -5185,6 +5204,20 @@ class B extends A {m() {^}}
 ''');
     await computeSuggestions();
     assertSuggestMethod('m', 'B', null);
+  }
+
+  @failingTest
+  Future<void> test_parameterList_genericFunctionType() async {
+    // This test fails because we don't suggest `void` as the type of a
+    // parameter, but we should for the case of `void Function()`.
+    addTestSource('''
+void f(^) {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('void');
   }
 
   Future<void> test_parameterName_excludeTypes() async {

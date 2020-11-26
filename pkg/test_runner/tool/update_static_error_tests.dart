@@ -7,9 +7,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:file/file.dart' as pkg_file;
 import 'package:glob/glob.dart';
-import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:test_runner/src/command_output.dart';
@@ -132,7 +130,7 @@ Future<void> main(List<String> args) async {
   for (var entry in glob.listSync(root: root)) {
     if (!entry.path.endsWith(".dart")) continue;
 
-    if (entry is pkg_file.File) {
+    if (entry is File) {
       await _processFile(entry,
           dryRun: dryRun,
           remove: removeSources,

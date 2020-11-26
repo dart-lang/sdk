@@ -30,6 +30,39 @@ class A {
     ]);
   }
 
+  test_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  int m;
+  A();
+  factory A.make() {
+    m;
+    return new A();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 51, 1),
+    ]);
+  }
+
+  test_property_fromClosure() async {
+    await assertErrorsInCode(r'''
+class A {
+  int m;
+  A();
+  factory A.make() {
+    void f() {
+      m;
+    }
+    f();
+    return new A();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 68, 1),
+    ]);
+  }
+
   test_unnamed() async {
     await assertErrorsInCode(r'''
 class A {

@@ -904,8 +904,8 @@ void CallSiteResetter::Reset(const ICData& ic) {
           (class_ids[1] == kSmiCid)) {
         // The smi fast path case, preserve the initial entry but reset the
         // count.
-        ic.ClearCountAt(0);
-        ic.WriteSentinelAt(1);
+        ic.ClearCountAt(0, *this);
+        ic.WriteSentinelAt(1, *this);
         entries_ = ic.entries();
         entries_.Truncate(2 * ic.TestEntryLength());
         return;
@@ -955,7 +955,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
                  Object::Handle(zone_, ic.Owner()).ToCString());
       return;
     }
-    ic.ClearAndSetStaticTarget(new_target_);
+    ic.ClearAndSetStaticTarget(new_target_, *this);
   } else {
     FATAL("Unexpected rebind rule.");
   }

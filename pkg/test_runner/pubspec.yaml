@@ -22,14 +22,10 @@ dependencies:
 dev_dependencies:
   expect:
     path: ../expect
-  file: any
-  glob: any
+  glob:
+    path: ../../third_party/pkg/glob    
 dependency_overrides:
   # Other packages in the dependency graph have normal hosted dependencies on
   # this, so just override it to force the local one.
   args:
     path: ../../third_party/pkg/args
-  file:
-    path: ../../third_party/pkg/file/packages/file
-  glob:
-    path: ../../third_party/pkg/glob

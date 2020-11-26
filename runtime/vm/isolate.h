@@ -563,9 +563,15 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
 
   void DeleteReloadContext();
-
-  bool IsReloading() const { return group_reload_context_ != nullptr; }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  bool IsReloading() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return group_reload_context_ != nullptr;
+#else
+    return false;
+#endif
+  }
 
   uint64_t id() { return id_; }
 

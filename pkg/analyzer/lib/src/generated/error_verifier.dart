@@ -48,9 +48,9 @@ class EnclosingExecutableContext {
   final ExecutableElement element;
   final bool isAsynchronous;
   final bool isConstConstructor;
-  final bool isFactoryConstructor;
   final bool isGenerativeConstructor;
   final bool isGenerator;
+  final bool inFactoryConstructor;
   final bool inStaticMethod;
 
   /// The return statements that have a value.
@@ -66,11 +66,10 @@ class EnclosingExecutableContext {
   EnclosingExecutableContext(this.element)
       : isAsynchronous = element != null && element.isAsynchronous,
         isConstConstructor = element is ConstructorElement && element.isConst,
-        isFactoryConstructor =
-            element is ConstructorElement && element.isFactory,
         isGenerativeConstructor =
             element is ConstructorElement && !element.isFactory,
         isGenerator = element != null && element.isGenerator,
+        inFactoryConstructor = _inFactoryConstructor(element),
         inStaticMethod = _inStaticMethod(element);
 
   EnclosingExecutableContext.empty() : this(null);
@@ -84,7 +83,7 @@ class EnclosingExecutableContext {
           ? className
           : '$className.$constructorName';
     } else {
-      return element.displayName;
+      return element?.displayName;
     }
   }
 
@@ -106,6 +105,17 @@ class EnclosingExecutableContext {
   bool get isSynchronous => !isAsynchronous;
 
   DartType get returnType => element.returnType;
+
+  static bool _inFactoryConstructor(ExecutableElement element) {
+    if (element is ConstructorElement) {
+      return element.isFactory;
+    }
+    var enclosing = element?.enclosingElement;
+    if (enclosing is ExecutableElement) {
+      return _inFactoryConstructor(enclosing);
+    }
+    return false;
+  }
 
   static bool _inStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
@@ -1129,7 +1139,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForAmbiguousImport(node);
     _checkForReferenceBeforeDeclaration(node);
-    _checkForImplicitThisReferenceInInitializer(node);
+    _checkForInvalidInstanceMemberAccess(node);
     _checkForTypeParameterReferencedByStatic(node);
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
@@ -2773,76 +2783,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Verify that if the given [identifier] is part of a constructor
-  /// initializer, then it does not implicitly reference 'this' expression.
-  ///
-  /// See [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER], and
-  /// [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC].
-  /// TODO(scheglov) rename thid method
-  void _checkForImplicitThisReferenceInInitializer(
-      SimpleIdentifier identifier) {
-    if (_isInComment) {
-      return;
-    }
-    if (!_isInConstructorInitializer &&
-        !_enclosingExecutable.inStaticMethod &&
-        !_enclosingExecutable.isFactoryConstructor &&
-        !_isInInstanceNotLateVariableDeclaration &&
-        !_isInStaticVariableDeclaration) {
-      return;
-    }
-    // prepare element
-    Element element = identifier.writeOrReadElement;
-    if (!(element is MethodElement || element is PropertyAccessorElement)) {
-      return;
-    }
-    // static element
-    ExecutableElement executableElement = element as ExecutableElement;
-    if (executableElement.isStatic) {
-      return;
-    }
-    // not a class member
-    Element enclosingElement = element.enclosingElement;
-    if (enclosingElement is! ClassElement &&
-        enclosingElement is! ExtensionElement) {
-      return;
-    }
-    // qualified method invocation
-    AstNode parent = identifier.parent;
-    if (parent is MethodInvocation) {
-      if (identical(parent.methodName, identifier) &&
-          parent.realTarget != null) {
-        return;
-      }
-    }
-    // qualified property access
-    if (parent is PropertyAccess) {
-      if (identical(parent.propertyName, identifier) &&
-          parent.realTarget != null) {
-        return;
-      }
-    }
-    if (parent is PrefixedIdentifier) {
-      if (identical(parent.identifier, identifier)) {
-        return;
-      }
-    }
-
-    if (_enclosingExecutable.inStaticMethod) {
-      // TODO
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, identifier);
-    } else if (_enclosingExecutable.isFactoryConstructor) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, identifier);
-    } else {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          identifier,
-          [identifier.name]);
-    }
-  }
-
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [importElement] is the
   /// [ImportElement] retrieved from the node, if the element in the node was
@@ -3008,6 +2948,74 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           initializer,
           [fieldName]);
       return;
+    }
+  }
+
+  /// Verify that if the given [identifier] is part of a constructor
+  /// initializer, then it does not implicitly reference 'this' expression.
+  ///
+  /// See [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER],
+  /// [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY], and
+  /// [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC].
+  void _checkForInvalidInstanceMemberAccess(SimpleIdentifier identifier) {
+    if (_isInComment) {
+      return;
+    }
+    if (!_isInConstructorInitializer &&
+        !_enclosingExecutable.inStaticMethod &&
+        !_enclosingExecutable.inFactoryConstructor &&
+        !_isInInstanceNotLateVariableDeclaration &&
+        !_isInStaticVariableDeclaration) {
+      return;
+    }
+    // prepare element
+    Element element = identifier.writeOrReadElement;
+    if (!(element is MethodElement || element is PropertyAccessorElement)) {
+      return;
+    }
+    // static element
+    ExecutableElement executableElement = element as ExecutableElement;
+    if (executableElement.isStatic) {
+      return;
+    }
+    // not a class member
+    Element enclosingElement = element.enclosingElement;
+    if (enclosingElement is! ClassElement &&
+        enclosingElement is! ExtensionElement) {
+      return;
+    }
+    // qualified method invocation
+    AstNode parent = identifier.parent;
+    if (parent is MethodInvocation) {
+      if (identical(parent.methodName, identifier) &&
+          parent.realTarget != null) {
+        return;
+      }
+    }
+    // qualified property access
+    if (parent is PropertyAccess) {
+      if (identical(parent.propertyName, identifier) &&
+          parent.realTarget != null) {
+        return;
+      }
+    }
+    if (parent is PrefixedIdentifier) {
+      if (identical(parent.identifier, identifier)) {
+        return;
+      }
+    }
+
+    if (_enclosingExecutable.inStaticMethod) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, identifier);
+    } else if (_enclosingExecutable.inFactoryConstructor) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, identifier);
+    } else {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          identifier,
+          [identifier.name]);
     }
   }
 
