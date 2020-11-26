@@ -292,6 +292,7 @@ forrest
 forty
 foundation
 fox
+frozen
 fulfill
 func
 futures
@@ -460,6 +461,7 @@ moo
 mul
 mx
 mysdk
+naively
 naturally
 negatable
 newworld
@@ -698,6 +700,7 @@ unusual
 unversioned
 upload
 upward
+usages
 uses8
 uuid
 v1

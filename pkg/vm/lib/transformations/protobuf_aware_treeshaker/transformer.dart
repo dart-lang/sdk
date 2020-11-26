@@ -50,6 +50,16 @@ void _treeshakeProtos(Target target, Component component, CoreTypes coreTypes,
   component.metadata.clear();
 }
 
+/// Called by the signature shaker to exclude the positional parameters of
+/// certain members whose first few parameters are depended upon by the
+/// protobuf-aware tree shaker.
+bool excludePositionalParametersFromSignatureShaking(Member member) {
+  return member.enclosingClass?.name == 'BuilderInfo' &&
+      member.enclosingLibrary.importUri ==
+          Uri.parse('package:protobuf/protobuf.dart') &&
+      _UnusedFieldMetadataPruner.fieldAddingMethods.contains(member.name.name);
+}
+
 InfoCollector removeUnusedProtoReferences(
     Component component, CoreTypes coreTypes, TransformationInfo info) {
   final protobufUri = Uri.parse('package:protobuf/protobuf.dart');

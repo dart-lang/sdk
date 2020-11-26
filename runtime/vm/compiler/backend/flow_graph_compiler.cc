@@ -1932,12 +1932,10 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     return res;
   }
 
-  const ICData& ic_data = ICData::ZoneHandle(
-      zone(),
-      ICData::New(parsed_function().function(),
-                  String::Handle(zone(), target.name()), arguments_descriptor,
-                  deopt_id, num_args_tested, rebind_rule));
-  ic_data.AddTarget(target);
+  const auto& ic_data = ICData::ZoneHandle(
+      zone(), ICData::NewForStaticCall(parsed_function().function(), target,
+                                       arguments_descriptor, deopt_id,
+                                       num_args_tested, rebind_rule));
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }

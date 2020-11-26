@@ -2089,9 +2089,6 @@ class ICData : public CallSiteData {
   // Returns true if this is a two arg smi operation.
   bool AddSmiSmiCheckForFastSmiStubs() const;
 
-  // Used for unoptimized static calls when no class-ids are checked.
-  void AddTarget(const Function& target) const;
-
   // Adding checks.
 
   // Adds one more class test to ICData. Length of 'classes' must be equal to
@@ -2162,6 +2159,13 @@ class ICData : public CallSiteData {
       intptr_t num_args_tested,
       RebindRule rebind_rule,
       const AbstractType& receiver_type = Object::null_abstract_type());
+  static ICDataPtr NewForStaticCall(const Function& owner,
+                                    const Function& target,
+                                    const Array& arguments_descriptor,
+                                    intptr_t deopt_id,
+                                    intptr_t num_args_tested,
+                                    RebindRule rebind_rule);
+
   static ICDataPtr NewFrom(const ICData& from, intptr_t num_args_tested);
 
   // Generates a new ICData with descriptor and data array copied (deep clone).

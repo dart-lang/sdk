@@ -11331,33 +11331,36 @@ StringPtr Script::GetLine(intptr_t line_number, Heap::Space space) const {
   if (src.IsNull()) {
     return Symbols::OptimizedOut().raw();
   }
-  intptr_t relative_line_number = line_number - line_offset();
+  intptr_t target_line = line_number - line_offset();
   intptr_t current_line = 1;
-  intptr_t line_start_idx = -1;
-  intptr_t last_char_idx = -1;
-  for (intptr_t ix = 0;
-       (ix < src.Length()) && (current_line <= relative_line_number); ix++) {
-    if ((current_line == relative_line_number) && (line_start_idx < 0)) {
-      line_start_idx = ix;
+  intptr_t start = 0;
+  // First find the right line, if present...
+  for (; start < src.Length(); start++) {
+    if (current_line == target_line) {
+      break;
     }
-    if (src.CharAt(ix) == '\n') {
+    const uint16_t c = src.CharAt(start);
+    // Only count '\r' as a line terminator if not followed by a '\n'.
+    if (c == '\n' || (c == '\r' && (start + 1 >= src.Length() ||
+                                    src.CharAt(start + 1) != '\n'))) {
       current_line++;
-    } else if (src.CharAt(ix) == '\r') {
-      if ((ix + 1 != src.Length()) && (src.CharAt(ix + 1) != '\n')) {
-        current_line++;
-      }
-    } else {
-      last_char_idx = ix;
     }
   }
-  // Guarantee that returned string is never NULL.
-
-  if (line_start_idx >= 0) {
-    return String::SubString(src, line_start_idx,
-                             last_char_idx - line_start_idx + 1, space);
-  } else {
-    return Symbols::Empty().raw();
+  if (current_line == target_line) {
+    // ... and then find its end, excluding any line terminator.
+    intptr_t end = start;
+    for (; end < src.Length(); end++) {
+      const uint16_t c = src.CharAt(end);
+      if (c == '\n' || c == '\r') {
+        break;
+      }
+    }
+    // Return the contents of the line.
+    return String::SubString(src, start, end - start, space);
   }
+
+  // Not found, so return the empty string.
+  return Symbols::Empty().raw();
 }
 
 StringPtr Script::GetSnippet(TokenPosition from, TokenPosition to) const {
@@ -15252,44 +15255,6 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   return is_smi_two_args_op;
 }
 
-// Used for unoptimized static calls when no class-ids are checked.
-void ICData::AddTarget(const Function& target) const {
-  ASSERT(!target.IsNull());
-  if (NumArgsTested() > 0) {
-    // Create a fake cid entry, so that we can store the target.
-    if (NumArgsTested() == 1) {
-      AddReceiverCheck(kObjectCid, target, 1);
-    } else {
-      GrowableArray<intptr_t> class_ids(NumArgsTested());
-      for (intptr_t i = 0; i < NumArgsTested(); i++) {
-        class_ids.Add(kObjectCid);
-      }
-      AddCheck(class_ids, target);
-    }
-    return;
-  }
-  ASSERT(NumArgsTested() == 0);
-  // Can add only once.
-  const intptr_t old_num = NumberOfChecks();
-  ASSERT(old_num == 0);
-  Thread* thread = Thread::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  data = entries();
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  WriteSentinel(data, TestEntryLength());
-  intptr_t data_pos = old_num * TestEntryLength();
-  ASSERT(!target.IsNull());
-  data.SetAt(data_pos + TargetIndexFor(NumArgsTested()), target);
-  // Set count to 0 as this is called during compilation, before the
-  // call has been executed.
-  data.SetAt(data_pos + CountIndexFor(NumArgsTested()), Object::smi_zero());
-  // Multithreaded access to ICData requires setting of array to be the last
-  // operation.
-  set_entries(data);
-}
-
 bool ICData::ValidateInterceptor(const Function& target) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const String& name = String::Handle(target_name());
@@ -15319,17 +15284,14 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   ASSERT(class_ids.length() == num_args_tested);
   const intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(entries());
+
   // ICData of static calls with NumArgsTested() > 0 have initially a
-  // dummy set of cids entered (see ICData::AddTarget). That entry is
+  // dummy set of cids entered (see ICData::NewForStaticCall). That entry is
   // overwritten by first real type feedback data.
-  if (old_num == 1) {
-    bool has_dummy_entry = true;
-    for (intptr_t i = 0; i < num_args_tested; i++) {
-      if (Smi::Value(Smi::RawCast(data.At(i))) != kObjectCid) {
-        has_dummy_entry = false;
-        break;
-      }
-    }
+  if (old_num == 1 && num_args_tested == 2) {
+    const bool has_dummy_entry =
+        Smi::Value(Smi::RawCast(data.At(0))) == kObjectCid &&
+        Smi::Value(Smi::RawCast(data.At(1))) == kObjectCid;
     if (has_dummy_entry) {
       ASSERT(target.raw() == data.At(TargetIndexFor(num_args_tested)));
       // Replace dummy entry.
@@ -15882,6 +15844,43 @@ ICDataPtr ICData::New(const Function& owner,
   result.set_entries(Array::Handle(
       zone,
       CachedEmptyICDataArray(num_args_tested, result.is_tracking_exactness())));
+  return result.raw();
+}
+
+ICDataPtr ICData::NewForStaticCall(const Function& owner,
+                                   const Function& target,
+                                   const Array& arguments_descriptor,
+                                   intptr_t deopt_id,
+                                   intptr_t num_args_tested,
+                                   RebindRule rebind_rule) {
+  ASSERT(!target.IsNull());
+
+  Zone* zone = Thread::Current()->zone();
+  const auto& target_name = String::Handle(zone, target.name());
+  const auto& result = ICData::Handle(
+      zone, NewDescriptor(zone, owner, target_name, arguments_descriptor,
+                          deopt_id, num_args_tested, rebind_rule,
+                          Object::null_abstract_type()));
+
+  const intptr_t kNumEntries = 2;  // 1 entry and a sentinel.
+  const intptr_t entry_len =
+      TestEntryLengthFor(num_args_tested, /*tracking_exactness=*/false);
+  const auto& array =
+      Array::Handle(zone, Array::New(kNumEntries * entry_len, Heap::kOld));
+
+  // See `MethodRecognizer::NumArgsCheckedForStaticCall`.
+  ASSERT(num_args_tested == 0 || num_args_tested == 2);
+  if (num_args_tested == 2) {
+    const auto& object_cid = Smi::Handle(zone, Smi::New(kObjectCid));
+    array.SetAt(0, object_cid);
+    array.SetAt(1, object_cid);
+  }
+  array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
+  array.SetAt(TargetIndexFor(num_args_tested), target);
+  WriteSentinel(array, entry_len);
+
+  result.set_entries(array);
+
   return result.raw();
 }
 
