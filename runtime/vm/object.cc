@@ -15215,46 +15215,6 @@ void ICData::ClearAndSetStaticTarget(
   }
 }
 
-// Add an initial Smi/Smi check with count 0.
-bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
-  bool is_smi_two_args_op = false;
-
-  ASSERT(NumArgsTested() == 2);
-  Zone* zone = Thread::Current()->zone();
-  const String& name = String::Handle(zone, target_name());
-  const Class& smi_class = Class::Handle(zone, Smi::Class());
-  Function& smi_op_target = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (smi_op_target.IsNull() &&
-      Function::IsDynamicInvocationForwarderName(name)) {
-    const String& demangled = String::Handle(
-        zone, Function::DemangleDynamicInvocationForwarderName(name));
-    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
-  }
-#endif
-
-  if (NumberOfChecksIs(0)) {
-    GrowableArray<intptr_t> class_ids(2);
-    class_ids.Add(kSmiCid);
-    class_ids.Add(kSmiCid);
-    AddCheck(class_ids, smi_op_target);
-    // 'AddCheck' sets the initial count to 1.
-    SetCountAt(0, 0);
-    is_smi_two_args_op = true;
-  } else if (NumberOfChecksIs(1)) {
-    GrowableArray<intptr_t> class_ids(2);
-    Function& target = Function::Handle();
-    GetCheckAt(0, &class_ids, &target);
-    if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
-        (class_ids[1] == kSmiCid)) {
-      is_smi_two_args_op = true;
-    }
-  }
-  return is_smi_two_args_op;
-}
-
 bool ICData::ValidateInterceptor(const Function& target) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const String& name = String::Handle(target_name());
@@ -15847,41 +15807,63 @@ ICDataPtr ICData::New(const Function& owner,
   return result.raw();
 }
 
+ICDataPtr ICData::NewWithCheck(const Function& owner,
+                               const String& target_name,
+                               const Array& arguments_descriptor,
+                               intptr_t deopt_id,
+                               intptr_t num_args_tested,
+                               RebindRule rebind_rule,
+                               GrowableArray<intptr_t>* cids,
+                               const Function& target,
+                               const AbstractType& receiver_type) {
+  ASSERT((cids != nullptr) && !target.IsNull());
+  ASSERT(cids->length() == num_args_tested);
+
+  Zone* zone = Thread::Current()->zone();
+  const auto& result = ICData::Handle(
+      zone,
+      NewDescriptor(zone, owner, target_name, arguments_descriptor, deopt_id,
+                    num_args_tested, rebind_rule, receiver_type));
+
+  const intptr_t kNumEntries = 2;  // 1 entry and a sentinel.
+  const intptr_t entry_len =
+      TestEntryLengthFor(num_args_tested, result.is_tracking_exactness());
+  const auto& array =
+      Array::Handle(zone, Array::New(kNumEntries * entry_len, Heap::kOld));
+
+  auto& cid = Smi::Handle(zone);
+  for (intptr_t i = 0; i < num_args_tested; ++i) {
+    cid = Smi::New((*cids)[i]);
+    array.SetAt(i, cid);
+  }
+  array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
+  array.SetAt(TargetIndexFor(num_args_tested), target);
+  WriteSentinel(array, entry_len);
+  result.set_entries(array);
+
+  return result.raw();
+}
+
 ICDataPtr ICData::NewForStaticCall(const Function& owner,
                                    const Function& target,
                                    const Array& arguments_descriptor,
                                    intptr_t deopt_id,
                                    intptr_t num_args_tested,
                                    RebindRule rebind_rule) {
+  // See `MethodRecognizer::NumArgsCheckedForStaticCall`.
+  ASSERT(num_args_tested == 0 || num_args_tested == 2);
   ASSERT(!target.IsNull());
 
   Zone* zone = Thread::Current()->zone();
   const auto& target_name = String::Handle(zone, target.name());
-  const auto& result = ICData::Handle(
-      zone, NewDescriptor(zone, owner, target_name, arguments_descriptor,
-                          deopt_id, num_args_tested, rebind_rule,
-                          Object::null_abstract_type()));
-
-  const intptr_t kNumEntries = 2;  // 1 entry and a sentinel.
-  const intptr_t entry_len =
-      TestEntryLengthFor(num_args_tested, /*tracking_exactness=*/false);
-  const auto& array =
-      Array::Handle(zone, Array::New(kNumEntries * entry_len, Heap::kOld));
-
-  // See `MethodRecognizer::NumArgsCheckedForStaticCall`.
-  ASSERT(num_args_tested == 0 || num_args_tested == 2);
+  GrowableArray<intptr_t> cids(num_args_tested);
   if (num_args_tested == 2) {
-    const auto& object_cid = Smi::Handle(zone, Smi::New(kObjectCid));
-    array.SetAt(0, object_cid);
-    array.SetAt(1, object_cid);
+    cids.Add(kObjectCid);
+    cids.Add(kObjectCid);
   }
-  array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
-  array.SetAt(TargetIndexFor(num_args_tested), target);
-  WriteSentinel(array, entry_len);
-
-  result.set_entries(array);
-
-  return result.raw();
+  return ICData::NewWithCheck(owner, target_name, arguments_descriptor,
+                              deopt_id, num_args_tested, rebind_rule, &cids,
+                              target, Object::null_abstract_type());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
