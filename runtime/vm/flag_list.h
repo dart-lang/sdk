@@ -119,7 +119,7 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
-  C(force_clone_compiler_objects, false, false, bool, false,                   \
+  P(force_clone_compiler_objects, bool, false,                                 \
     "Force cloning of objects needed in compiler (ICData and Field).")         \
   P(getter_setter_ratio, int, 13,                                              \
     "Ratio of getter/setter usage used for double field unboxing heuristics")  \
