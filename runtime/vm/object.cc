@@ -11326,51 +11326,78 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+// Returns the index in the given source string for the given (1-based) absolute
+// line and column numbers. The line and column offsets are used to calculate
+// the absolute line and column number for the starting index in the source.
+//
+// If the given line number is outside the range of lines represented by the
+// source, the given column number invalid for the given line, or a negative
+// starting index is given, a negative value is returned to indicate failure.
+static intptr_t GetRelativeSourceIndex(const String& src,
+                                       intptr_t line,
+                                       intptr_t line_offset = 0,
+                                       intptr_t column = 1,
+                                       intptr_t column_offset = 0,
+                                       intptr_t starting_index = 0) {
+  if (starting_index < 0 || line < 1 || column < 1) {
+    return -1;
+  }
+  intptr_t len = src.Length();
+  intptr_t current_line = line_offset + 1;
+  intptr_t current_index = starting_index;
+  for (; current_index < len; current_index++) {
+    if (current_line == line) {
+      break;
+    }
+    const uint16_t c = src.CharAt(current_index);
+    if (c == '\n' || c == '\r') {
+      current_line++;
+    }
+    if (c == '\r' && current_index + 1 < len &&
+        src.CharAt(current_index + 1) == '\n') {
+      // \r\n is treated as a single line terminator.
+      current_index++;
+    }
+  }
+  if (current_line != line) {
+    return -1;
+  }
+  // Only adjust with column offset when still on the first line.
+  intptr_t current_column = 1 + (line == line_offset + 1 ? column_offset : 0);
+  for (; current_index < len; current_index++, current_column++) {
+    if (current_column == column) {
+      return current_index;
+    }
+    const uint16_t c = src.CharAt(current_index);
+    if (c == '\n' || c == '\r') {
+      break;
+    }
+  }
+  // Check for a column value representing the source's end.
+  if (current_column == column) {
+    return current_index;
+  }
+  return -1;
+}
+
 StringPtr Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
     return Symbols::OptimizedOut().raw();
   }
-  intptr_t target_line = line_number - line_offset();
-  intptr_t current_line = 1;
-  intptr_t start = 0;
-  // First find the right line, if present...
-  for (; start < src.Length(); start++) {
-    if (current_line == target_line) {
+  const intptr_t start =
+      GetRelativeSourceIndex(src, line_number, line_offset());
+  if (start < 0) {
+    return Symbols::Empty().raw();
+  }
+  intptr_t end = start;
+  for (; end < src.Length(); end++) {
+    const uint16_t c = src.CharAt(end);
+    if (c == '\n' || c == '\r') {
       break;
     }
-    const uint16_t c = src.CharAt(start);
-    // Only count '\r' as a line terminator if not followed by a '\n'.
-    if (c == '\n' || (c == '\r' && (start + 1 >= src.Length() ||
-                                    src.CharAt(start + 1) != '\n'))) {
-      current_line++;
-    }
   }
-  if (current_line == target_line) {
-    // ... and then find its end, excluding any line terminator.
-    intptr_t end = start;
-    for (; end < src.Length(); end++) {
-      const uint16_t c = src.CharAt(end);
-      if (c == '\n' || c == '\r') {
-        break;
-      }
-    }
-    // Return the contents of the line.
-    return String::SubString(src, start, end - start, space);
-  }
-
-  // Not found, so return the empty string.
-  return Symbols::Empty().raw();
-}
-
-StringPtr Script::GetSnippet(TokenPosition from, TokenPosition to) const {
-  intptr_t from_line;
-  intptr_t from_column;
-  intptr_t to_line;
-  intptr_t to_column;
-  GetTokenLocation(from, &from_line, &from_column);
-  GetTokenLocation(to, &to_line, &to_column);
-  return GetSnippet(from_line, from_column, to_line, to_column);
+  return String::SubString(src, start, end - start, space);
 }
 
 StringPtr Script::GetSnippet(intptr_t from_line,
@@ -11381,49 +11408,17 @@ StringPtr Script::GetSnippet(intptr_t from_line,
   if (src.IsNull()) {
     return Symbols::OptimizedOut().raw();
   }
-  intptr_t length = src.Length();
-  intptr_t line = 1 + line_offset();
-  intptr_t column = 1;
-  intptr_t scan_position = 0;
-  intptr_t snippet_start = -1;
-  intptr_t snippet_end = -1;
-  if (from_line - line_offset() == 1) {
-    column += col_offset();
-  }
 
-  while (scan_position != length) {
-    if (snippet_start == -1) {
-      if ((line == from_line) && (column == from_column)) {
-        snippet_start = scan_position;
-      }
-    }
-
-    char c = src.CharAt(scan_position);
-    if (c == '\n') {
-      line++;
-      column = 0;
-    } else if (c == '\r') {
-      line++;
-      column = 0;
-      if ((scan_position + 1 != length) &&
-          (src.CharAt(scan_position + 1) == '\n')) {
-        scan_position++;
-      }
-    }
-    scan_position++;
-    column++;
-
-    if ((line == to_line) && (column == to_column)) {
-      snippet_end = scan_position;
-      break;
-    }
+  const intptr_t start = GetRelativeSourceIndex(src, from_line, line_offset(),
+                                                from_column, col_offset());
+  // Lines and columns are 1-based, so need to subtract one to get offsets.
+  const intptr_t end = GetRelativeSourceIndex(
+      src, to_line, from_line - 1, to_column, from_column - 1, start);
+  // Only need to check end, because a negative start results in a negative end.
+  if (end < 0) {
+    return String::null();
   }
-  String& snippet = String::Handle();
-  if ((snippet_start != -1) && (snippet_end != -1)) {
-    snippet =
-        String::SubString(src, snippet_start, snippet_end - snippet_start);
-  }
-  return snippet.raw();
+  return String::SubString(src, start, end - start);
 }
 
 ScriptPtr Script::New() {
@@ -15215,46 +15210,6 @@ void ICData::ClearAndSetStaticTarget(
   }
 }
 
-// Add an initial Smi/Smi check with count 0.
-bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
-  bool is_smi_two_args_op = false;
-
-  ASSERT(NumArgsTested() == 2);
-  Zone* zone = Thread::Current()->zone();
-  const String& name = String::Handle(zone, target_name());
-  const Class& smi_class = Class::Handle(zone, Smi::Class());
-  Function& smi_op_target = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (smi_op_target.IsNull() &&
-      Function::IsDynamicInvocationForwarderName(name)) {
-    const String& demangled = String::Handle(
-        zone, Function::DemangleDynamicInvocationForwarderName(name));
-    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
-  }
-#endif
-
-  if (NumberOfChecksIs(0)) {
-    GrowableArray<intptr_t> class_ids(2);
-    class_ids.Add(kSmiCid);
-    class_ids.Add(kSmiCid);
-    AddCheck(class_ids, smi_op_target);
-    // 'AddCheck' sets the initial count to 1.
-    SetCountAt(0, 0);
-    is_smi_two_args_op = true;
-  } else if (NumberOfChecksIs(1)) {
-    GrowableArray<intptr_t> class_ids(2);
-    Function& target = Function::Handle();
-    GetCheckAt(0, &class_ids, &target);
-    if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
-        (class_ids[1] == kSmiCid)) {
-      is_smi_two_args_op = true;
-    }
-  }
-  return is_smi_two_args_op;
-}
-
 bool ICData::ValidateInterceptor(const Function& target) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const String& name = String::Handle(target_name());
@@ -15847,41 +15802,63 @@ ICDataPtr ICData::New(const Function& owner,
   return result.raw();
 }
 
+ICDataPtr ICData::NewWithCheck(const Function& owner,
+                               const String& target_name,
+                               const Array& arguments_descriptor,
+                               intptr_t deopt_id,
+                               intptr_t num_args_tested,
+                               RebindRule rebind_rule,
+                               GrowableArray<intptr_t>* cids,
+                               const Function& target,
+                               const AbstractType& receiver_type) {
+  ASSERT((cids != nullptr) && !target.IsNull());
+  ASSERT(cids->length() == num_args_tested);
+
+  Zone* zone = Thread::Current()->zone();
+  const auto& result = ICData::Handle(
+      zone,
+      NewDescriptor(zone, owner, target_name, arguments_descriptor, deopt_id,
+                    num_args_tested, rebind_rule, receiver_type));
+
+  const intptr_t kNumEntries = 2;  // 1 entry and a sentinel.
+  const intptr_t entry_len =
+      TestEntryLengthFor(num_args_tested, result.is_tracking_exactness());
+  const auto& array =
+      Array::Handle(zone, Array::New(kNumEntries * entry_len, Heap::kOld));
+
+  auto& cid = Smi::Handle(zone);
+  for (intptr_t i = 0; i < num_args_tested; ++i) {
+    cid = Smi::New((*cids)[i]);
+    array.SetAt(i, cid);
+  }
+  array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
+  array.SetAt(TargetIndexFor(num_args_tested), target);
+  WriteSentinel(array, entry_len);
+  result.set_entries(array);
+
+  return result.raw();
+}
+
 ICDataPtr ICData::NewForStaticCall(const Function& owner,
                                    const Function& target,
                                    const Array& arguments_descriptor,
                                    intptr_t deopt_id,
                                    intptr_t num_args_tested,
                                    RebindRule rebind_rule) {
+  // See `MethodRecognizer::NumArgsCheckedForStaticCall`.
+  ASSERT(num_args_tested == 0 || num_args_tested == 2);
   ASSERT(!target.IsNull());
 
   Zone* zone = Thread::Current()->zone();
   const auto& target_name = String::Handle(zone, target.name());
-  const auto& result = ICData::Handle(
-      zone, NewDescriptor(zone, owner, target_name, arguments_descriptor,
-                          deopt_id, num_args_tested, rebind_rule,
-                          Object::null_abstract_type()));
-
-  const intptr_t kNumEntries = 2;  // 1 entry and a sentinel.
-  const intptr_t entry_len =
-      TestEntryLengthFor(num_args_tested, /*tracking_exactness=*/false);
-  const auto& array =
-      Array::Handle(zone, Array::New(kNumEntries * entry_len, Heap::kOld));
-
-  // See `MethodRecognizer::NumArgsCheckedForStaticCall`.
-  ASSERT(num_args_tested == 0 || num_args_tested == 2);
+  GrowableArray<intptr_t> cids(num_args_tested);
   if (num_args_tested == 2) {
-    const auto& object_cid = Smi::Handle(zone, Smi::New(kObjectCid));
-    array.SetAt(0, object_cid);
-    array.SetAt(1, object_cid);
+    cids.Add(kObjectCid);
+    cids.Add(kObjectCid);
   }
-  array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
-  array.SetAt(TargetIndexFor(num_args_tested), target);
-  WriteSentinel(array, entry_len);
-
-  result.set_entries(array);
-
-  return result.raw();
+  return ICData::NewWithCheck(owner, target_name, arguments_descriptor,
+                              deopt_id, num_args_tested, rebind_rule, &cids,
+                              target, Object::null_abstract_type());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

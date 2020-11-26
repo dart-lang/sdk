@@ -911,11 +911,15 @@ class FlowGraphCompiler : public ValueObject {
   bool may_reoptimize() const { return may_reoptimize_; }
 
   // Use in unoptimized compilation to preserve/reuse ICData.
+  //
+  // If [binary_smi_target] is non-null and we have to create the ICData, the
+  // ICData will get an (kSmiCid, kSmiCid, binary_smi_target) entry.
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
                                            const String& target_name,
                                            const Array& arguments_descriptor,
                                            intptr_t num_args_tested,
-                                           const AbstractType& receiver_type);
+                                           const AbstractType& receiver_type,
+                                           const Function& binary_smi_target);
 
   const ICData* GetOrAddStaticCallICData(intptr_t deopt_id,
                                          const Function& target,

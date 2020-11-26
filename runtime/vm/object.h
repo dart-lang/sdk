@@ -2086,9 +2086,6 @@ class ICData : public CallSiteData {
 
   void DebugDump() const;
 
-  // Returns true if this is a two arg smi operation.
-  bool AddSmiSmiCheckForFastSmiStubs() const;
-
   // Adding checks.
 
   // Adds one more class test to ICData. Length of 'classes' must be equal to
@@ -2159,6 +2156,19 @@ class ICData : public CallSiteData {
       intptr_t num_args_tested,
       RebindRule rebind_rule,
       const AbstractType& receiver_type = Object::null_abstract_type());
+
+  // Similar to [New] makes the ICData have an initial (cids, target) entry.
+  static ICDataPtr NewWithCheck(
+      const Function& owner,
+      const String& target_name,
+      const Array& arguments_descriptor,
+      intptr_t deopt_id,
+      intptr_t num_args_tested,
+      RebindRule rebind_rule,
+      GrowableArray<intptr_t>* cids,
+      const Function& target,
+      const AbstractType& receiver_type = Object::null_abstract_type());
+
   static ICDataPtr NewForStaticCall(const Function& owner,
                                     const Function& target,
                                     const Array& arguments_descriptor,
@@ -4487,7 +4497,6 @@ class Script : public Object {
 
   LibraryPtr FindLibrary() const;
   StringPtr GetLine(intptr_t line_number, Heap::Space space = Heap::kNew) const;
-  StringPtr GetSnippet(TokenPosition from, TokenPosition to) const;
   StringPtr GetSnippet(intptr_t from_line,
                        intptr_t from_column,
                        intptr_t to_line,

@@ -1890,7 +1890,8 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     const String& target_name,
     const Array& arguments_descriptor,
     intptr_t num_args_tested,
-    const AbstractType& receiver_type) {
+    const AbstractType& receiver_type,
+    const Function& binary_smi_target) {
   if ((deopt_id_to_ic_data_ != NULL) &&
       ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
@@ -1903,10 +1904,24 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->receivers_static_type() == receiver_type.raw());
     return res;
   }
-  const ICData& ic_data = ICData::ZoneHandle(
-      zone(), ICData::New(parsed_function().function(), target_name,
+
+  auto& ic_data = ICData::ZoneHandle(zone());
+  if (!binary_smi_target.IsNull()) {
+    ASSERT(num_args_tested == 2);
+    ASSERT(!binary_smi_target.IsNull());
+    GrowableArray<intptr_t> cids(num_args_tested);
+    cids.Add(kSmiCid);
+    cids.Add(kSmiCid);
+    ic_data = ICData::NewWithCheck(parsed_function().function(), target_name,
+                                   arguments_descriptor, deopt_id,
+                                   num_args_tested, ICData::kInstance, &cids,
+                                   binary_smi_target, receiver_type);
+  } else {
+    ic_data = ICData::New(parsed_function().function(), target_name,
                           arguments_descriptor, deopt_id, num_args_tested,
-                          ICData::kInstance, receiver_type));
+                          ICData::kInstance, receiver_type);
+  }
+
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
