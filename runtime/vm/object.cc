@@ -11331,33 +11331,36 @@ StringPtr Script::GetLine(intptr_t line_number, Heap::Space space) const {
   if (src.IsNull()) {
     return Symbols::OptimizedOut().raw();
   }
-  intptr_t relative_line_number = line_number - line_offset();
+  intptr_t target_line = line_number - line_offset();
   intptr_t current_line = 1;
-  intptr_t line_start_idx = -1;
-  intptr_t last_char_idx = -1;
-  for (intptr_t ix = 0;
-       (ix < src.Length()) && (current_line <= relative_line_number); ix++) {
-    if ((current_line == relative_line_number) && (line_start_idx < 0)) {
-      line_start_idx = ix;
+  intptr_t start = 0;
+  // First find the right line, if present...
+  for (; start < src.Length(); start++) {
+    if (current_line == target_line) {
+      break;
     }
-    if (src.CharAt(ix) == '\n') {
+    const uint16_t c = src.CharAt(start);
+    // Only count '\r' as a line terminator if not followed by a '\n'.
+    if (c == '\n' || (c == '\r' && (start + 1 >= src.Length() ||
+                                    src.CharAt(start + 1) != '\n'))) {
       current_line++;
-    } else if (src.CharAt(ix) == '\r') {
-      if ((ix + 1 != src.Length()) && (src.CharAt(ix + 1) != '\n')) {
-        current_line++;
-      }
-    } else {
-      last_char_idx = ix;
     }
   }
-  // Guarantee that returned string is never NULL.
-
-  if (line_start_idx >= 0) {
-    return String::SubString(src, line_start_idx,
-                             last_char_idx - line_start_idx + 1, space);
-  } else {
-    return Symbols::Empty().raw();
+  if (current_line == target_line) {
+    // ... and then find its end, excluding any line terminator.
+    intptr_t end = start;
+    for (; end < src.Length(); end++) {
+      const uint16_t c = src.CharAt(end);
+      if (c == '\n' || c == '\r') {
+        break;
+      }
+    }
+    // Return the contents of the line.
+    return String::SubString(src, start, end - start, space);
   }
+
+  // Not found, so return the empty string.
+  return Symbols::Empty().raw();
 }
 
 StringPtr Script::GetSnippet(TokenPosition from, TokenPosition to) const {
