@@ -5289,8 +5289,8 @@ var m = <String, int>{'a' : 2};
 
 ### missing_default_value_for_parameter
 
-_The parameter '{0}' can't have a value of 'null' because of its type, and no
-non-null default value is provided._
+_The parameter '{0}' can't have a value of 'null' because of its type, but the
+implicit default value is 'null'._
 
 #### Description
 

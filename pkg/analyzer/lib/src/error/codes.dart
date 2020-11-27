@@ -6310,9 +6310,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
           "The parameter '{0}' can't have a value of 'null' because of its "
-              "type, and no non-null default value is provided.",
+              "type, but the implicit default value is 'null'.",
           correction:
-              "Try adding either a default value or the 'required' modifier.",
+              "Try adding either an explicit non-'null' default value or the "
+              "'required' modifier.",
           hasPublishedDocs: true);
 
   /**
