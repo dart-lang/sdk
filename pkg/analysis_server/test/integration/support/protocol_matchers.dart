@@ -306,6 +306,7 @@ final Matcher isCompletionSuggestion =
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 final Matcher isCompletionSuggestionKind =
     MatchesEnum('CompletionSuggestionKind', [
@@ -317,7 +318,8 @@ final Matcher isCompletionSuggestionKind =
   'NAMED_ARGUMENT',
   'OPTIONAL_ARGUMENT',
   'OVERRIDE',
-  'PARAMETER'
+  'PARAMETER',
+  'PACKAGE_NAME'
 ]);
 
 /// ContextData
