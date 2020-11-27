@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::C::redirect]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[self::C::redirect]/*isLegacy*/;
   constructor gen({core::int i = #C1}) → self::C
     : super core::Object::•()
     ;

@@ -15,9 +15,9 @@ abstract class _Class&Super&Mixin = self::Super with req::Mixin /*isAnonymousMix
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  forwarding-stub method /*isNullableByDefault*/ method({covariant core::int* named = #C1}) → void
+  forwarding-stub method /*isLegacy*/ method({covariant core::int* named = #C1}) → void
     return super.{self::Super::method}(named: named);
-  abstract member-signature operator /*isNullableByDefault*/ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class Class extends self::_Class&Super&Mixin {
   synthetic constructor •() → self::Class

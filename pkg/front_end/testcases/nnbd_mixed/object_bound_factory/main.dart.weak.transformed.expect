@@ -34,7 +34,7 @@ import self as opt;
 import "dart:core" as core;
 
 class Class1<T extends core::Object? = core::Object?> extends core::Object /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::Class1::redirect, opt::Class1::constRedirect]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[opt::Class1::redirect, opt::Class1::constRedirect]/*isLegacy*/;
   const constructor _() → opt::Class1<opt::Class1::T%>
     : super core::Object::•()
     ;
@@ -46,7 +46,7 @@ class Class1<T extends core::Object? = core::Object?> extends core::Object /*has
     return new opt::Class1::_<opt::Class1::fact::T%>();
 }
 class Class2<T extends core::Object = core::Object> extends core::Object /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::Class2::redirect, opt::Class2::constRedirect]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[opt::Class2::redirect, opt::Class2::constRedirect]/*isLegacy*/;
   const constructor _() → opt::Class2<opt::Class2::T>
     : super core::Object::•()
     ;
@@ -58,7 +58,7 @@ class Class2<T extends core::Object = core::Object> extends core::Object /*hasCo
     return new opt::Class2::_<opt::Class2::fact::T>();
 }
 class Class3<T extends core::String = core::String> extends core::Object /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::Class3::redirect, opt::Class3::constRedirect]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[opt::Class3::redirect, opt::Class3::constRedirect]/*isLegacy*/;
   const constructor _() → opt::Class3<opt::Class3::T>
     : super core::Object::•()
     ;
@@ -70,7 +70,7 @@ class Class3<T extends core::String = core::String> extends core::Object /*hasCo
     return new opt::Class3::_<opt::Class3::fact::T>();
 }
 class Class4<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::Class4::redirect, opt::Class4::constRedirect]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[opt::Class4::redirect, opt::Class4::constRedirect]/*isLegacy*/;
   const constructor _() → opt::Class4<opt::Class4::T%>
     : super core::Object::•()
     ;
@@ -82,7 +82,7 @@ class Class4<T extends core::Object? = dynamic> extends core::Object /*hasConstC
     return new opt::Class4::_<opt::Class4::fact::T%>();
 }
 class Class5<T extends dynamic = dynamic> extends core::Object /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::Class5::redirect, opt::Class5::constRedirect]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[opt::Class5::redirect, opt::Class5::constRedirect]/*isLegacy*/;
   const constructor _() → opt::Class5<opt::Class5::T%>
     : super core::Object::•()
     ;

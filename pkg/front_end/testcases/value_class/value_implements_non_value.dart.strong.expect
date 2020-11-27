@@ -87,13 +87,13 @@ class Cat extends core::Object implements self::Animal {
   synthetic constructor •({required core::int numberOfLegs, required core::int numberOfWhiskers}) → self::Cat
     : self::Cat::numberOfLegs = numberOfLegs, self::Cat::numberOfWhiskers = numberOfWhiskers, super core::Object::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::Cat && this.{self::Cat::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///value_implements_non_value.dartCat".{core::String::hashCode}, this.{self::Cat::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "Cat(numberOfLegs: ${this.{self::Cat::numberOfLegs}.{core::int::toString}()}, numberOfWhiskers: ${this.{self::Cat::numberOfWhiskers}.{core::int::toString}()})";
-  method /*isNullableByDefault*/ copyWith({core::int numberOfLegs, core::int numberOfWhiskers}) → dynamic
+  method /*isLegacy*/ copyWith({core::int numberOfLegs, core::int numberOfWhiskers}) → dynamic
     return new self::Cat::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
 }
 abstract class Animal2 extends core::Object {
@@ -108,13 +108,13 @@ class Cat2 extends core::Object implements self::Animal2 {
   synthetic constructor •({required core::int numberOfLegs, required core::int numberOfWhiskers}) → self::Cat2
     : self::Cat2::numberOfLegs = numberOfLegs, self::Cat2::numberOfWhiskers = numberOfWhiskers, super core::Object::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::Cat2 && this.{self::Cat2::numberOfLegs}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfLegs}) && this.{self::Cat2::numberOfWhiskers}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfWhiskers});
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///value_implements_non_value.dartCat2".{core::String::hashCode}, this.{self::Cat2::numberOfLegs}.{core::num::hashCode}), this.{self::Cat2::numberOfWhiskers}.{core::num::hashCode}));
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "Cat2(numberOfLegs: ${this.{self::Cat2::numberOfLegs}.{core::int::toString}()}, numberOfWhiskers: ${this.{self::Cat2::numberOfWhiskers}.{core::int::toString}()})";
-  method /*isNullableByDefault*/ copyWith({core::int numberOfLegs, core::int numberOfWhiskers}) → dynamic
+  method /*isLegacy*/ copyWith({core::int numberOfLegs, core::int numberOfWhiskers}) → dynamic
     return new self::Cat2::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
 }
 static method main() → dynamic {

@@ -7,7 +7,7 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
       ;
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
-    final field wid::_Location? _location /*isNullableByDefault, from null */;
+    final field wid::_Location? _location /*isLegacy, from null */;
     const constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
       : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
       ;
@@ -45,7 +45,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
       return #C7;
   }
   class Bar extends fra::Widget /*hasConstConstructor*/  {
-    static field dynamic _redirecting# = <dynamic>[foo::Bar::•]/*isNullableByDefault*/;
+    static field dynamic _redirecting# = <dynamic>[foo::Bar::•]/*isLegacy*/;
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
@@ -53,7 +53,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
       let dynamic #redirecting_factory = foo::Bar::_ in invalid-expression;
   }
   class Baz extends fra::Widget /*hasConstConstructor*/  {
-    static field dynamic _redirecting# = <dynamic>[foo::Baz::_]/*isNullableByDefault*/;
+    static field dynamic _redirecting# = <dynamic>[foo::Baz::_]/*isLegacy*/;
     const constructor __({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;

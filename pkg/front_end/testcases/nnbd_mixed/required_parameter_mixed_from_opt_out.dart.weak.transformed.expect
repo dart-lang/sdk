@@ -15,17 +15,17 @@ abstract class _Class&Super&Mixin extends self::Super implements req::Mixin /*is
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  method /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ method({covariant core::int* named = #C1}) → void {}
-  abstract member-signature operator /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature get /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /*isNullableByDefault, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ method({covariant core::int* named = #C1}) → void {}
+  abstract member-signature operator /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ toString() → core::String*; -> core::Object::toString
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class extends self::_Class&Super&Mixin {
   synthetic constructor •() → self::Class

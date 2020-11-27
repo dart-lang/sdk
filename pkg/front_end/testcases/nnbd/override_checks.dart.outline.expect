@@ -62,7 +62,7 @@ class B2 extends self::B1 {
     ;
 }
 class C1 extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::C1::•]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[self::C1::•]/*isLegacy*/;
   static factory •() → self::C1
     let dynamic #redirecting_factory = self::C2::• in let core::int? #typeArg0 = null in invalid-expression;
 }
@@ -71,7 +71,7 @@ class C2<X extends core::int = core::int> extends core::Object implements self::
     ;
 }
 class D extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::D::bar]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[self::D::bar]/*isLegacy*/;
   constructor foo(core::num x) → self::D
     ;
   static factory bar(core::num? x) → self::D
