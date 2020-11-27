@@ -34,13 +34,13 @@ class Class4b extends core::Object implements inh::GenericInterface<core::num> {
   synthetic constructor •() → self::Class4b
     : super core::Object::•()
     ;
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature operator /*isNullableByDefault*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class Class4c extends core::Object implements inh::GenericInterface<core::num?> {
   synthetic constructor •() → self::Class4c
     : super core::Object::•()
     ;
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature operator /*isNullableByDefault*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class Class4d extends inh::LegacyClass4 implements inh::GenericInterface<core::num> {
   synthetic constructor •() → self::Class4d
