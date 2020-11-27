@@ -59,7 +59,8 @@ class LintRuleProducer extends Producer {
   const LintRuleProducer();
 
   @override
-  Iterable<CompletionSuggestion> suggestions() sync* {
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
     for (var rule in Registry.ruleRegistry.rules) {
       yield identifier(rule.name);
     }

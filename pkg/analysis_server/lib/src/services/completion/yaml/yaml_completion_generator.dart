@@ -59,13 +59,14 @@ abstract class YamlCompletionGenerator {
   /// the offset of the cursor, return the completions appropriate at that
   /// location.
   YamlCompletionResults getSuggestionsForPath(List<YamlNode> path, int offset) {
+    var request = YamlCompletionRequest(resourceProvider);
     var producer = _producerForPath(path);
     if (producer == null) {
       return const YamlCompletionResults.empty();
     }
     var invalidSuggestions = _siblingsOnPath(path);
     var suggestions = <CompletionSuggestion>[];
-    for (var suggestion in producer.suggestions()) {
+    for (var suggestion in producer.suggestions(request)) {
       if (!invalidSuggestions.contains(suggestion.completion)) {
         suggestions.add(suggestion);
       }
@@ -107,10 +108,10 @@ abstract class YamlCompletionGenerator {
     var producer = topLevelProducer;
     for (var i = 0; i < path.length - 1; i++) {
       var node = path[i];
-      if (node is YamlMap && producer is MapProducer) {
+      if (node is YamlMap && producer is KeyValueProducer) {
         var key = node.keyAtValue(path[i + 1]);
         if (key is YamlScalar) {
-          producer = (producer as MapProducer).children[key.value];
+          producer = (producer as KeyValueProducer).producerForKey(key.value);
         } else {
           return null;
         }

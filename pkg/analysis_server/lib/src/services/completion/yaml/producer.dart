@@ -11,7 +11,8 @@ class BooleanProducer extends Producer {
   const BooleanProducer();
 
   @override
-  Iterable<CompletionSuggestion> suggestions() sync* {
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
     yield identifier('true');
     yield identifier('false');
   }
@@ -24,7 +25,8 @@ class EmptyProducer extends Producer {
   const EmptyProducer();
 
   @override
-  Iterable<CompletionSuggestion> suggestions() sync* {
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
     // Returns nothing.
   }
 }
@@ -39,7 +41,8 @@ class EnumProducer extends Producer {
   const EnumProducer(this.values);
 
   @override
-  Iterable<CompletionSuggestion> suggestions() sync* {
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
     for (var value in values) {
       yield identifier(value);
     }
@@ -56,9 +59,18 @@ class FilePathProducer extends Producer {
   FilePathProducer(this.provider);
 
   @override
-  Iterable<CompletionSuggestion> suggestions() sync* {
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
     // TODO(brianwilkerson) Implement this.
   }
+}
+
+/// An object that represents the location of the keys/values in a map.
+abstract class KeyValueProducer extends Producer {
+  const KeyValueProducer();
+
+  /// Returns a producer for values of the given [key].
+  Producer producerForKey(String key);
 }
 
 /// An object that represents the location of an element in a list.
@@ -71,8 +83,9 @@ class ListProducer extends Producer {
   const ListProducer(this.element);
 
   @override
-  Iterable<CompletionSuggestion> suggestions() sync* {
-    for (var suggestion in element.suggestions()) {
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
+    for (var suggestion in element.suggestions(request)) {
       // TODO(brianwilkerson) Consider prepending the suggestion with a hyphen
       //  when the current node isn't already preceded by a hyphen. The
       //  cleanest way to do this is probably to access the [element] producer
@@ -84,18 +97,23 @@ class ListProducer extends Producer {
 }
 
 /// An object that represents the location of the keys in a map.
-class MapProducer extends Producer {
+class MapProducer extends KeyValueProducer {
   /// A table from the value of a key to the producer used to make suggestions
   /// for the value following the key.
-  final Map<String, Producer> children;
+  final Map<String, Producer> _children;
 
   /// Initialize a location whose valid values are the keys of a map as encoded
   /// by the map of [children].
-  const MapProducer(this.children);
+  const MapProducer(this._children);
+
+  /// Returns a producer for values of the given [key].
+  @override
+  Producer producerForKey(String key) => _children[key];
 
   @override
-  Iterable<CompletionSuggestion> suggestions() sync* {
-    for (var entry in children.entries) {
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
+    for (var entry in _children.entries) {
       if (entry.value is ListProducer) {
         yield identifier('${entry.key}:');
       } else {
@@ -123,5 +141,11 @@ abstract class Producer {
       false);
 
   /// Return the completion suggestions appropriate to this location.
-  Iterable<CompletionSuggestion> suggestions();
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request);
+}
+
+class YamlCompletionRequest {
+  final ResourceProvider resourceProvider;
+
+  YamlCompletionRequest(this.resourceProvider);
 }
