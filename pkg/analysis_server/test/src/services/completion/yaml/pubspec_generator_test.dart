@@ -23,6 +23,7 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
 
   void test_empty() {
     getCompletions('^');
+    assertSuggestion('flutter: ');
     assertSuggestion('name: ');
   }
 
@@ -33,5 +34,164 @@ environment:
 ''');
     assertSuggestion('flutter: ');
     assertSuggestion('sdk: ');
+  }
+
+  void test_flutter() {
+    getCompletions('''
+flutter:
+  ^
+''');
+    assertSuggestion('assets: ');
+    assertSuggestion('plugin: ');
+  }
+
+  void test_flutter_fonts() {
+    getCompletions('''
+flutter:
+  fonts:
+    ^
+''');
+    assertSuggestion('family: ');
+    assertSuggestion('fonts:');
+  }
+
+  void test_flutter_fonts_fonts() {
+    getCompletions('''
+flutter:
+  fonts:
+    - fonts:
+        ^
+''');
+    assertSuggestion('asset: ');
+  }
+
+  void test_flutter_fonts_fonts_style() {
+    getCompletions('''
+flutter:
+  fonts:
+    - fonts:
+       - style: ^
+''');
+    assertSuggestion('italic');
+  }
+
+  void test_flutter_fonts_weight() {
+    getCompletions('''
+flutter:
+  fonts:
+    - fonts:
+        - weight: ^
+''');
+    assertSuggestion('100');
+    assertSuggestion('900');
+  }
+
+  void test_flutter_module() {
+    getCompletions('''
+flutter:
+  module:
+    ^
+''');
+    assertSuggestion('androidX: ');
+    assertSuggestion('iosBundleIdentifier: ');
+  }
+
+  void test_flutter_plugin() {
+    getCompletions('''
+flutter:
+  plugin:
+    ^
+''');
+    assertSuggestion('platforms: ');
+  }
+
+  void test_flutter_plugin_platforms() {
+    getCompletions('''
+flutter:
+  plugin:
+    platforms:
+      ^
+''');
+    assertSuggestion('android: ');
+    assertSuggestion('web: ');
+  }
+
+  void test_flutter_plugin_platforms_android() {
+    getCompletions('''
+flutter:
+  plugin:
+    platforms:
+      android:
+        ^
+''');
+    assertSuggestion('package: ');
+    assertSuggestion('pluginClass: ');
+  }
+
+  void test_flutter_plugin_platforms_ios() {
+    getCompletions('''
+flutter:
+  plugin:
+    platforms:
+      ios:
+        ^
+''');
+    assertSuggestion('pluginClass: ');
+  }
+
+  void test_flutter_plugin_platforms_linux() {
+    getCompletions('''
+flutter:
+  plugin:
+    platforms:
+      linux:
+        ^
+''');
+    assertSuggestion('dartPluginClass: ');
+    assertSuggestion('pluginClass: ');
+  }
+
+  void test_flutter_plugin_platforms_macos() {
+    getCompletions('''
+flutter:
+  plugin:
+    platforms:
+      macos:
+        ^
+''');
+    assertSuggestion('dartPluginClass: ');
+    assertSuggestion('pluginClass: ');
+  }
+
+  void test_flutter_plugin_platforms_web() {
+    getCompletions('''
+flutter:
+  plugin:
+    platforms:
+      web:
+        ^
+''');
+    assertSuggestion('fileName: ');
+    assertSuggestion('pluginClass: ');
+  }
+
+  void test_flutter_plugin_platforms_windows() {
+    getCompletions('''
+flutter:
+  plugin:
+    platforms:
+      windows:
+        ^
+''');
+    assertSuggestion('dartPluginClass: ');
+    assertSuggestion('pluginClass: ');
+  }
+
+  void test_flutter_usesMaterialDesign() {
+    getCompletions('''
+flutter:
+  uses-material-design: ^
+''');
+    assertSuggestion('true');
   }
 }
