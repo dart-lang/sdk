@@ -182,8 +182,14 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 ''';
 
 List<AstNode> getCustomClasses() {
-  Interface interface(String name, List<Member> fields) {
-    return Interface(null, Token.identifier(name), [], [], fields);
+  Interface interface(String name, List<Member> fields, {String baseType}) {
+    return Interface(
+      null,
+      Token.identifier(name),
+      [],
+      [if (baseType != null) Type.identifier(baseType)],
+      fields,
+    );
   }
 
   Field field(String name,
@@ -250,11 +256,17 @@ List<AstNode> getCustomClasses() {
       [
         field('file', type: 'string'),
         field('offset', type: 'number'),
+      ],
+    ),
+    interface(
+      'DartCompletionItemResolutionInfo',
+      [
         field('libId', type: 'number'),
         field('displayUri', type: 'string'),
         field('rOffset', type: 'number'),
-        field('rLength', type: 'number')
+        field('rLength', type: 'number'),
       ],
+      baseType: 'CompletionItemResolutionInfo',
     ),
   ];
   return customTypes;

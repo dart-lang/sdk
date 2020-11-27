@@ -1187,6 +1187,7 @@ class CompletionSuggestion implements HasToJson {
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1235,6 +1236,10 @@ class CompletionSuggestionKind implements Enum {
   static const CompletionSuggestionKind PARAMETER =
       CompletionSuggestionKind._('PARAMETER');
 
+  /// The name of a pub package is being suggested.
+  static const CompletionSuggestionKind PACKAGE_NAME =
+      CompletionSuggestionKind._('PACKAGE_NAME');
+
   /// A list containing all of the enum values that are defined.
   static const List<CompletionSuggestionKind> VALUES =
       <CompletionSuggestionKind>[
@@ -1246,7 +1251,8 @@ class CompletionSuggestionKind implements Enum {
     NAMED_ARGUMENT,
     OPTIONAL_ARGUMENT,
     OVERRIDE,
-    PARAMETER
+    PARAMETER,
+    PACKAGE_NAME
   ];
 
   @override
@@ -1274,6 +1280,8 @@ class CompletionSuggestionKind implements Enum {
         return OVERRIDE;
       case 'PARAMETER':
         return PARAMETER;
+      case 'PACKAGE_NAME':
+        return PACKAGE_NAME;
     }
     throw Exception('Illegal enum value: $name');
   }

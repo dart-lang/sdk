@@ -301,7 +301,7 @@ lsp.CompletionItem declarationToCompletionItem(
         ? insertText
         : null, // insertText uses label if not set
     // data, used for completionItem/resolve.
-    data: lsp.CompletionItemResolutionInfo(
+    data: lsp.DartCompletionItemResolutionInfo(
         file: file,
         offset: offset,
         libId: includedSuggestionSet.id,
@@ -783,6 +783,7 @@ lsp.CompletionItem toCompletionItem(
   int replacementLength, {
   @required bool includeCommitCharacters,
   @required bool completeFunctionCalls,
+  Object resolutionData,
 }) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
@@ -876,6 +877,7 @@ lsp.CompletionItem toCompletionItem(
         : null,
     commitCharacters:
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
+    data: resolutionData,
     detail: getCompletionDetail(suggestion, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     documentation:
