@@ -1,35 +1,43 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "mixin_from_opt_out_lib.dart" as mix;
+import "required_parameter_mixed_from_opt_out_lib.dart" as req;
 
-import "org-dartlang-testcase:///mixin_from_opt_out_lib.dart";
+import "org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart";
 
-abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Class&Object&Mixin
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
+  method method({required covariant core::int named = #C1}) → void {}
+}
+abstract class _Class&Super&Mixin = self::Super with req::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  forwarding-stub method /*isNullableByDefault*/ method({covariant core::int* named = #C1}) → void
+    return super.{self::Super::method}(named: named);
   abstract member-signature operator /*isNullableByDefault*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
-class Class extends self::_Class&Object&Mixin {
+class Class extends self::_Class&Super&Mixin {
   synthetic constructor •() → self::Class
-    : super self::_Class&Object&Mixin::•()
+    : super self::_Class&Super&Mixin::•()
     ;
 }
-static method main() → dynamic {
-  core::print(new self::Class::•().{mix::Mixin::method}(null));
+class SubClass extends self::Class {
+  synthetic constructor •() → self::SubClass
+    : super self::Class::•()
+    ;
+  method method({required covariant core::int named = #C1}) → void {}
 }
+static method main() → dynamic {}
 
 library;
-import self as mix;
+import self as req;
 import "dart:core" as core;
 
-class Mixin extends core::Object {
-  synthetic constructor •() → mix::Mixin*
-    : super core::Object::•()
-    ;
-  method method(core::int* i) → core::int*
-    return let final core::int* #t1 = i in #t1.{core::num::==}(null) ?{core::int*} 0 : #t1;
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  method method({core::int* named = #C1}) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -40,4 +48,8 @@ class Mixin extends core::Object {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+constants  {
+  #C1 = null
 }
