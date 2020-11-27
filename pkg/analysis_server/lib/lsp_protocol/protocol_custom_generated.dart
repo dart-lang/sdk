@@ -192,66 +192,30 @@ class CompletionItemResolutionInfo implements ToJsonable {
       CompletionItemResolutionInfo.canParse,
       CompletionItemResolutionInfo.fromJson);
 
-  CompletionItemResolutionInfo(
-      {@required this.file,
-      @required this.offset,
-      @required this.libId,
-      @required this.displayUri,
-      @required this.rOffset,
-      @required this.rLength}) {
+  CompletionItemResolutionInfo({@required this.file, @required this.offset}) {
     if (file == null) {
       throw 'file is required but was not provided';
     }
     if (offset == null) {
       throw 'offset is required but was not provided';
     }
-    if (libId == null) {
-      throw 'libId is required but was not provided';
-    }
-    if (displayUri == null) {
-      throw 'displayUri is required but was not provided';
-    }
-    if (rOffset == null) {
-      throw 'rOffset is required but was not provided';
-    }
-    if (rLength == null) {
-      throw 'rLength is required but was not provided';
-    }
   }
   static CompletionItemResolutionInfo fromJson(Map<String, dynamic> json) {
+    if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
+      return DartCompletionItemResolutionInfo.fromJson(json);
+    }
     final file = json['file'];
     final offset = json['offset'];
-    final libId = json['libId'];
-    final displayUri = json['displayUri'];
-    final rOffset = json['rOffset'];
-    final rLength = json['rLength'];
-    return CompletionItemResolutionInfo(
-        file: file,
-        offset: offset,
-        libId: libId,
-        displayUri: displayUri,
-        rOffset: rOffset,
-        rLength: rLength);
+    return CompletionItemResolutionInfo(file: file, offset: offset);
   }
 
-  final String displayUri;
   final String file;
-  final num libId;
   final num offset;
-  final num rLength;
-  final num rOffset;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['file'] = file ?? (throw 'file is required but was not set');
     __result['offset'] = offset ?? (throw 'offset is required but was not set');
-    __result['libId'] = libId ?? (throw 'libId is required but was not set');
-    __result['displayUri'] =
-        displayUri ?? (throw 'displayUri is required but was not set');
-    __result['rOffset'] =
-        rOffset ?? (throw 'rOffset is required but was not set');
-    __result['rLength'] =
-        rLength ?? (throw 'rLength is required but was not set');
     return __result;
   }
 
@@ -291,6 +255,105 @@ class CompletionItemResolutionInfo implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      return true;
+    } else {
+      reporter.reportError('must be of type CompletionItemResolutionInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CompletionItemResolutionInfo &&
+        other.runtimeType == CompletionItemResolutionInfo) {
+      return file == other.file && offset == other.offset && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class DartCompletionItemResolutionInfo
+    implements CompletionItemResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+      DartCompletionItemResolutionInfo.canParse,
+      DartCompletionItemResolutionInfo.fromJson);
+
+  DartCompletionItemResolutionInfo(
+      {@required this.libId,
+      @required this.displayUri,
+      @required this.rOffset,
+      @required this.rLength,
+      @required this.file,
+      @required this.offset}) {
+    if (libId == null) {
+      throw 'libId is required but was not provided';
+    }
+    if (displayUri == null) {
+      throw 'displayUri is required but was not provided';
+    }
+    if (rOffset == null) {
+      throw 'rOffset is required but was not provided';
+    }
+    if (rLength == null) {
+      throw 'rLength is required but was not provided';
+    }
+    if (file == null) {
+      throw 'file is required but was not provided';
+    }
+    if (offset == null) {
+      throw 'offset is required but was not provided';
+    }
+  }
+  static DartCompletionItemResolutionInfo fromJson(Map<String, dynamic> json) {
+    final libId = json['libId'];
+    final displayUri = json['displayUri'];
+    final rOffset = json['rOffset'];
+    final rLength = json['rLength'];
+    final file = json['file'];
+    final offset = json['offset'];
+    return DartCompletionItemResolutionInfo(
+        libId: libId,
+        displayUri: displayUri,
+        rOffset: rOffset,
+        rLength: rLength,
+        file: file,
+        offset: offset);
+  }
+
+  final String displayUri;
+  final String file;
+  final num libId;
+  final num offset;
+  final num rLength;
+  final num rOffset;
+
+  Map<String, dynamic> toJson() {
+    var __result = <String, dynamic>{};
+    __result['libId'] = libId ?? (throw 'libId is required but was not set');
+    __result['displayUri'] =
+        displayUri ?? (throw 'displayUri is required but was not set');
+    __result['rOffset'] =
+        rOffset ?? (throw 'rOffset is required but was not set');
+    __result['rLength'] =
+        rLength ?? (throw 'rLength is required but was not set');
+    __result['file'] = file ?? (throw 'file is required but was not set');
+    __result['offset'] = offset ?? (throw 'offset is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
       reporter.push('libId');
       try {
         if (!obj.containsKey('libId')) {
@@ -359,23 +422,57 @@ class CompletionItemResolutionInfo implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('file');
+      try {
+        if (!obj.containsKey('file')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['file'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(obj['file'] is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('offset');
+      try {
+        if (!obj.containsKey('offset')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['offset'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(obj['offset'] is num)) {
+          reporter.reportError('must be of type num');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
-      reporter.reportError('must be of type CompletionItemResolutionInfo');
+      reporter.reportError('must be of type DartCompletionItemResolutionInfo');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemResolutionInfo &&
-        other.runtimeType == CompletionItemResolutionInfo) {
-      return file == other.file &&
-          offset == other.offset &&
-          libId == other.libId &&
+    if (other is DartCompletionItemResolutionInfo &&
+        other.runtimeType == DartCompletionItemResolutionInfo) {
+      return libId == other.libId &&
           displayUri == other.displayUri &&
           rOffset == other.rOffset &&
           rLength == other.rLength &&
+          file == other.file &&
+          offset == other.offset &&
           true;
     }
     return false;
@@ -384,12 +481,12 @@ class CompletionItemResolutionInfo implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, libId.hashCode);
     hash = JenkinsSmiHash.combine(hash, displayUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, rOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, rLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
