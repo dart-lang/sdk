@@ -73,7 +73,6 @@ class PubspecGenerator extends YamlCompletionGenerator {
           }),
         }),
       }),
-      'services': EmptyProducer(), // ListProducer(EmptyProducer()),
       'uses-material-design': BooleanProducer(),
     }),
   });

@@ -57,13 +57,13 @@ class Cat extends self::Animal {
   synthetic constructor •({required core::int? numberOfWhiskers, core::int? numberOfLegs}) → self::Cat
     : self::Cat::numberOfWhiskers = numberOfWhiskers, super self::Animal::•(numberOfLegs)
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///copy_with_call_sites.dartCat".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "Cat(numberOfLegs: ${this.{self::Animal::numberOfLegs}.{core::int::toString}()}, numberOfWhiskers: ${this.{self::Cat::numberOfWhiskers}.{core::int::toString}()})";
-  method /*isNullableByDefault*/ copyWith({core::int? numberOfLegs, core::int? numberOfWhiskers}) → dynamic
+  method /*isLegacy*/ copyWith({core::int? numberOfLegs, core::int? numberOfWhiskers}) → dynamic
     return new self::Cat::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
 }
 class Foo extends core::Object {
@@ -83,13 +83,13 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::A;
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///copy_with_call_sites.dartA".{core::String::hashCode});
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "A()";
-  method /*isNullableByDefault*/ copyWith() → dynamic
+  method /*isLegacy*/ copyWith() → dynamic
     return new self::A::•();
 }
 static method main() → dynamic {

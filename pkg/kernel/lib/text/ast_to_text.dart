@@ -1102,7 +1102,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if ((node.enclosingClass == null &&
@@ -1134,7 +1134,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if ((node.enclosingClass == null &&
@@ -1173,7 +1173,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if (features.isNotEmpty) {
@@ -1209,7 +1209,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if (features.isNotEmpty) {

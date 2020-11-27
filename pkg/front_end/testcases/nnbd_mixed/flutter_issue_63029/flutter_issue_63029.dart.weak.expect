@@ -16,7 +16,7 @@ abstract class _F&B&D = flu::B<self::E> with flu2::D<self::E> /*isAnonymousMixin
   synthetic constructor •() → self::_F&B&D
     : super flu::B::•()
     ;
-  abstract member-signature operator /*isNullableByDefault*/ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class F extends self::_F&B&D {
   synthetic constructor •() → self::F
