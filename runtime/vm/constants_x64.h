@@ -457,6 +457,9 @@ class CallingConventions {
        (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
+constexpr intptr_t kAbiPreservedCpuRegs =
+    CallingConventions::kCalleeSaveCpuRegisters;
+
 #undef R
 
 class Instr {

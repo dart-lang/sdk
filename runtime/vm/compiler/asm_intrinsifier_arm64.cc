@@ -28,19 +28,15 @@ intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
   return -1;
 }
 
-static bool IsABIPreservedRegister(Register reg) {
-  return ((1 << reg) & kAbiPreservedCpuRegs) != 0;
-}
-
 void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  ASSERT(IsABIPreservedRegister(CODE_REG));
-  ASSERT(!IsABIPreservedRegister(ARGS_DESC_REG));
-  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
-  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP2));
-  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
-  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
-  ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
-  ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
+  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
+  COMPILE_ASSERT(!IsAbiPreservedRegister(ARGS_DESC_REG));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP2));
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
 
   assembler->Comment("IntrinsicCallPrologue");
   assembler->mov(CALLEE_SAVED_TEMP, LR);
