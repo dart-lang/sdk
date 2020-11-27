@@ -58,8 +58,8 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ LoadImmediate(TMP, VMTag::kDartTagId);
     __ str(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-    ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);
-    ASSERT((kAbiPreservedCpuRegs & (1 << PP)) != 0);
+    COMPILE_ASSERT(IsAbiPreservedRegister(THR));
+    COMPILE_ASSERT(IsAbiPreservedRegister(PP));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

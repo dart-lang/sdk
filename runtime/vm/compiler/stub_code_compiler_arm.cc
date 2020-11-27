@@ -350,7 +350,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 //   NOTFP, R4: clobbered, although normally callee-saved
 void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R4)) != 0);
+  COMPILE_ASSERT(IsAbiPreservedRegister(R4));
 
   // TransitionGeneratedToNative might clobber LR if it takes the slow path.
   __ mov(R4, Operand(LR));
@@ -2867,10 +2867,13 @@ void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
 //
 // Notice: We need to keep this in sync with `Simulator::JumpToFrame()`.
 void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
-  ASSERT(kExceptionObjectReg == R0);
-  ASSERT(kStackTraceObjectReg == R1);
+  COMPILE_ASSERT(kExceptionObjectReg == R0);
+  COMPILE_ASSERT(kStackTraceObjectReg == R1);
+  COMPILE_ASSERT(IsAbiPreservedRegister(R4));
+  COMPILE_ASSERT(IsAbiPreservedRegister(THR));
   __ mov(IP, Operand(R1));   // Copy Stack pointer into IP.
-  __ mov(LR, Operand(R0));   // Program counter.
+  // TransitionGeneratedToNative might clobber LR if it takes the slow path.
+  __ mov(R4, Operand(R0));   // Program counter.
   __ mov(THR, Operand(R3));  // Thread.
   __ mov(FP, Operand(R2));   // Frame_pointer.
   __ mov(SP, Operand(IP));   // Set Stack pointer.
@@ -2903,7 +2906,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   } else {
     __ LoadPoolPointer();
   }
-  __ bx(LR);  // Jump to continuation point.
+  __ bx(R4);  // Jump to continuation point.
 }
 
 // Run an exception handler.  Execution comes from JumpToFrame
