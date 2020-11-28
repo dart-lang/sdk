@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -19,14 +18,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   String testCode;
   String testFile;
-  Source testSource;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
-  void addTestSource(String code, [Uri uri]) {
+  void addTestSource(String code) {
     testCode = code;
-    testSource = addSource(testFile, code, uri);
+    addSource(testFile, code);
   }
 
   Element findElement(String name, [ElementKind kind]) {

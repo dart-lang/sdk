@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -23,7 +22,6 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 abstract class DartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
   String testFile;
-  Source testSource;
   int completionOffset;
   int replacementOffset;
   int replacementLength;
@@ -46,7 +44,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
-    testSource = addSource(testFile, content);
+    addSource(testFile, content);
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
@@ -414,7 +412,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   Future computeSuggestions() async {
     var result = await resolveFile(testFile);
-    testSource = result.unit.declaredElement.source;
     request =
         DartCompletionRequestImpl(resourceProvider, completionOffset, result);
 
