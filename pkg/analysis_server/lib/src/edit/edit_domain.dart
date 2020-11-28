@@ -214,7 +214,6 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    var changes = <SourceChange>[];
     //
     // Allow plugins to start computing assists.
     //
@@ -227,35 +226,12 @@ class EditDomainHandler extends AbstractRequestHandler {
       pluginFutures = server.pluginManager
           .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
     }
+
     //
     // Compute fixes associated with server-generated errors.
     //
-    var result = await server.getResolvedUnit(file);
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-    if (result != null) {
-      var context = DartAssistContextImpl(
-        server.instrumentationService,
-        DartChangeWorkspace(server.currentSessions),
-        result,
-        offset,
-        length,
-      );
-      try {
-        List<Assist> assists;
-        try {
-          var processor = AssistProcessor(context);
-          assists = await processor.compute();
-        } on InconsistentAnalysisException {
-          assists = [];
-        }
+    var changes = await _computeServerAssists(request, file, offset, length);
 
-        assists.sort(Assist.SORT_BY_RELEVANCE);
-        for (var assist in assists) {
-          changes.add(assist.change);
-        }
-        server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
-      } catch (_) {}
-    }
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
@@ -271,6 +247,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     pluginChanges
         .sort((first, second) => first.priority.compareTo(second.priority));
     changes.addAll(pluginChanges.map(converter.convertPrioritizedSourceChange));
+
     //
     // Send the response.
     //
@@ -763,6 +740,52 @@ error.errorCode: ${error.errorCode}
       }
     }
     return errorFixesList;
+  }
+
+  Future<List<SourceChange>> _computeServerAssists(
+      Request request, String file, int offset, int length) async {
+    var changes = <SourceChange>[];
+
+    var result = await server.getResolvedUnit(file);
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+
+    if (result != null) {
+      var context = DartAssistContextImpl(
+        server.instrumentationService,
+        DartChangeWorkspace(server.currentSessions),
+        result,
+        offset,
+        length,
+      );
+
+      try {
+        List<Assist> assists;
+        try {
+          var processor = AssistProcessor(context);
+          assists = await processor.compute();
+        } on InconsistentAnalysisException {
+          assists = [];
+        } catch (exception, stackTrace) {
+          var parametersFile = '''
+offset: $offset
+length: $length
+      ''';
+          throw CaughtExceptionWithFiles(exception, stackTrace, {
+            file: result.content,
+            'parameters': parametersFile,
+          });
+        }
+
+        assists.sort(Assist.SORT_BY_RELEVANCE);
+        for (var assist in assists) {
+          changes.add(assist.change);
+        }
+
+        server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
+      } catch (_) {}
+    }
+
+    return changes;
   }
 
   /// Compute and return the fixes associated with server-generated errors.
