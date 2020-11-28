@@ -5,10 +5,8 @@
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -80,26 +78,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
-  }
-
-  void test_createDartSdkManager_noPath() {
-    ArgParser parser = ArgParser();
-    defineAnalysisArguments(parser);
-    List<String> args = [];
-    ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager = createDartSdkManager(resourceProvider, result);
-    expect(manager, isNotNull);
-    expect(manager.defaultSdkDirectory, getSdkPath());
-  }
-
-  void test_createDartSdkManager_path() {
-    ArgParser parser = ArgParser();
-    defineAnalysisArguments(parser);
-    List<String> args = ['--dart-sdk=x'];
-    ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager = createDartSdkManager(resourceProvider, result);
-    expect(manager, isNotNull);
-    expect(manager.defaultSdkDirectory, 'x');
   }
 
   void test_defineAnalysisArguments() {

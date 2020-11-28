@@ -7,9 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart';
 
 const String analysisOptionsFileOption = 'options';
 const String defineVariableOption = 'D';
@@ -114,16 +112,6 @@ ContextBuilderOptions createContextBuilderOptions(
   builderOptions.declaredVariables = declaredVariables;
 
   return builderOptions;
-}
-
-/// Use the given [resourceProvider] and command-line [args] to create a Dart
-/// SDK manager. The manager will use summary information if [useSummaries] is
-/// `true` and if the summary information exists.
-DartSdkManager createDartSdkManager(
-    ResourceProvider resourceProvider, ArgResults args) {
-  String sdkPath = args[sdkPathOption] ?? getSdkPath();
-
-  return DartSdkManager(sdkPath);
 }
 
 /// Add the standard flags and options to the given [parser]. The standard flags
