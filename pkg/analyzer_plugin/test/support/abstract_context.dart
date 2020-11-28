@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -102,6 +103,15 @@ class AbstractContextTest with ResourceProviderMixin {
     return findElementsByName(unit, name)
         .where((e) => kind == null || e.kind == kind)
         .single;
+  }
+
+  @override
+  File newFile(String path, {String content = ''}) {
+    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
+      throw StateError('Only dart files can be changed after analysis.');
+    }
+
+    return super.newFile(path, content: content);
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
