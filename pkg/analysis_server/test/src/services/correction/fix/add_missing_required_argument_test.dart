@@ -462,7 +462,10 @@ class AddMissingRequiredArgumentWithNullSafetyTest extends FixProcessorTest
   FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
   @override
-  bool get withPackageMeta => true;
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(meta: true);
+  }
 
   Future<void> test_constructor_single_closure_nnbd() async {
     addSource('/home/test/lib/a.dart', r'''
