@@ -317,8 +317,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  FeatureSet get featureSet =>
-      result.session.analysisContext.analysisOptions.contextFeatures;
+  FeatureSet get featureSet => result.libraryElement.featureSet;
 
   @override
   bool get includeIdentifiers {
