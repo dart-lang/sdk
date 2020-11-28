@@ -4,14 +4,12 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -361,23 +359,8 @@ class PubspecYamlFileConfig {
 
 mixin WithNullSafetyMixin on PubPackageResolutionTest {
   @override
-  String get testPackageLanguageVersion =>
-      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
+  String get testPackageLanguageVersion => '2.12';
 
   @override
   bool get typeToStringWithNullability => true;
-
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
-  /// Remove when Null Safety is enabled by default.
-  @nonVirtual
-  @override
-  void setUp() {
-    super.setUp();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: [EnableString.non_nullable],
-      ),
-    );
-  }
 }

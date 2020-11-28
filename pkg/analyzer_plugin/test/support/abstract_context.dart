@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,7 +13,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
@@ -22,7 +20,6 @@ import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 
 /// Finds an [Element] with the given [name].
 Element findChildElement(Element root, String name, [ElementKind kind]) {
@@ -174,23 +171,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
 mixin WithNullSafetyMixin on AbstractContextTest {
   @override
-  String get testPackageLanguageVersion =>
-      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
-
-  bool get withPackageMeta => false;
-
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
-  /// Remove when Null Safety is enabled by default.
-  @nonVirtual
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      languageVersion: testPackageLanguageVersion,
-      meta: withPackageMeta,
-    );
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-  }
+  String get testPackageLanguageVersion => '2.12';
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of
