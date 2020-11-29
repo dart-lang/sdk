@@ -1083,20 +1083,24 @@ class _FileContentCache {
   _FileContent get(String path, bool allowCached) {
     var file = allowCached ? _pathToFile[path] : null;
     if (file == null) {
+      List<int> contentBytes;
       String content;
       bool exists;
       try {
         if (_contentOverlay != null) {
           content = _contentOverlay[path];
+          if (content != null) {
+            contentBytes = utf8.encode(content);
+          }
         }
-        content ??= _resourceProvider.getFile(path).readAsStringSync();
+        contentBytes ??= _resourceProvider.getFile(path).readAsBytesSync();
+        content = utf8.decode(contentBytes);
         exists = true;
       } catch (_) {
+        contentBytes = Uint8List(0);
         content = '';
         exists = false;
       }
-
-      List<int> contentBytes = utf8.encode(content);
 
       List<int> contentHashBytes = md5.convert(contentBytes).bytes;
       String contentHash = hex.encode(contentHashBytes);
