@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 import 'customized_codes.dart';
 
 /// An error code associated with an [AnalysisError].
@@ -49,10 +51,20 @@ abstract class ErrorCode {
    */
   const ErrorCode.temporary(this.name, String message,
       {String correction,
-      this.isUnresolvedIdentifier: false,
+      this.isUnresolvedIdentifier = false,
       this.hasPublishedDocs = false})
       : _message = message,
         _correction = correction;
+
+  const ErrorCode.temporary2({
+    String correction,
+    this.hasPublishedDocs = false,
+    this.isUnresolvedIdentifier = false,
+    @required String message,
+    @required this.name,
+    @required String uniqueName,
+  })  : _correction = correction,
+        _message = message;
 
   /**
    * The template used to create the correction to be displayed for this error,

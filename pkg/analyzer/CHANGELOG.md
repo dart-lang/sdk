@@ -2,6 +2,8 @@
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop
   at the first directory with `pubspec.yaml`, and don't try to go up
   and find another one with both `pubspec.yaml` and `.dart_tool/build`.
+* Added a new constructor for non-API `ErrorCode` class. It will be used to
+  migrate existing `ErrorCode` subclasses, and then deprecated and removed.
 
 ## 0.41.0
 * Replaced `Scope.lookup({id, setter})` with `lookup(id)`.
