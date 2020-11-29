@@ -672,8 +672,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     if (_checkForEachParts(node, loopVariable.identifier)) {
       if (loopVariable.isConst) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, loopVariable);
+        _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE,
+            loopVariable.keyword);
       }
     }
     super.visitForEachPartsWithDeclaration(node);
