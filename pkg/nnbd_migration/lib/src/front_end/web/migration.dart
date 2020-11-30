@@ -792,7 +792,11 @@ void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
   _PermissiveNodeValidator.setInnerHtml(codeElement, data.navigationContent);
   populateProposedEdits(path, data.edits, clearEditDetails);
 
-  highlightAllCode();
+  // highlightAllCode is remarkably slow (about 4 seconds to handle a 300k file
+  // on a Pixelbook), so skip it for large files.
+  if (data.sourceCode.length < 200000) {
+    highlightAllCode();
+  }
   addClickHandlers('.code', true);
   addClickHandlers('.regions', true);
 }
