@@ -13,14 +13,14 @@ Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.d
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: Crash
 
 [ $runtime == dart_precompiled ]
-LibTest/io/RawDatagramSocket/join_A01_t01: Skip # https://github.com/dart-lang/issues/195
-LibTest/io/RawDatagramSocket/join_A01_t02: Skip # https://github.com/dart-lang/issues/195
-LibTest/io/RawDatagramSocket/join_A02_t01: Skip # https://github.com/dart-lang/issues/195
-LibTest/io/RawDatagramSocket/multicastInterface_A01_t01: Skip # https://github.com/dart-lang/issues/195
-LibTest/io/RawDatagramSocket/receive_A02_t02: Skip # https://github.com/dart-lang/issues/195
-LibTest/io/RawDatagramSocket/reduce_A01_t01: Skip # https://github.com/dart-lang/issues/195
-LibTest/io/RawDatagramSocket/reduce_A02_t02: Skip # https://github.com/dart-lang/issues/195
-LibTest/io/RawDatagramSocket/reduce_A04_t01: Skip # https://github.com/dart-lang/issues/195
+LibTest/io/RawDatagramSocket/join_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/join_A01_t02: Skip # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/join_A02_t01: Skip # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/multicastInterface_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/receive_A02_t02: Skip # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/reduce_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/reduce_A02_t02: Skip # https://github.com/dart-lang/co19/issues/195
+LibTest/io/RawDatagramSocket/reduce_A04_t01: Skip # https://github.com/dart-lang/co19/issues/195
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:
 
 [ $runtime == vm ]
