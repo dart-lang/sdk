@@ -263,5 +263,10 @@ class TestErrorCode extends ErrorCode {
   @override
   ErrorType type;
 
-  TestErrorCode(String name, String message) : super(name, message);
+  TestErrorCode(String name, String message)
+      : super.temporary2(
+          message: message,
+          name: name,
+          uniqueName: 'TestErrorCode.$name',
+        );
 }
