@@ -1089,12 +1089,13 @@ class _FileContentCache {
       try {
         if (_contentOverlay != null) {
           content = _contentOverlay[path];
-          if (content != null) {
-            contentBytes = utf8.encode(content);
-          }
         }
-        contentBytes ??= _resourceProvider.getFile(path).readAsBytesSync();
-        content = utf8.decode(contentBytes);
+        if (content != null) {
+          contentBytes = utf8.encode(content);
+        } else {
+          contentBytes = _resourceProvider.getFile(path).readAsBytesSync();
+          content = utf8.decode(contentBytes);
+        }
         exists = true;
       } catch (_) {
         contentBytes = Uint8List(0);
