@@ -4188,12 +4188,22 @@ class Field : public Object {
   // been determined. If length is kNoFixedLength this field has multiple
   // list lengths associated with it and cannot be predicted.
   intptr_t guarded_list_length() const;
-  void set_guarded_list_length(intptr_t list_length) const;
+  void set_guarded_list_length_unsafe(intptr_t list_length) const;
+  void set_guarded_list_length(intptr_t list_length) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_guarded_list_length_unsafe(list_length);
+  }
   static intptr_t guarded_list_length_offset() {
     return OFFSET_OF(FieldLayout, guarded_list_length_);
   }
   intptr_t guarded_list_length_in_object_offset() const;
-  void set_guarded_list_length_in_object_offset(intptr_t offset) const;
+  void set_guarded_list_length_in_object_offset_unsafe(intptr_t offset) const;
+  void set_guarded_list_length_in_object_offset(intptr_t offset) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_guarded_list_length_in_object_offset_unsafe(offset);
+  }
   static intptr_t guarded_list_length_in_object_offset_offset() {
     return OFFSET_OF(FieldLayout, guarded_list_length_in_object_offset_);
   }
@@ -4273,7 +4283,7 @@ class Field : public Object {
   // deoptimization of dependent optimized code.
   void RecordStore(const Object& value) const;
 
-  void InitializeGuardedListLengthInObjectOffset() const;
+  void InitializeGuardedListLengthInObjectOffset(bool unsafe = false) const;
 
   // Return the list of optimized code objects that were optimized under
   // assumptions about guarded class id and nullability of this field.

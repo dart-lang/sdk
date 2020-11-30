@@ -1142,8 +1142,8 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field ^= refs.At(i);
         field.set_guarded_cid_unsafe(kDynamicCid);
         field.set_is_nullable_unsafe(true);
-        field.set_guarded_list_length(Field::kNoFixedLength);
-        field.set_guarded_list_length_in_object_offset(
+        field.set_guarded_list_length_unsafe(Field::kNoFixedLength);
+        field.set_guarded_list_length_in_object_offset_unsafe(
             Field::kUnknownLengthOffset);
         field.set_static_type_exactness_state(
             StaticTypeExactnessState::NotTracking());
@@ -1151,7 +1151,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
     } else {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
-        field.InitializeGuardedListLengthInObjectOffset();
+        field.InitializeGuardedListLengthInObjectOffset(/*unsafe=*/true);
       }
     }
   }
