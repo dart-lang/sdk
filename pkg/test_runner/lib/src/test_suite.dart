@@ -862,7 +862,6 @@ class StandardTestSuite extends TestSuite {
 
     print("Cannot create URL for path $file. Not in build or dart directory.");
     exit(1);
-    throw "unreachable";
   }
 
   String _uriForBrowserTest(String pathComponent) {
