@@ -45,26 +45,26 @@ void ObjectLayout::Validate(IsolateGroup* isolate_group) const {
     return;
   }
   // Validate that the tags_ field is sensible.
-  uint32_t tags = tags_;
+  uword tags = tags_;
   if (IsNewObject()) {
     if (!NewBit::decode(tags)) {
-      FATAL1("New object missing kNewBit: %x\n", tags);
+      FATAL1("New object missing kNewBit: %" Px "\n", tags);
     }
     if (OldBit::decode(tags)) {
-      FATAL1("New object has kOldBit: %x\n", tags);
+      FATAL1("New object has kOldBit: %" Px "\n", tags);
     }
     if (OldAndNotMarkedBit::decode(tags)) {
-      FATAL1("New object has kOldAndNotMarkedBit: %x\n", tags);
+      FATAL1("New object has kOldAndNotMarkedBit: %" Px "\n", tags);
     }
     if (OldAndNotRememberedBit::decode(tags)) {
-      FATAL1("New object has kOldAndNotRememberedBit: %x\n", tags);
+      FATAL1("New object has kOldAndNotRememberedBit: %" Px "\n", tags);
     }
   } else {
     if (NewBit::decode(tags)) {
-      FATAL1("Old object has kNewBit: %x\n", tags);
+      FATAL1("Old object has kNewBit: %" Px "\n", tags);
     }
     if (!OldBit::decode(tags)) {
-      FATAL1("Old object missing kOldBit: %x\n", tags);
+      FATAL1("Old object missing kOldBit: %" Px "\n", tags);
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
@@ -90,7 +90,7 @@ void ObjectLayout::Validate(IsolateGroup* isolate_group) const {
 // compaction when the class objects are moving. Can use the class
 // id in the header and the sizes in the Class Table.
 // Cannot deference ptr()->tags_. May dereference other parts of the object.
-intptr_t ObjectLayout::HeapSizeFromClass(uint32_t tags) const {
+intptr_t ObjectLayout::HeapSizeFromClass(uword tags) const {
   intptr_t class_id = ClassIdTag::decode(tags);
   intptr_t instance_size = 0;
   switch (class_id) {
@@ -268,7 +268,7 @@ intptr_t ObjectLayout::HeapSizeFromClass(uint32_t tags) const {
     } while ((instance_size > tags_size) && (--retries_remaining > 0));
   }
   if ((instance_size != tags_size) && (tags_size != 0)) {
-    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %x\n",
+    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
            instance_size, tags_size, tags);
   }
 #endif  // DEBUG
@@ -664,7 +664,7 @@ intptr_t InstanceLayout::VisitInstancePointers(InstancePtr raw_obj,
                                                ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  uint32_t tags = raw_obj->ptr()->tags_;
+  uword tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
     instance_size = visitor->isolate_group()->GetClassSizeForHeapWalkAt(

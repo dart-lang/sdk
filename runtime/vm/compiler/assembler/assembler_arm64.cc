@@ -1758,10 +1758,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(top_reg, Address(THR, target::Thread::top_offset()));
 
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(TMP, tags);
     StoreToOffset(TMP, instance_reg, target::Object::tags_offset());
 
@@ -1806,10 +1803,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp2, tags);
     str(temp2, FieldAddress(instance, target::Object::tags_offset()));
   } else {

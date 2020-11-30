@@ -354,7 +354,7 @@ bool SizeFitsInSizeTag(uword instance_size);
 // size.
 //
 // Note: even on 64-bit platforms we only use lower 32-bits of the tag word.
-uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size);
+uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size);
 
 //
 // Target specific information about objects.
@@ -415,6 +415,8 @@ class ObjectLayout : public AllStatic {
   static const word kSizeTagSize;
   static const word kClassIdTagPos;
   static const word kClassIdTagSize;
+  static const word kHashTagPos;
+  static const word kHashTagSize;
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;

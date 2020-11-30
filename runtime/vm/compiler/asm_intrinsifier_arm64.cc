@@ -1736,9 +1736,16 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Object.
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Value.
+  // R0: Untagged address of header word (ldxr/stxr do not support offsets).
+  __ sub(R0, R0, Operand(kHeapObjectTag));
   __ SmiUntag(R1);
-  __ str(R1, FieldAddress(R0, target::String::hash_offset(), kFourBytes),
-         kUnsignedFourBytes);
+  __ LslImmediate(R1, R1, target::ObjectLayout::kHashTagPos);
+  Label retry;
+  __ Bind(&retry);
+  __ ldxr(R2, R0, kEightBytes);
+  __ orr(R2, R2, Operand(R1));
+  __ stxr(R4, R2, R0, kEightBytes);
+  __ cbnz(&retry, R4);
   __ ret();
 }
 
@@ -1961,8 +1968,18 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // return hash_ == 0 ? 1 : hash_;
   __ Bind(&done);
   __ csinc(R0, R0, ZR, NE);  // R0 <- (R0 != 0) ? R0 : (ZR + 1).
-  __ str(R0, FieldAddress(R1, target::String::hash_offset()),
-         kUnsignedFourBytes);
+
+  // R1: Untagged address of header word (ldxr/stxr do not support offsets).
+  __ sub(R1, R1, Operand(kHeapObjectTag));
+  __ LslImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
+  Label retry;
+  __ Bind(&retry);
+  __ ldxr(R2, R1, kEightBytes);
+  __ orr(R2, R2, Operand(R0));
+  __ stxr(R4, R2, R1, kEightBytes);
+  __ cbnz(&retry, R4);
+
+  __ LsrImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
   __ SmiTag(R0);
   __ ret();
 }
@@ -2031,7 +2048,7 @@ static void TryAllocateString(Assembler* assembler,
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
     // This also clears the hash, which is in the high word of the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ LoadImmediate(TMP, tags);
     __ orr(R2, R2, Operand(TMP));

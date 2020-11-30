@@ -318,7 +318,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       new_obj = ObjectLayout::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
-        uint32_t tags = static_cast<uint32_t>(header);
+        uword tags = static_cast<uword>(header);
         tags = ObjectLayout::OldBit::update(true, tags);
         tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
         tags = ObjectLayout::NewBit::update(false, tags);
@@ -1618,15 +1618,15 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
         intptr_t size = to_obj->ptr()->HeapSize();
 
         // Reset the ages bits in case this was a promotion.
-        uint32_t tags = static_cast<uint32_t>(to_header);
-        tags = ObjectLayout::OldBit::update(false, tags);
-        tags = ObjectLayout::OldAndNotRememberedBit::update(false, tags);
-        tags = ObjectLayout::NewBit::update(true, tags);
-        tags = ObjectLayout::OldAndNotMarkedBit::update(false, tags);
-        uword original_header =
-            (to_header & ~static_cast<uword>(0xFFFFFFFF)) | tags;
+        uword from_header = static_cast<uword>(to_header);
+        from_header = ObjectLayout::OldBit::update(false, from_header);
+        from_header =
+            ObjectLayout::OldAndNotRememberedBit::update(false, from_header);
+        from_header = ObjectLayout::NewBit::update(true, from_header);
+        from_header =
+            ObjectLayout::OldAndNotMarkedBit::update(false, from_header);
 
-        WriteHeader(from_obj, original_header);
+        WriteHeader(from_obj, from_header);
 
         ForwardingCorpse::AsForwarder(ObjectLayout::ToAddr(to_obj), size)
             ->set_target(from_obj);

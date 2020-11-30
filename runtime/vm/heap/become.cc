@@ -23,7 +23,7 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
 
   ForwardingCorpse* result = reinterpret_cast<ForwardingCorpse*>(addr);
 
-  uint32_t tags = 0;
+  uword tags = result->tags_;  // Carry-over any identity hash.
   tags = ObjectLayout::SizeTag::update(size, tags);
   tags = ObjectLayout::ClassIdTag::update(kForwardingCorpse, tags);
   bool is_old = (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;

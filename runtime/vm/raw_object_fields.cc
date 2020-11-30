@@ -152,7 +152,6 @@ namespace dart {
   F(Closure, context_)                                                         \
   F(Closure, hash_)                                                            \
   F(String, length_)                                                           \
-  F(String, hash_)                                                             \
   F(Array, type_arguments_)                                                    \
   F(Array, length_)                                                            \
   F(GrowableObjectArray, type_arguments_)                                      \
@@ -209,6 +208,8 @@ namespace dart {
   F(ReceivePort, debug_name_)                                                  \
   F(ReceivePort, allocation_location_)
 
+#define NON_HEADER_HASH_CLASSES_AND_FIELDS(F) F(String, hash_)
+
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {
     OffsetsTableEntry entry = offsets_table[i];
@@ -230,6 +231,10 @@ OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
     COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
     NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
+
+#if !defined(HASH_IN_OBJECT_HEADER)
+    NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)

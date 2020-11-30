@@ -130,10 +130,8 @@ class ObjectLayout {
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
-#if defined(HASH_IN_OBJECT_HEADER)
     kHashTagPos = kClassIdTagPos + kClassIdTagSize,  // = 32
-    kHashTagSize = 16,
-#endif
+    kHashTagSize = 32,
   };
 
   static const intptr_t kGenerationalBarrierMask = 1 << kNewBit;
@@ -177,7 +175,7 @@ class ObjectLayout {
    private:
     // The actual unscaled bit field used within the tag field.
     class SizeBits
-        : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
+        : public BitField<uword, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static UNLESS_DEBUG(constexpr) intptr_t SizeToTagValue(intptr_t size) {
       DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -188,64 +186,68 @@ class ObjectLayout {
     }
   };
 
-  class ClassIdTag : public BitField<uint32_t,
+  class ClassIdTag : public BitField<uword,
                                      ClassIdTagType,
                                      kClassIdTagPos,
                                      kClassIdTagSize> {};
   COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) == kClassIdTagSize);
 
+#if defined(HASH_IN_OBJECT_HEADER)
+  class HashTag : public BitField<uword, uint32_t, kHashTagPos, kHashTagSize> {
+  };
+#endif
+
   class CardRememberedBit
-      : public BitField<uint32_t, bool, kCardRememberedBit, 1> {};
+      : public BitField<uword, bool, kCardRememberedBit, 1> {};
 
   class OldAndNotMarkedBit
-      : public BitField<uint32_t, bool, kOldAndNotMarkedBit, 1> {};
+      : public BitField<uword, bool, kOldAndNotMarkedBit, 1> {};
 
-  class NewBit : public BitField<uint32_t, bool, kNewBit, 1> {};
+  class NewBit : public BitField<uword, bool, kNewBit, 1> {};
 
-  class CanonicalBit : public BitField<uint32_t, bool, kCanonicalBit, 1> {};
+  class CanonicalBit : public BitField<uword, bool, kCanonicalBit, 1> {};
 
-  class OldBit : public BitField<uint32_t, bool, kOldBit, 1> {};
+  class OldBit : public BitField<uword, bool, kOldBit, 1> {};
 
   class OldAndNotRememberedBit
-      : public BitField<uint32_t, bool, kOldAndNotRememberedBit, 1> {};
+      : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
 
   class ReservedBits
-      : public BitField<uint32_t, intptr_t, kReservedTagPos, kReservedTagSize> {
-  };
+      : public BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
 
   class Tags {
    public:
     Tags() : tags_(0) {}
 
-    NO_SANITIZE_THREAD
-    operator uint32_t() const {
-      return *reinterpret_cast<const uint32_t*>(&tags_);
+    operator uword() const { return tags_.load(std::memory_order_relaxed); }
+
+    uword operator=(uword tags) {
+      tags_.store(tags, std::memory_order_relaxed);
+      return tags;
     }
 
-    NO_SANITIZE_THREAD
-    uint32_t operator=(uint32_t tags) {
-      return *reinterpret_cast<uint32_t*>(&tags_) = tags;
-    }
-
-    NO_SANITIZE_THREAD
-    bool StrongCAS(uint32_t old_tags, uint32_t new_tags) {
+    bool StrongCAS(uword old_tags, uword new_tags) {
       return tags_.compare_exchange_strong(old_tags, new_tags,
                                            std::memory_order_relaxed);
     }
 
-    NO_SANITIZE_THREAD
-    bool WeakCAS(uint32_t old_tags, uint32_t new_tags) {
+    bool WeakCAS(uword old_tags, uword new_tags) {
       return tags_.compare_exchange_weak(old_tags, new_tags,
                                          std::memory_order_relaxed);
     }
 
     template <class TagBitField>
-    NO_SANITIZE_THREAD typename TagBitField::Type Read() const {
-      return TagBitField::decode(*reinterpret_cast<const uint32_t*>(&tags_));
+    typename TagBitField::Type Read() const {
+      return TagBitField::decode(tags_.load(std::memory_order_relaxed));
     }
 
     template <class TagBitField>
-    NO_SANITIZE_THREAD void UpdateBool(bool value) {
+    NO_SANITIZE_THREAD typename TagBitField::Type ReadIgnoreRace() const {
+      return TagBitField::decode(*reinterpret_cast<const uword*>(&tags_));
+    }
+
+    template <class TagBitField>
+    void UpdateBool(bool value) {
       if (value) {
         tags_.fetch_or(TagBitField::encode(true), std::memory_order_relaxed);
       } else {
@@ -254,29 +256,39 @@ class ObjectLayout {
     }
 
     template <class TagBitField>
-    NO_SANITIZE_THREAD void UpdateUnsynchronized(
-        typename TagBitField::Type value) {
-      *reinterpret_cast<uint32_t*>(&tags_) =
-          TagBitField::update(value, *reinterpret_cast<uint32_t*>(&tags_));
+    void Update(typename TagBitField::Type value) {
+      uword old_tags = tags_.load(std::memory_order_relaxed);
+      uword new_tags;
+      do {
+        new_tags = TagBitField::update(value, old_tags);
+      } while (!tags_.compare_exchange_weak(old_tags, new_tags,
+                                            std::memory_order_relaxed));
     }
 
     template <class TagBitField>
-    NO_SANITIZE_THREAD bool TryAcquire() {
-      uint32_t mask = TagBitField::encode(true);
-      uint32_t old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
+    void UpdateUnsynchronized(typename TagBitField::Type value) {
+      tags_.store(
+          TagBitField::update(value, tags_.load(std::memory_order_relaxed)),
+          std::memory_order_relaxed);
+    }
+
+    template <class TagBitField>
+    bool TryAcquire() {
+      uword mask = TagBitField::encode(true);
+      uword old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
       return !TagBitField::decode(old_tags);
     }
 
     template <class TagBitField>
-    NO_SANITIZE_THREAD bool TryClear() {
-      uint32_t mask = ~TagBitField::encode(true);
-      uint32_t old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
+    bool TryClear() {
+      uword mask = ~TagBitField::encode(true);
+      uword old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
       return TagBitField::decode(old_tags);
     }
 
    private:
-    std::atomic<uint32_t> tags_;
-    COMPILE_ASSERT(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t));
+    std::atomic<uword> tags_;
+    COMPILE_ASSERT(sizeof(std::atomic<uword>) == sizeof(uword));
   };
 
   // Assumes this is a heap object.
@@ -295,6 +307,10 @@ class ObjectLayout {
   bool IsMarked() const {
     ASSERT(IsOldObject());
     return !tags_.Read<OldAndNotMarkedBit>();
+  }
+  bool IsMarkedIgnoreRace() const {
+    ASSERT(IsOldObject());
+    return !tags_.ReadIgnoreRace<OldAndNotMarkedBit>();
   }
   void SetMarkBit() {
     ASSERT(IsOldObject());
@@ -357,8 +373,13 @@ class ObjectLayout {
 
   intptr_t GetClassId() const { return tags_.Read<ClassIdTag>(); }
 
+#if defined(HASH_IN_OBJECT_HEADER)
+  uint32_t GetHeaderHash() const { return tags_.Read<HashTag>(); }
+  void SetHeaderHash(uint32_t h) { tags_.Update<HashTag>(h); }
+#endif
+
   intptr_t HeapSize() const {
-    uint32_t tags = tags_;
+    uword tags = tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
 #if defined(DEBUG)
@@ -382,7 +403,7 @@ class ObjectLayout {
   }
 
   // This variant must not deference this->tags_.
-  intptr_t HeapSize(uint32_t tags) const {
+  intptr_t HeapSize(uword tags) const {
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
       return result;
@@ -502,19 +523,11 @@ class ObjectLayout {
 
  private:
   Tags tags_;  // Various object tags (bits).
-#if defined(HASH_IN_OBJECT_HEADER)
-  // On 64 bit there is a hash field in the header for the identity hash.
-  uint32_t hash_;
-#elif defined(IS_SIMARM_X64)
-  // On simarm_x64 the hash isn't used, but we need the padding anyway so that
-  // the object layout fits assumptions made about X64.
-  uint32_t padding_;
-#endif
 
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
-  intptr_t HeapSizeFromClass(uint32_t tags) const;
+  intptr_t HeapSizeFromClass(uword tags) const;
 
   void SetClassId(intptr_t new_cid) {
     tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
@@ -557,8 +570,8 @@ class ObjectLayout {
 
   DART_FORCE_INLINE
   void CheckHeapPointerStore(ObjectPtr value, Thread* thread) {
-    uint32_t source_tags = this->tags_;
-    uint32_t target_tags = value->ptr()->tags_;
+    uword source_tags = this->tags_;
+    uword target_tags = value->ptr()->tags_;
     if (((source_tags >> kBarrierOverlapShift) & target_tags &
          thread->write_barrier_mask()) != 0) {
       if (value->IsNewObject()) {
@@ -604,8 +617,8 @@ class ObjectLayout {
   DART_FORCE_INLINE void CheckArrayPointerStore(type const* addr,
                                                 ObjectPtr value,
                                                 Thread* thread) {
-    uint32_t source_tags = this->tags_;
-    uint32_t target_tags = value->ptr()->tags_;
+    uword source_tags = this->tags_;
+    uword target_tags = value->ptr()->tags_;
     if (((source_tags >> kBarrierOverlapShift) & target_tags &
          thread->write_barrier_mask()) != 0) {
       if (value->IsNewObject()) {

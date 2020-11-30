@@ -1065,7 +1065,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
       // Get the class index and insert it into the tags.
       // R8: size and bit tags.
-      const uint32_t tags =
+      const uword tags =
           target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
       __ LoadImmediate(TMP, tags);
       __ orr(R8, R8, Operand(TMP));
@@ -1356,7 +1356,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
 
   // Get the class index and insert it into the tags.
   // R9: size and bit tags.
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(kContextCid, /*instance_size=*/0);
 
   __ LoadImmediate(IP, tags);
@@ -1875,7 +1875,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   ASSERT(instance_size > 0);
   RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
@@ -3488,8 +3488,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ mov(R3, Operand(0), HI);
 
     /* Get the class index and insert it into the tags. */
-    uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ LoadImmediate(TMP, tags);
     __ orr(R3, R3, Operand(TMP));
     __ str(R3, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */

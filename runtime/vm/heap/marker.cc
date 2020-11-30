@@ -240,7 +240,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // change in the value.
     // Doing this before checking for an Instructions object avoids
     // unnecessary queueing of pre-marked objects.
-    if (raw_obj->ptr()->IsMarked()) {
+    // Race: The concurrent marker may observe a pointer into a heap page that
+    // was allocated after the concurrent marker started. It can read either a
+    // zero or the header of an object allocated black, both of which appear
+    // marked.
+    if (raw_obj->ptr()->IsMarkedIgnoreRace()) {
       return;
     }
 

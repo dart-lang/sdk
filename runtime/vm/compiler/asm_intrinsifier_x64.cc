@@ -1676,7 +1676,10 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
   __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
   __ SmiUntag(RDX);
-  __ movl(FieldAddress(RAX, target::String::hash_offset()), RDX);
+  __ shlq(RDX, Immediate(target::ObjectLayout::kHashTagPos));
+  // lock+orq is an atomic read-modify-write.
+  __ lock();
+  __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
   __ ret();
 }
 
@@ -1911,7 +1914,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
   __ incq(RAX);
   __ Bind(&set_hash_code);
-  __ movl(FieldAddress(RBX, target::String::hash_offset()), RAX);
+  __ shlq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
+  // lock+orq is an atomic read-modify-write.
+  __ lock();
+  __ orq(FieldAddress(RBX, target::Object::tags_offset()), RAX);
+  __ sarq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
   __ SmiTag(RAX);
   __ ret();
 }
@@ -1986,7 +1993,7 @@ static void TryAllocateString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // This also clears the hash, which is in the high bits of the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orq(RDI, Immediate(tags));
     __ movq(FieldAddress(RAX, target::Object::tags_offset()), RDI);  // Tags.

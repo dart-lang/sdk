@@ -99,7 +99,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t size,
                                     bool is_canonical) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uint32_t tags = 0;
+  uword tags = 0;
   tags = ObjectLayout::ClassIdTag::update(class_id, tags);
   tags = ObjectLayout::SizeTag::update(size, tags);
   tags = ObjectLayout::CanonicalBit::update(is_canonical, tags);
@@ -108,9 +108,6 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
   tags = ObjectLayout::NewBit::update(false, tags);
   raw->ptr()->tags_ = tags;
-#if defined(HASH_IN_OBJECT_HEADER)
-  raw->ptr()->hash_ = 0;
-#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

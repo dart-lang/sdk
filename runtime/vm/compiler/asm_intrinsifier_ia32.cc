@@ -1965,7 +1965,7 @@ static void TryAllocateString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orl(EDI, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
