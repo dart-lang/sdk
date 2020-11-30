@@ -38,6 +38,13 @@ class TransformSetErrorCode extends ErrorCode {
       'invalid_key', "Keys must be of type 'String' but found the type '{0}'.");
 
   /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode invalidRequiredIf = TransformSetErrorCode(
+      'invalid_required_if',
+      "The key 'requiredIf' can only be used with optional named parameters.");
+
+  /**
    * Parameters:
    * 0: the key with which the value is associated
    * 1: the expected type of the value

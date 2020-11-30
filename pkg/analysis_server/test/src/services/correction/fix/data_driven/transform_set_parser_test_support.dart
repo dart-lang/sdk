@@ -18,10 +18,14 @@ abstract class AbstractTransformSetParserTest {
   /// The result of parsing the test file's content.
   TransformSet result;
 
-  Future<void> assertErrors(
-      String code, List<ExpectedError> expectedErrors) async {
+  void assertErrors(String code, List<ExpectedError> expectedErrors) {
     parse(code);
     errorListener.assertErrors(expectedErrors);
+  }
+
+  void assertNoErrors(String content) {
+    parse(content);
+    errorListener.assertNoErrors();
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
