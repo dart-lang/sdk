@@ -29,7 +29,6 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SetLiteralsTest);
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
   });
@@ -44,83 +43,9 @@ void _fail(String message) {
   fail(message);
 }
 
-@reflectiveTest
-class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
-  test_emptySetLiteral_parameter_typed() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  useSet({});
-}
-void useSet(Set<int> s) {
-}
-''');
-    expectExpressionType('{}', 'Set<int>');
-  }
-}
-
 /// Like [StaticTypeAnalyzerTest], but as end-to-end tests.
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  test_emptyListLiteral_inferredFromLinkedList() async {
-    await assertErrorsInCode(r'''
-abstract class ListImpl<T> implements List<T> {}
-ListImpl<int> f() => [];
-''', [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 70, 2),
-    ]);
-    expectExpressionType('[]', 'List<dynamic>');
-  }
-
-  test_emptyMapLiteral_inferredFromLinkedHashMap() async {
-    await assertErrorsInCode(r'''
-import 'dart:collection';
-LinkedHashMap<int, int> f() => {};
-''', [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 57, 2),
-    ]);
-    expectExpressionType('{}', 'Map<dynamic, dynamic>');
-  }
-
-  test_emptyMapLiteral_initializer_var() async {
-    await assertErrorsInCode(r'''
-main() {
-  var v = {};
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
-    expectExpressionType('{}', 'Map<dynamic, dynamic>');
-  }
-
-  test_emptyMapLiteral_parameter_typed() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  useMap({});
-}
-void useMap(Map<int, int> m) {
-}
-''');
-    expectExpressionType('{}', 'Map<int, int>');
-  }
-
-  test_emptySetLiteral_inferredFromLinkedHashSet() async {
-    await assertErrorsInCode(r'''
-import 'dart:collection';
-LinkedHashSet<int> f() => {};
-''', [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, 52, 2),
-    ]);
-    expectExpressionType('{}', 'Set<dynamic>');
-  }
-
-  test_emptySetLiteral_initializer_typed_nested() async {
-    await assertNoErrorsInCode(r'''
-Set<Set<int>> ints = {{}};
-''');
-    expectExpressionType('{}', 'Set<int>');
-    expectExpressionType('{{}}', 'Set<Set<int>>');
-  }
-
   test_FunctionExpressionInvocation_block() async {
     await assertErrorsInCode(r'''
 main() {
