@@ -10130,12 +10130,13 @@ void Field::InitializeNew(const Field& result,
 #endif  // !defined(PRODUCT)
   result.set_guarded_cid_unsafe(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable_unsafe(use_guarded_cid ? false : true);
-  result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  result.set_guarded_list_length_in_object_offset_unsafe(
+      Field::kUnknownLengthOffset);
   // Presently, we only attempt to remember the list length for final fields.
   if (is_final && use_guarded_cid) {
-    result.set_guarded_list_length(Field::kUnknownFixedLength);
+    result.set_guarded_list_length_unsafe(Field::kUnknownFixedLength);
   } else {
-    result.set_guarded_list_length(Field::kNoFixedLength);
+    result.set_guarded_list_length_unsafe(Field::kNoFixedLength);
   }
 }
 
@@ -10219,7 +10220,7 @@ intptr_t Field::guarded_list_length() const {
   return Smi::Value(raw_ptr()->guarded_list_length_);
 }
 
-void Field::set_guarded_list_length(intptr_t list_length) const {
+void Field::set_guarded_list_length_unsafe(intptr_t list_length) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
   StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
@@ -10229,7 +10230,7 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
   return raw_ptr()->guarded_list_length_in_object_offset_ + kHeapObjectTag;
 }
 
-void Field::set_guarded_list_length_in_object_offset(
+void Field::set_guarded_list_length_in_object_offset_unsafe(
     intptr_t list_length_offset) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
@@ -10610,15 +10611,17 @@ const char* Field::GuardedPropertiesAsCString() const {
                              class_name, exactness);
 }
 
-void Field::InitializeGuardedListLengthInObjectOffset() const {
+void Field::InitializeGuardedListLengthInObjectOffset(bool unsafe) const {
+  auto setter = unsafe ? &Field::set_guarded_list_length_in_object_offset_unsafe
+                       : &Field::set_guarded_list_length_in_object_offset;
   ASSERT(IsOriginal());
   if (needs_length_check() &&
       (guarded_list_length() != Field::kUnknownFixedLength)) {
     const intptr_t offset = GetListLengthOffset(guarded_cid());
-    set_guarded_list_length_in_object_offset(offset);
+    (this->*setter)(offset);
     ASSERT(offset != Field::kUnknownLengthOffset);
   } else {
-    set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+    (this->*setter)(Field::kUnknownLengthOffset);
   }
 }
 

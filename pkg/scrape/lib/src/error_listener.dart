@@ -9,11 +9,16 @@ import 'package:scrape/scrape.dart';
 class ErrorListener implements AnalysisErrorListener {
   final Scrape _scrape;
   final bool _printErrors;
+  bool _hadError = false;
 
   ErrorListener(this._scrape, this._printErrors);
 
+  bool get hadError => _hadError;
+
   @override
   void onError(AnalysisError error) {
+    _hadError = true;
+
     if (_printErrors) {
       _scrape.log(error);
     }
