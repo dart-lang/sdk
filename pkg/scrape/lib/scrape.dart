@@ -50,6 +50,10 @@ class Scrape {
   int get scrapedLineCount => _scrapedLineCount;
   int _scrapedLineCount = 0;
 
+  /// The number of files that could not be parsed.
+  int get errorFileCount => _errorFileCount;
+  int _errorFileCount = 0;
+
   final Map<String, Histogram> _histograms = {};
 
   /// Whether we're in the middle of writing the running file count and need a
@@ -151,10 +155,22 @@ class Scrape {
       histogram.printCounts(name);
     });
 
+    String count(int n, String unit) {
+      if (n == 1) return '1 $unit';
+      return '$n ${unit}s';
+    }
+
     var elapsed = _formatDuration(watch.elapsed);
-    var lines = _scrapedLineCount != 1 ? '$_scrapedLineCount lines' : '1 line';
-    var files = _scrapedFileCount != 1 ? '$_scrapedFileCount files' : '1 file';
-    print('Took $elapsed to scrape $lines in $files.');
+    var lines = count(_scrapedLineCount, 'line');
+    var files = count(_scrapedFileCount, 'file');
+    var message = 'Took $elapsed to scrape $lines in $files.';
+
+    if (_errorFileCount > 0) {
+      var errors = count(_errorFileCount, 'file');
+      message += ' ($errors could not be parsed.)';
+    }
+
+    print(message);
   }
 
   /// Display [message], clearing the line if necessary.
@@ -242,16 +258,18 @@ class Scrape {
     var source = file.readAsStringSync();
 
     var errorListener = ErrorListener(this, _printErrors);
+    var featureSet = FeatureSet.latestLanguageVersion();
 
     // Tokenize the source.
     var reader = CharSequenceReader(source);
     var stringSource = StringSource(source, file.path);
     var scanner = Scanner(stringSource, reader, errorListener);
+    scanner.configureFeatures(
+        featureSet: featureSet, featureSetForOverriding: featureSet);
     var startToken = scanner.tokenize();
 
     // Parse it.
-    var parser = Parser(stringSource, errorListener,
-        featureSet: FeatureSet.latestLanguageVersion());
+    var parser = Parser(stringSource, errorListener, featureSet: featureSet);
     parser.enableOptionalNewAndConst = true;
     parser.enableSetLiterals = true;
 
@@ -274,6 +292,12 @@ class Scrape {
       node = parser.parseCompilationUnit(startToken);
     } catch (error) {
       print('Got exception parsing $shortPath:\n$error');
+      return;
+    }
+
+    // Don't process files with syntax errors.
+    if (errorListener.hadError) {
+      _errorFileCount++;
       return;
     }
 
