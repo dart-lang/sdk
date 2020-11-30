@@ -10174,6 +10174,26 @@ void f<T, U>() {}
 ''');
   }
 
+  test_new_typedef_notSimplyBounded_functionType_returnType() async {
+    var library = await checkLibrary('''
+typedef F = G Function();
+typedef G = F Function();
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function();
+notSimplyBounded typedef G = dynamic Function() Function();
+''');
+  }
+
+  test_new_typedef_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
+    var library = await checkLibrary('''
+typedef F = List<F> Function();
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function();
+''');
+  }
+
   test_new_typedef_notSimplyBounded_self() async {
     var library = await checkLibrary('''
 typedef F<T extends F> = void Function();

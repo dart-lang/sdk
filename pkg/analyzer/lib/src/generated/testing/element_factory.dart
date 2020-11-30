@@ -261,15 +261,6 @@ class ElementFactory {
     _objectElement = null;
   }
 
-  static FunctionTypeAliasElementImpl functionTypeAliasElement(String name,
-      {List<ParameterElement> parameters = const [], DartType returnType}) {
-    var element = FunctionTypeAliasElementImpl(name, -1);
-    element.function = GenericFunctionTypeElementImpl.forOffset(-1)
-      ..parameters = parameters
-      ..returnType = returnType ?? DynamicTypeImpl.instance;
-    return element;
-  }
-
   static PropertyAccessorElementImpl getterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = FieldElementImpl(name, -1);

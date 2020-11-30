@@ -1061,23 +1061,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(typeStr, expected);
   }
 
-  void test_equality_recursive() {
-    var s = ElementFactory.functionTypeAliasElement('s');
-    var t = ElementFactory.functionTypeAliasElement('t');
-    var u = ElementFactory.functionTypeAliasElement('u');
-    var v = ElementFactory.functionTypeAliasElement('v');
-    s.function.returnType = functionTypeAliasType(t);
-    t.function.returnType = functionTypeAliasType(s);
-    u.function.returnType = functionTypeAliasType(v);
-    v.function.returnType = functionTypeAliasType(u);
-    // We don't care whether the types compare equal or not.  We just need the
-    // computation to terminate.
-    expect(
-      functionTypeAliasType(s) == functionTypeAliasType(u),
-      TypeMatcher<bool>(),
-    );
-  }
-
   void test_getNamedParameterTypes_namedParameters() {
     var type = functionTypeNone(
       typeFormals: [],
@@ -1205,30 +1188,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
 
     // Returns this.
     expect(type.resolveToBound(null), same(type));
-  }
-
-  void test_toString_recursive() {
-    var t = ElementFactory.functionTypeAliasElement("t");
-    var s = ElementFactory.functionTypeAliasElement("s");
-    t.function.returnType = functionTypeAliasType(s);
-    s.function.returnType = functionTypeAliasType(t);
-    assertType(
-      functionTypeAliasType(t),
-      'dynamic Function() Function()',
-    );
-  }
-
-  void test_toString_recursive_via_interface_type() {
-    var f = ElementFactory.functionTypeAliasElement('f');
-    ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
-    f.function.returnType = c.instantiate(
-      typeArguments: [functionTypeAliasType(f)],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    assertType(
-      functionTypeAliasType(f),
-      'dynamic Function()',
-    );
   }
 }
 
