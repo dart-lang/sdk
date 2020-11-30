@@ -1,4 +1,4 @@
-# 0.1.126-dev
+# 0.1.126
 
 * fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
   LinkedHashMap instantiation is passed as the argument to a function in any
