@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Lists, Maps.
     if (_isList(node) || _isMap(node) || _isHashMap(node)) {
-      if (_shouldSkipLinkedHashLint(node, _isTypeMap)) {
+      if (_shouldSkipLinkedHashLint(node, _isTypeHashMap)) {
         return;
       }
       if (constructorName == null && node.argumentList.arguments.isEmpty) {
@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Sets.
     if (_isSet(node) || _isHashSet(node)) {
-      if (_shouldSkipLinkedHashLint(node, _isTypeSet)) {
+      if (_shouldSkipLinkedHashLint(node, _isTypeHashSet)) {
         return;
       }
 
@@ -128,17 +128,21 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isSet(Expression expression) => _isTypeSet(expression.staticType);
-  bool _isHashSet(Expression expression) => DartTypeUtilities.isClass(
-      expression.staticType, 'LinkedHashSet', 'dart.collection');
+  bool _isHashSet(Expression expression) =>
+      _isTypeHashSet(expression.staticType);
   bool _isList(Expression expression) =>
       DartTypeUtilities.isClass(expression.staticType, 'List', 'dart.core');
   bool _isMap(Expression expression) => _isTypeMap(expression.staticType);
-  bool _isHashMap(Expression expression) => DartTypeUtilities.isClass(
-      expression.staticType, 'LinkedHashMap', 'dart.collection');
+  bool _isHashMap(Expression expression) =>
+      _isTypeHashMap(expression.staticType);
   bool _isTypeSet(DartType type) =>
       DartTypeUtilities.isClass(type, 'Set', 'dart.core');
+  bool _isTypeHashSet(DartType type) =>
+      DartTypeUtilities.isClass(type, 'LinkedHashSet', 'dart.collection');
   bool _isTypeMap(DartType type) =>
       DartTypeUtilities.isClass(type, 'Map', 'dart.core');
+  bool _isTypeHashMap(DartType type) =>
+      DartTypeUtilities.isClass(type, 'LinkedHashMap', 'dart.collection');
 
   bool _shouldSkipLinkedHashLint(
       InstanceCreationExpression node, bool Function(DartType node) typeCheck) {
@@ -149,7 +153,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var parent2 = parent.parent;
         if (parent2 is VariableDeclarationList) {
           var assignmentType = parent2.type?.type;
-          if (assignmentType != null && !typeCheck(assignmentType)) {
+          if (assignmentType != null && typeCheck(assignmentType)) {
             return true;
           }
         }
@@ -158,7 +162,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // function(LinkedHashMap()); when function(LinkedHashMap myMap)
       if (parent is ArgumentList) {
         final paramType = node.staticParameterElement.type;
-        if (paramType != null && !typeCheck(paramType)) {
+        if (paramType != null && typeCheck(paramType)) {
           return true;
         }
       }
@@ -166,7 +170,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // or <int, LinkedHashMap>{}.putIfAbsent(3, () => LinkedHashMap());
       if (parent is ExpressionFunctionBody) {
         var expressionType = parent.expression.staticType;
-        if (expressionType != null && !typeCheck(expressionType)) {
+        if (expressionType != null && typeCheck(expressionType)) {
           return true;
         }
       }

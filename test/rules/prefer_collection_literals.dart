@@ -50,8 +50,11 @@ void main() {
 
   Set<int> ss5 = LinkedHashSet<int>(); // LINT
   LinkedHashSet<int> ss6 = LinkedHashSet<int>(); // OK
+  Object ss7 = LinkedHashSet<int>(); // LINT
 
+  printObject(Set()); // LINT
   printSet(Set()); // LINT
+  printObject(LinkedHashSet()); // LINT
   printSet(LinkedHashSet<int>()); // LINT
   printIndentedSet(0, LinkedHashSet<int>()); // LINT
   printHashSet(LinkedHashSet<int>()); // OK
@@ -68,14 +71,18 @@ void main() {
   var lhs = LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)..addAll({}); // OK
 
   LinkedHashMap hashMap = LinkedHashMap(); // OK
+  Object hashMap2 = LinkedHashMap(); // LINT
 
+  printObject(Map()); // LINT
   printMap(Map()); // LINT
+  printObject(LinkedHashMap()); // LINT
   printMap(LinkedHashMap<int, int>()); // LINT
   printHashMap(LinkedHashMap<int, int>()); // OK
 
   LinkedHashMap<String, String> lhm = <int, LinkedHashMap<String,String>>{}.putIfAbsent(3, () => LinkedHashMap<String, String>()); // OK
 }
 
+void printObject(Object o) => print('$o');
 void printSet(Set<int> ids) => print('$ids!');
 void printIndentedSet(int indent, Set<int> ids) => print('$ids!');
 void printHashSet(LinkedHashSet<int> ids) => printSet(ids);
