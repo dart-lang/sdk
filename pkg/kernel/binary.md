@@ -99,6 +99,10 @@ type SourceInfo {
   List<UInt> lineStarts;
 
   List<Byte> importUriUtf8Bytes;
+
+  // List of constructors evaluated *by* this library. Note that these can be
+  // in other libraries.
+  List<ConstructorReference> constructorCoverage;
 }
 
 type String {

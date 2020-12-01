@@ -794,18 +794,32 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
       writeByteList(source.source);
 
-      List<int> lineStarts = source.lineStarts;
-      writeUInt30(lineStarts.length);
-      int previousLineStart = 0;
-      for (int j = 0; j < lineStarts.length; ++j) {
-        int lineStart = lineStarts[j];
-        writeUInt30(lineStart - previousLineStart);
-        previousLineStart = lineStart;
+      {
+        List<int> lineStarts = source.lineStarts;
+        writeUInt30(lineStarts.length);
+        int previousLineStart = 0;
+        for (int j = 0; j < lineStarts.length; ++j) {
+          int lineStart = lineStarts[j];
+          writeUInt30(lineStart - previousLineStart);
+          previousLineStart = lineStart;
+        }
       }
 
       String importUriAsString =
           source.importUri == null ? "" : "${source.importUri}";
       outputStringViaBuffer(importUriAsString, buffer);
+
+      {
+        Set<Reference> coverage = source.constantCoverageConstructors;
+        if (coverage == null || coverage.isEmpty) {
+          writeUInt30(0);
+        } else {
+          writeUInt30(coverage.length);
+          for (Reference reference in coverage) {
+            writeNonNullReference(reference);
+          }
+        }
+      }
 
       i++;
     }

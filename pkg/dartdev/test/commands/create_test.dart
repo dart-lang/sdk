@@ -36,7 +36,7 @@ void defineCreateTests() {
   test('list templates', () {
     p = project();
 
-    ProcessResult result = p.runSync(['create', '--list-templates']);
+    ProcessResult result = p.runSync('create', ['--list-templates']);
     expect(result.exitCode, 0);
 
     String output = result.stdout.toString();
@@ -50,9 +50,7 @@ void defineCreateTests() {
   test('no directory given', () {
     p = project();
 
-    ProcessResult result = p.runSync([
-      'create',
-    ]);
+    ProcessResult result = p.runSync('create', []);
     expect(result.exitCode, 1);
   });
 
@@ -60,7 +58,7 @@ void defineCreateTests() {
     p = project();
 
     ProcessResult result = p.runSync(
-        ['create', '--template', CreateCommand.defaultTemplateId, p.dir.path]);
+        'create', ['--template', CreateCommand.defaultTemplateId, p.dir.path]);
     expect(result.exitCode, 73);
   });
 
@@ -68,7 +66,7 @@ void defineCreateTests() {
     p = project();
 
     ProcessResult result =
-        p.runSync(['create', '--no-pub', '--template', 'foo-bar', p.dir.path]);
+        p.runSync('create', ['--no-pub', '--template', 'foo-bar', p.dir.path]);
     expect(result.exitCode, isNot(0));
   });
 
@@ -78,7 +76,7 @@ void defineCreateTests() {
       p = project();
 
       ProcessResult result = p
-          .runSync(['create', '--force', '--template', templateId, p.dir.path]);
+          .runSync('create', ['--force', '--template', templateId, p.dir.path]);
       expect(result.exitCode, 0);
 
       String projectName = path.basename(p.dir.path);

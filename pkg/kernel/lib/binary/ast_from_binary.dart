@@ -841,7 +841,19 @@ class BinaryBuilder {
       String importUriString = readString();
       Uri importUri =
           importUriString.isEmpty ? null : Uri.parse(importUriString);
-      uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri);
+
+      Set<Reference> coverageConstructors;
+      {
+        int constructorCoverageCount = readUInt30();
+        coverageConstructors =
+            constructorCoverageCount == 0 ? null : new Set<Reference>();
+        for (int j = 0; j < constructorCoverageCount; ++j) {
+          coverageConstructors.add(readMemberReference());
+        }
+      }
+
+      uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri)
+        ..constantCoverageConstructors = coverageConstructors;
     }
 
     // Read index.
@@ -861,8 +873,32 @@ class BinaryBuilder {
       dst.addAll(src);
     } else {
       src.forEach((Uri key, Source value) {
-        if (value.source.isNotEmpty || !dst.containsKey(key)) {
+        Source originalDestinationSource = dst[key];
+        Source mergeFrom;
+        Source mergeTo;
+        if (value.source.isNotEmpty || originalDestinationSource == null) {
           dst[key] = value;
+          mergeFrom = originalDestinationSource;
+          mergeTo = value;
+        } else {
+          mergeFrom = value;
+          mergeTo = originalDestinationSource;
+        }
+
+        // TODO(jensj): Find out what the right thing to do is --- it probably
+        // depends on what we do if read the same library twice - do we merge or
+        // do we overwrite, and should we even support such a thing?
+
+        // Merge coverage. Note that mergeFrom might be null.
+        if (mergeTo.constantCoverageConstructors == null) {
+          mergeTo.constantCoverageConstructors =
+              mergeFrom?.constantCoverageConstructors;
+        } else if (mergeFrom?.constantCoverageConstructors == null) {
+          // Nothing to do.
+        } else {
+          // Bot are non-null: Merge.
+          mergeTo.constantCoverageConstructors
+              .addAll(mergeFrom.constantCoverageConstructors);
         }
       });
     }

@@ -9937,6 +9937,8 @@ class Source {
 
   final Uri fileUri;
 
+  Set<Reference> constantCoverageConstructors;
+
   String cachedText;
 
   Source(this.lineStarts, this.source, this.importUri, this.fileUri);

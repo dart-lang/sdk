@@ -1140,10 +1140,10 @@ void main(int argc, char** argv) {
 
   // Parse command line arguments.
   if (app_snapshot == nullptr) {
-    bool success = Options::ParseArguments(
+    int result = Options::ParseArguments(
         argc, argv, vm_run_app_snapshot, &vm_options, &script_name,
         &dart_options, &print_flags_seen, &verbose_debug_seen);
-    if (!success) {
+    if (result < 0) {
       if (Options::help_option()) {
         Options::PrintUsage();
         Platform::Exit(0);

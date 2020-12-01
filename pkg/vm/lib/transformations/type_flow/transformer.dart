@@ -1230,6 +1230,12 @@ class _TreeShakerPass2 extends Transformer {
 
   void transform(Component component) {
     component.transformChildren(this);
+    for (Source source in component.uriToSource.values) {
+      source?.constantCoverageConstructors?.removeWhere((Reference reference) {
+        Member node = reference.asMember;
+        return !shaker.isMemberUsed(node) && !_preserveSpecialMember(node);
+      });
+    }
   }
 
   @override

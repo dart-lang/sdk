@@ -134,7 +134,9 @@ main() {
   /// If [getAllSources] is false it will ask specifically for report
   /// (and thus hits) for "lib1.dart" only.
   Future<Set<int>> collectAndCheckCoverageData(int port, bool getAllSources,
-      {bool resume: true}) async {
+      {bool resume: true,
+      bool onGetAllVerifyCount: true,
+      Set<int> coverageForLines}) async {
     RemoteVm remoteVm = new RemoteVm(port);
 
     // Wait for the script to have finished.
@@ -189,7 +191,7 @@ main() {
         }
         i++;
       }
-      if (getAllSources) {
+      if (getAllSources && onGetAllVerifyCount) {
         expect(scriptIdToIndex.length >= 2, isTrue);
       }
 
@@ -226,12 +228,16 @@ main() {
             }
           }
           for (int pos in coverage["misses"]) positions.add(pos);
-          for (int pos in range["possibleBreakpoints"]) positions.add(pos);
+          if (range["possibleBreakpoints"] != null) {
+            for (int pos in range["possibleBreakpoints"]) positions.add(pos);
+          }
           Map script = scriptIndexToScript[range["scriptIndex"]];
           Set<int> knownPositions = new Set<int>();
+          Map<int, int> tokenPosToLine = {};
           if (script["tokenPosTable"] != null) {
             for (List tokenPosTableLine in script["tokenPosTable"]) {
               for (int i = 1; i < tokenPosTableLine.length; i += 2) {
+                tokenPosToLine[tokenPosTableLine[i]] = tokenPosTableLine[0];
                 knownPositions.add(tokenPosTableLine[i]);
               }
             }
@@ -242,6 +248,14 @@ main() {
                   "and id ${script['id']} "
                   "references position $pos which cannot be translated to "
                   "line and column.");
+            }
+          }
+
+          if (coverageForLines != null) {
+            for (int pos in coverage["hits"]) {
+              if (lib1scriptIndices.contains(range["scriptIndex"])) {
+                coverageForLines.add(tokenPosToLine[pos]);
+              }
             }
           }
         }
@@ -483,6 +497,243 @@ main() {
       });
       await portLineCompleter.future;
       print("Compiler terminated with ${await vm.exitCode} exit code");
+    });
+  });
+
+  group('multiple kernels constant coverage', () {
+    Directory mytest;
+    File main;
+    File lib1;
+    int lineForUnnamedConstructor;
+    int lineForNamedConstructor;
+    Process vm;
+    setUpAll(() {
+      mytest = Directory.systemTemp.createTempSync('incremental');
+      main = new File('${mytest.path}/main.dart')..createSync();
+      main.writeAsStringSync("""
+        // This file - combined with the lib - should have coverage for both
+        // constructors of Foo.
+        import 'lib1.dart' as lib1;
+
+        void testFunction() {
+          const foo = lib1.Foo.named();
+          const foo2 = lib1.Foo.named();
+          if (!identical(foo, foo2)) throw "what?";
+        }
+
+        main() {
+          lib1.testFunction();
+          testFunction();
+          print("main");
+        }
+      """);
+      lib1 = new File('${mytest.path}/lib1.dart')..createSync();
+      lib1.writeAsStringSync("""
+        // Compiling this file should mark the default constructor - but not the
+        // named constructor - as having coverage.
+        class Foo {
+          final int x;
+          const Foo([int? x]) : this.x = x ?? 42;
+          const Foo.named([int? x]) : this.x = x ?? 42;
+        }
+
+        void testFunction() {
+          const foo = Foo();
+          const foo2 = Foo();
+          if (!identical(foo, foo2)) throw "what?";
+        }
+
+        main() {
+          testFunction();
+          print("lib1");
+        }
+      """);
+      lineForUnnamedConstructor = 5;
+      lineForNamedConstructor = 6;
+    });
+
+    tearDownAll(() {
+      try {
+        mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+      try {
+        vm.kill();
+      } catch (_) {
+        // Ignore errors;
+      }
+    });
+
+    Future<Set<int>> runAndGetLineCoverage(
+        File list, String expectStdoutContains) async {
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        "--pause-isolates-on-exit",
+        "--enable-vm-service:0",
+        "--disable-service-auth-codes",
+        "--disable-dart-dev",
+        list.path
+      ]);
+
+      const kObservatoryListening = 'Observatory listening on ';
+      final RegExp observatoryPortRegExp =
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+      int port;
+      final splitter = new LineSplitter();
+      Completer<String> portLineCompleter = new Completer<String>();
+      Set<int> coverageLines = {};
+      bool foundExpectedString = false;
+      vm.stdout
+          .transform(utf8.decoder)
+          .transform(splitter)
+          .listen((String s) async {
+        if (s == expectStdoutContains) {
+          foundExpectedString = true;
+        }
+        if (s.startsWith(kObservatoryListening)) {
+          expect(observatoryPortRegExp.hasMatch(s), isTrue);
+          final match = observatoryPortRegExp.firstMatch(s);
+          port = int.parse(match.group(1));
+          await collectAndCheckCoverageData(port, true,
+              onGetAllVerifyCount: false, coverageForLines: coverageLines);
+          if (!portLineCompleter.isCompleted) {
+            portLineCompleter.complete("done");
+          }
+        }
+        print("vm stdout: $s");
+      });
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+      await portLineCompleter.future;
+      print("Compiler terminated with ${await vm.exitCode} exit code");
+      expect(foundExpectedString, isTrue);
+      return coverageLines;
+    }
+
+    test('compile seperatly, check coverage', () async {
+      Directory dir = mytest.createTempSync();
+
+      // First compile lib, run and verify coverage (un-named constructor
+      // covered, but not the named constructor).
+      // Note that it's called 'lib1' to match with expectations from coverage
+      // collector helper in this file.
+      File libDill = File(p.join(dir.path, p.basename(lib1.path + ".dill")));
+      IncrementalCompiler compiler = new IncrementalCompiler(options, lib1.uri);
+      Component component = await compiler.compile();
+      expect(component.libraries.length, equals(1));
+      expect(component.libraries.single.fileUri, equals(lib1.uri));
+      IOSink sink = libDill.openWrite();
+      BinaryPrinter printer = new BinaryPrinter(sink);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      File list = new File(p.join(dir.path, 'dill.list'))..createSync();
+      list.writeAsStringSync("#@dill\n${libDill.path}\n");
+      Set<int> lineCoverage = await runAndGetLineCoverage(list, "lib1");
+      // Expect coverage for unnamed constructor but not for the named one.
+      expect(
+          lineCoverage.intersection(
+              {lineForUnnamedConstructor, lineForNamedConstructor}),
+          equals({lineForUnnamedConstructor}));
+
+      try {
+        vm.kill();
+      } catch (_) {
+        // Ignore errors;
+      }
+      // Accept the compile to not include the lib again.
+      compiler.accept();
+
+      // Then compile lib, run and verify coverage (un-named constructor
+      // covered, and the named constructor coveraged too).
+      File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
+      component = await compiler.compile(entryPoint: main.uri);
+      expect(component.libraries.length, equals(1));
+      expect(component.libraries.single.fileUri, equals(main.uri));
+      sink = mainDill.openWrite();
+      printer = new BinaryPrinter(sink);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      list.writeAsStringSync("#@dill\n${mainDill.path}\n${libDill.path}\n");
+      lineCoverage = await runAndGetLineCoverage(list, "main");
+
+      // Expect coverage for both unnamed constructor and for the named one.
+      expect(
+          lineCoverage.intersection(
+              {lineForUnnamedConstructor, lineForNamedConstructor}),
+          equals({lineForUnnamedConstructor, lineForNamedConstructor}));
+
+      try {
+        vm.kill();
+      } catch (_) {
+        // Ignore errors;
+      }
+      // Accept the compile to not include the lib again.
+      compiler.accept();
+
+      // Finally, change lib to shift the constructors so the old line numbers
+      // doesn't match. Compile lib by itself, compile lib, run with the old
+      // main and verify coverage is still correct (both un-named constructor
+      // and named constructor (at new line numbers) are covered, and the old
+      // line numbers are not coverage.
+
+      lib1.writeAsStringSync("""
+        //
+        // Shift lines down by five
+        // lines so the original
+        // lines can't be coverred
+        //
+        class Foo {
+          final int x;
+          const Foo([int? x]) : this.x = x ?? 42;
+          const Foo.named([int? x]) : this.x = x ?? 42;
+        }
+
+        void testFunction() {
+          const foo = Foo();
+          const foo2 = Foo();
+          if (!identical(foo, foo2)) throw "what?";
+        }
+
+        main() {
+          testFunction();
+          print("lib1");
+        }
+      """);
+      int newLineForUnnamedConstructor = 8;
+      int newLineForNamedConstructor = 9;
+      compiler.invalidate(lib1.uri);
+      component = await compiler.compile(entryPoint: lib1.uri);
+      expect(component.libraries.length, equals(1));
+      expect(component.libraries.single.fileUri, equals(lib1.uri));
+      sink = libDill.openWrite();
+      printer = new BinaryPrinter(sink);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      list.writeAsStringSync("#@dill\n${mainDill.path}\n${libDill.path}\n");
+      lineCoverage = await runAndGetLineCoverage(list, "main");
+
+      // Expect coverage for both unnamed constructor and for the named one on
+      // the new positions, but no coverage on the old positions.
+      expect(
+          lineCoverage.intersection({
+            lineForUnnamedConstructor,
+            lineForNamedConstructor,
+            newLineForUnnamedConstructor,
+            newLineForNamedConstructor
+          }),
+          equals({newLineForUnnamedConstructor, newLineForNamedConstructor}));
+
+      try {
+        vm.kill();
+      } catch (_) {
+        // Ignore errors;
+      }
+      // Accept the compile to not include the lib again.
+      compiler.accept();
     });
   });
 
