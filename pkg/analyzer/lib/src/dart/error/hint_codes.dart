@@ -1150,6 +1150,7 @@ class HintCode extends AnalyzerErrorCode {
   // is required:
   //
   // ```dart
+  // %language=2.9
   // import 'package:meta/meta.dart';
   //
   // void f({@required int x}) {}
@@ -1164,6 +1165,7 @@ class HintCode extends AnalyzerErrorCode {
   // Provide the required value:
   //
   // ```dart
+  // %language=2.9
   // import 'package:meta/meta.dart';
   //
   // void f({@required int x}) {}
@@ -1207,6 +1209,7 @@ class HintCode extends AnalyzerErrorCode {
   // return:
   //
   // ```dart
+  // %language=2.9
   // int [!f!](int x) {
   //   if (x < 0) {
   //     return 0;
@@ -1512,7 +1515,6 @@ class HintCode extends AnalyzerErrorCode {
   // specified to allow `null` when `null` can't be thrown:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f() {
   //   try {
   //     // ...
@@ -1526,7 +1528,6 @@ class HintCode extends AnalyzerErrorCode {
   // Remove the question mark from the type:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f() {
   //   try {
   //     // ...
@@ -1880,6 +1881,7 @@ class HintCode extends AnalyzerErrorCode {
   // diagnostic:
   //
   // ```dart
+  // %language=2.9
   // class C {}
   // const C a = null;
   // const C b = null;
@@ -1901,6 +1903,7 @@ class HintCode extends AnalyzerErrorCode {
   // expression isn't in a [constant context][]:
   //
   // ```dart
+  // %language=2.9
   // class C {}
   // const C a = null;
   // const C b = null;
@@ -2114,6 +2117,7 @@ class HintCode extends AnalyzerErrorCode {
   // diagnostic:
   //
   // ```dart
+  // %language=2.9
   // [!Never!] n;
   // ```
   //
@@ -2502,7 +2506,6 @@ class HintCode extends AnalyzerErrorCode {
   // `null`, so the comparison always evaluates to `true`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int x) {
   //   if (x [!!= null!]) {
   //     print(x);
@@ -2514,7 +2517,6 @@ class HintCode extends AnalyzerErrorCode {
   // `null`, so the comparison always evaluates to `false`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int x) {
   //   if (x [!== null!]) {
   //     throw ArgumentError("x can't be null");
@@ -2528,7 +2530,6 @@ class HintCode extends AnalyzerErrorCode {
   // the operand:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int? x) {
   //   if (x != null) {
   //     print(x);
@@ -2539,7 +2540,6 @@ class HintCode extends AnalyzerErrorCode {
   // If the other operand really can't be `null`, then remove the condition:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int x) {
   //   print(x);
   // }
@@ -2704,6 +2704,7 @@ class HintCode extends AnalyzerErrorCode {
   // invocation of `_m`, the following code produces this diagnostic:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   void _m(int x, [int [!y!]]) {}
   //
@@ -2755,6 +2756,7 @@ class HintCode extends AnalyzerErrorCode {
   // anywhere in the library:
   //
   // ```dart
+  // %language=2.9
   // class Point {
   //   int [!_x!];
   // }
