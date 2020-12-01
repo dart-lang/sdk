@@ -109,7 +109,12 @@ class PubspecWarningCode extends ErrorCode {
   /// Initialize a newly created warning code to have the given [name],
   /// [message] and [correction].
   const PubspecWarningCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'PubspecWarningCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

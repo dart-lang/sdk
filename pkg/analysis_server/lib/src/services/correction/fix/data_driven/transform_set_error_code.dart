@@ -155,10 +155,18 @@ class TransformSetErrorCode extends ErrorCode {
       TransformSetErrorCode('yaml_syntax_error', "Parse error: {0}");
 
   /// Initialize a newly created error code.
-  const TransformSetErrorCode(String name, String message,
-      {String correction, bool hasPublishedDocs = false})
-      : super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+  const TransformSetErrorCode(
+    String name,
+    String message, {
+    String correction,
+    bool hasPublishedDocs = false,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: 'TransformSetErrorCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

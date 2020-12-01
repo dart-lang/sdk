@@ -70,13 +70,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   static const CompileTimeErrorCode ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER =
-      CompileTimeErrorCodeWithUniqueName(
-          'ABSTRACT_FIELD_INITIALIZER',
-          'ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
-          "Abstract fields can't have initializers.",
-          correction:
-              "Try removing the field initializer or the 'abstract' keyword "
-              "from the field declaration.");
+      CompileTimeErrorCode(
+    'ABSTRACT_FIELD_INITIALIZER',
+    "Abstract fields can't have initializers.",
+    correction: "Try removing the field initializer or the 'abstract' keyword "
+        "from the field declaration.",
+    uniqueName: 'ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
+  );
 
   /**
    * No parameters.
@@ -1444,12 +1444,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the type variable
    */
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_CLASS =
-      CompileTimeErrorCodeWithUniqueName(
-          'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-          'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
-          "'{0}' can't be used to name both a type variable and the class in "
-              "which the type variable is defined.",
-          correction: "Try renaming either the type variable or the class.");
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the class in "
+        "which the type variable is defined.",
+    correction: "Try renaming either the type variable or the class.",
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
+  );
 
   /**
    * It is a compile time error if an extension declares a type parameter with
@@ -1459,13 +1460,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the type variable
    */
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_EXTENSION =
-      CompileTimeErrorCodeWithUniqueName(
-          'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-          'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
-          "'{0}' can't be used to name both a type variable and the extension "
-              "in which the type variable is defined.",
-          correction:
-              "Try renaming either the type variable or the extension.");
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the extension "
+        "in which the type variable is defined.",
+    correction: "Try renaming either the type variable or the extension.",
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
+  );
 
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
@@ -1476,25 +1477,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the type variable
    */
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
-      CompileTimeErrorCodeWithUniqueName(
-          'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-          'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
-          "'{0}' can't be used to name both a type variable and a member in "
-              "this class.",
-          correction: "Try renaming either the type variable or the member.");
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in "
+        "this class.",
+    correction: "Try renaming either the type variable or the member.",
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
+  );
 
   /**
    * It is a compile time error if a generic extension declares a member with
    * the same basename as the name of any of the extension's type parameters.
    */
   static const CompileTimeErrorCode
-      CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION =
-      CompileTimeErrorCodeWithUniqueName(
-          'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-          'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
-          "'{0}' can't be used to name both a type variable and a member in "
-              "this extension.",
-          correction: "Try renaming either the type variable or the member.");
+      CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION = CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in "
+        "this extension.",
+    correction: "Try renaming either the type variable or the member.",
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  );
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -1640,14 +1642,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the instance field.
    */
   static const CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD =
-      CompileTimeErrorCodeWithUniqueName(
-          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-          "This constructor can't be declared 'const' because a mixin adds the "
-              "instance field: {0}.",
-          correction: "Try removing the 'const' keyword or removing the 'with' "
-              "clause from the class declaration, or removing the field from "
-              "the mixin class.");
+      CompileTimeErrorCode(
+    'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+    "This constructor can't be declared 'const' because a mixin adds the "
+        "instance field: {0}.",
+    correction: "Try removing the 'const' keyword or removing the 'with' "
+        "clause from the class declaration, or removing the field from "
+        "the mixin class.",
+    uniqueName: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+  );
 
   /**
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly
@@ -1664,14 +1667,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the names of the instance fields.
    */
   static const CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS =
-      CompileTimeErrorCodeWithUniqueName(
-          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
-          "This constructor can't be declared 'const' because the mixins add "
-              "the instance fields: {0}.",
-          correction: "Try removing the 'const' keyword or removing the 'with' "
-              "clause from the class declaration, or removing the fields from "
-              "the mixin classes.");
+      CompileTimeErrorCode(
+    'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+    "This constructor can't be declared 'const' because the mixins add "
+        "the instance fields: {0}.",
+    correction: "Try removing the 'const' keyword or removing the 'with' "
+        "clause from the class declaration, or removing the fields from "
+        "the mixin classes.",
+    uniqueName: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
+  );
 
   /**
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly
@@ -1831,13 +1835,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the name of the type of the field
    */
   static const CompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
-      CompileTimeErrorCodeWithUniqueName(
-          'FIELD_INITIALIZER_NOT_ASSIGNABLE',
-          'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
-          "The initializer type '{0}' can't be assigned to the field type "
-              "'{1}' in a const constructor.",
-          correction: "Try using a subtype, or removing the 'const' keyword",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+    "The initializer type '{0}' can't be assigned to the field type "
+        "'{1}' in a const constructor.",
+    correction: "Try using a subtype, or removing the 'const' keyword",
+    hasPublishedDocs: true,
+    uniqueName: 'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
+  );
 
   /**
    * No parameters.
@@ -2162,12 +2167,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the non-type element
    */
-  static const CompileTimeErrorCode CONST_WITH_NON_TYPE =
-      CompileTimeErrorCodeWithUniqueName('CREATION_WITH_NON_TYPE',
-          'CONST_WITH_NON_TYPE', "The name '{0}' isn't a class.",
-          correction: "Try correcting the name to match an existing class.",
-          hasPublishedDocs: true,
-          isUnresolvedIdentifier: true);
+  static const CompileTimeErrorCode CONST_WITH_NON_TYPE = CompileTimeErrorCode(
+    'CREATION_WITH_NON_TYPE',
+    "The name '{0}' isn't a class.",
+    correction: "Try correcting the name to match an existing class.",
+    hasPublishedDocs: true,
+    isUnresolvedIdentifier: true,
+    uniqueName: 'CONST_WITH_NON_TYPE',
+  );
 
   /**
    * No parameters.
@@ -2475,24 +2482,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
-      CompileTimeErrorCodeWithUniqueName(
-          'DUPLICATE_CONSTRUCTOR',
-          'DUPLICATE_CONSTRUCTOR_DEFAULT',
-          "The default constructor is already defined.",
-          correction: "Try giving one of the constructors a name.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'DUPLICATE_CONSTRUCTOR',
+    "The default constructor is already defined.",
+    correction: "Try giving one of the constructors a name.",
+    hasPublishedDocs: true,
+    uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
+  );
 
   /**
    * Parameters:
    * 0: the name of the duplicate entity
    */
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_NAME =
-      CompileTimeErrorCodeWithUniqueName(
-          'DUPLICATE_CONSTRUCTOR',
-          'DUPLICATE_CONSTRUCTOR_NAME',
-          "The constructor with name '{0}' is already defined.",
-          correction: "Try renaming one of the constructors.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'DUPLICATE_CONSTRUCTOR',
+    "The constructor with name '{0}' is already defined.",
+    correction: "Try renaming one of the constructors.",
+    hasPublishedDocs: true,
+    uniqueName: 'DUPLICATE_CONSTRUCTOR_NAME',
+  );
 
   /**
    * Parameters:
@@ -3010,11 +3019,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
       // TODO(scheglov) We might want to restore specific code with FrontEnd.
       //  https://github.com/dart-lang/sdk/issues/31821
-      CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
-          'EXTENDS_DISALLOWED_CLASS', "Classes can't extend '{0}'.",
-          correction: "Try specifying a different superclass, or "
-              "removing the extends clause.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_DISALLOWED_TYPE',
+    "Classes can't extend '{0}'.",
+    correction: "Try specifying a different superclass, or "
+        "removing the extends clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'EXTENDS_DISALLOWED_CLASS',
+  );
 
   /**
    * Parameters:
@@ -3851,12 +3863,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
-      CompileTimeErrorCodeWithUniqueName(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
-          "All final variables must be initialized, but '{0}' isn't.",
-          correction: "Try adding an initializer for the field.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+    "All final variables must be initialized, but '{0}' isn't.",
+    correction: "Try adding an initializer for the field.",
+    hasPublishedDocs: true,
+    uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
+  );
 
   /**
    * Parameters:
@@ -3864,13 +3877,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the name of the uninitialized final variable
    */
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
-      CompileTimeErrorCodeWithUniqueName(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
-          "All final variables must be initialized, but '{0}' and '{1}' "
-              "aren't.",
-          correction: "Try adding initializers for the fields.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+    "All final variables must be initialized, but '{0}' and '{1}' "
+        "aren't.",
+    correction: "Try adding initializers for the fields.",
+    hasPublishedDocs: true,
+    uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+  );
 
   /**
    * Parameters:
@@ -3879,13 +3893,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 2: the number of additional not initialized variables that aren't listed
    */
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
-      CompileTimeErrorCodeWithUniqueName(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
-          "All final variables must be initialized, but '{0}', '{1}', and {2} "
-              "others aren't.",
-          correction: "Try adding initializers for the fields.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+    "All final variables must be initialized, but '{0}', '{1}', and {2} "
+        "others aren't.",
+    correction: "Try adding initializers for the fields.",
+    hasPublishedDocs: true,
+    uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+  );
 
   /**
    * 17.6.2 For-in. It the iterable expression does not implement Iterable with
@@ -4201,13 +4216,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: The name of the disallowed type
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS =
-      CompileTimeErrorCodeWithUniqueName(
-          'SUBTYPE_OF_DISALLOWED_TYPE',
-          'IMPLEMENTS_DISALLOWED_CLASS',
-          "Classes and mixins can't implement '{0}'.",
-          correction: "Try specifying a different interface, or "
-              "remove the class from the list.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_DISALLOWED_TYPE',
+    "Classes and mixins can't implement '{0}'.",
+    correction: "Try specifying a different interface, or "
+        "remove the class from the list.",
+    hasPublishedDocs: true,
+    uniqueName: 'IMPLEMENTS_DISALLOWED_CLASS',
+  );
 
   /**
    * Parameters:
@@ -5043,10 +5059,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * No parameters.
    */
   static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
-      CompileTimeErrorCodeWithUniqueName('INVALID_ANNOTATION',
-          'INVALID_ANNOTATION_GETTER', "Getters can't be used as annotations.",
-          correction: "Try using a top-level variable or a field.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'INVALID_ANNOTATION',
+    "Getters can't be used as annotations.",
+    correction: "Try using a top-level variable or a field.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_ANNOTATION_GETTER',
+  );
 
   /**
    * Parameters:
@@ -5549,39 +5568,39 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // List<T> newList<T>() => <T>[];
   // ```
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST =
-      CompileTimeErrorCodeWithUniqueName(
-          'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-          'INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
-          "Constant list literals can't include a type parameter as a type "
-              "argument, such as '{0}'.",
-          correction:
-              "Try replacing the type parameter with a different type.");
+      CompileTimeErrorCode(
+    'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+    "Constant list literals can't include a type parameter as a type "
+        "argument, such as '{0}'.",
+    correction: "Try replacing the type parameter with a different type.",
+    uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
+  );
 
   /**
    * Parameters:
    * 0: the name of the type parameter
    */
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP =
-      CompileTimeErrorCodeWithUniqueName(
-          'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-          'INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
-          "Constant map literals can't include a type parameter as a type "
-              "argument, such as '{0}'.",
-          correction:
-              "Try replacing the type parameter with a different type.");
+      CompileTimeErrorCode(
+    'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+    "Constant map literals can't include a type parameter as a type "
+        "argument, such as '{0}'.",
+    correction: "Try replacing the type parameter with a different type.",
+    uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
+  );
 
   /**
    * Parameters:
    * 0: the name of the type parameter
    */
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_SET =
-      CompileTimeErrorCodeWithUniqueName(
-          'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-          'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
-          "Constant set literals can't include a type parameter as a type "
-              "argument, such as '{0}'.",
-          correction:
-              "Try replacing the type parameter with a different type.");
+      CompileTimeErrorCode(
+    'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+    "Constant set literals can't include a type parameter as a type "
+        "argument, such as '{0}'.",
+    correction: "Try replacing the type parameter with a different type.",
+    uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
+  );
 
   /**
    * Parameters:
@@ -6476,11 +6495,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: The name of the disallowed type
    */
   static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS =
-      CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
-          'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.",
-          correction: "Try specifying a different class or mixin, or "
-              "remove the class or mixin from the list.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_DISALLOWED_TYPE',
+    "Classes can't mixin '{0}'.",
+    correction: "Try specifying a different class or mixin, or "
+        "remove the class or mixin from the list.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXIN_OF_DISALLOWED_CLASS',
+  );
 
   /**
    * No parameters.
@@ -6529,14 +6551,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: The name of the disallowed type
    */
   static const CompileTimeErrorCode
-      MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS =
-      CompileTimeErrorCodeWithUniqueName(
-          'SUBTYPE_OF_DISALLOWED_TYPE',
-          'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
-          "''{0}' can't be used as a superclass constraint.",
-          correction: "Try specifying a different super-class constraint, or "
-              "remove the 'on' clause.",
-          hasPublishedDocs: true);
+      MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS = CompileTimeErrorCode(
+    'SUBTYPE_OF_DISALLOWED_TYPE',
+    "''{0}' can't be used as a superclass constraint.",
+    correction: "Try specifying a different super-class constraint, or "
+        "remove the 'on' clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
+  );
 
   /**
    * No parameters.
@@ -6653,12 +6675,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   f();
   // }
   // ```
-  static const CompileTimeErrorCode NEW_WITH_NON_TYPE =
-      CompileTimeErrorCodeWithUniqueName('CREATION_WITH_NON_TYPE',
-          'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
-          correction: "Try correcting the name to match an existing class.",
-          hasPublishedDocs: true,
-          isUnresolvedIdentifier: true);
+  static const CompileTimeErrorCode NEW_WITH_NON_TYPE = CompileTimeErrorCode(
+    'CREATION_WITH_NON_TYPE',
+    "The name '{0}' isn't a class.",
+    correction: "Try correcting the name to match an existing class.",
+    hasPublishedDocs: true,
+    isUnresolvedIdentifier: true,
+    uniqueName: 'NEW_WITH_NON_TYPE',
+  );
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
@@ -6844,12 +6868,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    *    constructor
    */
   static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT =
-      CompileTimeErrorCodeWithUniqueName(
-          'NO_DEFAULT_SUPER_CONSTRUCTOR',
-          'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
-          "The superclass '{0}' doesn't have a zero argument constructor.",
-          correction: "Try declaring a zero argument constructor in '{0}', or "
-              "explicitly invoking a different constructor in '{0}'.");
+      CompileTimeErrorCode(
+    'NO_DEFAULT_SUPER_CONSTRUCTOR',
+    "The superclass '{0}' doesn't have a zero argument constructor.",
+    correction: "Try declaring a zero argument constructor in '{0}', or "
+        "explicitly invoking a different constructor in '{0}'.",
+    uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
+  );
 
   /**
    * User friendly specialized error for [NON_GENERATIVE_CONSTRUCTOR]. This
@@ -6873,13 +6898,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the name of the subclass that does not contain any explicit constructors
    */
   static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT =
-      CompileTimeErrorCodeWithUniqueName(
-          'NO_DEFAULT_SUPER_CONSTRUCTOR',
-          'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
-          "The superclass '{0}' doesn't have a zero argument constructor.",
-          correction: "Try declaring a zero argument constructor in '{0}', or "
-              "declaring a constructor in {1} that explicitly invokes a "
-              "constructor in '{0}'.");
+      CompileTimeErrorCode(
+    'NO_DEFAULT_SUPER_CONSTRUCTOR',
+    "The superclass '{0}' doesn't have a zero argument constructor.",
+    correction: "Try declaring a zero argument constructor in '{0}', or "
+        "declaring a constructor in {1} that explicitly invokes a "
+        "constructor in '{0}'.",
+    uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
+  );
 
   /**
    * Parameters:
@@ -6891,14 +6917,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
-      CompileTimeErrorCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
-          "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and "
-              "{4} more.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and "
+        "{4} more.",
+    correction: "Try implementing the missing methods, or make the class "
+        "abstract.",
+    hasPublishedDocs: true,
+    uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
+  );
 
   /**
    * Parameters:
@@ -6908,14 +6935,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 3: the name of the fourth member
    */
   static const CompileTimeErrorCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
-      CompileTimeErrorCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
-          "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = CompileTimeErrorCode(
+    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
+    correction: "Try implementing the missing methods, or make the class "
+        "abstract.",
+    hasPublishedDocs: true,
+    uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
+  );
 
   /**
    * Parameters:
@@ -6981,14 +7008,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // abstract class B extends A {}
   // ```
   static const CompileTimeErrorCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE =
-      CompileTimeErrorCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
-          "Missing concrete implementation of '{0}'.",
-          correction: "Try implementing the missing method, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = CompileTimeErrorCode(
+    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    "Missing concrete implementation of '{0}'.",
+    correction: "Try implementing the missing method, or make the class "
+        "abstract.",
+    hasPublishedDocs: true,
+    uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+  );
 
   /**
    * Parameters:
@@ -6997,14 +7024,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 2: the name of the third member
    */
   static const CompileTimeErrorCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
-      CompileTimeErrorCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
-          "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = CompileTimeErrorCode(
+    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
+    correction: "Try implementing the missing methods, or make the class "
+        "abstract.",
+    hasPublishedDocs: true,
+    uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
+  );
 
   /**
    * Parameters:
@@ -7012,14 +7039,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the name of the second member
    */
   static const CompileTimeErrorCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO =
-      CompileTimeErrorCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
-          "Missing concrete implementations of '{0}' and '{1}'.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = CompileTimeErrorCode(
+    'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+    "Missing concrete implementations of '{0}' and '{1}'.",
+    correction: "Try implementing the missing methods, or make the class "
+        "abstract.",
+    hasPublishedDocs: true,
+    uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+  );
 
   /**
    * No parameters.
@@ -8013,14 +8040,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode
       NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR =
-      CompileTimeErrorCodeWithUniqueName(
-          'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
-          'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
-          "Non-nullable instance field '{0}' must be initialized.",
-          correction: "Try adding an initializer expression, "
-              "or add a field initializer in this constructor, "
-              "or mark it 'late'.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+    "Non-nullable instance field '{0}' must be initialized.",
+    correction: "Try adding an initializer expression, "
+        "or add a field initializer in this constructor, "
+        "or mark it 'late'.",
+    hasPublishedDocs: true,
+    uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
+  );
 
   /**
    * Parameters:
@@ -9141,12 +9169,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 2: the name of the constructor
    */
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
-      CompileTimeErrorCodeWithUniqueName(
-          'RETURN_OF_INVALID_TYPE',
-          'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
-          "A value of type '{0}' can't be returned from constructor '{2}' "
-              "because it has a return type of '{1}'.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'RETURN_OF_INVALID_TYPE',
+    "A value of type '{0}' can't be returned from constructor '{2}' "
+        "because it has a return type of '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+  );
 
   /**
    * Parameters:
@@ -9183,12 +9212,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // int f() => 3;
   // ```
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_FUNCTION =
-      CompileTimeErrorCodeWithUniqueName(
-          'RETURN_OF_INVALID_TYPE',
-          'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
-          "A value of type '{0}' can't be returned from function '{2}' because "
-              "it has a return type of '{1}'.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'RETURN_OF_INVALID_TYPE',
+    "A value of type '{0}' can't be returned from function '{2}' because "
+        "it has a return type of '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
+  );
 
   /**
    * Parameters:
@@ -9197,12 +9227,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 2: the name of the method
    */
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
-      CompileTimeErrorCodeWithUniqueName(
-          'RETURN_OF_INVALID_TYPE',
-          'RETURN_OF_INVALID_TYPE_FROM_METHOD',
-          "A value of type '{0}' can't be returned from method '{2}' because "
-              "it has a return type of '{1}'.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'RETURN_OF_INVALID_TYPE',
+    "A value of type '{0}' can't be returned from method '{2}' because "
+        "it has a return type of '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_METHOD',
+  );
 
   /**
    * No parameters.
@@ -9911,13 +9942,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the superclass that does not define the invoked constructor
    */
   static const CompileTimeErrorCode
-      UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT =
-      CompileTimeErrorCodeWithUniqueName(
-          'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
-          'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
-          "The class '{0}' doesn't have an unnamed constructor.",
-          correction: "Try defining an unnamed constructor in '{0}', or "
-              "invoking a different constructor.");
+      UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = CompileTimeErrorCode(
+    'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
+    "The class '{0}' doesn't have an unnamed constructor.",
+    correction: "Try defining an unnamed constructor in '{0}', or "
+        "invoking a different constructor.",
+    uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
+  );
 
   /**
    * Parameters:
@@ -10684,14 +10715,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_GETTER =
-      CompileTimeErrorCodeWithUniqueName(
-          'UNDEFINED_SUPER_MEMBER',
-          'UNDEFINED_SUPER_GETTER',
-          "The getter '{0}' isn't defined in a superclass of '{1}'.",
-          correction:
-              "Try correcting the name to the name of an existing getter, or "
-              "defining a getter or field named '{0}' in a superclass.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'UNDEFINED_SUPER_MEMBER',
+    "The getter '{0}' isn't defined in a superclass of '{1}'.",
+    correction: "Try correcting the name to the name of an existing getter, or "
+        "defining a getter or field named '{0}' in a superclass.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNDEFINED_SUPER_GETTER',
+  );
 
   /**
    * Parameters:
@@ -10739,14 +10770,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the member isn’t defined, then either add the member to one of the
   // superclasses or remove the invocation.
   static const CompileTimeErrorCode UNDEFINED_SUPER_METHOD =
-      CompileTimeErrorCodeWithUniqueName(
-          'UNDEFINED_SUPER_MEMBER',
-          'UNDEFINED_SUPER_METHOD',
-          "The method '{0}' isn't defined in a superclass of '{1}'.",
-          correction:
-              "Try correcting the name to the name of an existing method, or "
-              "defining a method named '{0}' in a superclass.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'UNDEFINED_SUPER_MEMBER',
+    "The method '{0}' isn't defined in a superclass of '{1}'.",
+    correction: "Try correcting the name to the name of an existing method, or "
+        "defining a method named '{0}' in a superclass.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNDEFINED_SUPER_METHOD',
+  );
 
   /**
    * Parameters:
@@ -10754,12 +10785,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the name of the enclosing type where the operator is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_OPERATOR =
-      CompileTimeErrorCodeWithUniqueName(
-          'UNDEFINED_SUPER_MEMBER',
-          'UNDEFINED_SUPER_OPERATOR',
-          "The operator '{0}' isn't defined in a superclass of '{1}'.",
-          correction: "Try defining the operator '{0}' in a superclass.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'UNDEFINED_SUPER_MEMBER',
+    "The operator '{0}' isn't defined in a superclass of '{1}'.",
+    correction: "Try defining the operator '{0}' in a superclass.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNDEFINED_SUPER_OPERATOR',
+  );
 
   /**
    * Parameters:
@@ -10767,14 +10799,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the name of the enclosing type where the setter is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_SETTER =
-      CompileTimeErrorCodeWithUniqueName(
-          'UNDEFINED_SUPER_MEMBER',
-          'UNDEFINED_SUPER_SETTER',
-          "The setter '{0}' isn't defined in a superclass of '{1}'.",
-          correction:
-              "Try correcting the name to the name of an existing setter, or "
-              "defining a setter or field named '{0}' in a superclass.",
-          hasPublishedDocs: true);
+      CompileTimeErrorCode(
+    'UNDEFINED_SUPER_MEMBER',
+    "The setter '{0}' isn't defined in a superclass of '{1}'.",
+    correction: "Try correcting the name to the name of an existing setter, or "
+        "defining a setter or field named '{0}' in a superclass.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNDEFINED_SUPER_SETTER',
+  );
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
@@ -11391,35 +11423,27 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const CompileTimeErrorCode(String name, String message,
-      {String correction,
-      bool hasPublishedDocs,
-      bool isUnresolvedIdentifier = false})
-      : super.temporary(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier);
+  const CompileTimeErrorCode(
+    String name,
+    String message, {
+    String correction,
+    bool hasPublishedDocs = false,
+    bool isUnresolvedIdentifier = false,
+    String uniqueName,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          isUnresolvedIdentifier: isUnresolvedIdentifier,
+          message: message,
+          name: name,
+          uniqueName: uniqueName ?? 'CompileTimeErrorCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
 
   @override
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
-}
-
-class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
-  @override
-  final String uniqueName;
-
-  const CompileTimeErrorCodeWithUniqueName(
-      String name, this.uniqueName, String message,
-      {String correction,
-      bool hasPublishedDocs,
-      bool isUnresolvedIdentifier = false})
-      : super(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier);
 }
 
 /**
@@ -11495,10 +11519,14 @@ class LanguageCode extends ErrorCode {
    * created from the optional [correction] template.
    */
   const LanguageCode(String name, String message,
-      {String correction, bool hasPublishedDocs})
-      : super.temporary(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs ?? false);
+      {String correction, bool hasPublishedDocs = false})
+      : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: 'LanguageCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
@@ -11666,14 +11694,14 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * 1: The non-null-aware operator that can replace the invalid operator
    */
   static const StaticWarningCode
-      INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT =
-      StaticWarningCodeWithUniqueName(
-          'INVALID_NULL_AWARE_OPERATOR',
-          'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
-          "The receiver can't be null because of short-circuiting, so the "
-              "null-aware operator '{0}' can't be used.",
-          correction: "Try replacing the operator '{0}' with '{1}'.",
-          hasPublishedDocs: true);
+      INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT = StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The receiver can't be null because of short-circuiting, so the "
+        "null-aware operator '{0}' can't be used.",
+    correction: "Try replacing the operator '{0}' with '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
+  );
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -11812,35 +11840,27 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const StaticWarningCode(String name, String message,
-      {String correction,
-      bool hasPublishedDocs,
-      bool isUnresolvedIdentifier = false})
-      : super.temporary(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier);
+  const StaticWarningCode(
+    String name,
+    String message, {
+    String correction,
+    bool hasPublishedDocs = false,
+    bool isUnresolvedIdentifier = false,
+    String uniqueName,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          isUnresolvedIdentifier: isUnresolvedIdentifier,
+          message: message,
+          name: name,
+          uniqueName: uniqueName ?? 'StaticWarningCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
-}
-
-class StaticWarningCodeWithUniqueName extends StaticWarningCode {
-  @override
-  final String uniqueName;
-
-  const StaticWarningCodeWithUniqueName(
-      String name, this.uniqueName, String message,
-      {String correction,
-      bool hasPublishedDocs,
-      bool isUnresolvedIdentifier = false})
-      : super(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier);
 }
 
 /**
@@ -11903,11 +11923,15 @@ class StrongModeCode extends ErrorCode {
    * created from the optional [correction] template.
    */
   const StrongModeCode(ErrorType type, String name, String message,
-      {String correction, bool hasPublishedDocs})
+      {String correction, bool hasPublishedDocs = false})
       : type = type,
-        super.temporary(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs ?? false);
+        super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: 'StrongModeCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
