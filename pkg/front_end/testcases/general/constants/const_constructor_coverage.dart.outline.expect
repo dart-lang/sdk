@@ -1,0 +1,143 @@
+library;
+import self as self;
+import "const_constructor_coverage_lib1.dart" as con;
+
+import "org-dartlang-testcase:///const_constructor_coverage_lib1.dart";
+import "org-dartlang-testcase:///const_constructor_coverage_lib2.dart";
+
+static const field con::Foo* foo1 = const con::Foo::•();
+static const field con::Foo* foo2 = const con::Foo::named1();
+static const field con::Foo* foo3 = const con::Foo::named2();
+static const field con::Foo* foo4 = const con::Foo::named3();
+static method main() → dynamic
+  ;
+
+library;
+import self as con;
+import "dart:core" as core;
+import "const_constructor_coverage_lib2.dart" as con2;
+
+import "org-dartlang-testcase:///const_constructor_coverage_lib2.dart";
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  final field con::Bar* bar;
+  const constructor •() → con::Foo*
+    : con::Foo::bar = const con::Bar::•(), super core::Object::•()
+    ;
+  const constructor named1() → con::Foo*
+    : con::Foo::bar = const con::Bar::named1(), super core::Object::•()
+    ;
+  const constructor named2() → con::Foo*
+    : con::Foo::bar = const con::Bar::named1(), super core::Object::•()
+    ;
+  const constructor named3() → con::Foo*
+    : con::Foo::bar = const con::Bar::named1(), super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Bar extends core::Object /*hasConstConstructor*/  {
+  final field con2::Baz* baz;
+  const constructor •() → con::Bar*
+    : con::Bar::baz = const con2::Baz::•(), super core::Object::•()
+    ;
+  const constructor named1() → con::Bar*
+    : con::Bar::baz = const con2::Baz::named1(), super core::Object::•()
+    ;
+  const constructor named2() → con::Bar*
+    : con::Bar::baz = const con2::Baz::named1(), super core::Object::•()
+    ;
+  const constructor named3() → con::Bar*
+    : con::Bar::baz = const con2::Baz::named1(), super core::Object::•()
+    ;
+  const constructor named4(core::int* i) → con::Bar*
+    : con::Bar::baz = i.{core::num::>}(0) ?{con2::Baz*} const con2::Baz::named5() : const con2::Baz::named6(), super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field con::Foo* foo = const con::Foo::named3();
+
+library;
+import self as con2;
+import "dart:core" as core;
+import "const_constructor_coverage_lib1.dart" as con;
+
+import "org-dartlang-testcase:///const_constructor_coverage_lib1.dart";
+
+class Baz extends core::Object /*hasConstConstructor*/  {
+  final field con::Bar* bar;
+  const constructor •() → con2::Baz*
+    : con2::Baz::bar = null, super core::Object::•()
+    ;
+  const constructor named1() → con2::Baz*
+    : con2::Baz::bar = null, super core::Object::•()
+    ;
+  const constructor named2() → con2::Baz*
+    : con2::Baz::bar = null, super core::Object::•()
+    ;
+  const constructor named3() → con2::Baz*
+    : con2::Baz::bar = const con::Bar::named3(), super core::Object::•()
+    ;
+  const constructor named4() → con2::Baz*
+    : con2::Baz::bar = null, super core::Object::•()
+    ;
+  const constructor named5() → con2::Baz*
+    : con2::Baz::bar = null, super core::Object::•()
+    ;
+  const constructor named6() → con2::Baz*
+    : con2::Baz::bar = null, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field con2::Baz* baz = const con2::Baz::named4();
+static const field con::Foo* foo = const con::Foo::named2();
+static const field con::Bar* bar = const con::Bar::named2();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage.dart:8:24 -> InstanceConstant(const Foo{Foo.bar: const Bar{Bar.baz: const Baz{Baz.bar: null}}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage.dart:9:24 -> InstanceConstant(const Foo{Foo.bar: const Bar{Bar.baz: const Baz{Baz.bar: null}}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage.dart:10:24 -> InstanceConstant(const Foo{Foo.bar: const Bar{Bar.baz: const Baz{Baz.bar: null}}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage.dart:11:24 -> InstanceConstant(const Foo{Foo.bar: const Bar{Bar.baz: const Baz{Baz.bar: null}}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:9:35 -> InstanceConstant(const Bar{Bar.baz: const Baz{Baz.bar: null}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:10:42 -> InstanceConstant(const Bar{Bar.baz: const Baz{Baz.bar: null}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:11:42 -> InstanceConstant(const Bar{Bar.baz: const Baz{Baz.bar: null}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:12:42 -> InstanceConstant(const Bar{Bar.baz: const Baz{Baz.bar: null}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:17:35 -> InstanceConstant(const Baz{Baz.bar: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:18:42 -> InstanceConstant(const Baz{Baz.bar: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:19:42 -> InstanceConstant(const Baz{Baz.bar: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:20:42 -> InstanceConstant(const Baz{Baz.bar: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:22:29 -> InstanceConstant(const Baz{Baz.bar: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:22:50 -> InstanceConstant(const Baz{Baz.bar: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:25:23 -> InstanceConstant(const Foo{Foo.bar: const Bar{Bar.baz: const Baz{Baz.bar: null}}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib2.dart:12:36 -> InstanceConstant(const Bar{Bar.baz: const Baz{Baz.bar: null}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib2.dart:18:23 -> InstanceConstant(const Baz{Baz.bar: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib2.dart:19:23 -> InstanceConstant(const Foo{Foo.bar: const Bar{Bar.baz: const Baz{Baz.bar: null}}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_constructor_coverage_lib2.dart:20:23 -> InstanceConstant(const Bar{Bar.baz: const Baz{Baz.bar: null}})
+Extra constant evaluation: evaluated: 22, effectively constant: 19
