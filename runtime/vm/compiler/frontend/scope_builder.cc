@@ -213,12 +213,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         // arguments and dynamic targets do their own covariant checking.
         // Thus, implicit closure functions perform no checking internally.
         type_check_mode = kTypeCheckForImplicitClosureFunction;
-      } else if (function.CanReceiveDynamicInvocation()) {
-        // If the current function can be the direct target of a dynamic
-        // invocation, that is, dynamic calls do not go through a dynamic
-        // invocation forwarder or dynamic closure call dispatcher, then we must
-        // check non-covariant parameters as well as covariant ones.
-        type_check_mode = kTypeCheckAllParameters;
       }
 
       // Continue reading FunctionNode:
@@ -284,7 +278,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         }
         scope_->InsertParameterAt(pos++, result_->setter_value);
 
-        if (is_method && !function.CanReceiveDynamicInvocation()) {
+        if (is_method) {
           if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
           } else if (!field.is_generic_covariant_impl() ||

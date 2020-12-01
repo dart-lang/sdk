@@ -891,9 +891,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   Fragment implicit_type_checks;
   if (dart_function.NeedsTypeArgumentTypeChecks()) {
     B->BuildTypeArgumentTypeChecks(
-        dart_function.CanReceiveDynamicInvocation()
-            ? TypeChecksToBuild::kCheckAllTypeParameterBounds
-            : TypeChecksToBuild::kCheckCovariantTypeParameterBounds,
+        TypeChecksToBuild::kCheckCovariantTypeParameterBounds,
         &implicit_type_checks);
   }
 

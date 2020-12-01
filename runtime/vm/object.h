@@ -2849,10 +2849,6 @@ class Function : public Object {
     return (kind() == FunctionLayout::kConstructor) && is_static();
   }
 
-  // Whether this function can receive an invocation where the number and names
-  // of arguments have not been checked.
-  bool CanReceiveDynamicInvocation() const { return IsFfiTrampoline(); }
-
   bool HasThisParameter() const {
     return IsDynamicFunction(/*allow_abstract=*/true) ||
            IsGenerativeConstructor() || (IsFieldInitializer() && !is_static());

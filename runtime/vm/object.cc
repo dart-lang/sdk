@@ -4215,12 +4215,10 @@ ObjectPtr Class::Invoke(const String& function_name,
   }
   // This is a static function, so we pass an empty instantiator tav.
   ASSERT(function.is_static());
-  if (!function.CanReceiveDynamicInvocation()) {
-    ObjectPtr type_error = function.DoArgumentTypesMatch(
-        args, args_descriptor, Object::empty_type_arguments());
-    if (type_error != Error::null()) {
-      return type_error;
-    }
+  ObjectPtr type_error = function.DoArgumentTypesMatch(
+      args, args_descriptor, Object::empty_type_arguments());
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -9648,8 +9646,7 @@ bool Function::PrologueNeedsArgumentsDescriptor() const {
   }
   // The prologue of those functions need to examine the arg descriptor for
   // various purposes.
-  return IsGeneric() || HasOptionalParameters() ||
-         CanReceiveDynamicInvocation();
+  return IsGeneric() || HasOptionalParameters();
 }
 
 bool Function::MayHaveUncheckedEntryPoint() const {
@@ -12708,12 +12705,10 @@ static ObjectPtr InvokeInstanceFunction(
     return DartEntry::InvokeNoSuchMethod(thread, receiver, target_name, args,
                                          args_descriptor_array);
   }
-  if (!function.CanReceiveDynamicInvocation()) {
-    ObjectPtr type_error = function.DoArgumentTypesMatch(
-        args, args_descriptor, instantiator_type_args);
-    if (type_error != Error::null()) {
-      return type_error;
-    }
+  ObjectPtr type_error = function.DoArgumentTypesMatch(args, args_descriptor,
+                                                       instantiator_type_args);
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -12910,12 +12905,10 @@ ObjectPtr Library::Invoke(const String& function_name,
   }
   // This is a static function, so we pass an empty instantiator tav.
   ASSERT(function.is_static());
-  if (!function.CanReceiveDynamicInvocation()) {
-    ObjectPtr type_error = function.DoArgumentTypesMatch(
-        args, args_descriptor, Object::empty_type_arguments());
-    if (type_error != Error::null()) {
-      return type_error;
-    }
+  ObjectPtr type_error = function.DoArgumentTypesMatch(
+      args, args_descriptor, Object::empty_type_arguments());
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }

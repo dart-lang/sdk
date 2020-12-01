@@ -130,8 +130,6 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
     //
     // Normally we have to check the parameter type.
     ASSERT(function.NeedsArgumentTypeChecks());
-    // Dynamic call sites will go to dyn:set:* instead.
-    ASSERT(!function.CanReceiveDynamicInvocation());
     // Covariant parameter types have to be checked, which we don't support.
     if (field.is_covariant() || field.is_generic_covariant_impl()) return false;
 
