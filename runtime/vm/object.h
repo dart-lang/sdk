@@ -4501,12 +4501,6 @@ class Script : public Object {
 
   TypedDataPtr line_starts() const;
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ExternalTypedDataPtr constant_coverage() const;
-
-  void set_constant_coverage(const ExternalTypedData& value) const;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
   void set_line_starts(const TypedData& value) const;
 
   void set_debug_positions(const Array& value) const;
