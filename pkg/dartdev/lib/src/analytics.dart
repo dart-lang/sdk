@@ -57,7 +57,7 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
   }
 
   if (disableAnalytics) {
-    // Dartdev tests pass a hidden 'no-analytics' flag which is
+    // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
     // handled here.
     //
     // Also, stdout.hasTerminal is checked; if there is no terminal we infer

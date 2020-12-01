@@ -85,15 +85,14 @@ static constexpr int INVALID_VM_SERVICE_SERVER_PORT = -1;
 
 class Options {
  public:
-  // Returns true if argument parsing succeeded. False otherwise.
-  static bool ParseArguments(int argc,
-                             char** argv,
-                             bool vm_run_app_shapshot,
-                             CommandLineOptions* vm_options,
-                             char** script_name,
-                             CommandLineOptions* dart_options,
-                             bool* print_flags_seen,
-                             bool* verbose_debug_seen);
+  static int ParseArguments(int argc,
+                            char** argv,
+                            bool vm_run_app_shapshot,
+                            CommandLineOptions* vm_options,
+                            char** script_name,
+                            CommandLineOptions* dart_options,
+                            bool* print_flags_seen,
+                            bool* verbose_debug_seen);
 
 #define STRING_OPTION_GETTER(flag, variable)                                   \
   static const char* variable() { return variable##_; }
