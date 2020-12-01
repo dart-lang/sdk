@@ -164,8 +164,6 @@ class ObjectPointerVisitor;
   RW(Function, simple_instance_of_function)                                    \
   RW(Function, simple_instance_of_true_function)                               \
   RW(Function, simple_instance_of_false_function)                              \
-  RW(Function, async_clear_thread_stack_trace)                                 \
-  RW(Function, async_set_thread_stack_trace)                                   \
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
   RW(Function, complete_on_async_error)                                        \

@@ -497,37 +497,4 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
   return collected_frames_count;
 }
 
-intptr_t StackTraceUtils::ExtractAsyncStackTraceInfo(
-    Thread* thread,
-    Function* async_function,
-    StackTrace* async_stack_trace_out,
-    Array* async_code_array,
-    Array* async_pc_offset_array) {
-  if (thread->async_stack_trace() == StackTrace::null()) {
-    return 0;
-  }
-  *async_stack_trace_out = thread->async_stack_trace();
-  ASSERT(!async_stack_trace_out->IsNull());
-  const StackTrace& async_stack_trace =
-      StackTrace::Handle(thread->async_stack_trace());
-  const intptr_t async_stack_trace_length = async_stack_trace.Length();
-  // At least two entries (0: gap marker, 1: async function).
-  RELEASE_ASSERT(async_stack_trace_length >= 2);
-  // Validate the structure of this stack trace.
-  *async_code_array = async_stack_trace.code_array();
-  ASSERT(!async_code_array->IsNull());
-  *async_pc_offset_array = async_stack_trace.pc_offset_array();
-  ASSERT(!async_pc_offset_array->IsNull());
-  // We start with the asynchronous gap marker.
-  ASSERT(async_code_array->At(0) != Code::null());
-  ASSERT(async_code_array->At(0) == StubCode::AsynchronousGapMarker().raw());
-  const Object& code_object = Object::Handle(async_code_array->At(1));
-  ASSERT(code_object.IsCode());
-  *async_function = Code::Cast(code_object).function();
-  ASSERT(!async_function->IsNull());
-  ASSERT(async_function->IsAsyncFunction() ||
-         async_function->IsAsyncGenerator());
-  return async_stack_trace_length;
-}
-
 }  // namespace dart

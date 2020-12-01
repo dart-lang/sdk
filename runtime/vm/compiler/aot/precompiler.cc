@@ -416,7 +416,6 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_simple_instance_of_function(null_function);
       I->object_store()->set_simple_instance_of_true_function(null_function);
       I->object_store()->set_simple_instance_of_false_function(null_function);
-      I->object_store()->set_async_set_thread_stack_trace(null_function);
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);

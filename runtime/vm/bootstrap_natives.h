@@ -162,9 +162,6 @@ namespace dart {
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 4)                                          \
   V(Async_rethrow, 2)                                                          \
-  V(StackTrace_asyncStackTraceHelper, 1)                                       \
-  V(StackTrace_clearAsyncThreadStackTrace, 0)                                  \
-  V(StackTrace_setAsyncThreadStackTrace, 1)                                    \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \

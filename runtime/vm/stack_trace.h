@@ -113,17 +113,6 @@ class StackTraceUtils : public AllStatic {
                                 intptr_t array_offset,
                                 intptr_t count,
                                 int skip_frames);
-
-  /// If |thread| has no async_stack_trace, does nothing.
-  /// Populates |async_function| with the top function of the async stack
-  /// trace. Populates |async_stack_trace|, |async_code_array|, and
-  /// |async_pc_offset_array| with the thread's async_stack_trace.
-  /// Returns the length of the asynchronous stack trace.
-  static intptr_t ExtractAsyncStackTraceInfo(Thread* thread,
-                                             Function* async_function,
-                                             StackTrace* async_stack_trace,
-                                             Array* async_code_array,
-                                             Array* async_pc_offset_array);
 };
 
 }  // namespace dart

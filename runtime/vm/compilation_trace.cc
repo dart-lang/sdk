@@ -448,7 +448,6 @@ static char* CompilerFlags() {
   ADD_FLAG(enable_asserts);
   ADD_FLAG(use_field_guards);
   ADD_FLAG(use_osr);
-  ADD_FLAG(causal_async_stacks);
   ADD_FLAG(fields_may_be_reset);
 #undef ADD_FLAG
 

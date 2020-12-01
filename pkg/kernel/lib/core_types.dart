@@ -90,7 +90,6 @@ class CoreTypes {
   Constructor _streamIteratorDefaultConstructor;
   Constructor _asyncStarStreamControllerDefaultConstructor;
   Procedure _asyncStarMoveNextHelperProcedure;
-  Procedure _asyncStackTraceHelperProcedure;
   Procedure _asyncThenWrapperHelperProcedure;
   Procedure _asyncErrorWrapperHelperProcedure;
   Procedure _awaitHelperProcedure;
@@ -231,11 +230,6 @@ class CoreTypes {
   Procedure get asyncStarMoveNextHelper {
     return _asyncStarMoveNextHelperProcedure ??=
         index.getTopLevelMember('dart:async', '_asyncStarMoveNextHelper');
-  }
-
-  Procedure get asyncStackTraceHelperProcedure {
-    return _asyncStackTraceHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_asyncStackTraceHelper');
   }
 
   Procedure get asyncThenWrapperHelperProcedure {

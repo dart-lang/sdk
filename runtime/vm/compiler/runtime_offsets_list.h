@@ -181,7 +181,6 @@
   FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
   FIELD(Thread, allocate_object_slow_stub_offset)                              \
   FIELD(Thread, api_top_scope_offset)                                          \
-  FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
   FIELD(Thread, bool_true_offset)                                              \

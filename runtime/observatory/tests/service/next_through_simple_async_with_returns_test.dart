@@ -1,19 +1,17 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// VMOptions=--no-causal-async-stacks --lazy-async-stacks
-// VMOptions=--causal-async-stacks --no-lazy-async-stacks
+//
+// VMOptions=--lazy-async-stacks
 
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'dart:io';
 
-const int LINE_A = 16;
+const int LINE_A = 14;
 const String file = "next_through_simple_async_with_returns_test.dart";
 
-// line A is at the "code() async" line
-code() async {
+code() async {  // LINE_A
   File f = new File(Platform.script.toFilePath());
   bool exists = await f.exists();
   if (exists) {

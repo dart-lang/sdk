@@ -657,13 +657,6 @@ class Thread : public ThreadState {
   void ClearStickyError();
   DART_WARN_UNUSED_RESULT ErrorPtr StealStickyError();
 
-  StackTracePtr async_stack_trace() const;
-  void set_async_stack_trace(const StackTrace& stack_trace);
-  void clear_async_stack_trace();
-  static intptr_t async_stack_trace_offset() {
-    return OFFSET_OF(Thread, async_stack_trace_);
-  }
-
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -922,7 +915,6 @@ class Thread : public ThreadState {
   MarkingStackBlock* marking_stack_block_;
   MarkingStackBlock* deferred_marking_stack_block_;
   uword volatile vm_tag_;
-  StackTracePtr async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
   // generated code to runtime.
   // TODO(dartbug.com/33549): Clean this up when unboxed values

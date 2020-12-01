@@ -159,7 +159,6 @@ namespace dart {
   V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0xd55a64fe)   \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0x5570ec7a)   \
   V(::, _classRangeCheck, ClassRangeCheck, 0x5ee76890)                         \
-  V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0x92cea93f)             \
   V(::, _abi, FfiAbi, 0x00a48df9)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x4ea3f680)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0xe7a60d02)        \
@@ -383,10 +382,6 @@ namespace dart {
   V(::, _getCurrentTag, Profiler_getCurrentTag, 0x33c3ec34)                    \
   V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, 0x7dfcaa37)        \
 
-#define ASYNC_LIB_INTRINSIC_LIST(V)                                            \
-  V(::, _clearAsyncThreadStackTrace, ClearAsyncThreadStackTrace, 0x20fecae5)   \
-  V(::, _setAsyncThreadStackTrace, SetAsyncThreadStackTrace, 0x39346972)       \
-
 #define INTERNAL_LIB_INTRINSIC_LIST(V)                                         \
   V(::, allocateOneByteString, AllocateOneByteString, 0xc86bebfa)              \
   V(::, allocateTwoByteString, AllocateTwoByteString, 0xd0312797)              \
@@ -394,7 +389,6 @@ namespace dart {
   V(::, writeIntoTwoByteString, WriteIntoTwoByteString, 0xd82789d0)            \
 
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
-  ASYNC_LIB_INTRINSIC_LIST(V)                                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
   DEVELOPER_LIB_INTRINSIC_LIST(V)                                              \
   INTERNAL_LIB_INTRINSIC_LIST(V)                                               \

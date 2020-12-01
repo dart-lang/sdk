@@ -46,8 +46,6 @@ class BaseIsolate {
   // zones/handles in the API scope :
   // - Dart_RunLoop()
   // - IsolateSaver in Dart_NewNativePort
-  // Similarly, tracking async_stack_trace requires that we always reschedule
-  // on the same thread.
   // We probably need a mechanism to return to the specific thread only
   // for these specific cases. We should also determine if the embedder
   // should allow exiting an isolate with live state in zones/handles in

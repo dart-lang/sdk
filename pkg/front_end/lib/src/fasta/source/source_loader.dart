@@ -1547,8 +1547,6 @@ _asyncErrorWrapperHelper(continuation) {}
 
 void _asyncStarMoveNextHelper(var stream) {}
 
-_asyncStackTraceHelper(async_op) {}
-
 _asyncThenWrapperHelper(continuation) {}
 
 _awaitHelper(object, thenCallback, errorCallback, awaiter) {}

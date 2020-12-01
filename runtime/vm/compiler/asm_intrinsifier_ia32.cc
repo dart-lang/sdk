@@ -2240,20 +2240,6 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
 #endif
 }
 
-void AsmIntrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  __ LoadObject(EAX, NullObject());
-  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
-  __ ret();
-}
-
-void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
-  __ LoadObject(EAX, NullObject());
-  __ ret();
-}
-
 #undef __
 
 }  // namespace compiler

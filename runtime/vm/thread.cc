@@ -71,7 +71,6 @@ Thread::Thread(bool is_vm_isolate)
       store_buffer_block_(NULL),
       marking_stack_block_(NULL),
       vm_tag_(0),
-      async_stack_trace_(StackTrace::null()),
       unboxed_int64_runtime_arg_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
@@ -283,19 +282,6 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       UNREACHABLE();
       return "";
   }
-}
-
-StackTracePtr Thread::async_stack_trace() const {
-  return async_stack_trace_;
-}
-
-void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
-  ASSERT(!stack_trace.IsNull());
-  async_stack_trace_ = stack_trace.raw();
-}
-
-void Thread::clear_async_stack_trace() {
-  async_stack_trace_ = StackTrace::null();
 }
 
 bool Thread::EnterIsolate(Isolate* isolate) {
@@ -667,7 +653,6 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&async_stack_trace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ffi_callback_code_));
 
   // Visit the api local scope as it has all the api local handles.

@@ -30,7 +30,6 @@ class ObjectPointerVisitor;
   V(AssignIndexToken, "[]=")                                                   \
   V(AsyncFuture, ":async_future")                                              \
   V(AsyncOperation, ":async_op")                                               \
-  V(AsyncStackTraceVar, ":async_stack_trace")                                  \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
@@ -46,7 +45,6 @@ class ObjectPointerVisitor;
   V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
-  V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
   V(ClosureData, "ClosureData")                                                \
   V(ClosureParameter, ":closure")                                              \
   V(Code, "Code")                                                              \
@@ -71,7 +69,6 @@ class ObjectPointerVisitor;
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
-  V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(DartDeveloperTimeline, "dart.developer.timeline")                          \
   V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartFfi, "dart:ffi")                                                       \
@@ -247,7 +244,6 @@ class ObjectPointerVisitor;
   V(Script, "Script")                                                          \
   V(SecondArg, "y")                                                            \
   V(Set, "set")                                                                \
-  V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(SetterPrefix, "set:")                                                      \
   V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
@@ -258,7 +254,6 @@ class ObjectPointerVisitor;
   V(SpaceWhereNewLine, " where\n")                                             \
   V(StackOverflowError, "StackOverflowError")                                  \
   V(StackTraceParameter, ":stack_trace")                                       \
-  V(StackTraceVar, ":stack_trace_var")                                         \
   V(Stream, "stream")                                                          \
   V(StreamController, "StreamController")                                      \
   V(StreamIterator, "StreamIterator")                                          \

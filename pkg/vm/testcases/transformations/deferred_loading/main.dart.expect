@@ -49,7 +49,6 @@ LoadingUnit(id=6, parent=5,
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -66,7 +65,6 @@ LoadingUnit(id=6, parent=5,
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -82,7 +80,6 @@ library h from "#pkg/vm/testcases/transformations/deferred_loading/h.dart" as h 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -99,7 +96,6 @@ library h from "#pkg/vm/testcases/transformations/deferred_loading/h.dart" as h 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -116,7 +112,6 @@ library i from "#pkg/vm/testcases/transformations/deferred_loading/i.dart" as i 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -138,7 +133,6 @@ library i from "#pkg/vm/testcases/transformations/deferred_loading/i.dart" as i 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -154,7 +148,6 @@ library g from "#pkg/vm/testcases/transformations/deferred_loading/g.dart" as g 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -171,7 +164,6 @@ library g from "#pkg/vm/testcases/transformations/deferred_loading/g.dart" as g 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -188,7 +180,6 @@ library f from "#pkg/vm/testcases/transformations/deferred_loading/f.dart" as f 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -214,7 +205,6 @@ library f from "#pkg/vm/testcases/transformations/deferred_loading/f.dart" as f 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -230,7 +220,6 @@ library e from "#pkg/vm/testcases/transformations/deferred_loading/e.dart" as e 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -252,7 +241,6 @@ library e from "#pkg/vm/testcases/transformations/deferred_loading/e.dart" as e 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -269,7 +257,6 @@ library c from "#pkg/vm/testcases/transformations/deferred_loading/c.dart" as c 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -291,7 +278,6 @@ library c from "#pkg/vm/testcases/transformations/deferred_loading/c.dart" as c 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -307,7 +293,6 @@ library d from "#pkg/vm/testcases/transformations/deferred_loading/d.dart" as d 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -326,7 +311,6 @@ library d from "#pkg/vm/testcases/transformations/deferred_loading/d.dart" as d 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -342,7 +326,6 @@ library b from "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -361,7 +344,6 @@ library b from "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -377,7 +359,6 @@ library a from "#pkg/vm/testcases/transformations/deferred_loading/a.dart" as a 
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -399,7 +380,6 @@ library a from "#pkg/vm/testcases/transformations/deferred_loading/a.dart" as a 
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
@@ -416,7 +396,6 @@ library #lib from "#lib" as #lib {
     final dart.async::_Future<dynamic>* :async_future = new dart.async::_Future::•<dynamic>();
     dart.core::bool* :is_sync = false;
     FutureOr<dynamic>* :return_value;
-    dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
     dart.core::int* :await_jump_var = 0;
@@ -437,7 +416,6 @@ library #lib from "#lib" as #lib {
       on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
         dart.async::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
     :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
     [@vm.call-site-attributes.metadata=receiverType:dynamic Function([dynamic, dynamic, dart.core::StackTrace*])*] :async_op.call();
