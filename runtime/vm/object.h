@@ -2258,6 +2258,11 @@ class ICData : public CallSiteData {
   void SetNumArgsTested(intptr_t value) const;
   void SetReceiversStaticType(const AbstractType& type) const;
 
+  static void SetTargetAtPos(const Array& data,
+                             intptr_t data_pos,
+                             intptr_t num_args_tested,
+                             const Function& target);
+
   // This bit is set when a call site becomes megamorphic and starts using a
   // MegamorphicCache instead of ICData. It means that the entries in the
   // ICData are incomplete and the MegamorphicCache needs to also be consulted

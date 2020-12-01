@@ -1596,6 +1596,9 @@ class SwitchableCallHandler {
   void DoMegamorphicMiss(const MegamorphicCache& data,
                          const Function& target_function);
 
+  ICDataPtr NewICData();
+  ICDataPtr NewICDataWithTarget(intptr_t cid, const Function& target);
+
   Isolate* isolate_;
   Thread* thread_;
   Zone* zone_;
@@ -1613,16 +1616,11 @@ class SwitchableCallHandler {
 
 void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
                                            const Function& target_function) {
-  const String& name = String::Handle(zone_, unlinked.target_name());
-  const Array& descriptor =
-      Array::Handle(zone_, unlinked.arguments_descriptor());
-  const ICData& ic_data =
-      ICData::Handle(zone_, ICData::New(caller_function_, name, descriptor,
-                                        DeoptId::kNone, 1, /* args_tested */
-                                        ICData::kInstance));
-  if (!target_function.IsNull()) {
-    ic_data.AddReceiverCheck(receiver_.GetClassId(), target_function);
-  }
+  const auto& ic_data = ICData::Handle(
+      zone_,
+      target_function.IsNull()
+          ? NewICData()
+          : NewICDataWithTarget(receiver_.GetClassId(), target_function));
 
   Object& object = Object::Handle(zone_, ic_data.raw());
   Code& code = Code::Handle(zone_, StubCode::ICCallThroughCode().raw());
@@ -1746,14 +1744,10 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
       zone_,
       Resolve(thread_, zone_, old_receiver_class, name_, args_descriptor_));
 
-  const ICData& ic_data = ICData::Handle(
-      zone_, ICData::New(caller_function_, name_, args_descriptor_,
-                         DeoptId::kNone, 1, /* args_tested */
-                         ICData::kInstance));
-  // Add the first target.
-  if (!old_target.IsNull()) {
-    ic_data.AddReceiverCheck(old_expected_cid, old_target);
-  }
+  const auto& ic_data = ICData::Handle(
+      zone_, old_target.IsNull()
+                 ? NewICData()
+                 : NewICDataWithTarget(old_expected_cid, old_target));
 
   if (is_monomorphic_hit) {
     // The site just have been updated to monomorphic state with same
@@ -1794,6 +1788,7 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
   arguments_.SetArgAt(0, stub);
   arguments_.SetReturn(ic_data);
 #else   // JIT
+
   const ICData& ic_data = ICData::Handle(
       zone_,
       FindICDataForInstanceCall(zone_, caller_code_, caller_frame_->pc()));
@@ -1836,13 +1831,11 @@ void SwitchableCallHandler::DoSingleTargetMiss(
       Function::Handle(zone_, Function::RawCast(old_target_code.owner()));
 
   // We lost the original ICData when we patched to the monomorphic case.
-  const ICData& ic_data = ICData::Handle(
-      zone_, ICData::New(caller_function_, name_, args_descriptor_,
-                         DeoptId::kNone, 1, /* args_tested */
-                         ICData::kInstance));
-  if (!target_function.IsNull()) {
-    ic_data.AddReceiverCheck(receiver_.GetClassId(), target_function);
-  }
+  const auto& ic_data = ICData::Handle(
+      zone_,
+      target_function.IsNull()
+          ? NewICData()
+          : NewICDataWithTarget(receiver_.GetClassId(), target_function));
 
   intptr_t lower = data.lower_limit();
   intptr_t upper = data.upper_limit();
@@ -1955,6 +1948,20 @@ void SwitchableCallHandler::DoMegamorphicMiss(const MegamorphicCache& data,
   data.Insert(class_id, target_function);
   arguments_.SetArgAt(0, StubCode::MegamorphicCall());
   arguments_.SetReturn(data);
+}
+
+ICDataPtr SwitchableCallHandler::NewICData() {
+  return ICData::New(caller_function_, name_, args_descriptor_, DeoptId::kNone,
+                     /*num_args_tested=*/1, ICData::kInstance);
+}
+
+ICDataPtr SwitchableCallHandler::NewICDataWithTarget(intptr_t cid,
+                                                     const Function& target) {
+  GrowableArray<intptr_t> cids(1);
+  cids.Add(cid);
+  return ICData::NewWithCheck(caller_function_, name_, args_descriptor_,
+                              DeoptId::kNone, /*num_args_tested=*/1,
+                              ICData::kInstance, &cids, target);
 }
 
 FunctionPtr SwitchableCallHandler::ResolveTargetFunction(const Object& data) {

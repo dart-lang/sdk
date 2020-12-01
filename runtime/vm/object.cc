@@ -14879,6 +14879,24 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
 }
 #endif
 
+void ICData::SetTargetAtPos(const Array& data,
+                            intptr_t data_pos,
+                            intptr_t num_args_tested,
+                            const Function& target) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // JIT
+  data.SetAt(data_pos + TargetIndexFor(num_args_tested), target);
+#else
+  // AOT
+  ASSERT(target.HasCode());
+  const Code& code = Code::Handle(target.CurrentCode());
+  const Smi& entry_point =
+      Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
+  data.SetAt(data_pos + CodeIndexFor(num_args_tested), code);
+  data.SetAt(data_pos + EntryPointIndexFor(num_args_tested), entry_point);
+#endif
+}
+
 const char* ICData::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   const String& name = String::Handle(zone, target_name());
@@ -15330,24 +15348,15 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
     data_pos = 0;
   }
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+  SetTargetAtPos(data, data_pos, kNumArgsTested, target);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  // JIT
-  data.SetAt(data_pos + TargetIndexFor(kNumArgsTested), target);
   data.SetAt(data_pos + CountIndexFor(kNumArgsTested),
              Smi::Handle(Smi::New(count)));
   if (is_tracking_exactness()) {
     data.SetAt(data_pos + ExactnessIndexFor(kNumArgsTested),
                Smi::Handle(Smi::New(exactness.Encode())));
   }
-#else
-  // AOT
-  ASSERT(target.HasCode());
-  const Code& code = Code::Handle(target.CurrentCode());
-  const Smi& entry_point =
-      Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
-  data.SetAt(data_pos + CodeIndexFor(kNumArgsTested), code);
-  data.SetAt(data_pos + EntryPointIndexFor(kNumArgsTested), entry_point);
 #endif
 
   // Multithreaded access to ICData requires setting of array to be the last
@@ -15822,9 +15831,13 @@ ICDataPtr ICData::NewWithCheck(const Function& owner,
     cid = Smi::New((*cids)[i]);
     array.SetAt(i, cid);
   }
+
+  SetTargetAtPos(array, 0, num_args_tested, target);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
-  array.SetAt(TargetIndexFor(num_args_tested), target);
+#endif
   WriteSentinel(array, entry_len);
+
   result.set_entries(array);
 
   return result.raw();
