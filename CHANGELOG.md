@@ -56,8 +56,14 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.125`, which includes:
+Updated the Linter to `0.1.126`, which includes:
 
+* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is passed as the argument to a function in any
+  position other than the first.
+* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is used in a place with a static type other than
+  Set or Map.
 * (Internal): test updates to the new `PhysicalResourceProvider` API.
 * Fixed false positives in `prefer_constructors_over_static_methods`.
 * Updates to `package_names` to allow leading underscores.
