@@ -56,8 +56,7 @@ class NavigationTreeRenderer {
       for (var entry in linksGroupedByDirectory.entries)
         NavigationTreeDirectoryNode(
           name: entry.key,
-          path: pathContext
-              .dirname(pathContext.joinAll(entry.value.first.pathParts)),
+          path: pathContext.joinAll(entry.value.first.pathParts),
           subtree: _renderNavigationSubtree(entry.value, depth + 1),
         )..setSubtreeParents(),
       for (var link in links.where((link) => link.depth == depth))

@@ -1907,6 +1907,29 @@ main() {
     }
   }
 
+  test_noReceiver_parameter_functionTyped_typedef() async {
+    await assertNoErrorsInCode(r'''
+typedef F = void Function();
+
+void f(F a) {
+  a();
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('a();');
+    assertFunctionExpressionInvocation(
+      invocation,
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+
+    var aRef = invocation.function as SimpleIdentifier;
+    assertElement(aRef, findElement.parameter('a'));
+    assertType(aRef, 'void Function()');
+  }
+
   test_noReceiver_topFunction() async {
     await assertNoErrorsInCode(r'''
 void foo(int _) {}

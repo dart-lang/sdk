@@ -83,6 +83,21 @@ int Function() foo(A a) {
     assertType(identifier, 'A');
   }
 
+  test_localFunction_generic() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  static void foo<S>(S s) {
+    void f<U>(S s, U u) {}
+    f;
+  }
+}
+''');
+
+    var identifier = findNode.simple('f;');
+    assertElement(identifier, findElement.localFunction('f'));
+    assertType(identifier, 'void Function<U>(S, U)');
+  }
+
   test_tearOff_function_topLevel() async {
     await assertNoErrorsInCode('''
 void foo(int a) {}

@@ -93,7 +93,8 @@ header {
 }
 
 header h1,
-header h2 {
+header h2,
+header h3 {
   display: inline-block;
   font-family: "Google Sans","Roboto",sans-serif;
   font-weight: 400;
@@ -111,6 +112,13 @@ header h2 {
   position: relative;
   top: -2px;
 }
+
+header h3 {
+  /* Shift text up */
+  position: relative;
+  top: -2px;
+}
+
 
 header .action-button, header a {
   right: 0px;
@@ -214,23 +222,23 @@ footer .sdk-version {
   color: #676767; /* $secondary-color */
 }
 
-.status-icon.already-migrated {
+.nav-tree .status-icon.already-migrated {
   color: #007a27; /* $light-green */
 }
 
-.status-icon.opted-out {
+.nav-tree .status-icon.opted-out {
   color: #676767; /* $secondary-color */
 }
 
-.status-icon.opted-out:hover {
+.nav-tree .status-icon.opted-out:hover {
   color: #ffffff;
 }
 
-.status-icon.migrating {
+.nav-tree .status-icon.migrating {
   color: #51c686; /* $dark-green */
 }
 
-.status-icon.migrating:hover {
+.nav-tree .status-icon.migrating:hover {
   color: #ffffff;
 }
 
@@ -292,41 +300,14 @@ footer .sdk-version {
   line-height: 1em;
 }
 
-.file {
-  flex: 4 300px;
-  font-family: "Google Sans","Roboto",sans-serif;
-  background: #12202f;
-  margin: 6px;
-  overflow: scroll;
-}
-
-.title-bar h3 {
-  display: inline-block;
-  font-weight: 400;
-  /* This aligns the title text with the content text, accounting for the width
-   * of the line numbers.
-   */
-  margin: 0.5em 24px 0.5em 63px;
-}
-
-.title-bar #migrate-unit-status-icon-label {
-  display: none;
-  user-select: none;
-}
-
-.title-bar #migrate-unit-status-icon-label.visible {
-  /* Change to 'inline' to enable the incremental migration feature. */
-  display: none;
-}
-
-.title-bar #migrate-unit-status-icon {
-  vertical-align: text-bottom;
-}
-
 .content {
-  font-family: "Roboto Mono",monospace;
+  flex: 4 300px;
+  background: #12202f;
+  font-family: "Roboto Mono", monospace;
+  margin: 0 6px;
   position: relative;
   white-space: pre;
+  overflow: scroll;
 }
 
 .code {
@@ -678,7 +659,7 @@ button[disabled] {
  * Adjustments to align material icons in the toolbar buttons.
 */
 .action-button > span {
-  position: relative;
+  position:relative;
   top: -3px;
 }
 
