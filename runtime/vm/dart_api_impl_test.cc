@@ -7364,7 +7364,9 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
       "foo1:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
-  EXPECT_ERROR(lib, "Compilation failed FileSystemException(uri=foo1:");
+  EXPECT_ERROR(lib,
+               "Compilation failed Invalid argument(s): Exception when reading "
+               "'foo1:///.dart_tool");
 }
 
 void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {
