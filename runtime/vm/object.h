@@ -2258,6 +2258,11 @@ class ICData : public CallSiteData {
   void SetNumArgsTested(intptr_t value) const;
   void SetReceiversStaticType(const AbstractType& type) const;
 
+  static void SetTargetAtPos(const Array& data,
+                             intptr_t data_pos,
+                             intptr_t num_args_tested,
+                             const Function& target);
+
   // This bit is set when a call site becomes megamorphic and starts using a
   // MegamorphicCache instead of ICData. It means that the entries in the
   // ICData are incomplete and the MegamorphicCache needs to also be consulted
@@ -2848,10 +2853,6 @@ class Function : public Object {
   bool IsFactory() const {
     return (kind() == FunctionLayout::kConstructor) && is_static();
   }
-
-  // Whether this function can receive an invocation where the number and names
-  // of arguments have not been checked.
-  bool CanReceiveDynamicInvocation() const { return IsFfiTrampoline(); }
 
   bool HasThisParameter() const {
     return IsDynamicFunction(/*allow_abstract=*/true) ||
@@ -4500,12 +4501,6 @@ class Script : public Object {
   TypedDataPtr kernel_string_offsets() const;
 
   TypedDataPtr line_starts() const;
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ExternalTypedDataPtr constant_coverage() const;
-
-  void set_constant_coverage(const ExternalTypedData& value) const;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   void set_line_starts(const TypedData& value) const;
 

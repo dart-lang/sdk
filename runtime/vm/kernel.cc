@@ -347,36 +347,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   script.set_debug_positions(array_object);
 }
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  interesting_script.LookupSourceAndLineStarts(zone);
-  TranslationHelper helper(thread);
-  helper.InitFromScript(interesting_script);
-
-  ExternalTypedData& data =
-      ExternalTypedData::Handle(zone, interesting_script.constant_coverage());
-
-  KernelReaderHelper kernel_reader(zone, &helper, interesting_script, data, 0);
-
-  // Read "constant coverage constructors".
-  const intptr_t constant_coverage_constructors = kernel_reader.ReadUInt();
-  const Array& constructors =
-      Array::Handle(Array::New(constant_coverage_constructors));
-  for (intptr_t i = 0; i < constant_coverage_constructors; ++i) {
-    NameIndex kernel_name = kernel_reader.ReadCanonicalNameReference();
-    Class& klass = Class::ZoneHandle(
-        zone,
-        helper.LookupClassByKernelClass(helper.EnclosingName(kernel_name)));
-    const Function& target = Function::ZoneHandle(
-        zone, helper.LookupConstructorByKernelConstructor(klass, kernel_name));
-    constructors.SetAt(i, target);
-  }
-  return constructors.raw();
-}
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
   ASSERT(field.is_static() && field.is_const());
 

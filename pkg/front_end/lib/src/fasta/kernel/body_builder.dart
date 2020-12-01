@@ -5950,11 +5950,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (builder?.next != null) {
       // Duplicated name, already reported.
       return <Initializer>[
-        new LocalInitializer(new VariableDeclaration.forValue(buildProblem(
-            fasta.templateDuplicatedDeclarationUse.withArguments(name),
-            fieldNameOffset,
-            name.length)))
-          ..fileOffset = fieldNameOffset
+        buildInvalidInitializer(
+            buildProblem(
+                fasta.templateDuplicatedDeclarationUse.withArguments(name),
+                fieldNameOffset,
+                name.length),
+            fieldNameOffset)
       ];
     } else if (builder is FieldBuilder && builder.isDeclarationInstanceMember) {
       initializedFields ??= <String, int>{};

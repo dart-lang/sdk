@@ -4215,12 +4215,10 @@ ObjectPtr Class::Invoke(const String& function_name,
   }
   // This is a static function, so we pass an empty instantiator tav.
   ASSERT(function.is_static());
-  if (!function.CanReceiveDynamicInvocation()) {
-    ObjectPtr type_error = function.DoArgumentTypesMatch(
-        args, args_descriptor, Object::empty_type_arguments());
-    if (type_error != Error::null()) {
-      return type_error;
-    }
+  ObjectPtr type_error = function.DoArgumentTypesMatch(
+      args, args_descriptor, Object::empty_type_arguments());
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -9648,8 +9646,7 @@ bool Function::PrologueNeedsArgumentsDescriptor() const {
   }
   // The prologue of those functions need to examine the arg descriptor for
   // various purposes.
-  return IsGeneric() || HasOptionalParameters() ||
-         CanReceiveDynamicInvocation();
+  return IsGeneric() || HasOptionalParameters();
 }
 
 bool Function::MayHaveUncheckedEntryPoint() const {
@@ -11161,16 +11158,6 @@ void Script::set_source(const String& value) const {
 void Script::set_line_starts(const TypedData& value) const {
   StorePointer(&raw_ptr()->line_starts_, value.raw());
 }
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-void Script::set_constant_coverage(const ExternalTypedData& value) const {
-  StorePointer(&raw_ptr()->constant_coverage_, value.raw());
-}
-
-ExternalTypedDataPtr Script::constant_coverage() const {
-  return raw_ptr()->constant_coverage_;
-}
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void Script::set_debug_positions(const Array& value) const {
   StorePointer(&raw_ptr()->debug_positions_, value.raw());
@@ -12718,12 +12705,10 @@ static ObjectPtr InvokeInstanceFunction(
     return DartEntry::InvokeNoSuchMethod(thread, receiver, target_name, args,
                                          args_descriptor_array);
   }
-  if (!function.CanReceiveDynamicInvocation()) {
-    ObjectPtr type_error = function.DoArgumentTypesMatch(
-        args, args_descriptor, instantiator_type_args);
-    if (type_error != Error::null()) {
-      return type_error;
-    }
+  ObjectPtr type_error = function.DoArgumentTypesMatch(args, args_descriptor,
+                                                       instantiator_type_args);
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -12920,12 +12905,10 @@ ObjectPtr Library::Invoke(const String& function_name,
   }
   // This is a static function, so we pass an empty instantiator tav.
   ASSERT(function.is_static());
-  if (!function.CanReceiveDynamicInvocation()) {
-    ObjectPtr type_error = function.DoArgumentTypesMatch(
-        args, args_descriptor, Object::empty_type_arguments());
-    if (type_error != Error::null()) {
-      return type_error;
-    }
+  ObjectPtr type_error = function.DoArgumentTypesMatch(
+      args, args_descriptor, Object::empty_type_arguments());
+  if (type_error != Error::null()) {
+    return type_error;
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -14896,6 +14879,24 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
 }
 #endif
 
+void ICData::SetTargetAtPos(const Array& data,
+                            intptr_t data_pos,
+                            intptr_t num_args_tested,
+                            const Function& target) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // JIT
+  data.SetAt(data_pos + TargetIndexFor(num_args_tested), target);
+#else
+  // AOT
+  ASSERT(target.HasCode());
+  const Code& code = Code::Handle(target.CurrentCode());
+  const Smi& entry_point =
+      Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
+  data.SetAt(data_pos + CodeIndexFor(num_args_tested), code);
+  data.SetAt(data_pos + EntryPointIndexFor(num_args_tested), entry_point);
+#endif
+}
+
 const char* ICData::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   const String& name = String::Handle(zone, target_name());
@@ -15347,24 +15348,15 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
     data_pos = 0;
   }
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+  SetTargetAtPos(data, data_pos, kNumArgsTested, target);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  // JIT
-  data.SetAt(data_pos + TargetIndexFor(kNumArgsTested), target);
   data.SetAt(data_pos + CountIndexFor(kNumArgsTested),
              Smi::Handle(Smi::New(count)));
   if (is_tracking_exactness()) {
     data.SetAt(data_pos + ExactnessIndexFor(kNumArgsTested),
                Smi::Handle(Smi::New(exactness.Encode())));
   }
-#else
-  // AOT
-  ASSERT(target.HasCode());
-  const Code& code = Code::Handle(target.CurrentCode());
-  const Smi& entry_point =
-      Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
-  data.SetAt(data_pos + CodeIndexFor(kNumArgsTested), code);
-  data.SetAt(data_pos + EntryPointIndexFor(kNumArgsTested), entry_point);
 #endif
 
   // Multithreaded access to ICData requires setting of array to be the last
@@ -15839,9 +15831,13 @@ ICDataPtr ICData::NewWithCheck(const Function& owner,
     cid = Smi::New((*cids)[i]);
     array.SetAt(i, cid);
   }
+
+  SetTargetAtPos(array, 0, num_args_tested, target);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
-  array.SetAt(TargetIndexFor(num_args_tested), target);
+#endif
   WriteSentinel(array, entry_len);
+
   result.set_entries(array);
 
   return result.raw();

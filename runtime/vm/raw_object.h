@@ -1253,9 +1253,6 @@ class ScriptLayout : public ObjectLayout {
   StringPtr resolved_url_;
   ArrayPtr compile_time_constants_;
   TypedDataPtr line_starts_;
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ExternalTypedDataPtr constant_coverage_;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ArrayPtr debug_positions_;
   KernelProgramInfoPtr kernel_program_info_;
   StringPtr source_;
@@ -1287,17 +1284,8 @@ class ScriptLayout : public ObjectLayout {
                kLazyLookupSourceAndLineStartsSize>;
   uint8_t flags_;
 
+  intptr_t kernel_script_index_;
   int64_t load_timestamp_;
-  int32_t kernel_script_index_;
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME) &&                 \
-    defined(ARCH_IS_32_BIT)
-  // MSVC aligns sizeof(ScriptLayout) by 8 on 32-bit because rgw structure
-  // contains int64_t member, while clang does not.
-  // This member is thus needed to ensure consistent struct size across all
-  // compilers.
-  int32_t padding_;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME) &&          \
-        // defined(ARCH_IS_32_BIT)
 };
 
 class LibraryLayout : public ObjectLayout {

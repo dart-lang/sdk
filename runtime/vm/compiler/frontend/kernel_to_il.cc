@@ -3749,10 +3749,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   const bool signature_contains_handles = marshaller.ContainsHandles();
 
-  ASSERT(function.CanReceiveDynamicInvocation());
-  BuildTypeArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
-                              &function_body);
-  BuildArgumentTypeChecks(&function_body, &function_body, &function_body);
+  // FFI trampolines are accessed via closures, so non-covariant argument types
+  // and type arguments are either statically checked by the type system or
+  // dynamically checked via dynamic closure call dispatchers.
 
   // Null check arguments before we go into the try catch, so that we don't
   // catch our own null errors.
