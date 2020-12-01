@@ -2099,6 +2099,10 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   const String& uri_string = helper_.SourceTableUriFor(index);
   const String& import_uri_string =
       helper_.SourceTableImportUriFor(index, program_->binary_version());
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  ExternalTypedData& constant_coverage =
+      ExternalTypedData::Handle(Z, helper_.GetConstantCoverageFor(index));
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   String& sources = String::Handle(Z);
   TypedData& line_starts = TypedData::Handle(Z);
@@ -2144,6 +2148,9 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
   script.set_line_starts(line_starts);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  script.set_constant_coverage(constant_coverage);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   script.set_debug_positions(Array::null_array());
   return script.raw();
 }
