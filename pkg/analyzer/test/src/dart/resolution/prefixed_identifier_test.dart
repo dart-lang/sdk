@@ -104,6 +104,72 @@ void f(A a) {
     );
   }
 
+  test_read_staticMethod_generic() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo<U>(int a, U u) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function<U>(int, U)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.class_('A'),
+      writeElement: null,
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.method('foo'),
+      writeElement: null,
+      type: 'void Function<U>(int, U)',
+    );
+  }
+
+  test_read_staticMethod_ofGenericClass() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo(int a) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function(int)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.class_('A'),
+      writeElement: null,
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.method('foo'),
+      writeElement: null,
+      type: 'void Function(int)',
+    );
+  }
+
   test_readWrite_assignment() async {
     await assertNoErrorsInCode('''
 class A {

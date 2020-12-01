@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
-import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -75,34 +74,6 @@ class C {
     var constructor = findElement.unnamedConstructor('C');
     var x = findElement.localFunction('x');
     expect(x.enclosingElement, constructor);
-  }
-}
-
-/// Tests for generic method and function resolution that do not use strong
-/// mode.
-@reflectiveTest
-class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
-  test_genericMethod_propagatedType_promotion() async {
-    // Regression test for:
-    // https://github.com/dart-lang/sdk/issues/25340
-    //
-    // Note, after https://github.com/dart-lang/sdk/issues/25486 the original
-    // strong mode example won't work, as we now compute a static type and
-    // therefore discard the propagated type.
-    //
-    // So this test does not use strong mode.
-    await assertNoErrorsInCode(r'''
-abstract class Iter {
-  List<S> map<S>(S f(x));
-}
-class C {}
-C toSpan(dynamic element) {
-  if (element is Iter) {
-    var y = element.map(toSpan);
-  }
-  return null;
-}''');
-    expectIdentifierType('y = ', 'dynamic');
   }
 }
 
