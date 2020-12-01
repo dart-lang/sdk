@@ -2535,6 +2535,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       correction: "Try renaming one of the declarations.",
       hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode DUPLICATE_FIELD_FORMAL_PARAMETER =
+      CompileTimeErrorCode(
+          'DUPLICATE_FIELD_FORMAL_PARAMETER',
+          "The field '{0}' can't be referenced in multiple initializing "
+              "parameters in the same constructor.",
+          correction: "Try removing one of the parameters, or "
+              "using different fields.");
+
   /**
    * Parameters:
    * 0: the name of the parameter that was duplicated
