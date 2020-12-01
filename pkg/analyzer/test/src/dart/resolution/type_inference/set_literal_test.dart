@@ -35,11 +35,29 @@ Set<int> a = {1};
     assertType(setLiteral('{'), 'Set<int>');
   }
 
-  test_context_noTypeArgs_noElements() async {
+  test_context_noTypeArgs_noElements_fromParameterType() async {
+    await assertNoErrorsInCode('''
+void f() {
+  useSet({});
+}
+void useSet(Set<int> _) {}
+''');
+    assertType(setLiteral('{});'), 'Set<int>');
+  }
+
+  test_context_noTypeArgs_noElements_fromVariableType() async {
     await assertNoErrorsInCode('''
 Set<String> a = {};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
+  }
+
+  test_context_noTypeArgs_noElements_fromVariableType_nested() async {
+    await assertNoErrorsInCode('''
+Set<Set<String>> a = {{}};
+''');
+    assertType(setLiteral('{}'), 'Set<String>');
+    assertType(setLiteral('{{}}'), 'Set<Set<String>>');
   }
 
   test_context_noTypeArgs_noElements_futureOr() async {

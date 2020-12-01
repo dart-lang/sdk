@@ -46,16 +46,18 @@ declare_args() {
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
+# ........dart2native.dart.snapshot (if not on ia32)
 # ........dartanalyzer.dart.snapshot
-# ........dds.dart.snapshot
+# ........dartdev.dill
+# ........dartdevc.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
-# ........dartdevc.dart.snapshot
+# ........dds.dart.snapshot
+# ........frontend_server.dart.snapshot
 # ........gen_kernel.dart.snapshot (if not on ia32)
-# ........dart2native.dart.snapshot (if not on ia32)
+# ........kernel-service.dart.snapshot
 # ........kernel_worker.dart.snapshot
 # ........pub.dart.snapshot
-# ........frontend_server.dart.snapshot
 # ......resources/
 # ........dartdoc/
 # ...........packages
@@ -73,7 +75,6 @@ declare_args() {
 # ........dart2js_server_platform.dill
 # ........dart2js_platform_strong.dill
 # ........dart2js_server_platform_strong.dill
-# ........dartdev.dill
 # ........vm_platform_strong.dill
 # ........dev_compiler/
 # ......async/
@@ -582,7 +583,7 @@ copy("copy_dartdev_dill_files") {
     "../utils/dartdev:dartdev",
   ]
   sources = [ "$root_out_dir/dartdev.dill" ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
+  outputs = [ "$root_out_dir/dart-sdk/bin/snapshots/{{source_file_part}}" ]
 }
 
 copy("copy_dart2js_dill_files") {

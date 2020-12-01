@@ -1,4 +1,4 @@
-## 0.41.1-dev
+## 0.41.1
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop
   at the first directory with `pubspec.yaml`, and don't try to go up
   and find another one with both `pubspec.yaml` and `.dart_tool/build`.

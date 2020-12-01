@@ -298,8 +298,8 @@ class Safari extends Browser {
     // We run killAndResetSafari in a Zone as opposed to running an external
     // process. The Zone allows us to collect its output, and protect the rest
     // of the test infrastructure against errors in it.
-    runZoned(zoneWrapper,
-        zoneSpecification: specification, onError: handleUncaughtError);
+    runZonedGuarded(zoneWrapper, handleUncaughtError,
+        zoneSpecification: specification);
 
     try {
       await completer.future;

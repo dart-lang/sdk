@@ -63,14 +63,14 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
 
   // First assume we're in dart-sdk/bin.
   char* snapshot_path =
-      Utils::SCreate("%s../lib/_internal/dartdev.dill", dir_prefix.get());
+      Utils::SCreate("%ssnapshots/dartdev.dill", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     return Utils::CreateCStringUniquePtr(snapshot_path);
   }
   free(snapshot_path);
 
   // If we're not in dart-sdk/bin, we might be in one of the $SDK/out/*
-  // directories. Try to use a snapshot rom a previously built SDK.
+  // directories. Try to use a snapshot from a previously built SDK.
   snapshot_path = Utils::SCreate("%sdartdev.dill", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     return Utils::CreateCStringUniquePtr(snapshot_path);
