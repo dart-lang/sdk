@@ -309,6 +309,7 @@ class ParserErrorCode extends ErrorCode {
   // field:
   //
   // ```dart
+  // %language=2.9
   // extension E on String {
   //   String [!s!];
   // }

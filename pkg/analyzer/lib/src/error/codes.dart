@@ -36,7 +36,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `abstract` and has an initializer:
   //
   // ```dart
-  // %experiments=non-nullable
   // abstract class C {
   //   abstract int [!f!] = 0;
   // }
@@ -46,7 +45,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `abstract` and there's an initializer in the constructor:
   //
   // ```dart
-  // %experiments=non-nullable
   // abstract class C {
   //   abstract int f;
   //
@@ -59,7 +57,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the field must be abstract, then remove the initializer:
   //
   // ```dart
-  // %experiments=non-nullable
   // abstract class C {
   //   abstract int f;
   // }
@@ -514,6 +511,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // assigned to a `String`:
   //
   // ```dart
+  // %language=2.9
   // String f(String x) => x;
   // String g(num y) => f([!y!]);
   // ```
@@ -524,6 +522,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // example above you might be able to change the type of the parameter `y`:
   //
   // ```dart
+  // %language=2.9
   // String f(String x) => x;
   // String g(String y) => f(y);
   // ```
@@ -533,6 +532,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // types to the required type:
   //
   // ```dart
+  // %language=2.9
   // String f(String x) => x;
   // String g(num y) => f(y.toString());
   // ```
@@ -540,6 +540,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Another approach is to add explicit type tests and fallback code:
   //
   // ```dart
+  // %language=2.9
   // String f(String x) => x;
   // String g(num y) => f(y is String ? y : '');
   // ```
@@ -881,7 +882,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // is used in the initializer for `v`, a local variable that is marked `late`:
   //
   // ```dart
-  // %experiments=non-nullable
   // Future<int> f() async {
   //   late var v = [!await!] 42;
   //   return v;
@@ -893,7 +893,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the initializer can be rewritten to not use `await`, then rewrite it:
   //
   // ```dart
-  // %experiments=non-nullable
   // Future<int> f() async {
   //   late var v = 42;
   //   return v;
@@ -903,7 +902,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the initializer can't be rewritten, then remove the `late` modifier:
   //
   // ```dart
-  // %experiments=non-nullable
   // Future<int> f() async {
   //   var v = await 42;
   //   return v;
@@ -946,7 +944,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // is declared to not return `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int [!m!](int t) {
   //     print(t);
@@ -960,7 +957,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // method is effectively declared to not return `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C<T> {
   //   T [!m!](T t) {
   //     print(t);
@@ -974,7 +970,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // statement at the end of the method:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C<T> {
   //   T m(T t) {
   //     print(t);
@@ -987,7 +982,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // end of the method:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C<T> {
   //   T m(T t) {
   //     print(t);
@@ -1000,7 +994,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // return type so that it's valid to return `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C<T> {
   //   T? m(T t) {
   //     print(t);
@@ -1147,6 +1140,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // with an assignment:
   //
   // ```dart
+  // %language=2.9
   // void f(int x) {
   //   switch (x) {
   //     [!case!] 0:
@@ -1162,6 +1156,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Add one of the required terminators:
   //
   // ```dart
+  // %language=2.9
   // void f(int x) {
   //   switch (x) {
   //     case 0:
@@ -1210,7 +1205,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // isn't a subtype of `String` (the type of `s`):
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String s) {
   //   switch (s) {
   //     case [!1!]:
@@ -1225,7 +1219,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // expression so that it has the required type:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String s) {
   //   switch (s) {
   //     case '1':
@@ -1238,7 +1231,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // expression to have the required type:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int s) {
   //   switch (s) {
   //     case 1:
@@ -2024,6 +2016,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `null`, which is neither a list nor a set:
   //
   // ```dart
+  // %language=2.9
   // const List<int> list1 = null;
   // const List<int> list2 = [...[!list1!]];
   // ```
@@ -2034,6 +2027,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // or a constant set:
   //
   // ```dart
+  // %language=2.9
   // const List<int> list1 = [];
   // const List<int> list2 = [...list1];
   // ```
@@ -2056,6 +2050,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `null`, which isn't a map:
   //
   // ```dart
+  // %language=2.9
   // const Map<String, int> map1 = null;
   // const Map<String, int> map2 = {...[!map1!]};
   // ```
@@ -2065,6 +2060,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Change the expression to something that evaluates to a constant map:
   //
   // ```dart
+  // %language=2.9
   // const Map<String, int> map1 = {};
   // const Map<String, int> map2 = {...map1};
   // ```
@@ -2268,7 +2264,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // diagnostic because it uses the default `List` constructor:
   //
   // ```dart
-  // %experiments=non-nullable
   // var l = [!List<int>!]();
   // ```
   //
@@ -2278,7 +2273,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // literal:
   //
   // ```dart
-  // %experiments=non-nullable
   // var l = <int>[];
   // ```
   //
@@ -2286,7 +2280,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // initial value for the elements, then use `List.filled`:
   //
   // ```dart
-  // %experiments=non-nullable
   // var l = List.filled(3, 0);
   // ```
   //
@@ -2294,7 +2287,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // computed, then use `List.generate`:
   //
   // ```dart
-  // %experiments=non-nullable
   // var l = List.generate(3, (i) => i);
   // ```
   static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
@@ -2382,7 +2374,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // value before being read:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(bool b) {
   //   late int x;
   //   print([!x!]);
@@ -2394,7 +2385,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Assign a value to the variable before reading from it:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(bool b) {
   //   late int x;
   //   x = b ? 1 : 0;
@@ -2551,6 +2541,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // with the name `a`:
   //
   // ```dart
+  // %language=2.9
   // void f(C c) {
   //   c.m(a: 0, [!a!]: 1);
   // }
@@ -2565,6 +2556,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If one of the arguments should have a different name, then change the name:
   //
   // ```dart
+  // %language=2.9
   // void f(C c) {
   //   c.m(a: 0, b: 1);
   // }
@@ -2577,6 +2569,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If one of the arguments is wrong, then remove it:
   //
   // ```dart
+  // %language=2.9
   // void f(C c) {
   //   c.m(a: 1);
   // }
@@ -2844,7 +2837,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // from an opted-out library:
   //
   // ```dart
-  // %experiments=non-nullable
   // export [!'optedOut.dart'!];
   //
   // class C {}
@@ -2856,7 +2848,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // need to opt out:
   //
   // ```dart
-  // %experiments=non-nullable
   // String? s;
   // ```
   //
@@ -3472,6 +3463,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // third argument:
   //
   // ```dart
+  // %language=2.9
   // void f(int a, int b, {int c}) {}
   // void g() {
   //   f[!(1, 2, 3)!];
@@ -3484,6 +3476,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the names before the arguments:
   //
   // ```dart
+  // %language=2.9
   // void f(int a, int b, {int c}) {}
   // void g() {
   //   f(1, 2, c: 3);
@@ -3494,6 +3487,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // parameters:
   //
   // ```dart
+  // %language=2.9
   // void f(int a, int b, {int c}) {}
   // void g() {
   //   f(1, 2);
@@ -4016,7 +4010,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `num` isn't a subtype of `int`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   num get [!x!] => 0;
   //
@@ -4029,7 +4022,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the type of the getter is correct, then change the type of the setter:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   num get x => 0;
   //
@@ -4040,7 +4032,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the type of the setter is correct, then change the type of the getter:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int get x => 0;
   //
@@ -4463,6 +4454,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the signature of `m` that's inherited from `B`:
   //
   // ```dart
+  // %language=2.9
   // class A {
   //   void m({int a}) {}
   // }
@@ -4481,6 +4473,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // signatures:
   //
   // ```dart
+  // %language=2.9
   // class A {
   //   void m({int a}) {}
   // }
@@ -4554,6 +4547,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // initializing `x`, but `x` isn't a field in the class:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int y;
   //
@@ -4567,6 +4561,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // name of the field:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int y;
   //
@@ -4577,6 +4572,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the field must be declared, then add a declaration:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int x;
   //   int y;
@@ -4628,6 +4624,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // defined:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int y;
   //
@@ -4641,6 +4638,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // field:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int y;
   //
@@ -4652,6 +4650,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // field:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int x;
   //   int y;
@@ -4664,6 +4663,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // it to a normal parameter and use it:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int y;
   //
@@ -4674,6 +4674,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the parameter isn't needed, then remove it:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int y;
   //
@@ -4811,6 +4812,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // is being referenced in a static method:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int x;
   //
@@ -4826,6 +4828,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // so remove the keyword:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int x;
   //
@@ -4839,6 +4842,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // that an instance of the class can be passed in:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   int x;
   //
@@ -5628,7 +5632,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f(Null x) {
   //   return [!x!].length;
   // }
@@ -5640,7 +5643,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // type of the expression:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f(String? x) {
   //   return x!.length;
   // }
@@ -5884,7 +5886,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `const` constructor and the `final` field `f` is marked as `late`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class A {
   //   [!late!] final int f;
   //
@@ -5909,7 +5910,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the constructors:
   //
   // ```dart
-  // %experiments=non-nullable
   // class A {
   //   late final int f;
   //
@@ -5941,7 +5941,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `v` is assigned a value in two places:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f() {
   //   late final int v;
   //   v = 0;
@@ -5956,7 +5955,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // keyword:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f() {
   //   late int v;
   //   v = 0;
@@ -5969,7 +5967,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // first of the assignments:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f() {
   //   late final int v;
   //   v = 0;
@@ -6075,7 +6072,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // being used to declare a top-level variable:
   //
   // ```dart
-  // %experiments=non-nullable
   // var [!main!] = 3;
   // ```
   //
@@ -6084,7 +6080,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Use a different name for the declaration:
   //
   // ```dart
-  // %experiments=non-nullable
   // var mainIndex = 3;
   // ```
   static const CompileTimeErrorCode MAIN_IS_NOT_FUNCTION = CompileTimeErrorCode(
@@ -6269,14 +6264,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // and no non-`null` default value is specified:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f([int [!x!]]) {}
   // ```
   //
   // As does this:
   //
   // ```dart
-  // %experiments=non-nullable
   // void g({int [!x!]}) {}
   // ```
   //
@@ -6286,7 +6279,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // need to make the type nullable:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f([int? x]) {}
   // void g({int? x}) {}
   // ```
@@ -6294,7 +6286,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the parameter can't be null, then either provide a default value:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f([int x = 1]) {}
   // void g({int x = 2}) {}
   // ```
@@ -6302,7 +6293,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // or make the parameter a required parameter:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int x) {}
   // void g({required int x}) {}
   // ```
@@ -6331,7 +6321,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // doesn't include a value for the required named parameter `end`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int start, {required int end}) {}
   // void g() {
   //   [!f!](3);
@@ -6343,7 +6332,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Add a named argument corresponding to the missing required parameter:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int start, {required int end}) {}
   // void g() {
   //   f(3, end: 5);
@@ -7300,6 +7288,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
+  // %language=2.9
   // var defaultValue = 3;
   //
   // void f([int value = [!defaultValue!]]) {}
@@ -7310,6 +7299,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the default value can be converted to be a constant, then convert it:
   //
   // ```dart
+  // %language=2.9
   // const defaultValue = 3;
   //
   // void f([int value = defaultValue]) {}
@@ -7319,6 +7309,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // value inside the function:
   //
   // ```dart
+  // %language=2.9
   // var defaultValue = 3;
   //
   // void f([int value]) {
@@ -7697,6 +7688,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // a type:
   //
   // ```dart
+  // %language=2.9
   // void f() {
   //   try {
   //     // ...
@@ -7711,6 +7703,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Change the name to the type of object that should be caught:
   //
   // ```dart
+  // %language=2.9
   // void f() {
   //   try {
   //     // ...
@@ -7792,7 +7785,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // of `null`, but is referenced before a value was assigned to it:
   //
   // ```dart
-  // %experiments=non-nullable
   // String f() {
   //   int x;
   //   return [!x!].toString();
@@ -7803,7 +7795,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // might not be executed, so it might have a value of `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // int g(bool b) {
   //   int x;
   //   if (b) {
@@ -7818,7 +7809,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // without having a value assigned to it:
   //
   // ```dart
-  // %experiments=non-nullable
   // int h(bool b) {
   //   int x;
   //   if (b) {
@@ -7836,7 +7826,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If `null` is a valid value, then make the variable nullable:
   //
   // ```dart
-  // %experiments=non-nullable
   // String f() {
   //   int? x;
   //   return x!.toString();
@@ -7847,7 +7836,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // add an initializer:
   //
   // ```dart
-  // %experiments=non-nullable
   // int g(bool b) {
   //   int x = 2;
   //   if (b) {
@@ -7861,7 +7849,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // before the value is accessed:
   //
   // ```dart
-  // %experiments=non-nullable
   // int g(bool b) {
   //   int x;
   //   if (b) {
@@ -7880,7 +7867,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // though the analyzer can't prove it based on definite assignment analysis.
   //
   // ```dart
-  // %experiments=non-nullable
   // int h(bool b) {
   //   late int x;
   //   if (b) {
@@ -7959,7 +7945,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // initialized to `null` when it isn't allowed to be `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int [!x!];
   // }
@@ -7971,7 +7956,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // constructors:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int x;
   //
@@ -7987,7 +7971,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // instances, then add an initializer expression:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int x = 0;
   // }
@@ -7998,7 +7981,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // existing constructor:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int x;
   //
@@ -8012,7 +7994,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // you're sure that the field will always be assigned before it's referenced.
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   late int x;
   // }
@@ -8059,7 +8040,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // initialized to `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   static int [!f!];
   // }
@@ -8069,7 +8049,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // top-level variable `v` can't be initialized to `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // int [!v!];
   // ```
   //
@@ -8079,7 +8058,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // initializer that sets it to a non-null value:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   static int f = 0;
   // }
@@ -8089,7 +8067,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // type to be nullable:
   //
   // ```dart
-  // %experiments=non-nullable
   // int? v;
   // ```
   //
@@ -8097,7 +8074,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // always be initialized before it's referenced, then mark it as being `late`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   static late int f;
   // }
@@ -8210,7 +8186,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // type, and nullable types can't be used in an `extends` clause:
   //
   // ```dart
-  // %experiments=non-nullable
   // class A {}
   // class B extends [!A?!] {}
   // ```
@@ -8220,7 +8195,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Remove the question mark from the type:
   //
   // ```dart
-  // %experiments=non-nullable
   // class A {}
   // class B extends A {}
   // ```
@@ -8252,7 +8226,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // type, and nullable types can't be used in an `implements` clause:
   //
   // ```dart
-  // %experiments=non-nullable
   // class A {}
   // class B implements [!A?!] {}
   // ```
@@ -8262,7 +8235,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Remove the question mark from the type:
   //
   // ```dart
-  // %experiments=non-nullable
   // class A {}
   // class B implements A {}
   // ```
@@ -8295,7 +8267,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // and nullable types can't be used in an `on` clause:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {}
   // mixin M on [!C?!] {}
   // ```
@@ -8305,7 +8276,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Remove the question mark from the type:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {}
   // mixin M on C {}
   // ```
@@ -8336,7 +8306,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // type, and nullable types can't be used in a `with` clause:
   //
   // ```dart
-  // %experiments=non-nullable
   // mixin M {}
   // class C with [!M?!] {}
   // ```
@@ -8346,7 +8315,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Remove the question mark from the type:
   //
   // ```dart
-  // %experiments=non-nullable
   // mixin M {}
   // class C with M {}
   // ```
@@ -9013,6 +8981,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // is declared:
   //
   // ```dart
+  // %language=2.9
   // void f() {
   //   print([!i!]);
   //   int i = 5;
@@ -9025,6 +8994,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // before the first reference:
   //
   // ```dart
+  // %language=2.9
   // void f() {
   //   int i = 5;
   //   print(i);
@@ -9036,6 +9006,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // declaration so that it doesn't hide the outer variable.
   //
   // ```dart
+  // %language=2.9
   // void f(int i) {
   //   print(i);
   //   int x = 5;
@@ -9315,6 +9286,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // field:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   static int a;
   //
@@ -9330,6 +9302,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // to an existing static field:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   static int a;
   //
@@ -9343,6 +9316,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class to access the field:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   static int a;
   //
@@ -9464,6 +9438,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // (`String`) isn't assignable to the type of `0` (`int`):
   //
   // ```dart
+  // %language=2.9
   // void f(String s) {
   //   switch ([!s!]) {
   //     case 0:
@@ -9478,6 +9453,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // expression in the `switch` statement to have the correct type:
   //
   // ```dart
+  // %language=2.9
   // void f(String s) {
   //   switch (int.parse(s)) {
   //     case 0:
@@ -9490,6 +9466,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // expressions to have the correct type:
   //
   // ```dart
+  // %language=2.9
   // void f(String s) {
   //   switch (s) {
   //     case '0':
@@ -9520,7 +9497,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `s` might be `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String? s) {
   //   throw [!s!];
   // }
@@ -9531,7 +9507,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Add an explicit null check to the expression:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String? s) {
   //   throw s!;
   // }
@@ -9714,7 +9689,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the point where it's referenced:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String? s) {
   //   if ([!s!].length > 3) {
   //     // ...
@@ -9728,7 +9702,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // are only accessed when the value isn't `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String? s) {
   //   if (s != null && s.length > 3) {
   //     // ...
@@ -9740,7 +9713,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // change the type of the variable to be non-nullable:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String s) {
   //   if (s.length > 3) {
   //     // ...
@@ -9754,7 +9726,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // that the value isn't null:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String? s) {
   //   if (s!.length > 3) {
   //     // ...
@@ -10520,6 +10491,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // named parameter named `a`:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   m({int b}) {}
   // }
@@ -10535,6 +10507,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The example above can be fixed by changing `a` to `b`:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   m({int b}) {}
   // }
@@ -10548,6 +10521,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // receiver to the subclass:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   m({int b}) {}
   // }
@@ -10564,6 +10538,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the parameter should be added to the function, then add it:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   m({int a, int b}) {}
   // }
@@ -11024,6 +10999,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // `int`, which can't be assigned to `y` because an `int` isn't a `String`:
   //
   // ```dart
+  // %language=2.9
   // const Object x = 0;
   // const String y = [!x!];
   // ```
@@ -11034,6 +11010,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // assigned to be of the correct type:
   //
   // ```dart
+  // %language=2.9
   // const Object x = 0;
   // const String y = '$x';
   // ```
@@ -11042,6 +11019,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // correct type:
   //
   // ```dart
+  // %language=2.9
   // const Object x = 0;
   // const int y = x;
   // ```
@@ -11146,6 +11124,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // two required parameters:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   set [!s!](int x, int y) {}
   // }
@@ -11155,6 +11134,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // one optional parameter:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   set [!s!]([int x]) {}
   // }
@@ -11166,6 +11146,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // parameter:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   set s(int x) {}
   // }
@@ -11552,7 +11533,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `x` can't be `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f(int x) {
   //   return x ?? [!0!];
   // }
@@ -11561,7 +11541,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `f` can't be `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int f = -1;
   //
@@ -11577,7 +11556,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // operator and the right operand:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f(int x) {
   //   return x;
   // }
@@ -11587,7 +11565,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // needed, then remove the assignment:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int f = -1;
   //
@@ -11600,7 +11577,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // then rewrite the code to use `=` and the different condition:
   //
   // ```dart
-  // %experiments=non-nullable
   // class C {
   //   int f = -1;
   //
@@ -11633,7 +11609,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `s` can't be `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // int? getLength(String s) {
   //   return s[!?.!]length;
   // }
@@ -11642,7 +11617,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `a` can't be `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // var a = [];
   // var b = [[!...?!]a];
   // ```
@@ -11651,7 +11625,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // return `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(String? s) {
   //   s?.length[!?.!]isEven;
   // }
@@ -11672,7 +11645,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // example, change `?.` to  `.`:
   //
   // ```dart
-  // %experiments=non-nullable
   // int getLength(String s) {
   //   return s.length;
   // }
@@ -11815,7 +11787,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `x` can't be `null`:
   //
   // ```dart
-  // %experiments=non-nullable
   // int f(int x) {
   //   return x[!!!];
   // }
@@ -11826,7 +11797,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // Remove the null check operator (`!`):
   //
   // ```dart
-  // %experiments=non-nullable
   // int f(int x) {
   //   return x;
   // }

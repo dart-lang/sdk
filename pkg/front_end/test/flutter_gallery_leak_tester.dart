@@ -179,7 +179,6 @@ main(List<String> args) async {
     "--incremental",
     "--target=flutter",
     "--debugger-module-names",
-    "-Ddart.developer.causal_async_stacks=true",
     "--output-dill",
     "$rootPath/flutter_server_tmp.dill",
     "--packages",

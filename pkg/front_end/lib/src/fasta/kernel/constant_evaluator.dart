@@ -104,7 +104,7 @@ Component transformComponent(
   return component;
 }
 
-void transformLibraries(
+ConstantCoverage transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
     Map<String, String> environmentDefines,
@@ -132,6 +132,7 @@ void transformLibraries(
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
+  return constantsTransformer.constantEvaluator.getConstantCoverage();
 }
 
 void transformProcedure(
@@ -1010,6 +1011,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return lower(constant, backend.lowerMapConstant(constant));
   }
 
+  Map<Uri, Set<Reference>> _constructorCoverage = {};
+
+  ConstantCoverage getConstantCoverage() {
+    return new ConstantCoverage(_constructorCoverage);
+  }
+
+  void _recordConstructorCoverage(Constructor constructor, TreeNode caller) {
+    Uri currentUri = getFileUri(caller);
+    Set<Reference> uriCoverage = _constructorCoverage[currentUri] ??= {};
+    uriCoverage.add(constructor.reference);
+  }
+
   /// Evaluate [node] and possibly cache the evaluation result.
   ///
   /// Returns [_AbortDueToErrorConstant] or
@@ -1344,13 +1357,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (shouldBeUnevaluated) {
         enterLazy();
         AbortConstant error = handleConstructorInvocation(
-            constructor, typeArguments, positionals, named);
+            constructor, typeArguments, positionals, named, node);
         if (error != null) return error;
         leaveLazy();
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
       }
       AbortConstant error = handleConstructorInvocation(
-          constructor, typeArguments, positionals, named);
+          constructor, typeArguments, positionals, named, node);
       if (error != null) return error;
       if (shouldBeUnevaluated) {
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
@@ -1547,10 +1560,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       Constructor constructor,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments) {
+      Map<String, Constant> namedArguments,
+      TreeNode caller) {
     return withNewEnvironment(() {
       final Class klass = constructor.enclosingClass;
       final FunctionNode function = constructor.function;
+
+      // Mark in file of the caller that we evaluate this specific constructor.
+      _recordConstructorCoverage(constructor, caller);
 
       // We simulate now the constructor invocation.
 
@@ -1626,8 +1643,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           }
           assert(_gotError == null);
           assert(namedArguments != null);
-          error = handleConstructorInvocation(
-              init.target, types, positionalArguments, namedArguments);
+          error = handleConstructorInvocation(init.target, types,
+              positionalArguments, namedArguments, constructor);
           if (error != null) return error;
         } else if (init is RedirectingInitializer) {
           // Since a redirecting constructor targets a constructor of the same
@@ -1654,8 +1671,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           assert(_gotError == null);
           assert(namedArguments != null);
 
-          error = handleConstructorInvocation(
-              init.target, typeArguments, positionalArguments, namedArguments);
+          error = handleConstructorInvocation(init.target, typeArguments,
+              positionalArguments, namedArguments, constructor);
           if (error != null) return error;
         } else if (init is AssertInitializer) {
           AbortConstant error = checkAssert(init.statement);
@@ -2822,6 +2839,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       node = node.parent;
     }
   }
+}
+
+class ConstantCoverage {
+  final Map<Uri, Set<Reference>> constructorCoverage;
+
+  ConstantCoverage(this.constructorCoverage);
 }
 
 /// Holds the necessary information for a constant object, namely

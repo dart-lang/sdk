@@ -550,16 +550,6 @@ void ScopeBuilder::VisitFunctionNode() {
   }
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
-  if (FLAG_causal_async_stacks &&
-      (function_node_helper.dart_async_marker_ == FunctionNodeHelper::kAsync ||
-       function_node_helper.dart_async_marker_ ==
-           FunctionNodeHelper::kAsyncStar)) {
-    LocalVariable* asyncStackTraceVar = MakeVariable(
-        TokenPosition::kNoSource, TokenPosition::kNoSource,
-        Symbols::AsyncStackTraceVar(), AbstractType::dynamic_type());
-    scope_->AddVariable(asyncStackTraceVar);
-  }
-
   // The :sync_op and :async_op continuations are called multiple times. So we
   // don't want the parameters from the first invocation to get stored in the
   // context and reused on later invocations with different parameters.
@@ -579,8 +569,8 @@ void ScopeBuilder::VisitFunctionNode() {
     first_body_token_position_ = helper_.reader_.min_position();
   }
 
-  // Ensure that :await_jump_var, :await_ctx_var, :async_op, :is_sync,
-  // :async_future and :async_stack_trace are captured.
+  // Ensure that :await_jump_var, :await_ctx_var, :async_op, :is_sync and
+  // :async_future are captured.
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     {
       LocalVariable* temp = nullptr;
@@ -617,13 +607,6 @@ void ScopeBuilder::VisitFunctionNode() {
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::ControllerStream(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    if (FLAG_causal_async_stacks) {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncStackTraceVar(), true);
       if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }

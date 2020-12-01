@@ -345,10 +345,6 @@ static bool IsFilteredIdentifier(const String& str) {
     // Keep :is_sync for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::AsyncStackTraceVar().raw()) {
-    // Keep :async_stack_trace for asynchronous debugging.
-    return false;
-  }
   if (str.raw() == Symbols::FunctionTypeArgumentsVar().raw()) {
     // Keep :function_type_arguments for accessing type variables in debugging.
     return false;
@@ -697,7 +693,6 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
     for (intptr_t i = 0; i < scope->num_variables(); i++) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_forced_stack() ||
-          (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
           (variable->name().raw() == Symbols::SavedTryContextVar().raw()) ||
           (variable->name().raw() == Symbols::ArgDescVar().raw()) ||

@@ -178,10 +178,8 @@ template("gen_vm_platform") {
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
     ]
     args = [ "dart:core" ]
-    allow_causal_async_stacks = false
     args += [
       "-Ddart.vm.product=$is_product_flag",
-      "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
       "--enable-experiment=non-nullable",
       "--nnbd-agnostic",

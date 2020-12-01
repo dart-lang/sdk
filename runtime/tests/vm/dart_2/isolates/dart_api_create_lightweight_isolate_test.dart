@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedObjects=ffi_test_functions
+// VMOptions=
 // VMOptions=--enable-isolate-groups --disable-heap-verification
 
 import 'dart:async';
@@ -16,6 +17,8 @@ import 'package:ffi/ffi.dart';
 import '../../../../../tests/ffi/dylib_utils.dart';
 
 final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
+final bool isolateGropusEnabled =
+    Platform.executableArguments.contains('--enable-isolate-groups');
 final sdkRoot = Platform.script.resolve('../../../../../');
 
 class Isolate extends Struct {}
@@ -199,7 +202,7 @@ Future testFatalError() async {
     await exit.first;
     Expect.equals(1, accumulatedErrors.length);
     Expect.equals('error-0', accumulatedErrors[0][0]);
-    Expect.isTrue(accumulatedErrors[0][1].contains('childTestFatalError'));
+    Expect.contains('childTestFatalError', accumulatedErrors[0][1]);
 
     exit.close();
     errors.close();
@@ -213,6 +216,19 @@ Future testAot() async {
   await testFatalError();
 }
 
+Future testNotSupported() async {
+  dynamic exception;
+  try {
+    FfiBindings.createLightweightIsolate('debug-name', Pointer.fromAddress(0));
+  } catch (e) {
+    exception = e;
+  }
+  Expect.contains(
+      'Lightweight isolates are only implemented in AOT mode and need to be '
+      'explicitly enabled by passing --enable-isolate-groups.',
+      exception.toString());
+}
+
 Future testJit() async {
   dynamic exception;
   try {
@@ -220,12 +236,15 @@ Future testJit() async {
   } catch (e) {
     exception = e;
   }
-  Expect.isTrue(exception
-      .toString()
-      .contains('Lightweight isolates are not yet ready in JIT mode'));
+  Expect.contains(
+      'Lightweight isolates are not yet ready in JIT mode', exception);
 }
 
 Future main(args) async {
+  if (!isolateGropusEnabled) {
+    await testNotSupported();
+    return;
+  }
   if (isAOT) {
     await testAot();
   } else {

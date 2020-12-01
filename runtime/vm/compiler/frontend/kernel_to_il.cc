@@ -546,18 +546,6 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
     instructions += DebugStepCheck(position);
   }
 
-  if (FLAG_causal_async_stacks &&
-      (function.IsAsyncClosure() || function.IsAsyncGenClosure())) {
-    // We are returning from an asynchronous closure. Before we do that, be
-    // sure to clear the thread's asynchronous stack trace.
-    const Function& target = Function::ZoneHandle(
-        Z, I->object_store()->async_clear_thread_stack_trace());
-    ASSERT(!target.IsNull());
-    instructions += StaticCall(TokenPosition::kNoSource, target,
-                               /* argument_count = */ 0, ICData::kStatic);
-    instructions += Drop();
-  }
-
   instructions += BaseFlowGraphBuilder::Return(position, yield_index);
 
   return instructions;
@@ -880,8 +868,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
       return true;
-    case MethodRecognizer::kAsyncStackTraceHelper:
-      return !FLAG_causal_async_stacks;
     default:
       return false;
   }
@@ -1223,10 +1209,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += StoreInstanceField(
           TokenPosition::kNoSource, Slot::LinkedHashMap_deleted_keys(),
           StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier);
-      body += NullConstant();
-      break;
-    case MethodRecognizer::kAsyncStackTraceHelper:
-      ASSERT(!FLAG_causal_async_stacks);
       body += NullConstant();
       break;
     case MethodRecognizer::kUtf8DecoderScan:

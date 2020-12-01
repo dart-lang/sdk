@@ -245,6 +245,7 @@ corrections
 cosmetic
 counters
 covariances
+coverage
 cr
 creator
 criterion
@@ -547,6 +548,7 @@ inspired
 inst
 instanceof
 instantiator
+integrate
 intentionally
 interim
 interior

@@ -1,10 +1,9 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--async_debugger --no-causal-async-stacks --lazy-async-stacks
-// VMOptions=--async_debugger --causal-async-stacks --no-lazy-async-stacks
-// VMOptions=--async_debugger --no-causal-async-stacks --lazy-async-stacks --optimization-counter-threshold=5
-// VMOptions=--async_debugger --causal-async-stacks --no-lazy-async-stacks --optimization-counter-threshold=5
+//
+// VMOptions=--async_debugger --lazy-async-stacks
+// VMOptions=--async_debugger --lazy-async-stacks --optimization-counter-threshold=5
 
 import 'package:observatory_2/service_io.dart';
 import 'package:observatory_2/models.dart' as M;
@@ -12,12 +11,12 @@ import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-const LINE_A = 37;
+const LINE_A = 36;
 
 class Foo {}
 
 doThrow() {
-  throw "TheException"; // Line 13.
+  throw "TheException";
   return "end of doThrow";
 }
 

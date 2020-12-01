@@ -23,6 +23,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show templateUnspecified;
+import 'package:front_end/src/fasta/kernel/constant_evaluator.dart'
+    show ConstantCoverage;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -293,6 +295,24 @@ class MatchExpectation
         buffer.writeln(extraConstantString);
       }
     }
+    // TODO(jensj): Don't comment this out. Will be done in a follow-up-CL.
+    // if (result.constantCoverage != null) {
+    //   ConstantCoverage constantCoverage = result.constantCoverage;
+    //   if (constantCoverage.constructorCoverage.isNotEmpty) {
+    //     buffer.writeln("");
+    //     buffer.writeln("");
+    //     buffer.writeln("Constructor coverage from constants:");
+    //     for (MapEntry<Uri, Set<Reference>> entry
+    //         in constantCoverage.constructorCoverage.entries) {
+    //       buffer.writeln("${entry.key}:");
+    //       for (Reference reference in entry.value) {
+    //         buffer.writeln(
+    //             "- ${reference.node} (from ${reference.node.location})");
+    //       }
+    //       buffer.writeln("");
+    //     }
+    //   }
+    // }
 
     String actual = "$buffer";
     String binariesPath =
@@ -393,8 +413,14 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
     Uri uri = tmp.uri.resolve("generated.dill");
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
-    result = new ComponentResult(result.description, result.component,
-        result.userLibraries, result.options, result.sourceTarget, uri);
+    result = new ComponentResult(
+        result.description,
+        result.component,
+        result.userLibraries,
+        result.options,
+        result.sourceTarget,
+        result.constantCoverage,
+        uri);
     try {
       new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
@@ -493,9 +519,10 @@ class ComponentResult {
   final ProcessedOptions options;
   final KernelTarget sourceTarget;
   final List<String> extraConstantStrings = [];
+  final ConstantCoverage constantCoverage;
 
   ComponentResult(this.description, this.component, this.userLibraries,
-      this.options, this.sourceTarget,
+      this.options, this.sourceTarget, this.constantCoverage,
       [this.outputUri]);
 
   bool isUserLibrary(Library library) {

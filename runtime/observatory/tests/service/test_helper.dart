@@ -13,17 +13,11 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 export 'service_test_common.dart' show DDSTest, IsolateTest, VMTest;
 
-/// Whether to use causal async stacks (if not we use lazy async stacks).
-const bool useCausalAsyncStacks =
-    const bool.fromEnvironment('dart.developer.causal_async_stacks');
-
 /// Determines whether DDS is enabled for this test run.
 const bool useDds = const bool.fromEnvironment('USE_DDS');
 
 /// The extra arguments to use
-const List<String> extraDebuggingArgs = useCausalAsyncStacks
-    ? const ['--causal-async-stacks', '--no-lazy-async-stacks']
-    : const ['--no-causal-async-stacks', '--lazy-async-stacks'];
+const List<String> extraDebuggingArgs = ['--lazy-async-stacks'];
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.

@@ -105,7 +105,11 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
 import 'constant_evaluator.dart' as constants
-    show EvaluationMode, transformLibraries, transformProcedure;
+    show
+        EvaluationMode,
+        transformLibraries,
+        transformProcedure,
+        ConstantCoverage;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'metadata_collector.dart' show MetadataCollector;
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
@@ -125,6 +129,10 @@ class KernelTarget extends TargetImplementation {
   SourceLoader loader;
 
   Component component;
+
+  /// Temporary field meant for testing only. Follow-up CLs should get rid of
+  /// this and integrate coverage properly.
+  constants.ConstantCoverage constantCoverageForTesting;
 
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
@@ -1231,7 +1239,7 @@ class KernelTarget extends TargetImplementation {
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
-    constants.transformLibraries(
+    constants.ConstantCoverage coverage = constants.transformLibraries(
         loader.libraries,
         backendTarget.constantsBackend(loader.coreTypes),
         environmentDefines,
@@ -1244,6 +1252,7 @@ class KernelTarget extends TargetImplementation {
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
+    constantCoverageForTesting = coverage;
 
     if (loader.target.context.options
         .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {

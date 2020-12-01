@@ -464,9 +464,6 @@ class VmTarget extends Target {
     // TODO(alexmarkov): Call this from the front-end in order to have
     //  the same defines when compiling platform.
     assert(map != null);
-    if (map['dart.vm.product'] == 'true') {
-      map['dart.developer.causal_async_stacks'] = 'false';
-    }
     map['dart.isVM'] = 'true';
     // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
     for (String library in extraRequiredLibraries) {

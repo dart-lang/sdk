@@ -674,11 +674,22 @@ class ProcessedOptions {
     }
 
     Future<Uri> checkInDir(Uri dir) async {
-      Uri candidate = dir.resolve('.dart_tool/package_config.json');
-      if (await fileSystem.entityForUri(candidate).exists()) return candidate;
-      candidate = dir.resolve('.packages');
-      if (await fileSystem.entityForUri(candidate).exists()) return candidate;
-      return null;
+      Uri candidate;
+      try {
+        candidate = dir.resolve('.dart_tool/package_config.json');
+        if (await fileSystem.entityForUri(candidate).exists()) return candidate;
+        candidate = dir.resolve('.packages');
+        if (await fileSystem.entityForUri(candidate).exists()) return candidate;
+        return null;
+      } catch (e) {
+        Message message =
+            templateExceptionReadingFile.withArguments(candidate, '$e');
+        reportWithoutLocation(message, Severity.error);
+        // We throw a new exception to ensure that the message include the uri
+        // that led to the exception. Exceptions in Uri don't include the
+        // offending uri in the exception message.
+        throw new ArgumentError(message.message);
+      }
     }
 
     // Check for $cwd/.packages

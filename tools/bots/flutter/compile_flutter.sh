@@ -82,7 +82,6 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     dart:core \
     -Ddart.vm.product=false \
-    -Ddart.developer.causal_async_stacks=true \
     -Ddart.isVM=true \
     --enable-experiment=non-nullable \
     --nnbd-agnostic \

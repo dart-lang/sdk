@@ -52,10 +52,11 @@ constexpr bool kDartUseBackgroundCompilation = true;
 //
 // The syntax used is the same as that for FLAG_LIST below, as these flags are
 // automatically included in FLAG_LIST.
+// TODO(cskau): Remove causal_async_stacks when deprecated.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(causal_async_stacks, bool, false, "Improved async stacks")                 \
+  P(causal_async_stacks, bool, false, "DEPRECATED: Improved async stacks")     \
   P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \

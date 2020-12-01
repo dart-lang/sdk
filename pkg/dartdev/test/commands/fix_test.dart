@@ -29,9 +29,9 @@ void defineFix() {
   ProcessResult runFix(List<String> args, {String workingDir}) {
     if (runFromSource) {
       var binary = path.join(Directory.current.path, 'bin', 'dartdev.dart');
-      return p.runSync(binary, ['fix', ...?args], workingDir: workingDir);
+      return p.runSync([binary, 'fix', ...?args], workingDir: workingDir);
     }
-    return p.runSync('fix', args, workingDir: workingDir);
+    return p.runSync(['fix', ...args], workingDir: workingDir);
   }
 
   test('none', () {
@@ -65,6 +65,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
+
     var result = runFix(['--apply'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
