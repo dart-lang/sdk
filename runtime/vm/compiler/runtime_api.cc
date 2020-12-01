@@ -298,7 +298,7 @@ bool SizeFitsInSizeTag(uword instance_size) {
       TranslateOffsetInWordsToHost(instance_size));
 }
 
-uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
+uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::ObjectLayout::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::ObjectLayout::ClassIdTag::encode(cid) |
@@ -325,6 +325,10 @@ const word ObjectLayout::kSizeTagSize = dart::ObjectLayout::kSizeTagSize;
 const word ObjectLayout::kClassIdTagPos = dart::ObjectLayout::kClassIdTagPos;
 
 const word ObjectLayout::kClassIdTagSize = dart::ObjectLayout::kClassIdTagSize;
+
+const word ObjectLayout::kHashTagPos = dart::ObjectLayout::kHashTagPos;
+
+const word ObjectLayout::kHashTagSize = dart::ObjectLayout::kHashTagSize;
 
 const word ObjectLayout::kSizeTagMaxSizeTag =
     dart::ObjectLayout::SizeTag::kMaxSizeTagInUnitsOfAlignment *

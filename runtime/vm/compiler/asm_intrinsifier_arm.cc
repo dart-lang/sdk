@@ -1950,7 +1950,7 @@ static void TryAllocateString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // R3: size and bit tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ LoadImmediate(TMP, tags);
     __ orr(R3, R3, Operand(TMP));

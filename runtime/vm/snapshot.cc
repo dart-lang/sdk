@@ -926,19 +926,25 @@ void SnapshotWriter::WriteObject(ObjectPtr rawobj) {
 }
 
 uint32_t SnapshotWriter::GetObjectTags(ObjectPtr raw) {
-  return raw->ptr()->tags_;
+  uword tags = raw->ptr()->tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  // Clear hash to make the narrowing cast safe / appease UBSAN.
+  tags = ObjectLayout::HashTag::update(0, tags);
+#endif
+  return tags;
 }
 
 uint32_t SnapshotWriter::GetObjectTags(ObjectLayout* raw) {
-  return raw->tags_;
+  uword tags = raw->tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  // Clear hash to make the narrowing cast safe / appease UBSAN.
+  tags = ObjectLayout::HashTag::update(0, tags);
+#endif
+  return tags;
 }
 
 uword SnapshotWriter::GetObjectTagsAndHash(ObjectPtr raw) {
-  uword result = raw->ptr()->tags_;
-#if defined(HASH_IN_OBJECT_HEADER)
-  result |= static_cast<uword>(raw->ptr()->hash_) << 32;
-#endif
-  return result;
+  return raw->ptr()->tags_;
 }
 
 #define VM_OBJECT_CLASS_LIST(V)                                                \
@@ -1417,7 +1423,7 @@ FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
 
 ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
   ObjectPtr owner = func->ptr()->owner_;
-  uint32_t tags = GetObjectTags(owner);
+  uword tags = GetObjectTags(owner);
   intptr_t class_id = ObjectLayout::ClassIdTag::decode(tags);
   if (class_id == kClassCid) {
     return static_cast<ClassPtr>(owner);

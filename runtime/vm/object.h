@@ -290,7 +290,7 @@ class Object {
   ObjectPtr raw() const { return raw_; }
   void operator=(ObjectPtr value) { initializeHandle(this, value); }
 
-  uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
+  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
     raw()->ptr()->tags_.StrongCAS(old_tags, new_tags);
     return old_tags;
   }
@@ -393,11 +393,11 @@ class Object {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const ObjectPtr obj) {
-    return obj->ptr()->hash_;
+    return obj->ptr()->GetHeaderHash();
   }
 
   static void SetCachedHash(ObjectPtr obj, uint32_t hash) {
-    obj->ptr()->hash_ = hash;
+    obj->ptr()->SetHeaderHash(hash);
   }
 #endif
 
@@ -8661,7 +8661,15 @@ class String : public Instance {
     return GetCachedHash(raw()) != 0;
   }
 
-  static intptr_t hash_offset() { return OFFSET_OF(StringLayout, hash_); }
+  static intptr_t hash_offset() {
+#if defined(HASH_IN_OBJECT_HEADER)
+    COMPILE_ASSERT(ObjectLayout::kHashTagPos % kBitsPerByte == 0);
+    return OFFSET_OF(ObjectLayout, tags_) +
+           ObjectLayout::kHashTagPos / kBitsPerByte;
+#else
+    return OFFSET_OF(StringLayout, hash_);
+#endif
+  }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
@@ -8886,7 +8894,7 @@ class String : public Instance {
     return Smi::Value(obj->ptr()->hash_);
   }
 
-  static void SetCachedHash(StringPtr obj, uintptr_t hash) {
+  static void SetCachedHash(StringPtr obj, uint32_t hash) {
     obj->ptr()->hash_ = Smi::New(hash);
   }
 #endif

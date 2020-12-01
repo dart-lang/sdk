@@ -1469,8 +1469,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      uint32_t tags = raw->ptr()->tags_;
-      uint32_t old_tags;
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
@@ -1498,8 +1498,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      uint32_t tags = raw->ptr()->tags_;
-      uint32_t old_tags;
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
@@ -2471,10 +2471,9 @@ StringPtr Object::DictionaryName() const {
 }
 
 void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
-  // Note: we skip the header word here because it confuses TSAN. TSAN records
-  // an 8-byte write from the this loop, but doesn't overwrite that entry with
-  // the 4-byte relaxed store of the header below, then reports false data races
-  // based on the record of the 8-byte write.
+  // Note: we skip the header word here to avoid a racy read in the concurrent
+  // marker from observing the null object when it reads into a heap page
+  // allocated after marking started.
   uword cur = address + sizeof(ObjectLayout);
   uword end = address + size;
   if (class_id == kInstructionsCid) {
@@ -2513,7 +2512,7 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
 #endif
     }
   }
-  uint32_t tags = 0;
+  uword tags = 0;
   ASSERT(class_id != kIllegalCid);
   tags = ObjectLayout::ClassIdTag::update(class_id, tags);
   tags = ObjectLayout::SizeTag::update(size, tags);
@@ -2524,9 +2523,6 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   tags = ObjectLayout::OldAndNotRememberedBit::update(is_old, tags);
   tags = ObjectLayout::NewBit::update(!is_old, tags);
   reinterpret_cast<ObjectLayout*>(address)->tags_ = tags;
-#if defined(HASH_IN_OBJECT_HEADER)
-  reinterpret_cast<ObjectLayout*>(address)->hash_ = 0;
-#endif
 }
 
 void Object::CheckHandle() const {
@@ -23107,11 +23103,11 @@ void Array::MakeImmutable() const {
   if (IsImmutable()) return;
   ASSERT(!IsCanonical());
   NoSafepointScope no_safepoint;
-  uint32_t tags = raw_ptr()->tags_;
-  uint32_t old_tags;
+  uword tags = raw_ptr()->tags_;
+  uword old_tags;
   do {
     old_tags = tags;
-    uint32_t new_tags =
+    uword new_tags =
         ObjectLayout::ClassIdTag::update(kImmutableArrayCid, old_tags);
     tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
@@ -23176,12 +23172,12 @@ void Array::Truncate(intptr_t new_len) const {
   std::atomic_thread_fence(std::memory_order_release);
 
   // Update the size in the header field and length of the array object.
-  uint32_t tags = array.raw_ptr()->tags_;
+  uword tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == ObjectLayout::ClassIdTag::decode(tags));
-  uint32_t old_tags;
+  uword old_tags;
   do {
     old_tags = tags;
-    uint32_t new_tags = ObjectLayout::SizeTag::update(new_size, old_tags);
+    uword new_tags = ObjectLayout::SizeTag::update(new_size, old_tags);
     tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
 

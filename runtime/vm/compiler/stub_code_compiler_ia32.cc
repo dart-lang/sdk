@@ -833,7 +833,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
+      uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orl(EDI, Immediate(tags));
       __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
     }
@@ -1098,7 +1098,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // EAX: new object.
     // EDX: number of context variables.
     // EBX: size and bit tags.
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orl(EBX, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
   }
@@ -1453,8 +1453,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     // EDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
     ASSERT(target::Class::GetId(cls) != kIllegalCid);
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(
-        target::Class::GetId(cls), instance_size);
+    uword tags = target::MakeTagWordForNewSpaceObject(target::Class::GetId(cls),
+                                                      instance_size);
     __ movl(Address(EAX, target::Object::tags_offset()), Immediate(tags));
     __ addl(EAX, Immediate(kHeapObjectTag));
 
@@ -2956,8 +2956,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ movl(EDI, Immediate(0));
     __ Bind(&done);
     /* Get the class index and insert it into the tags. */
-    uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orl(EDI, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI); /* Tags. */
   }

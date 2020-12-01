@@ -1,0 +1,22 @@
+{
+  "format_version": "1.1",
+  "package_name": "dart/abiversions/39",
+  "install_mode": "copy",
+  "files": [
+    {
+      "name": "gen_kernel_bytecode.dill",
+      "size": 5280200,
+      "hash": "I1SaF8VZ3FJGz_iT5syDDh0N5Z8zJfLQypxuMpk0gNMC"
+    },
+    {
+      "name": "kernel_service.dill",
+      "size": 9529664,
+      "hash": "XfD_LgRwvrc0dsbcfESHHhRUXKvDz3Owo7-EB1s97xsC"
+    },
+    {
+      "name": "vm_platform_strong.dill",
+      "size": 6202872,
+      "hash": "lbD-hNFdjnZ3VR4xKblv-1e95Wc3KRIgvKh_vw40nkYC"
+    }
+  ]
+}

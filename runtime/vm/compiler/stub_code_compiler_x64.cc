@@ -1111,7 +1111,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
+      uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orq(RDI, Immediate(tags));
       __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
     }
@@ -1434,7 +1434,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // RAX: new object.
     // R10: number of context variables.
     // R13: size and bit tags.
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orq(R13, Immediate(tags));
     __ movq(FieldAddress(RAX, target::Object::tags_offset()), R13);  // Tags.
   }
@@ -1635,13 +1635,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   }
 
   // Update the tags that this object has been remembered.
-  // Note that we use 32 bit operations here to match the size of the
-  // background sweeper which is also manipulating this 32 bit word.
   // RDX: Address being stored
   // RAX: Current tag value
-  // lock+andl is an atomic read-modify-write.
+  // lock+andq is an atomic read-modify-write.
   __ lock();
-  __ andl(FieldAddress(RDX, target::Object::tags_offset()),
+  __ andq(FieldAddress(RDX, target::Object::tags_offset()),
           Immediate(~(1 << target::ObjectLayout::kOldAndNotRememberedBit)));
 
   // Save registers being destroyed.
@@ -1688,16 +1686,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
 
   // Atomically clear kOldAndNotMarkedBit.
-  // Note that we use 32 bit operations here to match the size of the
-  // background marker which is also manipulating this 32 bit word.
   Label retry, lost_race, marking_overflow;
-  __ movl(RAX, FieldAddress(TMP, target::Object::tags_offset()));
+  __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
   __ Bind(&retry);
-  __ movl(RCX, RAX);
-  __ testl(RCX, Immediate(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ movq(RCX, RAX);
+  __ testq(RCX, Immediate(1 << target::ObjectLayout::kOldAndNotMarkedBit));
   __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andl(RCX, Immediate(~(1 << target::ObjectLayout::kOldAndNotMarkedBit)));
-  __ LockCmpxchgl(FieldAddress(TMP, target::Object::tags_offset()), RCX);
+  __ andq(RCX, Immediate(~(1 << target::ObjectLayout::kOldAndNotMarkedBit)));
+  __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
   __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
   __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
@@ -1951,7 +1947,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   // User-defined classes should always be allocatable in new space.
   RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
@@ -3584,8 +3580,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ Bind(&done);
 
     /* Get the class index and insert it into the tags. */
-    uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orq(RDI, Immediate(tags));
     __ movq(FieldAddress(RAX, target::Object::tags_offset()), RDI); /* Tags. */
   }

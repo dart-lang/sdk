@@ -2510,8 +2510,7 @@ void Assembler::TryAllocate(const Class& cls,
     movl(Address(THR, target::Thread::top_offset()), instance_reg);
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     movl(FieldAddress(instance_reg, target::Object::tags_offset()),
          Immediate(tags));
   } else {
@@ -2552,8 +2551,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     addl(instance, Immediate(kHeapObjectTag));
 
     // Initialize the tags.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     movl(FieldAddress(instance, target::Object::tags_offset()),
          Immediate(tags));
   } else {

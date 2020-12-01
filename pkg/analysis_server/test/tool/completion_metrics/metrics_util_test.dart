@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import '../../../tool/completion_metrics/metrics_util.dart';
+import '../../../tool/code_completion/metrics_util.dart';
 
 void main() {
   group('ArithmeticMeanComputer', () {

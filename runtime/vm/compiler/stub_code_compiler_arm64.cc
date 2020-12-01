@@ -1195,7 +1195,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ csel(R1, ZR, R1, HI);
 
     // Get the class index and insert it into the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
 
     __ LoadImmediate(TMP, tags);
@@ -1502,7 +1502,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 
   // Get the class index and insert it into the tags.
   // R2: size and bit tags.
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(kContextCid, /*instance_size=*/0);
 
   __ LoadImmediate(TMP, tags);
@@ -1716,14 +1716,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R1, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
-  // Note that we use 32 bit operations here to match the size of the
-  // background sweeper which is also manipulating this 32 bit word.
   Label retry;
   __ Bind(&retry);
-  __ ldxr(R2, R3, kFourBytes);
+  __ ldxr(R2, R3, kEightBytes);
   __ AndImmediate(R2, R2,
                   ~(1 << target::ObjectLayout::kOldAndNotRememberedBit));
-  __ stxr(R4, R2, R3, kFourBytes);
+  __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&retry, R4);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
@@ -1766,17 +1764,15 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Push(R4);  // Spill.
 
   // Atomically clear kOldAndNotMarkedBit.
-  // Note that we use 32 bit operations here to match the size of the
-  // background sweeper which is also manipulating this 32 bit word.
   Label marking_retry, lost_race, marking_overflow;
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R0, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   __ Bind(&marking_retry);
-  __ ldxr(R2, R3, kFourBytes);
+  __ ldxr(R2, R3, kEightBytes);
   __ tbz(&lost_race, R2, target::ObjectLayout::kOldAndNotMarkedBit);
   __ AndImmediate(R2, R2, ~(1 << target::ObjectLayout::kOldAndNotMarkedBit));
-  __ stxr(R4, R2, R3, kFourBytes);
+  __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&marking_retry, R4);
 
   __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
@@ -2024,7 +2020,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   ASSERT(instance_size > 0);
   RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
@@ -3629,8 +3625,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ csel(R2, ZR, R2, HI);
 
     /* Get the class index and insert it into the tags. */
-    uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ LoadImmediate(TMP, tags);
     __ orr(R2, R2, Operand(TMP));
     __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */

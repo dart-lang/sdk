@@ -1971,10 +1971,7 @@ void Assembler::TryAllocate(const Class& cls,
     movq(Address(THR, target::Thread::top_offset()), instance_reg);
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size));
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     MoveImmediate(FieldAddress(instance_reg, target::Object::tags_offset()),
                   Immediate(tags));
   } else {
@@ -2015,10 +2012,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     movq(FieldAddress(instance, target::Object::tags_offset()),
          Immediate(tags));
   } else {
