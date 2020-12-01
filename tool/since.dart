@@ -37,7 +37,7 @@ Future<Map<String, SinceInfo>> get sinceMap async =>
     _sinceMap ??= await _getSinceInfo();
 
 Future<Map<String, SinceInfo>> _getSinceInfo() async {
-  var linterCache = await File('tool/since/linter.yaml').readAsString();
+  var linterCache = File('tool/since/linter.yaml').readAsStringSync();
   final linterVersionCache = loadYamlNode(linterCache) as YamlMap;
 
   var sinceMap = <String, SinceInfo>{};

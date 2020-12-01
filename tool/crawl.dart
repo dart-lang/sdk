@@ -177,6 +177,9 @@ Future<String> _fetchLinterForVersion(String version) async {
 Future<List<String>> _fetchSdkTags() {
   final github = GitHub();
   final slug = RepositorySlug('dart-lang', 'sdk');
+
+  print('list repository tags: $slug');
+
   return github.repositories
       .listTags(slug)
       .map((t) => t.name)

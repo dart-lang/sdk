@@ -10,6 +10,7 @@ const _pedanticOptionsRootUrl =
 const _pedanticOptionsUrl = '$_pedanticOptionsRootUrl/analysis_options.yaml';
 
 List<String> _pedanticRules;
+
 Future<List<String>> get pedanticRules async =>
     _pedanticRules ??= await _fetchPedanticRules();
 
@@ -27,6 +28,7 @@ Future<List<String>> fetchRules(String optionsUrl) async {
 }
 
 Future<LintConfig> _fetchConfig(String url) async {
+  print('loading $url...');
   final client = http.Client();
   final req = await client.get(url);
   return processAnalysisOptionsFile(req.body);
@@ -34,6 +36,7 @@ Future<LintConfig> _fetchConfig(String url) async {
 
 Future<List<String>> _fetchPedanticRules() async {
   final client = http.Client();
+  print('loading $_pedanticOptionsUrl...');
   final req = await client.get(_pedanticOptionsUrl);
   final includedOptions =
       req.body.split('include: package:pedantic/')[1].trim();

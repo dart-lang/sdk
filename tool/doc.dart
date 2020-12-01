@@ -93,6 +93,7 @@ Future<String> get pedanticLatestVersion async {
   var url =
       'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
   var client = http.Client();
+  print('loading $url...');
   var req = await client.get(url);
   var parts = req.body.split('package:pedantic/analysis_options.');
   return parts[1].split('.yaml')[0];
@@ -102,6 +103,7 @@ Future<String> get effectiveDartLatestVersion async {
   var url =
       'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.yaml';
   var client = http.Client();
+  print('loading $url...');
   var req = await client.get(url);
   var parts = req.body.split('package:effective_dart/analysis_options.');
   return parts[1].split('.yaml')[0];
@@ -136,6 +138,7 @@ Future<void> fetchSinceInfo() async {
 
 Future<LintConfig> fetchConfig(String url) async {
   var client = http.Client();
+  print('loading $url...');
   var req = await client.get(url);
   return processAnalysisOptionsFile(req.body);
 }
@@ -169,11 +172,15 @@ Future<void> generateDocs(String dir) async {
   // Fetch since info.
   await fetchSinceInfo();
 
-  // Generate index.
-  Indexer(Registry.ruleRegistry).generate(outDir);
-
   // Generate rule files.
-  rules.forEach((l) => Generator(l).generate(outDir));
+  rules.forEach((l) {
+    RuleHtmlGenerator(l).generate(outDir);
+    RuleMarkdownGenerator(l).generate(filePath: outDir);
+  });
+
+  // Generate index.
+  HtmlIndexer(Registry.ruleRegistry).generate(outDir);
+  MarkdownIndexer(Registry.ruleRegistry).generate(filePath: outDir);
 
   // Generate options samples.
   OptionsSample(rules).generate(outDir);
@@ -221,6 +228,7 @@ String toDescription(LintRule r) =>
 
 class CountBadger {
   Iterable<LintRule> rules;
+
   CountBadger(this.rules);
 
   Future<void> generate(String dirPath) async {
@@ -234,14 +242,90 @@ class CountBadger {
   }
 }
 
-class Generator {
-  LintRule rule;
-  Generator(this.rule);
+class RuleMarkdownGenerator {
+  final LintRule rule;
+
+  RuleMarkdownGenerator(this.rule);
+
+  String get name => rule.name;
+
+  String get group => rule.group.name;
+
+  String get maturity => rule.maturity.name;
 
   String get details => rule.details ?? '';
+
+  String get since {
+    var info = sinceInfo[name];
+    var version = info.sinceDartSdk != null
+        ? '>= ${info.sinceDartSdk}'
+        : '**unreleased**';
+    return 'Dart SDK: $version • (Linter v${info.sinceLinter})';
+  }
+
+  void generate({String filePath}) {
+    final buffer = StringBuffer();
+
+    buffer.writeln('# Rule $name');
+    buffer.writeln();
+    buffer.writeln('**Group**: $group\\');
+    buffer.writeln('**Maturity**: $maturity\\');
+    buffer.writeln('**Since**: $since\\');
+    buffer.writeln();
+
+    // badges
+    if (flutterRules.contains(name)) {
+      buffer.writeln('[![flutter](style-flutter.svg)]'
+          '(https://github.com/flutter/flutter/blob/master/packages/'
+          'flutter/lib/analysis_options_user.yaml)');
+    }
+    if (pedanticRules.contains(name)) {
+      buffer.writeln('[![pedantic](style-pedantic.svg)]'
+          '(https://github.com/dart-lang/pedantic/#enabled-lints)');
+    }
+    if (effectiveDartRules.contains(name)) {
+      buffer.writeln('[![effective dart](style-effective_dart.svg)]'
+          '(https://github.com/tenhobi/effective_dart)');
+    }
+
+    buffer.writeln();
+
+    buffer.writeln('## Description');
+    buffer.writeln();
+    buffer.writeln('${details.trim()}');
+
+    // incompatible rules
+    final incompatibleRules = rule.incompatibleRules;
+    if (incompatibleRules.isNotEmpty) {
+      buffer.writeln('## Incompatible With');
+      buffer.writeln();
+      for (var rule in incompatibleRules) {
+        buffer.writeln('- [$rule]($rule.md)');
+      }
+      buffer.writeln();
+    }
+
+    if (filePath == null) {
+      print(buffer.toString());
+    } else {
+      File('$filePath/$name.md').writeAsStringSync(buffer.toString());
+    }
+  }
+}
+
+class RuleHtmlGenerator {
+  final LintRule rule;
+
+  RuleHtmlGenerator(this.rule);
+
+  String get details => rule.details ?? '';
+
   String get group => rule.group.name;
+
   String get humanReadableName => rule.name;
+
   String get maturity => rule.maturity.name;
+
   String get maturityString {
     switch (rule.maturity) {
       case Maturity.deprecated:
@@ -338,9 +422,88 @@ class Generator {
 ''';
 }
 
-class Indexer {
-  Iterable<LintRule> rules;
-  Indexer(this.rules);
+class MarkdownIndexer {
+  final Iterable<LintRule> rules;
+
+  MarkdownIndexer(this.rules);
+
+  void generate({String filePath}) {
+    final buffer = StringBuffer();
+
+    buffer.writeln('# Linter for Dart');
+    buffer.writeln();
+    buffer.writeln('## Lint Rules');
+    buffer.writeln();
+    buffer.writeln(
+        '[Using the Linter](https://dart.dev/guides/language/analysis-options#enabling-linter-rules)');
+    buffer.writeln();
+    buffer.writeln('## Supported Lint Rules');
+    buffer.writeln();
+    buffer.writeln('This list is auto-generated from our sources.');
+    buffer.writeln();
+    buffer.writeln(ruleLeadMatter);
+    buffer.writeln();
+
+    for (var group in Group.builtin) {
+      buffer.writeln('- **${group.name}** - ${group.description}');
+      buffer.writeln();
+    }
+
+    buffer.writeln(ruleFootMatter);
+    buffer.writeln();
+
+    var emit = (LintRule rule) {
+      buffer
+          .writeln('**[${rule.name}](${rule.name}.md)** - ${rule.description}');
+      if (flutterRules.contains(rule.name)) {
+        buffer.writeln('[![flutter](style-flutter.svg)]'
+            '(https://github.com/flutter/flutter/blob/master/packages/'
+            'flutter/lib/analysis_options_user.yaml)');
+      }
+      if (pedanticRules.contains(rule.name)) {
+        buffer.writeln('[![pedantic](style-pedantic.svg)]'
+            '(https://github.com/dart-lang/pedantic/#enabled-lints)');
+      }
+      if (effectiveDartRules.contains(rule.name)) {
+        buffer.writeln('[![effective dart](style-effective_dart.svg)]'
+            '(https://github.com/tenhobi/effective_dart)');
+      }
+      buffer.writeln();
+    };
+
+    buffer.writeln('## Error Rules');
+    buffer.writeln();
+    // ignore: prefer_foreach
+    for (var rule in rules.where((rule) => rule.group == Group.errors)) {
+      emit(rule);
+    }
+
+    buffer.writeln('## Style Rules');
+    buffer.writeln();
+    // ignore: prefer_foreach
+    for (var rule in rules.where((rule) => rule.group == Group.style)) {
+      emit(rule);
+    }
+
+    buffer.writeln('## Pub Rules');
+    buffer.writeln();
+    // ignore: prefer_foreach
+    for (var rule in rules.where((rule) => rule.group == Group.pub)) {
+      emit(rule);
+    }
+
+    if (filePath == null) {
+      print(buffer.toString());
+    } else {
+      File('$filePath/index.md').writeAsStringSync(buffer.toString());
+    }
+  }
+}
+
+class HtmlIndexer {
+  final Iterable<LintRule> rules;
+
+  HtmlIndexer(this.rules);
 
   void generate(String filePath) {
     var generated = _generate();
@@ -414,6 +577,7 @@ class Indexer {
 
 class OptionsSample {
   Iterable<LintRule> rules;
+
   OptionsSample(this.rules);
 
   void generate(String filePath) {
