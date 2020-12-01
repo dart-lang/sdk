@@ -808,8 +808,8 @@ class KernelTarget extends TargetImplementation {
             isSynthetic: true,
             isConst: isConst,
             reference: referenceFrom?.reference)
-          ..isNonNullableByDefault =
-              cls.enclosingLibrary.isNonNullableByDefault,
+          ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault
+          ..fileUri = cls.fileUri,
         // If the constructor is constant, the default values must be part of
         // the outline expressions. We pass on the original constructor and
         // cloned function nodes to ensure that the default values are computed
@@ -1253,6 +1253,15 @@ class KernelTarget extends TargetImplementation {
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
     constantCoverageForTesting = coverage;
+
+    coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
+      Source source = uriToSource[fileUri];
+      if (source != null && fileUri != null) {
+        source.constantCoverageConstructors ??= new Set<Reference>();
+        source.constantCoverageConstructors.addAll(value);
+      }
+    });
+    ticker.logMs("Added constant coverage");
 
     if (loader.target.context.options
         .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
