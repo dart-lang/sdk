@@ -104,7 +104,7 @@ ${parser.usage}''');
     // Reactivate inactive flaky results that are flaky again.
     if (testData['active'] == false) {
       if (resultsForInactiveFlakiness[key].length > 1) {
-        testData['active'] == true;
+        testData['active'] = true;
         testData['reactivation_count'] =
             (testData['reactivation_count'] ?? 0) + 1;
       }
