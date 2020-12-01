@@ -13,12 +13,13 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:meta/meta.dart';
 
 /// The type builder for a [TypeName].
 class NamedTypeBuilder extends TypeBuilder {
+  /// TODO(scheglov) Replace with `DartType` in `TypeAliasElementImpl`.
+  static const _rawFunctionTypeKey = '_rawFunctionType';
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   /// The type system of the library with the type name.
@@ -266,11 +267,11 @@ class NamedTypeBuilder extends TypeBuilder {
     var typedefNode = element.linkedNode;
 
     // Break a possible recursion.
-    var existing = LazyAst.getRawFunctionType(typedefNode);
+    var existing = typedefNode.getProperty(_rawFunctionTypeKey) as DartType;
     if (existing != null) {
       return existing;
     } else {
-      LazyAst.setRawFunctionType(typedefNode, _dynamicType);
+      _setRawFunctionType(typedefNode, _dynamicType);
     }
 
     if (typedefNode is FunctionTypeAlias) {
@@ -280,12 +281,12 @@ class NamedTypeBuilder extends TypeBuilder {
         parameterList: typedefNode.parameters,
         hasQuestion: false,
       );
-      LazyAst.setRawFunctionType(typedefNode, result);
+      _setRawFunctionType(typedefNode, result);
       return result;
     } else if (typedefNode is GenericTypeAlias) {
       var functionNode = typedefNode.functionType;
       var functionType = _buildGenericFunctionType(functionNode);
-      LazyAst.setRawFunctionType(typedefNode, functionType);
+      _setRawFunctionType(typedefNode, functionType);
       return functionType;
     } else {
       throw StateError('(${element.runtimeType}) $element');
@@ -303,6 +304,10 @@ class NamedTypeBuilder extends TypeBuilder {
 
   static List<DartType> _listOfDynamic(int length) {
     return List<DartType>.filled(length, _dynamicType);
+  }
+
+  static void _setRawFunctionType(AstNode node, DartType type) {
+    node.setProperty(_rawFunctionTypeKey, type);
   }
 
   static List<TypeParameterElement> _typeParameters(TypeParameterList node) {

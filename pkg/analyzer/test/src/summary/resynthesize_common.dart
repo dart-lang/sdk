@@ -2719,6 +2719,97 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
     expect(library.isNonNullableByDefault, isTrue);
   }
 
+  test_const_asExpression() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+const num a = 0;
+const b = a as int;
+''');
+    checkElementText(library, '''
+const num a = 0;
+const int b =
+        a/*location: test.dart;a?*/ as
+        int/*location: dart:core;int*/;
+''');
+  }
+
+  test_const_assignmentExpression() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = (a += 1);
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    ParenthesizedExpression
+      expression: AssignmentExpression
+        leftHandSide: SimpleIdentifier
+          staticElement: <null>
+          staticType: null
+          token: a
+        operator: +=
+        readElement: self::@getter::a
+        readType: int
+        rightHandSide: IntegerLiteral
+          literal: 1
+          staticType: int
+        staticElement: dart:core::@class::num::@method::+
+        staticType: int
+        writeElement: self::@getter::a
+        writeType: dynamic
+      staticType: int
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_cascadeExpression() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const a = 0..isEven..abs();
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    CascadeExpression
+      cascadeSections
+        PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            staticElement: dart:core::@class::int::@getter::isEven
+            staticType: bool
+            token: isEven
+          staticType: bool
+        MethodInvocation
+          argumentList: ArgumentList
+          methodName: SimpleIdentifier
+            staticElement: dart:core::@class::int::@method::abs
+            staticType: int Function()
+            token: abs
+          operator: ..
+          staticInvokeType: null
+          staticType: int
+      staticType: int
+      target: IntegerLiteral
+        literal: 0
+        staticType: int
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
   test_const_classField() async {
     var library = await checkLibrary(r'''
 class C {
@@ -2789,6 +2880,50 @@ class C {
   const C();
 }
 ''');
+  }
+
+  test_const_indexExpression() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const a = [0];
+const b = 0;
+const c = a[b];
+''');
+    checkElementText(
+      library,
+      r'''
+const List<int> a;
+  constantInitializer
+    ListLiteral
+      elements
+        IntegerLiteral
+          literal: 0
+          staticType: int
+      staticType: List<int>
+const int b;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int c;
+  constantInitializer
+    IndexExpression
+      index: SimpleIdentifier
+        staticElement: self::@getter::b
+        staticType: int
+        token: b
+      staticElement: MethodMember
+        base: dart:core::@class::List::@method::[]
+        substitution: {E: int}
+      staticType: int
+      target: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: List<int>
+        token: a
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
   }
 
   test_const_inference_downward_list() async {
@@ -3253,6 +3388,20 @@ const dynamic V = const
 ''');
   }
 
+  test_const_isExpression() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+const a = 0;
+const b = a is int;
+''');
+    checkElementText(library, '''
+const int a = 0;
+const bool b =
+        a/*location: test.dart;a?*/ is
+        int/*location: dart:core;int*/;
+''');
+  }
+
   test_const_length_ofClassConstField() async {
     var library = await checkLibrary(r'''
 class C {
@@ -3527,6 +3676,44 @@ const Object x = const <
         withTypes: true);
   }
 
+  test_const_methodInvocation() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+T f<T>(T a) => a;
+const b = f<int>(0);
+''');
+    checkElementText(
+      library,
+      r'''
+const int b;
+  constantInitializer
+    MethodInvocation
+      argumentList: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      methodName: SimpleIdentifier
+        staticElement: self::@function::f
+        staticType: T Function<T>(T)
+        token: f
+      staticInvokeType: null
+      staticType: int
+      typeArguments: TypeArgumentList
+        arguments
+          TypeName
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::int
+              staticType: null
+              token: int
+            type: int
+T f(T a) {}
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     var library = await checkLibrary(r'''
 class C {
@@ -3596,6 +3783,104 @@ class C {
   void methodNamedWithoutDefault({dynamic p}) {}
 }
 ''');
+  }
+
+  test_const_postfixExpression_increment() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = a++;
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PostfixExpression
+      operand: SimpleIdentifier
+        staticElement: <null>
+        staticType: null
+        token: a
+      operator: ++
+      readElement: self::@getter::a
+      readType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticType: int
+      writeElement: self::@getter::a
+      writeType: dynamic
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_postfixExpression_nullCheck() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const int? a = 0;
+const b = a!;
+''');
+    checkElementText(
+      library,
+      r'''
+const int? a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PostfixExpression
+      operand: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: int?
+        token: a
+      operator: !
+      staticElement: <null>
+      staticType: int
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_prefixExpression_increment() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = ++a;
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PrefixExpression
+      operand: SimpleIdentifier
+        staticElement: <null>
+        staticType: null
+        token: a
+      operator: ++
+      readElement: self::@getter::a
+      readType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticType: int
+      writeElement: self::@getter::a
+      writeType: dynamic
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
   }
 
   test_const_reference_staticField() async {
@@ -4131,9 +4416,11 @@ const num vIfNull = 1 ?? 2.0;
 const vNull = null;
 const vBoolFalse = false;
 const vBoolTrue = true;
-const vInt = 1;
+const vIntPositive = 1;
+const vIntNegative = -2;
 const vIntLong1 = 0x7FFFFFFFFFFFFFFF;
 const vIntLong2 = 0xFFFFFFFFFFFFFFFF;
+const vIntLong3 = 0x8000000000000000;
 const vDouble = 2.3;
 const vString = 'abc';
 const vStringConcat = 'aaa' 'bbb';
@@ -4144,9 +4431,11 @@ const vSymbol = #aaa.bbb.ccc;
 const dynamic vNull = null;
 const bool vBoolFalse = false;
 const bool vBoolTrue = true;
-const int vInt = 1;
+const int vIntPositive = 1;
+const int vIntNegative = -2;
 const int vIntLong1 = 9223372036854775807;
 const int vIntLong2 = -1;
+const int vIntLong3 = -9223372036854775808;
 const double vDouble = 2.3;
 const String vString = 'abc';
 const String vStringConcat = 'aaabbb';
@@ -4515,6 +4804,35 @@ class C {
 }
 int foo() {}
 ''');
+  }
+
+  test_constructor_initializers_field_optionalPositionalParameter() async {
+    var library = await checkLibrary('''
+class A {
+  final int _f;
+  const A([int f = 0]) : _f = f;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  final int _f;
+  const A([int f = 0]);
+    constantInitializers
+      ConstructorFieldInitializer
+        equals: =
+        expression: SimpleIdentifier
+          staticElement: f@41
+          staticType: int
+          token: f
+        fieldName: SimpleIdentifier
+          staticElement: self::@class::A::@field::_f
+          staticType: null
+          token: _f
+}
+''',
+        withFullyResolvedAst: true);
   }
 
   test_constructor_initializers_field_withParameter() async {
@@ -6355,6 +6673,46 @@ abstract class D {
 ''');
   }
 
+  test_field_inferred_type_nonStatic_inherited_resolveInitializer() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+abstract class A {
+  const A();
+  List<int> get f;
+}
+class B extends A {
+  const B();
+  final f = [a];
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  List<int> get f;
+  const A();
+}
+class B extends A {
+  final List<int> f;
+    constantInitializer
+      ListLiteral
+        elements
+          SimpleIdentifier
+            staticElement: self::@getter::a
+            staticType: int
+            token: a
+        staticType: List<int>
+  const B();
+}
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_field_inferred_type_static_implicit_initialized() async {
     var library = await checkLibrary('class C { static var v = 0; }');
     checkElementText(library, r'''
@@ -6747,6 +7105,38 @@ dynamic g() {}
 ''');
   }
 
+  test_functionTypeAlias_enclosingElements() async {
+    var library = await checkLibrary(r'''
+typedef void F<T>(int a);
+''');
+    var unit = library.definingCompilationUnit;
+
+    var F = unit.functionTypeAliases[0];
+    expect(F.name, 'F');
+
+    var T = F.typeParameters[0];
+    expect(T.name, 'T');
+    expect(T.enclosingElement, same(F));
+
+    var function = F.function;
+    expect(function.enclosingElement, same(F));
+
+    var a = function.parameters[0];
+    expect(a.name, 'a');
+    expect(a.enclosingElement, same(function));
+  }
+
+  test_functionTypeAlias_type_element() async {
+    var library = await checkLibrary(r'''
+typedef T F<T>();
+F<int> a;
+''');
+    var unit = library.definingCompilationUnit;
+    var type = unit.topLevelVariables[0].type as FunctionType;
+    expect(type.element.enclosingElement, same(unit.functionTypeAliases[0]));
+    _assertTypeStrings(type.typeArguments, ['int*']);
+  }
+
   test_functionTypeAlias_typeParameters_variance_contravariant() async {
     var library = await checkLibrary(r'''
 typedef void F<T>(T a);
@@ -7048,6 +7438,31 @@ typedef F2<V2> = V2 Function();
 typedef F1 = dynamic Function<V1>(V1 Function() );
 typedef F2<V2> = V2 Function();
 ''');
+  }
+
+  test_genericTypeAlias_enclosingElements() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function<U>(int a);
+''');
+    var unit = library.definingCompilationUnit;
+
+    var F = unit.functionTypeAliases[0];
+    expect(F.name, 'F');
+
+    var T = F.typeParameters[0];
+    expect(T.name, 'T');
+    expect(T.enclosingElement, same(F));
+
+    var function = F.function;
+    expect(function.enclosingElement, same(F));
+
+    var U = function.typeParameters[0];
+    expect(U.name, 'U');
+    expect(U.enclosingElement, same(function));
+
+    var a = function.parameters[0];
+    expect(a.name, 'a');
+    expect(a.enclosingElement, same(function));
   }
 
   test_genericTypeAlias_recursive() async {
@@ -7509,6 +7924,16 @@ import 'dart:async' show Future, Stream;
 Future<dynamic> f;
 Stream<dynamic> s;
 ''');
+  }
+
+  test_import_show_offsetEnd() async {
+    var library = await checkLibrary('''
+import "dart:math" show e, pi;
+''');
+    var import = library.imports[0];
+    var combinator = import.combinators[0] as ShowElementCombinator;
+    expect(combinator.offset, 19);
+    expect(combinator.end, 29);
   }
 
   test_import_uri() async {
@@ -9367,15 +9792,54 @@ const dynamic b = null;
   }
 
   test_metadata_importDirective() async {
-    addLibrarySource('/foo.dart', 'const b = null;');
+    addLibrarySource('/foo.dart', 'const b = 0;');
     var library = await checkLibrary('@a import "foo.dart"; const a = b;');
-    checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
+    checkElementText(
+        library,
+        r'''
 import 'foo.dart';
-const dynamic a =
-        b/*location: foo.dart;b?*/;
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+const int a;
+  constantInitializer
+    SimpleIdentifier
+      staticElement: file:///foo.dart::@getter::b
+      staticType: int
+      token: b
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_importDirective_hasShow() async {
+    var library = await checkLibrary(r'''
+@a
+import "dart:math" show Random;
+
+const a = 0;
 ''');
+    checkElementText(
+        library,
+        r'''
+import 'dart:math' show Random;
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_invalid_classDeclaration() async {
@@ -9568,6 +10032,23 @@ const dynamic a = null;
 unit: foo.dart
 
 ''');
+  }
+
+  test_metadata_partDirective2() async {
+    addSource('/a.dart', r'''
+part of 'test.dart';
+''');
+    addSource('/b.dart', r'''
+part of 'test.dart';
+''');
+    var library = await checkLibrary('''
+part 'a.dart';
+part 'b.dart';
+''');
+
+    // The difference with the test above is that we ask the part first.
+    // There was a bug that we were not loading library directives.
+    expect(library.parts[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {
@@ -12084,6 +12565,21 @@ void set x(int _) {}
 ''');
   }
 
+  test_variable_implicit() async {
+    var library = await checkLibrary('int get x => 0;');
+
+    // We intentionally don't check the text, because we want to test
+    // requesting individual elements, not all accessors/variables at once.
+    var getter = _elementOfDefiningUnit(library, '@getter', 'x')
+        as PropertyAccessorElementImpl;
+    var variable = getter.variable as TopLevelVariableElementImpl;
+    expect(variable, isNotNull);
+    expect(variable.isFinal, isTrue);
+    expect(variable.getter, same(getter));
+    expect('${variable.type}', 'int*');
+    expect(variable, same(_elementOfDefiningUnit(library, '@field', 'x')));
+  }
+
   test_variable_implicit_type() async {
     var library = await checkLibrary('var x;');
     checkElementText(library, r'''
@@ -12344,6 +12840,26 @@ int j;
   void _assertTypeStr(DartType type, String expected) {
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
+  }
+
+  void _assertTypeStrings(List<DartType> types, List<String> expected) {
+    var typeStringList = types.map((e) {
+      return e.getDisplayString(withNullability: true);
+    }).toList();
+    expect(typeStringList, expected);
+  }
+
+  Element _elementOfDefiningUnit(LibraryElementImpl library,
+      [String name1, String name2, String name3]) {
+    var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
+    var reference = unit.reference;
+
+    [name1, name2, name3].takeWhile((e) => e != null).forEach((name) {
+      reference = reference.getChild(name);
+    });
+
+    var elementFactory = unit.linkedContext.elementFactory;
+    return elementFactory.elementOfReference(reference);
   }
 }
 

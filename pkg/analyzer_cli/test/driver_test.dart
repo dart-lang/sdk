@@ -10,7 +10,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
@@ -248,39 +248,25 @@ Object x = B().f;
   Future<void> test_import2_usedAsSupertype() async {
     await _withTempDir(() async {
       var a = await _buildPackage('a', [], 'class A {}');
-      var b = await _buildPackage('b', [a], '''
+      var b = await _buildPackage('b', [], 'class B {}');
+      var c = await _buildPackage('c', [a], '''
 import 'package:a/a.dart';
-class B extends A {}
+import 'package:b/b.dart';
+class C1 extends A {}
+class C2 extends B {}
 ''');
 
-      // We don't invoke anything on class `B`, so don't ask its supertype.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-B x;
-''', [b]);
-
-      // We infer the type of `x` to `B`.
-      // But we don't ask `B` for its supertype.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-var x = B();
-''', [b]);
-
-      // We perform full analysis, and check that `new B()` is assignable
-      // to `B x`. This is trivially true, we don't need the supertype of `B`.
-      // So, no dependency on "a".
-      await _assertDependencies(
-        'c',
-        [a, b],
-        '''
-import 'package:b/b.dart';
-var x = B();
-''',
-        [b],
-        summaryOnly: false,
-      );
+      // When we instantiate `C1`, we ask `C1` for its type parameters.
+      // So, we apply resolution to the whole `C1` header (not members).
+      // So, we request `A` that is the superclass of `C1`.
+      // So, dependency on "a".
+      //
+      // But we don't access `C2`, so don't use its supertype `B`.
+      // So, no dependency on "b".
+      await _assertDependencies('d', [a, b, c], '''
+import 'package:c/c.dart';
+C1 x;
+''', [a, c]);
     });
   }
 
@@ -442,13 +428,12 @@ class BuildModeTest extends AbstractBuildModeTest {
       ]);
       var output = File(outputPath);
       expect(output.existsSync(), isTrue);
-      var bundle = PackageBundle.fromBuffer(await output.readAsBytes());
+      var bundle = PackageBundleReader(await output.readAsBytes());
       var testFileUri = 'file:///test_file.dart';
 
-      var bundle2 = bundle.bundle2;
-      expect(_linkedLibraryUriList(bundle2), [testFileUri]);
+      expect(_linkedLibraryUriList(bundle), [testFileUri]);
       expect(
-        _linkedLibraryUnitUriList(bundle2, testFileUri),
+        _linkedLibraryUnitUriList(bundle, testFileUri),
         [testFileUri],
       );
 
@@ -472,10 +457,9 @@ part '[invalid]';
           fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
       expect(exitCode, ErrorSeverity.ERROR.ordinal);
       var bytes = File(aSum).readAsBytesSync();
-      var bundle = PackageBundle.fromBuffer(bytes);
-      var bundle2 = bundle.bundle2;
-      expect(_linkedLibraryUriList(bundle2), [aUri]);
-      expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri, '']);
+      var bundle = PackageBundleReader(bytes);
+      expect(_linkedLibraryUriList(bundle), [aUri]);
+      expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri, '']);
     });
   }
 
@@ -522,10 +506,9 @@ var b = new B();
             fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
         expect(exitCode, 0);
         var bytes = File(aSum).readAsBytesSync();
-        var bundle = PackageBundle.fromBuffer(bytes);
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [aUri]);
-        expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri]);
+        var bundle = PackageBundleReader(bytes);
+        expect(_linkedLibraryUriList(bundle), [aUri]);
+        expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri]);
       }
 
       // Analyze package:bbb/b.dart and compute summary.
@@ -536,10 +519,9 @@ var b = new B();
         ]);
         expect(exitCode, 0);
         var bytes = File(bSum).readAsBytesSync();
-        var bundle = PackageBundle.fromBuffer(bytes);
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [bUri]);
-        expect(_linkedLibraryUnitUriList(bundle2, bUri), [bUri]);
+        var bundle = PackageBundleReader(bytes);
+        expect(_linkedLibraryUriList(bundle), [bUri]);
+        expect(_linkedLibraryUnitUriList(bundle, bUri), [bUri]);
       }
 
       // Analyze package:ccc/c.dart and compute summary.
@@ -550,10 +532,9 @@ var b = new B();
         ]);
         expect(exitCode, 0);
         var bytes = File(cSum).readAsBytesSync();
-        var bundle = PackageBundle.fromBuffer(bytes);
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [cUri]);
-        expect(_linkedLibraryUnitUriList(bundle2, cUri), [cUri]);
+        var bundle = PackageBundleReader(bytes);
+        expect(_linkedLibraryUriList(bundle), [cUri]);
+        expect(_linkedLibraryUnitUriList(bundle, cUri), [cUri]);
       }
     });
   }
@@ -715,16 +696,16 @@ extension E on int {}
   }
 
   Iterable<String> _linkedLibraryUnitUriList(
-    LinkedNodeBundle bundle2,
+    PackageBundleReader bundle,
     String libraryUriStr,
   ) {
-    var libraries = bundle2.libraries;
+    var libraries = bundle.libraries;
     var library = libraries.singleWhere((l) => l.uriStr == libraryUriStr);
     return library.units.map((u) => u.uriStr).toList();
   }
 
-  Iterable<String> _linkedLibraryUriList(LinkedNodeBundle bundle2) {
-    var libraries = bundle2.libraries;
+  Iterable<String> _linkedLibraryUriList(PackageBundleReader bundle) {
+    var libraries = bundle.libraries;
     return libraries.map((l) => l.uriStr).toList();
   }
 }

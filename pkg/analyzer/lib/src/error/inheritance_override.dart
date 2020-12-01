@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:meta/meta.dart';
 
 class InheritanceOverrideVerifier {

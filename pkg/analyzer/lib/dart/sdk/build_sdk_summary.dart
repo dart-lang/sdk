@@ -17,10 +17,9 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -85,7 +84,6 @@ class _Builder {
 
   AllowedExperiments allowedExperiments;
   Version languageVersion;
-  final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
   _Builder(
     this.context,
@@ -106,21 +104,24 @@ class _Builder {
       Reference.root(),
     );
 
-    var linkResult = link(elementFactory, inputLibraries);
-    bundleAssembler.setBundle2(linkResult.bundle);
+    var linkResult = link(elementFactory, inputLibraries, false);
 
-    var buffer = PackageBundleBuilder(
-      bundle2: linkResult.bundle,
-      sdk: PackageBundleSdkBuilder(
+    var bundleBuilder = PackageBundleBuilder();
+    for (var library in inputLibraries) {
+      bundleBuilder.addLibrary(
+        library.uriStr,
+        library.units.map((e) => e.uriStr).toList(),
+      );
+    }
+    return bundleBuilder.finish(
+      astBytes: linkResult.astBytes,
+      resolutionBytes: linkResult.resolutionBytes,
+      sdk: PackageBundleSdk(
+        languageVersionMajor: languageVersion.major,
+        languageVersionMinor: languageVersion.minor,
         allowedExperimentsJson: allowedExperimentsJson,
-        languageVersion: LinkedLanguageVersionBuilder(
-          major: languageVersion.major,
-          minor: languageVersion.minor,
-        ),
       ),
-    ).toBuffer();
-
-    return buffer is Uint8List ? buffer : Uint8List.fromList(buffer);
+    );
   }
 
   void _addLibrary(Source source) {

@@ -162,7 +162,7 @@ class ReplacementVisitor
       var typeParameter = node.typeFormals[i];
       var bound = typeParameter.bound;
       if (bound != null) {
-        var newBound = bound.accept(this);
+        var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeFormals.toList(growable: false);
           newTypeParameters[i] = TypeParameterElementImpl.synthetic(
@@ -258,7 +258,7 @@ class ReplacementVisitor
       var typeParameter = node.typeFormals[i];
       var bound = typeParameter.bound;
       if (bound != null) {
-        var newBound = bound.accept(this);
+        var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeFormals.toList(growable: false);
           newTypeParameters[i] = TypeParameterElementImpl.synthetic(
@@ -392,6 +392,10 @@ class ReplacementVisitor
   DartType visitTypeArgument(
       TypeParameterElement parameter, DartType argument) {
     return argument.accept(this);
+  }
+
+  DartType visitTypeParameterBound(DartType type) {
+    return type.accept(this);
   }
 
   @override
