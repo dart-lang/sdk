@@ -1033,18 +1033,3 @@ class TransformSetParser {
     }
   }
 }
-
-extension on YamlMap {
-  // TODO(brianwilkerson) Copied from YamlCompletionGenerator. Refactor to a
-  //  utility file that is shared between them.
-  /// Return the node representing the key that corresponds to the value
-  /// represented by the [value] node.
-  YamlNode keyAtValue(YamlNode value) {
-    for (var entry in nodes.entries) {
-      if (entry.value == value) {
-        return entry.key;
-      }
-    }
-    return null;
-  }
-}
