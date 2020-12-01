@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:cli_util/cli_logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
@@ -22,12 +24,32 @@ class AnalyzeCommand extends DartdevCommand {
   /// message. The width left for the severity label plus the separator width.
   static const int _bodyIndentWidth = _severityWidth + 3;
 
-  AnalyzeCommand() : super(cmdName, "Analyze the project's Dart code.") {
+  AnalyzeCommand({bool verbose = false})
+      : super(cmdName, "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
           help: 'Treat info level issues as fatal.', negatable: false)
       ..addFlag('fatal-warnings',
-          help: 'Treat warning level issues as fatal.', defaultsTo: true);
+          help: 'Treat warning level issues as fatal.', defaultsTo: true)
+
+      // Options hidden by default.
+      ..addOption(
+        'format',
+        valueHelp: 'value',
+        help: 'Specifies the format to display errors.',
+        allowed: ['default', 'machine'],
+        allowedHelp: {
+          'default':
+              'The default output format. This format is intended to be user '
+                  'consumable.\nThe format is not specified and can change '
+                  'between releases.',
+          'machine': 'A machine readable output. The format is:\n\n'
+              'SEVERITY|TYPE|ERROR_CODE|FILE_PATH|LINE|COLUMN|LENGTH|ERROR_MESSAGE\n\n'
+              'Note that the pipe character is escaped with backslashes for '
+              'the file path and error message fields.',
+        },
+        hide: !verbose,
+      );
   }
 
   @override
@@ -49,7 +71,11 @@ class AnalyzeCommand extends DartdevCommand {
 
     final List<AnalysisError> errors = <AnalysisError>[];
 
-    var progress = log.progress('Analyzing ${path.basename(dir.path)}');
+    final machineFormat = argResults['format'] == 'machine';
+
+    var progress = machineFormat
+        ? null
+        : log.progress('Analyzing ${path.basename(dir.path)}');
 
     final AnalysisServer server = AnalysisServer(
       io.Directory(sdk.sdkPath),
@@ -78,27 +104,66 @@ class AnalyzeCommand extends DartdevCommand {
 
     await server.shutdown(timeout: Duration(milliseconds: 100));
 
-    progress.finish(showTiming: true);
+    progress?.finish(showTiming: true);
 
     errors.sort();
 
     if (errors.isEmpty) {
-      log.stdout('No issues found!');
+      if (!machineFormat) {
+        log.stdout('No issues found!');
+      }
       return 0;
     }
 
-    final bullet = log.ansi.bullet;
-
-    log.stdout('');
+    if (machineFormat) {
+      emitMachineFormat(log, errors);
+    } else {
+      emitDefaultFormat(log, errors, relativeToDir: dir, verbose: verbose);
+    }
 
     bool hasErrors = false;
     bool hasWarnings = false;
     bool hasInfos = false;
 
     for (final AnalysisError error in errors) {
+      hasErrors |= error.isError;
+      hasWarnings |= error.isWarning;
+      hasInfos |= error.isInfo;
+    }
+
+    // Return an error code in the range [0-3] dependent on the severity of
+    // the issue(s) found.
+    if (hasErrors) {
+      return 3;
+    }
+
+    bool fatalWarnings = argResults['fatal-warnings'];
+    bool fatalInfos = argResults['fatal-infos'];
+
+    if (fatalWarnings && hasWarnings) {
+      return 2;
+    } else if (fatalInfos && hasInfos) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+
+  @visibleForTesting
+  static void emitDefaultFormat(
+    Logger log,
+    List<AnalysisError> errors, {
+    io.Directory relativeToDir,
+    bool verbose = false,
+  }) {
+    final bullet = log.ansi.bullet;
+
+    log.stdout('');
+
+    for (final AnalysisError error in errors) {
       // error • Message ... at path.dart:line:col • (code)
 
-      var filePath = path.relative(error.file, from: dir.path);
+      var filePath = path.relative(error.file, from: relativeToDir?.path);
       var severity = error.severity.toLowerCase().padLeft(_severityWidth);
       if (error.isError) {
         severity = log.ansi.error(severity);
@@ -124,32 +189,49 @@ class AnalyzeCommand extends DartdevCommand {
           log.stdout('$padding${error.url}');
         }
       }
-
-      hasErrors |= error.isError;
-      hasWarnings |= error.isWarning;
-      hasInfos |= error.isInfo;
     }
 
     log.stdout('');
 
     final errorCount = errors.length;
     log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
+  }
 
-    // Return an error code in the range [0-3] dependent on the severity of
-    // the issue(s) found.
-    if (hasErrors) {
-      return 3;
+  @visibleForTesting
+  static void emitMachineFormat(Logger log, List<AnalysisError> errors) {
+    for (final AnalysisError error in errors) {
+      log.stdout([
+        error.severity,
+        error.type,
+        error.code.toUpperCase(),
+        _escapeForMachineMode(error.file),
+        error.startLine.toString(),
+        error.startColumn.toString(),
+        error.length.toString(),
+        _escapeForMachineMode(error.message),
+      ].join('|'));
     }
+  }
 
-    bool fatalWarnings = argResults['fatal-warnings'];
-    bool fatalInfos = argResults['fatal-infos'];
+  static final int _pipeCodeUnit = '|'.codeUnitAt(0);
+  static final int _slashCodeUnit = '\\'.codeUnitAt(0);
+  static final int _newline = '\n'.codeUnitAt(0);
+  static final int _return = '\r'.codeUnitAt(0);
 
-    if (fatalWarnings && hasWarnings) {
-      return 2;
-    } else if (fatalInfos && hasInfos) {
-      return 1;
-    } else {
-      return 0;
+  static String _escapeForMachineMode(String input) {
+    var result = StringBuffer();
+    for (var c in input.codeUnits) {
+      if (c == _newline) {
+        result.write(r'\n');
+      } else if (c == _return) {
+        result.write(r'\r');
+      } else {
+        if (c == _slashCodeUnit || c == _pipeCodeUnit) {
+          result.write('\\');
+        }
+        result.writeCharCode(c);
+      }
     }
+    return result.toString();
   }
 }
