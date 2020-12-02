@@ -5803,9 +5803,7 @@ class InferenceVisitor
       VariableDeclaration isSetVariable;
       if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
         isSetVariable = new VariableDeclaration(
-            '${late_lowering.lateLocalPrefix}'
-            '${node.name}'
-            '${late_lowering.lateIsSetSuffix}',
+            late_lowering.computeLateLocalIsSetName(node.name),
             initializer: new BoolLiteral(false)..fileOffset = fileOffset,
             type: inferrer.coreTypes.boolRawType(inferrer.library.nonNullable))
           ..fileOffset = fileOffset;
@@ -5827,11 +5825,9 @@ class InferenceVisitor
       Expression createIsSetWrite(Expression value) =>
           new VariableSet(isSetVariable, value);
 
-      VariableDeclaration getVariable =
-          new VariableDeclaration('${late_lowering.lateLocalPrefix}'
-              '${node.name}'
-              '${late_lowering.lateLocalGetterSuffix}')
-            ..fileOffset = fileOffset;
+      VariableDeclaration getVariable = new VariableDeclaration(
+          late_lowering.computeLateLocalGetterName(node.name))
+        ..fileOffset = fileOffset;
       FunctionDeclaration getter = new FunctionDeclaration(
           getVariable,
           new FunctionNode(
@@ -5863,11 +5859,9 @@ class InferenceVisitor
       if (!node.isFinal || node.initializer == null) {
         node.isLateFinalWithoutInitializer =
             node.isFinal && node.initializer == null;
-        VariableDeclaration setVariable =
-            new VariableDeclaration('${late_lowering.lateLocalPrefix}'
-                '${node.name}'
-                '${late_lowering.lateLocalSetterSuffix}')
-              ..fileOffset = fileOffset;
+        VariableDeclaration setVariable = new VariableDeclaration(
+            late_lowering.computeLateLocalSetterName(node.name))
+          ..fileOffset = fileOffset;
         VariableDeclaration setterParameter =
             new VariableDeclaration(null, type: node.type)
               ..fileOffset = fileOffset;
@@ -5917,6 +5911,8 @@ class InferenceVisitor
         node.initializer = null;
       }
       node.type = inferrer.computeNullable(node.type);
+      node.lateName = node.name;
+      node.name = late_lowering.computeLateLocalName(node.name);
 
       return new StatementInferenceResult.multiple(node.fileOffset, result);
     }
@@ -5989,14 +5985,14 @@ class InferenceVisitor
             declaredOrInferredType is! InvalidType) {
           if (variable.isLate || variable.lateGetter != null) {
             if (isDefinitelyUnassigned) {
+              String name = variable.lateName ?? variable.name;
               return new ExpressionInferenceResult(
                   resultType,
                   inferrer.helper.wrapInProblem(
                       resultExpression,
-                      templateLateDefinitelyUnassignedError
-                          .withArguments(node.variable.name),
+                      templateLateDefinitelyUnassignedError.withArguments(name),
                       node.fileOffset,
-                      node.variable.name.length));
+                      name.length));
             }
           } else {
             if (isUnassigned) {

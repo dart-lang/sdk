@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
+import '../api_prototype/lowering_predicates.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
 Id computeMemberId(Member node) {
@@ -246,7 +247,12 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    computeForNode(node, computeDefaultNodeId(node));
+    computeForNode(
+        node,
+        computeDefaultNodeId(node,
+            // TODO(johnniwinther): Remove this when late lowered setter
+            //  functions can have an offset.
+            skipNodeWithNoOffset: isLateLoweredLocalSetter(node.variable)));
     super.visitFunctionDeclaration(node);
   }
 

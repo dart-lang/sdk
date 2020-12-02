@@ -1484,6 +1484,12 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // lowering is enabled.
   DartType lateType;
 
+  // The original name of a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  String lateName;
+
   @override
   bool get isAssignable {
     if (isStaticLate) return true;

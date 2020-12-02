@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
@@ -74,6 +75,9 @@ class PredicateDataComputer extends DataComputer<Features> {
 }
 
 class PredicateDataExtractor extends CfeDataExtractor<Features> {
+  Map<String, Features> featureMap = {};
+  Map<String, NodeId> nodeIdMap = {};
+
   PredicateDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<Features>> actualMap)
       : super(compilerResult, actualMap);
@@ -106,5 +110,46 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       return features;
     }
     return null;
+  }
+
+  void visitProcedure(Procedure node) {
+    super.visitProcedure(node);
+    nodeIdMap.forEach((String name, NodeId id) {
+      Features features = featureMap[name];
+      if (features != null) {
+        TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+        registerValue(
+            nodeWithOffset.location.file, id.value, id, features, name);
+      }
+    });
+    nodeIdMap.clear();
+    featureMap.clear();
+  }
+
+  void visitVariableDeclaration(VariableDeclaration node) {
+    String name;
+    String tag;
+    if (isLateLoweredIsSetLocal(node)) {
+      name = extractLocalNameFromLateLoweredIsSet(node.name);
+      tag = Tags.lateIsSetLocal;
+    } else if (isLateLoweredLocalGetter(node)) {
+      name = extractLocalNameFromLateLoweredGetter(node.name);
+      tag = Tags.lateLocalGetter;
+    } else if (isLateLoweredLocalSetter(node)) {
+      name = extractLocalNameFromLateLoweredSetter(node.name);
+      tag = Tags.lateLocalSetter;
+    } else if (node.name != null) {
+      name = node.name;
+    }
+    if (name != null) {
+      if (node.fileOffset != TreeNode.noOffset) {
+        nodeIdMap[name] ??= new NodeId(node.fileOffset, IdKind.node);
+      }
+      if (tag != null) {
+        Features features = featureMap[name] ??= new Features();
+        features.add(tag);
+      }
+    }
+    super.visitVariableDeclaration(node);
   }
 }

@@ -120,3 +120,54 @@ class Class {
   /*member: Class.finalStaticNullableWithInitializer:lateFieldGetter*/
   static late final int? finalStaticNullableWithInitializer = 0;
 }
+
+method() {
+  late int /*
+   lateIsSetLocal,
+   lateLocalGetter,
+   lateLocalSetter
+  */
+      localNonNullableWithoutInitializer;
+  late final int
+      /*
+   lateIsSetLocal,
+   lateLocalGetter,
+   lateLocalSetter
+  */
+      finalLocalNonNullableWithoutInitializer;
+  late int? /*
+   lateIsSetLocal,
+   lateLocalGetter,
+   lateLocalSetter
+  */
+      localNullableWithoutInitializer;
+  late final int?
+      /*
+   lateIsSetLocal,
+   lateLocalGetter,
+   lateLocalSetter
+  */
+      finalLocalNullableWithoutInitializer;
+  late int /*
+   lateIsSetLocal,
+   lateLocalGetter,
+   lateLocalSetter
+  */
+      localNonNullableWithInitializer = 0;
+  late final int /*
+   lateIsSetLocal,
+   lateLocalGetter
+  */
+      finalLocalNonNullableWithInitializer = 0;
+  late int? /*
+   lateIsSetLocal,
+   lateLocalGetter,
+   lateLocalSetter
+  */
+      localNullableWithInitializer = 0;
+  late final int? /*
+   lateIsSetLocal,
+   lateLocalGetter
+  */
+      finalLocalNullableWithInitializer = 0;
+}
