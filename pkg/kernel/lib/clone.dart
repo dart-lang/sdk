@@ -641,15 +641,17 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
-    Constructor result = new Constructor(super.clone(node.function),
-        name: node.name,
-        isConst: node.isConst,
-        isExternal: node.isExternal,
-        isSynthetic: node.isSynthetic,
-        initializers: node.initializers.map(super.clone).toList(),
-        transformerFlags: node.transformerFlags,
-        fileUri: _activeFileUri,
-        reference: referenceFrom?.reference)
+    Constructor result = new Constructor(
+      super.clone(node.function),
+      name: node.name,
+      isConst: node.isConst,
+      isExternal: node.isExternal,
+      isSynthetic: node.isSynthetic,
+      initializers: node.initializers.map(super.clone).toList(),
+      transformerFlags: node.transformerFlags,
+      fileUri: _activeFileUri,
+      reference: referenceFrom?.reference,
+    )
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]
@@ -663,15 +665,13 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
   Procedure cloneProcedure(Procedure node, Procedure referenceFrom) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
-
     Procedure result = new Procedure(
         node.name, node.kind, super.clone(node.function),
         reference: referenceFrom?.reference,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,
-        forwardingStubSuperTarget: node.forwardingStubSuperTarget,
-        forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget,
-        memberSignatureOrigin: node.memberSignatureOrigin)
+        stubKind: node.stubKind,
+        stubTarget: node.stubTarget)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]

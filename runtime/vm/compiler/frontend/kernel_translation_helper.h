@@ -517,12 +517,11 @@ class ProcedureHelper {
     kPosition,
     kEndPosition,
     kKind,
+    kStubKind,
     kFlags,
     kName,
     kAnnotations,
-    kForwardingStubSuperTarget,
-    kForwardingStubInterfaceTarget,
-    kMemberSignatureTarget,
+    kStubTarget,
     kFunction,
     kEnd,
   };
@@ -535,18 +534,26 @@ class ProcedureHelper {
     kFactory,
   };
 
+  enum StubKind {
+    kRegularStubKind,
+    kForwardingStubKind,
+    kForwardingSuperStubKind,
+    kNoSuchMethodForwarderStubKind,
+    kMemberSignatureStubKind,
+    kMixinStubKind,
+    kMixinSuperStubKind,
+  };
+
   enum Flag {
     kStatic = 1 << 0,
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
-    kForwardingStub = 1 << 4,
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 6,
-    kNoSuchMethodForwarder = 1 << 7,
-    kExtensionMember = 1 << 8,
-    kMemberSignature = 1 << 9,
+    kRedirectingFactoryConstructor = 1 << 4,
+    kExtensionMember = 1 << 5,
+    kSyntheticProcedure = 1 << 7,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -565,15 +572,20 @@ class ProcedureHelper {
   bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() const { return (flags_ & kForwardingStub) != 0; }
+  bool IsForwardingStub() const {
+    return stub_kind_ == kForwardingStubKind ||
+           stub_kind_ == kForwardingSuperStubKind;
+  }
   bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
-    return (flags_ & kNoSuchMethodForwarder) != 0;
+    return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsMemberSignature() const { return (flags_ & kMemberSignature) != 0; }
+  bool IsMemberSignature() const {
+    return stub_kind_ == kMemberSignatureStubKind;
+  }
 
   NameIndex canonical_name_;
   TokenPosition start_position_;
@@ -583,6 +595,7 @@ class ProcedureHelper {
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
+  StubKind stub_kind_;
 
   // Only valid if the 'isForwardingStub' flag is set.
   NameIndex forwarding_stub_super_target_;

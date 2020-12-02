@@ -1420,6 +1420,7 @@ class BinaryBuilder {
     int fileEndOffset = readOffset();
     int kindIndex = readByte();
     ProcedureKind kind = ProcedureKind.values[kindIndex];
+    ProcedureStubKind stubKind = ProcedureStubKind.values[readByte()];
     if (node == null) {
       node = new Procedure(null, kind, null, reference: reference);
     } else {
@@ -1437,12 +1438,7 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
-    Reference forwardingStubSuperTargetReference =
-        readMemberReference(allowNull: true);
-    Reference forwardingStubInterfaceTargetReference =
-        readMemberReference(allowNull: true);
-    Reference memberSignatureTargetReference =
-        readMemberReference(allowNull: true);
+    Reference stubTargetReference = readMemberReference(allowNull: true);
     FunctionNode function =
         readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     int transformerFlags = getAndResetTransformerFlags();
@@ -1457,17 +1453,13 @@ class BinaryBuilder {
     node.function = function;
     function?.parent = node;
     node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
-    node.forwardingStubSuperTargetReference =
-        forwardingStubSuperTargetReference;
-    node.forwardingStubInterfaceTargetReference =
-        forwardingStubInterfaceTargetReference;
-    node.memberSignatureOriginReference = memberSignatureTargetReference;
+    node.stubKind = stubKind;
+    node.stubTargetReference = stubTargetReference;
 
-    assert((node.forwardingStubSuperTargetReference != null) ||
+    assert((node.stubKind == ProcedureStubKind.ForwardingSuperStub &&
+            node.stubTargetReference != null) ||
         !(node.isForwardingStub && node.function.body != null));
-    assert(
-        !(node.isMemberSignature &&
-            node.memberSignatureOriginReference == null),
+    assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
     return node;
   }

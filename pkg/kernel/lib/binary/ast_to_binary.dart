@@ -1204,14 +1204,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitProcedure(Procedure node) {
-    assert(
-        !(node.isMemberSignature &&
-            node.memberSignatureOriginReference == null),
+    assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
-    assert(!(node.isMemberSignature && node.isForwardingStub),
-        "Procedure is both member signature and forwarding stub: $node.");
-    assert(!(node.isMemberSignature && node.isForwardingSemiStub),
-        "Procedure is both member signature and forwarding semi stub: $node.");
     assert(
         !(node.forwardingStubInterfaceTarget is Procedure &&
             (node.forwardingStubInterfaceTarget as Procedure)
@@ -1242,12 +1236,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
+    writeByte(node.stubKind.index);
     writeUInt30(node.flags);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
-    writeNullAllowedReference(node.forwardingStubSuperTargetReference);
-    writeNullAllowedReference(node.forwardingStubInterfaceTargetReference);
-    writeNullAllowedReference(node.memberSignatureOriginReference);
+    writeNullAllowedReference(node.stubTargetReference);
     writeOptionalFunctionNode(node.function);
     leaveScope(memberScope: true);
 

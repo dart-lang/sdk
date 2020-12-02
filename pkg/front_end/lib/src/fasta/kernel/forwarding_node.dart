@@ -14,6 +14,7 @@ import "package:kernel/ast.dart"
         NamedExpression,
         Procedure,
         ProcedureKind,
+        ProcedureStubKind,
         ReturnStatement,
         SuperMethodInvocation,
         SuperPropertyGet,
@@ -94,10 +95,8 @@ class ForwardingNode {
           finalTarget =
               interfaceMember.memberSignatureOrigin ?? interfaceMember;
         }
-        stub.isMemberSignature = false;
-        stub.memberSignatureOrigin = null;
-        stub.isForwardingStub = true;
-        stub.forwardingStubInterfaceTarget = finalTarget;
+        stub.stubKind = ProcedureStubKind.ForwardingStub;
+        stub.stubTarget = finalTarget;
         if (_combinedMemberSignature.needsSuperImpl) {
           _createForwardingImplIfNeeded(
               stub.function, stub.name, classBuilder.cls);
@@ -140,13 +139,6 @@ class ForwardingNode {
       superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
     procedure.isAbstract = false;
-    if (!procedure.isForwardingStub) {
-      // This procedure exists abstractly in the source code; we need to make it
-      // concrete and give it a body that is a forwarding stub.  This situation
-      // is called a "forwarding semi-stub".
-      procedure.isForwardingStub = true;
-      procedure.isForwardingSemiStub = true;
-    }
     List<Expression> positionalArguments = function.positionalParameters
         .map<Expression>((parameter) => new VariableGet(parameter))
         .toList();
@@ -186,6 +178,7 @@ class ForwardingNode {
     }
     function.body = new ReturnStatement(superCall)..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;
-    procedure.forwardingStubSuperTarget = superTarget;
+    procedure.stubKind = ProcedureStubKind.ForwardingSuperStub;
+    procedure.stubTarget = superTarget;
   }
 }

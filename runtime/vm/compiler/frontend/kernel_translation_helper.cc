@@ -1081,6 +1081,10 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       kind_ = static_cast<Kind>(helper_->ReadByte());
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kStubKind:
+      stub_kind_ = static_cast<StubKind>(helper_->ReadByte());
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kFlags:
       flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
@@ -1097,16 +1101,12 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
       FALL_THROUGH;
-    case kForwardingStubSuperTarget:
-      forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    case kForwardingStubInterfaceTarget:
-      helper_->ReadCanonicalNameReference();
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    case kMemberSignatureTarget:
-      helper_->ReadCanonicalNameReference();
+    case kStubTarget:
+      if (stub_kind_ == kForwardingSuperStubKind) {
+        forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
+      } else {
+        helper_->ReadCanonicalNameReference();
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFunction:

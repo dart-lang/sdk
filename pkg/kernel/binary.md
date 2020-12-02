@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 50;
+  UInt32 formatVersion = 51;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -396,6 +396,18 @@ enum ProcedureKind {
 }
 */
 
+/*
+enum ProcedureStubKind {
+  Regular,
+  ForwardingStub,
+  ForwardingSuperStub,
+  NoSuchMethodForwarder,
+  MemberSignature,
+  MixinStub,
+  MixinSuperStub,
+}
+*/
+
 type Procedure extends Member {
   Byte tag = 6;
   CanonicalNameReference canonicalName;
@@ -405,16 +417,13 @@ type Procedure extends Member {
   FileOffset fileOffset; // Offset of the procedure name.
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
-  UInt flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
-              isForwardingSemiStub, isRedirectingFactoryConstructor,
-              isNoSuchMethodForwarder, isExtensionMember, isMemberSignature,
+  Byte stubKind; // Index into the ProcedureStubKind enum above.
+  UInt flags (isStatic, isAbstract, isExternal, isConst,
+              isRedirectingFactoryConstructor, isExtensionMember,
               isNonNullableByDefault);
   Name name;
   List<Expression> annotations;
-  // Only present if the 'isForwardingStub' flag is set.
-  MemberReference forwardingStubSuperTarget; // May be NullReference.
-  MemberReference forwardingStubInterfaceTarget; // May be NullReference.
-  MemberReference memberSignatureOrigin; // May be NullReference.
+  MemberReference stubTarget; // May be NullReference.
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }

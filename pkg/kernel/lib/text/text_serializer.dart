@@ -1433,14 +1433,11 @@ const Map<int, String> procedureFlagToName = const {
   Procedure.FlagAbstract: "abstract",
   Procedure.FlagExternal: "external",
   Procedure.FlagConst: "const",
-  Procedure.FlagForwardingStub: "forwarding-stub",
-  Procedure.FlagForwardingSemiStub: "forwarding-semi-stub",
   Procedure.FlagRedirectingFactoryConstructor:
       "redirecting-factory-constructor",
-  Procedure.FlagNoSuchMethodForwarder: "no-such-method-forwarder",
   Procedure.FlagExtensionMember: "extension-member",
-  Procedure.FlagMemberSignature: "member-signature",
   Procedure.FlagNonNullableByDefault: "non-nullable-by-default",
+  Procedure.FlagSynthetic: "synthetic",
 };
 
 class ProcedureFlagTagger implements Tagger<int> {
