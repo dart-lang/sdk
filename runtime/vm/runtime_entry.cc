@@ -1267,30 +1267,27 @@ static FunctionPtr InlineCacheMissHandlerGivenTargetFunction(
   const Instance& receiver = *args[0];
 
   if (args.length() == 1) {
+    auto exactness = StaticTypeExactnessState::NotTracking();
     if (ic_data.is_tracking_exactness()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      const auto state = receiver.IsNull()
-                             ? StaticTypeExactnessState::NotExact()
-                             : StaticTypeExactnessState::Compute(
-                                   Type::Cast(AbstractType::Handle(
-                                       ic_data.receivers_static_type())),
-                                   receiver);
-      ic_data.AddReceiverCheck(
-          receiver.GetClassId(), target_function, count,
-          /*exactness=*/state.CollapseSuperTypeExactness());
+      exactness = receiver.IsNull() ? StaticTypeExactnessState::NotExact()
+                                    : StaticTypeExactnessState::Compute(
+                                          Type::Cast(AbstractType::Handle(
+                                              ic_data.receivers_static_type())),
+                                          receiver);
 #else
       UNREACHABLE();
 #endif
-    } else {
-      ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function, count);
     }
+    ic_data.EnsureHasReceiverCheck(receiver.GetClassId(), target_function,
+                                   count, exactness);
   } else {
     GrowableArray<intptr_t> class_ids(args.length());
     ASSERT(ic_data.NumArgsTested() == args.length());
     for (intptr_t i = 0; i < args.length(); i++) {
       class_ids.Add(args[i]->GetClassId());
     }
-    ic_data.AddCheck(class_ids, target_function, count);
+    ic_data.EnsureHasCheck(class_ids, target_function, count);
   }
   if (FLAG_trace_ic_miss_in_optimized || FLAG_trace_ic) {
     DartFrameIterator iterator(Thread::Current(),
@@ -1322,8 +1319,7 @@ static FunctionPtr InlineCacheMissHandlerGivenTargetFunction(
 
 static FunctionPtr InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,  // Checked arguments only.
-    const ICData& ic_data,
-    intptr_t count = 1) {
+    const ICData& ic_data) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -1365,7 +1361,7 @@ static FunctionPtr InlineCacheMissHandler(
     return target_function.raw();
   }
 
-  return InlineCacheMissHandlerGivenTargetFunction(args, ic_data, count,
+  return InlineCacheMissHandlerGivenTargetFunction(args, ic_data, 1,
                                                    target_function);
 }
 
@@ -1416,7 +1412,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
   target.EnsureHasCode();
   ASSERT(!target.IsNull() && target.HasCode());
-  ic_data.AddReceiverCheck(arg.GetClassId(), target, 1);
+  ic_data.EnsureHasReceiverCheck(arg.GetClassId(), target, 1);
   if (FLAG_trace_ic) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
@@ -1444,7 +1440,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   GrowableArray<intptr_t> cids(2);
   cids.Add(arg0.GetClassId());
   cids.Add(arg1.GetClassId());
-  ic_data.AddCheck(cids, target);
+  ic_data.EnsureHasCheck(cids, target);
   if (FLAG_trace_ic) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);

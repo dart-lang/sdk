@@ -359,6 +359,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
       type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
           "IsolateGroup::type_arguments_canonicalization_mutex_")),
+      subtype_test_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::subtype_test_cache_mutex_")),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
@@ -1647,6 +1649,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       constant_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
       megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
+      type_feedback_mutex_(NOT_IN_PRODUCT("Isolate::type_feedback_mutex_")),
       kernel_data_lib_cache_mutex_(
           NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
       kernel_data_class_cache_mutex_(

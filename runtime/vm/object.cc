@@ -15123,8 +15123,8 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
 
 intptr_t ICData::FindCheck(const GrowableArray<intptr_t>& cids) const {
   const intptr_t len = NumberOfChecks();
+  GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
     GetClassIdsAt(i, &class_ids);
     bool matches = true;
     for (intptr_t k = 0; k < class_ids.length(); k++) {
@@ -15236,9 +15236,27 @@ bool ICData::ValidateInterceptor(const Function& target) const {
   return true;
 }
 
+void ICData::EnsureHasCheck(const GrowableArray<intptr_t>& class_ids,
+                            const Function& target,
+                            intptr_t count) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+
+  if (FindCheck(class_ids) != -1) return;
+  AddCheckInternal(class_ids, target, count);
+}
+
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target,
                       intptr_t count) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  AddCheckInternal(class_ids, target, count);
+}
+
+void ICData::AddCheckInternal(const GrowableArray<intptr_t>& class_ids,
+                              const Function& target,
+                              intptr_t count) const {
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
   ASSERT(!is_tracking_exactness());
   ASSERT(!target.IsNull());
   ASSERT((target.name() == target_name()) || ValidateInterceptor(target));
@@ -15321,10 +15339,32 @@ void ICData::DebugDump() const {
   }
 }
 
+void ICData::EnsureHasReceiverCheck(intptr_t receiver_class_id,
+                                    const Function& target,
+                                    intptr_t count,
+                                    StaticTypeExactnessState exactness) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+
+  GrowableArray<intptr_t> class_ids(1);
+  class_ids.Add(receiver_class_id);
+  if (FindCheck(class_ids) != -1) return;
+
+  AddReceiverCheckInternal(receiver_class_id, target, count, exactness);
+}
+
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target,
                               intptr_t count,
                               StaticTypeExactnessState exactness) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  AddReceiverCheckInternal(receiver_class_id, target, count, exactness);
+}
+
+void ICData::AddReceiverCheckInternal(
+    intptr_t receiver_class_id,
+    const Function& target,
+    intptr_t count,
+    StaticTypeExactnessState exactness) const {
 #if defined(DEBUG)
   GrowableArray<intptr_t> class_ids(1);
   class_ids.Add(receiver_class_id);
@@ -15566,8 +15606,9 @@ ICDataPtr ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       result.IncrementCountAt(duplicate_class_id, count);
     } else {
       // This will make sure that Smi is first if it exists.
-      result.AddReceiverCheck(class_id, Function::Handle(GetTargetAt(i)),
-                              count);
+      result.AddReceiverCheckInternal(class_id,
+                                      Function::Handle(GetTargetAt(i)), count,
+                                      StaticTypeExactnessState::NotTracking());
     }
   }
 
