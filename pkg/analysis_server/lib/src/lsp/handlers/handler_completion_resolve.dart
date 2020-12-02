@@ -166,9 +166,6 @@ class CompletionResolveHandler
                   .trim()
               : item.detail,
           documentation: documentation,
-          // The deprecated field is deprecated, but we should still supply it
-          // for clients that have not adopted CompletionItemTags.
-          // ignore: deprecated_member_use_from_same_package
           deprecated: item.deprecated,
           preselect: item.preselect,
           sortText: item.sortText,
