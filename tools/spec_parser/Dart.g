@@ -472,6 +472,7 @@ metadata
 
 metadatum
     :    constructorDesignation arguments
+    |    identifier
     |    qualifiedName
     ;
 
@@ -905,8 +906,7 @@ identifier
     ;
 
 qualifiedName
-    :    typeIdentifier
-    |    typeIdentifier '.' identifier
+    :    typeIdentifier '.' identifier
     |    typeIdentifier '.' typeIdentifier '.' identifier
     ;
 
@@ -1253,7 +1253,8 @@ typedIdentifier
     ;
 
 constructorDesignation
-    :    qualifiedName
+    :    typeIdentifier
+    |    qualifiedName
     |    typeName typeArguments ('.' identifier)?
     ;
 

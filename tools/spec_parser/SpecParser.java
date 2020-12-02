@@ -101,8 +101,8 @@ public class SpecParser {
     }
   }
 
-  /// From [arguments], obey the flags ("--<flag_name>") if known and ignore
-  /// them if unknown; treat the remaining [arguments] as file paths and
+  /// From [arguments], obey the flags ("--<flag_name>", "-<any>") if known and
+  /// ignore them if unknown; treat the remaining [arguments] as file paths and
   /// parse each of them. Return a [ParsingResult] specifying how many files
   /// were parsed, and how many of them failed to parse.
   private static ParsingResult parseFiles(String[] arguments)
@@ -113,13 +113,13 @@ public class SpecParser {
     result.numberOfFileArguments = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
       String filePath = arguments[i];
-      if (filePath.substring(0, 2).equals("--")) {
-        result.numberOfFileArguments--;
-        if (result.numberOfFileArguments == 0) return result;
-        if (filePath.equals("--verbose")) verbose = true;
-        if (filePath.equals("--batch")) runAsBatch();
-        // Ignore all other flags.
-        continue;
+      if (filePath.startsWith("-")) {
+          result.numberOfFileArguments--;
+          if (result.numberOfFileArguments == 0) return result;
+          if (filePath.equals("--verbose")) verbose = true;
+          if (filePath.equals("--batch")) runAsBatch();
+          // Ignore all other flags.
+          continue;
       }
       if (verbose) System.err.println("Parsing file: " + filePath);
       DartLexer lexer = new DartLexer(new ANTLRFileStream(filePath));
