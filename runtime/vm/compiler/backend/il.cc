@@ -824,7 +824,7 @@ void CallTargets::CreateHelper(Zone* zone, const ICData& ic_data) {
     const auto& cache = MegamorphicCache::Handle(
         zone, MegamorphicCacheTable::Lookup(thread, name, descriptor));
     {
-      SafepointMutexLocker ml(thread->isolate()->type_feedback_mutex());
+      SafepointMutexLocker ml(thread->isolate_group()->type_feedback_mutex());
       MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
       for (intptr_t i = 0, n = entries.Length(); i < n; i++) {
         const intptr_t id =

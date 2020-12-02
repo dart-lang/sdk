@@ -2141,6 +2141,189 @@ class RedirectingFactoryConstructor extends Member {
   }
 }
 
+/// Enum for the semantics of the `Procedure.stubTarget` property.
+enum ProcedureStubKind {
+  /// A regular procedure declared in source code.
+  ///
+  /// The stub target is `null`.
+  Regular,
+
+  /// An abstract procedure inserted to add `isCovariant` and
+  /// `isGenericCovariantImpl` to parameters for a set of overridden members.
+  ///
+  /// The stub is inserted when not all of the overridden members agree on
+  /// the covariance flags. For instance:
+  ///
+  ///     class A<T> {
+  ///        void method1(num o) {}
+  ///        void method2(T o) {}
+  ///     }
+  ///     class B {
+  ///        void method1(covariant int o) {}
+  ///        void method2(int o) {}
+  ///     }
+  ///     class C implements A<int>, B {
+  ///        // Forwarding stub needed because the parameter is covariant in
+  ///        // `B.method1` but not in `A.method1`.
+  ///        void method1(covariant num o);
+  ///        // Forwarding stub needed because the parameter is a generic
+  ///        // covariant impl in `A.method2` but not in `B.method2`.
+  ///        void method2(/*generic-covariant-impl*/ int o);
+  ///     }
+  ///
+  /// The stub target is one of the overridden members.
+  ForwardingStub,
+
+  /// A concrete procedure inserted to add `isCovariant` and
+  /// `isGenericCovariantImpl` checks to parameters before calling the
+  /// overridden member in the superclass.
+  ///
+  /// The stub is inserted when not all of the overridden members agree on
+  /// the covariance flags and the overridden super class member does not
+  /// have the same covariance flags. For instance:
+  ///
+  ///     class A<T> {
+  ///        void method1(num o) {}
+  ///        void method2(T o) {}
+  ///     }
+  ///     class B {
+  ///        void method1(covariant int o) {}
+  ///        void method2(int o) {}
+  ///     }
+  ///     class C extends A<int> implements B {
+  ///        // Forwarding stub needed because the parameter is covariant in
+  ///        // `B.method1` but not in `A.method1`.
+  ///        void method1(covariant num o) => super.method1(o);
+  ///        // No need for a super stub for `A.method2` because it has the
+  ///        // right covariance flags already.
+  ///     }
+  ///
+  /// The stub target is the called superclass member.
+  ForwardingSuperStub,
+
+  /// A concrete procedure inserted to forward calls to `noSuchMethod` for
+  /// an inherited member that it does not implement.
+  ///
+  /// The stub is inserted when a class implements private members of another
+  /// library or declares/inherits a user-defined `noSuchMethod` method. For
+  /// instance:
+  ///
+  ///     // lib1:
+  ///     class A {
+  ///       void _privateMethod() {}
+  ///     }
+  ///     // lib2:
+  ///     class B implements A {
+  ///       // Forwarding stub inserted to forward calls to `A._privateMethod`.
+  ///       void _privateMethod() => noSuchMethod(#_privateMethod, ...);
+  ///     }
+  ///     class C {
+  ///       void method() {}
+  ///     }
+  ///     class D implements C {
+  ///       noSuchMethod(o) { ... }
+  ///       // Forwarding stub inserted to forward calls to `C.method`.
+  ///       void method() => noSuchMethod(#method, ...);
+  ///     }
+  ///
+  ///
+  /// The stub target is `null` if the procedure preexisted as an abstract
+  /// procedure. Otherwise the stub target is one of the inherited members.
+  NoSuchMethodForwarder,
+
+  /// An abstract procedure inserted to show the combined member signature type
+  /// of set of overridden members.
+  ///
+  /// The stub is inserted when an opt-in member is inherited into an opt-out
+  /// library or when NNBD_TOP_MERGE was used to compute the type of a merge
+  /// point in an opt-in library. For instance:
+  ///
+  ///     // lib1: opt-in
+  ///     class A {
+  ///       int? method1() => null;
+  ///       void method2(Object? o) {}
+  ///     }
+  ///     class B {
+  ///       dynamic method2(dynamic o);
+  ///     }
+  ///     class C implements A, B {
+  ///       // Member signature inserted for the NNBD_TOP_MERGE type of
+  ///       // `A.method2` and `B.method2`.
+  ///       Object? method2(Object? o);
+  ///     }
+  ///     // lib2: opt-out
+  ///     class D extends A {
+  ///       // Member signature inserted for the LEGACY_ERASURE type of
+  ///       // `A.method1` and `A.method2` with types `int* Function()`
+  ///       // and `void Function(Object*)`, respectively.
+  ///       int method1();
+  ///       void method2(Object o);
+  ///     }
+  ///
+  /// The stub target is one of the overridden members.
+  MemberSignature,
+
+  /// An abstract procedure inserted for the application of an abstract mixin
+  /// member.
+  ///
+  /// The stub is inserted when an abstract member is mixed into a mixin
+  /// application. For instance:
+  ///
+  ///     class Super {}
+  ///     abstract class Mixin {
+  ///        void method();
+  ///     }
+  ///     class Class = Super with Mixin
+  ///       // A mixin stub for `A.method` is added to `Class`
+  ///       void method();
+  ///     ;
+  ///
+  /// This is added to ensure that interface targets are resolved consistently
+  /// in face of cloning. For instance, without the mixin stub, this call:
+  ///
+  ///     method(Class c) => c.method();
+  ///
+  /// would use `Mixin.method` as its target, but after load from a VM .dill
+  /// (which clones all mixin members) the call would resolve to `Class.method`
+  /// instead. By adding the mixin stub to `Class`, all accesses both before
+  /// and after .dill will point to `Class.method`.
+  ///
+  /// The stub target is the mixin member.
+  MixinStub,
+
+  /// A concrete procedure inserted for the application of a concrete mixin
+  /// member. The implementation calls the mixin member via a super-call.
+  ///
+  /// The stub is inserted when a concrete member is mixed into a mixin
+  /// application. For instance:
+  ///
+  ///     class Super {}
+  ///     abstract class Mixin {
+  ///        void method() {}
+  ///     }
+  ///     class Class = Super with Mixin
+  ///       // A mixin stub for `A.method` is added to `Class` which calls
+  ///       // `A.method`.
+  ///       void method() => super.method();
+  ///     ;
+  ///
+  /// This is added to ensure that super accesses are resolved correctly, even
+  /// in face of cloning. For instance, without the mixin super stub, this super
+  /// call:
+  ///
+  ///     class Subclass extends Class {
+  ///       method(Class c) => super.method();
+  ///     }
+  ///
+  /// would use `Mixin.method` as its target, which would to be update to match
+  /// the cloning of mixin member performed for instance by the VM. By adding
+  /// the mixin super stub to `Class`, all accesses both before and after
+  /// cloning will point to `Class.method`.
+  ///
+  /// The stub target is the called mixin member.
+  MixinSuperStub,
+}
+
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
 /// or factory.
 ///
@@ -2194,66 +2377,47 @@ class Procedure extends Member {
     super.transformerFlags = newValue;
   }
 
-  Reference forwardingStubSuperTargetReference;
-  Reference forwardingStubInterfaceTargetReference;
-  Reference memberSignatureOriginReference;
+  ProcedureStubKind stubKind;
+  Reference stubTargetReference;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
-      bool isForwardingStub: false,
-      bool isForwardingSemiStub: false,
-      bool isMemberSignature: false,
       bool isExtensionMember: false,
+      bool isSynthetic: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
-      Member forwardingStubSuperTarget,
-      Member forwardingStubInterfaceTarget,
-      Member memberSignatureOrigin})
-      : this._byReferenceRenamed(
-          name,
-          kind,
-          function,
-          isAbstract: isAbstract,
-          isStatic: isStatic,
-          isExternal: isExternal,
-          isConst: isConst,
-          isForwardingStub: isForwardingStub,
-          isMemberSignature: isMemberSignature,
-          isForwardingSemiStub: isForwardingSemiStub,
-          isExtensionMember: isExtensionMember,
-          transformerFlags: transformerFlags,
-          fileUri: fileUri,
-          reference: reference,
-          forwardingStubSuperTargetReference:
-              getMemberReferenceBasedOnProcedureKind(
-                  forwardingStubSuperTarget, kind),
-          forwardingStubInterfaceTargetReference:
-              getMemberReferenceBasedOnProcedureKind(
-                  forwardingStubInterfaceTarget, kind),
-          memberSignatureOriginReference:
-              getMemberReferenceBasedOnProcedureKind(
-                  memberSignatureOrigin, kind),
-        );
+      ProcedureStubKind stubKind: ProcedureStubKind.Regular,
+      Member stubTarget})
+      : this._byReferenceRenamed(name, kind, function,
+            isAbstract: isAbstract,
+            isStatic: isStatic,
+            isExternal: isExternal,
+            isConst: isConst,
+            isExtensionMember: isExtensionMember,
+            isSynthetic: isSynthetic,
+            transformerFlags: transformerFlags,
+            fileUri: fileUri,
+            reference: reference,
+            stubKind: stubKind,
+            stubTargetReference:
+                getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
   Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
-      bool isForwardingStub: false,
-      bool isForwardingSemiStub: false,
-      bool isMemberSignature: false,
       bool isExtensionMember: false,
+      bool isSynthetic: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
-      this.forwardingStubSuperTargetReference,
-      this.forwardingStubInterfaceTargetReference,
-      this.memberSignatureOriginReference})
+      this.stubKind: ProcedureStubKind.Regular,
+      this.stubTargetReference})
       : assert(kind != null),
         super(name, fileUri, reference) {
     function?.parent = this;
@@ -2261,12 +2425,10 @@ class Procedure extends Member {
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
-    this.isForwardingStub = isForwardingStub;
-    this.isForwardingSemiStub = isForwardingSemiStub;
-    this.isMemberSignature = isMemberSignature;
     this.isExtensionMember = isExtensionMember;
+    this.isSynthetic = isSynthetic;
     this.transformerFlags = transformerFlags;
-    assert(!(isMemberSignature && memberSignatureOriginReference == null),
+    assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
     assert(
         !(memberSignatureOrigin is Procedure &&
@@ -2279,14 +2441,11 @@ class Procedure extends Member {
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
-  static const int FlagForwardingStub = 1 << 4;
-  static const int FlagForwardingSemiStub = 1 << 5;
   // TODO(29841): Remove this flag after the issue is resolved.
-  static const int FlagRedirectingFactoryConstructor = 1 << 6;
-  static const int FlagNoSuchMethodForwarder = 1 << 7;
-  static const int FlagExtensionMember = 1 << 8;
-  static const int FlagMemberSignature = 1 << 9;
-  static const int FlagNonNullableByDefault = 1 << 10;
+  static const int FlagRedirectingFactoryConstructor = 1 << 4;
+  static const int FlagExtensionMember = 1 << 5;
+  static const int FlagNonNullableByDefault = 1 << 6;
+  static const int FlagSynthetic = 1 << 7;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -2304,11 +2463,16 @@ class Procedure extends Member {
   /// not declared in the source; it's possible that this is a forwarding
   /// semi-stub (see isForwardingSemiStub).  To determine whether this function
   /// was present in the source, consult [isSyntheticForwarder].
-  bool get isForwardingStub => flags & FlagForwardingStub != 0;
+  bool get isForwardingStub =>
+      stubKind == ProcedureStubKind.ForwardingStub ||
+      stubKind == ProcedureStubKind.ForwardingSuperStub;
 
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
-  bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
+  bool get isForwardingSemiStub =>
+      !isSynthetic &&
+      (stubKind == ProcedureStubKind.ForwardingStub ||
+          stubKind == ProcedureStubKind.ForwardingSuperStub);
 
   /// If set, this method is a class member added to show the type of an
   /// inherited member.
@@ -2317,7 +2481,7 @@ class Procedure extends Member {
   /// directly from the member(s) in the supertypes. For instance in case of
   /// an nnbd opt-out class inheriting from an nnbd opt-in class; here all nnbd-
   /// aware types are replaced with legacy types in the inherited signature.
-  bool get isMemberSignature => flags & FlagMemberSignature != 0;
+  bool get isMemberSignature => stubKind == ProcedureStubKind.MemberSignature;
 
   // Indicates if this [Procedure] represents a redirecting factory constructor
   // and doesn't have a runnable body.
@@ -2329,8 +2493,10 @@ class Procedure extends Member {
   /// source, and it exists solely for the purpose of type checking arguments
   /// and forwarding to [forwardingStubSuperTarget].
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
+  bool get isSynthetic => flags & FlagSynthetic != 0;
 
-  bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
+  bool get isNoSuchMethodForwarder =>
+      stubKind == ProcedureStubKind.NoSuchMethodForwarder;
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
@@ -2351,37 +2517,19 @@ class Procedure extends Member {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  void set isForwardingStub(bool value) {
-    flags =
-        value ? (flags | FlagForwardingStub) : (flags & ~FlagForwardingStub);
-  }
-
-  void set isForwardingSemiStub(bool value) {
-    flags = value
-        ? (flags | FlagForwardingSemiStub)
-        : (flags & ~FlagForwardingSemiStub);
-  }
-
-  void set isMemberSignature(bool value) {
-    flags =
-        value ? (flags | FlagMemberSignature) : (flags & ~FlagMemberSignature);
-  }
-
   void set isRedirectingFactoryConstructor(bool value) {
     flags = value
         ? (flags | FlagRedirectingFactoryConstructor)
         : (flags & ~FlagRedirectingFactoryConstructor);
   }
 
-  void set isNoSuchMethodForwarder(bool value) {
-    flags = value
-        ? (flags | FlagNoSuchMethodForwarder)
-        : (flags & ~FlagNoSuchMethodForwarder);
-  }
-
   void set isExtensionMember(bool value) {
     flags =
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
+  }
+
+  void set isSynthetic(bool value) {
+    flags = value ? (flags | FlagSynthetic) : (flags & ~FlagSynthetic);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -2403,28 +2551,25 @@ class Procedure extends Member {
   }
 
   Member get forwardingStubSuperTarget =>
-      forwardingStubSuperTargetReference?.asMember;
-
-  void set forwardingStubSuperTarget(Member target) {
-    forwardingStubSuperTargetReference =
-        getMemberReferenceBasedOnProcedureKind(target, kind);
-  }
+      stubKind == ProcedureStubKind.ForwardingSuperStub
+          ? stubTargetReference?.asMember
+          : null;
 
   Member get forwardingStubInterfaceTarget =>
-      forwardingStubInterfaceTargetReference?.asMember;
+      stubKind == ProcedureStubKind.ForwardingStub
+          ? stubTargetReference?.asMember
+          : null;
 
-  void set forwardingStubInterfaceTarget(Member target) {
-    forwardingStubInterfaceTargetReference =
-        getMemberReferenceBasedOnProcedureKind(target, kind);
+  Member get stubTarget => stubTargetReference?.asMember;
+
+  void set stubTarget(Member target) {
+    stubTargetReference = getMemberReferenceBasedOnProcedureKind(target, kind);
   }
 
-  @override
-  Member get memberSignatureOrigin => memberSignatureOriginReference?.asMember;
-
-  void set memberSignatureOrigin(Member target) {
-    memberSignatureOriginReference =
-        getMemberReferenceBasedOnProcedureKind(target, kind);
-  }
+  Member get memberSignatureOrigin =>
+      stubKind == ProcedureStubKind.MemberSignature
+          ? stubTargetReference?.asMember
+          : null;
 
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
 

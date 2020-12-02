@@ -15239,7 +15239,7 @@ bool ICData::ValidateInterceptor(const Function& target) const {
 void ICData::EnsureHasCheck(const GrowableArray<intptr_t>& class_ids,
                             const Function& target,
                             intptr_t count) const {
-  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
 
   if (FindCheck(class_ids) != -1) return;
   AddCheckInternal(class_ids, target, count);
@@ -15248,14 +15248,15 @@ void ICData::EnsureHasCheck(const GrowableArray<intptr_t>& class_ids,
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target,
                       intptr_t count) const {
-  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
   AddCheckInternal(class_ids, target, count);
 }
 
 void ICData::AddCheckInternal(const GrowableArray<intptr_t>& class_ids,
                               const Function& target,
                               intptr_t count) const {
-  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+  ASSERT(
+      IsolateGroup::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
 
   ASSERT(!is_tracking_exactness());
   ASSERT(!target.IsNull());
@@ -15343,7 +15344,7 @@ void ICData::EnsureHasReceiverCheck(intptr_t receiver_class_id,
                                     const Function& target,
                                     intptr_t count,
                                     StaticTypeExactnessState exactness) const {
-  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
 
   GrowableArray<intptr_t> class_ids(1);
   class_ids.Add(receiver_class_id);
@@ -15356,7 +15357,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target,
                               intptr_t count,
                               StaticTypeExactnessState exactness) const {
-  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
   AddReceiverCheckInternal(receiver_class_id, target, count, exactness);
 }
 
@@ -17174,7 +17175,7 @@ MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
 
 void MegamorphicCache::EnsureContains(const Smi& class_id,
                                       const Object& target) const {
-  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
 
   if (LookupLocked(class_id) == Object::null()) {
     InsertLocked(class_id, target);
@@ -17195,15 +17196,16 @@ void MegamorphicCache::EnsureContains(const Smi& class_id,
 }
 
 ObjectPtr MegamorphicCache::Lookup(const Smi& class_id) const {
-  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
   return LookupLocked(class_id);
 }
 
 ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
   auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
   auto zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(thread->isolate()->type_feedback_mutex()->IsOwnedByCurrentThread());
+  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
 
   const auto& backing_array = Array::Handle(zone, buckets());
   intptr_t id_mask = mask();
@@ -17225,7 +17227,7 @@ ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
 void MegamorphicCache::InsertLocked(const Smi& class_id,
                                     const Object& target) const {
   auto isolate_group = IsolateGroup::Current();
-  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
 
   // As opposed to ICData we are stopping mutator threads from other isolates
   // while modifying the megamorphic cache, since updates are not atomic.
@@ -17242,17 +17244,20 @@ void MegamorphicCache::InsertLocked(const Smi& class_id,
 }
 
 void MegamorphicCache::EnsureCapacityLocked() const {
-  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
 
   intptr_t old_capacity = mask() + 1;
   double load_limit = kLoadFactor * static_cast<double>(old_capacity);
   if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
-    const Array& old_buckets = Array::Handle(buckets());
+    const Array& old_buckets = Array::Handle(zone, buckets());
     intptr_t new_capacity = old_capacity * 2;
     const Array& new_buckets =
-        Array::Handle(Array::New(kEntryLength * new_capacity));
+        Array::Handle(zone, Array::New(kEntryLength * new_capacity));
 
-    auto& target = Object::Handle();
+    auto& target = Object::Handle(zone);
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
@@ -17261,7 +17266,7 @@ void MegamorphicCache::EnsureCapacityLocked() const {
     set_filled_entry_count(0);
 
     // Rehash the valid entries.
-    Smi& class_id = Smi::Handle();
+    Smi& class_id = Smi::Handle(zone);
     for (intptr_t i = 0; i < old_capacity; ++i) {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
@@ -17274,7 +17279,9 @@ void MegamorphicCache::EnsureCapacityLocked() const {
 
 void MegamorphicCache::InsertEntryLocked(const Smi& class_id,
                                          const Object& target) const {
-  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
 
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=

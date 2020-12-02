@@ -1146,14 +1146,14 @@ class Printer extends Visitor<Null> {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    if (node.memberSignatureOriginReference != null) {
+    if (node.isMemberSignature) {
       writeFunction(node.function,
           name: getMemberName(node), terminateLine: false);
       if (node.function.body is ReturnStatement) {
         writeSymbol(';');
       }
       writeSymbol(' -> ');
-      writeMemberReferenceFromReference(node.memberSignatureOriginReference);
+      writeMemberReferenceFromReference(node.stubTargetReference);
       endLine();
     } else {
       writeFunction(node.function, name: getMemberName(node));

@@ -17,7 +17,7 @@ MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
                                                   const String& name,
                                                   const Array& descriptor) {
   Isolate* isolate = thread->isolate();
-  SafepointMutexLocker ml(isolate->megamorphic_table_mutex());
+  SafepointMutexLocker ml(thread->isolate_group()->megamorphic_table_mutex());
 
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
@@ -46,7 +46,7 @@ MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   auto thread = Thread::Current();
-  SafepointMutexLocker ml(thread->isolate()->megamorphic_table_mutex());
+  SafepointMutexLocker ml(thread->isolate_group()->megamorphic_table_mutex());
 
   StackZone zone(thread);
   intptr_t size = 0;

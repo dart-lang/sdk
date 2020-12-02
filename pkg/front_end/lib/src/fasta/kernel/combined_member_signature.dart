@@ -521,10 +521,11 @@ abstract class CombinedMemberSignatureBase<T> {
       ProcedureKind.Getter,
       new FunctionNode(null, returnType: type),
       isAbstract: true,
-      isMemberSignature: true,
       fileUri: fileUri,
-      memberSignatureOrigin: member.memberSignatureOrigin ?? member,
       reference: referenceFrom?.reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: member.memberSignatureOrigin ?? member,
     )
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
@@ -562,20 +563,22 @@ abstract class CombinedMemberSignatureBase<T> {
       fileOffset = startFileOffset = enclosingClass.fileOffset;
     }
     return new Procedure(
-        member.name,
-        ProcedureKind.Setter,
-        new FunctionNode(null,
-            returnType: const VoidType(),
-            positionalParameters: [
-              new VariableDeclaration(parameterName ?? 'value',
-                  type: type, isCovariant: isCovariant)
-                ..isGenericCovariantImpl = isGenericCovariantImpl
-            ]),
-        isAbstract: true,
-        isMemberSignature: true,
-        fileUri: fileUri,
-        memberSignatureOrigin: member.memberSignatureOrigin ?? member,
-        reference: referenceFrom?.reference)
+      member.name,
+      ProcedureKind.Setter,
+      new FunctionNode(null,
+          returnType: const VoidType(),
+          positionalParameters: [
+            new VariableDeclaration(parameterName ?? 'value',
+                type: type, isCovariant: isCovariant)
+              ..isGenericCovariantImpl = isGenericCovariantImpl
+          ]),
+      isAbstract: true,
+      fileUri: fileUri,
+      reference: referenceFrom?.reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: member.memberSignatureOrigin ?? member,
+    )
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes
@@ -642,19 +645,21 @@ abstract class CombinedMemberSignatureBase<T> {
       }
     }
     return new Procedure(
-        procedure.name,
-        procedure.kind,
-        new FunctionNode(null,
-            typeParameters: functionType.typeParameters,
-            returnType: functionType.returnType,
-            positionalParameters: positionalParameters,
-            namedParameters: namedParameters,
-            requiredParameterCount: function.requiredParameterCount),
-        isAbstract: true,
-        isMemberSignature: true,
-        fileUri: fileUri,
-        memberSignatureOrigin: procedure.memberSignatureOrigin ?? procedure,
-        reference: referenceFrom?.reference)
+      procedure.name,
+      procedure.kind,
+      new FunctionNode(null,
+          typeParameters: functionType.typeParameters,
+          returnType: functionType.returnType,
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          requiredParameterCount: function.requiredParameterCount),
+      isAbstract: true,
+      fileUri: fileUri,
+      reference: referenceFrom?.reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: procedure.memberSignatureOrigin ?? procedure,
+    )
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes

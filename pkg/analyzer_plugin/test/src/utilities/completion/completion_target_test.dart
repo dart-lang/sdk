@@ -642,11 +642,7 @@ class CompletionTargetTest extends _Base {
   Future<void> test_IfStatement_droppedToken() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('main() { if (v i^) }');
-    if (usingFastaParser) {
-      assertTarget(')', 'if (v) ;', droppedToken: 'i');
-    } else {
-      assertTarget('i;', 'if (v) i;');
-    }
+    assertTarget(')', 'if (v) ;', droppedToken: 'i');
   }
 
   Future<void> test_InstanceCreationExpression_identifier() async {
@@ -907,8 +903,6 @@ class _Base extends AbstractContextTest {
   int offset;
   CompletionTarget target;
   FindElement findElement;
-
-  bool get usingFastaParser => analyzer.Parser.useFasta;
 
   void assertTarget(
     String entityText,

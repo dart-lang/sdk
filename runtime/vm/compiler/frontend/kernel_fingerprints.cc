@@ -784,6 +784,7 @@ uint32_t KernelFingerprintHelper::CalculateFunctionFingerprint() {
   BuildHash(procedure_helper.kind_);
   BuildHash(procedure_helper.flags_);
   BuildHash(procedure_helper.annotation_count_);
+  BuildHash(procedure_helper.stub_kind_);
   BuildHash(name.Hash());
   return hash_;
 }
