@@ -22,8 +22,7 @@ void main(List<String> args) {
       getAST(bytes, includeBody: true, includeComments: true);
   Map<String, DirectParserASTContentTopLevelDeclarationEnd> classes = {};
   for (DirectParserASTContentTopLevelDeclarationEnd cls in ast.getClasses()) {
-    DirectParserASTContentIdentifierHandle identifier =
-        cls.getClassIdentifier();
+    DirectParserASTContentIdentifierHandle identifier = cls.getIdentifier();
     assert(classes[identifier.token] == null);
     classes[identifier.token.toString()] = cls;
   }
