@@ -79,28 +79,28 @@ test2() {
 /*member: aDouble3:Union(null, [exact=JSDouble], [exact=JSExtendableArray])*/
 dynamic aDouble3 = 42.5;
 
-/*member: aList3:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
+/*member: aList3:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 dynamic aList3 = [42];
 
-/*member: consume3:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
+/*member: consume3:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume3(
-        /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x) =>
+        /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x) =>
     x;
 
 /*member: test3:[null]*/
 test3() {
   dynamic theMap = <dynamic, dynamic>{'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSDouble], [exact=JSExtendableArray]), map: {a: [exact=JSDouble], b: [exact=JSDouble], c: [exact=JSDouble], d: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
+      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSDouble], [exact=JSExtendableArray]), map: {a: [exact=JSDouble], b: [exact=JSDouble], c: [exact=JSDouble], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
       ['d'] = aList3;
   /*iterator: [exact=LinkedHashMapKeyIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSDouble], [exact=JSExtendableArray]), map: {a: [exact=JSDouble], b: [exact=JSDouble], c: [exact=JSDouble], d: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSDouble], [exact=JSExtendableArray]), map: {a: [exact=JSDouble], b: [exact=JSDouble], c: [exact=JSDouble], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
       keys) {
     aDouble3 = theMap
-        /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSDouble], [exact=JSExtendableArray]), map: {a: [exact=JSDouble], b: [exact=JSDouble], c: [exact=JSDouble], d: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
+        /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSDouble], [exact=JSExtendableArray]), map: {a: [exact=JSDouble], b: [exact=JSDouble], c: [exact=JSDouble], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.

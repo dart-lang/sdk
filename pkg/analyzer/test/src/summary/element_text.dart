@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -465,6 +465,12 @@ class _ElementWriter {
       e.combinators.forEach(writeNamespaceCombinator);
 
       buffer.writeln(';');
+
+      if (withFullyResolvedAst) {
+        _withIndent(() {
+          _writeResolvedMetadata(e.metadata);
+        });
+      }
     }
   }
 
@@ -605,6 +611,10 @@ class _ElementWriter {
         writeList('(', ')', e.arguments.arguments, ', ', writeNode,
             includeEmpty: true);
       }
+    } else if (e is AsExpression) {
+      writeNode(e.expression);
+      buffer.write(' as ');
+      writeNode(e.type);
     } else if (e is AssertInitializer) {
       buffer.write('assert(');
       writeNode(e.condition);
@@ -669,6 +679,10 @@ class _ElementWriter {
       buffer.write(r'}');
     } else if (e is InterpolationString) {
       buffer.write(e.value.replaceAll("'", r"\'"));
+    } else if (e is IsExpression) {
+      writeNode(e.expression);
+      buffer.write(e.notOperator == null ? ' is ' : ' is! ');
+      writeNode(e.type);
     } else if (e is ListLiteral) {
       if (e.constKeyword != null) {
         buffer.write('const ');
@@ -1203,6 +1217,7 @@ class _ElementWriter {
         selfUriStr: selfUriStr,
         sink: buffer,
         indent: indent,
+        withNullability: annotateNullability,
       ),
     );
   }

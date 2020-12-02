@@ -820,23 +820,26 @@ void CallTargets::CreateHelper(Zone* zone, const ICData& ic_data) {
     const Array& descriptor =
         Array::Handle(zone, ic_data.arguments_descriptor());
     Thread* thread = Thread::Current();
-    const MegamorphicCache& cache = MegamorphicCache::Handle(
+
+    const auto& cache = MegamorphicCache::Handle(
         zone, MegamorphicCacheTable::Lookup(thread, name, descriptor));
-    SafepointMutexLocker ml(thread->isolate()->megamorphic_mutex());
-    MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
-    for (intptr_t i = 0, n = entries.Length(); i < n; i++) {
-      const intptr_t id =
-          Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
-      if (id == kIllegalCid) {
-        continue;
+    {
+      SafepointMutexLocker ml(thread->isolate()->type_feedback_mutex());
+      MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
+      for (intptr_t i = 0, n = entries.Length(); i < n; i++) {
+        const intptr_t id =
+            Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
+        if (id == kIllegalCid) {
+          continue;
+        }
+        Function& function = Function::ZoneHandle(zone);
+        function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
+        const intptr_t filled_entry_count = cache.filled_entry_count();
+        ASSERT(filled_entry_count > 0);
+        cid_ranges_.Add(new (zone) TargetInfo(
+            id, id, &function, Usage(function) / filled_entry_count,
+            StaticTypeExactnessState::NotTracking()));
       }
-      Function& function = Function::ZoneHandle(zone);
-      function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
-      const intptr_t filled_entry_count = cache.filled_entry_count();
-      ASSERT(filled_entry_count > 0);
-      cid_ranges_.Add(new (zone) TargetInfo(
-          id, id, &function, Usage(function) / filled_entry_count,
-          StaticTypeExactnessState::NotTracking()));
     }
   }
 }

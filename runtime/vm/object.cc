@@ -15123,8 +15123,8 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
 
 intptr_t ICData::FindCheck(const GrowableArray<intptr_t>& cids) const {
   const intptr_t len = NumberOfChecks();
+  GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
     GetClassIdsAt(i, &class_ids);
     bool matches = true;
     for (intptr_t k = 0; k < class_ids.length(); k++) {
@@ -15236,9 +15236,27 @@ bool ICData::ValidateInterceptor(const Function& target) const {
   return true;
 }
 
+void ICData::EnsureHasCheck(const GrowableArray<intptr_t>& class_ids,
+                            const Function& target,
+                            intptr_t count) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+
+  if (FindCheck(class_ids) != -1) return;
+  AddCheckInternal(class_ids, target, count);
+}
+
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target,
                       intptr_t count) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  AddCheckInternal(class_ids, target, count);
+}
+
+void ICData::AddCheckInternal(const GrowableArray<intptr_t>& class_ids,
+                              const Function& target,
+                              intptr_t count) const {
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
   ASSERT(!is_tracking_exactness());
   ASSERT(!target.IsNull());
   ASSERT((target.name() == target_name()) || ValidateInterceptor(target));
@@ -15321,10 +15339,32 @@ void ICData::DebugDump() const {
   }
 }
 
+void ICData::EnsureHasReceiverCheck(intptr_t receiver_class_id,
+                                    const Function& target,
+                                    intptr_t count,
+                                    StaticTypeExactnessState exactness) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+
+  GrowableArray<intptr_t> class_ids(1);
+  class_ids.Add(receiver_class_id);
+  if (FindCheck(class_ids) != -1) return;
+
+  AddReceiverCheckInternal(receiver_class_id, target, count, exactness);
+}
+
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target,
                               intptr_t count,
                               StaticTypeExactnessState exactness) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  AddReceiverCheckInternal(receiver_class_id, target, count, exactness);
+}
+
+void ICData::AddReceiverCheckInternal(
+    intptr_t receiver_class_id,
+    const Function& target,
+    intptr_t count,
+    StaticTypeExactnessState exactness) const {
 #if defined(DEBUG)
   GrowableArray<intptr_t> class_ids(1);
   class_ids.Add(receiver_class_id);
@@ -15566,8 +15606,9 @@ ICDataPtr ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       result.IncrementCountAt(duplicate_class_id, count);
     } else {
       // This will make sure that Smi is first if it exists.
-      result.AddReceiverCheck(class_id, Function::Handle(GetTargetAt(i)),
-                              count);
+      result.AddReceiverCheckInternal(class_id,
+                                      Function::Handle(GetTargetAt(i)), count,
+                                      StaticTypeExactnessState::NotTracking());
     }
   }
 
@@ -17131,14 +17172,78 @@ MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
   return result.raw();
 }
 
-void MegamorphicCache::Insert(const Smi& class_id, const Object& target) const {
-  SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
-  EnsureCapacityLocked();
-  InsertLocked(class_id, target);
+void MegamorphicCache::EnsureContains(const Smi& class_id,
+                                      const Object& target) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+
+  if (LookupLocked(class_id) == Object::null()) {
+    InsertLocked(class_id, target);
+  }
+
+#if defined(DEBUG)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (target.IsFunction()) {
+      const auto& function = Function::Cast(target);
+      const auto& entry_point = Smi::Handle(
+          Smi::FromAlignedAddress(Code::EntryPointOf(function.CurrentCode())));
+      ASSERT(LookupLocked(class_id) == entry_point.raw());
+    }
+  } else {
+    ASSERT(LookupLocked(class_id) == target.raw());
+  }
+#endif  // define(DEBUG)
+}
+
+ObjectPtr MegamorphicCache::Lookup(const Smi& class_id) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  return LookupLocked(class_id);
+}
+
+ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
+  const auto& backing_array = Array::Handle(zone, buckets());
+  intptr_t id_mask = mask();
+  intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
+  intptr_t i = index;
+  do {
+    const classid_t current_cid =
+        Smi::Value(Smi::RawCast(GetClassId(backing_array, i)));
+    if (current_cid == class_id.Value()) {
+      return GetTargetFunction(backing_array, i);
+    } else if (current_cid == kIllegalCid) {
+      return Object::null();
+    }
+    i = (i + 1) & id_mask;
+  } while (i != index);
+  UNREACHABLE();
+}
+
+void MegamorphicCache::InsertLocked(const Smi& class_id,
+                                    const Object& target) const {
+  auto isolate_group = IsolateGroup::Current();
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
+  // As opposed to ICData we are stopping mutator threads from other isolates
+  // while modifying the megamorphic cache, since updates are not atomic.
+  //
+  // NOTE: In the future we might change the megamorphic cache insertions to
+  // carefully use store-release barriers on the writer as well as
+  // load-acquire barriers on the reader, ...
+  isolate_group->RunWithStoppedMutators(
+      [&]() {
+        EnsureCapacityLocked();
+        InsertEntryLocked(class_id, target);
+      },
+      /*use_force_growth=*/true);
 }
 
 void MegamorphicCache::EnsureCapacityLocked() const {
-  ASSERT(Isolate::Current()->megamorphic_mutex()->IsOwnedByCurrentThread());
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
   intptr_t old_capacity = mask() + 1;
   double load_limit = kLoadFactor * static_cast<double>(old_capacity);
   if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
@@ -17161,15 +17266,16 @@ void MegamorphicCache::EnsureCapacityLocked() const {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
         target = GetTargetFunction(old_buckets, i);
-        InsertLocked(class_id, target);
+        InsertEntryLocked(class_id, target);
       }
     }
   }
 }
 
-void MegamorphicCache::InsertLocked(const Smi& class_id,
-                                    const Object& target) const {
-  ASSERT(Isolate::Current()->megamorphic_mutex()->IsOwnedByCurrentThread());
+void MegamorphicCache::InsertEntryLocked(const Smi& class_id,
+                                         const Object& target) const {
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=
          (kLoadFactor * static_cast<double>(mask() + 1)));

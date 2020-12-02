@@ -6,6 +6,7 @@ library compiler.src.inferrer.list_tracer;
 
 import '../common/names.dart';
 import '../elements/entities.dart';
+import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
 import 'node_tracer.dart';
@@ -162,10 +163,16 @@ class ListTracerVisitor extends TracerVisitor {
   @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
+    final commonElements = inferrer.closedWorld.commonElements;
     MemberEntity called = info.calledElement;
-    if (inferrer.closedWorld.commonElements.isForeign(called) &&
-        called.name == Identifiers.JS) {
-      bailout('Used in JS ${info.debugName}');
+    if (commonElements.isForeign(called) && called.name == Identifiers.JS) {
+      NativeBehavior nativeBehavior = inferrer.closedWorld.elementMap
+          .getNativeBehaviorForJsCall(info.invocationNode);
+      // Assume side-effects means that the list has escaped to some unknown
+      // location.
+      if (nativeBehavior.sideEffects.hasSideEffects()) {
+        bailout('Used in JS ${info.debugName}');
+      }
     }
   }
 

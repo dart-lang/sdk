@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// The type builder for a [GenericFunctionType].
@@ -97,7 +96,6 @@ class FunctionTypeBuilder extends TypeBuilder {
 
     if (node != null) {
       node.type = _type;
-      LazyAst.setReturnType(node, builtReturnType ?? _dynamicType);
     }
 
     return _type;

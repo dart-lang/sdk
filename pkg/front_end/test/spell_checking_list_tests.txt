@@ -223,6 +223,7 @@ echo
 edits
 elapse
 ell
+enm
 entrypoint
 entrypoints
 eoo
@@ -372,6 +373,7 @@ invocation7c
 invocation7d
 invocation7e
 ioo
+ish
 isolate
 isolates
 issue41210b
@@ -461,6 +463,7 @@ month
 moo
 mul
 mx
+mxn
 mysdk
 naively
 naturally

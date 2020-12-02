@@ -964,7 +964,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Mutex* constant_canonicalization_mutex() {
     return &constant_canonicalization_mutex_;
   }
-  Mutex* megamorphic_mutex() { return &megamorphic_mutex_; }
+  Mutex* megamorphic_table_mutex() { return &megamorphic_table_mutex_; }
+  Mutex* type_feedback_mutex() { return &type_feedback_mutex_; }
 
   Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
   Mutex* kernel_data_class_cache_mutex() {
@@ -1600,8 +1601,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Simulator* simulator_ = nullptr;
   Mutex mutex_;                            // Protects compiler stats.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and
-                             // their entries.
+  Mutex megamorphic_table_mutex_;
+  Mutex type_feedback_mutex_;
   Mutex kernel_data_lib_cache_mutex_;
   Mutex kernel_data_class_cache_mutex_;
   Mutex kernel_constants_mutex_;

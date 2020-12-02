@@ -2088,6 +2088,15 @@ class ICData : public CallSiteData {
 
   // Adding checks.
 
+  // Ensures there is a check for [class_ids].
+  //
+  // Calls [AddCheck] iff there is no existing check. Ensures test (and
+  // potential update) will be performed under exclusive lock to guard against
+  // multiple threads trying to add the same check.
+  void EnsureHasCheck(const GrowableArray<intptr_t>& class_ids,
+                      const Function& target,
+                      intptr_t count = 1) const;
+
   // Adds one more class test to ICData. Length of 'classes' must be equal to
   // the number of arguments tested. Use only for num_args_tested > 1.
   void AddCheck(const GrowableArray<intptr_t>& class_ids,
@@ -2095,6 +2104,18 @@ class ICData : public CallSiteData {
                 intptr_t count = 1) const;
 
   StaticTypeExactnessState GetExactnessAt(intptr_t count) const;
+
+  // Ensures there is a receiver check for [receiver_class_id].
+  //
+  // Calls [AddCheckReceiverCheck] iff there is no existing check. Ensures
+  // test (and potential update) will be performed under exclusive lock to
+  // guard against multiple threads trying to add the same check.
+  void EnsureHasReceiverCheck(
+      intptr_t receiver_class_id,
+      const Function& target,
+      intptr_t count = 1,
+      StaticTypeExactnessState exactness =
+          StaticTypeExactnessState::NotTracking()) const;
 
   // Adds sorted so that Smi is the first class-id. Use only for
   // num_args_tested == 1.
@@ -2262,6 +2283,13 @@ class ICData : public CallSiteData {
                              intptr_t data_pos,
                              intptr_t num_args_tested,
                              const Function& target);
+  void AddCheckInternal(const GrowableArray<intptr_t>& class_ids,
+                        const Function& target,
+                        intptr_t count) const;
+  void AddReceiverCheckInternal(intptr_t receiver_class_id,
+                                const Function& target,
+                                intptr_t count,
+                                StaticTypeExactnessState exactness) const;
 
   // This bit is set when a call site becomes megamorphic and starts using a
   // MegamorphicCache instead of ICData. It means that the entries in the
@@ -6822,15 +6850,14 @@ class MegamorphicCache : public CallSiteData {
   static MegamorphicCachePtr New(const String& target_name,
                                  const Array& arguments_descriptor);
 
-  void Insert(const Smi& class_id, const Object& target) const;
+  void EnsureContains(const Smi& class_id, const Object& target) const;
+  ObjectPtr Lookup(const Smi& class_id) const;
 
   void SwitchToBareInstructions();
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(MegamorphicCacheLayout));
   }
-
-  static MegamorphicCachePtr Clone(const MegamorphicCache& from);
 
  private:
   friend class Class;
@@ -6839,9 +6866,12 @@ class MegamorphicCache : public CallSiteData {
 
   static MegamorphicCachePtr New();
 
-  // The caller must hold Isolate::megamorphic_mutex().
-  void EnsureCapacityLocked() const;
+  // The caller must hold IsolateGroup::type_feedback_mutex().
   void InsertLocked(const Smi& class_id, const Object& target) const;
+  void EnsureCapacityLocked() const;
+  ObjectPtr LookupLocked(const Smi& class_id) const;
+
+  void InsertEntryLocked(const Smi& class_id, const Object& target) const;
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,

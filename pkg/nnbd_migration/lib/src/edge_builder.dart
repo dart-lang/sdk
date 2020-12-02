@@ -2659,21 +2659,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           node is Statement ? node : null, parts.condition);
     } else if (parts is ForEachParts) {
       Element lhsElement;
+      DecoratedType lhsType;
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement;
         _flowAnalysis.declare(variableElement, true);
         lhsElement = variableElement;
         _dispatch(parts.loopVariable?.type);
+        lhsType = _variables.decoratedElementType(lhsElement);
       } else if (parts is ForEachPartsWithIdentifier) {
         lhsElement = parts.identifier.staticElement;
+        lhsType = _dispatch(parts.identifier);
       } else {
         throw StateError(
             'Unexpected ForEachParts subtype: ${parts.runtimeType}');
       }
       var iterableType = _checkExpressionNotNull(parts.iterable);
       DecoratedType elementType;
-      if (lhsElement != null) {
-        DecoratedType lhsType = _variables.decoratedElementType(lhsElement);
+      if (lhsType != null) {
         var iterableTypeType = iterableType.type;
         if (_typeSystem.isSubtypeOf(
             iterableTypeType, typeProvider.iterableDynamicType)) {

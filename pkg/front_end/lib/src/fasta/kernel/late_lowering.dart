@@ -592,3 +592,29 @@ IsSetEncoding computeIsSetEncoding(DartType type, IsSetStrategy isSetStrategy) {
   }
   throw new UnsupportedError("Unexpected IsSetStrategy $isSetStrategy");
 }
+
+/// Returns the name used for the variable that holds the value of a late
+/// lowered local by the given [name].
+String computeLateLocalName(String name) {
+  // TODO(johnniwinther): Change this to '${lateLocalPrefix}${name}' if
+  // backends can benefit from identifying late locals.
+  return name;
+}
+
+/// Returns the name used for the 'isSet' variable of a late lowered local by
+/// the given [name].
+String computeLateLocalIsSetName(String name) {
+  return '${lateLocalPrefix}${name}${lateIsSetSuffix}';
+}
+
+/// Returns the name used for the getter function of a late lowered local by
+/// the given [name].
+String computeLateLocalGetterName(String name) {
+  return '${lateLocalPrefix}${name}${lateLocalGetterSuffix}';
+}
+
+/// Returns the name used for the setter function of a late lowered local by
+/// the given [name].
+String computeLateLocalSetterName(String name) {
+  return '${lateLocalPrefix}${name}${lateLocalSetterSuffix}';
+}

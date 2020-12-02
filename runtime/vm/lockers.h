@@ -226,9 +226,11 @@ class MonitorLeaveScope : public ValueObject {
  *      ...
  *    }
  */
-class SafepointMutexLocker : public ValueObject {
+class SafepointMutexLocker : public StackResource {
  public:
-  explicit SafepointMutexLocker(Mutex* mutex);
+  explicit SafepointMutexLocker(Mutex* mutex)
+      : SafepointMutexLocker(ThreadState::Current(), mutex) {}
+  SafepointMutexLocker(ThreadState* thread, Mutex* mutex);
   virtual ~SafepointMutexLocker() { mutex_->Unlock(); }
 
  private:

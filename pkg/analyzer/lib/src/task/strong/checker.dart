@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, StrongModeCode;
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:meta/meta.dart';
 
 DartType _elementType(Element e) {

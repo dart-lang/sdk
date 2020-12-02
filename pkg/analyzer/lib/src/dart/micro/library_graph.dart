@@ -29,7 +29,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -425,7 +424,6 @@ class FileState {
         ),
       );
     }
-    var informativeData = createInformativeData(unit);
     var unlinkedBuilder = UnlinkedUnit2Builder(
       apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
@@ -435,7 +433,6 @@ class FileState {
       hasPartOfDirective: hasPartOfDirective,
       partOfUri: partOfUriStr,
       lineStarts: unit.lineInfo.lineStarts,
-      informativeData: informativeData,
     );
     return CiderUnlinkedUnitBuilder(
         contentDigest: digest, unlinkedUnit: unlinkedBuilder);
@@ -708,8 +705,11 @@ class LibraryCycle {
   /// The hash of all the paths of the files in this cycle.
   String cyclePathsHash;
 
-  /// id of the cache entry.
-  int id;
+  /// id of the ast cache entry.
+  int astId;
+
+  /// id of the resolution cache entry.
+  int resolutionId;
 
   LibraryCycle();
 

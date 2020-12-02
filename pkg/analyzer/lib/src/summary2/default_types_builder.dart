@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/util/graph.dart';
@@ -137,10 +136,11 @@ class DefaultTypesBuilder {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
-      var defaultType = LazyAst.getDefaultType(parameter);
+      var element = parameter.declaredElement as TypeParameterElementImpl;
+      var defaultType = element.defaultType;
       if (defaultType is TypeBuilder) {
         var builtType = defaultType.build();
-        LazyAst.setDefaultType(parameter, builtType);
+        element.defaultType = builtType;
       }
     }
   }
@@ -211,7 +211,8 @@ class DefaultTypesBuilder {
 
     // Set computed TypeBuilder(s) as default types.
     for (var i = 0; i < length; i++) {
-      LazyAst.setDefaultType(nodes[i], bounds[i]);
+      var element = nodes[i].declaredElement as TypeParameterElementImpl;
+      element.defaultType = bounds[i];
     }
   }
 
@@ -235,6 +236,7 @@ class DefaultTypesBuilder {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (TypeParameterElementImpl parameter in parameters) {
               TypeParameter parameterNode = parameter.linkedNode;
+              // TODO(scheglov) How to we skip already linked?
               var bound = parameterNode.bound;
               if (bound != null) {
                 var tails = _findRawTypePathsToDeclaration(

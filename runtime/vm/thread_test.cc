@@ -1029,6 +1029,38 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
   EXPECT(!lock.IsCurrentThreadWriter());
 }
 
+template <typename LockType, typename LockerType>
+static void RunLockerWithLongJumpTest() {
+  const intptr_t kNumIterations = 5;
+  intptr_t execution_count = 0;
+  intptr_t thrown_count = 0;
+  LockType lock;
+  for (intptr_t i = 0; i < kNumIterations; ++i) {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      LockerType locker(Thread::Current(), &lock);
+      execution_count++;
+      Thread::Current()->long_jump_base()->Jump(
+          1, Object::background_compilation_error());
+    } else {
+      thrown_count++;
+    }
+  }
+  EXPECT_EQ(kNumIterations, execution_count);
+  EXPECT_EQ(kNumIterations, thrown_count);
+}
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteWithLongJmp) {
+  RunLockerWithLongJumpTest<SafepointRwLock, SafepointWriteRwLocker>();
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockReadWithLongJmp) {
+  RunLockerWithLongJumpTest<SafepointRwLock, SafepointReadRwLocker>();
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointMutexLockerWithLongJmp) {
+  RunLockerWithLongJumpTest<Mutex, SafepointMutexLocker>();
+}
+
 struct ReaderThreadState {
   ThreadJoinId reader_id = OSThread::kInvalidThreadJoinId;
   SafepointRwLock* rw_lock = nullptr;

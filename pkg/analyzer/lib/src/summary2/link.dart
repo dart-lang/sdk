@@ -2,24 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary2/ast_binary_writer.dart';
+import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
+import 'package:meta/meta.dart';
 
 var timerLinkingLinkingBundle = Stopwatch();
 var timerLinkingRemoveBundle = Stopwatch();
@@ -27,34 +27,29 @@ var timerLinkingRemoveBundle = Stopwatch();
 LinkResult link(
   LinkedElementFactory elementFactory,
   List<LinkInputLibrary> inputLibraries,
+  bool withInformative,
 ) {
-  var linker = Linker(elementFactory);
+  var linker = Linker(elementFactory, withInformative);
   linker.link(inputLibraries);
-  return LinkResult(linker.linkingBundle);
+  return LinkResult(
+    astBytes: linker.astBytes,
+    resolutionBytes: linker.resolutionBytes,
+  );
 }
 
 class Linker {
   final LinkedElementFactory elementFactory;
-
-  LinkedNodeBundleBuilder linkingBundle;
-  LinkedBundleContext bundleContext;
-  LinkingBundleContext linkingBundleContext;
+  final bool withInformative;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
   InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
-  Linker(this.elementFactory) {
-    linkingBundleContext = LinkingBundleContext(
-      elementFactory.dynamicRef,
-    );
+  Uint8List astBytes;
+  Uint8List resolutionBytes;
 
-    bundleContext = LinkedBundleContext.forAst(
-      elementFactory,
-      linkingBundleContext.references,
-    );
-  }
+  Linker(this.elementFactory, this.withInformative);
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -70,8 +65,6 @@ class Linker {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
     }
-    // TODO(scheglov) do in build() ?
-    elementFactory.addBundle(bundleContext);
 
     _buildOutlines();
 
@@ -80,13 +73,13 @@ class Linker {
     timerLinkingLinkingBundle.stop();
 
     timerLinkingRemoveBundle.start();
-    linkingBundleContext.clearIndexes();
-    elementFactory.removeBundle(bundleContext);
+    elementFactory.removeBundle(
+      inputLibraries.map((e) => e.uriStr).toSet(),
+    );
     timerLinkingRemoveBundle.stop();
   }
 
   void _buildOutlines() {
-    _resolveUriDirectives();
     _computeLibraryScopes();
     _createTypeSystem();
     _resolveTypes();
@@ -107,7 +100,16 @@ class Linker {
 
   void _computeLibraryScopes() {
     for (var library in builders.values) {
+      library.buildElement();
+    }
+
+    for (var library in builders.values) {
+      library.buildDirectives();
       library.addLocalDeclarations();
+    }
+
+    for (var library in builders.values) {
+      library.resolveUriDirectives();
     }
 
     for (var library in builders.values) {
@@ -159,34 +161,47 @@ class Linker {
     }
 
     for (var library in builders.values) {
-      library.buildElement();
+      library.buildScope();
     }
   }
 
   void _createLinkingBundle() {
-    var linkingLibraries = <LinkedNodeLibraryBuilder>[];
-    for (var builder in builders.values) {
-      linkingLibraries.add(builder.node);
-
-      for (var unitContext in builder.context.units) {
-        var unit = unitContext.unit;
-
-        var writer = AstBinaryWriter(linkingBundleContext);
-        var unitLinkedNode = writer.writeUnit(unit);
-        builder.node.units.add(
-          LinkedNodeUnitBuilder(
-            isSynthetic: unitContext.isSynthetic,
-            partUriStr: unitContext.partUriStr,
-            uriStr: unitContext.uriStr,
-            node: unitLinkedNode,
-          ),
-        );
-      }
-    }
-    linkingBundle = LinkedNodeBundleBuilder(
-      references: linkingBundleContext.referencesBuilder,
-      libraries: linkingLibraries,
+    var bundleWriter2 = BundleWriter(
+      withInformative,
+      elementFactory.dynamicRef,
     );
+    var bundleWriterTimer = Stopwatch();
+
+    for (var builder in builders.values) {
+      bundleWriterTimer.start();
+      bundleWriter2.addLibrary(
+        LibraryToWrite(
+          uriStr: '${builder.uri}',
+          exports: builder.exports,
+          units: builder.context.units.map((e) {
+            return UnitToWrite(
+              uriStr: e.uriStr,
+              partUriStr: e.partUriStr,
+              node: e.unit,
+              isSynthetic: e.isSynthetic,
+            );
+          }).toList(),
+        ),
+      );
+      bundleWriterTimer.stop();
+    }
+
+    bundleWriterTimer.start();
+    var writeWriterResult = bundleWriter2.finish();
+    astBytes = writeWriterResult.astBytes;
+    resolutionBytes = writeWriterResult.resolutionBytes;
+    bundleWriterTimer.stop();
+    // print(
+    //   '[bytes: ${astBytes.length + resolutionBytes.length}]'
+    //   '[astBytes: ${astBytes.length}]'
+    //   '[resolutionBytes: ${resolutionBytes.length}]'
+    //   '[time: ${bundleWriterTimer.elapsedMilliseconds} ms]',
+    // );
   }
 
   void _createTypeSystem() {
@@ -229,14 +244,8 @@ class Linker {
       library.resolveTypes(nodesToBuildType);
     }
     VarianceBuilder().perform(this);
-    computeSimplyBounded(bundleContext, builders.values);
+    computeSimplyBounded(builders.values);
     TypesBuilder().build(nodesToBuildType);
-  }
-
-  void _resolveUriDirectives() {
-    for (var library in builders.values) {
-      library.resolveUriDirectives();
-    }
   }
 }
 
@@ -245,6 +254,10 @@ class LinkInputLibrary {
   final List<LinkInputUnit> units;
 
   LinkInputLibrary(this.source, this.units);
+
+  Uri get uri => source.uri;
+
+  String get uriStr => '$uri';
 }
 
 class LinkInputUnit {
@@ -259,10 +272,21 @@ class LinkInputUnit {
     this.isSynthetic,
     this.unit,
   );
+
+  String get uriStr {
+    if (source == null) {
+      return '';
+    }
+    return '${source.uri}';
+  }
 }
 
 class LinkResult {
-  final LinkedNodeBundleBuilder bundle;
+  final Uint8List astBytes;
+  final Uint8List resolutionBytes;
 
-  LinkResult(this.bundle);
+  LinkResult({
+    @required this.astBytes,
+    @required this.resolutionBytes,
+  });
 }

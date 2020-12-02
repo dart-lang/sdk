@@ -196,11 +196,11 @@ class A<T extends F> {}
 ''');
   }
 
-  @failingTest
   test_fuzz_12() async {
     // This code crashed with summary2 because usually AST reader is lazy,
     // so we did not read metadata `@b` for `c`. But default values must be
     // read fully.
+    // Fixed 2020-11-12.
     await _assertCanBeAnalyzed(r'''
 void f({a = [for (@b c = 0;;)]}) {}
 ''');
@@ -334,6 +334,12 @@ void foo() {
   // ignore:unused_element
   void bar({@my this.x}) {}
 }
+''');
+  }
+
+  test_syntheticImportPrefix() async {
+    await _assertCanBeAnalyzed('''
+import 'dart:math' as;
 ''');
   }
 

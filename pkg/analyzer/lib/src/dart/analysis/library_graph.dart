@@ -51,6 +51,10 @@ class LibraryCycle {
 
   LibraryCycle.external() : transitiveSignature = '<external>';
 
+  bool get isUnresolvedFile {
+    return libraries.length == 1 && libraries[0].isUnresolved;
+  }
+
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
   /// Practically invalidation means that we clear the library cycle in all the
