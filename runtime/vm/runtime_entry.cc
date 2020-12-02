@@ -1361,6 +1361,8 @@ static FunctionPtr InlineCacheMissHandler(
     return target_function.raw();
   }
 
+  SafepointMutexLocker ml(thread->isolate_group()->patchable_call_mutex());
+
   return InlineCacheMissHandlerGivenTargetFunction(args, ic_data, 1,
                                                    target_function);
 }
@@ -1646,8 +1648,8 @@ void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
       code = StubCode::MonomorphicSmiableCheck().raw();
     }
   }
-  CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-      thread_, caller_frame_->pc(), caller_code_, object, code);
+  CodePatcher::PatchSwitchableCallAt(caller_frame_->pc(), caller_code_, object,
+                                     code);
 
   // Return the ICData. The miss stub will jump to continue in the IC lookup
   // stub.
@@ -1765,8 +1767,8 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
     cache.set_lower_limit(lower);
     cache.set_upper_limit(upper);
     const Code& stub = StubCode::SingleTargetCall();
-    CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-        thread_, caller_frame_->pc(), caller_code_, cache, stub);
+    CodePatcher::PatchSwitchableCallAt(caller_frame_->pc(), caller_code_, cache,
+                                       stub);
     // Return the ICData. The miss stub will jump to continue in the IC call
     // stub.
     arguments_.SetArgAt(0, StubCode::ICCallThroughCode());
@@ -1776,8 +1778,8 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
 
   // Patch to call through stub.
   const Code& stub = StubCode::ICCallThroughCode();
-  CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-      thread_, caller_frame_->pc(), caller_code_, ic_data, stub);
+  CodePatcher::PatchSwitchableCallAt(caller_frame_->pc(), caller_code_, ic_data,
+                                     stub);
 
   // Return the ICData. The miss stub will jump to continue in the IC lookup
   // stub.
@@ -1794,25 +1796,21 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
   const Code& stub = ic_data.is_tracking_exactness()
                          ? StubCode::OneArgCheckInlineCacheWithExactnessCheck()
                          : StubCode::OneArgCheckInlineCache();
-  CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
-      thread_, caller_frame_->pc(), caller_code_, ic_data, stub);
+  CodePatcher::PatchInstanceCallAt(caller_frame_->pc(), caller_code_, ic_data,
+                                   stub);
   if (FLAG_trace_ic) {
     OS::PrintErr("Instance call at %" Px
                  " switching to polymorphic dispatch, %s\n",
                  caller_frame_->pc(), ic_data.ToCString());
   }
 
-  // ICData can be shared between unoptimized and optimized code, so beware that
-  // the new receiver class may have already been added through the optimized
-  // code.
-  if (!ic_data.HasReceiverClassId(receiver_.GetClassId())) {
-    GrowableArray<const Instance*> args(1);
-    args.Add(&receiver_);
-    // Don't count during insertion because the IC stub we continue through will
-    // do an increment.
-    InlineCacheMissHandlerGivenTargetFunction(args, ic_data, /*count=*/0,
-                                              target_function);
-  }
+  // Don't count during insertion because the IC stub we continue through will
+  // do an increment.
+  GrowableArray<const Instance*> args(1);
+  args.Add(&receiver_);
+  InlineCacheMissHandlerGivenTargetFunction(args, ic_data, /*count=*/0,
+                                            target_function);
+
   arguments_.SetArgAt(0, stub);
   arguments_.SetReturn(ic_data);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -1848,8 +1846,8 @@ void SwitchableCallHandler::DoSingleTargetMiss(
 
   // Call site is not single target, switch to call using ICData.
   const Code& stub = StubCode::ICCallThroughCode();
-  CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-      thread_, caller_frame_->pc(), caller_code_, ic_data, stub);
+  CodePatcher::PatchSwitchableCallAt(caller_frame_->pc(), caller_code_, ic_data,
+                                     stub);
 
   // Return the ICData. The single target stub will jump to continue in the
   // IC call stub.
@@ -1893,25 +1891,21 @@ void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data,
     const Smi& expected_cid =
         Smi::Handle(zone_, Smi::New(receiver_.GetClassId()));
     ASSERT(target_code.HasMonomorphicEntry());
-    CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-        thread_, caller_frame_->pc(), caller_code_, expected_cid, target_code);
+    CodePatcher::PatchSwitchableCallAt(caller_frame_->pc(), caller_code_,
+                                       expected_cid, target_code);
     arguments_.SetArgAt(0, target_code);
     arguments_.SetReturn(expected_cid);
   } else {
     // IC entry might have been added while we waited to get into runtime.
-    GrowableArray<intptr_t> class_ids(1);
-    class_ids.Add(receiver_.GetClassId());
-    if (ic_data.FindCheck(class_ids) == -1) {
-      ic_data.AddReceiverCheck(receiver_.GetClassId(), target_function);
-    }
+    ic_data.EnsureHasReceiverCheck(receiver_.GetClassId(), target_function);
     if (number_of_checks > FLAG_max_polymorphic_checks) {
       // Switch to megamorphic call.
       const MegamorphicCache& cache = MegamorphicCache::Handle(
           zone_, MegamorphicCacheTable::Lookup(thread_, name, descriptor));
       const Code& stub = StubCode::MegamorphicCall();
 
-      CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-          thread_, caller_frame_->pc(), caller_code_, cache, stub);
+      CodePatcher::PatchSwitchableCallAt(caller_frame_->pc(), caller_code_,
+                                         cache, stub);
       arguments_.SetArgAt(0, stub);
       arguments_.SetReturn(cache);
     } else {
@@ -2087,40 +2081,42 @@ DEFINE_RUNTIME_ENTRY(SwitchableCallMiss, 2) {
   const Function& caller_function =
       Function::Handle(zone, caller_frame->LookupDartFunction());
 
-  Object& old_data = Object::Handle(zone);
-  Code& old_code = Code::Handle(zone);
+  SwitchableCallHandler handler(thread, receiver, arguments, caller_frame,
+                                caller_code, caller_function);
 
+  // Find out actual target (which can be time consuminmg) without holding any
+  // locks.
+  Object& old_data = Object::Handle(zone);
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // Grab old_data and do potentially long-running step of resolving the
-  // target function before we stop mutators.
-  // This will reduce amount of time spent with all mutators are stopped
-  // hopefully leaving only code patching to be done then.
   old_data =
       CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(), caller_code);
 #else
-  old_code ^= CodePatcher::GetInstanceCallAt(caller_frame->pc(), caller_code,
-                                             &old_data);
+  CodePatcher::GetInstanceCallAt(caller_frame->pc(), caller_code, &old_data);
 #endif
-  SwitchableCallHandler handler(thread, receiver, arguments, caller_frame,
-                                caller_code, caller_function);
   const Function& target_function =
       Function::Handle(zone, handler.ResolveTargetFunction(old_data));
-  thread->isolate_group()->RunWithStoppedMutators(
-      [&]() {
+
+  {
+    // We ensure any transition in a patchable calls are done in an atomic
+    // manner, we ensure we always transition forward (e.g. Monomorphic ->
+    // Polymorphic).
+    //
+    // Mutators are only stopped if we actually need to patch a patchable call.
+    // We may not do that if we e.g. just add one more check to an ICData.
+    SafepointMutexLocker ml(thread->isolate_group()->patchable_call_mutex());
+
+    auto& old_code = Code::Handle(zone);
 #if defined(DART_PRECOMPILED_RUNTIME)
-        old_data = CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(),
-                                                        caller_code);
-#if defined(DEBUG)
-        old_code ^= CodePatcher::GetSwitchableCallTargetAt(caller_frame->pc(),
-                                                           caller_code);
-#endif
+    old_data =
+        CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(), caller_code);
+    DEBUG_ONLY(old_code = CodePatcher::GetSwitchableCallTargetAt(
+                   caller_frame->pc(), caller_code));
 #else
-        old_code ^= CodePatcher::GetInstanceCallAt(caller_frame->pc(),
-                                                   caller_code, &old_data);
+    old_code ^= CodePatcher::GetInstanceCallAt(caller_frame->pc(), caller_code,
+                                               &old_data);
 #endif
-        handler.HandleMiss(old_data, old_code, target_function);
-      },
-      /*use_force_growth=*/true);
+    handler.HandleMiss(old_data, old_code, target_function);
+  }
 }
 
 // Used to find the correct receiver and function to invoke or to fall back to

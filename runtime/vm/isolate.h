@@ -424,6 +424,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return &type_arguments_canonicalization_mutex_;
   }
   Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
+  Mutex* megamorphic_table_mutex() { return &megamorphic_table_mutex_; }
+  Mutex* type_feedback_mutex() { return &type_feedback_mutex_; }
+  Mutex* patchable_call_mutex() { return &patchable_call_mutex_; }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
@@ -722,6 +725,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
   Mutex subtype_test_cache_mutex_;
+  Mutex megamorphic_table_mutex_;
+  Mutex type_feedback_mutex_;
+  Mutex patchable_call_mutex_;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   Mutex unlinked_call_map_mutex_;
@@ -964,9 +970,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Mutex* constant_canonicalization_mutex() {
     return &constant_canonicalization_mutex_;
   }
-  Mutex* megamorphic_table_mutex() { return &megamorphic_table_mutex_; }
-  Mutex* type_feedback_mutex() { return &type_feedback_mutex_; }
-
   Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
   Mutex* kernel_data_class_cache_mutex() {
     return &kernel_data_class_cache_mutex_;
@@ -1601,8 +1604,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Simulator* simulator_ = nullptr;
   Mutex mutex_;                            // Protects compiler stats.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex megamorphic_table_mutex_;
-  Mutex type_feedback_mutex_;
   Mutex kernel_data_lib_cache_mutex_;
   Mutex kernel_data_class_cache_mutex_;
   Mutex kernel_constants_mutex_;
