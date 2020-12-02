@@ -968,6 +968,8 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       : super(abstractValueDomain, context, call, enclosing, selector,
             arguments, inLoop);
 
+  ir.StaticInvocation get invocationNode => _call as ir.StaticInvocation;
+
   MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
     return inferrer.types.getInferredTypeOfMember(calledElement);
   }

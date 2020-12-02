@@ -51,22 +51,22 @@ testStoredInInstance() {
   return res;
 }
 
-/*member: testStoredInMapOfList:[null|subclass=Object]*/
+/*member: testStoredInMapOfList:[null|exact=JSUInt31]*/
 testStoredInMapOfList() {
   var res;
-  /*[null|subclass=Object]*/ closure(/*[null|subclass=Object]*/ a) => res = a;
+  /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
   dynamic a = <dynamic>[closure];
   dynamic b = <dynamic, dynamic>{'foo': 1};
 
   b
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
+      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
       ['bar'] = a;
 
   b
-          /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
+          /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSUInt31]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
           ['bar']
 
-      /*Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
+      /*Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/
       [0](42);
   return res;
 }
