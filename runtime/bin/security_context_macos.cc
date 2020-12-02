@@ -106,6 +106,8 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
                                                            uint8_t* out_alert) {
   SSLFilter* filter = static_cast<SSLFilter*>(
       SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
+  SSLCertContext* context = static_cast<SSLCertContext*>(
+      SSL_get_ex_data(ssl, SSLFilter::ssl_cert_context_index));
 
   const X509TrustState* certificate_trust_state =
       filter->certificate_trust_state();
@@ -125,9 +127,90 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
     }
   }
 
-  Dart_CObject dart_cobject_ssl;
-  dart_cobject_ssl.type = Dart_CObject_kInt64;
-  dart_cobject_ssl.value.as_int64 = reinterpret_cast<intptr_t>(ssl);
+  STACK_OF(X509)* unverified = sk_X509_dup(SSL_get_peer_full_cert_chain(ssl));
+
+  // Convert BoringSSL formatted certificates to SecCertificate certificates.
+  ScopedCFMutableArrayRef cert_chain(NULL);
+  X509* root_cert = NULL;
+  int num_certs = sk_X509_num(unverified);
+  int current_cert = 0;
+  cert_chain.set(CFArrayCreateMutable(NULL, num_certs, NULL));
+  X509* ca;
+  while ((ca = sk_X509_shift(unverified)) != NULL) {
+    ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
+    if (cert == NULL) {
+      return ssl_verify_invalid;
+    }
+    CFArrayAppendValue(cert_chain.get(), cert.release());
+    ++current_cert;
+
+    if (current_cert == num_certs) {
+      root_cert = ca;
+    }
+  }
+
+  SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
+  X509_STORE* store = SSL_CTX_get_cert_store(ssl_ctx);
+  // Convert all trusted certificates provided by the user via
+  // setTrustedCertificatesBytes or the command line into SecCertificates.
+  ScopedCFMutableArrayRef trusted_certs(CFArrayCreateMutable(NULL, 0, NULL));
+  ASSERT(store != NULL);
+
+  if (store->objs != NULL) {
+    for (uintptr_t i = 0; i < sk_X509_OBJECT_num(store->objs); ++i) {
+      X509* ca = sk_X509_OBJECT_value(store->objs, i)->data.x509;
+      ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
+      if (cert == NULL) {
+        return ssl_verify_invalid;
+      }
+      CFArrayAppendValue(trusted_certs.get(), cert.release());
+    }
+  }
+
+  // Generate a policy for validating chains for SSL.
+  CFStringRef cfhostname = NULL;
+  if (filter->hostname() != NULL) {
+    cfhostname = CFStringCreateWithCString(NULL, filter->hostname(),
+                                           kCFStringEncodingUTF8);
+  }
+  ScopedCFStringRef hostname(cfhostname);
+  ScopedSecPolicyRef policy(
+      SecPolicyCreateSSL(filter->is_client(), hostname.get()));
+
+  // Create the trust object with the certificates provided by the user.
+  ScopedSecTrustRef trust(NULL);
+  OSStatus status = SecTrustCreateWithCertificates(cert_chain.get(),
+                                                   policy.get(), trust.ptr());
+  if (status != noErr) {
+    return ssl_verify_invalid;
+  }
+
+  // If the user provided any additional CA certificates, add them to the trust
+  // object.
+  if (CFArrayGetCount(trusted_certs.get()) > 0) {
+    status = SecTrustSetAnchorCertificates(trust.get(), trusted_certs.get());
+    if (status != noErr) {
+      return ssl_verify_invalid;
+    }
+  }
+
+  // Specify whether or not to use the built-in CA certificates for
+  // verification.
+  status =
+      SecTrustSetAnchorCertificatesOnly(trust.get(), !context->trust_builtin());
+  if (status != noErr) {
+    return ssl_verify_invalid;
+  }
+
+  // Handler should release trust and root_cert.
+  Dart_CObject dart_cobject_trust;
+  dart_cobject_trust.type = Dart_CObject_kInt64;
+  dart_cobject_trust.value.as_int64 =
+      reinterpret_cast<intptr_t>(CFRetain(trust.get()));
+
+  Dart_CObject dart_cobject_root_cert;
+  dart_cobject_root_cert.type = Dart_CObject_kInt64;
+  dart_cobject_root_cert.value.as_int64 = reinterpret_cast<intptr_t>(root_cert);
 
   Dart_CObject reply_send_port;
   reply_send_port.type = Dart_CObject_kSendPort;
@@ -135,8 +218,9 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
 
   Dart_CObject array;
   array.type = Dart_CObject_kArray;
-  array.value.as_array.length = 2;
-  Dart_CObject* values[] = {&dart_cobject_ssl, &reply_send_port};
+  array.value.as_array.length = 3;
+  Dart_CObject* values[] = {&dart_cobject_trust, &dart_cobject_root_cert,
+                            &reply_send_port};
   array.value.as_array.values = values;
 
   Dart_PostCObject(filter->trust_evaluate_reply_port(), &array);
@@ -166,104 +250,28 @@ static void postReply(Dart_Port reply_port_id,
 
 static void TrustEvaluateHandler(Dart_Port dest_port_id,
                                  Dart_CObject* message) {
-  CObjectArray request(message);
-  ASSERT(request.Length() == 2);
-
-  CObjectIntptr ssl_cobject(request[0]);
-  SSL* ssl = reinterpret_cast<SSL*>(ssl_cobject.Value());
-  SSLFilter* filter = static_cast<SSLFilter*>(
-      SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
-  SSLCertContext* context = static_cast<SSLCertContext*>(
-      SSL_get_ex_data(ssl, SSLFilter::ssl_cert_context_index));
-  CObjectSendPort reply_port(request[1]);
-  Dart_Port reply_port_id = reply_port.Value();
-
-  STACK_OF(X509)* unverified = sk_X509_dup(SSL_get_peer_full_cert_chain(ssl));
-
-  // Convert BoringSSL formatted certificates to SecCertificate certificates.
-  ScopedCFMutableArrayRef cert_chain(NULL);
-  X509* root_cert = NULL;
-  int num_certs = sk_X509_num(unverified);
-  int current_cert = 0;
-  cert_chain.set(CFArrayCreateMutable(NULL, num_certs, NULL));
-  X509* ca;
-  while ((ca = sk_X509_shift(unverified)) != NULL) {
-    ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
-    if (cert == NULL) {
-      postReply(reply_port_id, /*success=*/false);
-      return;
-    }
-    CFArrayAppendValue(cert_chain.get(), cert.release());
-    ++current_cert;
-
-    if (current_cert == num_certs) {
-      root_cert = ca;
-    }
-  }
-
-  SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
-  X509_STORE* store = SSL_CTX_get_cert_store(ssl_ctx);
-  // Convert all trusted certificates provided by the user via
-  // setTrustedCertificatesBytes or the command line into SecCertificates.
-  ScopedCFMutableArrayRef trusted_certs(CFArrayCreateMutable(NULL, 0, NULL));
-  ASSERT(store != NULL);
-
-  if (store->objs != NULL) {
-    for (uintptr_t i = 0; i < sk_X509_OBJECT_num(store->objs); ++i) {
-      X509* ca = sk_X509_OBJECT_value(store->objs, i)->data.x509;
-      ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
-      if (cert == NULL) {
-        postReply(reply_port_id, /*success=*/false);
-        return;
-      }
-      CFArrayAppendValue(trusted_certs.get(), cert.release());
-    }
-  }
-
-  // Generate a policy for validating chains for SSL.
-  CFStringRef cfhostname = NULL;
-  if (filter->hostname() != NULL) {
-    cfhostname = CFStringCreateWithCString(NULL, filter->hostname(),
-                                           kCFStringEncodingUTF8);
-  }
-  ScopedCFStringRef hostname(cfhostname);
-  ScopedSecPolicyRef policy(
-      SecPolicyCreateSSL(filter->is_client(), hostname.get()));
-
-  // Create the trust object with the certificates provided by the user.
-  ScopedSecTrustRef trust(NULL);
-  OSStatus status = SecTrustCreateWithCertificates(cert_chain.get(),
-                                                   policy.get(), trust.ptr());
-  if (status != noErr) {
-    postReply(reply_port_id, /*success=*/false);
-    return;
-  }
-
-  // If the user provided any additional CA certificates, add them to the trust
-  // object.
-  if (CFArrayGetCount(trusted_certs.get()) > 0) {
-    status = SecTrustSetAnchorCertificates(trust.get(), trusted_certs.get());
-    if (status != noErr) {
-      postReply(reply_port_id, /*success=*/false);
-      return;
-    }
-  }
-
-  // Specify whether or not to use the built-in CA certificates for
-  // verification.
-  status =
-      SecTrustSetAnchorCertificatesOnly(trust.get(), !context->trust_builtin());
-  if (status != noErr) {
-    postReply(reply_port_id, /*success=*/false);
-    return;
-  }
-
-  SecTrustResultType trust_result;
-
   // This is used for testing to confirm that trust evaluation doesn't block
   // dart isolate.
+  // First sleep exposes problem where ssl data structures are released/freed
+  // by main isolate before this handler had a chance to access them.
+  // Second sleep(below) is there to maintain same long delay of certificate
+  // verification.
   if (SSLCertContext::long_ssl_cert_evaluation()) {
-    usleep(1000 * 1000 /*1 s*/);
+    usleep(2000 * 1000 /* 2 s*/);
+  }
+
+  CObjectArray request(message);
+  ASSERT(request.Length() == 3);
+  CObjectIntptr trust_cobject(request[0]);
+  ScopedSecTrustRef trust(reinterpret_cast<SecTrustRef>(trust_cobject.Value()));
+  CObjectIntptr root_cert_cobject(request[1]);
+  X509* root_cert = reinterpret_cast<X509*>(root_cert_cobject.Value());
+  CObjectSendPort reply_port(request[2]);
+  Dart_Port reply_port_id = reply_port.Value();
+
+  SecTrustResultType trust_result;
+  if (SSLCertContext::long_ssl_cert_evaluation()) {
+    usleep(3000 * 1000 /* 3 s*/);
   }
 
   // Perform the certificate verification.
@@ -277,11 +285,11 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
   // from calling SecTrustEvaluate.
   bool res = SecTrustEvaluateWithError(trust.get(), NULL);
   USE(res);
-  status = SecTrustGetTrustResult(trust.get(), &trust_result);
+  OSStatus status = SecTrustGetTrustResult(trust.get(), &trust_result);
 #else
 
   // SecTrustEvaluate is deprecated as of OSX 10.15 and iOS 13.
-  status = SecTrustEvaluate(trust.get(), &trust_result);
+  OSStatus status = SecTrustEvaluate(trust.get(), &trust_result);
 #endif
 
   postReply(reply_port_id,
