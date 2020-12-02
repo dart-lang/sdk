@@ -72,6 +72,20 @@ void main() {
 
     document.querySelector('.popup-pane .close').onClick.listen(
         (_) => document.querySelector('.popup-pane').style.display = 'none');
+
+    migrateUnitStatusIcon.onClick.listen((MouseEvent event) {
+      var unitPath = unitName.innerText;
+      var unitNavItem = document
+          .querySelector('.nav-panel [data-name*="$unitPath"]')
+          .parentNode as Element;
+      var statusIcon = unitNavItem.querySelector('.status-icon');
+      var entity = navigationTree.find(unitPath);
+      if (entity is NavigationTreeFileNode) {
+        toggleFileMigrationStatus(entity);
+        updateIconsForNode(statusIcon, entity);
+        updateParentIcons(unitNavItem, entity);
+      }
+    });
   });
 
   window.addEventListener('popstate', (event) {
@@ -109,9 +123,17 @@ final Element headerPanel = document.querySelector('header');
 
 final Element unitName = document.querySelector('#unit-name');
 
+final Element migrateUnitStatusIconLabel =
+    document.querySelector('#migrate-unit-status-icon-label');
+
+final Element migrateUnitStatusIcon =
+    document.querySelector('#migrate-unit-status-icon');
+
 String get rootPath => querySelector('.root').text.trim();
 
 String get sdkVersion => document.getElementById('sdk-version').text;
+
+/*late final*/ List<NavigationTreeNode> navigationTree;
 
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -430,7 +452,8 @@ void loadNavigationTree() async {
     final response = await doGet<List<Object>>(path);
     var navTree = document.querySelector('.nav-tree');
     navTree.innerHtml = '';
-    writeNavigationSubtree(navTree, NavigationTreeNode.listFromJson(response),
+    navigationTree = NavigationTreeNode.listFromJson(response);
+    writeNavigationSubtree(navTree, navigationTree,
         enablePartialMigration: false);
   } catch (e, st) {
     handleError('Could not load navigation tree', e, st);
@@ -707,6 +730,19 @@ void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
   }
 }
 
+/// Updates the navigation [icon] and current file icon according to the current
+/// migration status of [entity].
+void updateIconsForNode(Element icon, NavigationTreeNode entity) {
+  updateIconForStatus(icon, entity.migrationStatus);
+  // Update the status at the top of the file view if [entity] represents the
+  // current file.
+  var unitPath = unitName.innerText;
+  if (entity.path == unitPath) {
+    updateIconForStatus(migrateUnitStatusIcon, entity.migrationStatus);
+  }
+}
+
+/// Updates [icon] according to [status].
 void updateIconForStatus(Element icon, UnitMigrationStatus status) {
   switch (status) {
     case UnitMigrationStatus.alreadyMigrated:
@@ -753,6 +789,7 @@ void updatePage(String path, [int offset]) {
       link.classes.remove('selected-file');
     }
   });
+  migrateUnitStatusIconLabel.classes.add('visible');
 }
 
 /// Updates the parent icons of [entity] with list item [element] in the
@@ -762,7 +799,7 @@ void updateParentIcons(Element element, NavigationTreeNode entity) {
   if (parent != null) {
     var parentElement = (element.parentNode as Element).parentNode as Element;
     var statusIcon = parentElement.querySelector(':scope > .status-icon');
-    updateIconForStatus(statusIcon, parent.migrationStatus);
+    updateIconsForNode(statusIcon, parent);
     updateParentIcons(parentElement, parent);
   }
 }
@@ -774,11 +811,11 @@ void updateSubtreeIcons(Element element, NavigationTreeDirectoryNode entity) {
     if (child is NavigationTreeDirectoryNode) {
       updateSubtreeIcons(childNode, child);
       var childIcon = childNode.querySelector(':scope > .status-icon');
-      updateIconForStatus(childIcon, entity.migrationStatus);
+      updateIconsForNode(childIcon, entity);
     } else {
       var childIcon = (childNode.parentNode as Element)
           .querySelector(':scope > .status-icon');
-      updateIconForStatus(childIcon, child.migrationStatus);
+      updateIconsForNode(childIcon, child);
     }
   }
 }
@@ -824,11 +861,11 @@ void writeNavigationSubtree(
       if (enablePartialMigration) {
         var statusIcon = createIcon('indeterminate_check_box')
           ..classes.add('status-icon');
-        updateIconForStatus(statusIcon, entity.migrationStatus);
+        updateIconsForNode(statusIcon, entity);
         statusIcon.onClick.listen((MouseEvent event) {
           toggleDirectoryMigrationStatus(entity);
           updateSubtreeIcons(li, entity);
-          updateIconForStatus(statusIcon, entity.migrationStatus);
+          updateIconsForNode(statusIcon, entity);
           updateParentIcons(li, entity);
         });
         li.insertBefore(statusIcon, folderIcon);
@@ -837,10 +874,10 @@ void writeNavigationSubtree(
     } else if (entity is NavigationTreeFileNode) {
       if (enablePartialMigration) {
         var statusIcon = createIcon()..classes.add('status-icon');
-        updateIconForStatus(statusIcon, entity.migrationStatus);
+        updateIconsForNode(statusIcon, entity);
         statusIcon.onClick.listen((MouseEvent event) {
           toggleFileMigrationStatus(entity);
-          updateIconForStatus(statusIcon, entity.migrationStatus);
+          updateIconsForNode(statusIcon, entity);
           updateParentIcons(li, entity);
         });
         li.append(statusIcon);
@@ -989,5 +1026,21 @@ extension on Element {
       appendHtml('&#8203;.');
       append(Text(substring));
     }
+  }
+}
+
+extension on List<NavigationTreeNode> {
+  /// Finds the node with path equal to [path], recursively, or `null`.
+  NavigationTreeNode find(String path) {
+    for (var node in this) {
+      if (node is NavigationTreeDirectoryNode) {
+        var foundInSubtree = node.subtree.find(path);
+        if (foundInSubtree != null) return foundInSubtree;
+      } else {
+        assert(node is NavigationTreeFileNode);
+        if (node.path == path) return node;
+      }
+    }
+    return null;
   }
 }
