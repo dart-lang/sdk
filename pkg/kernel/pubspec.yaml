@@ -8,7 +8,8 @@ publish_to: none
 environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
-  meta: ^1.0.0
+  meta:
+    path: ../meta
 dev_dependencies:
   args: '>=0.13.4 <2.0.0'
   expect:

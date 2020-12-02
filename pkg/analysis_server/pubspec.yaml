@@ -8,8 +8,10 @@ environment:
 dependencies:
   _fe_analyzer_shared:
     path: ../_fe_analyzer_shared
-  analyzer: any
-  analyzer_plugin: any
+  analyzer:
+    path: ../analyzer
+  analyzer_plugin:
+    path: ../analyzer_plugin
   args: any
   cli_util: any
   collection: any
@@ -19,7 +21,8 @@ dependencies:
   html: any
   intl: any
   linter: any
-  meta: any
+  meta:
+    path: ../meta
   stream_channel: any
   telemetry:
     path: ../telemetry
@@ -29,7 +32,8 @@ dependencies:
   yaml: any
 
 dev_dependencies:
-  analyzer_utilities: any
+  analyzer_utilities:
+    path: ../analyzer_utilities
   http: any
   logging: any
   matcher: any

@@ -9,11 +9,8 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  front_end: any
+  front_end:
+    path: ../front_end
 
 dev_dependencies:
   test: any
-
-dependency_overrides:
-  front_end:
-    path: ../front_end

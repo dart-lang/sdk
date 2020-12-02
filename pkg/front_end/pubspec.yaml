@@ -9,12 +9,16 @@ environment:
   sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
-  _fe_analyzer_shared: any
-  kernel: any
-  package_config: any
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
+  kernel:
+    path: ../kernel
+  package_config:
+    path: ../../third_party/pkg_tested/package_config
 
 dev_dependencies:
-  analyzer: any
+  analyzer:
+    path: ../analyzer
   args: '>=0.13.0 <2.0.0'
   async_helper:
     path: ../async_helper
@@ -39,13 +43,3 @@ dev_dependencies:
     path: ../vm_service
   web_socket_channel: ^1.0.4
   yaml: any
-
-dependency_overrides:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared/
-  analyzer:
-    path: ../analyzer
-  kernel:
-    path: ../kernel/
-  package_config:
-    path: ../../third_party/pkg_tested/package_config/
