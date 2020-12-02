@@ -2674,68 +2674,6 @@ main() {
       });
     });
 
-    group('joinUnassigned', () {
-      group('other', () {
-        test('unchanged', () {
-          var h = Harness();
-
-          var a = Var('a', 'int');
-          var b = Var('b', 'int');
-
-          var s1 = FlowModel<Var, Type>(Reachability.initial)
-              .declare(a, false)
-              .declare(b, false)
-              .write(a, Type('int'), h);
-          expect(s1.variableInfo, {
-            a: _matchVariableModel(assigned: true, unassigned: false),
-            b: _matchVariableModel(assigned: false, unassigned: true),
-          });
-
-          var s2 = s1.write(a, Type('int'), h);
-          expect(s2.variableInfo, {
-            a: _matchVariableModel(assigned: true, unassigned: false),
-            b: _matchVariableModel(assigned: false, unassigned: true),
-          });
-
-          var s3 = s1.joinUnassigned(s2);
-          expect(s3, same(s1));
-        });
-
-        test('changed', () {
-          var h = Harness();
-
-          var a = Var('a', 'int');
-          var b = Var('b', 'int');
-          var c = Var('c', 'int');
-
-          var s1 = FlowModel<Var, Type>(Reachability.initial)
-              .declare(a, false)
-              .declare(b, false)
-              .declare(c, false)
-              .write(a, Type('int'), h);
-          expect(s1.variableInfo, {
-            a: _matchVariableModel(assigned: true, unassigned: false),
-            b: _matchVariableModel(assigned: false, unassigned: true),
-            c: _matchVariableModel(assigned: false, unassigned: true),
-          });
-
-          var s2 = s1.write(b, Type('int'), h);
-          expect(s2.variableInfo, {
-            a: _matchVariableModel(assigned: true, unassigned: false),
-            b: _matchVariableModel(assigned: true, unassigned: false),
-            c: _matchVariableModel(assigned: false, unassigned: true),
-          });
-
-          var s3 = s1.joinUnassigned(s2);
-          expect(s3.variableInfo, {
-            a: _matchVariableModel(assigned: true, unassigned: false),
-            b: _matchVariableModel(assigned: false, unassigned: false),
-            c: _matchVariableModel(assigned: false, unassigned: true),
-          });
-        });
-      });
-    });
-
     group('conservativeJoin', () {
       test('unchanged', () {
         var h = Harness();
