@@ -4678,6 +4678,54 @@ f() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_loop_var_is_field() async {
+    var content = '''
+class C {
+  int x;
+  C(this.x);
+  f(List<int/*?*/> y) {
+    for (x in y) {}
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? x;
+  C(this.x);
+  f(List<int?> y) {
+    for (x in y) {}
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_loop_var_is_inherited_field_with_substitution() async {
+    var content = '''
+class B<T> {
+  T x;
+  B(this.x);
+}
+abstract class C implements B<int> {
+  f(List<int/*?*/> y) {
+    for (x in y) {}
+  }
+}
+''';
+    var expected = '''
+class B<T> {
+  T x;
+  B(this.x);
+}
+abstract class C implements B<int?> {
+  f(List<int?> y) {
+    for (x in y) {}
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_make_downcast_explicit() async {
     var content = 'int f(num n) => n;';
     var expected = 'int f(num n) => n as int;';

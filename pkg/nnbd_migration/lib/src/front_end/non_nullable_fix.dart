@@ -510,7 +510,7 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   void reportException(
       Source source, AstNode node, Object exception, StackTrace stackTrace) {
     listener.client.onException('''
-$exception
+$exception at offset ${node.offset} in $source ($node)
 
 $stackTrace''');
   }
