@@ -25,6 +25,11 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
   constructors, a name which can be associated with the port and displayed in
   tooling.
 
+#### `dart:collection`
+
+* `LinkedList` made it explicit that elements are compared by identity,
+  and updated `contains` to take advantage of this.
+
 ### Dart VM
 
 *   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s will no longer
