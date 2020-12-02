@@ -105,7 +105,7 @@ abstract class Benchmark {
 class DartStartup extends Benchmark {
   DartStartup()
       : super(
-          'dart-startup',
+          'script-startup',
           'Benchmark the startup time of a minimal Dart script (μs).',
         );
 
@@ -141,7 +141,7 @@ class DartStartup extends Benchmark {
 class DartRunStartup extends Benchmark {
   DartRunStartup()
       : super(
-          'dart-run-startup',
+          'run-script-startup',
           'Benchmark the startup time of a minimal Dart script, executed with '
               '\`dart run\` (μs).',
         );
