@@ -427,6 +427,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* megamorphic_table_mutex() { return &megamorphic_table_mutex_; }
   Mutex* type_feedback_mutex() { return &type_feedback_mutex_; }
   Mutex* patchable_call_mutex() { return &patchable_call_mutex_; }
+  Mutex* constant_canonicalization_mutex() {
+    return &constant_canonicalization_mutex_;
+  }
+  Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
+  Mutex* kernel_data_class_cache_mutex() {
+    return &kernel_data_class_cache_mutex_;
+  }
+  Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
@@ -728,6 +736,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex megamorphic_table_mutex_;
   Mutex type_feedback_mutex_;
   Mutex patchable_call_mutex_;
+  Mutex constant_canonicalization_mutex_;
+  Mutex kernel_data_lib_cache_mutex_;
+  Mutex kernel_data_class_cache_mutex_;
+  Mutex kernel_constants_mutex_;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   Mutex unlinked_call_map_mutex_;
@@ -967,17 +979,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   Mutex* mutex() { return &mutex_; }
-  Mutex* constant_canonicalization_mutex() {
-    return &constant_canonicalization_mutex_;
-  }
-  Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
-  Mutex* kernel_data_class_cache_mutex() {
-    return &kernel_data_class_cache_mutex_;
-  }
-
-  // Any access to constants arrays must be locked since mutator and
-  // background compiler can access the arrays at the same time.
-  Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
@@ -1603,10 +1604,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;                            // Protects compiler stats.
-  Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex kernel_data_lib_cache_mutex_;
-  Mutex kernel_data_class_cache_mutex_;
-  Mutex kernel_constants_mutex_;
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;

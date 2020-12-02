@@ -13626,8 +13626,8 @@ LibraryPtr KernelProgramInfo::LookupLibrary(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_lib_cache_mutex());
     data = libraries_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -13649,8 +13649,8 @@ LibraryPtr KernelProgramInfo::InsertLibrary(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_lib_cache_mutex());
     data = libraries_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -13675,8 +13675,8 @@ ClassPtr KernelProgramInfo::LookupClass(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_class_cache_mutex());
     data = classes_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -13698,8 +13698,8 @@ ClassPtr KernelProgramInfo::InsertClass(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_class_cache_mutex());
     data = classes_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -18300,7 +18300,8 @@ InstancePtr Instance::CopyShallowToOldSpace(Thread* thread) const {
 }
 
 InstancePtr Instance::Canonicalize(Thread* thread) const {
-  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   return CanonicalizeLocked(thread);
 }
 
@@ -18332,10 +18333,10 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
 #if defined(DEBUG)
 bool Instance::CheckIsCanonical(Thread* thread) const {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   result ^= cls.LookupCanonicalInstance(zone, *this);
   return (result.raw() == this->raw());
 }
@@ -21462,7 +21463,8 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
 
 MintPtr Mint::NewCanonical(int64_t value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   return NewCanonicalLocked(thread, value);
 }
 
@@ -21589,7 +21591,8 @@ DoublePtr Double::New(const String& str, Heap::Space space) {
 
 DoublePtr Double::NewCanonical(double value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   return NewCanonicalLocked(thread, value);
 }
 

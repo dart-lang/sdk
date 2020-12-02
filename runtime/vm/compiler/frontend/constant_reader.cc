@@ -81,7 +81,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   // must be locked since mutator and background compiler can
   // access the array at the same time.
   {
-    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    SafepointMutexLocker ml(
+        H.thread()->isolate_group()->kernel_constants_mutex());
     KernelConstantsMap constant_map(H.info().constants());
     result_ ^= constant_map.GetOrNull(constant_offset);
     ASSERT(constant_map.Release().raw() == H.info().constants());
@@ -90,7 +91,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   // On miss, evaluate, and insert value.
   if (result_.IsNull()) {
     result_ = ReadConstantInternal(constant_offset);
-    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    SafepointMutexLocker ml(
+        H.thread()->isolate_group()->kernel_constants_mutex());
     KernelConstantsMap constant_map(H.info().constants());
     auto insert = constant_map.InsertNewOrGetValue(constant_offset, result_);
     ASSERT(insert == result_.raw());

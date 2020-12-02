@@ -1896,7 +1896,6 @@ void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data,
     arguments_.SetArgAt(0, target_code);
     arguments_.SetReturn(expected_cid);
   } else {
-    // IC entry might have been added while we waited to get into runtime.
     ic_data.EnsureHasReceiverCheck(receiver_.GetClassId(), target_function);
     if (number_of_checks > FLAG_max_polymorphic_checks) {
       // Switch to megamorphic call.
