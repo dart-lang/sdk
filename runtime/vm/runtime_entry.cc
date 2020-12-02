@@ -1941,7 +1941,7 @@ void SwitchableCallHandler::DoMegamorphicMiss(const MegamorphicCache& data,
 
   // Insert function found into cache.
   const Smi& class_id = Smi::Handle(zone_, Smi::New(cls.id()));
-  data.Insert(class_id, target_function);
+  data.EnsureContains(class_id, target_function);
   arguments_.SetArgAt(0, StubCode::MegamorphicCall());
   arguments_.SetReturn(data);
 }

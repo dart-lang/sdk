@@ -6850,15 +6850,14 @@ class MegamorphicCache : public CallSiteData {
   static MegamorphicCachePtr New(const String& target_name,
                                  const Array& arguments_descriptor);
 
-  void Insert(const Smi& class_id, const Object& target) const;
+  void EnsureContains(const Smi& class_id, const Object& target) const;
+  ObjectPtr Lookup(const Smi& class_id) const;
 
   void SwitchToBareInstructions();
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(MegamorphicCacheLayout));
   }
-
-  static MegamorphicCachePtr Clone(const MegamorphicCache& from);
 
  private:
   friend class Class;
@@ -6867,9 +6866,12 @@ class MegamorphicCache : public CallSiteData {
 
   static MegamorphicCachePtr New();
 
-  // The caller must hold Isolate::megamorphic_mutex().
-  void EnsureCapacityLocked() const;
+  // The caller must hold IsolateGroup::type_feedback_mutex().
   void InsertLocked(const Smi& class_id, const Object& target) const;
+  void EnsureCapacityLocked() const;
+  ObjectPtr LookupLocked(const Smi& class_id) const;
+
+  void InsertEntryLocked(const Smi& class_id, const Object& target) const;
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,

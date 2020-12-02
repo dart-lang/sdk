@@ -3226,6 +3226,57 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(Bool::True().raw(), test_result.raw());
 }
 
+ISOLATE_UNIT_TEST_CASE(MegamorphicCache) {
+  const auto& name = String::Handle(String::New("name"));
+  const auto& args_descriptor =
+      Array::Handle(ArgumentsDescriptor::NewBoxed(1, 1, Object::null_array()));
+
+  const auto& cidA = Smi::Handle(Smi::New(1));
+  const auto& cidB = Smi::Handle(Smi::New(2));
+
+  const auto& valueA = Smi::Handle(Smi::New(42));
+  const auto& valueB = Smi::Handle(Smi::New(43));
+
+  // Test normal insert/lookup methods.
+  {
+    const auto& cache =
+        MegamorphicCache::Handle(MegamorphicCache::New(name, args_descriptor));
+
+    EXPECT(cache.Lookup(cidA) == Object::null());
+    cache.EnsureContains(cidA, valueA);
+    EXPECT(cache.Lookup(cidA) == valueA.raw());
+
+    EXPECT(cache.Lookup(cidB) == Object::null());
+    cache.EnsureContains(cidB, valueB);
+    EXPECT(cache.Lookup(cidB) == valueB.raw());
+  }
+
+  // Try to insert many keys to hit collisions & growth.
+  {
+    const auto& cache =
+        MegamorphicCache::Handle(MegamorphicCache::New(name, args_descriptor));
+
+    auto& cid = Smi::Handle();
+    auto& value = Object::Handle();
+    for (intptr_t i = 0; i < 100; ++i) {
+      cid = Smi::New(100 * i);
+      if (cid.Value() == kIllegalCid) continue;
+
+      value = Smi::New(i);
+      cache.EnsureContains(cid, value);
+    }
+    auto& expected = Object::Handle();
+    for (intptr_t i = 0; i < 100; ++i) {
+      cid = Smi::New(100 * i);
+      if (cid.Value() == kIllegalCid) continue;
+
+      expected = Smi::New(i);
+      value = cache.Lookup(cid);
+      EXPECT(Smi::Cast(value).Equals(Smi::Cast(expected)));
+    }
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(FieldTests) {
   const String& f = String::Handle(String::New("oneField"));
   const String& getter_f = String::Handle(Field::GetterName(f));

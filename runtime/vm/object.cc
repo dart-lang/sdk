@@ -17172,14 +17172,78 @@ MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
   return result.raw();
 }
 
-void MegamorphicCache::Insert(const Smi& class_id, const Object& target) const {
-  SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
-  EnsureCapacityLocked();
-  InsertLocked(class_id, target);
+void MegamorphicCache::EnsureContains(const Smi& class_id,
+                                      const Object& target) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+
+  if (LookupLocked(class_id) == Object::null()) {
+    InsertLocked(class_id, target);
+  }
+
+#if defined(DEBUG)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (target.IsFunction()) {
+      const auto& function = Function::Cast(target);
+      const auto& entry_point = Smi::Handle(
+          Smi::FromAlignedAddress(Code::EntryPointOf(function.CurrentCode())));
+      ASSERT(LookupLocked(class_id) == entry_point.raw());
+    }
+  } else {
+    ASSERT(LookupLocked(class_id) == target.raw());
+  }
+#endif  // define(DEBUG)
+}
+
+ObjectPtr MegamorphicCache::Lookup(const Smi& class_id) const {
+  SafepointMutexLocker ml(Isolate::Current()->type_feedback_mutex());
+  return LookupLocked(class_id);
+}
+
+ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
+  const auto& backing_array = Array::Handle(zone, buckets());
+  intptr_t id_mask = mask();
+  intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
+  intptr_t i = index;
+  do {
+    const classid_t current_cid =
+        Smi::Value(Smi::RawCast(GetClassId(backing_array, i)));
+    if (current_cid == class_id.Value()) {
+      return GetTargetFunction(backing_array, i);
+    } else if (current_cid == kIllegalCid) {
+      return Object::null();
+    }
+    i = (i + 1) & id_mask;
+  } while (i != index);
+  UNREACHABLE();
+}
+
+void MegamorphicCache::InsertLocked(const Smi& class_id,
+                                    const Object& target) const {
+  auto isolate_group = IsolateGroup::Current();
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
+  // As opposed to ICData we are stopping mutator threads from other isolates
+  // while modifying the megamorphic cache, since updates are not atomic.
+  //
+  // NOTE: In the future we might change the megamorphic cache insertions to
+  // carefully use store-release barriers on the writer as well as
+  // load-acquire barriers on the reader, ...
+  isolate_group->RunWithStoppedMutators(
+      [&]() {
+        EnsureCapacityLocked();
+        InsertEntryLocked(class_id, target);
+      },
+      /*use_force_growth=*/true);
 }
 
 void MegamorphicCache::EnsureCapacityLocked() const {
-  ASSERT(Isolate::Current()->megamorphic_mutex()->IsOwnedByCurrentThread());
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
   intptr_t old_capacity = mask() + 1;
   double load_limit = kLoadFactor * static_cast<double>(old_capacity);
   if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
@@ -17202,15 +17266,16 @@ void MegamorphicCache::EnsureCapacityLocked() const {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
         target = GetTargetFunction(old_buckets, i);
-        InsertLocked(class_id, target);
+        InsertEntryLocked(class_id, target);
       }
     }
   }
 }
 
-void MegamorphicCache::InsertLocked(const Smi& class_id,
-                                    const Object& target) const {
-  ASSERT(Isolate::Current()->megamorphic_mutex()->IsOwnedByCurrentThread());
+void MegamorphicCache::InsertEntryLocked(const Smi& class_id,
+                                         const Object& target) const {
+  ASSERT(Isolate::Current()->type_feedback_mutex()->IsOwnedByCurrentThread());
+
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=
          (kLoadFactor * static_cast<double>(mask() + 1)));

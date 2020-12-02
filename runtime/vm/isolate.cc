@@ -1648,7 +1648,8 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
       constant_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
-      megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
+      megamorphic_table_mutex_(
+          NOT_IN_PRODUCT("Isolate::megamorphic_table_mutex_")),
       type_feedback_mutex_(NOT_IN_PRODUCT("Isolate::type_feedback_mutex_")),
       kernel_data_lib_cache_mutex_(
           NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
