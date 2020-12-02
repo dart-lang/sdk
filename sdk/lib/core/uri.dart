@@ -609,7 +609,8 @@ abstract class Uri {
 
   /// Returns a hash code computed as `toString().hashCode`.
   ///
-  /// This guarantees that URIs with the same normalized
+  /// This guarantees that URIs with the same normalized string representation
+  /// have the same hash code.
   int get hashCode;
 
   /// A URI is equal to another URI with the same normalized representation.
