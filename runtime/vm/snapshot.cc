@@ -1323,10 +1323,10 @@ void SnapshotWriter::WriteClassId(ClassLayout* cls) {
   ASSERT(!IsSingletonClassId(class_id) && !IsBootstrapedClassId(class_id));
 
   // Write out the library url and class name.
-  LibraryPtr library = cls->library_;
+  LibraryPtr library = cls->library();
   ASSERT(library != Library::null());
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->name_, kAsInlinedObject);
+  WriteObjectImpl(cls->name(), kAsInlinedObject);
 }
 
 void SnapshotWriter::WriteStaticImplicitClosure(
@@ -1346,11 +1346,11 @@ void SnapshotWriter::WriteStaticImplicitClosure(
   // Write out the library url, class name and signature function name.
   ClassPtr cls = GetFunctionOwner(func);
   ASSERT(cls != Class::null());
-  LibraryPtr library = cls->ptr()->library_;
+  LibraryPtr library = cls->ptr()->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
-  WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
+  WriteObjectImpl(library->ptr()->url(), kAsInlinedObject);
+  WriteObjectImpl(cls->ptr()->name(), kAsInlinedObject);
+  WriteObjectImpl(func->ptr()->name(), kAsInlinedObject);
   WriteObjectImpl(delayed_type_arguments, kAsInlinedObject);
 }
 
@@ -1398,7 +1398,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
   // Extract the function object to check if this closure
   // can be sent in an isolate message.
-  FunctionPtr func = closure->ptr()->function_;
+  FunctionPtr func = closure->ptr()->function();
   // We only allow closure of top level methods or static functions in a
   // class to be sent in isolate messages.
   if (can_send_any_object() &&
@@ -1422,7 +1422,7 @@ FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
 }
 
 ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
-  ObjectPtr owner = func->ptr()->owner_;
+  ObjectPtr owner = func->ptr()->owner();
   uword tags = GetObjectTags(owner);
   intptr_t class_id = ObjectLayout::ClassIdTag::decode(tags);
   if (class_id == kClassCid) {

@@ -229,9 +229,9 @@ class BaseTextBuffer;
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
-  const object##Layout* raw_ptr() const {                                      \
+  object##Layout* raw_ptr() const {                                            \
     ASSERT(raw() != null());                                                   \
-    return raw()->ptr();                                                       \
+    return const_cast<object##Layout*>(raw()->ptr());                          \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
   friend class StackFrame;                                                     \
@@ -253,9 +253,9 @@ class BaseTextBuffer;
   object() : super() {}                                                        \
   BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
   OBJECT_SERVICE_SUPPORT(object)                                               \
-  const object##Layout* raw_ptr() const {                                      \
+  object##Layout* raw_ptr() const {                                            \
     ASSERT(raw() != null());                                                   \
-    return raw()->ptr();                                                       \
+    return const_cast<object##Layout*>(raw()->ptr());                          \
   }                                                                            \
   static intptr_t NextFieldOffset() { return -kWordSize; }                     \
   SNAPSHOT_READER_SUPPORT(rettype)                                             \
@@ -1041,7 +1041,7 @@ class Class : public Object {
 
   virtual StringPtr DictionaryName() const { return Name(); }
 
-  ScriptPtr script() const { return raw_ptr()->script_; }
+  ScriptPtr script() const { return raw_ptr()->script(); }
   void set_script(const Script& value) const;
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
@@ -1053,7 +1053,7 @@ class Class : public Object {
 
   // This class represents a typedef if the signature function is not null.
   FunctionPtr signature_function() const {
-    return raw_ptr()->signature_function_;
+    return raw_ptr()->signature_function();
   }
   void set_signature_function(const Function& value) const;
 
@@ -1076,14 +1076,14 @@ class Class : public Object {
     return OFFSET_OF(ClassLayout, declaration_type_);
   }
 
-  LibraryPtr library() const { return raw_ptr()->library_; }
+  LibraryPtr library() const { return raw_ptr()->library(); }
   void set_library(const Library& value) const;
 
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
   TypeArgumentsPtr type_parameters() const {
     ASSERT(is_declaration_loaded());
-    return raw_ptr()->type_parameters_;
+    return raw_ptr()->type_parameters();
   }
   void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters(Thread* thread) const;
@@ -1171,7 +1171,7 @@ class Class : public Object {
   // The super type of this class, Object type if not explicitly specified.
   AbstractTypePtr super_type() const {
     ASSERT(is_declaration_loaded());
-    return raw_ptr()->super_type_;
+    return raw_ptr()->super_type();
   }
   void set_super_type(const AbstractType& value) const;
   static intptr_t super_type_offset() {
@@ -1187,7 +1187,7 @@ class Class : public Object {
   // Interfaces is an array of Types.
   ArrayPtr interfaces() const {
     ASSERT(is_declaration_loaded());
-    return raw_ptr()->interfaces_;
+    return raw_ptr()->interfaces();
   }
   void set_interfaces(const Array& value) const;
 
@@ -1195,7 +1195,7 @@ class Class : public Object {
   GrowableObjectArrayPtr direct_implementors() const {
     DEBUG_ASSERT(
         IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
-    return raw_ptr()->direct_implementors_;
+    return raw_ptr()->direct_implementors();
   }
   void AddDirectImplementor(const Class& subclass, bool is_mixin) const;
   void ClearDirectImplementors() const;
@@ -1207,7 +1207,7 @@ class Class : public Object {
     return direct_subclasses_unsafe();
   }
   GrowableObjectArrayPtr direct_subclasses_unsafe() const {
-    return raw_ptr()->direct_subclasses_;
+    return raw_ptr()->direct_subclasses();
   }
   void AddDirectSubclass(const Class& subclass) const;
   void ClearDirectSubclasses() const;
@@ -1249,7 +1249,7 @@ class Class : public Object {
   static bool IsInFullSnapshot(ClassPtr cls) {
     NoSafepointScope no_safepoint;
     return LibraryLayout::InFullSnapshotBit::decode(
-        cls->ptr()->library_->ptr()->flags_);
+        cls->ptr()->library()->ptr()->flags_);
   }
 
   // Returns true if the type specified by cls, type_arguments, and nullability
@@ -1273,7 +1273,7 @@ class Class : public Object {
   ArrayPtr fields() const {
     // We rely on the fact that any loads from the array are dependent loads
     // and avoid the load-acquire barrier here.
-    return raw_ptr()->fields_;
+    return raw_ptr()->fields();
   }
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
@@ -1297,7 +1297,7 @@ class Class : public Object {
   ArrayPtr current_functions() const {
     // We rely on the fact that any loads from the array are dependent loads
     // and avoid the load-acquire barrier here.
-    return raw_ptr()->functions_;
+    return raw_ptr()->functions();
   }
   ArrayPtr functions() const {
     DEBUG_ASSERT(
@@ -1429,7 +1429,7 @@ class Class : public Object {
     StoreNonPointer(&raw_ptr()->num_native_fields_, value);
   }
 
-  CodePtr allocation_stub() const { return raw_ptr()->allocation_stub_; }
+  CodePtr allocation_stub() const { return raw_ptr()->allocation_stub(); }
   void set_allocation_stub(const Code& value) const;
 
   intptr_t kernel_offset() const {
@@ -1600,7 +1600,7 @@ class Class : public Object {
   }
 
  private:
-  TypePtr declaration_type() const { return raw_ptr()->declaration_type_; }
+  TypePtr declaration_type() const { return raw_ptr()->declaration_type(); }
 
   // Caches the declaration type of this class.
   void set_declaration_type(const Type& type) const;
@@ -1752,11 +1752,11 @@ enum Genericity {
 
 class PatchClass : public Object {
  public:
-  ClassPtr patched_class() const { return raw_ptr()->patched_class_; }
-  ClassPtr origin_class() const { return raw_ptr()->origin_class_; }
-  ScriptPtr script() const { return raw_ptr()->script_; }
+  ClassPtr patched_class() const { return raw_ptr()->patched_class(); }
+  ClassPtr origin_class() const { return raw_ptr()->origin_class(); }
+  ScriptPtr script() const { return raw_ptr()->script(); }
   ExternalTypedDataPtr library_kernel_data() const {
-    return raw_ptr()->library_kernel_data_;
+    return raw_ptr()->library_kernel_data();
   }
   void set_library_kernel_data(const ExternalTypedData& data) const;
 
@@ -1777,7 +1777,7 @@ class PatchClass : public Object {
   }
   static bool IsInFullSnapshot(PatchClassPtr cls) {
     NoSafepointScope no_safepoint;
-    return Class::IsInFullSnapshot(cls->ptr()->patched_class_);
+    return Class::IsInFullSnapshot(cls->ptr()->patched_class());
   }
 
   static PatchClassPtr New(const Class& patched_class,
@@ -1798,7 +1798,7 @@ class PatchClass : public Object {
 
 class SingleTargetCache : public Object {
  public:
-  CodePtr target() const { return raw_ptr()->target_; }
+  CodePtr target() const { return raw_ptr()->target(); }
   void set_target(const Code& target) const;
   static intptr_t target_offset() {
     return OFFSET_OF(SingleTargetCacheLayout, target_);
@@ -1831,7 +1831,7 @@ class SingleTargetCache : public Object {
 
 class MonomorphicSmiableCall : public Object {
  public:
-  CodePtr target() const { return raw_ptr()->target_; }
+  CodePtr target() const { return raw_ptr()->target(); }
   classid_t expected_cid() const { return raw_ptr()->expected_cid_; }
 
   static intptr_t InstanceSize() {
@@ -1860,8 +1860,8 @@ class MonomorphicSmiableCall : public Object {
 
 class CallSiteData : public Object {
  public:
-  StringPtr target_name() const { return raw_ptr()->target_name_; }
-  ArrayPtr arguments_descriptor() const { return raw_ptr()->args_descriptor_; }
+  StringPtr target_name() const { return raw_ptr()->target_name(); }
+  ArrayPtr arguments_descriptor() const { return raw_ptr()->args_descriptor(); }
 
   intptr_t TypeArgsLen() const;
 
@@ -1945,7 +1945,7 @@ class ICData : public CallSiteData {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   AbstractTypePtr receivers_static_type() const {
-    return raw_ptr()->receivers_static_type_;
+    return raw_ptr()->receivers_static_type();
   }
   bool is_tracking_exactness() const {
     return TrackingExactnessBit::decode(raw_ptr()->state_bits_);
@@ -2240,8 +2240,7 @@ class ICData : public CallSiteData {
   intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
 
   ArrayPtr entries() const {
-    return LoadPointer<ArrayPtr, std::memory_order_acquire>(
-        &raw_ptr()->entries_);
+    return raw_ptr()->entries<std::memory_order_acquire>();
   }
 
   bool receiver_cannot_be_smi() const {
@@ -2446,7 +2445,7 @@ struct NameFormattingParams {
 
 class Function : public Object {
  public:
-  StringPtr name() const { return raw_ptr()->name_; }
+  StringPtr name() const { return raw_ptr()->name(); }
   StringPtr UserVisibleName() const;  // Same as scrubbed name.
   const char* UserVisibleNameCString() const;
 
@@ -2543,7 +2542,7 @@ class Function : public Object {
   void set_owner(const Object& value) const;
   ClassPtr origin() const;
   ScriptPtr script() const;
-  ObjectPtr RawOwner() const { return raw_ptr()->owner_; }
+  ObjectPtr RawOwner() const { return raw_ptr()->owner(); }
 
   // The NNBD mode of the library declaring this function.
   // TODO(alexmarkov): nnbd_mode() doesn't work for mixins.
@@ -2560,7 +2559,7 @@ class Function : public Object {
   StringPtr native_name() const;
   void set_native_name(const String& name) const;
 
-  AbstractTypePtr result_type() const { return raw_ptr()->result_type_; }
+  AbstractTypePtr result_type() const { return raw_ptr()->result_type(); }
   void set_result_type(const AbstractType& value) const;
 
   // The parameters, starting with NumImplicitParameters() parameters which are
@@ -2568,7 +2567,7 @@ class Function : public Object {
   // Note that type checks exclude implicit parameters.
   AbstractTypePtr ParameterTypeAt(intptr_t index) const;
   void SetParameterTypeAt(intptr_t index, const AbstractType& value) const;
-  ArrayPtr parameter_types() const { return raw_ptr()->parameter_types_; }
+  ArrayPtr parameter_types() const { return raw_ptr()->parameter_types(); }
   void set_parameter_types(const Array& value) const;
   static intptr_t parameter_types_offset() {
     return OFFSET_OF(FunctionLayout, parameter_types_);
@@ -2581,7 +2580,7 @@ class Function : public Object {
   // elements are the names.
   StringPtr ParameterNameAt(intptr_t index) const;
   void SetParameterNameAt(intptr_t index, const String& value) const;
-  ArrayPtr parameter_names() const { return raw_ptr()->parameter_names_; }
+  ArrayPtr parameter_names() const { return raw_ptr()->parameter_names(); }
   static intptr_t parameter_names_offset() {
     return OFFSET_OF(FunctionLayout, parameter_names_);
   }
@@ -2607,7 +2606,7 @@ class Function : public Object {
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
   TypeArgumentsPtr type_parameters() const {
-    return raw_ptr()->type_parameters_;
+    return raw_ptr()->type_parameters();
   }
   void set_type_parameters(const TypeArguments& value) const;
   static intptr_t type_parameters_offset() {
@@ -2672,14 +2671,14 @@ class Function : public Object {
   bool SafeToClosurize() const;
 
   static CodePtr CurrentCodeOf(const FunctionPtr function) {
-    return function->ptr()->code_;
+    return function->ptr()->code();
   }
 
   CodePtr unoptimized_code() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return static_cast<CodePtr>(Object::null());
 #else
-    return raw_ptr()->unoptimized_code_;
+    return raw_ptr()->unoptimized_code();
 #endif
   }
   void set_unoptimized_code(const Code& value) const;
@@ -3891,11 +3890,11 @@ class SignatureData : public Object {
 
  private:
   // Enclosing function of this signature function.
-  FunctionPtr parent_function() const { return raw_ptr()->parent_function_; }
+  FunctionPtr parent_function() const { return raw_ptr()->parent_function(); }
   void set_parent_function(const Function& value) const;
 
   // Signature type of this signature function.
-  TypePtr signature_type() const { return raw_ptr()->signature_type_; }
+  TypePtr signature_type() const { return raw_ptr()->signature_type(); }
   void set_signature_type(const Type& value) const;
 
   static SignatureDataPtr New(Heap::Space space = Heap::kOld);
@@ -3922,17 +3921,17 @@ class FfiTrampolineData : public Object {
 
  private:
   // Signature type of this closure function.
-  TypePtr signature_type() const { return raw_ptr()->signature_type_; }
+  TypePtr signature_type() const { return raw_ptr()->signature_type(); }
   void set_signature_type(const Type& value) const;
 
-  FunctionPtr c_signature() const { return raw_ptr()->c_signature_; }
+  FunctionPtr c_signature() const { return raw_ptr()->c_signature(); }
   void set_c_signature(const Function& value) const;
 
-  FunctionPtr callback_target() const { return raw_ptr()->callback_target_; }
+  FunctionPtr callback_target() const { return raw_ptr()->callback_target(); }
   void set_callback_target(const Function& value) const;
 
   InstancePtr callback_exceptional_return() const {
-    return raw_ptr()->callback_exceptional_return_;
+    return raw_ptr()->callback_exceptional_return();
   }
   void set_callback_exceptional_return(const Instance& value) const;
 
@@ -3963,7 +3962,7 @@ class Field : public Object {
       return true;
     }
     NoSafepointScope no_safepoint;
-    return !raw_ptr()->owner_->IsField();
+    return !raw_ptr()->owner()->IsField();
   }
 
   // Returns whether fields must be cloned via [CloneFromOriginal] for the
@@ -3974,7 +3973,7 @@ class Field : public Object {
   // original field of result.
   FieldPtr CloneFromOriginal() const;
 
-  StringPtr name() const { return raw_ptr()->name_; }
+  StringPtr name() const { return raw_ptr()->name(); }
   StringPtr UserVisibleName() const;  // Same as scrubbed name.
   const char* UserVisibleNameCString() const;
   virtual StringPtr DictionaryName() const { return name(); }
@@ -4086,7 +4085,7 @@ class Field : public Object {
   ScriptPtr Script() const;
   ObjectPtr RawOwner() const;
 
-  AbstractTypePtr type() const { return raw_ptr()->type_; }
+  AbstractTypePtr type() const { return raw_ptr()->type(); }
   // Used by class finalizer, otherwise initialized in constructor.
   void SetFieldType(const AbstractType& value) const;
 
@@ -4345,7 +4344,7 @@ class Field : public Object {
   FunctionPtr InitializerFunction() const {
     // We rely on the fact that any loads from the initializer function
     // are dependent loads and avoid the load-acquire barrier here.
-    return raw_ptr()->initializer_function_;
+    return raw_ptr()->initializer_function<std::memory_order_relaxed>();
   }
   void SetInitializerFunction(const Function& initializer) const;
   bool HasInitializerFunction() const;
@@ -4377,7 +4376,7 @@ class Field : public Object {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   SubtypeTestCachePtr type_test_cache() const {
-    return raw_ptr()->type_test_cache_;
+    return raw_ptr()->type_test_cache();
   }
   void set_type_test_cache(const SubtypeTestCache& cache) const;
 #endif
@@ -4469,7 +4468,7 @@ class Field : public Object {
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Object& value) const {
-    StorePointer(&raw_ptr()->owner_, value.raw());
+    raw_ptr()->set_owner(value.raw());
   }
   void set_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
@@ -4493,11 +4492,11 @@ class Field : public Object {
 
 class Script : public Object {
  public:
-  StringPtr url() const { return raw_ptr()->url_; }
+  StringPtr url() const { return raw_ptr()->url(); }
   void set_url(const String& value) const;
 
   // The actual url which was loaded from disk, if provided by the embedder.
-  StringPtr resolved_url() const { return raw_ptr()->resolved_url_; }
+  StringPtr resolved_url() const { return raw_ptr()->resolved_url(); }
   bool HasSource() const;
   StringPtr Source() const;
   bool IsPartOfDartColonLibrary() const;
@@ -4512,12 +4511,12 @@ class Script : public Object {
   int64_t load_timestamp() const { return raw_ptr()->load_timestamp_; }
 
   ArrayPtr compile_time_constants() const {
-    return raw_ptr()->compile_time_constants_;
+    return raw_ptr()->compile_time_constants();
   }
   void set_compile_time_constants(const Array& value) const;
 
   KernelProgramInfoPtr kernel_program_info() const {
-    return raw_ptr()->kernel_program_info_;
+    return raw_ptr()->kernel_program_info();
   }
   void set_kernel_program_info(const KernelProgramInfo& info) const;
 
@@ -4640,11 +4639,11 @@ class ClassDictionaryIterator : public DictionaryIterator {
 
 class Library : public Object {
  public:
-  StringPtr name() const { return raw_ptr()->name_; }
+  StringPtr name() const { return raw_ptr()->name(); }
   void SetName(const String& name) const;
 
-  StringPtr url() const { return raw_ptr()->url_; }
-  StringPtr private_key() const { return raw_ptr()->private_key_; }
+  StringPtr url() const { return raw_ptr()->url(); }
+  StringPtr private_key() const { return raw_ptr()->private_key(); }
   bool LoadNotStarted() const {
     return raw_ptr()->load_state_ == LibraryLayout::kAllocated;
   }
@@ -4661,7 +4660,7 @@ class Library : public Object {
   }
   void SetLoaded() const;
 
-  LoadingUnitPtr loading_unit() const { return raw_ptr()->loading_unit_; }
+  LoadingUnitPtr loading_unit() const { return raw_ptr()->loading_unit(); }
   void set_loading_unit(const LoadingUnit& value) const;
 
   static intptr_t InstanceSize() {
@@ -4772,22 +4771,22 @@ class Library : public Object {
                          const String& pragma_name,
                          Object* options);
 
-  ClassPtr toplevel_class() const { return raw_ptr()->toplevel_class_; }
+  ClassPtr toplevel_class() const { return raw_ptr()->toplevel_class(); }
   void set_toplevel_class(const Class& value) const;
 
   GrowableObjectArrayPtr used_scripts() const {
-    return raw_ptr()->used_scripts_;
+    return raw_ptr()->used_scripts();
   }
 
   // Library imports.
-  ArrayPtr imports() const { return raw_ptr()->imports_; }
-  ArrayPtr exports() const { return raw_ptr()->exports_; }
+  ArrayPtr imports() const { return raw_ptr()->imports(); }
+  ArrayPtr exports() const { return raw_ptr()->exports(); }
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   NamespacePtr ImportAt(intptr_t index) const;
   LibraryPtr ImportLibraryAt(intptr_t index) const;
 
-  ArrayPtr dependencies() const { return raw_ptr()->dependencies_; }
+  ArrayPtr dependencies() const { return raw_ptr()->dependencies(); }
   void set_dependencies(const Array& deps) const;
 
   void DropDependenciesAndCaches() const;
@@ -4873,7 +4872,7 @@ class Library : public Object {
 
   inline intptr_t UrlHash() const;
 
-  ExternalTypedDataPtr kernel_data() const { return raw_ptr()->kernel_data_; }
+  ExternalTypedDataPtr kernel_data() const { return raw_ptr()->kernel_data(); }
   void set_kernel_data(const ExternalTypedData& data) const;
 
   intptr_t kernel_offset() const {
@@ -4978,13 +4977,13 @@ class Library : public Object {
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
   bool HasExports() const;
-  ArrayPtr loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
-  GrowableObjectArrayPtr metadata() const { return raw_ptr()->metadata_; }
+  ArrayPtr loaded_scripts() const { return raw_ptr()->loaded_scripts(); }
+  GrowableObjectArrayPtr metadata() const { return raw_ptr()->metadata(); }
   void set_metadata(const GrowableObjectArray& value) const;
-  ArrayPtr dictionary() const { return raw_ptr()->dictionary_; }
+  ArrayPtr dictionary() const { return raw_ptr()->dictionary(); }
   void InitClassDictionary() const;
 
-  ArrayPtr resolved_names() const { return raw_ptr()->resolved_names_; }
+  ArrayPtr resolved_names() const { return raw_ptr()->resolved_names(); }
   bool LookupResolvedNamesCache(const String& name, Object* obj) const;
   void AddToResolvedNamesCache(const String& name, const Object& obj) const;
   void InitResolvedNamesCache() const;
@@ -4992,7 +4991,7 @@ class Library : public Object {
   void InvalidateResolvedName(const String& name) const;
   void InvalidateResolvedNamesCache() const;
 
-  ArrayPtr exported_names() const { return raw_ptr()->exported_names_; }
+  ArrayPtr exported_names() const { return raw_ptr()->exported_names(); }
   bool LookupExportedNamesCache(const String& name, Object* obj) const;
   void AddToExportedNamesCache(const String& name, const Object& obj) const;
   void InitExportedNamesCache() const;
@@ -5032,9 +5031,9 @@ class Library : public Object {
 // the show/hide combinators.
 class Namespace : public Object {
  public:
-  LibraryPtr library() const { return raw_ptr()->library_; }
-  ArrayPtr show_names() const { return raw_ptr()->show_names_; }
-  ArrayPtr hide_names() const { return raw_ptr()->hide_names_; }
+  LibraryPtr library() const { return raw_ptr()->library(); }
+  ArrayPtr show_names() const { return raw_ptr()->show_names(); }
+  ArrayPtr hide_names() const { return raw_ptr()->hide_names(); }
 
   void AddMetadata(const Object& owner,
                    TokenPosition token_pos,
@@ -5056,7 +5055,7 @@ class Namespace : public Object {
  private:
   static NamespacePtr New();
 
-  FieldPtr metadata_field() const { return raw_ptr()->metadata_field_; }
+  FieldPtr metadata_field() const { return raw_ptr()->metadata_field(); }
   void set_metadata_field(const Field& value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
@@ -5082,30 +5081,30 @@ class KernelProgramInfo : public Object {
     return RoundedAllocationSize(sizeof(KernelProgramInfoLayout));
   }
 
-  TypedDataPtr string_offsets() const { return raw_ptr()->string_offsets_; }
+  TypedDataPtr string_offsets() const { return raw_ptr()->string_offsets(); }
 
-  ExternalTypedDataPtr string_data() const { return raw_ptr()->string_data_; }
+  ExternalTypedDataPtr string_data() const { return raw_ptr()->string_data(); }
 
-  TypedDataPtr canonical_names() const { return raw_ptr()->canonical_names_; }
+  TypedDataPtr canonical_names() const { return raw_ptr()->canonical_names(); }
 
   ExternalTypedDataPtr metadata_payloads() const {
-    return raw_ptr()->metadata_payloads_;
+    return raw_ptr()->metadata_payloads();
   }
 
   ExternalTypedDataPtr metadata_mappings() const {
-    return raw_ptr()->metadata_mappings_;
+    return raw_ptr()->metadata_mappings();
   }
 
   ExternalTypedDataPtr constants_table() const {
-    return raw_ptr()->constants_table_;
+    return raw_ptr()->constants_table();
   }
 
   void set_constants_table(const ExternalTypedData& value) const;
 
-  ArrayPtr scripts() const { return raw_ptr()->scripts_; }
+  ArrayPtr scripts() const { return raw_ptr()->scripts(); }
   void set_scripts(const Array& scripts) const;
 
-  ArrayPtr constants() const { return raw_ptr()->constants_; }
+  ArrayPtr constants() const { return raw_ptr()->constants(); }
   void set_constants(const Array& constants) const;
 
   uint32_t kernel_binary_version() const {
@@ -5119,26 +5118,26 @@ class KernelProgramInfo : public Object {
   //
   // This array will hold the functions which might need their native name set.
   GrowableObjectArrayPtr potential_natives() const {
-    return raw_ptr()->potential_natives_;
+    return raw_ptr()->potential_natives();
   }
   void set_potential_natives(const GrowableObjectArray& candidates) const;
 
   GrowableObjectArrayPtr potential_pragma_functions() const {
-    return raw_ptr()->potential_pragma_functions_;
+    return raw_ptr()->potential_pragma_functions();
   }
   void set_potential_pragma_functions(
       const GrowableObjectArray& candidates) const;
 
   ScriptPtr ScriptAt(intptr_t index) const;
 
-  ArrayPtr libraries_cache() const { return raw_ptr()->libraries_cache_; }
+  ArrayPtr libraries_cache() const { return raw_ptr()->libraries_cache(); }
   void set_libraries_cache(const Array& cache) const;
   LibraryPtr LookupLibrary(Thread* thread, const Smi& name_index) const;
   LibraryPtr InsertLibrary(Thread* thread,
                            const Smi& name_index,
                            const Library& lib) const;
 
-  ArrayPtr classes_cache() const { return raw_ptr()->classes_cache_; }
+  ArrayPtr classes_cache() const { return raw_ptr()->classes_cache(); }
   void set_classes_cache(const Array& cache) const;
   ClassPtr LookupClass(Thread* thread, const Smi& name_index) const;
   ClassPtr InsertClass(Thread* thread,
@@ -5968,8 +5967,8 @@ class WeakSerializationReference : public Object {
     return Object::null();
 #else
     // Outside the precompiled runtime, they should always have a target.
-    ASSERT(raw->ptr()->target_ != Object::null());
-    return raw->ptr()->target_;
+    ASSERT(raw->ptr()->target() != Object::null());
+    return raw->ptr()->target();
 #endif
   }
 
@@ -6053,14 +6052,14 @@ class Code : public Object {
     UNREACHABLE();
     return NULL;
 #else
-    return raw_ptr()->active_instructions_;
+    return raw_ptr()->active_instructions();
 #endif
   }
 
   // When dual mapping, these return the executable view.
-  InstructionsPtr instructions() const { return raw_ptr()->instructions_; }
+  InstructionsPtr instructions() const { return raw_ptr()->instructions(); }
   static InstructionsPtr InstructionsOf(const CodePtr code) {
-    return code->ptr()->instructions_;
+    return code->ptr()->instructions();
   }
 
   static intptr_t saved_instructions_offset() {
@@ -6087,7 +6086,7 @@ class Code : public Object {
     }
   }
 
-  ObjectPoolPtr object_pool() const { return raw_ptr()->object_pool_; }
+  ObjectPoolPtr object_pool() const { return raw_ptr()->object_pool(); }
   static intptr_t object_pool_offset() {
     return OFFSET_OF(CodeLayout, object_pool_);
   }
@@ -6193,19 +6192,21 @@ class Code : public Object {
   // Returns true if there is a debugger breakpoint set in this code object.
   bool HasBreakpoint() const;
 
-  PcDescriptorsPtr pc_descriptors() const { return raw_ptr()->pc_descriptors_; }
+  PcDescriptorsPtr pc_descriptors() const {
+    return raw_ptr()->pc_descriptors();
+  }
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
     ASSERT(descriptors.IsOld());
-    StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
+    raw_ptr()->set_pc_descriptors(descriptors.raw());
   }
 
   CodeSourceMapPtr code_source_map() const {
-    return raw_ptr()->code_source_map_;
+    return raw_ptr()->code_source_map();
   }
 
   void set_code_source_map(const CodeSourceMap& code_source_map) const {
     ASSERT(code_source_map.IsOld());
-    StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
+    raw_ptr()->set_code_source_map(code_source_map.raw());
   }
 
   // Array of DeoptInfo objects.
@@ -6214,7 +6215,7 @@ class Code : public Object {
     UNREACHABLE();
     return NULL;
 #else
-    return raw_ptr()->deopt_info_array_;
+    return raw_ptr()->deopt_info_array();
 #endif
   }
   void set_deopt_info_array(const Array& array) const;
@@ -6230,7 +6231,7 @@ class Code : public Object {
 #endif
 
   CompressedStackMapsPtr compressed_stackmaps() const {
-    return raw_ptr()->compressed_stackmaps_;
+    return raw_ptr()->compressed_stackmaps();
   }
   void set_compressed_stackmaps(const CompressedStackMaps& maps) const;
 
@@ -6270,7 +6271,7 @@ class Code : public Object {
     UNREACHABLE();
     return NULL;
 #else
-    return raw_ptr()->static_calls_target_table_;
+    return raw_ptr()->static_calls_target_table();
 #endif
   }
 
@@ -6323,7 +6324,7 @@ class Code : public Object {
     UNREACHABLE();
     return NULL;
 #else
-    return raw_ptr()->return_address_metadata_;
+    return raw_ptr()->return_address_metadata();
 #endif
   }
   // Sets |return_address_metadata|.
@@ -6364,7 +6365,7 @@ class Code : public Object {
     UNREACHABLE();
     return NULL;
 #else
-    return raw_ptr()->var_descriptors_;
+    return raw_ptr()->var_descriptors();
 #endif
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
@@ -6372,7 +6373,7 @@ class Code : public Object {
     UNREACHABLE();
 #else
     ASSERT(value.IsOld());
-    StorePointer(&raw_ptr()->var_descriptors_, value.raw());
+    raw_ptr()->set_var_descriptors(value.raw());
 #endif
   }
 
@@ -6380,11 +6381,11 @@ class Code : public Object {
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
 
   ExceptionHandlersPtr exception_handlers() const {
-    return raw_ptr()->exception_handlers_;
+    return raw_ptr()->exception_handlers();
   }
   void set_exception_handlers(const ExceptionHandlers& handlers) const {
     ASSERT(handlers.IsOld());
-    StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
+    raw_ptr()->set_exception_handlers(handlers.raw());
   }
 
   // WARNING: function() returns the owner which is not guaranteed to be
@@ -6396,15 +6397,15 @@ class Code : public Object {
   FunctionPtr function() const {
     ASSERT(IsFunctionCode());
     return Function::RawCast(
-        WeakSerializationReference::Unwrap(raw_ptr()->owner_));
+        WeakSerializationReference::Unwrap(raw_ptr()->owner()));
   }
 
-  ObjectPtr owner() const { return raw_ptr()->owner_; }
+  ObjectPtr owner() const { return raw_ptr()->owner(); }
   void set_owner(const Object& owner) const;
 
   classid_t OwnerClassId() const { return OwnerClassIdOf(raw()); }
   static classid_t OwnerClassIdOf(CodePtr raw) {
-    return WeakSerializationReference::UnwrappedClassIdOf(raw->ptr()->owner_);
+    return WeakSerializationReference::UnwrappedClassIdOf(raw->ptr()->owner());
   }
 
   static intptr_t owner_offset() { return OFFSET_OF(CodeLayout, owner_); }
@@ -6510,12 +6511,12 @@ class Code : public Object {
     UNREACHABLE();
     return false;
 #else
-    return code->ptr()->instructions_ != code->ptr()->active_instructions_;
+    return code->ptr()->instructions() != code->ptr()->active_instructions();
 #endif
   }
 
   void set_object_pool(ObjectPoolPtr object_pool) const {
-    StorePointer(&raw_ptr()->object_pool_, object_pool);
+    raw_ptr()->set_object_pool(object_pool);
   }
 
  private:
@@ -6583,7 +6584,7 @@ class Code : public Object {
 
   void set_instructions(const Instructions& instructions) const {
     ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
-    StorePointer(&raw_ptr()->instructions_, instructions.raw());
+    raw_ptr()->set_instructions(instructions.raw());
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   void set_unchecked_offset(uword offset) const {
@@ -6651,9 +6652,9 @@ class Code : public Object {
 
 class Context : public Object {
  public:
-  ContextPtr parent() const { return raw_ptr()->parent_; }
+  ContextPtr parent() const { return raw_ptr()->parent(); }
   void set_parent(const Context& parent) const {
-    StorePointer(&raw_ptr()->parent_, parent.raw());
+    raw_ptr()->set_parent(parent.raw());
   }
   static intptr_t parent_offset() { return OFFSET_OF(ContextLayout, parent_); }
 
@@ -6666,7 +6667,7 @@ class Context : public Object {
   }
 
   ObjectPtr At(intptr_t context_index) const {
-    return *ObjectAddr(context_index);
+    return raw_ptr()->element(context_index);
   }
   inline void SetAt(intptr_t context_index, const Object& value) const;
 
@@ -6710,11 +6711,6 @@ class Context : public Object {
   static ContextPtr New(intptr_t num_variables, Heap::Space space = Heap::kNew);
 
  private:
-  ObjectPtr const* ObjectAddr(intptr_t context_index) const {
-    ASSERT((context_index >= 0) && (context_index < num_variables()));
-    return &raw_ptr()->data()[context_index];
-  }
-
   void set_num_variables(intptr_t num_variables) const {
     StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
   }
@@ -7041,7 +7037,7 @@ class Error : public Object {
 
 class ApiError : public Error {
  public:
-  StringPtr message() const { return raw_ptr()->message_; }
+  StringPtr message() const { return raw_ptr()->message(); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(ApiErrorLayout));
@@ -7101,10 +7097,10 @@ class LanguageError : public Error {
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
 
  private:
-  ErrorPtr previous_error() const { return raw_ptr()->previous_error_; }
+  ErrorPtr previous_error() const { return raw_ptr()->previous_error(); }
   void set_previous_error(const Error& value) const;
 
-  ScriptPtr script() const { return raw_ptr()->script_; }
+  ScriptPtr script() const { return raw_ptr()->script(); }
   void set_script(const Script& value) const;
 
   void set_token_pos(TokenPosition value) const;
@@ -7114,10 +7110,10 @@ class LanguageError : public Error {
 
   void set_kind(uint8_t value) const;
 
-  StringPtr message() const { return raw_ptr()->message_; }
+  StringPtr message() const { return raw_ptr()->message(); }
   void set_message(const String& value) const;
 
-  StringPtr formatted_message() const { return raw_ptr()->formatted_message_; }
+  StringPtr formatted_message() const { return raw_ptr()->formatted_message(); }
   void set_formatted_message(const String& value) const;
 
   static LanguageErrorPtr New();
@@ -7128,12 +7124,12 @@ class LanguageError : public Error {
 
 class UnhandledException : public Error {
  public:
-  InstancePtr exception() const { return raw_ptr()->exception_; }
+  InstancePtr exception() const { return raw_ptr()->exception(); }
   static intptr_t exception_offset() {
     return OFFSET_OF(UnhandledExceptionLayout, exception_);
   }
 
-  InstancePtr stacktrace() const { return raw_ptr()->stacktrace_; }
+  InstancePtr stacktrace() const { return raw_ptr()->stacktrace(); }
   static intptr_t stacktrace_offset() {
     return OFFSET_OF(UnhandledExceptionLayout, stacktrace_);
   }
@@ -7164,7 +7160,7 @@ class UnwindError : public Error {
   bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
   void set_is_user_initiated(bool value) const;
 
-  StringPtr message() const { return raw_ptr()->message_; }
+  StringPtr message() const { return raw_ptr()->message(); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UnwindErrorLayout));
@@ -7392,12 +7388,12 @@ class Instance : public Object {
 
 class LibraryPrefix : public Instance {
  public:
-  StringPtr name() const { return raw_ptr()->name_; }
+  StringPtr name() const { return raw_ptr()->name(); }
   virtual StringPtr DictionaryName() const { return name(); }
 
-  ArrayPtr imports() const { return raw_ptr()->imports_; }
+  ArrayPtr imports() const { return raw_ptr()->imports(); }
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
-  LibraryPtr importer() const { return raw_ptr()->importer_; }
+  LibraryPtr importer() const { return raw_ptr()->importer(); }
 
   LibraryPtr GetLibrary(int index) const;
   void AddImport(const Namespace& import) const;
@@ -7687,7 +7683,6 @@ class TypeArguments : public Instance {
 
   ArrayPtr instantiations() const;
   void set_instantiations(const Array& value) const;
-  AbstractTypePtr const* TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
   // Number of fields in the raw object is 4:
   // instantiations_, length_, hash_ and nullability_.
@@ -7947,7 +7942,7 @@ class AbstractType : public Instance {
   uword type_test_stub_entry_point() const {
     return raw_ptr()->type_test_stub_entry_point_;
   }
-  CodePtr type_test_stub() const { return raw_ptr()->type_test_stub_; }
+  CodePtr type_test_stub() const { return raw_ptr()->type_test_stub(); }
 
   void SetTypeTestingStub(const Code& stub) const;
 
@@ -8008,7 +8003,7 @@ class Type : public AbstractType {
   virtual classid_t type_class_id() const;
   virtual ClassPtr type_class() const;
   void set_type_class(const Class& value) const;
-  virtual TypeArgumentsPtr arguments() const { return raw_ptr()->arguments_; }
+  virtual TypeArgumentsPtr arguments() const { return raw_ptr()->arguments(); }
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
@@ -8168,7 +8163,7 @@ class TypeRef : public AbstractType {
     return (type() != AbstractType::null()) &&
            AbstractType::Handle(type()).HasTypeClass();
   }
-  AbstractTypePtr type() const { return raw_ptr()->type_; }
+  AbstractTypePtr type() const { return raw_ptr()->type(); }
   void set_type(const AbstractType& value) const;
   virtual classid_t type_class_id() const {
     return AbstractType::Handle(type()).type_class_id();
@@ -8262,7 +8257,7 @@ class TypeParameter : public AbstractType {
   classid_t parameterized_class_id() const;
   ClassPtr parameterized_class() const;
   FunctionPtr parameterized_function() const {
-    return raw_ptr()->parameterized_function_;
+    return raw_ptr()->parameterized_function();
   }
   bool IsClassTypeParameter() const {
     return parameterized_class_id() != kFunctionCid;
@@ -8278,16 +8273,16 @@ class TypeParameter : public AbstractType {
     return OFFSET_OF(TypeParameterLayout, index_);
   }
 
-  StringPtr name() const { return raw_ptr()->name_; }
+  StringPtr name() const { return raw_ptr()->name(); }
   static intptr_t name_offset() {
     return OFFSET_OF(TypeParameterLayout, name_);
   }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
-  AbstractTypePtr bound() const { return raw_ptr()->bound_; }
+  AbstractTypePtr bound() const { return raw_ptr()->bound(); }
   void set_bound(const AbstractType& value) const;
   AbstractTypePtr default_argument() const {
-    return raw_ptr()->default_argument_;
+    return raw_ptr()->default_argument();
   }
   void set_default_argument(const AbstractType& value) const;
   static intptr_t bound_offset() {
@@ -8671,7 +8666,7 @@ class String : public Instance {
 
   intptr_t Length() const { return LengthOf(raw()); }
   static intptr_t LengthOf(StringPtr obj) {
-    return Smi::Value(obj->ptr()->length_);
+    return Smi::Value(obj->ptr()->length());
   }
   static intptr_t length_offset() { return OFFSET_OF(StringLayout, length_); }
 
@@ -8940,7 +8935,7 @@ class String : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    StoreSmi(&raw_ptr()->length_, Smi::New(value));
+    raw_ptr()->set_length(Smi::New(value));
   }
 
   void SetHash(intptr_t value) const { SetCachedHash(raw(), value); }
@@ -9024,7 +9019,7 @@ class OneByteString : public AllStatic {
   }
 
   static intptr_t UnroundedSize(OneByteStringPtr str) {
-    return UnroundedSize(Smi::Value(str->ptr()->length_));
+    return UnroundedSize(Smi::Value(str->ptr()->length()));
   }
   static intptr_t UnroundedSize(intptr_t len) {
     return sizeof(OneByteStringLayout) + (len * kBytesPerElement);
@@ -9163,7 +9158,7 @@ class TwoByteString : public AllStatic {
     return OFFSET_OF_RETURNED_VALUE(TwoByteStringLayout, data);
   }
   static intptr_t UnroundedSize(TwoByteStringPtr str) {
-    return UnroundedSize(Smi::Value(str->ptr()->length_));
+    return UnroundedSize(Smi::Value(str->ptr()->length()));
   }
   static intptr_t UnroundedSize(intptr_t len) {
     return sizeof(TwoByteStringLayout) + (len * kBytesPerElement);
@@ -9493,7 +9488,7 @@ class Array : public Instance {
 
   intptr_t Length() const { return LengthOf(raw()); }
   static intptr_t LengthOf(const ArrayPtr array) {
-    return Smi::Value(array->ptr()->length_);
+    return Smi::Value(array->ptr()->length());
   }
 
   static intptr_t length_offset() { return OFFSET_OF(ArrayLayout, length_); }
@@ -9518,8 +9513,8 @@ class Array : public Instance {
   static bool Equals(ArrayPtr a, ArrayPtr b) {
     if (a == b) return true;
     if (a->IsRawNull() || b->IsRawNull()) return false;
-    if (a->ptr()->length_ != b->ptr()->length_) return false;
-    if (a->ptr()->type_arguments_ != b->ptr()->type_arguments_) return false;
+    if (a->ptr()->length() != b->ptr()->length()) return false;
+    if (a->ptr()->type_arguments() != b->ptr()->type_arguments()) return false;
     const intptr_t length = LengthOf(a);
     return memcmp(a->ptr()->data(), b->ptr()->data(), kWordSize * length) == 0;
   }
@@ -9528,20 +9523,20 @@ class Array : public Instance {
 
   template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
-    return LoadPointer<ObjectPtr, order>(ObjectAddr(index));
+    return raw_ptr()->element(index);
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    StoreArrayPointer<ObjectPtr, order>(ObjectAddr(index), value.raw());
+    raw_ptr()->set_element(index, value.raw());
   }
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
-    return At<std::memory_order_acquire>(index);
+    return raw_ptr()->element<std::memory_order_acquire>(index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
-    SetAt<std::memory_order_release>(index, value);
+    raw_ptr()->set_element<std::memory_order_release>(index, value.raw());
   }
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
@@ -9550,7 +9545,7 @@ class Array : public Instance {
   static const intptr_t kElementTypeTypeArgPos = 0;
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
-    return raw_ptr()->type_arguments_;
+    return raw_ptr()->type_arguments();
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
     // An Array is raw or takes one type argument. However, its type argument
@@ -9643,10 +9638,10 @@ class Array : public Instance {
   }
 
   void SetLength(intptr_t value) const {
-    StoreSmi(&raw_ptr()->length_, Smi::New(value));
+    raw_ptr()->set_length(Smi::New(value));
   }
   void SetLengthIgnoreRace(intptr_t value) const {
-    StoreSmiIgnoreRace(&raw_ptr()->length_, Smi::New(value));
+    raw_ptr()->set_length_ignore_race(Smi::New(value));
   }
 
   template <typename type, std::memory_order order = std::memory_order_relaxed>
@@ -9712,35 +9707,33 @@ class GrowableObjectArray : public Instance {
   intptr_t Capacity() const {
     NoSafepointScope no_safepoint;
     ASSERT(!IsNull());
-    return Smi::Value(DataArray()->length_);
+    return Smi::Value(DataArray()->length());
   }
   intptr_t Length() const {
     ASSERT(!IsNull());
-    return Smi::Value(raw_ptr()->length_);
+    return Smi::Value(raw_ptr()->length());
   }
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    StoreSmi(&raw_ptr()->length_, Smi::New(value));
+    raw_ptr()->set_length(Smi::New(value));
   }
 
-  ArrayPtr data() const { return raw_ptr()->data_; }
-  void SetData(const Array& value) const {
-    StorePointer(&raw_ptr()->data_, value.raw());
-  }
+  ArrayPtr data() const { return raw_ptr()->data(); }
+  void SetData(const Array& value) const { raw_ptr()->set_data(value.raw()); }
 
   ObjectPtr At(intptr_t index) const {
     NoSafepointScope no_safepoint;
     ASSERT(!IsNull());
     ASSERT(index < Length());
-    return *ObjectAddr(index);
+    return data()->ptr()->element(index);
   }
   void SetAt(intptr_t index, const Object& value) const {
     ASSERT(!IsNull());
     ASSERT(index < Length());
 
     // TODO(iposva): Add storing NoSafepointScope.
-    data()->ptr()->StoreArrayPointer(ObjectAddr(index), value.raw());
+    data()->ptr()->set_element(index, value.raw());
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;
@@ -9749,7 +9742,7 @@ class GrowableObjectArray : public Instance {
   ObjectPtr RemoveLast() const;
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
-    return raw_ptr()->type_arguments_;
+    return raw_ptr()->type_arguments();
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
     // A GrowableObjectArray is raw or takes one type argument. However, its
@@ -9757,7 +9750,7 @@ class GrowableObjectArray : public Instance {
     // reusing the type argument vector of the instantiator.
     ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated() &&
                               value.IsCanonical()));
-    StorePointer(&raw_ptr()->type_arguments_, value.raw());
+    raw_ptr()->set_type_arguments(value.raw());
   }
 
   // We don't expect a growable object array to be canonicalized.
@@ -9796,19 +9789,15 @@ class GrowableObjectArray : public Instance {
                                     Heap::Space space = Heap::kNew);
 
   static SmiPtr NoSafepointLength(const GrowableObjectArrayPtr array) {
-    return array->ptr()->length_;
+    return array->ptr()->length();
   }
 
   static ArrayPtr NoSafepointData(const GrowableObjectArrayPtr array) {
-    return array->ptr()->data_;
+    return array->ptr()->data();
   }
 
  private:
   ArrayLayout* DataArray() const { return data()->ptr(); }
-  ObjectPtr* ObjectAddr(intptr_t index) const {
-    ASSERT((index >= 0) && (index < Length()));
-    return &(DataArray()->data()[index]);
-  }
 
   static const int kDefaultInitialCapacity = 0;
 
@@ -9925,11 +9914,11 @@ class TypedDataBase : public PointerBase {
     return OFFSET_OF(TypedDataBaseLayout, length_);
   }
 
-  SmiPtr length() const { return raw_ptr()->length_; }
+  SmiPtr length() const { return raw_ptr()->length(); }
 
   intptr_t Length() const {
     ASSERT(!IsNull());
-    return Smi::Value(raw_ptr()->length_);
+    return Smi::Value(raw_ptr()->length());
   }
 
   intptr_t LengthInBytes() const {
@@ -9976,7 +9965,7 @@ class TypedDataBase : public PointerBase {
  protected:
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
-    StoreSmi(&raw_ptr()->length_, Smi::New(value));
+    raw_ptr()->set_length(Smi::New(value));
   }
 
   virtual uint8_t* Validate(uint8_t* data) const {
@@ -10206,7 +10195,7 @@ class ExternalTypedData : public TypedDataBase {
 
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
-    StoreSmi(&raw_ptr()->length_, Smi::New(value));
+    raw_ptr()->set_length(Smi::New(value));
   }
 
   void SetData(uint8_t* data) const {
@@ -10257,22 +10246,22 @@ class TypedDataView : public TypedDataBase {
     return OFFSET_OF(TypedDataViewLayout, offset_in_bytes_);
   }
 
-  InstancePtr typed_data() const { return raw_ptr()->typed_data_; }
+  InstancePtr typed_data() const { return raw_ptr()->typed_data(); }
 
   void InitializeWith(const TypedDataBase& typed_data,
                       intptr_t offset_in_bytes,
                       intptr_t length) {
     const classid_t cid = typed_data.GetClassId();
     ASSERT(IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid));
-    StorePointer(&raw_ptr()->typed_data_, typed_data.raw());
-    StoreSmi(&raw_ptr()->length_, Smi::New(length));
-    StoreSmi(&raw_ptr()->offset_in_bytes_, Smi::New(offset_in_bytes));
+    raw_ptr()->set_typed_data(typed_data.raw());
+    raw_ptr()->set_length(Smi::New(length));
+    raw_ptr()->set_offset_in_bytes(Smi::New(offset_in_bytes));
 
     // Update the inner pointer.
     RecomputeDataField();
   }
 
-  SmiPtr offset_in_bytes() const { return raw_ptr()->offset_in_bytes_; }
+  SmiPtr offset_in_bytes() const { return raw_ptr()->offset_in_bytes(); }
 
  protected:
   virtual uint8_t* Validate(uint8_t* data) const { return data; }
@@ -10281,11 +10270,10 @@ class TypedDataView : public TypedDataBase {
   void RecomputeDataField() { raw()->ptr()->RecomputeDataField(); }
 
   void Clear() {
-    StoreSmi(&raw_ptr()->length_, Smi::New(0));
-    StoreSmi(&raw_ptr()->offset_in_bytes_, Smi::New(0));
+    raw_ptr()->set_length(Smi::New(0));
+    raw_ptr()->set_offset_in_bytes(Smi::New(0));
     StoreNonPointer(&raw_ptr()->data_, nullptr);
-    StorePointer(&raw_ptr()->typed_data_,
-                 TypedDataBase::RawCast(Object::null()));
+    raw_ptr()->set_typed_data(TypedDataBase::RawCast(Object::null()));
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, TypedDataBase);
@@ -10402,7 +10390,7 @@ class LinkedHashMap : public Instance {
                               Heap::Space space = Heap::kNew);
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
-    return raw_ptr()->type_arguments_;
+    return raw_ptr()->type_arguments();
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
     ASSERT(value.IsNull() ||
@@ -10410,48 +10398,46 @@ class LinkedHashMap : public Instance {
             value.IsInstantiated() /*&& value.IsCanonical()*/));
     // TODO(asiva): Values read from a message snapshot are not properly marked
     // as canonical. See for example tests/isolate/message3_test.dart.
-    StorePointer(&raw_ptr()->type_arguments_, value.raw());
+    raw_ptr()->set_type_arguments(value.raw());
   }
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(LinkedHashMapLayout, type_arguments_);
   }
 
-  TypedDataPtr index() const { return raw_ptr()->index_; }
+  TypedDataPtr index() const { return raw_ptr()->index(); }
   void SetIndex(const TypedData& value) const {
     ASSERT(!value.IsNull());
-    StorePointer(&raw_ptr()->index_, value.raw());
+    raw_ptr()->set_index(value.raw());
   }
   static intptr_t index_offset() {
     return OFFSET_OF(LinkedHashMapLayout, index_);
   }
 
-  ArrayPtr data() const { return raw_ptr()->data_; }
-  void SetData(const Array& value) const {
-    StorePointer(&raw_ptr()->data_, value.raw());
-  }
+  ArrayPtr data() const { return raw_ptr()->data(); }
+  void SetData(const Array& value) const { raw_ptr()->set_data(value.raw()); }
   static intptr_t data_offset() {
     return OFFSET_OF(LinkedHashMapLayout, data_);
   }
 
-  SmiPtr hash_mask() const { return raw_ptr()->hash_mask_; }
+  SmiPtr hash_mask() const { return raw_ptr()->hash_mask(); }
   void SetHashMask(intptr_t value) const {
-    StoreSmi(&raw_ptr()->hash_mask_, Smi::New(value));
+    raw_ptr()->set_hash_mask(Smi::New(value));
   }
   static intptr_t hash_mask_offset() {
     return OFFSET_OF(LinkedHashMapLayout, hash_mask_);
   }
 
-  SmiPtr used_data() const { return raw_ptr()->used_data_; }
+  SmiPtr used_data() const { return raw_ptr()->used_data(); }
   void SetUsedData(intptr_t value) const {
-    StoreSmi(&raw_ptr()->used_data_, Smi::New(value));
+    raw_ptr()->set_used_data(Smi::New(value));
   }
   static intptr_t used_data_offset() {
     return OFFSET_OF(LinkedHashMapLayout, used_data_);
   }
 
-  SmiPtr deleted_keys() const { return raw_ptr()->deleted_keys_; }
+  SmiPtr deleted_keys() const { return raw_ptr()->deleted_keys(); }
   void SetDeletedKeys(intptr_t value) const {
-    StoreSmi(&raw_ptr()->deleted_keys_, Smi::New(value));
+    raw_ptr()->set_deleted_keys(Smi::New(value));
   }
   static intptr_t deleted_keys_offset() {
     return OFFSET_OF(LinkedHashMapLayout, deleted_keys_);
@@ -10459,11 +10445,11 @@ class LinkedHashMap : public Instance {
 
   intptr_t Length() const {
     // The map may be uninitialized.
-    if (raw_ptr()->used_data_ == Object::null()) return 0;
-    if (raw_ptr()->deleted_keys_ == Object::null()) return 0;
+    if (raw_ptr()->used_data() == Object::null()) return 0;
+    if (raw_ptr()->deleted_keys() == Object::null()) return 0;
 
-    intptr_t used = Smi::Value(raw_ptr()->used_data_);
-    intptr_t deleted = Smi::Value(raw_ptr()->deleted_keys_);
+    intptr_t used = Smi::Value(raw_ptr()->used_data());
+    intptr_t deleted = Smi::Value(raw_ptr()->deleted_keys());
     return (used >> 1) - deleted;
   }
 
@@ -10523,41 +10509,41 @@ class LinkedHashMap : public Instance {
 class Closure : public Instance {
  public:
   TypeArgumentsPtr instantiator_type_arguments() const {
-    return raw_ptr()->instantiator_type_arguments_;
+    return raw_ptr()->instantiator_type_arguments();
   }
   void set_instantiator_type_arguments(const TypeArguments& args) const {
-    StorePointer(&raw_ptr()->instantiator_type_arguments_, args.raw());
+    raw_ptr()->set_instantiator_type_arguments(args.raw());
   }
   static intptr_t instantiator_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, instantiator_type_arguments_);
   }
 
   TypeArgumentsPtr function_type_arguments() const {
-    return raw_ptr()->function_type_arguments_;
+    return raw_ptr()->function_type_arguments();
   }
   void set_function_type_arguments(const TypeArguments& args) const {
-    StorePointer(&raw_ptr()->function_type_arguments_, args.raw());
+    raw_ptr()->set_function_type_arguments(args.raw());
   }
   static intptr_t function_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, function_type_arguments_);
   }
 
   TypeArgumentsPtr delayed_type_arguments() const {
-    return raw_ptr()->delayed_type_arguments_;
+    return raw_ptr()->delayed_type_arguments();
   }
   void set_delayed_type_arguments(const TypeArguments& args) const {
-    StorePointer(&raw_ptr()->delayed_type_arguments_, args.raw());
+    raw_ptr()->set_delayed_type_arguments(args.raw());
   }
   static intptr_t delayed_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, delayed_type_arguments_);
   }
 
-  FunctionPtr function() const { return raw_ptr()->function_; }
+  FunctionPtr function() const { return raw_ptr()->function(); }
   static intptr_t function_offset() {
     return OFFSET_OF(ClosureLayout, function_);
   }
 
-  ContextPtr context() const { return raw_ptr()->context_; }
+  ContextPtr context() const { return raw_ptr()->context(); }
   static intptr_t context_offset() {
     return OFFSET_OF(ClosureLayout, context_);
   }
@@ -10567,7 +10553,7 @@ class Closure : public Instance {
   // No need for NumParentTypeParameters, as a closure is always closed over
   // its parents type parameters (i.e., function_type_parameters() above).
 
-  SmiPtr hash() const { return raw_ptr()->hash_; }
+  SmiPtr hash() const { return raw_ptr()->hash(); }
   static intptr_t hash_offset() { return OFFSET_OF(ClosureLayout, hash_); }
 
   static intptr_t InstanceSize() {
@@ -10619,18 +10605,18 @@ class Capability : public Instance {
 
 class ReceivePort : public Instance {
  public:
-  SendPortPtr send_port() const { return raw_ptr()->send_port_; }
+  SendPortPtr send_port() const { return raw_ptr()->send_port(); }
   Dart_Port Id() const { return send_port()->ptr()->id_; }
 
-  InstancePtr handler() const { return raw_ptr()->handler_; }
+  InstancePtr handler() const { return raw_ptr()->handler(); }
   void set_handler(const Instance& value) const;
 
 #if !defined(PRODUCT)
   StackTracePtr allocation_location() const {
-    return raw_ptr()->allocation_location_;
+    return raw_ptr()->allocation_location();
   }
 
-  StringPtr debug_name() const { return raw_ptr()->debug_name_; }
+  StringPtr debug_name() const { return raw_ptr()->debug_name(); }
 #endif
 
   static intptr_t InstanceSize() {
@@ -10720,15 +10706,15 @@ class StackTrace : public Instance {
 
   intptr_t Length() const;
 
-  StackTracePtr async_link() const { return raw_ptr()->async_link_; }
+  StackTracePtr async_link() const { return raw_ptr()->async_link(); }
   void set_async_link(const StackTrace& async_link) const;
   void set_expand_inlined(bool value) const;
 
-  ArrayPtr code_array() const { return raw_ptr()->code_array_; }
+  ArrayPtr code_array() const { return raw_ptr()->code_array(); }
   ObjectPtr CodeAtFrame(intptr_t frame_index) const;
   void SetCodeAtFrame(intptr_t frame_index, const Object& code) const;
 
-  ArrayPtr pc_offset_array() const { return raw_ptr()->pc_offset_array_; }
+  ArrayPtr pc_offset_array() const { return raw_ptr()->pc_offset_array(); }
   SmiPtr PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
 
@@ -10853,19 +10839,19 @@ class RegExp : public Instance {
                        : raw_ptr()->num_two_byte_registers_;
   }
 
-  StringPtr pattern() const { return raw_ptr()->pattern_; }
+  StringPtr pattern() const { return raw_ptr()->pattern(); }
   SmiPtr num_bracket_expressions() const {
-    return raw_ptr()->num_bracket_expressions_;
+    return raw_ptr()->num_bracket_expressions();
   }
-  ArrayPtr capture_name_map() const { return raw_ptr()->capture_name_map_; }
+  ArrayPtr capture_name_map() const { return raw_ptr()->capture_name_map(); }
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
-      return is_one_byte ? raw_ptr()->one_byte_sticky_.bytecode_
-                         : raw_ptr()->two_byte_sticky_.bytecode_;
+      return TypedData::RawCast(is_one_byte ? raw_ptr()->one_byte_sticky_
+                                            : raw_ptr()->two_byte_sticky_);
     } else {
-      return is_one_byte ? raw_ptr()->one_byte_.bytecode_
-                         : raw_ptr()->two_byte_.bytecode_;
+      return TypedData::RawCast(is_one_byte ? raw_ptr()->one_byte_
+                                            : raw_ptr()->two_byte_);
     }
   }
 
@@ -10873,24 +10859,24 @@ class RegExp : public Instance {
     if (sticky) {
       switch (cid) {
         case kOneByteStringCid:
-          return OFFSET_OF(RegExpLayout, one_byte_sticky_.function_);
+          return OFFSET_OF(RegExpLayout, one_byte_sticky_);
         case kTwoByteStringCid:
-          return OFFSET_OF(RegExpLayout, two_byte_sticky_.function_);
+          return OFFSET_OF(RegExpLayout, two_byte_sticky_);
         case kExternalOneByteStringCid:
-          return OFFSET_OF(RegExpLayout, external_one_byte_sticky_function_);
+          return OFFSET_OF(RegExpLayout, external_one_byte_sticky_);
         case kExternalTwoByteStringCid:
-          return OFFSET_OF(RegExpLayout, external_two_byte_sticky_function_);
+          return OFFSET_OF(RegExpLayout, external_two_byte_sticky_);
       }
     } else {
       switch (cid) {
         case kOneByteStringCid:
-          return OFFSET_OF(RegExpLayout, one_byte_.function_);
+          return OFFSET_OF(RegExpLayout, one_byte_);
         case kTwoByteStringCid:
-          return OFFSET_OF(RegExpLayout, two_byte_.function_);
+          return OFFSET_OF(RegExpLayout, two_byte_);
         case kExternalOneByteStringCid:
-          return OFFSET_OF(RegExpLayout, external_one_byte_function_);
+          return OFFSET_OF(RegExpLayout, external_one_byte_);
         case kExternalTwoByteStringCid:
-          return OFFSET_OF(RegExpLayout, external_two_byte_function_);
+          return OFFSET_OF(RegExpLayout, external_two_byte_);
       }
     }
 
@@ -10981,16 +10967,14 @@ class RegExp : public Instance {
 
 class WeakProperty : public Instance {
  public:
-  ObjectPtr key() const { return raw_ptr()->key_; }
+  ObjectPtr key() const { return raw_ptr()->key(); }
 
-  void set_key(const Object& key) const {
-    StorePointer(&raw_ptr()->key_, key.raw());
-  }
+  void set_key(const Object& key) const { raw_ptr()->set_key(key.raw()); }
 
-  ObjectPtr value() const { return raw_ptr()->value_; }
+  ObjectPtr value() const { return raw_ptr()->value(); }
 
   void set_value(const Object& value) const {
-    StorePointer(&raw_ptr()->value_, value.raw());
+    raw_ptr()->set_value(value.raw());
   }
 
   static WeakPropertyPtr New(Heap::Space space = Heap::kNew);
@@ -11013,10 +10997,10 @@ class WeakProperty : public Instance {
 
 class MirrorReference : public Instance {
  public:
-  ObjectPtr referent() const { return raw_ptr()->referent_; }
+  ObjectPtr referent() const { return raw_ptr()->referent(); }
 
   void set_referent(const Object& referent) const {
-    StorePointer(&raw_ptr()->referent_, referent.raw());
+    raw_ptr()->set_referent(referent.raw());
   }
 
   AbstractTypePtr GetAbstractTypeReferent() const;
@@ -11053,7 +11037,7 @@ class UserTag : public Instance {
   }
   static intptr_t tag_offset() { return OFFSET_OF(UserTagLayout, tag_); }
 
-  StringPtr label() const { return raw_ptr()->label_; }
+  StringPtr label() const { return raw_ptr()->label(); }
 
   void MakeActive() const;
 
@@ -11072,7 +11056,7 @@ class UserTag : public Instance {
   static void AddTagToIsolate(Thread* thread, const UserTag& tag);
 
   void set_label(const String& tag_label) const {
-    StorePointer(&raw_ptr()->label_, tag_label.raw());
+    raw_ptr()->set_label(tag_label.raw());
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UserTag, Instance);
@@ -11087,7 +11071,7 @@ class FutureOr : public Instance {
   }
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
-    return raw_ptr()->type_arguments_;
+    return raw_ptr()->type_arguments();
   }
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(FutureOrLayout, type_arguments_);
@@ -11142,7 +11126,7 @@ void Object::SetRaw(ObjectPtr value) {
 
 intptr_t Field::HostOffset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
-  return (Smi::Value(raw_ptr()->host_offset_or_field_id_) * kWordSize);
+  return (Smi::Value(raw_ptr()->host_offset_or_field_id()) * kWordSize);
 }
 
 intptr_t Field::TargetOffset() const {
@@ -11166,8 +11150,8 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
                       intptr_t target_offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
-  StoreSmi(&raw_ptr()->host_offset_or_field_id_,
-           Smi::New(host_offset_in_bytes / kWordSize));
+  raw_ptr()->set_host_offset_or_field_id(
+      Smi::New(host_offset_in_bytes / kWordSize));
 #if !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(compiler::target::kWordSize != 0);
   StoreNonPointer(&raw_ptr()->target_offset_,
@@ -11180,21 +11164,21 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
 InstancePtr Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
   return Isolate::Current()->field_table()->At(
-      Smi::Value(raw_ptr()->host_offset_or_field_id_));
+      Smi::Value(raw_ptr()->host_offset_or_field_id()));
 }
 
 inline intptr_t Field::field_id() const {
-  return Smi::Value(raw_ptr()->host_offset_or_field_id_);
+  return Smi::Value(raw_ptr()->host_offset_or_field_id());
 }
 
 void Field::set_field_id(intptr_t field_id) const {
   ASSERT(is_static());
   ASSERT(Thread::Current()->IsMutatorThread());
-  StoreSmi(&raw_ptr()->host_offset_or_field_id_, Smi::New(field_id));
+  raw_ptr()->set_host_offset_or_field_id(Smi::New(field_id));
 }
 
 void Context::SetAt(intptr_t index, const Object& value) const {
-  StorePointer(ObjectAddr(index), value.raw());
+  raw_ptr()->set_element(index, value.raw());
 }
 
 intptr_t Instance::GetNativeField(int index) const {
@@ -11276,7 +11260,7 @@ ObjectPtr MegamorphicCache::GetTargetFunction(const Array& array,
 }
 
 inline intptr_t Type::Hash() const {
-  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  intptr_t result = Smi::Value(raw_ptr()->hash());
   if (result != 0) {
     return result;
   }
@@ -11286,12 +11270,12 @@ inline intptr_t Type::Hash() const {
 inline void Type::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+  raw_ptr()->set_hash(Smi::New(value));
 }
 
 inline intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
-  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  intptr_t result = Smi::Value(raw_ptr()->hash());
   if (result != 0) {
     return result;
   }
@@ -11301,12 +11285,12 @@ inline intptr_t TypeParameter::Hash() const {
 inline void TypeParameter::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+  raw_ptr()->set_hash(Smi::New(value));
 }
 
 inline intptr_t TypeArguments::Hash() const {
   if (IsNull()) return kAllDynamicHash;
-  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  intptr_t result = Smi::Value(raw_ptr()->hash());
   if (result != 0) {
     return result;
   }
@@ -11316,7 +11300,7 @@ inline intptr_t TypeArguments::Hash() const {
 inline void TypeArguments::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+  raw_ptr()->set_hash(Smi::New(value));
 }
 
 inline uint16_t String::CharAt(StringPtr str, intptr_t index) {

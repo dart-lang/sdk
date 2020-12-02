@@ -173,10 +173,14 @@ namespace dart {
   F(RegExp, num_bracket_expressions_)                                          \
   F(RegExp, capture_name_map_)                                                 \
   F(RegExp, pattern_)                                                          \
-  F(RegExp, external_one_byte_function_)                                       \
-  F(RegExp, external_two_byte_function_)                                       \
-  F(RegExp, external_one_byte_sticky_function_)                                \
-  F(RegExp, external_two_byte_sticky_function_)                                \
+  F(RegExp, one_byte_)                                                         \
+  F(RegExp, two_byte_)                                                         \
+  F(RegExp, external_one_byte_)                                                \
+  F(RegExp, external_two_byte_)                                                \
+  F(RegExp, one_byte_sticky_)                                                  \
+  F(RegExp, two_byte_sticky_)                                                  \
+  F(RegExp, external_one_byte_sticky_)                                         \
+  F(RegExp, external_two_byte_sticky_)                                         \
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
