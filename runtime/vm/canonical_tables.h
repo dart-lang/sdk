@@ -254,6 +254,38 @@ class CanonicalTypeArgumentsTraits {
 typedef UnorderedHashSet<CanonicalTypeArgumentsTraits>
     CanonicalTypeArgumentsSet;
 
+class MetadataMapTraits {
+ public:
+  static const char* Name() { return "MetadataMapTraits"; }
+  static bool ReportStats() { return false; }
+  static bool IsMatch(const Object& key, const Object& candidate) {
+    return key.raw() == candidate.raw();
+  }
+  static uword Hash(const Object& key) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (key.IsLibrary()) {
+      return String::Hash(Library::Cast(key).url());
+    } else if (key.IsClass()) {
+      return String::Hash(Class::Cast(key).Name());
+    } else if (key.IsPatchClass()) {
+      return Hash(Object::Handle(PatchClass::Cast(key).patched_class()));
+    } else if (key.IsFunction()) {
+      return CombineHashes(String::Hash(Function::Cast(key).name()),
+                           Hash(Object::Handle(Function::Cast(key).Owner())));
+    } else if (key.IsField()) {
+      return CombineHashes(String::Hash(Field::Cast(key).name()),
+                           Hash(Object::Handle(Field::Cast(key).Owner())));
+    } else if (key.IsTypeParameter()) {
+      return TypeParameter::Cast(key).Hash();
+    } else if (key.IsNamespace()) {
+      return Hash(Library::Handle(Namespace::Cast(key).target()));
+    }
+#endif
+    UNREACHABLE();
+  }
+};
+typedef UnorderedHashMap<MetadataMapTraits> MetadataMap;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CANONICAL_TABLES_H_

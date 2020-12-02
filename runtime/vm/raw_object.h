@@ -1409,8 +1409,7 @@ class LibraryLayout : public ObjectLayout {
   POINTER_FIELD(StringPtr, url)
   POINTER_FIELD(StringPtr, private_key)
   POINTER_FIELD(ArrayPtr, dictionary)  // Top-level names in this library.
-  POINTER_FIELD(GrowableObjectArrayPtr,
-                metadata)  // Metadata on classes, methods etc.
+  POINTER_FIELD(ArrayPtr, metadata)    // Metadata on classes, methods etc.
   POINTER_FIELD(ClassPtr,
                 toplevel_class)  // Class containing top-level elements.
   POINTER_FIELD(GrowableObjectArrayPtr, used_scripts)
@@ -1462,14 +1461,12 @@ class LibraryLayout : public ObjectLayout {
 class NamespaceLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
-  VISIT_FROM(ObjectPtr, library)
-  POINTER_FIELD(LibraryPtr, library)   // library with name dictionary.
+  VISIT_FROM(ObjectPtr, target)
+  POINTER_FIELD(LibraryPtr, target)    // library with name dictionary.
   POINTER_FIELD(ArrayPtr, show_names)  // list of names that are exported.
   POINTER_FIELD(ArrayPtr, hide_names)  // list of names that are hidden.
-  POINTER_FIELD(FieldPtr,
-                metadata_field)  // remembers the token pos of metadata if any,
-                                 // and the metadata values if computed.
-  VISIT_TO(ObjectPtr, metadata_field)
+  POINTER_FIELD(LibraryPtr, owner)
+  VISIT_TO(ObjectPtr, owner)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
