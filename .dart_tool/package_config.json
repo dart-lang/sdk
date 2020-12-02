@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-11-15T14:18:10.587065",
+  "generated": "2020-11-30T16:23:50.740805",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -101,7 +101,7 @@
       "name": "args",
       "rootUri": "../third_party/pkg/args",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "async",
