@@ -9796,7 +9796,7 @@ const dynamic b = null;
     var library = await checkLibrary('@a import "foo.dart"; const a = b;');
     checkElementText(
         library,
-        r'''
+        '''
 import 'foo.dart';
   metadata
     Annotation
@@ -9808,7 +9808,7 @@ import 'foo.dart';
 const int a;
   constantInitializer
     SimpleIdentifier
-      staticElement: file:///foo.dart::@getter::b
+      staticElement: ${toUriStr('/foo.dart')}::@getter::b
       staticType: int
       token: b
 ''',
@@ -12865,7 +12865,8 @@ int j;
 
 /// Mixin containing helper methods for testing summary resynthesis.  Intended
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
-mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
+mixin ResynthesizeTestHelpers
+    implements ResynthesizeTestStrategy, ResourceProviderMixin {
   Future<LibraryElementImpl /*!*/ > checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
     throw 42;
