@@ -110,36 +110,40 @@ static method method() → dynamic {
   core::bool #nullableInitializedFinalLocal#isSet = false;
   function #nullableInitializedFinalLocal#get() → core::int? {
     if(!#nullableInitializedFinalLocal#isSet) {
-      nullableInitializedFinalLocal = 0;
+      final core::int? #t26 = 0;
+      if(#nullableInitializedFinalLocal#isSet)
+        throw new _in::LateError::localADI("nullableInitializedFinalLocal");
+      nullableInitializedFinalLocal = #t26;
       #nullableInitializedFinalLocal#isSet = true;
     }
     return nullableInitializedFinalLocal;
   }
   final core::int? nonNullableInitializedFinalLocal;
   function #nonNullableInitializedFinalLocal#get() → core::int
-    return let final core::int? #t26 = nonNullableInitializedFinalLocal in #t26.==(null) ?{core::int} nonNullableInitializedFinalLocal = 0 : #t26{core::int};
+    return let final core::int? #t27 = nonNullableInitializedFinalLocal in #t27.==(null) ?{core::int} let final core::int #t28 = 0 in nonNullableInitializedFinalLocal.==(null) ?{core::int} nonNullableInitializedFinalLocal = #t28 : throw new _in::LateError::localADI("nonNullableInitializedFinalLocal") : #t27{core::int};
 }
 static get uninitializedNonFinalTopLevelField() → core::int
-  return let final core::int? #t27 = self::_#uninitializedNonFinalTopLevelField in #t27.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField") : #t27{core::int};
-static set uninitializedNonFinalTopLevelField(core::int #t28) → void
-  self::_#uninitializedNonFinalTopLevelField = #t28;
+  return let final core::int? #t29 = self::_#uninitializedNonFinalTopLevelField in #t29.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField") : #t29{core::int};
+static set uninitializedNonFinalTopLevelField(core::int #t30) → void
+  self::_#uninitializedNonFinalTopLevelField = #t30;
 static get uninitializedFinalTopLevelField() → core::int
-  return let final core::int? #t29 = self::_#uninitializedFinalTopLevelField in #t29.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField") : #t29{core::int};
-static set uninitializedFinalTopLevelField(core::int #t30) → void
+  return let final core::int? #t31 = self::_#uninitializedFinalTopLevelField in #t31.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField") : #t31{core::int};
+static set uninitializedFinalTopLevelField(core::int #t32) → void
   if(self::_#uninitializedFinalTopLevelField.==(null))
-    self::_#uninitializedFinalTopLevelField = #t30;
+    self::_#uninitializedFinalTopLevelField = #t32;
   else
     throw new _in::LateError::fieldAI("uninitializedFinalTopLevelField");
 static get initializedNonFinalTopLevelField() → core::int
-  return let final core::int? #t31 = self::_#initializedNonFinalTopLevelField in #t31.==(null) ?{core::int} self::_#initializedNonFinalTopLevelField = 0 : #t31{core::int};
-static set initializedNonFinalTopLevelField(core::int #t32) → void
-  self::_#initializedNonFinalTopLevelField = #t32;
+  return let final core::int? #t33 = self::_#initializedNonFinalTopLevelField in #t33.==(null) ?{core::int} self::_#initializedNonFinalTopLevelField = 0 : #t33{core::int};
+static set initializedNonFinalTopLevelField(core::int #t34) → void
+  self::_#initializedNonFinalTopLevelField = #t34;
 static get initializedFinalTopLevelField() → core::int
-  return let final core::int? #t33 = self::_#initializedFinalTopLevelField in #t33.==(null) ?{core::int} let final core::int #t34 = 0 in self::_#initializedFinalTopLevelField.==(null) ?{core::int} self::_#initializedFinalTopLevelField = #t34 : throw new _in::LateError::fieldADI("initializedFinalTopLevelField") : #t33{core::int};
+  return let final core::int? #t35 = self::_#initializedFinalTopLevelField in #t35.==(null) ?{core::int} let final core::int #t36 = 0 in self::_#initializedFinalTopLevelField.==(null) ?{core::int} self::_#initializedFinalTopLevelField = #t36 : throw new _in::LateError::fieldADI("initializedFinalTopLevelField") : #t35{core::int};
 
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:30:25 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:35:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:18:18 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:24:16 -> IntConstant(0)
-Extra constant evaluation: evaluated: 224, effectively constant: 3
+Extra constant evaluation: evaluated: 235, effectively constant: 4

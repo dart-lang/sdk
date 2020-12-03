@@ -42,14 +42,20 @@ static method test() → dynamic {
       throw new _in::LateError::localAI("nonNullableFinalTopLevelLocal");
   final core::int? nullableFinalTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
   function #nullableFinalTopLevelLocalWithInitializer#get() → core::int?
-    return let final core::int? #t13 = nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t13) ?{core::int?} nullableFinalTopLevelLocalWithInitializer = null : #t13{core::int?};
+    return let final core::int? #t13 = nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t13) ?{core::int?} let final core::int? #t14 = null in _in::isSentinel(nullableFinalTopLevelLocalWithInitializer) ?{core::int?} nullableFinalTopLevelLocalWithInitializer = #t14 : throw new _in::LateError::localADI("nullableFinalTopLevelLocalWithInitializer") : #t13;
   final core::int? nonNullableFinalTopLevelLocalWithInitializer = _in::createSentinel<core::int>();
   function #nonNullableFinalTopLevelLocalWithInitializer#get() → core::int
-    return let final core::int? #t14 = nonNullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t14) ?{core::int} nonNullableFinalTopLevelLocalWithInitializer = 0 : #t14{core::int};
+    return let final core::int #t15 = nonNullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t15) ?{core::int} let final core::int #t16 = 0 in _in::isSentinel(nonNullableFinalTopLevelLocalWithInitializer) ?{core::int} nonNullableFinalTopLevelLocalWithInitializer = #t16 : throw new _in::LateError::localADI("nonNullableFinalTopLevelLocalWithInitializer") : #t15;
   Null neverLocal = _in::createSentinel<Never>();
   function #neverLocal#get() → Never
-    return let final Never? #t15 = neverLocal in _in::isSentinel(#t15) ?{Never} throw new _in::LateError::localNI("neverLocal") : #t15{Never};
-  function #neverLocal#set(Never #t16) → dynamic
-    return neverLocal = #t16;
+    return let final Never? #t17 = neverLocal in _in::isSentinel(#t17) ?{Never} throw new _in::LateError::localNI("neverLocal") : #t17{Never};
+  function #neverLocal#set(Never #t18) → dynamic
+    return neverLocal = #t18;
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///late_locals.dart:12:19 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_locals.dart:13:18 -> IntConstant(0)
+Extra constant evaluation: evaluated: 113, effectively constant: 2

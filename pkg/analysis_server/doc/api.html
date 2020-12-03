@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.32.0
+  1.32.1
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -235,6 +235,11 @@ a:focus, a:hover {
   the server so clients should ensure unknown values are handled gracefully, either
   ignoring the item or treating it with some default/fallback handling.
 </p>
+<h3>Changelog</h3>
+<h4>1.32.1</h4>
+<ul>
+  <li>Added <tt>CompletionSuggestionKind.PACKAGE_NAME</tt> for Pub package name completions in <tt>pubspec.yaml</tt></li>
+</ul>
 <h3>Domains</h3>
 <p>
   For convenience, the API is divided into domains. Each domain is specified

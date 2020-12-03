@@ -5838,17 +5838,30 @@ class InferenceVisitor
                       createIsSetRead: createIsSetRead,
                       isSetEncoding: isSetEncoding,
                       forField: false)
-                  : late_lowering.createGetterWithInitializer(
-                      inferrer.coreTypes,
-                      fileOffset,
-                      node.name,
-                      node.type,
-                      node.initializer,
-                      createVariableRead: createVariableRead,
-                      createVariableWrite: createVariableWrite,
-                      createIsSetRead: createIsSetRead,
-                      createIsSetWrite: createIsSetWrite,
-                      isSetEncoding: isSetEncoding),
+                  : (node.isFinal
+                      ? late_lowering.createGetterWithInitializerWithRecheck(
+                          inferrer.coreTypes,
+                          fileOffset,
+                          node.name,
+                          node.type,
+                          node.initializer,
+                          createVariableRead: createVariableRead,
+                          createVariableWrite: createVariableWrite,
+                          createIsSetRead: createIsSetRead,
+                          createIsSetWrite: createIsSetWrite,
+                          isSetEncoding: isSetEncoding,
+                          forField: false)
+                      : late_lowering.createGetterWithInitializer(
+                          inferrer.coreTypes,
+                          fileOffset,
+                          node.name,
+                          node.type,
+                          node.initializer,
+                          createVariableRead: createVariableRead,
+                          createVariableWrite: createVariableWrite,
+                          createIsSetRead: createIsSetRead,
+                          createIsSetWrite: createIsSetWrite,
+                          isSetEncoding: isSetEncoding)),
               returnType: node.type))
         ..fileOffset = fileOffset;
       getVariable.type =

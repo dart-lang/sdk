@@ -106,29 +106,32 @@ static method method() → dynamic {
   core::bool #nullableInitializedFinalLocal#isSet = false;
   function #nullableInitializedFinalLocal#get() → core::int? {
     if(!#nullableInitializedFinalLocal#isSet) {
-      nullableInitializedFinalLocal = 0;
+      final core::int? #t24 = 0;
+      if(#nullableInitializedFinalLocal#isSet)
+        throw new _in::LateError::localADI("nullableInitializedFinalLocal");
+      nullableInitializedFinalLocal = #t24;
       #nullableInitializedFinalLocal#isSet = true;
     }
     return nullableInitializedFinalLocal;
   }
   final core::int? nonNullableInitializedFinalLocal;
   function #nonNullableInitializedFinalLocal#get() → core::int
-    return let final core::int? #t24 = nonNullableInitializedFinalLocal in #t24.==(null) ?{core::int} nonNullableInitializedFinalLocal = 0 : #t24{core::int};
+    return let final core::int? #t25 = nonNullableInitializedFinalLocal in #t25.==(null) ?{core::int} let final core::int #t26 = 0 in nonNullableInitializedFinalLocal.==(null) ?{core::int} nonNullableInitializedFinalLocal = #t26 : throw new _in::LateError::localADI("nonNullableInitializedFinalLocal") : #t25{core::int};
 }
 static get uninitializedNonFinalTopLevelField() → core::int
-  return let final core::int? #t25 = self::_#uninitializedNonFinalTopLevelField in #t25.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField") : #t25{core::int};
-static set uninitializedNonFinalTopLevelField(core::int #t26) → void
-  self::_#uninitializedNonFinalTopLevelField = #t26;
+  return let final core::int? #t27 = self::_#uninitializedNonFinalTopLevelField in #t27.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField") : #t27{core::int};
+static set uninitializedNonFinalTopLevelField(core::int #t28) → void
+  self::_#uninitializedNonFinalTopLevelField = #t28;
 static get uninitializedFinalTopLevelField() → core::int
-  return let final core::int? #t27 = self::_#uninitializedFinalTopLevelField in #t27.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField") : #t27{core::int};
-static set uninitializedFinalTopLevelField(core::int #t28) → void
+  return let final core::int? #t29 = self::_#uninitializedFinalTopLevelField in #t29.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField") : #t29{core::int};
+static set uninitializedFinalTopLevelField(core::int #t30) → void
   if(self::_#uninitializedFinalTopLevelField.==(null))
-    self::_#uninitializedFinalTopLevelField = #t28;
+    self::_#uninitializedFinalTopLevelField = #t30;
   else
     throw new _in::LateError::fieldAI("uninitializedFinalTopLevelField");
 static get initializedNonFinalTopLevelField() → core::int
-  return let final core::int? #t29 = self::_#initializedNonFinalTopLevelField in #t29.==(null) ?{core::int} self::_#initializedNonFinalTopLevelField = 0 : #t29{core::int};
-static set initializedNonFinalTopLevelField(core::int #t30) → void
-  self::_#initializedNonFinalTopLevelField = #t30;
+  return let final core::int? #t31 = self::_#initializedNonFinalTopLevelField in #t31.==(null) ?{core::int} self::_#initializedNonFinalTopLevelField = 0 : #t31{core::int};
+static set initializedNonFinalTopLevelField(core::int #t32) → void
+  self::_#initializedNonFinalTopLevelField = #t32;
 static get initializedFinalTopLevelField() → core::int
-  return let final core::int? #t31 = self::_#initializedFinalTopLevelField in #t31.==(null) ?{core::int} let final core::int #t32 = 0 in self::_#initializedFinalTopLevelField.==(null) ?{core::int} self::_#initializedFinalTopLevelField = #t32 : throw new _in::LateError::fieldADI("initializedFinalTopLevelField") : #t31{core::int};
+  return let final core::int? #t33 = self::_#initializedFinalTopLevelField in #t33.==(null) ?{core::int} let final core::int #t34 = 0 in self::_#initializedFinalTopLevelField.==(null) ?{core::int} self::_#initializedFinalTopLevelField = #t34 : throw new _in::LateError::fieldADI("initializedFinalTopLevelField") : #t33{core::int};

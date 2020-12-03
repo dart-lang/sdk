@@ -1339,7 +1339,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
         createIsSetWrite: (Expression value) =>
             _createFieldSet(_lateIsSetField, value),
-        isSetEncoding: isSetEncoding);
+        isSetEncoding: isSetEncoding,
+        forField: true);
   }
 
   @override

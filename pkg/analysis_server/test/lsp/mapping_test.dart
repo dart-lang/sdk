@@ -76,7 +76,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_tabStopsInSnippets_contains() async {
     var result = lsp.buildSnippetStringWithTabStops('a, b, c', [3, 1]);
-    expect(result, equals(r'a, ${1:b}, c'));
+    expect(result, equals(r'a, ${0:b}, c'));
   }
 
   Future<void> test_tabStopsInSnippets_empty() async {
@@ -86,13 +86,13 @@ class MappingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_tabStopsInSnippets_endsWith() async {
     var result = lsp.buildSnippetStringWithTabStops('a, b', [3, 1]);
-    expect(result, equals(r'a, ${1:b}'));
+    expect(result, equals(r'a, ${0:b}'));
   }
 
   Future<void> test_tabStopsInSnippets_escape() async {
     var result = lsp.buildSnippetStringWithTabStops(
         r'te$tstri}ng, te$tstri}ng, te$tstri}ng', [13, 11]);
-    expect(result, equals(r'te\$tstri\}ng, ${1:te\$tstri\}ng}, te\$tstri\}ng'));
+    expect(result, equals(r'te\$tstri\}ng, ${0:te\$tstri\}ng}, te\$tstri\}ng'));
   }
 
   Future<void> test_tabStopsInSnippets_multiple() async {
@@ -103,6 +103,6 @@ class MappingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_tabStopsInSnippets_startsWith() async {
     var result = lsp.buildSnippetStringWithTabStops('a, b', [0, 1]);
-    expect(result, equals(r'${1:a}, b'));
+    expect(result, equals(r'${0:a}, b'));
   }
 }

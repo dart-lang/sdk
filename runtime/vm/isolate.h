@@ -812,7 +812,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return thread == nullptr ? nullptr : thread->isolate();
   }
 
-  bool IsScheduled() { return scheduled_mutator_thread_ != nullptr; }
+  bool IsScheduled() { return scheduled_mutator_thread() != nullptr; }
+  Thread* scheduled_mutator_thread() const { return scheduled_mutator_thread_; }
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);

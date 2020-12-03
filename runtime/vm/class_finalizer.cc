@@ -1148,10 +1148,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 }
 
 ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(cls.is_finalized());
-  if (cls.is_allocate_finalized()) {
-    return Error::null();
-  }
+  ASSERT(!cls.is_allocate_finalized());
 
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
@@ -1200,7 +1199,10 @@ ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
 }
 
 ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(!cls.is_finalized());
+
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)

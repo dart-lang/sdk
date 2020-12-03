@@ -289,7 +289,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
           origin: remoteContext);
     }
 
-    bool isTypeCast = localContext != null &&
+    // TODO(johnniwinther): This check wasn't called from InterfaceType and
+    // is currently very broken. Disabling for now.
+    /*bool isTypeCast = localContext != null &&
         localContext is AsExpression &&
         localContext.isTypeError;
     // Don't check cases like foo(x as{TypeError} T).  In cases where foo comes
@@ -329,7 +331,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
             "Found a legacy type '${node}' in an opted-in library.",
             origin: remoteContext);
       }
-    }
+    }*/
 
     super.defaultDartType(node);
   }

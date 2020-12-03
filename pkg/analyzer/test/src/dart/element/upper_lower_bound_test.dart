@@ -2214,6 +2214,73 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     assertLUB(aNone, aNone, aNone);
   }
 
+  void test_sharedMixin1() {
+    // mixin M {}
+    // class B with M {}
+    // class C with M {}
+
+    var M = mixin_(name: 'M');
+    var M_none = interfaceTypeNone(M);
+
+    var B = class_(name: 'B', mixins: [M_none]);
+    var B_none = interfaceTypeNone(B);
+
+    var C = class_(name: 'C', mixins: [M_none]);
+    var C_none = interfaceTypeNone(C);
+
+    _checkLeastUpperBound(B_none, C_none, M_none);
+  }
+
+  void test_sharedMixin2() {
+    // mixin M1 {}
+    // mixin M2 {}
+    // mixin M3 {}
+    // class A with M1, M2 {}
+    // class B with M1, M3 {}
+
+    var M1 = mixin_(name: 'M1');
+    var M1_none = interfaceTypeNone(M1);
+
+    var M2 = mixin_(name: 'M2');
+    var M2_none = interfaceTypeNone(M2);
+
+    var M3 = mixin_(name: 'M3');
+    var M3_none = interfaceTypeNone(M3);
+
+    var A = class_(name: 'A', mixins: [M1_none, M2_none]);
+    var A_none = interfaceTypeNone(A);
+
+    var B = class_(name: 'B', mixins: [M1_none, M3_none]);
+    var B_none = interfaceTypeNone(B);
+
+    _checkLeastUpperBound(A_none, B_none, M1_none);
+  }
+
+  void test_sharedMixin3() {
+    // mixin M1 {}
+    // mixin M2 {}
+    // mixin M3 {}
+    // class A with M2, M1 {}
+    // class B with M3, M1 {}
+
+    var M1 = mixin_(name: 'M1');
+    var M1_none = interfaceTypeNone(M1);
+
+    var M2 = mixin_(name: 'M2');
+    var M2_none = interfaceTypeNone(M2);
+
+    var M3 = mixin_(name: 'M3');
+    var M3_none = interfaceTypeNone(M3);
+
+    var A = class_(name: 'A', mixins: [M2_none, M1_none]);
+    var A_none = interfaceTypeNone(A);
+
+    var B = class_(name: 'B', mixins: [M3_none, M1_none]);
+    var B_none = interfaceTypeNone(B);
+
+    _checkLeastUpperBound(A_none, B_none, M1_none);
+  }
+
   void test_sharedSuperclass1() {
     // class A {}
     // class B extends A {}

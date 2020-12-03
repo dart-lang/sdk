@@ -74,14 +74,22 @@ String buildSnippetStringWithTabStops(
         RegExp(r'[$}\\]'), // Replace any of $ } \
         (c) => '\\${c[0]}', // Prefix with a backslash
       );
+
   // Snippets syntax is documented in the LSP spec:
-  // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
+  // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
   //
   // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
 
   final output = [];
   var offset = 0;
-  var tabStopNumber = 1;
+
+  // When there's only a single tabstop, it should be ${0} as this is treated
+  // specially as the final cursor position (if we use 1, the editor will insert
+  // a 0 at the end of the string which is not what we expect).
+  // When there are multiple, start with ${1} since these are placeholders the
+  // user can tab through and the editor-inserted ${0} at the end is expected.
+  var tabStopNumber = offsetLengthPairs.length <= 2 ? 0 : 1;
+
   for (var i = 0; i < offsetLengthPairs.length; i += 2) {
     final pairOffset = offsetLengthPairs[i];
     final pairLength = offsetLengthPairs[i + 1];
@@ -852,9 +860,11 @@ lsp.CompletionItem toCompletionItem(
               suggestion.defaultArgumentListString,
               suggestion.defaultArgumentListTextRanges,
             )
-          : '\${1:}'; // No required params still gets a tabstop in the parens.
+          : '\${0:}'; // No required params still gets a tabstop in the parens.
       insertText += '($functionCallSuffix)';
-    } else if (suggestion.selectionOffset != 0) {
+    } else if (suggestion.selectionOffset != 0 &&
+        // We don't need a tabstop if the selection is the end of the string.
+        suggestion.selectionOffset != suggestion.completion.length) {
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       insertText = buildSnippetStringWithTabStops(
         suggestion.completion,

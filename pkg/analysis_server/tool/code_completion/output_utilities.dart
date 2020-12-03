@@ -4,6 +4,26 @@
 
 import 'dart:math' as math;
 
+/// Given a [table] represented as a list of rows, right justify all of the
+/// cells in the given [column], except for the first row under the assumption
+/// that the first row contains headers.
+void rightJustifyColumn(int column, List<List<String>> table) {
+  var width = 0;
+  for (var i = 0; i < table.length; i++) {
+    var row = table[i];
+    width = math.max(width, row[column].length);
+  }
+  for (var i = 1; i < table.length; i++) {
+    var row = table[i];
+    var cellValue = row[column];
+    var length = cellValue.length;
+    if (length < width) {
+      var padding = ' ' * (width - length);
+      row[column] = '$padding$cellValue';
+    }
+  }
+}
+
 extension OutputUtilities on StringSink {
   /// Write the given [table].
   ///

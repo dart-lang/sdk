@@ -95,6 +95,7 @@ class CoreTypes {
   Procedure _awaitHelperProcedure;
   Procedure _boolFromEnvironment;
   Constructor _lateInitializationFieldAssignedDuringInitializationConstructor;
+  Constructor _lateInitializationLocalAssignedDuringInitializationConstructor;
   Constructor _lateInitializationFieldNotInitializedConstructor;
   Constructor _lateInitializationLocalNotInitializedConstructor;
   Constructor _lateInitializationFieldAlreadyInitializedConstructor;
@@ -1218,6 +1219,12 @@ class CoreTypes {
       get lateInitializationFieldAssignedDuringInitializationConstructor {
     return _lateInitializationFieldAssignedDuringInitializationConstructor ??=
         index.getMember('dart:_internal', 'LateError', 'fieldADI');
+  }
+
+  Constructor
+      get lateInitializationLocalAssignedDuringInitializationConstructor {
+    return _lateInitializationLocalAssignedDuringInitializationConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'localADI');
   }
 
   Constructor get lateInitializationFieldNotInitializedConstructor {
