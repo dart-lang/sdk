@@ -68,7 +68,7 @@ vars = {
   "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
 
   # Revisions of /third_party/* dependencies.
-  "args_rev": "139140125126661fac88c9aa5882165936d01c91",
+  "args_tag": "1.6.0",
   "async_rev": "695b3ac280f107c84adf7488743abfdfaaeea68f",
   "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
@@ -301,7 +301,7 @@ deps = {
       "@" + Var("gperftools_revision"),
 
   Var("dart_root") + "/third_party/pkg/args":
-      Var("dart_git") + "args.git" + "@" + Var("args_rev"),
+      Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async":
       Var("dart_git") + "async.git" + "@" + Var("async_rev"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
