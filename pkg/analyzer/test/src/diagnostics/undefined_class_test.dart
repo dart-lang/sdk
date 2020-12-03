@@ -140,6 +140,7 @@ import 'dart:math' as p;
 
 p.A a;
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 26, 3),
     ]);
   }

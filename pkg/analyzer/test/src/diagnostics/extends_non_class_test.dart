@@ -118,6 +118,7 @@ import 'dart:math' as p;
 
 class C extends p.A {}
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 42, 3),
     ]);
   }

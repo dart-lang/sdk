@@ -30,7 +30,6 @@ import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
-import 'package:analyzer/src/summary2/linked_library_context.dart' as summary2;
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/summary2/reference.dart' as summary2;
 import 'package:analyzer_cli/src/context_cache.dart';

@@ -158,6 +158,7 @@ import 'dart:math' as p;
 
 class C with p.M {}
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 3),
     ]);
   }
