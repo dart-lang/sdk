@@ -4585,7 +4585,9 @@ ValueForRequiredParameterNotProvidedError:
   template: "Required named parameter '#name' must be provided."
 
 OptionalNonNullableWithoutInitializerError:
-  template: "Optional parameter '#name' should have a default value because its type '#type' doesn't allow null."
+  template: "The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'."
+  tip: "Try adding either an explicit non-'null' default value or the 'required' modifier."
+  analyzerCode: MISSING_DEFAULT_VALUE_FOR_PARAMETER
   configuration: nnbd-strong
   script:
     - method1({int a}) {}

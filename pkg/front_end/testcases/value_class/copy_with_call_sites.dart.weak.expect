@@ -2,11 +2,13 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:21: Error: Optional parameter 'bar' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:21: Error: The parameter 'bar' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   Foo copyWith({int bar, int bar2}) {
 //                     ^^^
 //
-// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:30: Error: Optional parameter 'bar2' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:30: Error: The parameter 'bar2' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   Foo copyWith({int bar, int bar2}) {
 //                              ^^^^
 //
