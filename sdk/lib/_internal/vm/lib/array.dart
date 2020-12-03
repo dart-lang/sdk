@@ -35,6 +35,72 @@ class _List<E> extends FixedLengthListBase<E> {
     return result;
   }
 
+  // Specialization of List.of constructor for growable == false.
+  factory _List.of(Iterable<E> elements) {
+    if (elements is _GrowableList) {
+      return _List._ofGrowableList(unsafeCast(elements));
+    }
+    if (elements is _List) {
+      return _List._ofList(unsafeCast(elements));
+    }
+    if (elements is _ImmutableList) {
+      return _List._ofImmutableList(unsafeCast(elements));
+    }
+    if (elements is EfficientLengthIterable) {
+      return _List._ofEfficientLengthIterable(unsafeCast(elements));
+    }
+    return _List._ofOther(elements);
+  }
+
+  factory _List._ofGrowableList(_GrowableList<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _List._ofList(_List<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _List._ofImmutableList(_ImmutableList<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _List._ofEfficientLengthIterable(
+      EfficientLengthIterable<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    if (length > 0) {
+      int i = 0;
+      for (var element in elements) {
+        list[i++] = element;
+      }
+      if (i != length) throw ConcurrentModificationError(elements);
+    }
+    return list;
+  }
+
+  factory _List._ofOther(Iterable<E> elements) {
+    // The static type of `makeListFixedLength` is `List<E>`, not `_List<E>`,
+    // but we know that is what it does.  `makeListFixedLength` is too generally
+    // typed since it is available on the web platform which has different
+    // system List types.
+    return unsafeCast(makeListFixedLength(_GrowableList<E>._ofOther(elements)));
+  }
+
   @pragma("vm:recognized", "graph-intrinsic")
   E operator [](int index) native "List_getIndexed";
 
