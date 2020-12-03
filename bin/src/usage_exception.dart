@@ -6,7 +6,9 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 abstract class PrintUsageException implements Command<void> {
-  void usageException(String message) {
+  // TODO(rnystrom): Use "Never" for the return type when this package is
+  // migrated to null safety.
+  usageException(String message) {
     print(message);
     printUsage();
     exit(1);

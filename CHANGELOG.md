@@ -1,3 +1,7 @@
+## 0.6.4
+
+* Make compatible with the null-safe version of `args`. 
+
 ## 0.6.3
 
 * Broaden version ranges for `fixnum` and `protobuf` dependencies to make
