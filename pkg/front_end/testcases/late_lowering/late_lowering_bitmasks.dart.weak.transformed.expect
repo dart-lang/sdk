@@ -174,7 +174,10 @@ static method method() → dynamic {
   core::bool #nullableInitializedFinalLocal#isSet = false;
   function #nullableInitializedFinalLocal#get() → core::int? {
     if(!#nullableInitializedFinalLocal#isSet) {
-      nullableInitializedFinalLocal = 0;
+      final core::int? #t23 = 0;
+      if(#nullableInitializedFinalLocal#isSet)
+        throw new _in::LateError::localADI("nullableInitializedFinalLocal");
+      nullableInitializedFinalLocal = #t23;
       #nullableInitializedFinalLocal#isSet = true;
     }
     return nullableInitializedFinalLocal;
@@ -183,45 +186,48 @@ static method method() → dynamic {
   core::bool #nonNullableInitializedFinalLocal#isSet = false;
   function #nonNullableInitializedFinalLocal#get() → core::int {
     if(!#nonNullableInitializedFinalLocal#isSet) {
-      nonNullableInitializedFinalLocal = 0;
+      final core::int #t24 = 0;
+      if(#nonNullableInitializedFinalLocal#isSet)
+        throw new _in::LateError::localADI("nonNullableInitializedFinalLocal");
+      nonNullableInitializedFinalLocal = #t24;
       #nonNullableInitializedFinalLocal#isSet = true;
     }
     return nonNullableInitializedFinalLocal{core::int};
   }
 }
 static get uninitializedNonFinalTopLevelField() → core::int
-  return self::_#uninitializedNonFinalTopLevelField#isSet ?{core::int} let final core::int? #t23 = self::_#uninitializedNonFinalTopLevelField in #t23{core::int} : throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField");
-static set uninitializedNonFinalTopLevelField(core::int #t24) → void {
+  return self::_#uninitializedNonFinalTopLevelField#isSet ?{core::int} let final core::int? #t25 = self::_#uninitializedNonFinalTopLevelField in #t25{core::int} : throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField");
+static set uninitializedNonFinalTopLevelField(core::int #t26) → void {
   self::_#uninitializedNonFinalTopLevelField#isSet = true;
-  self::_#uninitializedNonFinalTopLevelField = #t24;
+  self::_#uninitializedNonFinalTopLevelField = #t26;
 }
 static get uninitializedFinalTopLevelField() → core::int
-  return self::_#uninitializedFinalTopLevelField#isSet ?{core::int} let final core::int? #t25 = self::_#uninitializedFinalTopLevelField in #t25{core::int} : throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField");
-static set uninitializedFinalTopLevelField(core::int #t26) → void
+  return self::_#uninitializedFinalTopLevelField#isSet ?{core::int} let final core::int? #t27 = self::_#uninitializedFinalTopLevelField in #t27{core::int} : throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField");
+static set uninitializedFinalTopLevelField(core::int #t28) → void
   if(self::_#uninitializedFinalTopLevelField#isSet)
     throw new _in::LateError::fieldAI("uninitializedFinalTopLevelField");
   else {
     self::_#uninitializedFinalTopLevelField#isSet = true;
-    self::_#uninitializedFinalTopLevelField = #t26;
+    self::_#uninitializedFinalTopLevelField = #t28;
   }
 static get initializedNonFinalTopLevelField() → core::int {
   if(!self::_#initializedNonFinalTopLevelField#isSet) {
     self::_#initializedNonFinalTopLevelField = 0;
     self::_#initializedNonFinalTopLevelField#isSet = true;
   }
-  return let final core::int? #t27 = self::_#initializedNonFinalTopLevelField in #t27{core::int};
+  return let final core::int? #t29 = self::_#initializedNonFinalTopLevelField in #t29{core::int};
 }
-static set initializedNonFinalTopLevelField(core::int #t28) → void {
+static set initializedNonFinalTopLevelField(core::int #t30) → void {
   self::_#initializedNonFinalTopLevelField#isSet = true;
-  self::_#initializedNonFinalTopLevelField = #t28;
+  self::_#initializedNonFinalTopLevelField = #t30;
 }
 static get initializedFinalTopLevelField() → core::int {
   if(!self::_#initializedFinalTopLevelField#isSet) {
-    final core::int #t29 = 0;
+    final core::int #t31 = 0;
     if(self::_#initializedFinalTopLevelField#isSet)
       throw new _in::LateError::fieldADI("initializedFinalTopLevelField");
-    self::_#initializedFinalTopLevelField = #t29;
+    self::_#initializedFinalTopLevelField = #t31;
     self::_#initializedFinalTopLevelField#isSet = true;
   }
-  return let final core::int? #t30 = self::_#initializedFinalTopLevelField in #t30{core::int};
+  return let final core::int? #t32 = self::_#initializedFinalTopLevelField in #t32{core::int};
 }

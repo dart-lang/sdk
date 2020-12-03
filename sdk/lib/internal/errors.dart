@@ -17,6 +17,10 @@ class LateError extends Error implements LateInitializationError {
       : _message =
             "Field '$fieldName' has been assigned during initialization.";
 
+  LateError.localADI(String localName)
+      : _message =
+            "Local '$localName' has been assigned during initialization.";
+
   @pragma("vm:entry-point")
   LateError.fieldNI(String fieldName)
       : _message = "Field '${fieldName}' has not been initialized.";
