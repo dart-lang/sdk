@@ -106,7 +106,8 @@ main() {
   Expect.throws(() {
     local2 = 2;
   }, (e) => isValidError(e, "Local 'local2' has already been initialized."));
-  // Uncomment after https://github.com/dart-lang/sdk/issues/44372 is fixed.
-  // Expect.throws(() => local3,
-  //     (e) => isValidError(e, "Local 'local3' has already been initialized."));
+  Expect.throws(
+      () => local3,
+      (e) => isValidError(
+          e, "Local 'local3' has been assigned during initialization."));
 }

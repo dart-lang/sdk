@@ -212,4 +212,9 @@ class LateError {
   static _throwLocalAlreadyInitialized(String localName) {
     throw new LateError.localAI(localName);
   }
+
+  @pragma("vm:entry-point")
+  static _throwLocalAssignedDuringInitialization(String localName) {
+    throw new LateError.localADI(localName);
+  }
 }
