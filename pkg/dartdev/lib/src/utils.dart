@@ -68,3 +68,39 @@ extension FileSystemEntityExtension on FileSystemEntity {
 
   bool get isDartFile => this is File && p.extension(path) == '.dart';
 }
+
+/// Wraps [text] to the given [width], if provided.
+String wrapText(String text, {int width}) {
+  if (width == null) {
+    return text;
+  }
+
+  var buffer = StringBuffer();
+  var lineMaxEndIndex = width;
+  var lineStartIndex = 0;
+
+  while (true) {
+    if (lineMaxEndIndex >= text.length) {
+      buffer.write(text.substring(lineStartIndex, text.length));
+      break;
+    } else {
+      var lastSpaceIndex = text.lastIndexOf(' ', lineMaxEndIndex);
+      if (lastSpaceIndex == -1 || lastSpaceIndex <= lineStartIndex) {
+        // No space between [lineStartIndex] and [lineMaxEndIndex]. Get the
+        // _next_ space.
+        lastSpaceIndex = text.indexOf(' ', lineMaxEndIndex);
+        if (lastSpaceIndex == -1) {
+          // No space at all after [lineStartIndex].
+          lastSpaceIndex = text.length;
+          buffer.write(text.substring(lineStartIndex, lastSpaceIndex));
+          break;
+        }
+      }
+      buffer.write(text.substring(lineStartIndex, lastSpaceIndex));
+      buffer.writeln();
+      lineStartIndex = lastSpaceIndex + 1;
+    }
+    lineMaxEndIndex = lineStartIndex + width;
+  }
+  return buffer.toString();
+}

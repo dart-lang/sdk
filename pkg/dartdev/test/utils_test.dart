@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartdev/src/utils.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
@@ -32,7 +32,7 @@ void main() {
 
     test('nested', () {
       var dir = Directory('foo');
-      expect(relativePath(join(dir.absolute.path, 'path'), dir), 'path');
+      expect(relativePath(path.join(dir.absolute.path, 'path'), dir), 'path');
     });
   });
 
@@ -93,10 +93,10 @@ void main() {
     test('name', () {
       expect(Directory('').name, '');
       expect(Directory('dirName').name, 'dirName');
-      expect(Directory('dirName$separator').name, 'dirName');
+      expect(Directory('dirName${path.separator}').name, 'dirName');
       expect(File('').name, '');
       expect(File('foo.dart').name, 'foo.dart');
-      expect(File('${separator}foo.dart').name, 'foo.dart');
+      expect(File('${path.separator}foo.dart').name, 'foo.dart');
       expect(File('bar.bart').name, 'bar.bart');
     });
   });
@@ -131,6 +131,66 @@ void main() {
           orderedEquals(['pub', '--help']));
       expect(PubUtils.modifyArgs(['help', 'pub', 'publish']),
           orderedEquals(['pub', 'publish', '--help']));
+    });
+  });
+
+  group('wrapText', () {
+    test('oneLine_wordLongerThanLine', () {
+      expect(wrapText('http://long-url', width: 10), equals('http://long-url'));
+    });
+
+    test('singleLine', () {
+      expect(wrapText('one two', width: 10), equals('one two'));
+    });
+
+    test('singleLine_exactLength', () {
+      expect(wrapText('one twoooo', width: 10), equals('one twoooo'));
+    });
+
+    test('singleLine_exactLength_minusOne', () {
+      expect(wrapText('one twooo', width: 10), equals('one twooo'));
+    });
+
+    test('singleLine_exactLength_plusOne', () {
+      expect(wrapText('one twooooo', width: 10), equals('one\ntwooooo'));
+    });
+
+    test('twoLines_exactLength', () {
+      expect(wrapText('one two three four', width: 10),
+          equals('one two\nthree four'));
+    });
+
+    test('twoLines_exactLength_minusOne', () {
+      expect(wrapText('one two three fou', width: 10),
+          equals('one two\nthree fou'));
+    });
+
+    test('twoLines_exactLength_plusOne', () {
+      expect(wrapText('one two three fourr', width: 10),
+          equals('one two\nthree\nfourr'));
+    });
+
+    test('twoLines_lastLineEndsWithSpace', () {
+      expect(wrapText('one two three ', width: 10), equals('one two\nthree '));
+    });
+
+    test('twoLines_multipleSpacesAtSplit', () {
+      expect(
+          wrapText('one two.  Three', width: 10), equals('one two. \nThree'));
+    });
+
+    test('twoLines_noSpaceLastLine', () {
+      expect(wrapText('one two three', width: 10), equals('one two\nthree'));
+    });
+
+    test('twoLines_wordLongerThanLine_firstLine', () {
+      expect(wrapText('http://long-url word', width: 10),
+          equals('http://long-url\nword'));
+    });
+
+    test('twoLines_wordLongerThanLine_lastLine', () {
+      expect(wrapText('word http://long-url', width: 10),
+          equals('word\nhttp://long-url'));
     });
   });
 }
