@@ -1274,7 +1274,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
   // debuggable position in the initializer.
   TokenPosition end_position = helper_.reader_.max_position();
   if (end_position.IsReal()) {
-    end_position.Next();
+    end_position = end_position.Next();
   }
   LocalVariable* variable =
       MakeVariable(helper.position_, end_position, name, type);
