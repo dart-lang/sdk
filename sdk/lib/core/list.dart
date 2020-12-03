@@ -485,7 +485,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   void clear();
 
   /**
-   * Inserts the object at position [index] in this list.
+   * Inserts [element] at position [index] in this list.
    *
    * This increases the length of the list by one and shifts all objects
    * at or after the index towards the end of the list.
