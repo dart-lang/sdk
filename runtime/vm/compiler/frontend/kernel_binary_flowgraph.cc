@@ -2064,7 +2064,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
       // The variable has no initializer, so throw a LateInitializationError.
       Fragment initialize(is_uninitialized);
       initialize += flow_graph_builder_->ThrowLateInitializationError(
-          position, variable->name());
+          position, "_throwLocalNotInitialized", variable->name());
       initialize += Goto(join);
     }
   }
@@ -2130,7 +2130,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSetImpl(
       // Already initialized, so throw a LateInitializationError.
       Fragment already_initialized(is_initialized);
       already_initialized += flow_graph_builder_->ThrowLateInitializationError(
-          position, variable->name());
+          position, "_throwLocalAlreadyInitialized", variable->name());
       already_initialized += Goto(join);
     }
 

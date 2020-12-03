@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $builder_tag == obfuscated ]
+nnbd/syntax/late_modifier_runtime_error_test: SkipByDesign # Names are obfuscated in error messages
+
 [ $compiler != dart2analyzer ]
 switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 

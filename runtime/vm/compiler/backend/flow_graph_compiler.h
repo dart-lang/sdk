@@ -364,7 +364,7 @@ class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
   LateInitializationErrorSlowPath(LoadFieldInstr* instruction,
                                   intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
-                               kLateInitializationErrorRuntimeEntry,
+                               kLateFieldNotInitializedErrorRuntimeEntry,
                                try_index) {}
   virtual const char* name() { return "late initialization error"; }
 

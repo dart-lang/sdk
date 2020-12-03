@@ -195,3 +195,21 @@ T createSentinel<T>() => throw UnsupportedError('createSentinel');
 
 @patch
 bool isSentinel(dynamic value) => throw UnsupportedError('isSentinel');
+
+@patch
+class LateError {
+  @pragma("vm:entry-point")
+  static _throwFieldAlreadyInitialized(String fieldName) {
+    throw new LateError.fieldAI(fieldName);
+  }
+
+  @pragma("vm:entry-point")
+  static _throwLocalNotInitialized(String localName) {
+    throw new LateError.localNI(localName);
+  }
+
+  @pragma("vm:entry-point")
+  static _throwLocalAlreadyInitialized(String localName) {
+    throw new LateError.localAI(localName);
+  }
+}

@@ -10453,7 +10453,7 @@ ErrorPtr Field::InitializeInstance(const Instance& instance) const {
     }
   } else {
     if (is_late() && !has_initializer()) {
-      Exceptions::ThrowLateInitializationError(String::Handle(name()));
+      Exceptions::ThrowLateFieldNotInitialized(String::Handle(name()));
       UNREACHABLE();
     }
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -10467,7 +10467,8 @@ ErrorPtr Field::InitializeInstance(const Instance& instance) const {
   ASSERT(value.IsNull() || value.IsInstance());
   if (is_late() && is_final() &&
       (instance.GetField(*this) != Object::sentinel().raw())) {
-    Exceptions::ThrowLateInitializationError(String::Handle(name()));
+    Exceptions::ThrowLateFieldAssignedDuringInitialization(
+        String::Handle(name()));
     UNREACHABLE();
   }
   instance.SetField(*this, value);
@@ -10481,7 +10482,7 @@ ErrorPtr Field::InitializeStatic() const {
     auto& value = Object::Handle();
     if (is_late()) {
       if (!has_initializer()) {
-        Exceptions::ThrowLateInitializationError(String::Handle(name()));
+        Exceptions::ThrowLateFieldNotInitialized(String::Handle(name()));
         UNREACHABLE();
       }
       value = EvaluateInitializer();
@@ -10489,7 +10490,8 @@ ErrorPtr Field::InitializeStatic() const {
         return Error::Cast(value).raw();
       }
       if (is_final() && (StaticValue() != Object::sentinel().raw())) {
-        Exceptions::ThrowLateInitializationError(String::Handle(name()));
+        Exceptions::ThrowLateFieldAssignedDuringInitialization(
+            String::Handle(name()));
         UNREACHABLE();
       }
     } else {
