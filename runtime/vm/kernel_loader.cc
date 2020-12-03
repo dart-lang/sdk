@@ -694,7 +694,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
       // Dart_GetImportsOfScheme('dart-ext').
       const auto& native_library = Library::Handle(Library::New(uri_path));
       library.AddImport(Namespace::Handle(Namespace::New(
-          native_library, Array::null_array(), Array::null_array(), library)));
+          native_library, Array::null_array(), Array::null_array())));
     }
   }
 }
@@ -1122,7 +1122,8 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
 
   if (FLAG_enable_mirrors && annotation_count > 0) {
     ASSERT(annotations_kernel_offset > 0);
-    library.AddMetadata(library, annotations_kernel_offset);
+    library.AddLibraryMetadata(toplevel_class, TokenPosition::kNoSource,
+                               annotations_kernel_offset);
   }
 
   if (register_class) {
@@ -1247,7 +1248,7 @@ void KernelLoader::FinishTopLevelClassLoading(
 
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
-      library.AddMetadata(field, field_offset);
+      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
     }
     fields_.Add(&field);
   }
@@ -1365,7 +1366,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
           "import of dart:ffi is not supported in the current Dart runtime");
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
-    ns = Namespace::New(target_library, show_names, hide_names, *library);
+    ns = Namespace::New(target_library, show_names, hide_names);
     if ((dependency_helper.flags_ & LibraryDependencyHelper::Export) != 0) {
       library->AddExport(ns);
     } else {
@@ -1388,7 +1389,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
 
     if (FLAG_enable_mirrors && dependency_helper.annotation_count_ > 0) {
       ASSERT(annotations_kernel_offset > 0);
-      library->AddMetadata(ns, annotations_kernel_offset);
+      ns.AddMetadata(toplevel_class, TokenPosition::kNoSource,
+                     annotations_kernel_offset);
     }
 
     if (prefix.IsNull()) {
@@ -1509,7 +1511,9 @@ void KernelLoader::LoadClass(const Library& library,
   }
 
   if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
-    library.AddMetadata(*out_class, class_offset - correction_offset_);
+    library.AddClassMetadata(*out_class, toplevel_class,
+                             TokenPosition::kNoSource,
+                             class_offset - correction_offset_);
   }
 
   // We do not register expression evaluation classes with the VM:
@@ -1621,7 +1625,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       }
       if ((FLAG_enable_mirrors || has_pragma_annotation) &&
           annotation_count > 0) {
-        library.AddMetadata(field, field_offset);
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
       }
       fields_.Add(&field);
     }
@@ -1720,7 +1724,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
-      library.AddMetadata(function, constructor_offset);
+      library.AddFunctionMetadata(function, TokenPosition::kNoSource,
+                                  constructor_offset);
     }
   }
 
@@ -2044,7 +2049,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   helper_.SetOffset(procedure_end);
 
   if (annotation_count > 0) {
-    library.AddMetadata(function, procedure_offset);
+    library.AddFunctionMetadata(function, TokenPosition::kNoSource,
+                                procedure_offset);
   }
 
   if (has_pragma_annotation) {

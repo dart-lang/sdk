@@ -519,7 +519,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       jsdep.AddProperty("isDeferred", false);
       jsdep.AddProperty("isExport", false);
       jsdep.AddProperty("isImport", true);
-      target = ns.target();
+      target = ns.library();
       jsdep.AddProperty("target", target);
     }
 
@@ -533,7 +533,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       jsdep.AddProperty("isDeferred", false);
       jsdep.AddProperty("isExport", true);
       jsdep.AddProperty("isImport", false);
-      target = ns.target();
+      target = ns.library();
       jsdep.AddProperty("target", target);
     }
 
@@ -559,7 +559,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
             prefix_name = prefix.name();
             ASSERT(!prefix_name.IsNull());
             jsdep.AddProperty("prefix", prefix_name.ToCString());
-            target = ns.target();
+            target = ns.library();
             jsdep.AddProperty("target", target);
           }
         }

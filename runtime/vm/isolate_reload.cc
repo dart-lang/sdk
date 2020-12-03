@@ -961,7 +961,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
     for (intptr_t import_idx = 0; import_idx < ports.Length(); import_idx++) {
       ns ^= ports.At(import_idx);
       if (!ns.IsNull()) {
-        target = ns.target();
+        target = ns.library();
         target_url = target.url();
         if (!target_url.StartsWith(Symbols::DartExtensionScheme())) {
           (*imported_by)[target.index()]->Add(lib.index());
@@ -974,7 +974,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
     for (intptr_t export_idx = 0; export_idx < ports.Length(); export_idx++) {
       ns ^= ports.At(export_idx);
       if (!ns.IsNull()) {
-        target = ns.target();
+        target = ns.library();
         (*imported_by)[target.index()]->Add(lib.index());
       }
     }
@@ -992,7 +992,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
              import_idx++) {
           ns ^= ports.At(import_idx);
           if (!ns.IsNull()) {
-            target = ns.target();
+            target = ns.library();
             (*imported_by)[target.index()]->Add(lib.index());
           }
         }

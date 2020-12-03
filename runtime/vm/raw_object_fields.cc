@@ -75,10 +75,10 @@ namespace dart {
   F(Library, resolved_names_)                                                  \
   F(Library, exported_names_)                                                  \
   F(Library, loaded_scripts_)                                                  \
-  F(Namespace, target_)                                                        \
+  F(Namespace, library_)                                                       \
   F(Namespace, show_names_)                                                    \
   F(Namespace, hide_names_)                                                    \
-  F(Namespace, owner_)                                                         \
+  F(Namespace, metadata_field_)                                                \
   F(KernelProgramInfo, string_offsets_)                                        \
   F(KernelProgramInfo, string_data_)                                           \
   F(KernelProgramInfo, canonical_names_)                                       \

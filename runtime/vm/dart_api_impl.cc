@@ -6007,7 +6007,7 @@ DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
     for (intptr_t j = 0; j < imports.Length(); j++) {
       ns ^= imports.At(j);
       if (ns.IsNull()) continue;
-      importee = ns.target();
+      importee = ns.library();
       importee_uri = importee.url();
       if (importee_uri.StartsWith(scheme_vm)) {
         result.Add(importer);
