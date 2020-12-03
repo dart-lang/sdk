@@ -43,6 +43,8 @@ class Foo<T> implements I<T> {
   // [cfe] Type variables can't be used in static members.
   //                 ^
   // [cfe] Verification of the generated program failed:
+  //                 ^
+  // [cfe] Verification of the generated program failed:
 
   static
   Foo<T>
