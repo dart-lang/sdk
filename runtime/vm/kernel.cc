@@ -430,28 +430,26 @@ class MetadataEvaluator : public KernelReaderHelper {
   DISALLOW_COPY_AND_ASSIGN(MetadataEvaluator);
 };
 
-ObjectPtr EvaluateMetadata(const Library& library,
-                           intptr_t kernel_offset,
+ObjectPtr EvaluateMetadata(const Field& metadata_field,
                            bool is_annotations_offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
-    Script& script = Script::Handle(
-        zone, Class::Handle(zone, library.toplevel_class()).script());
+    Script& script = Script::Handle(zone, metadata_field.Script());
     helper.InitFromScript(script);
 
-    const Class& owner_class = Class::Handle(zone, library.toplevel_class());
+    const Class& owner_class = Class::Handle(zone, metadata_field.Owner());
     ActiveClass active_class;
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     MetadataEvaluator metadata_evaluator(
         zone, &helper, script,
-        ExternalTypedData::Handle(zone, library.kernel_data()),
-        library.kernel_offset(), &active_class);
+        ExternalTypedData::Handle(zone, metadata_field.KernelData()),
+        metadata_field.KernelDataProgramOffset(), &active_class);
 
-    return metadata_evaluator.EvaluateMetadata(kernel_offset,
+    return metadata_evaluator.EvaluateMetadata(metadata_field.kernel_offset(),
                                                is_annotations_offset);
 
   } else {

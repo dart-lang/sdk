@@ -196,8 +196,7 @@ class KernelLineStartsReader {
 void CollectTokenPositionsFor(const Script& script);
 
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field);
-ObjectPtr EvaluateMetadata(const Library& library,
-                           intptr_t kernel_offset,
+ObjectPtr EvaluateMetadata(const Field& metadata_field,
                            bool is_annotations_offset);
 ObjectPtr BuildParameterDescriptor(const Function& function);
 

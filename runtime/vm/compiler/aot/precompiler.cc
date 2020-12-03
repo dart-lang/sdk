@@ -2117,9 +2117,47 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 
 void Precompiler::DropMetadata() {
   Library& lib = Library::Handle(Z);
+  const GrowableObjectArray& null_growable_list =
+      GrowableObjectArray::Handle(Z);
+  Array& dependencies = Array::Handle(Z);
+  Namespace& ns = Namespace::Handle(Z);
+  const Field& null_field = Field::Handle(Z);
+  GrowableObjectArray& metadata = GrowableObjectArray::Handle(Z);
+  Field& metadata_field = Field::Handle(Z);
+
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
-    lib.set_metadata(Array::null_array());
+    metadata ^= lib.metadata();
+    for (intptr_t j = 0; j < metadata.Length(); j++) {
+      metadata_field ^= metadata.At(j);
+      if (metadata_field.is_static()) {
+        // Although this field will become garbage after clearing the list
+        // below, we also need to clear its value from the field table.
+        // The value may be an instance of an otherwise dead class, and if
+        // it remains in the field table we can get an instance on the heap
+        // with a deleted class.
+        metadata_field.SetStaticValue(Object::null_instance(),
+                                      /*save_initial_value=*/true);
+      }
+    }
+
+    lib.set_metadata(null_growable_list);
+
+    dependencies = lib.imports();
+    for (intptr_t j = 0; j < dependencies.Length(); j++) {
+      ns ^= dependencies.At(j);
+      if (!ns.IsNull()) {
+        ns.set_metadata_field(null_field);
+      }
+    }
+
+    dependencies = lib.exports();
+    for (intptr_t j = 0; j < dependencies.Length(); j++) {
+      ns ^= dependencies.At(j);
+      if (!ns.IsNull()) {
+        ns.set_metadata_field(null_field);
+      }
+    }
   }
 }
 

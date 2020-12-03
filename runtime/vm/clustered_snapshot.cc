@@ -5836,12 +5836,7 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   WriteUnsigned(num_objects);
   WriteUnsigned(canonical_clusters.length());
   WriteUnsigned(clusters.length());
-  // TODO(dartbug.com/36097): Not every snapshot carries the field table.
-  if (current_loading_unit_id_ <= LoadingUnit::kRootId) {
-    WriteUnsigned(initial_field_table_->NumFieldIds());
-  } else {
-    WriteUnsigned(0);
-  }
+  WriteUnsigned(initial_field_table_->NumFieldIds());
 
   for (SerializationCluster* cluster : canonical_clusters) {
     cluster->WriteAndMeasureAlloc(this);
@@ -6577,8 +6572,8 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   refs_ = Array::New(num_objects_ + kFirstReference, Heap::kOld);
   if (initial_field_table_len > 0) {
     initial_field_table_->AllocateIndex(initial_field_table_len - 1);
-    ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
   }
+  ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
 
   {
     NoSafepointScope no_safepoint;
