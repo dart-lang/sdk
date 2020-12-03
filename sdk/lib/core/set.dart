@@ -172,7 +172,9 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   void addAll(Iterable<E> elements);
 
   /**
-   * Removes [value] from the set. Returns `true` if [value] was
+   * Removes [value] from the set.
+   *
+   * Returns `true` if [value] was
    * in the set. Returns `false` otherwise. The method has no effect
    * if [value] was not in the set.
    */
