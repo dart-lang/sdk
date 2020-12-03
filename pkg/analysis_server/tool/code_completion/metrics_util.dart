@@ -76,8 +76,13 @@ class Counter {
   void printCounterValues() {
     print('Counts for \'$name\' (total = $_totalCount):');
     if (_totalCount > 0) {
-      _buckets.forEach((id, count) =>
-          print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
+      var entries = _buckets.entries.toList();
+      entries.sort((first, second) => second.value - first.value);
+      for (var entry in entries) {
+        var id = entry.key;
+        var count = entry.value;
+        print('[$id] $count (${printPercentage(count / _totalCount, 2)})');
+      }
     } else {
       print('<no counts>');
     }
