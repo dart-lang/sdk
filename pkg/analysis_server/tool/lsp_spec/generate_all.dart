@@ -73,7 +73,7 @@ final Uri specUri = Uri.parse(
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on
 /// the end that we don't want to parse.
-final _resultsInlineTypesPattern = RegExp(r'''\* result:[^\.]*({.*})''');
+final _resultsInlineTypesPattern = RegExp(r'''\* result:[^\.{}]*({[^\.`]*})''');
 
 Future<void> downloadSpec() async {
   final specResp = await http.get(specUri);
@@ -298,9 +298,10 @@ Future<String> readSpec() => File(localSpecPath).readAsString();
 
 /// Returns whether a script block should be parsed or not.
 bool shouldIncludeScriptBlock(String input) {
-  // We can't parse literal arrays, but this script block is just an example
-  // and not actually referenced anywhere.
-  if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];") {
+  // Skip over some typescript blocks that are known sample code and not part
+  // of the LSP spec.
+  if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];" ||
+      input.startsWith('textDocument.codeAction.resolveSupport =')) {
     return false;
   }
 

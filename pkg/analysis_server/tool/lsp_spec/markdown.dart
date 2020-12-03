@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 final _methodNamesPattern = RegExp(
-    r'''_(?:Notification|Request):?_:?(?:\r?\n)+\* method: '(.*?)',?\r?\n''',
+    r'''_(?:Notification|Request):?_:?(?:\r?\n)+\* method: ['`](.*?)[`'],?\r?\n''',
     multiLine: true);
 final _typeScriptBlockPattern =
     RegExp(r'\B```typescript([\S\s]*?)\n```', multiLine: true);

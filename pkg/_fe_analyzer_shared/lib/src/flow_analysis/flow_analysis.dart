@@ -1423,36 +1423,6 @@ class FlowModel<Variable, Type> {
     }
   }
 
-  /// Updates the state to indicate that variables that are not definitely
-  /// unassigned in the [other], are also not definitely unassigned in the
-  /// result.
-  FlowModel<Variable, Type> joinUnassigned(FlowModel<Variable, Type> other) {
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
-
-    void markNotUnassigned(Variable variable) {
-      VariableModel<Variable, Type> info = variableInfo[variable];
-      if (info == null) return;
-
-      VariableModel<Variable, Type> newInfo = info.markNotUnassigned();
-      if (identical(newInfo, info)) return;
-
-      (newVariableInfo ??=
-          new Map<Variable, VariableModel<Variable, Type>>.from(
-              variableInfo))[variable] = newInfo;
-    }
-
-    for (Variable variable in other.variableInfo.keys) {
-      VariableModel<Variable, Type> otherInfo = other.variableInfo[variable];
-      if (!otherInfo.unassigned) {
-        markNotUnassigned(variable);
-      }
-    }
-
-    if (newVariableInfo == null) return this;
-
-    return new FlowModel<Variable, Type>.withInfo(reachable, newVariableInfo);
-  }
-
   /// Updates the state to reflect a control path that is known to have
   /// previously passed through some [other] state.
   ///
@@ -2115,15 +2085,6 @@ class VariableModel<Variable, Type> {
     }
     return new VariableModel<Variable, Type>(
         null, const [], true, false, writeCaptured);
-  }
-
-  /// Returns a new [VariableModel] reflecting the fact that the variable is
-  /// not definitely unassigned.
-  VariableModel<Variable, Type> markNotUnassigned() {
-    if (!unassigned) return this;
-
-    return new VariableModel<Variable, Type>(
-        promotedTypes, tested, assigned, false, writeCaptured);
   }
 
   /// Returns an updated model reflect a control path that is known to have

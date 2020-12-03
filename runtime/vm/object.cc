@@ -919,7 +919,7 @@ void Object::Init(Isolate* isolate) {
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0));
     Array::initializeHandle(empty_array_,
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
-    empty_array_->StoreSmi(&empty_array_->raw_ptr()->length_, Smi::New(0));
+    empty_array_->raw_ptr()->set_length(Smi::New(0));
     empty_array_->SetCanonical();
   }
 
@@ -930,7 +930,7 @@ void Object::Init(Isolate* isolate) {
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1));
     Array::initializeHandle(zero_array_,
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
-    zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
+    zero_array_->raw_ptr()->set_length(Smi::New(1));
     smi = Smi::New(0);
     zero_array_->SetAt(0, smi);
     zero_array_->SetCanonical();
@@ -1026,10 +1026,8 @@ void Object::Init(Isolate* isolate) {
     TypeArguments::initializeHandle(
         empty_type_arguments_,
         static_cast<TypeArgumentsPtr>(address + kHeapObjectTag));
-    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->length_,
-                                    Smi::New(0));
-    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->hash_,
-                                    Smi::New(0));
+    empty_type_arguments_->raw_ptr()->set_length(Smi::New(0));
+    empty_type_arguments_->raw_ptr()->set_hash(Smi::New(0));
     empty_type_arguments_->ComputeHash();
     empty_type_arguments_->SetCanonical();
   }
@@ -1480,7 +1478,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->ptr()->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
+      raw->ptr()->set_length(Smi::New(leftover_len));
       raw->ptr()->RecomputeDataField();
     } else {
       // Update the leftover space as a basic object.
@@ -2669,7 +2667,7 @@ ObjectPtr Object::Clone(const Object& orig, Heap::Space space) {
 }
 
 StringPtr Class::Name() const {
-  return raw_ptr()->name_;
+  return raw_ptr()->name();
 }
 
 StringPtr Class::ScrubbedName() const {
@@ -2682,8 +2680,8 @@ const char* Class::ScrubbedNameCString() const {
 
 StringPtr Class::UserVisibleName() const {
 #if !defined(PRODUCT)
-  ASSERT(raw_ptr()->user_name_ != String::null());
-  return raw_ptr()->user_name_;
+  ASSERT(raw_ptr()->user_name() != String::null());
+  return raw_ptr()->user_name();
 #endif  // !defined(PRODUCT)
   // No caching in PRODUCT, regenerate.
   return Symbols::New(Thread::Current(), GenerateUserVisibleName());
@@ -2691,8 +2689,8 @@ StringPtr Class::UserVisibleName() const {
 
 const char* Class::UserVisibleNameCString() const {
 #if !defined(PRODUCT)
-  ASSERT(raw_ptr()->user_name_ != String::null());
-  return String::Handle(raw_ptr()->user_name_).ToCString();
+  ASSERT(raw_ptr()->user_name() != String::null());
+  return String::Handle(raw_ptr()->user_name()).ToCString();
 #endif                               // !defined(PRODUCT)
   return GenerateUserVisibleName();  // No caching in PRODUCT, regenerate.
 }
@@ -2728,7 +2726,7 @@ NNBDMode Class::nnbd_mode() const {
 bool Class::IsInFullSnapshot() const {
   NoSafepointScope no_safepoint;
   return LibraryLayout::InFullSnapshotBit::decode(
-      raw_ptr()->library_->ptr()->flags_);
+      raw_ptr()->library()->ptr()->flags_);
 }
 
 AbstractTypePtr Class::RareType() const {
@@ -2815,15 +2813,15 @@ void Class::InitEmptyFields() {
     // The empty array has not been initialized yet.
     return;
   }
-  StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->constants_, Object::null_array().raw());
+  raw_ptr()->set_interfaces(Object::empty_array().raw());
+  raw_ptr()->set_constants(Object::null_array().raw());
   set_functions(Object::empty_array());
   set_fields(Object::empty_array());
   set_invocation_dispatcher_cache(Object::empty_array());
 }
 
 ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
-  if (raw_ptr()->offset_in_words_to_field_ == Array::null()) {
+  if (raw_ptr()->offset_in_words_to_field() == Array::null()) {
     ASSERT(is_finalized());
     const intptr_t length = raw_ptr()->host_instance_size_in_words_;
     const Array& array = Array::Handle(Array::New(length, Heap::kOld));
@@ -2840,9 +2838,9 @@ ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
       }
       cls = cls.SuperClass(original_classes);
     }
-    StorePointer(&raw_ptr()->offset_in_words_to_field_, array.raw());
+    raw_ptr()->set_offset_in_words_to_field(array.raw());
   }
-  return raw_ptr()->offset_in_words_to_field_;
+  return raw_ptr()->offset_in_words_to_field();
 }
 
 bool Class::HasInstanceFields() const {
@@ -2916,9 +2914,9 @@ void Class::SetFunctions(const Array& value) const {
       ASSERT(func.Owner() == raw());
       set.Insert(func);
     }
-    StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
+    raw_ptr()->set_functions_hash_table(set.Release().raw());
   } else {
-    StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
+    raw_ptr()->set_functions_hash_table(Array::null());
   }
 }
 
@@ -2939,9 +2937,9 @@ void Class::AddFunction(const Function& function) const {
     // Transition to using hash table.
     SetFunctions(new_array);
   } else if (new_len > kFunctionLookupHashTreshold) {
-    ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
+    ClassFunctionsSet set(raw_ptr()->functions_hash_table());
     set.Insert(function);
-    StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
+    raw_ptr()->set_functions_hash_table(set.Release().raw());
   }
 }
 
@@ -3044,7 +3042,7 @@ FunctionPtr Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
 
 void Class::set_signature_function(const Function& value) const {
   ASSERT(value.IsClosureFunction() || value.IsSignatureFunction());
-  StorePointer(&raw_ptr()->signature_function_, value.raw());
+  raw_ptr()->set_signature_function(value.raw());
 }
 
 void Class::set_state_bits(intptr_t bits) const {
@@ -3053,34 +3051,32 @@ void Class::set_state_bits(intptr_t bits) const {
 }
 
 void Class::set_library(const Library& value) const {
-  StorePointer(&raw_ptr()->library_, value.raw());
+  raw_ptr()->set_library(value.raw());
 }
 
 void Class::set_type_parameters(const TypeArguments& value) const {
   ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
          is_prefinalized());
-  StorePointer(&raw_ptr()->type_parameters_, value.raw());
+  raw_ptr()->set_type_parameters(value.raw());
 }
 
 void Class::set_functions(const Array& value) const {
   // Ensure all writes to the [Function]s are visible by the time the array
   // is visible.
-  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->functions_,
-                                                    value.raw());
+  raw_ptr()->set_functions<std::memory_order_release>(value.raw());
 }
 
 void Class::set_fields(const Array& value) const {
   // Ensure all writes to the [Field]s are visible by the time the array
   // is visible.
-  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->fields_,
-                                                    value.raw());
+  raw_ptr()->set_fields<std::memory_order_release>(value.raw());
 }
 
 void Class::set_invocation_dispatcher_cache(const Array& cache) const {
   // Ensure all writes to the cache are visible by the time the array
   // is visible.
-  StorePointer<ArrayPtr, std::memory_order_release>(
-      &raw_ptr()->invocation_dispatcher_cache_, cache.raw());
+  raw_ptr()->set_invocation_dispatcher_cache<std::memory_order_release>(
+      cache.raw());
 }
 
 intptr_t Class::NumTypeParameters(Thread* thread) const {
@@ -3234,7 +3230,7 @@ ClassPtr Class::SuperClass(bool original_classes) const {
 
 void Class::set_super_type(const AbstractType& value) const {
   ASSERT(value.IsNull() || (value.IsType() && !value.IsDynamicType()));
-  StorePointer(&raw_ptr()->super_type_, value.raw());
+  raw_ptr()->set_super_type(value.raw());
 }
 
 TypeParameterPtr Class::LookupTypeParameter(const String& type_name) const {
@@ -3782,7 +3778,7 @@ bool AbstractType::InstantiateAndTestSubtype(
 }
 
 ArrayPtr Class::invocation_dispatcher_cache() const {
-  return raw_ptr()->invocation_dispatcher_cache_;
+  return raw_ptr()->invocation_dispatcher_cache();
 }
 
 void Class::Finalize() const {
@@ -3929,13 +3925,13 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
 ArrayPtr Class::dependent_code() const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
-  return raw_ptr()->dependent_code_;
+  return raw_ptr()->dependent_code();
 }
 
 void Class::set_dependent_code(const Array& array) const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  StorePointer(&raw_ptr()->dependent_code_, array.raw());
+  raw_ptr()->set_dependent_code(array.raw());
 }
 
 // Conventions:
@@ -4644,11 +4640,11 @@ ClassPtr Class::NewPointerClass(intptr_t class_id, Isolate* isolate) {
 }
 
 void Class::set_name(const String& value) const {
-  ASSERT(raw_ptr()->name_ == String::null());
+  ASSERT(raw_ptr()->name() == String::null());
   ASSERT(value.IsSymbol());
-  StorePointer(&raw_ptr()->name_, value.raw());
+  raw_ptr()->set_name(value.raw());
 #if !defined(PRODUCT)
-  if (raw_ptr()->user_name_ == String::null()) {
+  if (raw_ptr()->user_name() == String::null()) {
     // TODO(johnmccutchan): Eagerly set user name for VM isolate classes,
     // lazily set user name for the other classes.
     // Generate and set user_name.
@@ -4661,7 +4657,7 @@ void Class::set_name(const String& value) const {
 
 #if !defined(PRODUCT)
 void Class::set_user_name(const String& value) const {
-  StorePointer(&raw_ptr()->user_name_, value.raw());
+  raw_ptr()->set_user_name(value.raw());
 }
 #endif  // !defined(PRODUCT)
 
@@ -4824,7 +4820,7 @@ const char* Class::GenerateUserVisibleName() const {
 }
 
 void Class::set_script(const Script& value) const {
-  StorePointer(&raw_ptr()->script_, value.raw());
+  raw_ptr()->set_script(value.raw());
 }
 
 void Class::set_token_pos(TokenPosition token_pos) const {
@@ -4915,7 +4911,7 @@ void Class::set_is_prefinalized() const {
 
 void Class::set_interfaces(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->interfaces_, value.raw());
+  raw_ptr()->set_interfaces(value.raw());
 }
 
 void Class::AddDirectImplementor(const Class& implementor,
@@ -4924,10 +4920,10 @@ void Class::AddDirectImplementor(const Class& implementor,
   ASSERT(is_implemented());
   ASSERT(!implementor.IsNull());
   GrowableObjectArray& direct_implementors =
-      GrowableObjectArray::Handle(raw_ptr()->direct_implementors_);
+      GrowableObjectArray::Handle(raw_ptr()->direct_implementors());
   if (direct_implementors.IsNull()) {
     direct_implementors = GrowableObjectArray::New(4, Heap::kOld);
-    StorePointer(&raw_ptr()->direct_implementors_, direct_implementors.raw());
+    raw_ptr()->set_direct_implementors(direct_implementors.raw());
   }
 #if defined(DEBUG)
   // Verify that the same class is not added twice.
@@ -4946,7 +4942,7 @@ void Class::AddDirectImplementor(const Class& implementor,
 
 void Class::ClearDirectImplementors() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  StorePointer(&raw_ptr()->direct_implementors_, GrowableObjectArray::null());
+  raw_ptr()->set_direct_implementors(GrowableObjectArray::null());
 }
 
 void Class::AddDirectSubclass(const Class& subclass) const {
@@ -4956,10 +4952,10 @@ void Class::AddDirectSubclass(const Class& subclass) const {
   // Do not keep track of the direct subclasses of class Object.
   ASSERT(!IsObjectClass());
   GrowableObjectArray& direct_subclasses =
-      GrowableObjectArray::Handle(raw_ptr()->direct_subclasses_);
+      GrowableObjectArray::Handle(raw_ptr()->direct_subclasses());
   if (direct_subclasses.IsNull()) {
     direct_subclasses = GrowableObjectArray::New(4, Heap::kOld);
-    StorePointer(&raw_ptr()->direct_subclasses_, direct_subclasses.raw());
+    raw_ptr()->set_direct_subclasses(direct_subclasses.raw());
   }
 #if defined(DEBUG)
   // Verify that the same class is not added twice.
@@ -4972,15 +4968,15 @@ void Class::AddDirectSubclass(const Class& subclass) const {
 
 void Class::ClearDirectSubclasses() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  StorePointer(&raw_ptr()->direct_subclasses_, GrowableObjectArray::null());
+  raw_ptr()->set_direct_subclasses(GrowableObjectArray::null());
 }
 
 ArrayPtr Class::constants() const {
-  return raw_ptr()->constants_;
+  return raw_ptr()->constants();
 }
 
 void Class::set_constants(const Array& value) const {
-  StorePointer(&raw_ptr()->constants_, value.raw());
+  raw_ptr()->set_constants(value.raw());
 }
 
 void Class::set_declaration_type(const Type& value) const {
@@ -4993,7 +4989,7 @@ void Class::set_declaration_type(const Type& value) const {
   // The exception is DeclarationType of Null which is kNullable.
   ASSERT(value.type_class_id() != kNullCid || value.IsNullable());
   ASSERT(value.type_class_id() == kNullCid || value.IsNonNullable());
-  StorePointer(&raw_ptr()->declaration_type_, value.raw());
+  raw_ptr()->set_declaration_type(value.raw());
 }
 
 TypePtr Class::DeclarationType() const {
@@ -5026,8 +5022,8 @@ void Class::set_allocation_stub(const Code& value) const {
   // Never clear the stub as it may still be a target, but will be GC-d if
   // not referenced.
   ASSERT(!value.IsNull());
-  ASSERT(raw_ptr()->allocation_stub_ == Code::null());
-  StorePointer(&raw_ptr()->allocation_stub_, value.raw());
+  ASSERT(raw_ptr()->allocation_stub() == Code::null());
+  raw_ptr()->set_allocation_stub(value.raw());
 }
 
 void Class::DisableAllocationStub() const {
@@ -5039,7 +5035,7 @@ void Class::DisableAllocationStub() const {
   // Change the stub so that the next caller will regenerate the stub.
   existing_stub.DisableStubCode();
   // Disassociate the existing stub from class.
-  StorePointer(&raw_ptr()->allocation_stub_, Code::null());
+  raw_ptr()->set_allocation_stub(Code::null());
 }
 
 bool Class::IsDartFunctionClass() const {
@@ -5354,7 +5350,7 @@ FunctionPtr Class::LookupFunctionReadLocked(const String& name,
     // If we want to increase resolver speed by avoiding the need for read lock,
     // we could make change this hash table to be lock-free for the reader.
     const Array& hash_table =
-        Array::Handle(thread->zone(), raw_ptr()->functions_hash_table_);
+        Array::Handle(thread->zone(), raw_ptr()->functions_hash_table());
     if (!hash_table.IsNull()) {
       ClassFunctionsSet set(hash_table.raw());
       REUSABLE_STRING_HANDLESCOPE(thread);
@@ -5863,7 +5859,7 @@ intptr_t TypeArguments::ComputeNullability() const {
 }
 
 void TypeArguments::set_nullability(intptr_t value) const {
-  StoreSmi(&raw_ptr()->nullability_, Smi::New(value));
+  raw_ptr()->set_nullability(Smi::New(value));
 }
 
 intptr_t TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
@@ -5987,7 +5983,7 @@ void TypeArguments::PrintTo(BaseTextBuffer* buffer) const {
   if (IsNull()) {
     return buffer->AddString("null");
   }
-  buffer->Printf("(H%" Px ")", Smi::Value(raw_ptr()->hash_));
+  buffer->Printf("(H%" Px ")", Smi::Value(raw_ptr()->hash()));
   auto& type_at = AbstractType::Handle();
   for (intptr_t i = 0; i < Length(); i++) {
     type_at = TypeAt(i);
@@ -6088,7 +6084,7 @@ intptr_t TypeArguments::NumInstantiations() const {
 ArrayPtr TypeArguments::instantiations() const {
   // We rely on the fact that any loads from the array are dependent loads and
   // avoid the load-acquire barrier here.
-  return raw_ptr()->instantiations_;
+  return raw_ptr()->instantiations();
 }
 
 void TypeArguments::set_instantiations(const Array& value) const {
@@ -6096,8 +6092,7 @@ void TypeArguments::set_instantiations(const Array& value) const {
   // when releasing the pointer to the array pointer.
   // => We have to use store-release here.
   ASSERT(!value.IsNull());
-  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->instantiations_,
-                                                    value.raw());
+  raw_ptr()->set_instantiations<std::memory_order_release>(value.raw());
 }
 
 bool TypeArguments::HasCount(intptr_t count) const {
@@ -6111,19 +6106,20 @@ intptr_t TypeArguments::Length() const {
   if (IsNull()) {
     return 0;
   }
-  return Smi::Value(raw_ptr()->length_);
+  return Smi::Value(raw_ptr()->length());
 }
 
 intptr_t TypeArguments::nullability() const {
   if (IsNull()) {
     return 0;
   }
-  return Smi::Value(raw_ptr()->nullability_);
+  return Smi::Value(raw_ptr()->nullability());
 }
 
 AbstractTypePtr TypeArguments::TypeAt(intptr_t index) const {
   ASSERT(!IsNull());
-  return *TypeAddr(index);
+  ASSERT((index >= 0) && (index < Length()));
+  return raw_ptr()->element(index);
 }
 
 AbstractTypePtr TypeArguments::TypeAtNullSafe(intptr_t index) const {
@@ -6137,7 +6133,8 @@ AbstractTypePtr TypeArguments::TypeAtNullSafe(intptr_t index) const {
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
   ASSERT(!IsCanonical());
-  StorePointer(TypeAddr(index), value.raw());
+  ASSERT((index >= 0) && (index < Length()));
+  return raw_ptr()->set_element(index, value.raw());
 }
 
 bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
@@ -6487,16 +6484,11 @@ TypeArgumentsPtr TypeArguments::New(intptr_t len, Heap::Space space) {
   return result.raw();
 }
 
-AbstractTypePtr const* TypeArguments::TypeAddr(intptr_t index) const {
-  ASSERT((index >= 0) && (index < Length()));
-  return &raw_ptr()->types()[index];
-}
-
 void TypeArguments::SetLength(intptr_t value) const {
   ASSERT(!IsCanonical());
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  StoreSmi(&raw_ptr()->length_, Smi::New(value));
+  raw_ptr()->set_length(Smi::New(value));
 }
 
 TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
@@ -6627,19 +6619,19 @@ PatchClassPtr PatchClass::New() {
 }
 
 void PatchClass::set_patched_class(const Class& value) const {
-  StorePointer(&raw_ptr()->patched_class_, value.raw());
+  raw_ptr()->set_patched_class(value.raw());
 }
 
 void PatchClass::set_origin_class(const Class& value) const {
-  StorePointer(&raw_ptr()->origin_class_, value.raw());
+  raw_ptr()->set_origin_class(value.raw());
 }
 
 void PatchClass::set_script(const Script& value) const {
-  StorePointer(&raw_ptr()->script_, value.raw());
+  raw_ptr()->set_script(value.raw());
 }
 
 void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
-  StorePointer(&raw_ptr()->library_kernel_data_, data.raw());
+  raw_ptr()->set_library_kernel_data(data.raw());
 }
 
 intptr_t Function::Hash() const {
@@ -6671,7 +6663,7 @@ void Function::SetInstructions(const Code& value) const {
 }
 
 void Function::SetInstructionsSafe(const Code& value) const {
-  StorePointer(&raw_ptr()->code_, value.raw());
+  raw_ptr()->set_code(value.raw());
   StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_,
                   value.UncheckedEntryPoint());
@@ -6688,14 +6680,14 @@ void Function::AttachCode(const Code& value) const {
 
 bool Function::HasCode() const {
   NoSafepointScope no_safepoint;
-  ASSERT(raw_ptr()->code_ != Code::null());
-  return raw_ptr()->code_ != StubCode::LazyCompile().raw();
+  ASSERT(raw_ptr()->code() != Code::null());
+  return raw_ptr()->code() != StubCode::LazyCompile().raw();
 }
 
 bool Function::HasCode(FunctionPtr function) {
   NoSafepointScope no_safepoint;
-  ASSERT(function->ptr()->code_ != Code::null());
-  return function->ptr()->code_ != StubCode::LazyCompile().raw();
+  ASSERT(function->ptr()->code() != Code::null());
+  return function->ptr()->code() != StubCode::LazyCompile().raw();
 }
 
 void Function::ClearCode() const {
@@ -6704,7 +6696,7 @@ void Function::ClearCode() const {
 #else
   ASSERT(Thread::Current()->IsMutatorThread());
 
-  StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+  raw_ptr()->set_unoptimized_code(Code::null());
 
   SetInstructions(StubCode::LazyCompile());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -6786,13 +6778,13 @@ void Function::set_unoptimized_code(const Code& value) const {
 #else
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(value.IsNull() || !value.is_optimized());
-  StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
+  raw_ptr()->set_unoptimized_code(value.raw());
 #endif
 }
 
 ContextScopePtr Function::context_scope() const {
   if (IsClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
+    const Object& obj = Object::Handle(raw_ptr()->data());
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).context_scope();
   }
@@ -6801,7 +6793,7 @@ ContextScopePtr Function::context_scope() const {
 
 void Function::set_context_scope(const ContextScope& value) const {
   if (IsClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
+    const Object& obj = Object::Handle(raw_ptr()->data());
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_context_scope(value);
     return;
@@ -6811,7 +6803,7 @@ void Function::set_context_scope(const ContextScope& value) const {
 
 InstancePtr Function::implicit_static_closure() const {
   if (IsImplicitStaticClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
+    const Object& obj = Object::Handle(raw_ptr()->data());
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).implicit_static_closure();
   }
@@ -6820,7 +6812,7 @@ InstancePtr Function::implicit_static_closure() const {
 
 void Function::set_implicit_static_closure(const Instance& closure) const {
   if (IsImplicitStaticClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
+    const Object& obj = Object::Handle(raw_ptr()->data());
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_implicit_static_closure(closure);
     return;
@@ -6829,7 +6821,7 @@ void Function::set_implicit_static_closure(const Instance& closure) const {
 }
 
 ScriptPtr Function::eval_script() const {
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   if (obj.IsScript()) {
     return Script::Cast(obj).raw();
   }
@@ -6838,27 +6830,27 @@ ScriptPtr Function::eval_script() const {
 
 void Function::set_eval_script(const Script& script) const {
   ASSERT(token_pos() == TokenPosition::kMinSource);
-  ASSERT(raw_ptr()->data_ == Object::null());
+  ASSERT(raw_ptr()->data() == Object::null());
   set_data(script);
 }
 
 FunctionPtr Function::extracted_method_closure() const {
   ASSERT(kind() == FunctionLayout::kMethodExtractor);
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(obj.IsFunction());
   return Function::Cast(obj).raw();
 }
 
 void Function::set_extracted_method_closure(const Function& value) const {
   ASSERT(kind() == FunctionLayout::kMethodExtractor);
-  ASSERT(raw_ptr()->data_ == Object::null());
+  ASSERT(raw_ptr()->data() == Object::null());
   set_data(value);
 }
 
 ArrayPtr Function::saved_args_desc() const {
   ASSERT(kind() == FunctionLayout::kNoSuchMethodDispatcher ||
          kind() == FunctionLayout::kInvokeFieldDispatcher);
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(obj.IsArray());
   return Array::Cast(obj).raw();
 }
@@ -6866,7 +6858,7 @@ ArrayPtr Function::saved_args_desc() const {
 void Function::set_saved_args_desc(const Array& value) const {
   ASSERT(kind() == FunctionLayout::kNoSuchMethodDispatcher ||
          kind() == FunctionLayout::kInvokeFieldDispatcher);
-  ASSERT(raw_ptr()->data_ == Object::null());
+  ASSERT(raw_ptr()->data() == Object::null());
   set_data(value);
 }
 
@@ -6875,7 +6867,7 @@ FieldPtr Function::accessor_field() const {
          kind() == FunctionLayout::kImplicitSetter ||
          kind() == FunctionLayout::kImplicitStaticGetter ||
          kind() == FunctionLayout::kFieldInitializer);
-  return Field::RawCast(raw_ptr()->data_);
+  return Field::RawCast(raw_ptr()->data());
 }
 
 void Function::set_accessor_field(const Field& value) const {
@@ -6884,13 +6876,14 @@ void Function::set_accessor_field(const Field& value) const {
          kind() == FunctionLayout::kImplicitStaticGetter ||
          kind() == FunctionLayout::kFieldInitializer);
   // Top level classes may be finalized multiple times.
-  ASSERT(raw_ptr()->data_ == Object::null() || raw_ptr()->data_ == value.raw());
+  ASSERT(raw_ptr()->data() == Object::null() ||
+         raw_ptr()->data() == value.raw());
   set_data(value);
 }
 
 FunctionPtr Function::parent_function() const {
   if (IsClosureFunction() || IsSignatureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
+    const Object& obj = Object::Handle(raw_ptr()->data());
     ASSERT(!obj.IsNull());
     if (IsClosureFunction()) {
       return ClosureData::Cast(obj).parent_function();
@@ -6902,7 +6895,7 @@ FunctionPtr Function::parent_function() const {
 }
 
 void Function::set_parent_function(const Function& value) const {
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   if (IsClosureFunction()) {
     ClosureData::Cast(obj).set_parent_function(value);
@@ -6986,7 +6979,7 @@ TypeArgumentsPtr Function::default_type_arguments(
     UNREACHABLE();
   }
   const auto& closure_data =
-      ClosureData::Handle(ClosureData::RawCast(raw_ptr()->data_));
+      ClosureData::Handle(ClosureData::RawCast(raw_ptr()->data()));
   ASSERT(!closure_data.IsNull());
   if (kind_out != nullptr) {
     *kind_out = DefaultTypeArgumentsKindField::decode(
@@ -7000,7 +6993,7 @@ void Function::set_default_type_arguments(const TypeArguments& value) const {
     UNREACHABLE();
   }
   const auto& closure_data =
-      ClosureData::Handle(ClosureData::RawCast(raw_ptr()->data_));
+      ClosureData::Handle(ClosureData::RawCast(raw_ptr()->data()));
   ASSERT(!closure_data.IsNull());
   intptr_t updated_info = closure_data.default_type_arguments_info();
   auto kind = DefaultTypeArgumentsKindFor(value);
@@ -7084,7 +7077,7 @@ FunctionPtr Function::implicit_closure_function() const {
       IsDispatcherOrImplicitAccessor() || IsFieldInitializer()) {
     return Function::null();
   }
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction() || obj.IsArray());
   if (obj.IsNull() || obj.IsScript()) {
     return Function::null();
@@ -7100,7 +7093,7 @@ FunctionPtr Function::implicit_closure_function() const {
 
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction());
-  const Object& old_data = Object::Handle(raw_ptr()->data_);
+  const Object& old_data = Object::Handle(raw_ptr()->data());
   if (is_native()) {
     ASSERT(old_data.IsArray());
     ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
@@ -7118,7 +7111,7 @@ void Function::set_implicit_closure_function(const Function& value) const {
 }
 
 TypePtr Function::ExistingSignatureType() const {
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
     return SignatureData::Cast(obj).signature_type();
@@ -7132,14 +7125,14 @@ TypePtr Function::ExistingSignatureType() const {
 
 void Function::SetFfiCSignature(const Function& sig) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_c_signature(sig);
 }
 
 FunctionPtr Function::FfiCSignature() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).c_signature();
 }
@@ -7162,42 +7155,42 @@ bool Function::FfiCSignatureContainsHandles() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_id();
 }
 
 void Function::SetFfiCallbackId(int32_t value) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_id(value);
 }
 
 FunctionPtr Function::FfiCallbackTarget() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_target();
 }
 
 void Function::SetFfiCallbackTarget(const Function& target) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_target(target);
 }
 
 InstancePtr Function::FfiCallbackExceptionalReturn() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_exceptional_return();
 }
 
 void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
@@ -7245,7 +7238,7 @@ TypePtr Function::SignatureType(Nullability nullability) const {
 }
 
 void Function::SetSignatureType(const Type& value) const {
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
     SignatureData::Cast(obj).set_signature_type(value);
@@ -7265,7 +7258,7 @@ const char* Function::KindToCString(FunctionLayout::Kind kind) {
 FunctionPtr Function::ForwardingTarget() const {
   ASSERT(kind() == FunctionLayout::kDynamicInvocationForwarder);
   Array& checks = Array::Handle();
-  checks ^= raw_ptr()->data_;
+  checks ^= raw_ptr()->data();
   return Function::RawCast(checks.At(0));
 }
 
@@ -7299,7 +7292,7 @@ void Function::SetForwardingChecks(const Array& checks) const {
 //   dyn inv forwarder:       Array[0] = Function target
 //                            Array[1] = TypeArguments default type args
 void Function::set_data(const Object& value) const {
-  StorePointer(&raw_ptr()->data_, value.raw());
+  raw_ptr()->set_data(value.raw());
 }
 
 bool Function::IsInFactoryScope() const {
@@ -7315,17 +7308,17 @@ bool Function::IsInFactoryScope() const {
 
 void Function::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
-  StorePointer(&raw_ptr()->name_, value.raw());
+  raw_ptr()->set_name(value.raw());
 }
 
 void Function::set_owner(const Object& value) const {
   ASSERT(!value.IsNull() || IsSignatureFunction());
-  StorePointer(&raw_ptr()->owner_, value.raw());
+  raw_ptr()->set_owner(value.raw());
 }
 
 RegExpPtr Function::regexp() const {
   ASSERT(kind() == FunctionLayout::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
+  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data()));
   return RegExp::RawCast(pair.At(0));
 }
 
@@ -7335,13 +7328,13 @@ class StringSpecializationCid
 
 intptr_t Function::string_specialization_cid() const {
   ASSERT(kind() == FunctionLayout::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
+  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data()));
   return StringSpecializationCid::decode(Smi::Value(Smi::RawCast(pair.At(1))));
 }
 
 bool Function::is_sticky_specialization() const {
   ASSERT(kind() == FunctionLayout::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
+  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data()));
   return StickySpecialization::decode(Smi::Value(Smi::RawCast(pair.At(1))));
 }
 
@@ -7350,7 +7343,7 @@ void Function::SetRegExpData(const RegExp& regexp,
                              bool sticky) const {
   ASSERT(kind() == FunctionLayout::kIrregexpFunction);
   ASSERT(IsStringClassId(string_specialization_cid));
-  ASSERT(raw_ptr()->data_ == Object::null());
+  ASSERT(raw_ptr()->data() == Object::null());
   const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
   pair.SetAt(0, regexp);
   pair.SetAt(1, Smi::Handle(Smi::New(StickySpecialization::encode(sticky) |
@@ -7361,7 +7354,7 @@ void Function::SetRegExpData(const RegExp& regexp,
 
 StringPtr Function::native_name() const {
   ASSERT(is_native());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
+  const Object& obj = Object::Handle(raw_ptr()->data());
   ASSERT(obj.IsArray());
   return String::RawCast(Array::Cast(obj).At(0));
 }
@@ -7378,7 +7371,7 @@ void Function::set_native_name(const String& value) const {
   // closure function.
   //
   // We therefore handle both cases.
-  const Object& old_data = Object::Handle(zone, raw_ptr()->data_);
+  const Object& old_data = Object::Handle(zone, raw_ptr()->data());
   ASSERT(old_data.IsNull() ||
          (old_data.IsFunction() &&
           Function::Handle(zone, Function::RawCast(old_data.raw()))
@@ -7392,11 +7385,11 @@ void Function::set_native_name(const String& value) const {
 
 void Function::set_result_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->result_type_, value.raw());
+  raw_ptr()->set_result_type(value.raw());
 }
 
 AbstractTypePtr Function::ParameterTypeAt(intptr_t index) const {
-  const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types_);
+  const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types());
   return AbstractType::RawCast(parameter_types.At(index));
 }
 
@@ -7405,27 +7398,27 @@ void Function::SetParameterTypeAt(intptr_t index,
   ASSERT(!value.IsNull());
   // Method extractor parameters are shared and are in the VM heap.
   ASSERT(kind() != FunctionLayout::kMethodExtractor);
-  const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types_);
+  const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types());
   parameter_types.SetAt(index, value);
 }
 
 void Function::set_parameter_types(const Array& value) const {
-  StorePointer(&raw_ptr()->parameter_types_, value.raw());
+  raw_ptr()->set_parameter_types(value.raw());
 }
 
 StringPtr Function::ParameterNameAt(intptr_t index) const {
-  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names());
   return String::RawCast(parameter_names.At(index));
 }
 
 void Function::SetParameterNameAt(intptr_t index, const String& value) const {
   ASSERT(!value.IsNull() && value.IsSymbol());
-  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names());
   parameter_names.SetAt(index, value);
 }
 
 void Function::set_parameter_names(const Array& value) const {
-  StorePointer(&raw_ptr()->parameter_names_, value.raw());
+  raw_ptr()->set_parameter_names(value.raw());
 }
 
 void Function::CreateNameArrayIncludingFlags(Heap::Space space) const {
@@ -7470,7 +7463,7 @@ bool Function::IsRequiredAt(intptr_t index) const {
   }
   intptr_t flag_mask;
   const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
-  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names());
   if (flag_index >= parameter_names.Length()) {
     return false;
   }
@@ -7482,7 +7475,7 @@ bool Function::IsRequiredAt(intptr_t index) const {
 void Function::SetIsRequiredAt(intptr_t index) const {
   intptr_t flag_mask;
   const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
-  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names());
   ASSERT(flag_index < parameter_names.Length());
   const intptr_t flags =
       Smi::Value(Smi::RawCast(parameter_names.At(flag_index)));
@@ -7490,7 +7483,7 @@ void Function::SetIsRequiredAt(intptr_t index) const {
 }
 
 void Function::TruncateUnusedParameterFlags() const {
-  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names());
   const intptr_t num_params = NumParameters();
   if (parameter_names.Length() == num_params) {
     // No flag slots to truncate.
@@ -7507,7 +7500,7 @@ void Function::TruncateUnusedParameterFlags() const {
 }
 
 void Function::set_type_parameters(const TypeArguments& value) const {
-  StorePointer(&raw_ptr()->type_parameters_, value.raw());
+  raw_ptr()->set_type_parameters(value.raw());
 }
 
 intptr_t Function::NumTypeParameters(Thread* thread) const {
@@ -9058,27 +9051,27 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
 }
 
 ClassPtr Function::Owner() const {
-  if (raw_ptr()->owner_ == Object::null()) {
+  if (raw_ptr()->owner() == Object::null()) {
     ASSERT(IsSignatureFunction());
     return Class::null();
   }
-  if (raw_ptr()->owner_->IsClass()) {
-    return Class::RawCast(raw_ptr()->owner_);
+  if (raw_ptr()->owner()->IsClass()) {
+    return Class::RawCast(raw_ptr()->owner());
   }
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  const Object& obj = Object::Handle(raw_ptr()->owner());
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).patched_class();
 }
 
 ClassPtr Function::origin() const {
-  if (raw_ptr()->owner_ == Object::null()) {
+  if (raw_ptr()->owner() == Object::null()) {
     ASSERT(IsSignatureFunction());
     return Class::null();
   }
-  if (raw_ptr()->owner_->IsClass()) {
-    return Class::RawCast(raw_ptr()->owner_);
+  if (raw_ptr()->owner()->IsClass()) {
+    return Class::RawCast(raw_ptr()->owner());
   }
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  const Object& obj = Object::Handle(raw_ptr()->owner());
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).origin_class();
 }
@@ -9112,7 +9105,7 @@ void Function::SetKernelDataAndScript(const Script& script,
 ScriptPtr Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  const Object& data = Object::Handle(raw_ptr()->data_);
+  const Object& data = Object::Handle(raw_ptr()->data());
   if (IsDynamicInvocationForwarder()) {
     const auto& forwarding_target = Function::Handle(ForwardingTarget());
     return forwarding_target.script();
@@ -9135,7 +9128,7 @@ ScriptPtr Function::script() const {
       return script.raw();
     }
   }
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  const Object& obj = Object::Handle(raw_ptr()->owner());
   if (obj.IsPatchClass()) {
     return PatchClass::Cast(obj).script();
   }
@@ -9151,7 +9144,7 @@ ScriptPtr Function::script() const {
 }
 
 ExternalTypedDataPtr Function::KernelData() const {
-  Object& data = Object::Handle(raw_ptr()->data_);
+  Object& data = Object::Handle(raw_ptr()->data());
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
@@ -9164,7 +9157,7 @@ ExternalTypedDataPtr Function::KernelData() const {
     return parent.KernelData();
   }
 
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  const Object& obj = Object::Handle(raw_ptr()->owner());
   if (obj.IsClass()) {
     Library& lib = Library::Handle(Class::Cast(obj).library());
     return lib.kernel_data();
@@ -9178,7 +9171,7 @@ intptr_t Function::KernelDataProgramOffset() const {
       IsFfiTrampoline()) {
     return 0;
   }
-  Object& data = Object::Handle(raw_ptr()->data_);
+  Object& data = Object::Handle(raw_ptr()->data());
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
@@ -9191,7 +9184,7 @@ intptr_t Function::KernelDataProgramOffset() const {
     return parent.KernelDataProgramOffset();
   }
 
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  const Object& obj = Object::Handle(raw_ptr()->owner());
   if (obj.IsClass()) {
     Library& lib = Library::Handle(Class::Cast(obj).library());
     return lib.kernel_offset();
@@ -9482,13 +9475,11 @@ void Function::RestoreICDataMap(
 }
 
 void Function::set_ic_data_array(const Array& value) const {
-  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->ic_data_array_,
-                                                    value.raw());
+  raw_ptr()->set_ic_data_array<std::memory_order_release>(value.raw());
 }
 
 ArrayPtr Function::ic_data_array() const {
-  return LoadPointer<ArrayPtr, std::memory_order_acquire>(
-      &raw_ptr()->ic_data_array_);
+  return raw_ptr()->ic_data_array<std::memory_order_acquire>();
 }
 
 void Function::ClearICDataArray() const {
@@ -9728,41 +9719,41 @@ const char* Function::ToCString() const {
 }
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
-  StorePointer(&raw_ptr()->context_scope_, value.raw());
+  raw_ptr()->set_context_scope(value.raw());
 }
 
 void ClosureData::set_implicit_static_closure(const Instance& closure) const {
   ASSERT(!closure.IsNull());
-  ASSERT(raw_ptr()->closure_ == Instance::null());
-  StorePointer(&raw_ptr()->closure_, closure.raw());
+  ASSERT(raw_ptr()->closure() == Instance::null());
+  raw_ptr()->set_closure(closure.raw());
 }
 
 void ClosureData::set_parent_function(const Function& value) const {
-  StorePointer(&raw_ptr()->parent_function_, value.raw());
+  raw_ptr()->set_parent_function(value.raw());
 }
 
 void ClosureData::set_signature_type(const Type& value) const {
-  StorePointer(&raw_ptr()->signature_type_, value.raw());
+  raw_ptr()->set_signature_type(value.raw());
 }
 
 void ClosureData::set_default_type_arguments(const TypeArguments& value) const {
-  StorePointer(&raw_ptr()->default_type_arguments_, value.raw());
+  raw_ptr()->set_default_type_arguments(value.raw());
 }
 
 intptr_t ClosureData::default_type_arguments_info() const {
-  const SmiPtr value = raw_ptr()->default_type_arguments_info_;
+  const SmiPtr value = raw_ptr()->default_type_arguments_info();
   if (value == Smi::null()) {
     static_assert(Function::DefaultTypeArgumentsKindField::decode(0) ==
                       Function::DefaultTypeArgumentsKind::kInvalid,
                   "Returning valid value for null Smi");
     return 0;
   }
-  return Smi::Value(raw_ptr()->default_type_arguments_info_);
+  return Smi::Value(raw_ptr()->default_type_arguments_info());
 }
 
 void ClosureData::set_default_type_arguments_info(intptr_t value) const {
   ASSERT(Smi::IsValid(value));
-  StorePointer(&raw_ptr()->default_type_arguments_info_, Smi::New(value));
+  raw_ptr()->set_default_type_arguments_info(Smi::New(value));
 }
 
 ClosureDataPtr ClosureData::New() {
@@ -9805,11 +9796,11 @@ const char* ClosureData::ToCString() const {
 }
 
 void SignatureData::set_parent_function(const Function& value) const {
-  StorePointer(&raw_ptr()->parent_function_, value.raw());
+  raw_ptr()->set_parent_function(value.raw());
 }
 
 void SignatureData::set_signature_type(const Type& value) const {
-  StorePointer(&raw_ptr()->signature_type_, value.raw());
+  raw_ptr()->set_signature_type(value.raw());
 }
 
 SignatureDataPtr SignatureData::New(Heap::Space space) {
@@ -9832,15 +9823,15 @@ const char* SignatureData::ToCString() const {
 }
 
 void FfiTrampolineData::set_signature_type(const Type& value) const {
-  StorePointer(&raw_ptr()->signature_type_, value.raw());
+  raw_ptr()->set_signature_type(value.raw());
 }
 
 void FfiTrampolineData::set_c_signature(const Function& value) const {
-  StorePointer(&raw_ptr()->c_signature_, value.raw());
+  raw_ptr()->set_c_signature(value.raw());
 }
 
 void FfiTrampolineData::set_callback_target(const Function& value) const {
-  StorePointer(&raw_ptr()->callback_target_, value.raw());
+  raw_ptr()->set_callback_target(value.raw());
 }
 
 void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
@@ -9849,7 +9840,7 @@ void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
 
 void FfiTrampolineData::set_callback_exceptional_return(
     const Instance& value) const {
-  StorePointer(&raw_ptr()->callback_exceptional_return_, value.raw());
+  raw_ptr()->set_callback_exceptional_return(value.raw());
 }
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {
@@ -9884,7 +9875,7 @@ FieldPtr Field::Original() const {
   if (IsNull()) {
     return Field::null();
   }
-  Object& obj = Object::Handle(raw_ptr()->owner_);
+  Object& obj = Object::Handle(raw_ptr()->owner());
   if (obj.IsField()) {
     return Field::RawCast(obj.raw());
   } else {
@@ -9910,7 +9901,7 @@ const Object* Field::CloneForUnboxed(const Object& value) const {
 void Field::SetOriginal(const Field& value) const {
   ASSERT(value.IsOriginal());
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->owner_, static_cast<ObjectPtr>(value.raw()));
+  raw_ptr()->set_owner(static_cast<ObjectPtr>(value.raw()));
 }
 
 StringPtr Field::GetterName(const String& field_name) {
@@ -9967,24 +9958,24 @@ bool Field::IsInitName(const String& function_name) {
 void Field::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   ASSERT(IsOriginal());
-  StorePointer(&raw_ptr()->name_, value.raw());
+  raw_ptr()->set_name(value.raw());
 }
 
 ObjectPtr Field::RawOwner() const {
   if (IsOriginal()) {
-    return raw_ptr()->owner_;
+    return raw_ptr()->owner();
   } else {
     const Field& field = Field::Handle(Original());
     ASSERT(field.IsOriginal());
-    ASSERT(!Object::Handle(field.raw_ptr()->owner_).IsField());
-    return field.raw_ptr()->owner_;
+    ASSERT(!Object::Handle(field.raw_ptr()->owner()).IsField());
+    return field.raw_ptr()->owner();
   }
 }
 
 ClassPtr Field::Owner() const {
   const Field& field = Field::Handle(Original());
   ASSERT(field.IsOriginal());
-  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
+  const Object& obj = Object::Handle(field.raw_ptr()->owner());
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -9995,7 +9986,7 @@ ClassPtr Field::Owner() const {
 ClassPtr Field::Origin() const {
   const Field& field = Field::Handle(Original());
   ASSERT(field.IsOriginal());
-  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
+  const Object& obj = Object::Handle(field.raw_ptr()->owner());
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -10008,7 +9999,7 @@ ScriptPtr Field::Script() const {
   // update Class::PatchFieldsAndFunctions() at the same time.
   const Field& field = Field::Handle(Original());
   ASSERT(field.IsOriginal());
-  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
+  const Object& obj = Object::Handle(field.raw_ptr()->owner());
   if (obj.IsClass()) {
     return Class::Cast(obj).script();
   }
@@ -10017,7 +10008,7 @@ ScriptPtr Field::Script() const {
 }
 
 ExternalTypedDataPtr Field::KernelData() const {
-  const Object& obj = Object::Handle(this->raw_ptr()->owner_);
+  const Object& obj = Object::Handle(this->raw_ptr()->owner());
   // During background JIT compilation field objects are copied
   // and copy points to the original field via the owner field.
   if (obj.IsField()) {
@@ -10039,7 +10030,7 @@ void Field::InheritKernelOffsetFrom(const Field& src) const {
 }
 
 intptr_t Field::KernelDataProgramOffset() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  const Object& obj = Object::Handle(raw_ptr()->owner());
   // During background JIT compilation field objects are copied
   // and copy points to the original field via the owner field.
   if (obj.IsField()) {
@@ -10058,7 +10049,7 @@ void Field::SetFieldType(const AbstractType& value) const {
   ASSERT(IsOriginal());
   ASSERT(!value.IsNull());
   if (value.raw() != type()) {
-    StorePointer(&raw_ptr()->type_, value.raw());
+    raw_ptr()->set_type(value.raw());
   }
 }
 
@@ -10210,13 +10201,13 @@ StringPtr Field::UserVisibleName() const {
 }
 
 intptr_t Field::guarded_list_length() const {
-  return Smi::Value(raw_ptr()->guarded_list_length_);
+  return Smi::Value(raw_ptr()->guarded_list_length());
 }
 
 void Field::set_guarded_list_length_unsafe(intptr_t list_length) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
-  StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
+  raw_ptr()->set_guarded_list_length(Smi::New(list_length));
 }
 
 intptr_t Field::guarded_list_length_in_object_offset() const {
@@ -10325,14 +10316,14 @@ InstancePtr Field::SetterClosure() const {
 ArrayPtr Field::dependent_code() const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
-  return raw_ptr()->dependent_code_;
+  return raw_ptr()->dependent_code();
 }
 
 void Field::set_dependent_code(const Array& array) const {
   ASSERT(IsOriginal());
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  StorePointer(&raw_ptr()->dependent_code_, array.raw());
+  raw_ptr()->set_dependent_code(array.raw());
 }
 
 class FieldDependentArray : public WeakCodeReferences {
@@ -10389,8 +10380,8 @@ void Field::DeoptimizeDependentCode() const {
 bool Field::IsConsistentWith(const Field& other) const {
   return (raw_ptr()->guarded_cid_ == other.raw_ptr()->guarded_cid_) &&
          (raw_ptr()->is_nullable_ == other.raw_ptr()->is_nullable_) &&
-         (raw_ptr()->guarded_list_length_ ==
-          other.raw_ptr()->guarded_list_length_) &&
+         (raw_ptr()->guarded_list_length() ==
+          other.raw_ptr()->guarded_list_length()) &&
          (is_unboxing_candidate() == other.is_unboxing_candidate()) &&
          (static_type_exactness_state().Encode() ==
           other.static_type_exactness_state().Encode());
@@ -10437,13 +10428,13 @@ void Field::SetInitializerFunction(const Function& initializer) const {
   // We have to ensure that all stores into the initializer function object
   // happen before releasing the pointer to the initializer as it may be
   // accessed without grabbing the lock.
-  StorePointer<FunctionPtr, std::memory_order_release>(
-      &raw_ptr()->initializer_function_, initializer.raw());
+  raw_ptr()->set_initializer_function<std::memory_order_release>(
+      initializer.raw());
 #endif
 }
 
 bool Field::HasInitializerFunction() const {
-  return raw_ptr()->initializer_function_ != Function::null();
+  return raw_ptr()->initializer_function() != Function::null();
 }
 
 ErrorPtr Field::InitializeInstance(const Instance& instance) const {
@@ -11010,16 +11001,16 @@ void Field::ForceDynamicGuardedCidAndLength() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void Field::set_type_test_cache(const SubtypeTestCache& cache) const {
-  StorePointer(&raw_ptr()->type_test_cache_, cache.raw());
+  raw_ptr()->set_type_test_cache(cache.raw());
 }
 #endif
 
 bool Script::HasSource() const {
-  return raw_ptr()->source_ != String::null();
+  return raw_ptr()->source() != String::null();
 }
 
 StringPtr Script::Source() const {
-  return raw_ptr()->source_;
+  return raw_ptr()->source();
 }
 
 bool Script::IsPartOfDartColonLibrary() const {
@@ -11039,11 +11030,11 @@ void Script::LoadSourceFromKernel(const uint8_t* kernel_buffer,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Script::set_compile_time_constants(const Array& value) const {
-  StorePointer(&raw_ptr()->compile_time_constants_, value.raw());
+  raw_ptr()->set_compile_time_constants(value.raw());
 }
 
 void Script::set_kernel_program_info(const KernelProgramInfo& info) const {
-  StorePointer(&raw_ptr()->kernel_program_info_, info.raw());
+  raw_ptr()->set_kernel_program_info(info.raw());
 }
 
 void Script::set_kernel_script_index(const intptr_t kernel_script_index) const {
@@ -11144,38 +11135,38 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
 }
 
 void Script::set_url(const String& value) const {
-  StorePointer(&raw_ptr()->url_, value.raw());
+  raw_ptr()->set_url(value.raw());
 }
 
 void Script::set_resolved_url(const String& value) const {
-  StorePointer(&raw_ptr()->resolved_url_, value.raw());
+  raw_ptr()->set_resolved_url(value.raw());
 }
 
 void Script::set_source(const String& value) const {
-  StorePointer(&raw_ptr()->source_, value.raw());
+  raw_ptr()->set_source(value.raw());
 }
 
 void Script::set_line_starts(const TypedData& value) const {
-  StorePointer(&raw_ptr()->line_starts_, value.raw());
+  raw_ptr()->set_line_starts(value.raw());
 }
 
 void Script::set_debug_positions(const Array& value) const {
-  StorePointer(&raw_ptr()->debug_positions_, value.raw());
+  raw_ptr()->set_debug_positions(value.raw());
 }
 
 TypedDataPtr Script::line_starts() const {
-  return raw_ptr()->line_starts_;
+  return raw_ptr()->line_starts();
 }
 
 ArrayPtr Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  Array& debug_positions_array = Array::Handle(raw_ptr()->debug_positions_);
+  Array& debug_positions_array = Array::Handle(raw_ptr()->debug_positions());
   if (debug_positions_array.IsNull()) {
     // This is created lazily. Now we need it.
     kernel::CollectTokenPositionsFor(*this);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return raw_ptr()->debug_positions_;
+  return raw_ptr()->debug_positions();
 }
 
 void Script::set_flags(uint8_t value) const {
@@ -11554,19 +11545,19 @@ void Library::set_num_imports(intptr_t value) const {
 
 void Library::set_name(const String& name) const {
   ASSERT(name.IsSymbol());
-  StorePointer(&raw_ptr()->name_, name.raw());
+  raw_ptr()->set_name(name.raw());
 }
 
 void Library::set_url(const String& name) const {
-  StorePointer(&raw_ptr()->url_, name.raw());
+  raw_ptr()->set_url(name.raw());
 }
 
 void Library::set_kernel_data(const ExternalTypedData& data) const {
-  StorePointer(&raw_ptr()->kernel_data_, data.raw());
+  raw_ptr()->set_kernel_data(data.raw());
 }
 
 void Library::set_loading_unit(const LoadingUnit& value) const {
-  StorePointer(&raw_ptr()->loading_unit_, value.raw());
+  raw_ptr()->set_loading_unit(value.raw());
 }
 
 void Library::SetName(const String& name) const {
@@ -11884,7 +11875,7 @@ void Library::AddToResolvedNamesCache(const String& name,
   }
   ResolvedNamesMap cache(resolved_names());
   cache.UpdateOrInsert(name, obj);
-  StorePointer(&raw_ptr()->resolved_names_, cache.Release().raw());
+  raw_ptr()->set_resolved_names(cache.Release().raw());
 }
 
 bool Library::LookupExportedNamesCache(const String& name, Object* obj) const {
@@ -11919,7 +11910,7 @@ void Library::AddToExportedNamesCache(const String& name,
   }
   ResolvedNamesMap cache(exported_names());
   cache.UpdateOrInsert(name, obj);
-  StorePointer(&raw_ptr()->exported_names_, cache.Release().raw());
+  raw_ptr()->set_exported_names(cache.Release().raw());
 }
 
 void Library::InvalidateResolvedName(const String& name) const {
@@ -11992,7 +11983,7 @@ void Library::RehashDictionary(const Array& old_dict,
   new_entry = Smi::New(used);
   new_dict.SetAt(new_dict_size, new_entry);
   // Remember the new dictionary now.
-  StorePointer(&raw_ptr()->dictionary_, new_dict.raw());
+  raw_ptr()->set_dictionary(new_dict.raw());
 }
 
 void Library::AddObject(const Object& obj, const String& name) const {
@@ -12028,7 +12019,7 @@ void Library::AddObject(const Object& obj, const String& name) const {
 
   // Invalidate the cache of loaded scripts.
   if (loaded_scripts() != Array::null()) {
-    StorePointer(&raw_ptr()->loaded_scripts_, Array::null());
+    raw_ptr()->set_loaded_scripts(Array::null());
   }
 }
 
@@ -12190,7 +12181,7 @@ ArrayPtr Library::LoadedScripts() const {
 
     // Create the array of scripts and cache it in loaded_scripts_.
     const Array& scripts_array = Array::Handle(Array::MakeFixedLength(scripts));
-    StorePointer(&raw_ptr()->loaded_scripts_, scripts_array.raw());
+    raw_ptr()->set_loaded_scripts(scripts_array.raw());
   }
   return loaded_scripts();
 }
@@ -12456,16 +12447,16 @@ LibraryPrefixPtr Library::LookupLocalLibraryPrefix(const String& name) const {
 }
 
 void Library::set_toplevel_class(const Class& value) const {
-  ASSERT(raw_ptr()->toplevel_class_ == Class::null());
-  StorePointer(&raw_ptr()->toplevel_class_, value.raw());
+  ASSERT(raw_ptr()->toplevel_class() == Class::null());
+  raw_ptr()->set_toplevel_class(value.raw());
 }
 
 void Library::set_dependencies(const Array& deps) const {
-  StorePointer(&raw_ptr()->dependencies_, deps.raw());
+  raw_ptr()->set_dependencies(deps.raw());
 }
 
 void Library::set_metadata(const GrowableObjectArray& value) const {
-  StorePointer(&raw_ptr()->metadata_, value.raw());
+  raw_ptr()->set_metadata(value.raw());
 }
 
 LibraryPtr Library::ImportLibraryAt(intptr_t index) const {
@@ -12488,7 +12479,7 @@ void Library::DropDependenciesAndCaches() const {
   // We need to preserve the "dart-ext:" imports because they are used by
   // Loader::ReloadNativeExtensions().
   intptr_t native_import_count = 0;
-  Array& imports = Array::Handle(raw_ptr()->imports_);
+  Array& imports = Array::Handle(raw_ptr()->imports());
   Namespace& ns = Namespace::Handle();
   Library& lib = Library::Handle();
   String& url = String::Handle();
@@ -12513,13 +12504,13 @@ void Library::DropDependenciesAndCaches() const {
     }
   }
 
-  StorePointer(&raw_ptr()->imports_, new_imports.raw());
-  StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
+  raw_ptr()->set_imports(new_imports.raw());
+  raw_ptr()->set_exports(Object::empty_array().raw());
   StoreNonPointer(&raw_ptr()->num_imports_, 0);
-  StorePointer(&raw_ptr()->resolved_names_, Array::null());
-  StorePointer(&raw_ptr()->exported_names_, Array::null());
-  StorePointer(&raw_ptr()->loaded_scripts_, Array::null());
-  StorePointer(&raw_ptr()->dependencies_, Array::null());
+  raw_ptr()->set_resolved_names(Array::null());
+  raw_ptr()->set_exported_names(Array::null());
+  raw_ptr()->set_loaded_scripts(Array::null());
+  raw_ptr()->set_dependencies(Array::null());
 }
 
 void Library::AddImport(const Namespace& ns) const {
@@ -12528,7 +12519,7 @@ void Library::AddImport(const Namespace& ns) const {
   if (num_imports() == capacity) {
     capacity = capacity + kImportsCapacityIncrement + (capacity >> 2);
     imports = Array::Grow(imports, capacity);
-    StorePointer(&raw_ptr()->imports_, imports.raw());
+    raw_ptr()->set_imports(imports.raw());
   }
   intptr_t index = num_imports();
   imports.SetAt(index, ns);
@@ -12548,7 +12539,7 @@ void Library::AddExport(const Namespace& ns) const {
   Array& exports = Array::Handle(this->exports());
   intptr_t num_exports = exports.Length();
   exports = Array::Grow(exports, num_exports + 1);
-  StorePointer(&raw_ptr()->exports_, exports.raw());
+  raw_ptr()->set_exports(exports.raw());
   exports.SetAt(num_exports, ns);
 }
 
@@ -12565,12 +12556,12 @@ void Library::InitResolvedNamesCache() const {
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& cache = thread->ArrayHandle();
   cache = HashTables::New<ResolvedNamesMap>(64);
-  StorePointer(&raw_ptr()->resolved_names_, cache.raw());
+  raw_ptr()->set_resolved_names(cache.raw());
 }
 
 void Library::ClearResolvedNamesCache() const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  StorePointer(&raw_ptr()->resolved_names_, Array::null());
+  raw_ptr()->set_resolved_names(Array::null());
 }
 
 void Library::InitExportedNamesCache() const {
@@ -12579,11 +12570,11 @@ void Library::InitExportedNamesCache() const {
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& cache = thread->ArrayHandle();
   cache = HashTables::New<ResolvedNamesMap>(16);
-  StorePointer(&raw_ptr()->exported_names_, cache.raw());
+  raw_ptr()->set_exported_names(cache.raw());
 }
 
 void Library::ClearExportedNamesCache() const {
-  StorePointer(&raw_ptr()->exported_names_, Array::null());
+  raw_ptr()->set_exported_names(Array::null());
 }
 
 void Library::InitClassDictionary() const {
@@ -12594,13 +12585,13 @@ void Library::InitClassDictionary() const {
   // TODO(iposva): Find reasonable initial size.
   const int kInitialElementCount = 16;
   dictionary = NewDictionary(kInitialElementCount);
-  StorePointer(&raw_ptr()->dictionary_, dictionary.raw());
+  raw_ptr()->set_dictionary(dictionary.raw());
 }
 
 void Library::InitImportList() const {
   const Array& imports =
       Array::Handle(Array::New(kInitialImportsCapacity, Heap::kOld));
-  StorePointer(&raw_ptr()->imports_, imports.raw());
+  raw_ptr()->set_imports(imports.raw());
   StoreNonPointer(&raw_ptr()->num_imports_, 0);
 }
 
@@ -12619,21 +12610,20 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   url.Hash();
   const bool dart_scheme = url.StartsWith(Symbols::DartScheme());
   const Library& result = Library::Handle(zone, Library::New());
-  result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
-  result.StorePointer(&result.raw_ptr()->url_, url.raw());
-  result.StorePointer(&result.raw_ptr()->resolved_names_, Array::null());
-  result.StorePointer(&result.raw_ptr()->exported_names_, Array::null());
-  result.StorePointer(&result.raw_ptr()->dictionary_,
-                      Object::empty_array().raw());
+  result.raw_ptr()->set_name(Symbols::Empty().raw());
+  result.raw_ptr()->set_url(url.raw());
+  result.raw_ptr()->set_resolved_names(Array::null());
+  result.raw_ptr()->set_exported_names(Array::null());
+  result.raw_ptr()->set_dictionary(Object::empty_array().raw());
   GrowableObjectArray& list = GrowableObjectArray::Handle(zone);
   list = GrowableObjectArray::New(4, Heap::kOld);
-  result.StorePointer(&result.raw_ptr()->metadata_, list.raw());
-  result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
+  result.raw_ptr()->set_metadata(list.raw());
+  result.raw_ptr()->set_toplevel_class(Class::null());
   list = GrowableObjectArray::New(Object::empty_array(), Heap::kOld);
-  result.StorePointer(&result.raw_ptr()->used_scripts_, list.raw());
-  result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
-  result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
-  result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
+  result.raw_ptr()->set_used_scripts(list.raw());
+  result.raw_ptr()->set_imports(Object::empty_array().raw());
+  result.raw_ptr()->set_exports(Object::empty_array().raw());
+  result.raw_ptr()->set_loaded_scripts(Array::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
   result.set_flags(0);
@@ -13085,7 +13075,7 @@ void Library::AllocatePrivateKey() const {
     const String& original_key =
         String::Handle(reload_context->FindLibraryPrivateKey(*this));
     if (!original_key.IsNull()) {
-      StorePointer(&raw_ptr()->private_key_, original_key.raw());
+      raw_ptr()->set_private_key(original_key.raw());
       return;
     }
   }
@@ -13107,7 +13097,7 @@ void Library::AllocatePrivateKey() const {
   const String& key =
       String::Handle(zone, String::New(private_key, Heap::kOld));
   key.Hash();  // This string may end up in the VM isolate.
-  StorePointer(&raw_ptr()->private_key_, key.raw());
+  raw_ptr()->set_private_key(key.raw());
 }
 
 const String& Library::PrivateCoreLibName(const String& member) {
@@ -13332,11 +13322,11 @@ LibraryPrefixPtr LibraryPrefix::New(const String& name,
 
 void LibraryPrefix::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
-  StorePointer(&raw_ptr()->name_, value.raw());
+  raw_ptr()->set_name(value.raw());
 }
 
 void LibraryPrefix::set_imports(const Array& value) const {
-  StorePointer(&raw_ptr()->imports_, value.raw());
+  raw_ptr()->set_imports(value.raw());
 }
 
 void LibraryPrefix::set_num_imports(intptr_t value) const {
@@ -13347,7 +13337,7 @@ void LibraryPrefix::set_num_imports(intptr_t value) const {
 }
 
 void LibraryPrefix::set_importer(const Library& value) const {
-  StorePointer(&raw_ptr()->importer_, value.raw());
+  raw_ptr()->set_importer(value.raw());
 }
 
 const char* LibraryPrefix::ToCString() const {
@@ -13356,7 +13346,7 @@ const char* LibraryPrefix::ToCString() const {
 }
 
 void Namespace::set_metadata_field(const Field& value) const {
-  StorePointer(&raw_ptr()->metadata_field_, value.raw());
+  raw_ptr()->set_metadata_field(value.raw());
 }
 
 void Namespace::AddMetadata(const Object& owner,
@@ -13528,9 +13518,9 @@ NamespacePtr Namespace::New(const Library& library,
   ASSERT(show_names.IsNull() || (show_names.Length() > 0));
   ASSERT(hide_names.IsNull() || (hide_names.Length() > 0));
   const Namespace& result = Namespace::Handle(Namespace::New());
-  result.StorePointer(&result.raw_ptr()->library_, library.raw());
-  result.StorePointer(&result.raw_ptr()->show_names_, show_names.raw());
-  result.StorePointer(&result.raw_ptr()->hide_names_, hide_names.raw());
+  result.raw_ptr()->set_library(library.raw());
+  result.raw_ptr()->set_show_names(show_names.raw());
+  result.raw_ptr()->set_hide_names(hide_names.raw());
   return result.raw();
 }
 
@@ -13555,19 +13545,16 @@ KernelProgramInfoPtr KernelProgramInfo::New(
     const uint32_t binary_version) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
-  info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
-  info.StorePointer(&info.raw_ptr()->string_data_, string_data.raw());
-  info.StorePointer(&info.raw_ptr()->canonical_names_, canonical_names.raw());
-  info.StorePointer(&info.raw_ptr()->metadata_payloads_,
-                    metadata_payloads.raw());
-  info.StorePointer(&info.raw_ptr()->metadata_mappings_,
-                    metadata_mappings.raw());
-  info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
-  info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
-  info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
-  info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
-  info.StorePointer(&info.raw_ptr()->retained_kernel_blob_,
-                    retained_kernel_blob.raw());
+  info.raw_ptr()->set_string_offsets(string_offsets.raw());
+  info.raw_ptr()->set_string_data(string_data.raw());
+  info.raw_ptr()->set_canonical_names(canonical_names.raw());
+  info.raw_ptr()->set_metadata_payloads(metadata_payloads.raw());
+  info.raw_ptr()->set_metadata_mappings(metadata_mappings.raw());
+  info.raw_ptr()->set_scripts(scripts.raw());
+  info.raw_ptr()->set_constants_table(constants_table.raw());
+  info.raw_ptr()->set_libraries_cache(libraries_cache.raw());
+  info.raw_ptr()->set_classes_cache(classes_cache.raw());
+  info.raw_ptr()->set_retained_kernel_blob(retained_kernel_blob.raw());
   info.set_kernel_binary_version(binary_version);
   return info.raw();
 }
@@ -13583,11 +13570,11 @@ ScriptPtr KernelProgramInfo::ScriptAt(intptr_t index) const {
 }
 
 void KernelProgramInfo::set_scripts(const Array& scripts) const {
-  StorePointer(&raw_ptr()->scripts_, scripts.raw());
+  raw_ptr()->set_scripts(scripts.raw());
 }
 
 void KernelProgramInfo::set_constants(const Array& constants) const {
-  StorePointer(&raw_ptr()->constants_, constants.raw());
+  raw_ptr()->set_constants(constants.raw());
 }
 
 void KernelProgramInfo::set_kernel_binary_version(uint32_t version) const {
@@ -13596,21 +13583,21 @@ void KernelProgramInfo::set_kernel_binary_version(uint32_t version) const {
 
 void KernelProgramInfo::set_constants_table(
     const ExternalTypedData& value) const {
-  StorePointer(&raw_ptr()->constants_table_, value.raw());
+  raw_ptr()->set_constants_table(value.raw());
 }
 
 void KernelProgramInfo::set_potential_natives(
     const GrowableObjectArray& candidates) const {
-  StorePointer(&raw_ptr()->potential_natives_, candidates.raw());
+  raw_ptr()->set_potential_natives(candidates.raw());
 }
 
 void KernelProgramInfo::set_potential_pragma_functions(
     const GrowableObjectArray& candidates) const {
-  StorePointer(&raw_ptr()->potential_pragma_functions_, candidates.raw());
+  raw_ptr()->set_potential_pragma_functions(candidates.raw());
 }
 
 void KernelProgramInfo::set_libraries_cache(const Array& cache) const {
-  StorePointer(&raw_ptr()->libraries_cache_, cache.raw());
+  raw_ptr()->set_libraries_cache(cache.raw());
 }
 
 typedef UnorderedHashMap<SmiTraits> IntHashMap;
@@ -13626,8 +13613,8 @@ LibraryPtr KernelProgramInfo::LookupLibrary(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_lib_cache_mutex());
     data = libraries_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -13649,8 +13636,8 @@ LibraryPtr KernelProgramInfo::InsertLibrary(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_lib_cache_mutex());
     data = libraries_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -13661,7 +13648,7 @@ LibraryPtr KernelProgramInfo::InsertLibrary(Thread* thread,
 }
 
 void KernelProgramInfo::set_classes_cache(const Array& cache) const {
-  StorePointer(&raw_ptr()->classes_cache_, cache.raw());
+  raw_ptr()->set_classes_cache(cache.raw());
 }
 
 ClassPtr KernelProgramInfo::LookupClass(Thread* thread,
@@ -13675,8 +13662,8 @@ ClassPtr KernelProgramInfo::LookupClass(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_class_cache_mutex());
     data = classes_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -13698,8 +13685,8 @@ ClassPtr KernelProgramInfo::InsertClass(Thread* thread,
   Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
   {
-    Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
+    SafepointMutexLocker ml(
+        thread->isolate_group()->kernel_data_class_cache_mutex());
     data = classes_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
@@ -14667,19 +14654,19 @@ void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   ASSERT(!handled_types.IsNull());
   const Array& handled_types_data =
-      Array::Handle(raw_ptr()->handled_types_data_);
+      Array::Handle(raw_ptr()->handled_types_data());
   handled_types_data.SetAt(try_index, handled_types);
 }
 
 ArrayPtr ExceptionHandlers::GetHandledTypes(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
-  Array& array = Array::Handle(raw_ptr()->handled_types_data_);
+  Array& array = Array::Handle(raw_ptr()->handled_types_data());
   array ^= array.At(try_index);
   return array.raw();
 }
 
 void ExceptionHandlers::set_handled_types_data(const Array& value) const {
-  StorePointer(&raw_ptr()->handled_types_data_, value.raw());
+  raw_ptr()->set_handled_types_data(value.raw());
 }
 
 ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
@@ -14781,7 +14768,7 @@ const char* ExceptionHandlers::ToCString() const {
 }
 
 void SingleTargetCache::set_target(const Code& value) const {
-  StorePointer(&raw_ptr()->target_, value.raw());
+  raw_ptr()->set_target(value.raw());
 }
 
 const char* SingleTargetCache::ToCString() const {
@@ -14837,7 +14824,7 @@ MonomorphicSmiableCallPtr MonomorphicSmiableCall::New(classid_t expected_cid,
   result ^=
       Object::Allocate(MonomorphicSmiableCall::kClassId,
                        MonomorphicSmiableCall::InstanceSize(), Heap::kOld);
-  result.StorePointer(&result.raw_ptr()->target_, target.raw());
+  result.raw_ptr()->set_target(target.raw());
   result.StoreNonPointer(&result.raw_ptr()->expected_cid_, expected_cid);
   result.StoreNonPointer(&result.raw_ptr()->entrypoint_, target.EntryPoint());
   return result.raw();
@@ -14855,17 +14842,17 @@ const char* CallSiteData::ToCString() const {
 
 void CallSiteData::set_target_name(const String& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->target_name_, value.raw());
+  raw_ptr()->set_target_name(value.raw());
 }
 
 void CallSiteData::set_arguments_descriptor(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+  raw_ptr()->set_args_descriptor(value.raw());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ICData::SetReceiversStaticType(const AbstractType& type) const {
-  StorePointer(&raw_ptr()->receivers_static_type_, type.raw());
+  raw_ptr()->set_receivers_static_type(type.raw());
 
 #if defined(TARGET_ARCH_X64)
   if (!type.IsNull() && type.HasTypeClass() && (NumArgsTested() == 1) &&
@@ -14909,7 +14896,7 @@ const char* ICData::ToCString() const {
 }
 
 FunctionPtr ICData::Owner() const {
-  Object& obj = Object::Handle(raw_ptr()->owner_);
+  Object& obj = Object::Handle(raw_ptr()->owner());
   if (obj.IsNull()) {
     ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Function::null();
@@ -14926,7 +14913,7 @@ ICDataPtr ICData::Original() const {
   if (IsNull()) {
     return ICData::null();
   }
-  Object& obj = Object::Handle(raw_ptr()->owner_);
+  Object& obj = Object::Handle(raw_ptr()->owner());
   if (obj.IsFunction()) {
     return this->raw();
   } else {
@@ -14937,11 +14924,11 @@ ICDataPtr ICData::Original() const {
 void ICData::SetOriginal(const ICData& value) const {
   ASSERT(value.IsOriginal());
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->owner_, static_cast<ObjectPtr>(value.raw()));
+  raw_ptr()->set_owner(static_cast<ObjectPtr>(value.raw()));
 }
 
 void ICData::set_owner(const Function& value) const {
-  StorePointer(&raw_ptr()->owner_, static_cast<ObjectPtr>(value.raw()));
+  raw_ptr()->set_owner(static_cast<ObjectPtr>(value.raw()));
 }
 
 void ICData::set_deopt_id(intptr_t value) const {
@@ -14955,8 +14942,7 @@ void ICData::set_deopt_id(intptr_t value) const {
 
 void ICData::set_entries(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->entries_,
-                                                    value.raw());
+  raw_ptr()->set_entries<std::memory_order_release>(value.raw());
 }
 
 intptr_t ICData::NumArgsTested() const {
@@ -15065,7 +15051,7 @@ intptr_t ICData::TestEntryLength() const {
 }
 
 intptr_t ICData::Length() const {
-  return (Smi::Value(entries()->ptr()->length_) / TestEntryLength());
+  return (Smi::Value(entries()->ptr()->length()) / TestEntryLength());
 }
 
 intptr_t ICData::NumberOfChecks() const {
@@ -15990,7 +15976,7 @@ ObjectPtr WeakSerializationReference::Wrap(Zone* zone, const Object& target) {
     NoSafepointScope no_safepoint;
 
     result ^= raw;
-    result.StorePointer(&result.raw_ptr()->target_, target.raw());
+    result.raw_ptr()->set_target(target.raw());
   }
   return result.raw();
 }
@@ -16091,7 +16077,7 @@ void Code::set_owner(const Object& owner) const {
   ASSERT(unwrapped_owner.IsFunction() || unwrapped_owner.IsClass() ||
          unwrapped_owner.IsAbstractType());
 #endif
-  StorePointer(&raw_ptr()->owner_, owner.raw());
+  raw_ptr()->set_owner(owner.raw());
 }
 
 void Code::set_state_bits(intptr_t bits) const {
@@ -16112,31 +16098,28 @@ void Code::set_is_alive(bool value) const {
 
 void Code::set_compressed_stackmaps(const CompressedStackMaps& maps) const {
   ASSERT(maps.IsOld());
-  StorePointer(&raw_ptr()->compressed_stackmaps_, maps.raw());
+  raw_ptr()->set_compressed_stackmaps(maps.raw());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 intptr_t Code::num_variables() const {
   ASSERT(!FLAG_precompiled_mode);
-  return Smi::Value(Smi::RawCast(raw_ptr()->catch_entry_));
+  return Smi::Value(Smi::RawCast(raw_ptr()->catch_entry()));
 }
 void Code::set_num_variables(intptr_t num_variables) const {
   ASSERT(!FLAG_precompiled_mode);
-  // Object::RawCast is needed for StorePointer template argument resolution.
-  StorePointer(&raw_ptr()->catch_entry_,
-               Object::RawCast(Smi::New(num_variables)));
+  raw_ptr()->set_catch_entry(Smi::New(num_variables));
 }
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
 TypedDataPtr Code::catch_entry_moves_maps() const {
   ASSERT(FLAG_precompiled_mode);
-  return TypedData::RawCast(raw_ptr()->catch_entry_);
+  return TypedData::RawCast(raw_ptr()->catch_entry());
 }
 void Code::set_catch_entry_moves_maps(const TypedData& maps) const {
   ASSERT(FLAG_precompiled_mode);
-  // Object::RawCast is needed for StorePointer template argument resolution.
-  StorePointer(&raw_ptr()->catch_entry_, Object::RawCast(maps.raw()));
+  raw_ptr()->set_catch_entry(maps.raw());
 }
 #endif
 
@@ -16145,7 +16128,7 @@ void Code::set_deopt_info_array(const Array& array) const {
   UNREACHABLE();
 #else
   ASSERT(array.IsOld());
-  StorePointer(&raw_ptr()->deopt_info_array_, array.raw());
+  raw_ptr()->set_deopt_info_array(array.raw());
 #endif
 }
 
@@ -16153,7 +16136,7 @@ void Code::set_static_calls_target_table(const Array& value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+  raw_ptr()->set_static_calls_target_table(value.raw());
 #endif
 #if defined(DEBUG)
   // Check that the table is sorted by pc offsets.
@@ -16226,7 +16209,7 @@ intptr_t Code::BinarySearchInSCallTable(uword pc) const {
   UNREACHABLE();
 #else
   NoSafepointScope no_safepoint;
-  const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
+  const Array& table = Array::Handle(raw_ptr()->static_calls_target_table());
   StaticCallsTable entries(table);
   const intptr_t pc_offset = pc - PayloadStart();
   intptr_t imin = 0;
@@ -16256,7 +16239,7 @@ FunctionPtr Code::GetStaticCallTargetFunctionAt(uword pc) const {
   if (i < 0) {
     return Function::null();
   }
-  const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
+  const Array& array = Array::Handle(raw_ptr()->static_calls_target_table());
   StaticCallsTable entries(array);
   return entries[i].Get<kSCallTableFunctionTarget>();
 #endif
@@ -16268,7 +16251,7 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
 #else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
-  const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
+  const Array& array = Array::Handle(raw_ptr()->static_calls_target_table());
   StaticCallsTable entries(array);
   ASSERT(code.IsNull() ||
          (code.function() == entries[i].Get<kSCallTableFunctionTarget>()));
@@ -16282,7 +16265,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 #else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
-  const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
+  const Array& array = Array::Handle(raw_ptr()->static_calls_target_table());
   StaticCallsTable entries(array);
 #if defined(DEBUG)
   if (entries[i].Get<kSCallTableFunctionTarget>() == Function::null()) {
@@ -16314,7 +16297,7 @@ const Code::Comments& Code::comments() const {
 #if defined(PRODUCT)
   Comments* comments = new Code::Comments(Array::Handle());
 #else
-  Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
+  Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments()));
 #endif
   return *comments;
 }
@@ -16324,7 +16307,7 @@ void Code::set_comments(const Code::Comments& comments) const {
   UNREACHABLE();
 #else
   ASSERT(comments.comments_.IsOld());
-  StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
+  raw_ptr()->set_comments(comments.comments_.raw());
 #endif
 }
 
@@ -16333,9 +16316,7 @@ void Code::SetPrologueOffset(intptr_t offset) const {
   UNREACHABLE();
 #else
   ASSERT(offset >= 0);
-  StoreSmi(
-      reinterpret_cast<SmiPtr const*>(&raw_ptr()->return_address_metadata_),
-      Smi::New(offset));
+  raw_ptr()->set_return_address_metadata(Smi::New(offset));
 #endif
 }
 
@@ -16344,7 +16325,7 @@ intptr_t Code::GetPrologueOffset() const {
   UNREACHABLE();
   return -1;
 #else
-  const Object& object = Object::Handle(raw_ptr()->return_address_metadata_);
+  const Object& object = Object::Handle(raw_ptr()->return_address_metadata());
   // In the future we may put something other than a smi in
   // |return_address_metadata_|.
   if (object.IsNull() || !object.IsSmi()) {
@@ -16355,12 +16336,12 @@ intptr_t Code::GetPrologueOffset() const {
 }
 
 ArrayPtr Code::inlined_id_to_function() const {
-  return raw_ptr()->inlined_id_to_function_;
+  return raw_ptr()->inlined_id_to_function();
 }
 
 void Code::set_inlined_id_to_function(const Array& value) const {
   ASSERT(value.IsOld());
-  StorePointer(&raw_ptr()->inlined_id_to_function_, value.raw());
+  raw_ptr()->set_inlined_id_to_function(value.raw());
 }
 
 CodePtr Code::New(intptr_t pointer_offsets_length) {
@@ -16801,7 +16782,7 @@ void Code::SetActiveInstructions(const Instructions& instructions,
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
-  StorePointer(&raw_ptr()->active_instructions_, instructions.raw());
+  raw_ptr()->set_active_instructions(instructions.raw());
   Code::InitializeCachedEntryPointsFrom(raw(), instructions.raw(),
                                         unchecked_offset);
 #endif
@@ -17109,22 +17090,22 @@ const char* ContextScope::ToCString() const {
 }
 
 ArrayPtr MegamorphicCache::buckets() const {
-  return raw_ptr()->buckets_;
+  return raw_ptr()->buckets();
 }
 
 void MegamorphicCache::set_buckets(const Array& buckets) const {
-  StorePointer(&raw_ptr()->buckets_, buckets.raw());
+  raw_ptr()->set_buckets(buckets.raw());
 }
 
 // Class IDs in the table are smi-tagged, so we use a smi-tagged mask
 // and target class ID to avoid untagging (on each iteration of the
 // test loop) in generated code.
 intptr_t MegamorphicCache::mask() const {
-  return Smi::Value(raw_ptr()->mask_);
+  return Smi::Value(raw_ptr()->mask());
 }
 
 void MegamorphicCache::set_mask(intptr_t mask) const {
-  StoreSmi(&raw_ptr()->mask_, Smi::New(mask));
+  raw_ptr()->set_mask(Smi::New(mask));
 }
 
 intptr_t MegamorphicCache::filled_entry_count() const {
@@ -17351,21 +17332,20 @@ SubtypeTestCachePtr SubtypeTestCache::New() {
 ArrayPtr SubtypeTestCache::cache() const {
   // We rely on the fact that any loads from the array are dependent loads and
   // avoid the load-acquire barrier here.
-  return raw_ptr()->cache_;
+  return raw_ptr()->cache<std::memory_order_relaxed>();
 }
 
 void SubtypeTestCache::set_cache(const Array& value) const {
   // We have to ensure that initializing stores to the array are available
   // when releasing the pointer to the array pointer.
   // => We have to use store-release here.
-  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->cache_,
-                                                    value.raw());
+  raw_ptr()->set_cache<std::memory_order_release>(value.raw());
 }
 
 intptr_t SubtypeTestCache::NumberOfChecks() const {
   NoSafepointScope no_safepoint;
   // Do not count the sentinel;
-  return (Smi::Value(cache()->ptr()->length_) / kTestEntryLength) - 1;
+  return (Smi::Value(cache()->ptr()->length()) / kTestEntryLength) - 1;
 }
 
 void SubtypeTestCache::AddCheck(
@@ -17632,17 +17612,17 @@ LoadingUnitPtr LoadingUnit::New() {
 }
 
 LoadingUnitPtr LoadingUnit::parent() const {
-  return raw_ptr()->parent_;
+  return raw_ptr()->parent();
 }
 void LoadingUnit::set_parent(const LoadingUnit& value) const {
-  StorePointer(&raw_ptr()->parent_, value.raw());
+  raw_ptr()->set_parent(value.raw());
 }
 
 ArrayPtr LoadingUnit::base_objects() const {
-  return raw_ptr()->base_objects_;
+  return raw_ptr()->base_objects();
 }
 void LoadingUnit::set_base_objects(const Array& value) const {
-  StorePointer(&raw_ptr()->base_objects_, value.raw());
+  raw_ptr()->set_base_objects(value.raw());
 }
 
 const char* LoadingUnit::ToCString() const {
@@ -17724,7 +17704,7 @@ ApiErrorPtr ApiError::New(const String& message, Heap::Space space) {
 }
 
 void ApiError::set_message(const String& message) const {
-  StorePointer(&raw_ptr()->message_, message.raw());
+  raw_ptr()->set_message(message.raw());
 }
 
 const char* ApiError::ToErrorCString() const {
@@ -17804,11 +17784,11 @@ LanguageErrorPtr LanguageError::New(const String& formatted_message,
 }
 
 void LanguageError::set_previous_error(const Error& value) const {
-  StorePointer(&raw_ptr()->previous_error_, value.raw());
+  raw_ptr()->set_previous_error(value.raw());
 }
 
 void LanguageError::set_script(const Script& value) const {
-  StorePointer(&raw_ptr()->script_, value.raw());
+  raw_ptr()->set_script(value.raw());
 }
 
 void LanguageError::set_token_pos(TokenPosition token_pos) const {
@@ -17825,11 +17805,11 @@ void LanguageError::set_kind(uint8_t value) const {
 }
 
 void LanguageError::set_message(const String& value) const {
-  StorePointer(&raw_ptr()->message_, value.raw());
+  raw_ptr()->set_message(value.raw());
 }
 
 void LanguageError::set_formatted_message(const String& value) const {
-  StorePointer(&raw_ptr()->formatted_message_, value.raw());
+  raw_ptr()->set_formatted_message(value.raw());
 }
 
 StringPtr LanguageError::FormatMessage() const {
@@ -17891,11 +17871,11 @@ UnhandledExceptionPtr UnhandledException::New(Heap::Space space) {
 }
 
 void UnhandledException::set_exception(const Instance& exception) const {
-  StorePointer(&raw_ptr()->exception_, exception.raw());
+  raw_ptr()->set_exception(exception.raw());
 }
 
 void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
-  StorePointer(&raw_ptr()->stacktrace_, stacktrace.raw());
+  raw_ptr()->set_stacktrace(stacktrace.raw());
 }
 
 const char* UnhandledException::ToErrorCString() const {
@@ -17948,7 +17928,7 @@ UnwindErrorPtr UnwindError::New(const String& message, Heap::Space space) {
 }
 
 void UnwindError::set_message(const String& message) const {
-  StorePointer(&raw_ptr()->message_, message.raw());
+  raw_ptr()->set_message(message.raw());
 }
 
 void UnwindError::set_is_user_initiated(bool value) const {
@@ -18300,7 +18280,8 @@ InstancePtr Instance::CopyShallowToOldSpace(Thread* thread) const {
 }
 
 InstancePtr Instance::Canonicalize(Thread* thread) const {
-  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   return CanonicalizeLocked(thread);
 }
 
@@ -18332,10 +18313,10 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
 #if defined(DEBUG)
 bool Instance::CheckIsCanonical(Thread* thread) const {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   result ^= cls.LookupCanonicalInstance(zone, *this);
   return (result.raw() == this->raw());
 }
@@ -19621,7 +19602,7 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
   } else {
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, stub.EntryPoint());
   }
-  StorePointer(&raw_ptr()->type_test_stub_, stub.raw());
+  raw_ptr()->set_type_test_stub(stub.raw());
 }
 
 TypePtr Type::NullType() {
@@ -19783,20 +19764,20 @@ TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
 }
 
 FunctionPtr Type::signature() const {
-  intptr_t cid = raw_ptr()->signature_->GetClassId();
+  intptr_t cid = raw_ptr()->signature()->GetClassId();
   if (cid == kNullCid) {
     return Function::null();
   }
   ASSERT(cid == kFunctionCid);
-  return Function::RawCast(raw_ptr()->signature_);
+  return Function::RawCast(raw_ptr()->signature());
 }
 
 void Type::set_signature(const Function& value) const {
-  StorePointer(&raw_ptr()->signature_, value.raw());
+  raw_ptr()->set_signature(value.raw());
 }
 
 classid_t Type::type_class_id() const {
-  return Smi::Value(raw_ptr()->type_class_id_);
+  return Smi::Value(raw_ptr()->type_class_id());
 }
 
 ClassPtr Type::type_class() const {
@@ -20374,12 +20355,12 @@ intptr_t Type::ComputeHash() const {
 
 void Type::set_type_class(const Class& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->type_class_id_, Smi::New(value.id()));
+  raw_ptr()->set_type_class_id(Smi::New(value.id()));
 }
 
 void Type::set_arguments(const TypeArguments& value) const {
   ASSERT(!IsCanonical());
-  StorePointer(&raw_ptr()->arguments_, value.raw());
+  raw_ptr()->set_arguments(value.raw());
 }
 
 TypePtr Type::New(Heap::Space space) {
@@ -20526,7 +20507,7 @@ AbstractTypePtr TypeRef::InstantiateFrom(
 void TypeRef::set_type(const AbstractType& value) const {
   ASSERT(value.IsNull() || value.IsFunctionType() || value.HasTypeClass());
   ASSERT(!value.IsTypeRef());
-  StorePointer(&raw_ptr()->type_, value.raw());
+  raw_ptr()->set_type(value.raw());
 }
 
 // A TypeRef cannot be canonical by definition. Only its referenced type can be.
@@ -20781,7 +20762,7 @@ ClassPtr TypeParameter::parameterized_class() const {
 }
 
 void TypeParameter::set_parameterized_function(const Function& value) const {
-  StorePointer(&raw_ptr()->parameterized_function_, value.raw());
+  raw_ptr()->set_parameterized_function(value.raw());
 }
 
 void TypeParameter::set_index(intptr_t value) const {
@@ -20792,15 +20773,15 @@ void TypeParameter::set_index(intptr_t value) const {
 
 void TypeParameter::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
-  StorePointer(&raw_ptr()->name_, value.raw());
+  raw_ptr()->set_name(value.raw());
 }
 
 void TypeParameter::set_bound(const AbstractType& value) const {
-  StorePointer(&raw_ptr()->bound_, value.raw());
+  raw_ptr()->set_bound(value.raw());
 }
 
 void TypeParameter::set_default_argument(const AbstractType& value) const {
-  StorePointer(&raw_ptr()->default_argument_, value.raw());
+  raw_ptr()->set_default_argument(value.raw());
 }
 
 AbstractTypePtr TypeParameter::GetFromTypeArguments(
@@ -21462,7 +21443,8 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
 
 MintPtr Mint::NewCanonical(int64_t value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   return NewCanonicalLocked(thread, value);
 }
 
@@ -21589,7 +21571,8 @@ DoublePtr Double::New(const String& str, Heap::Space space) {
 
 DoublePtr Double::NewCanonical(double value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   return NewCanonicalLocked(thread, value);
 }
 
@@ -21687,7 +21670,7 @@ intptr_t String::HashConcat(const String& str1, const String& str2) {
 
 intptr_t String::Hash(StringPtr raw) {
   StringHasher hasher;
-  uword length = Smi::Value(raw->ptr()->length_);
+  uword length = Smi::Value(raw->ptr()->length());
   if (raw->IsOneByteString() || raw->IsExternalOneByteString()) {
     const uint8_t* data;
     if (raw->IsOneByteString()) {
@@ -22684,9 +22667,9 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
                                      OneByteString::InstanceSize(len), space);
     NoSafepointScope no_safepoint;
     OneByteStringPtr result = static_cast<OneByteStringPtr>(raw);
-    result->ptr()->StoreSmi(&(result->ptr()->length_), Smi::New(len));
+    result->ptr()->set_length(Smi::New(len));
 #if !defined(HASH_IN_OBJECT_HEADER)
-    result->ptr()->StoreSmi(&(result->ptr()->hash_), Smi::New(0));
+    result->ptr()->set_hash(Smi::New(0));
 #endif
     return result;
   }
@@ -23196,7 +23179,7 @@ ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
     ArrayPtr raw = static_cast<ArrayPtr>(
         Object::Allocate(class_id, Array::InstanceSize(len), space));
     NoSafepointScope no_safepoint;
-    raw->ptr()->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
+    raw->ptr()->set_length(Smi::New(len));
     return raw;
   }
 }
@@ -23383,7 +23366,7 @@ void GrowableObjectArray::Grow(intptr_t new_capacity, Heap::Space space) const {
   const Array& contents = Array::Handle(data());
   const Array& new_contents =
       Array::Handle(Array::Grow(contents, new_capacity, space));
-  StorePointer(&(raw_ptr()->data_), new_contents.raw());
+  raw_ptr()->set_data(new_contents.raw());
 }
 
 ObjectPtr GrowableObjectArray::RemoveLast() const {
@@ -24000,11 +23983,10 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
                                      ReceivePort::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
+    result.raw_ptr()->set_send_port(send_port.raw());
 #if !defined(PRODUCT)
-    result.StorePointer(&result.raw_ptr()->debug_name_, debug_name.raw());
-    result.StorePointer(&result.raw_ptr()->allocation_location_,
-                        allocation_location_.raw());
+    result.raw_ptr()->set_debug_name(debug_name.raw());
+    result.raw_ptr()->set_allocation_location(allocation_location_.raw());
 #endif  // !defined(PRODUCT)
   }
   if (is_control_port) {
@@ -24192,14 +24174,13 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
         Object::Allocate(Closure::kClassId, Closure::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StorePointer(&result.raw_ptr()->instantiator_type_arguments_,
-                        instantiator_type_arguments.raw());
-    result.StorePointer(&result.raw_ptr()->function_type_arguments_,
-                        function_type_arguments.raw());
-    result.StorePointer(&result.raw_ptr()->delayed_type_arguments_,
-                        delayed_type_arguments.raw());
-    result.StorePointer(&result.raw_ptr()->function_, function.raw());
-    result.StorePointer(&result.raw_ptr()->context_, context.raw());
+    result.raw_ptr()->set_instantiator_type_arguments(
+        instantiator_type_arguments.raw());
+    result.raw_ptr()->set_function_type_arguments(
+        function_type_arguments.raw());
+    result.raw_ptr()->set_delayed_type_arguments(delayed_type_arguments.raw());
+    result.raw_ptr()->set_function(function.raw());
+    result.raw_ptr()->set_context(context.raw());
   }
   return result.raw();
 }
@@ -24247,42 +24228,42 @@ void StackTrace::set_skip_sync_start_in_parent_stack(bool value) const {
 }
 
 intptr_t StackTrace::Length() const {
-  const Array& code_array = Array::Handle(raw_ptr()->code_array_);
+  const Array& code_array = Array::Handle(raw_ptr()->code_array());
   return code_array.Length();
 }
 
 ObjectPtr StackTrace::CodeAtFrame(intptr_t frame_index) const {
-  const Array& code_array = Array::Handle(raw_ptr()->code_array_);
+  const Array& code_array = Array::Handle(raw_ptr()->code_array());
   return code_array.At(frame_index);
 }
 
 void StackTrace::SetCodeAtFrame(intptr_t frame_index,
                                 const Object& code) const {
-  const Array& code_array = Array::Handle(raw_ptr()->code_array_);
+  const Array& code_array = Array::Handle(raw_ptr()->code_array());
   code_array.SetAt(frame_index, code);
 }
 
 SmiPtr StackTrace::PcOffsetAtFrame(intptr_t frame_index) const {
-  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
+  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array());
   return static_cast<SmiPtr>(pc_offset_array.At(frame_index));
 }
 
 void StackTrace::SetPcOffsetAtFrame(intptr_t frame_index,
                                     const Smi& pc_offset) const {
-  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
+  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array());
   pc_offset_array.SetAt(frame_index, pc_offset);
 }
 
 void StackTrace::set_async_link(const StackTrace& async_link) const {
-  StorePointer(&raw_ptr()->async_link_, async_link.raw());
+  raw_ptr()->set_async_link(async_link.raw());
 }
 
 void StackTrace::set_code_array(const Array& code_array) const {
-  StorePointer(&raw_ptr()->code_array_, code_array.raw());
+  raw_ptr()->set_code_array(code_array.raw());
 }
 
 void StackTrace::set_pc_offset_array(const Array& pc_offset_array) const {
-  StorePointer(&raw_ptr()->pc_offset_array_, pc_offset_array.raw());
+  raw_ptr()->set_pc_offset_array(pc_offset_array.raw());
 }
 
 void StackTrace::set_expand_inlined(bool value) const {
@@ -24608,7 +24589,7 @@ DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
                     "symbolize stack traces in the precompiled runtime.");
 
 void RegExp::set_pattern(const String& pattern) const {
-  StorePointer(&raw_ptr()->pattern_, pattern.raw());
+  raw_ptr()->set_pattern(pattern.raw());
 }
 
 void RegExp::set_function(intptr_t cid,
@@ -24622,25 +24603,25 @@ void RegExp::set_bytecode(bool is_one_byte,
                           const TypedData& bytecode) const {
   if (sticky) {
     if (is_one_byte) {
-      StorePointer(&raw_ptr()->one_byte_sticky_.bytecode_, bytecode.raw());
+      raw_ptr()->set_one_byte_sticky(bytecode.raw());
     } else {
-      StorePointer(&raw_ptr()->two_byte_sticky_.bytecode_, bytecode.raw());
+      raw_ptr()->set_two_byte_sticky(bytecode.raw());
     }
   } else {
     if (is_one_byte) {
-      StorePointer(&raw_ptr()->one_byte_.bytecode_, bytecode.raw());
+      raw_ptr()->set_one_byte(bytecode.raw());
     } else {
-      StorePointer(&raw_ptr()->two_byte_.bytecode_, bytecode.raw());
+      raw_ptr()->set_two_byte(bytecode.raw());
     }
   }
 }
 
 void RegExp::set_num_bracket_expressions(intptr_t value) const {
-  StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
+  raw_ptr()->set_num_bracket_expressions(Smi::New(value));
 }
 
 void RegExp::set_capture_name_map(const Array& array) const {
-  StorePointer(&raw_ptr()->capture_name_map_, array.raw());
+  raw_ptr()->set_capture_name_map(array.raw());
 }
 
 RegExpPtr RegExp::New(Heap::Space space) {

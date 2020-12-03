@@ -61,7 +61,7 @@ void ClassLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   if (writer->can_send_any_object() ||
-      writer->AllowObjectsInDartLibrary(library_)) {
+      writer->AllowObjectsInDartLibrary(library())) {
     writer->WriteClassId(this);
   } else {
     // We do not allow regular dart instances in isolate messages.
@@ -122,7 +122,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
                          bool as_reference) {
   ASSERT(writer != NULL);
 
-  if (signature_ != Function::null()) {
+  if (signature() != Function::null()) {
     writer->SetWriteException(Exceptions::kArgument,
                               "Illegal argument in isolate message"
                               " : (function types are not supported yet)");
@@ -132,7 +132,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   // Only resolved and finalized types should be written to a snapshot.
   ASSERT((type_state_ == TypeLayout::kFinalizedInstantiated) ||
          (type_state_ == TypeLayout::kFinalizedUninstantiated));
-  ASSERT(type_class_id_ != Object::null());
+  ASSERT(type_class_id() != Object::null());
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -141,13 +141,13 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kTypeCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  if (type_class_id_->IsHeapObject()) {
+  if (type_class_id()->IsHeapObject()) {
     // Type class is still an unresolved class.
     UNREACHABLE();
   }
 
   // Lookup the type class.
-  SmiPtr raw_type_class_id = Smi::RawCast(type_class_id_);
+  SmiPtr raw_type_class_id = Smi::RawCast(type_class_id());
   ClassPtr type_class =
       writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
 
@@ -167,7 +167,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
-  ASSERT(type_class_id_ != Object::null());
+  ASSERT(type_class_id() != Object::null());
   SnapshotWriterVisitor visitor(writer, as_reference);
   visitor.VisitPointers(from(), to());
 
@@ -297,13 +297,13 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 
   if (parameterized_class_id_ != kFunctionCid) {
-    ASSERT(parameterized_function_ == Function::null());
+    ASSERT(parameterized_function() == Function::null());
     // Write out the parameterized class.
     ClassPtr param_class =
         writer->isolate()->class_table()->At(parameterized_class_id_);
     writer->WriteObjectImpl(param_class, kAsReference);
   } else {
-    ASSERT(parameterized_function_ != Function::null());
+    ASSERT(parameterized_function() != Function::null());
   }
 }
 
@@ -353,10 +353,10 @@ void TypeArgumentsLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the length field.
-  writer->Write<ObjectPtr>(length_);
+  writer->Write<ObjectPtr>(length());
 
   // Write out the individual types.
-  intptr_t len = Smi::Value(length_);
+  intptr_t len = Smi::Value(length());
   for (intptr_t i = 0; i < len; i++) {
     // The Dart VM reuses type argument lists across instances in order
     // to reduce memory footprint, this can sometimes lead to a type from
@@ -366,10 +366,10 @@ void TypeArgumentsLayout::WriteTo(SnapshotWriter* writer,
     if (!writer->can_send_any_object()) {
       // Lookup the type class.
       TypePtr raw_type = Type::RawCast(types()[i]);
-      SmiPtr raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id_);
+      SmiPtr raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id());
       ClassPtr type_class =
           writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
-      if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library_)) {
+      if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library())) {
         writer->WriteVMIsolateObject(kDynamicType);
       } else {
         writer->WriteObjectImpl(types()[i], as_reference);
@@ -400,7 +400,7 @@ void ClosureLayout::WriteTo(SnapshotWriter* writer,
   FunctionPtr func = writer->IsSerializableClosure(ClosurePtr(this));
   if (func != Function::null()) {
     writer->WriteStaticImplicitClosure(
-        object_id, func, writer->GetObjectTags(this), delayed_type_arguments_);
+        object_id, func, writer->GetObjectTags(this), delayed_type_arguments());
     return;
   }
 
@@ -933,7 +933,7 @@ void OneByteStringLayout::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
-                writer->GetObjectTags(this), length_, data());
+                writer->GetObjectTags(this), length(), data());
 }
 
 void TwoByteStringLayout::WriteTo(SnapshotWriter* writer,
@@ -941,7 +941,7 @@ void TwoByteStringLayout::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
-                writer->GetObjectTags(this), length_, data());
+                writer->GetObjectTags(this), length(), data());
 }
 
 ExternalOneByteStringPtr ExternalOneByteString::ReadFrom(SnapshotReader* reader,
@@ -968,7 +968,7 @@ void ExternalOneByteStringLayout::WriteTo(SnapshotWriter* writer,
                                           bool as_reference) {
   // Serialize as a non-external one byte string.
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
-                writer->GetObjectTags(this), length_, external_data_);
+                writer->GetObjectTags(this), length(), external_data_);
 }
 
 void ExternalTwoByteStringLayout::WriteTo(SnapshotWriter* writer,
@@ -977,7 +977,7 @@ void ExternalTwoByteStringLayout::WriteTo(SnapshotWriter* writer,
                                           bool as_reference) {
   // Serialize as a non-external two byte string.
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
-                writer->GetObjectTags(this), length_, external_data_);
+                writer->GetObjectTags(this), length(), external_data_);
 }
 
 ArrayPtr Array::ReadFrom(SnapshotReader* reader,
@@ -1046,7 +1046,7 @@ void ArrayLayout::WriteTo(SnapshotWriter* writer,
                           bool as_reference) {
   ASSERT(!this->IsCanonical());
   writer->ArrayWriteTo(object_id, kArrayCid, writer->GetObjectTags(this),
-                       length_, type_arguments_, data(), as_reference);
+                       length(), type_arguments(), data(), as_reference);
 }
 
 void ImmutableArrayLayout::WriteTo(SnapshotWriter* writer,

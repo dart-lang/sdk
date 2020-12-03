@@ -671,7 +671,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
     memset(field_values, 0, (num_fields * sizeof(field_values[0])));
     return true;
   }
-  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length_));
+  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length()));
   intptr_t* native_values =
       reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
   memmove(field_values, native_values, (num_fields * sizeof(field_values[0])));

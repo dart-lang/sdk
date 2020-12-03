@@ -420,7 +420,7 @@ class ClientCapabilitiesWindow implements ToJsonable {
     return ClientCapabilitiesWindow(workDoneProgress: workDoneProgress);
   }
 
-  /// Whether client supports handling progress notifications. If set servers
+  /// Whether client supports handling progress notifications. If set, servers
   /// are allowed to report in `workDoneProgress` property in the request
   /// specific server capabilities.
   ///
@@ -712,8 +712,8 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// A code action represents a change that can be performed in code, e.g. to fix
-/// a problem or to refactor code.
+/// A code action represents a change that can be performed in code. For
+/// example, to fix a problem or to refactor code.
 ///
 /// A CodeAction must set either `edit` and/or a `command`. If both are
 /// supplied, the `edit` is applied first, then the `command` is executed.
@@ -1222,7 +1222,7 @@ class CodeActionContext implements ToJsonable {
   /// Requested kind of actions to return.
   ///
   /// Actions not of this kind are filtered out by the client before being
-  /// shown. So servers can omit computing them.
+  /// shown, so servers can omit computing them.
   final List<CodeActionKind> only;
 
   Map<String, dynamic> toJson() {
@@ -1357,7 +1357,7 @@ class CodeActionKind {
   /// Source code actions apply to the entire file.
   static const Source = CodeActionKind('source');
 
-  /// Base kind for an organize imports source action: `source.organizeImports`.
+  /// Base kind for an organize imports source action `source.organizeImports`.
   static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
   Object toJson() => _value;
@@ -1516,8 +1516,8 @@ class CodeActionParams
   /// Context carrying additional information.
   final CodeActionContext context;
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The range for which the command was invoked.
@@ -1687,7 +1687,7 @@ class CodeActionRegistrationOptions
   final List<CodeActionKind> codeActionKinds;
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -1777,11 +1777,11 @@ class CodeActionRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// A code lens represents a command that should be shown along with source
+/// A CodeLense represents a command that should be shown along with source
 /// text, like the number of references, a way to run tests, etc.
 ///
-/// A code lens is _unresolved_ when no command is associated to it. For
-/// performance reasons the creation of a code lens and resolving should be done
+/// A CodeLens is _unresolved_ when no command is associated to it. For
+/// performance reasons, the creation of a CodeLens and resolving should be done
 /// in two stages.
 class CodeLens implements ToJsonable {
   static const jsonHandler =
@@ -1800,15 +1800,14 @@ class CodeLens implements ToJsonable {
     return CodeLens(range: range, command: command, data: data);
   }
 
-  /// The command this code lens represents.
+  /// The command this CodeLens represents.
   final Command command;
 
-  /// A data entry field that is preserved on a code lens item between a code
-  /// lens and a code lens resolve request.
+  /// A data entry field that is preserved on a CodeLens item between a CodeLens
+  /// and a CodeLens resolve request.
   final dynamic data;
 
-  /// The range in which this code lens is valid. Should only span a single
-  /// line.
+  /// The range in which the CodeLens is valid. Should only span a single line.
   final Range range;
 
   Map<String, dynamic> toJson() {
@@ -1903,7 +1902,7 @@ class CodeLensClientCapabilities implements ToJsonable {
     return CodeLensClientCapabilities(dynamicRegistration: dynamicRegistration);
   }
 
-  /// Whether code lens supports dynamic registration.
+  /// Whether CodeLens supports dynamic registration.
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
@@ -2071,11 +2070,11 @@ class CodeLensParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
-  /// The document to request code lens for.
+  /// The document to request CodeLens for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
@@ -2188,7 +2187,7 @@ class CodeLensRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// Code lens has a resolve provider as well.
@@ -2558,12 +2557,12 @@ class ColorPresentation implements ToJsonable {
   final List<TextEdit> additionalTextEdits;
 
   /// The label of this color presentation. It will be shown on the color picker
-  /// header. By default this is also the text that is inserted when selecting
+  /// header. By default, this is also the text that is inserted when selecting
   /// this color presentation.
   final String label;
 
   /// An edit ([TextEdit]) which is applied to a document when selecting this
-  /// presentation for the color.  When `falsy` the
+  /// presentation for the color. When `falsy`, the
   /// [label](#ColorPresentation.label) is used.
   final TextEdit textEdit;
 
@@ -2704,8 +2703,8 @@ class ColorPresentationParams
   /// The color information to request presentations for.
   final Color color;
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The range where the color would be inserted. Serves as a context.
@@ -3149,8 +3148,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   ///
   /// A snippet can define tab stops and placeholders with `$1`, `$2` and
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
-  /// snippet. Placeholders with equal identifiers are linked, that is typing in
-  /// one will update others too.
+  /// snippet. Placeholders with equal identifiers are linked, so that typing in
+  /// one will update others as well.
   final bool snippetSupport;
 
   /// Client supports the tag property on a completion item. Clients supporting
@@ -3464,7 +3463,7 @@ class CompletionContext implements ToJsonable {
         triggerKind: triggerKind, triggerCharacter: triggerCharacter);
   }
 
-  /// The trigger character (a single character) that has trigger code complete.
+  /// The trigger character (single character) that has trigger code complete.
   /// Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
   final String triggerCharacter;
 
@@ -3636,10 +3635,10 @@ class CompletionItem implements ToJsonable {
   /// described with the additionalTextEdits-property.
   final Command command;
 
-  /// An optional set of characters that when pressed while this completion is
-  /// active will accept it first and then type that character. *Note* that all
-  /// commit characters should have `length=1` and that superfluous characters
-  /// will be ignored.
+  /// An optional set of characters that when pressed, while this completion is
+  /// active, will accept it first and then type that character.
+  /// *Note* that all commit characters should have `length=1` and that
+  /// superfluous characters will be ignored.
   final List<String> commitCharacters;
 
   /// A data entry field that is preserved on a completion item between a
@@ -3648,7 +3647,6 @@ class CompletionItem implements ToJsonable {
 
   /// Indicates if this item is deprecated.
   ///  @deprecated Use `tags` instead if supported.
-  @core.deprecated
   final bool deprecated;
 
   /// A human-readable string with additional information about this item, like
@@ -3666,15 +3664,15 @@ class CompletionItem implements ToJsonable {
   /// completion. When `falsy` the label is used.
   ///
   /// The `insertText` is subject to interpretation by the client side. Some
-  /// tools might not take the string literally. For example VS Code when code
+  /// tools might not take the string literally. For example, VS Code when code
   /// complete is requested in this example `con<cursor position>` and a
-  /// completion item with an `insertText` of `console` is provided it will only
-  /// insert `sole`. Therefore it is recommended to use `textEdit` instead since
-  /// it avoids additional client side interpretation.
+  /// completion item with an `insertText` of `console` is provided, it will
+  /// only insert `sole`. Therefore, it is recommended to use `textEdit` instead
+  /// since it avoids additional client side interpretation.
   final String insertText;
 
   /// The format of the insert text. The format applies to both the `insertText`
-  /// property and the `newText` property of a provided `textEdit`. If omitted
+  /// property and the `newText` property of a provided `textEdit`. If omitted,
   /// defaults to `InsertTextFormat.PlainText`.
   final InsertTextFormat insertTextFormat;
 
@@ -3702,8 +3700,8 @@ class CompletionItem implements ToJsonable {
   ///  @since 3.15.0
   final List<CompletionItemTag> tags;
 
-  /// An edit which is applied to a document when selecting this completion.
-  /// When an edit is provided the value of `insertText` is ignored.
+  /// An edit that is applied to a document when selecting this completion. When
+  /// an edit is provided, the value of `insertText` is ignored.
   ///
   /// *Note:* The range of the edit must be a single line range and it must
   /// contain the position at which completion has been requested.
@@ -4204,11 +4202,11 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The list of all possible characters that commit a completion. This field
   /// can be used if clients don't support individual commit characters per
-  /// completion item. See
-  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+  /// completion item. See `ClientCapabilities.`
+  /// `textDocument.completion.completionItem.commitCharactersSupport`.
   ///
   /// If a server provides both `allCommitCharacters` and commit characters on
-  /// an individual completion item the ones on the completion item win.
+  /// an individual completion item, the ones on the completion item win.
   ///  @since 3.2.0
   final List<String> allCommitCharacters;
 
@@ -4217,14 +4215,14 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
-  /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
-  /// do so when the user starts to type an identifier. For example if the user
-  /// types `c` in a JavaScript file code complete will automatically pop up
-  /// present `console` besides others as a completion item. Characters that
-  /// make up identifiers don't need to be listed here.
+  /// requesting it using a keyboard shortcut (for example Ctrl+Space).
+  /// Typically they do so when the user starts to type an identifier. For
+  /// example, if the user types `c` in a JavaScript file, code complete will
+  /// automatically display `console` along with others as a completion item.
+  /// Characters that make up identifiers don't need to be listed here.
   ///
-  /// If code complete should automatically be trigger on characters not being
-  /// valid inside an identifier (for example `.` in JavaScript) list them in
+  /// If code complete should automatically be triggered on characters not being
+  /// valid inside an identifier (for example `.` in JavaScript), list them in
   /// `triggerCharacters`.
   final List<String> triggerCharacters;
   final bool workDoneProgress;
@@ -4384,8 +4382,8 @@ class CompletionParams
   /// === true`
   final CompletionContext context;
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The position inside the text document.
@@ -4555,16 +4553,16 @@ class CompletionRegistrationOptions
 
   /// The list of all possible characters that commit a completion. This field
   /// can be used if clients don't support individual commit characters per
-  /// completion item. See
-  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+  /// completion item. See `ClientCapabilities.`
+  /// `textDocument.completion.completionItem.commitCharactersSupport`.
   ///
   /// If a server provides both `allCommitCharacters` and commit characters on
-  /// an individual completion item the ones on the completion item win.
+  /// an individual completion item, the ones on the completion item win.
   ///  @since 3.2.0
   final List<String> allCommitCharacters;
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The server provides support to resolve additional information for a
@@ -4572,14 +4570,14 @@ class CompletionRegistrationOptions
   final bool resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
-  /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
-  /// do so when the user starts to type an identifier. For example if the user
-  /// types `c` in a JavaScript file code complete will automatically pop up
-  /// present `console` besides others as a completion item. Characters that
-  /// make up identifiers don't need to be listed here.
+  /// requesting it using a keyboard shortcut (for example Ctrl+Space).
+  /// Typically they do so when the user starts to type an identifier. For
+  /// example, if the user types `c` in a JavaScript file, code complete will
+  /// automatically display `console` along with others as a completion item.
+  /// Characters that make up identifiers don't need to be listed here.
   ///
-  /// If code complete should automatically be trigger on characters not being
-  /// valid inside an identifier (for example `.` in JavaScript) list them in
+  /// If code complete should automatically be triggered on characters not being
+  /// valid inside an identifier (for example `.` in JavaScript), list them in
   /// `triggerCharacters`.
   final List<String> triggerCharacters;
   final bool workDoneProgress;
@@ -4724,7 +4722,7 @@ class CompletionTriggerKind {
   static const Invoked = CompletionTriggerKind._(1);
 
   /// Completion was triggered by a trigger character specified by the
-  /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
+  /// `triggerCharacters` properties of `CompletionRegistrationOptions`.
   static const TriggerCharacter = CompletionTriggerKind._(2);
 
   /// Completion was re-triggered as the current completion list is incomplete.
@@ -5103,8 +5101,8 @@ class DeclarationClientCapabilities implements ToJsonable {
   }
 
   /// Whether declaration supports dynamic registration. If this is set to
-  /// `true` the client supports the new `DeclarationRegistrationOptions` return
-  /// value for the corresponding server capability as well.
+  /// `true`, the client supports the new `DeclarationRegistrationOptions`
+  /// return value for the corresponding server capability as well.
   final bool dynamicRegistration;
 
   /// The client supports additional metadata in the form of declaration links.
@@ -5282,8 +5280,8 @@ class DeclarationParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The position inside the text document.
@@ -5427,7 +5425,7 @@ class DeclarationRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
@@ -5708,8 +5706,8 @@ class DefinitionParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The position inside the text document.
@@ -5845,7 +5843,7 @@ class DefinitionRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -6346,7 +6344,7 @@ class Diagnostic implements ToJsonable {
 
 /// Represents a related message and source code location for a diagnostic. This
 /// should be used to point to code locations that cause or are related to a
-/// diagnostics, e.g when duplicating a symbol in a scope.
+/// diagnostics, for example, when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DiagnosticRelatedInformation.canParse,
@@ -6679,19 +6677,18 @@ class DidChangeTextDocumentParams implements ToJsonable {
   }
 
   /// The actual content changes. The content changes describe single state
-  /// changes to the document. So if there are two content changes c1 (at array
-  /// index 0) and c2 (at array index 1) for a document in state S then c1 moves
-  /// the document from S to S' and c2 from S' to S''. So c1 is computed on the
-  /// state S and c2 is computed on the state S'.
+  /// changes to the document. If there are two content changes c1 (at array
+  /// index 0) and c2 (at array index 1) for a document in state S, then c1
+  /// moves the document from S to S' and c2 from S' to S''. So c1 is computed
+  /// on the state S and c2 is computed on the state S'.
   ///
-  /// To mirror the content of a document using change events use the following
+  /// To mirror the content of a document using change events, use the following
   /// approach:
   /// - start with the same initial content
-  /// - apply the 'textDocument/didChange' notifications in the order you
-  /// recevie them.
-  /// - apply the `TextDocumentContentChangeEvent`s in a single notification in
-  /// the order
-  ///   you receive them.
+  /// - apply the 'textDocument/didChange' notifications
+  ///     in the order you receive them.
+  /// - apply the `TextDocumentContentChangeEvent`s
+  ///     in a single notification in the order you receive them.
   final List<
       Either2<TextDocumentContentChangeEvent1,
           TextDocumentContentChangeEvent2>> contentChanges;
@@ -7484,8 +7481,8 @@ class DocumentColorParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The text document.
@@ -7606,7 +7603,7 @@ class DocumentColorRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
@@ -7717,13 +7714,13 @@ class DocumentFilter implements ToJsonable {
   /// - `*` to match one or more characters in a path segment
   /// - `?` to match on one character in a path segment
   /// - `**` to match any number of path segments, including none
-  /// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-  /// and JavaScript files)
-  /// - `[]` to declare a range of characters to match in a path segment (e.g.,
-  /// `example.[0-9]` to match on `example.0`, `example.1`, …)
+  /// - `{}` to group conditions
+  ///   (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
+  /// - `[]` to declare a range of characters to match in a path segment
+  ///   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
   /// - `[!...]` to negate a range of characters to match in a path segment
-  /// (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not
-  /// `example.0`)
+  ///   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`,
+  ///    but not `example.0`)
   final String pattern;
 
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
@@ -8088,7 +8085,7 @@ class DocumentFormattingRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -8460,8 +8457,8 @@ class DocumentHighlightParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The position inside the text document.
@@ -8603,7 +8600,7 @@ class DocumentHighlightRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -8708,7 +8705,7 @@ class DocumentLink implements ToJsonable {
 
   /// The tooltip text when you hover over this link.
   ///
-  /// If a tooltip is provided, is will be displayed in a string that includes
+  /// If a tooltip is provided, it will be displayed in a string that includes
   /// instructions on how to trigger the link, such as `{0} (ctrl + click)`. The
   /// specific instructions vary depending on OS, user settings, and
   /// localization.
@@ -9013,8 +9010,8 @@ class DocumentLinkParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The document to provide document links for.
@@ -9134,7 +9131,7 @@ class DocumentLinkRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// Document links have a resolve provider as well.
@@ -9596,7 +9593,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// A character on which formatting should be triggered, like `}`.
@@ -10017,7 +10014,7 @@ class DocumentRangeFormattingRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -10093,7 +10090,7 @@ class DocumentRangeFormattingRegistrationOptions
 /// Represents programming constructs like variables, classes, interfaces etc.
 /// that appear in a document. Document symbols can be hierarchical and they
 /// have two ranges: one that encloses its definition and one that points to its
-/// most interesting range, e.g. the range of an identifier.
+/// most interesting range, for example, the range of an identifier.
 class DocumentSymbol implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
@@ -10162,12 +10159,13 @@ class DocumentSymbol implements ToJsonable {
 
   /// The range enclosing this symbol not including leading/trailing whitespace
   /// but everything else like comments. This information is typically used to
-  /// determine if the clients cursor is inside the symbol to reveal in the
+  /// determine if the client's cursor is inside the symbol to reveal in the
   /// symbol in the UI.
   final Range range;
 
   /// The range that should be selected and revealed when this symbol is being
-  /// picked, e.g the name of a function. Must be contained by the `range`.
+  /// picked, for example, the name of a function. Must be contained by the
+  /// `range`.
   final Range selectionRange;
 
   Map<String, dynamic> toJson() {
@@ -10621,8 +10619,8 @@ class DocumentSymbolParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The text document.
@@ -10739,7 +10737,7 @@ class DocumentSymbolRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -11247,9 +11245,9 @@ class FailureHandlingKind {
   /// succeed or no changes at all are applied to the workspace.
   static const Transactional = FailureHandlingKind._('transactional');
 
-  /// If the workspace edit contains only textual file changes they are executed
-  /// transactional. If resource changes (create, rename or delete file) are
-  /// part of the change the failure handling strategy is abort.
+  /// If the workspace edit contains only textual file changes, they are
+  /// executed transactionally. If resource changes (create, rename or delete
+  /// file) are part of the change, the failure handling strategy is abort.
   static const TextOnlyTransactional =
       FailureHandlingKind._('textOnlyTransactional');
 
@@ -11416,12 +11414,12 @@ class FileSystemWatcher implements ToJsonable {
   /// - `?` to match on one character in a path segment
   /// - `**` to match any number of path segments, including none
   /// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript
-  /// and JavaScript files)
-  /// - `[]` to declare a range of characters to match in a path segment (e.g.,
-  /// `example.[0-9]` to match on `example.0`, `example.1`, …)
+  ///   and JavaScript files)
+  /// - `[]` to declare a range of characters to match in a path segment
+  ///   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
   /// - `[!...]` to negate a range of characters to match in a path segment
-  /// (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not
-  /// `example.0`)
+  ///   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`,
+  ///    but not `example.0`)
   final String globPattern;
 
   /// The kind of events of interest. If omitted it defaults to WatchKind.Create
@@ -11681,15 +11679,15 @@ class FoldingRangeClientCapabilities implements ToJsonable {
         lineFoldingOnly: lineFoldingOnly);
   }
 
-  /// Whether implementation supports dynamic registration for folding range
-  /// providers. If this is set to `true` the client supports the new
+  /// Whether the implementation supports dynamic registration for folding range
+  /// providers. If this is set to `true`, the client supports the new
   /// `FoldingRangeRegistrationOptions` return value for the corresponding
   /// server capability as well.
   final bool dynamicRegistration;
 
   /// If set, the client signals that it only supports folding complete lines.
-  /// If set, client will ignore specified `startCharacter` and `endCharacter`
-  /// properties in a FoldingRange.
+  /// If set, the client will ignore specified `startCharacter` and
+  /// `endCharacter` properties in a FoldingRange.
   final bool lineFoldingOnly;
 
   /// The maximum number of folding ranges that the client prefers to receive
@@ -11904,8 +11902,8 @@ class FoldingRangeParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The text document.
@@ -12026,7 +12024,7 @@ class FoldingRangeRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
@@ -12680,7 +12678,7 @@ class HoverRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -12767,7 +12765,7 @@ class ImplementationClientCapabilities implements ToJsonable {
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
-  /// `true` the client supports the new `ImplementationRegistrationOptions`
+  /// `true`, the client supports the new `ImplementationRegistrationOptions`
   /// return value for the corresponding server capability as well.
   final bool dynamicRegistration;
 
@@ -12947,8 +12945,8 @@ class ImplementationParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The position inside the text document.
@@ -13093,7 +13091,7 @@ class ImplementationRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
@@ -13249,15 +13247,14 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   /// User provided initialization options.
   final dynamic initializationOptions;
 
-  /// The process Id of the parent process that started the server. Is null if
+  /// The process ID of the parent process that started the server. Is null if
   /// the process has not been started by another process. If the parent process
-  /// is not alive then the server should exit (see exit notification) its
+  /// is not alive, then the server should exit (see exit notification) its
   /// process.
   final num processId;
 
   /// The rootPath of the workspace. Is null if no folder is open.
   ///  @deprecated in favour of rootUri.
-  @core.deprecated
   final String rootPath;
 
   /// The rootUri of the workspace. Is null if no folder is open. If both
@@ -13939,15 +13936,15 @@ class LocationLink implements ToJsonable {
   /// range at the mouse position.
   final Range originSelectionRange;
 
-  /// The full target range of this link. If the target for example is a symbol
-  /// then target range is the range enclosing this symbol not including
+  /// The full target range of this link. For example, if the target is a
+  /// symbol, then target range is the range enclosing this symbol not including
   /// leading/trailing whitespace but everything else like comments. This
   /// information is typically used to highlight the range in the editor.
   final Range targetRange;
 
   /// The range that should be selected and revealed when this link is being
-  /// followed, e.g the name of a function. Must be contained by the the
-  /// `targetRange`. See also `DocumentSymbol#range`
+  /// followed, for example, the name of a function. Must be contained by the
+  /// the `targetRange`. See also `DocumentSymbol#range`
   final Range targetSelectionRange;
 
   /// The target resource identifier of this link.
@@ -14160,16 +14157,15 @@ class LogMessageParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// A `MarkupContent` literal represents a string value which content is
+/// A `MarkupContent` literal represents a string value, which content is
 /// interpreted base on its kind flag. Currently the protocol supports
 /// `plaintext` and `markdown` as markup kinds.
 ///
-/// If the kind is `markdown` then the value can contain fenced code blocks like
-/// in GitHub issues. See
-/// https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
+/// If the kind is `markdown`, then the value can contain fenced code blocks
+/// like in GitHub issues.
 ///
-/// Here is an example how such a string can be constructed using JavaScript /
-/// TypeScript: ```typescript let markdown: MarkdownContent = {
+/// An example how such a string is constructed using JavaScript / TypeScript:
+/// ```typescript let markdown: MarkdownContent = {
 ///
 /// kind: MarkupKind.Markdown,
 /// 	value: [
@@ -14180,8 +14176,8 @@ class LogMessageParams implements ToJsonable {
 /// 		'```'
 /// 	].join('\n') }; ```
 ///
-/// *Please Note* that clients might sanitize the return markdown. A client
-/// could decide to remove HTML from the markdown to avoid script execution.
+/// *Please Note* that clients might sanitize the returned Markdown. A client
+/// could decide to remove HTML from the Markdown to avoid script execution.
 class MarkupContent implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
@@ -14990,8 +14986,8 @@ class PartialResultParams implements ToJsonable {
     return PartialResultParams(partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   Map<String, dynamic> toJson() {
@@ -15566,9 +15562,8 @@ class PublishDiagnosticsParams implements ToJsonable {
   /// The URI for which diagnostic information is reported.
   final String uri;
 
-  /// Optional the version number of the document the diagnostics are published
-  /// for.
-  ///  @since 3.15.0
+  /// The version number of the document the diagnostics are published for.
+  /// Optional. @since 3.15.0
   final num version;
 
   Map<String, dynamic> toJson() {
@@ -16102,8 +16097,8 @@ class ReferenceParams
 
   final ReferenceContext context;
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The position inside the text document.
@@ -16260,7 +16255,7 @@ class ReferenceRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
   final bool workDoneProgress;
 
@@ -17105,7 +17100,7 @@ class RenameRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// Renames should be checked and tested before being executed.
@@ -17796,7 +17791,7 @@ class SelectionRangeClientCapabilities implements ToJsonable {
   }
 
   /// Whether implementation supports dynamic registration for selection range
-  /// providers. If this is set to `true` the client supports the new
+  /// providers. If set to `true`, the client supports the new
   /// `SelectionRangeRegistrationOptions` return value for the corresponding
   /// server capability as well.
   final bool dynamicRegistration;
@@ -17956,8 +17951,8 @@ class SelectionRangeParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The positions inside the text document.
@@ -18105,7 +18100,7 @@ class SelectionRangeRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
@@ -18473,7 +18468,19 @@ class ServerCapabilities implements ToJsonable {
                 : (json['selectionRangeProvider'] == null
                     ? null
                     : (throw '''${json['selectionRangeProvider']} was not one of (bool, SelectionRangeOptions, SelectionRangeRegistrationOptions)'''))));
-    final workspaceSymbolProvider = json['workspaceSymbolProvider'];
+    final workspaceSymbolProvider = json['workspaceSymbolProvider'] is bool
+        ? Either2<bool, WorkspaceSymbolOptions>.t1(
+            json['workspaceSymbolProvider'])
+        : (WorkspaceSymbolOptions.canParse(
+                json['workspaceSymbolProvider'], nullLspJsonReporter)
+            ? Either2<bool, WorkspaceSymbolOptions>.t2(
+                json['workspaceSymbolProvider'] != null
+                    ? WorkspaceSymbolOptions.fromJson(
+                        json['workspaceSymbolProvider'])
+                    : null)
+            : (json['workspaceSymbolProvider'] == null
+                ? null
+                : (throw '''${json['workspaceSymbolProvider']} was not one of (bool, WorkspaceSymbolOptions)''')));
     final workspace = json['workspace'] != null
         ? ServerCapabilitiesWorkspace.fromJson(json['workspace'])
         : null;
@@ -18511,7 +18518,7 @@ class ServerCapabilities implements ToJsonable {
   /// property `textDocument.codeAction.codeActionLiteralSupport`.
   final Either2<bool, CodeActionOptions> codeActionProvider;
 
-  /// The server provides code lens.
+  /// The server provides CodeLens.
   final CodeLensOptions codeLensProvider;
 
   /// The server provides color provider support.
@@ -18585,8 +18592,8 @@ class ServerCapabilities implements ToJsonable {
   final SignatureHelpOptions signatureHelpProvider;
 
   /// Defines how text documents are synced. Is either a detailed structure
-  /// defining each notification or for backwards compatibility the
-  /// TextDocumentSyncKind number. If omitted it defaults to
+  /// defining each notification or for backwards compatibility, the
+  /// TextDocumentSyncKind number. If omitted, it defaults to
   /// `TextDocumentSyncKind.None`.
   final Either2<TextDocumentSyncOptions, num> textDocumentSync;
 
@@ -18599,7 +18606,7 @@ class ServerCapabilities implements ToJsonable {
   final ServerCapabilitiesWorkspace workspace;
 
   /// The server provides workspace symbol support.
-  final bool workspaceSymbolProvider;
+  final Either2<bool, WorkspaceSymbolOptions> workspaceSymbolProvider;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -18969,8 +18976,11 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('workspaceSymbolProvider');
       try {
         if (obj['workspaceSymbolProvider'] != null &&
-            !(obj['workspaceSymbolProvider'] is bool)) {
-          reporter.reportError('must be of type bool');
+            !((obj['workspaceSymbolProvider'] is bool ||
+                WorkspaceSymbolOptions.canParse(
+                    obj['workspaceSymbolProvider'], reporter)))) {
+          reporter.reportError(
+              'must be of type Either2<bool, WorkspaceSymbolOptions>');
           return false;
         }
       } finally {
@@ -19411,7 +19421,7 @@ class SignatureHelp implements ToJsonable {
   /// better express this.
   final num activeSignature;
 
-  /// One or more signatures. If no signaures are availabe the signature help
+  /// One or more signatures. If no signatures are available the signature help
   /// request should return `null`.
   final List<SignatureInformation> signatures;
 
@@ -19838,7 +19848,7 @@ class SignatureHelpContext implements ToJsonable {
   /// Character that caused signature help to be triggered.
   ///
   /// This is undefined when `triggerKind !==
-  /// SignatureHelpTriggerKind.TriggerCharacter`
+  /// SignatureHelpTriggerKind.TriggerCharacter`.
   final String triggerCharacter;
 
   /// Action that caused signature help to be triggered.
@@ -20113,7 +20123,7 @@ class SignatureHelpParams
 
   /// The signature help context. This is only available if the client specifies
   /// to send this using the client capability
-  /// `textDocument.signatureHelp.contextSupport === true`
+  /// `textDocument.signatureHelp.contextSupport === true`.
   ///  @since 3.15.0
   final SignatureHelpContext context;
 
@@ -20268,7 +20278,7 @@ class SignatureHelpRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// List of characters that re-trigger signature help.
@@ -20891,7 +20901,7 @@ class TextDocumentChangeRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
@@ -21594,7 +21604,6 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
   /// The optional length of the range that got replaced.
   ///  @deprecated use range instead.
-  @core.deprecated
   final num rangeLength;
 
   /// The new text for the provided range.
@@ -22322,7 +22331,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
@@ -22389,8 +22398,8 @@ class TextDocumentSaveReason {
     return obj is num;
   }
 
-  /// Manually triggered, e.g. by the user pressing save, by starting debugging,
-  /// or by an API call.
+  /// Manually triggered, for example, by the user pressing save, by starting
+  /// debugging, or by an API call.
   static const Manual = TextDocumentSaveReason(1);
 
   /// Automatic after a delay.
@@ -22431,7 +22440,7 @@ class TextDocumentSaveRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The client is supposed to include the content on save.
@@ -22702,25 +22711,25 @@ class TextDocumentSyncOptions implements ToJsonable {
   }
 
   /// Change notifications are sent to the server. See
-  /// TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
-  /// TextDocumentSyncKind.Incremental. If omitted it defaults to
+  /// TextDocumentSyncKind.None, TextDocumentSyncKind.Full, and
+  /// TextDocumentSyncKind.Incremental. If omitted, it defaults to
   /// TextDocumentSyncKind.None.
   final TextDocumentSyncKind change;
 
-  /// Open and close notifications are sent to the server. If omitted open close
-  /// notification should not be sent.
+  /// Open and close notifications are sent to the server. If omitted, open
+  /// close notification should not be sent.
   final bool openClose;
 
-  /// If present save notifications are sent to the server. If omitted the
+  /// If present save notifications are sent to the server. If omitted, the
   /// notification should not be sent.
   final Either2<bool, SaveOptions> save;
 
-  /// If present will save notifications are sent to the server. If omitted the
+  /// If present will save notifications are sent to the server. If omitted, the
   /// notification should not be sent.
   final bool willSave;
 
   /// If present will save wait until requests are sent to the server. If
-  /// omitted the request should not be sent.
+  /// omitted, the request should not be sent.
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
@@ -22942,7 +22951,7 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
-  /// `true` the client supports the new `TypeDefinitionRegistrationOptions`
+  /// `true`, the client supports the new ` TypeDefinitionRegistrationOptions`
   /// return value for the corresponding server capability as well.
   final bool dynamicRegistration;
 
@@ -23122,8 +23131,8 @@ class TypeDefinitionParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// The position inside the text document.
@@ -23268,7 +23277,7 @@ class TypeDefinitionRegistrationOptions
   }
 
   /// A document selector to identify the scope of the registration. If set to
-  /// null the document selector provided on the client side will be used.
+  /// null, the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
@@ -23555,9 +23564,10 @@ class VersionedTextDocumentIdentifier
 
   /// The version number of this document. If a versioned text document
   /// identifier is sent from the server to the client and the file is not open
-  /// in the editor (the server has not received an open notification before)
+  /// in the editor (the server has not received an open notification before),
   /// the server can send `null` to indicate that the version is known and the
-  /// content on disk is the master (as speced with document content ownership).
+  /// content on disk is the master (as specified with document content
+  /// ownership).
   ///
   /// The version number of a document will increase after each change,
   /// including undo/redo. The number doesn't need to be consecutive.
@@ -23795,8 +23805,8 @@ class WorkDoneProgressBegin implements ToJsonable {
   }
 
   /// Controls if a cancel button should show to allow the user to cancel the
-  /// long running operation. Clients that don't support cancellation are
-  /// allowed to ignore the setting.
+  /// long running operation. Clients that don't support cancellation can ignore
+  /// the setting.
   final bool cancellable;
   final String kind;
 
@@ -24450,10 +24460,11 @@ class WorkDoneProgressReport implements ToJsonable {
         percentage: percentage);
   }
 
-  /// Controls enablement state of a cancel button. This property is only valid
-  /// if a cancel button got requested in the `WorkDoneProgressStart` payload.
+  /// Controls enablement state of a cancel button. T This property is only
+  /// valid if a cancel button is requested in the `WorkDoneProgressStart`
+  /// payload.
   ///
-  /// Clients that don't support cancellation or don't support control the
+  /// Clients that don't support cancellation or don't support controlling the
   /// button's enablement state are allowed to ignore the setting.
   final bool cancellable;
   final String kind;
@@ -24606,18 +24617,18 @@ class WorkspaceEdit implements ToJsonable {
   /// Holds changes to existing resources.
   final Map<String, List<TextEdit>> changes;
 
-  /// Depending on the client capability
-  /// `workspace.workspaceEdit.resourceOperations` document changes are either
-  /// an array of `TextDocumentEdit`s to express changes to n different text
-  /// documents where each text document edit addresses a specific version of a
-  /// text document. Or it can contain above `TextDocumentEdit`s mixed with
-  /// create, rename and delete file / folder operations.
+  /// The client capability `workspace.workspaceEdit.resourceOperations`
+  /// determines whether document changes are either an array of
+  /// `TextDocumentEdit`s to express changes to different text documents, where
+  /// each text document edit addresses a specific version of a text document,
+  /// or it can contains the above `TextDocumentEdit`s mixed with create,
+  /// rename, and delete file / folder operations.
   ///
   /// Whether a client supports versioned document edits is expressed via
   /// `workspace.workspaceEdit.documentChanges` client capability.
   ///
-  /// If a client neither supports `documentChanges` nor
-  /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
+  /// If a client doesn't support `documentChanges` or
+  /// `workspace.workspaceEdit.resourceOperations`, then only plain `TextEdit`s
   /// using the `changes` property are supported.
   final Either2<List<TextDocumentEdit>,
           List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
@@ -25384,8 +25395,8 @@ class WorkspaceSymbolParams
         partialResultToken: partialResultToken);
   }
 
-  /// An optional token that a server can use to report partial results (e.g.
-  /// streaming) to the client.
+  /// An optional token that a server can use to report partial results (for
+  /// example, streaming) to the client.
   final Either2<num, String> partialResultToken;
 
   /// A query string to filter symbols by. Clients may send an empty string here

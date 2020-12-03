@@ -210,7 +210,7 @@ class ServerCapabilitiesComputer {
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
       ),
-      workspaceSymbolProvider: true,
+      workspaceSymbolProvider: Either2<bool, WorkspaceSymbolOptions>.t1(true),
       workspace: ServerCapabilitiesWorkspace(
           workspaceFolders: WorkspaceFoldersServerCapabilities(
         supported: true,

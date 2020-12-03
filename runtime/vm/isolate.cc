@@ -367,6 +367,14 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
           NOT_IN_PRODUCT("IsolateGroup::type_feedback_mutex_")),
       patchable_call_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::patchable_call_mutex_")),
+      constant_canonicalization_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::constant_canonicalization_mutex_")),
+      kernel_data_lib_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_data_lib_cache_mutex_")),
+      kernel_data_class_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
+      kernel_constants_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
@@ -1652,14 +1660,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      constant_canonicalization_mutex_(
-          NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
-      kernel_data_lib_cache_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
-      kernel_data_class_cache_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_")),
-      kernel_constants_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_constants_mutex_")),
       pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),

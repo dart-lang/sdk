@@ -327,9 +327,14 @@ void _writeDocCommentsAndAnnotations(
     lines = _wrapLines(lines, (80 - 4 - buffer.totalIndent).clamp(0, 80));
     lines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
   }
-  if (node.isDeprecated) {
-    buffer.writeIndentedln('@core.deprecated');
-  }
+  // Marking LSP-deprecated fields as deprecated in Dart results in a lot
+  // of warnings because we still often populate these fields for clients that
+  // may still be using them. This code is useful for enabling temporarily
+  // and reviewing which deprecated fields we should still support but isn't
+  // generally useful to keep enabled.
+  // if (node.isDeprecated) {
+  //   buffer.writeIndentedln('@core.deprecated');
+  // }
 }
 
 void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
@@ -379,6 +384,10 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..outdent()
     ..writeIndentedln('}');
   namespace.members.whereType<Const>().forEach((cons) {
+    // We don't use any deprecated enum values, so ommit them entirely.
+    if (cons.isDeprecated) {
+      return;
+    }
     _writeDocCommentsAndAnnotations(buffer, cons);
     buffer.writeIndentedln(
         'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
