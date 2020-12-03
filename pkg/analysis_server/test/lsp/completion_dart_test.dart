@@ -145,7 +145,7 @@ main() {
     final item = res.singleWhere((c) => c.label == 'myFunction(…)');
     // With no required params, there should still be parens and a tabstop inside.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:})'));
+    expect(item.insertText, equals(r'myFunction(${0:})'));
     expect(item.textEdit.newText, equals(item.insertText));
     expect(
       item.textEdit.range,
@@ -170,10 +170,10 @@ main() {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'min(…)');
-    // Ensure the snippet does not include the parens/args as it doesn't
-    // make sense in the show clause. There will still be a trailing tabstop.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'min${1:}'));
+    // The insert text should be a simple string with no parens/args and
+    // no need for snippets.
+    expect(item.insertTextFormat, isNull);
+    expect(item.insertText, equals(r'min'));
     expect(item.textEdit.newText, equals(item.insertText));
   }
 
@@ -540,7 +540,7 @@ main() {
     expect(updated, contains('one: '));
   }
 
-  Future<void> test_namedArg_snippetStringSelection() async {
+  Future<void> test_namedArg_snippetStringSelection_endOfString() async {
     final content = '''
     class A { const A({int one}); }
     @A(^)
@@ -554,11 +554,43 @@ main() {
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'one: '), isTrue);
     final item = res.singleWhere((c) => c.label == 'one: ');
+    // As the selection is the end of the string, there's no need for a snippet
+    // here. Since the insert text is also the same as the label, it does not
+    // need to be provided.
+    expect(item.insertTextFormat, isNull);
+    expect(item.insertText, isNull);
+    expect(item.textEdit.newText, equals('one: '));
+    expect(
+      item.textEdit.range,
+      equals(Range(
+          start: positionFromMarker(content),
+          end: positionFromMarker(content))),
+    );
+  }
+
+  Future<void>
+      test_namedArgTrailing_snippetStringSelection_insideString() async {
+    final content = '''
+    main({int one, int two}) {
+      main(
+        ^
+        two: 2,
+      );
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'one: '), isTrue);
+    final item = res.singleWhere((c) => c.label == 'one: ');
     // Ensure the snippet comes through in the expected format with the expected
     // placeholder.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'one: ${1:}'));
-    expect(item.textEdit.newText, equals(r'one: ${1:}'));
+    expect(item.insertText, equals(r'one: ${0:},'));
+    expect(item.textEdit.newText, equals(r'one: ${0:},'));
     expect(
       item.textEdit.range,
       equals(Range(
