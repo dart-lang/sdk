@@ -574,16 +574,28 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   static Future<ConnectionTask<_NativeSocket>> startConnect(
       dynamic host, int port, dynamic sourceAddress) {
+    // Looks up [sourceAddress] to one or more IP addresses,
+    // then tries connecting to each one until a connection succeeds.
+    // Attempts are staggered by a minimum delay, so a new
+    // attempt isn't made until either a previous attempt has *failed*,
+    // or the delay has passed.
+    // This ensures that at most *n* uncompleted connections can be
+    // active after *n* &times; *delay* time has passed.
     if (host is String) {
       host = escapeLinkLocalAddress(host);
     }
     _throwOnBadPort(port);
-    if (sourceAddress != null && sourceAddress is! _InternetAddress) {
-      if (sourceAddress is String) {
-        sourceAddress = new InternetAddress(sourceAddress);
-      }
+    _InternetAddress? source;
+    if (sourceAddress is _InternetAddress) {
+      source = sourceAddress;
+    } else if (sourceAddress is String) {
+      source = new _InternetAddress.fromString(sourceAddress);
     }
-    return new Future.value(host).then((host) {
+    // Should we throw if sourceAddress is not one of:
+    // null, _InternetAddress or String?
+    // Is it somehow ensured upstream
+    // that only those three types will reach here?
+    return new Future.value(host).then<List<InternetAddress>>((host) {
       if (host is _InternetAddress) return [host];
       return lookup(host).then((addresses) {
         if (addresses.isEmpty) {
@@ -592,23 +604,43 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         return addresses;
       });
     }).then((addresses) {
+      assert(addresses.isNotEmpty);
+      // Completer for result.
       var completer = new Completer<_NativeSocket>();
-      var it = (addresses as List<InternetAddress>).iterator;
+      // Index of next address in [addresses] to try.
+      var index = 0;
+      // Error, set if an error occurs.
+      // Keeps first error if multiple errors occour.
       var error = null;
-      var connecting = new HashMap();
+      // Active timers for on-going connection attempts.
+      // Contains all sockets which haven't received and initial
+      // write or error event.
+      var connecting = <_NativeSocket>{};
+      // Timer counting down from the last connection attempt.
+      // Reset when a new connection is attempted,
+      // which happens either when a previous timer runs out,
+      // or when a previous connection attempt fails.
+      Timer? timer;
 
+      // Attempt to connect to the next address in [addresses].
+      //
+      // Called initially, then when either a connection attempt fails,
+      // or an amount of time has passed since the last connection
+      // was attempted.
       void connectNext() {
-        if (!it.moveNext()) {
+        timer?.cancel();
+        if (index >= addresses.length) {
           if (connecting.isEmpty) {
             assert(error != null);
+            assert(!completer.isCompleted);
             completer.completeError(error);
           }
           return;
         }
-        final _InternetAddress address = it.current as _InternetAddress;
+        final address = addresses[index++] as _InternetAddress;
         var socket = new _NativeSocket.normal(address);
         var result;
-        if (sourceAddress == null) {
+        if (source == null) {
           if (address.type == InternetAddressType.unix) {
             result = socket.nativeCreateUnixDomainConnect(
                 address.address, _Namespace._namespace);
@@ -617,97 +649,103 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 address._in_addr, port, address._scope_id);
           }
         } else {
-          assert(sourceAddress is _InternetAddress);
           if (address.type == InternetAddressType.unix) {
-            assert(sourceAddress.type == InternetAddressType.unix);
+            assert(source.type == InternetAddressType.unix);
             result = socket.nativeCreateUnixDomainBindConnect(
-                address.address, sourceAddress.address, _Namespace._namespace);
+                address.address, source.address, _Namespace._namespace);
           } else {
-            result = socket.nativeCreateBindConnect(address._in_addr, port,
-                sourceAddress._in_addr, address._scope_id);
+            result = socket.nativeCreateBindConnect(
+                address._in_addr, port, source._in_addr, address._scope_id);
           }
         }
         if (result is OSError) {
           // Keep first error, if present.
           if (error == null) {
             int errorCode = result.errorCode;
-            if (sourceAddress != null &&
+            if (source != null &&
                 errorCode != null &&
                 socket.isBindError(errorCode)) {
-              error = createError(result, "Bind failed", sourceAddress);
+              error = createError(result, "Bind failed", source);
             } else {
               error = createError(result, "Connection failed", address, port);
             }
           }
-          connectNext();
-        } else {
-          // Query the local port for error messages.
-          try {
-            socket.port;
-          } catch (e) {
-            if (error == null) {
-              error = createError(e, "Connection failed", address, port);
-            }
-            connectNext();
-          }
-          // Set up timer for when we should retry the next address
-          // (if any).
-          var duration =
-              address.isLoopback ? _retryDurationLoopback : _retryDuration;
-          var timer = new Timer(duration, connectNext);
-
-          connecting[socket] = timer;
-          // Setup handlers for receiving the first write event which
-          // indicate that the socket is fully connected.
-          socket.setHandlers(write: () {
-            timer.cancel();
-            connecting.remove(socket);
-            // From 'man 2 connect':
-            // After select(2) indicates writability, use getsockopt(2) to read
-            // the SO_ERROR option at level SOL_SOCKET to determine whether
-            // connect() completed successfully (SO_ERROR is zero) or
-            // unsuccessfully.
-            OSError osError = socket.nativeGetError();
-            if (osError.errorCode != 0) {
-              socket.close();
-              if (error == null) error = osError;
-              if (connecting.isEmpty) connectNext();
-              return;
-            }
-            socket.setListening(read: false, write: false);
-            completer.complete(socket);
-            connecting.forEach((s, t) {
-              t.cancel();
-              s.close();
-              s.setHandlers();
-              s.setListening(read: false, write: false);
-            });
-            connecting.clear();
-          }, error: (e, st) {
-            timer.cancel();
-            socket.close();
-            // Keep first error, if present.
-            if (error == null) error = e;
-            connecting.remove(socket);
-            if (connecting.isEmpty) connectNext();
-          });
-          socket.setListening(read: false, write: true);
+          connectNext(); // Try again after failure to connect.
+          return;
         }
+        // Query the local port for error messages.
+        try {
+          socket.port;
+        } catch (e) {
+          if (error == null) {
+            error = createError(e, "Connection failed", address, port);
+          }
+          connectNext(); // Try again after failure to connect.
+          return;
+        }
+
+        // Try again if no response (failure or success) within a duration.
+        // If this occurs, the socket is still trying to connect, and might
+        // succeed or fail later.
+        var duration =
+            address.isLoopback ? _retryDurationLoopback : _retryDuration;
+        timer = new Timer(duration, connectNext);
+
+        connecting.add(socket);
+        // Setup handlers for receiving the first write event which
+        // indicate that the socket is fully connected.
+        socket.setHandlers(write: () {
+          // First remote response on connection.
+          // If error, drop the socket and go to the next address.
+          // If success, complete with the socket
+          // and stop all other open connection attempts.
+          connecting.remove(socket);
+          // From 'man 2 connect':
+          // After select(2) indicates writability, use getsockopt(2) to read
+          // the SO_ERROR option at level SOL_SOCKET to determine whether
+          // connect() completed successfully (SO_ERROR is zero) or
+          // unsuccessfully.
+          OSError osError = socket.nativeGetError();
+          if (osError.errorCode != 0) {
+            socket.close();
+            error ??= osError;
+            connectNext(); // Try again after failure to connect.
+            return;
+          }
+          // Connection success!
+          // Stop all other connecting sockets and timers.
+          timer!.cancel();
+          socket.setListening(read: false, write: false);
+          for (var s in connecting) {
+            s.close();
+            s.setHandlers();
+            s.setListening(read: false, write: false);
+          }
+          connecting.clear();
+          completer.complete(socket);
+        }, error: (e, st) {
+          connecting.remove(socket);
+          socket.close();
+          socket.setHandlers();
+          socket.setListening(read: false, write: false);
+          // Keep first error, if present.
+          error ??= e;
+          connectNext(); // Try again after failure to connect.
+        });
+        socket.setListening(read: false, write: true);
       }
 
       void onCancel() {
-        connecting.forEach((s, t) {
-          t.cancel();
+        timer?.cancel();
+        for (var s in connecting) {
           s.close();
           s.setHandlers();
           s.setListening(read: false, write: false);
-          if (error == null) {
-            error = createError(null,
-                "Connection attempt cancelled, host: ${host}, port: ${port}");
-          }
-        });
+        }
         connecting.clear();
         if (!completer.isCompleted) {
+          error ??= createError(null,
+              "Connection attempt cancelled, host: ${host}, port: ${port}");
           completer.completeError(error);
         }
       }

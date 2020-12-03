@@ -3936,7 +3936,9 @@ const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""Optional parameter '#name' should have a default value because its type '#type' doesn't allow null.""",
+            r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
+        tipTemplate:
+            r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
         withArguments:
             _withArgumentsOptionalNonNullableWithoutInitializerError);
 
@@ -3945,11 +3947,11 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>
     codeOptionalNonNullableWithoutInitializerError = const Code<
-        Message Function(
-            String name, DartType _type, bool isNonNullableByDefault)>(
-  "OptionalNonNullableWithoutInitializerError",
-  templateOptionalNonNullableWithoutInitializerError,
-);
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "OptionalNonNullableWithoutInitializerError",
+        templateOptionalNonNullableWithoutInitializerError,
+        analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOptionalNonNullableWithoutInitializerError(
@@ -3961,8 +3963,9 @@ Message _withArgumentsOptionalNonNullableWithoutInitializerError(
   String type = typeParts.join();
   return new Message(codeOptionalNonNullableWithoutInitializerError,
       message:
-          """Optional parameter '${name}' should have a default value because its type '${type}' doesn't allow null.""" +
+          """The parameter '${name}' can't have a value of 'null' because of its type '${type}', but the implicit default value is 'null'.""" +
               labeler.originMessages,
+      tip: """Try adding either an explicit non-'null' default value or the 'required' modifier.""",
       arguments: {'name': name, 'type': _type});
 }
 

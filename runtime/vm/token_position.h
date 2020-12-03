@@ -95,11 +95,10 @@ class TokenPosition {
   // Encode for writing into a snapshot.
   int32_t SnapshotEncode();
 
-  // Increment the token position.
+  // Given a real token position, returns the next real token position.
   TokenPosition Next() {
     ASSERT(IsReal());
-    value_++;
-    return *this;
+    return TokenPosition(value_ + 1);
   }
 
   // The raw value.

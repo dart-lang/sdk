@@ -3033,7 +3033,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   while ((loc == NULL) && (first_token_idx <= last_token_idx)) {
     loc = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
                         column_number, Function::Handle());
-    first_token_idx.Next();
+    first_token_idx = first_token_idx.Next();
   }
   if ((loc == NULL) && FLAG_verbose_debug) {
     OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,

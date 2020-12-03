@@ -1286,9 +1286,6 @@ class FlowModel<Variable, Type> {
   /// variable that is no longer in scope.
   final Map<Variable, VariableModel<Variable, Type> /*!*/ > variableInfo;
 
-  /// Variable model for variables that have never been seen before.
-  final VariableModel<Variable, Type> _freshVariableInfo;
-
   /// The empty map, used to [join] variables.
   final Map<Variable, VariableModel<Variable, Type>> _emptyVariableMap = {};
 
@@ -1302,8 +1299,7 @@ class FlowModel<Variable, Type> {
         );
 
   @visibleForTesting
-  FlowModel.withInfo(this.reachable, this.variableInfo)
-      : _freshVariableInfo = new VariableModel.fresh() {
+  FlowModel.withInfo(this.reachable, this.variableInfo) {
     assert(reachable != null);
     assert(() {
       for (VariableModel<Variable, Type> value in variableInfo.values) {
@@ -1376,17 +1372,15 @@ class FlowModel<Variable, Type> {
   /// A local variable is [initialized] if its declaration has an initializer.
   /// A function parameter is always initialized, so [initialized] is `true`.
   FlowModel<Variable, Type> declare(Variable variable, bool initialized) {
-    VariableModel<Variable, Type> newInfoForVar = _freshVariableInfo;
-    if (initialized) {
-      newInfoForVar = newInfoForVar.initialize();
-    }
+    VariableModel<Variable, Type> newInfoForVar =
+        new VariableModel.fresh(assigned: initialized);
 
     return _updateVariableInfo(variable, newInfoForVar);
   }
 
   /// Gets the info for the given [variable], creating it if it doesn't exist.
   VariableModel<Variable, Type> infoFor(Variable variable) =>
-      variableInfo[variable] ?? _freshVariableInfo;
+      variableInfo[variable] ?? new VariableModel.fresh();
 
   /// Builds a [FlowModel] based on `this`, but extending the `tested` set to
   /// include types from [other].  This is used at the bottom of certain kinds
@@ -2060,11 +2054,10 @@ class VariableModel<Variable, Type> {
 
   /// Creates a [VariableModel] representing a variable that's never been seen
   /// before.
-  VariableModel.fresh()
+  VariableModel.fresh({this.assigned = false})
       : promotedTypes = null,
         tested = const [],
-        assigned = false,
-        unassigned = true,
+        unassigned = !assigned,
         writeCaptured = false;
 
   /// Returns a new [VariableModel] in which any promotions present have been
@@ -2075,16 +2068,6 @@ class VariableModel<Variable, Type> {
     }
     return new VariableModel<Variable, Type>(
         null, tested, assigned, false, writeCaptured);
-  }
-
-  /// Returns a new [VariableModel] reflecting the fact that the variable was
-  /// just initialized.
-  VariableModel<Variable, Type> initialize() {
-    if (promotedTypes == null && tested.isEmpty && assigned && !unassigned) {
-      return this;
-    }
-    return new VariableModel<Variable, Type>(
-        null, const [], true, false, writeCaptured);
   }
 
   /// Returns an updated model reflect a control path that is known to have

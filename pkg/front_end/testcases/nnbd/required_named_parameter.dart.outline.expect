@@ -6,11 +6,13 @@ library /*isNonNullableByDefault*/;
 // foo({required int parameter = 42}) {}
 //                   ^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/required_named_parameter.dart:7:11: Error: Optional parameter 'parameter' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:7:11: Error: The parameter 'parameter' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // foo2({int parameter}) {}
 //           ^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/required_named_parameter.dart:8:11: Error: Optional parameter 'parameter' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:8:11: Error: The parameter 'parameter' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // foo3([int parameter]) {}
 //           ^^^^^^^^^
 //
