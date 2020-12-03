@@ -64,7 +64,6 @@ class ObjectPointerVisitor;
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
-  V(LateInitializationError, "_LateInitializationError")                       \
   V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
@@ -94,6 +93,8 @@ class ObjectPointerVisitor;
   V(Default, "Default")                                                        \
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
+  V(DotFieldNI, ".fieldNI")                                                    \
+  V(DotFieldADI, ".fieldADI")                                                  \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
@@ -196,6 +197,7 @@ class ObjectPointerVisitor;
   V(IteratorParameter, ":iterator")                                            \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(LanguageError, "LanguageError")                                            \
+  V(LateError, "LateError")                                                    \
   V(LeftShiftOperator, "<<")                                                   \
   V(Length, "length")                                                          \
   V(LessEqualOperator, "<=")                                                   \

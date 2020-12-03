@@ -24,6 +24,8 @@ class AnalyzeCommand extends DartdevCommand {
   /// message. The width left for the severity label plus the separator width.
   static const int _bodyIndentWidth = _severityWidth + 3;
 
+  static final String _bodyIndent = ' ' * _bodyIndentWidth;
+
   static final int _pipeCodeUnit = '|'.codeUnitAt(0);
 
   static final int _slashCodeUnit = '\\'.codeUnitAt(0);
@@ -62,6 +64,7 @@ class AnalyzeCommand extends DartdevCommand {
 
   @override
   String get invocation => '${super.invocation} [<directory>]';
+
   @override
   FutureOr<int> run() async {
     if (argResults.rest.length > 1) {
@@ -167,6 +170,10 @@ class AnalyzeCommand extends DartdevCommand {
 
     log.stdout('');
 
+    final wrapWidth = dartdevUsageLineLength == null
+        ? null
+        : (dartdevUsageLineLength - _bodyIndentWidth);
+
     for (final AnalysisError error in errors) {
       // error • Message ... at path.dart:line:col • (code)
 
@@ -183,19 +190,28 @@ class AnalyzeCommand extends DartdevCommand {
         '(${error.code})',
       );
 
-      var padding = ' ' * _bodyIndentWidth;
       if (verbose) {
         for (var message in error.contextMessages) {
-          log.stdout('$padding${message.message} '
-              'at ${message.filePath}:${message.line}:${message.column}');
+          // Wrap longer context messages.
+          var contextMessage = wrapText(
+              '${message.message} at '
+              '${message.filePath}:${message.line}:${message.column}',
+              width: wrapWidth);
+          log.stdout('$_bodyIndent'
+              '${contextMessage.replaceAll('\n', '\n$_bodyIndent')}');
         }
       }
+
       if (error.correction != null) {
-        log.stdout('$padding${error.correction}');
+        // Wrap longer correction messages.
+        var correction = wrapText(error.correction, width: wrapWidth);
+        log.stdout(
+            '$_bodyIndent${correction.replaceAll('\n', '\n$_bodyIndent')}');
       }
+
       if (verbose) {
         if (error.url != null) {
-          log.stdout('$padding${error.url}');
+          log.stdout('$_bodyIndent${error.url}');
         }
       }
     }

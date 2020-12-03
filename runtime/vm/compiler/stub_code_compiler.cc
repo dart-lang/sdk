@@ -121,7 +121,7 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
     __ Bind(&throw_exception);
     __ PushObject(NullObject());  // Make room for (unused) result.
     __ PushRegister(kFieldReg);
-    __ CallRuntime(kLateInitializationErrorRuntimeEntry,
+    __ CallRuntime(kLateFieldAssignedDuringInitializationErrorRuntimeEntry,
                    /*argument_count=*/1);
     __ Breakpoint();
   }
@@ -692,7 +692,8 @@ void StubCodeCompiler::GenerateLateInitializationError(Assembler* assembler,
                                                        bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     __ PushRegister(LateInitializationErrorABI::kFieldReg);
-    __ CallRuntime(kLateInitializationErrorRuntimeEntry, /*argument_count=*/1);
+    __ CallRuntime(kLateFieldNotInitializedErrorRuntimeEntry,
+                   /*argument_count=*/1);
   };
   GenerateSharedStubGeneric(
       assembler, /*save_fpu_registers=*/with_fpu_regs,

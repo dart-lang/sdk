@@ -224,6 +224,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment ThrowLateInitializationError(TokenPosition position,
+                                        const char* throw_method_name,
                                         const String& name);
   Fragment BuildImplicitClosureCreation(const Function& target);
 

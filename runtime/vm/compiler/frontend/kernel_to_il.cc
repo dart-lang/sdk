@@ -440,22 +440,24 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
-Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,
-                                                        const String& name) {
-  const Class& klass = Class::ZoneHandle(
-      Z, Library::LookupCoreClass(Symbols::LateInitializationError()));
+Fragment FlowGraphBuilder::ThrowLateInitializationError(
+    TokenPosition position,
+    const char* throw_method_name,
+    const String& name) {
+  const Class& klass =
+      Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::LateError()));
   ASSERT(!klass.IsNull());
 
   const auto& error = klass.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
   const Function& throw_new =
       Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
-                                  H.DartSymbolObfuscate("_throwNew")));
+                                  H.DartSymbolObfuscate(throw_method_name)));
   ASSERT(!throw_new.IsNull());
 
   Fragment instructions;
 
-  // Call _LateInitializationError._throwNew.
+  // Call LateError._throwFoo.
   instructions += Constant(name);
   instructions += StaticCall(position, throw_new,
                              /* argument_count = */ 1, ICData::kStatic);
@@ -495,7 +497,8 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
       // If the field is already initialized, throw a LateInitializationError.
       Fragment already_initialized(is_initialized);
       already_initialized += ThrowLateInitializationError(
-          position, String::ZoneHandle(Z, field.name()));
+          position, "_throwFieldAlreadyInitialized",
+          String::ZoneHandle(Z, field.name()));
       already_initialized += Goto(join);
     }
 

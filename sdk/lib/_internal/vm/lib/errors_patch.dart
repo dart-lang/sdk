@@ -44,8 +44,8 @@ class _AssertionError extends Error implements AssertionError {
 
   static _doThrowNew(int assertionStart, int assertionEnd, Object? message)
       native "AssertionError_throwNew";
-  static _doThrowNewSource(String failedAssertion, int line, int column, Object? message)
-      native "AssertionError_throwNewSource";
+  static _doThrowNewSource(String failedAssertion, int line, int column,
+      Object? message) native "AssertionError_throwNewSource";
 
   @pragma("vm:entry-point", "call")
   static _evaluateAssertion(condition) {
@@ -493,19 +493,4 @@ class _DuplicatedFieldInitializerError extends Error {
   _DuplicatedFieldInitializerError(this._name);
 
   toString() => "Error: field '$_name' is already initialized.";
-}
-
-class _LateInitializationError extends Error
-    implements LateInitializationError {
-  @pragma("vm:entry-point")
-  _LateInitializationError(this._name);
-
-  @pragma("vm:entry-point")
-  static void _throwNew(String name) {
-    throw _LateInitializationError(name);
-  }
-
-  String toString() => "LateInitializationError: $_name";
-
-  final String _name;
 }
