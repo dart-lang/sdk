@@ -4260,7 +4260,6 @@ void Class::EnsureDeclarationLoaded() const {
 // Ensure that top level parsing of the class has been done.
 ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   ASSERT(!IsNull());
-  // Finalized classes have already been parsed.
   if (is_finalized()) {
     return Error::null();
   }
@@ -4290,13 +4289,16 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
 // this class is ready to be allocated.
 ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
   ASSERT(!IsNull());
-  // Finalized classes have already been parsed.
   if (is_allocate_finalized()) {
     return Error::null();
   }
   if (Compiler::IsBackgroundCompilation()) {
     Compiler::AbortBackgroundCompilation(
         DeoptId::kNone, "Class allocate finalization while compiling");
+  }
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  if (is_allocate_finalized()) {
+    return Error::null();
   }
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
