@@ -260,6 +260,7 @@ f() {
   p?.x;
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
     ]);
   }
@@ -471,6 +472,7 @@ f() {
   p?.x = 0;
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
     ]);
   }

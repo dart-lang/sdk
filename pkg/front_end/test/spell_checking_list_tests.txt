@@ -25,6 +25,7 @@ alt
 amortized
 analyses
 animal
+annoying
 anon
 aoo
 approval
@@ -347,6 +348,7 @@ incrementally
 increments
 indents
 initializer2
+inlinable
 instance2
 insufficient
 intdiv
@@ -448,6 +450,7 @@ metrics
 mf
 micro
 minimize
+minimizer
 mintty
 minutes
 mismatched
@@ -491,6 +494,7 @@ oracle
 out1
 out2
 outbound
+outlined
 overlay
 ox
 pack
@@ -559,6 +563,7 @@ reducer
 referring
 reflectee
 refusing
+regards
 regenerate
 regressions
 reify
@@ -568,6 +573,8 @@ remaps
 rendition
 repaint
 repro
+reproduce
+reproduction
 response
 result1
 result2
@@ -666,11 +673,13 @@ test3a
 test3b
 theoretically
 thereof
+thread
 timed
 timeout
 timer
 timings
 tinv
+told
 tpt
 transitively
 translators
@@ -693,6 +702,7 @@ unassignment
 unawaited
 unbreak
 unconverted
+uncovers
 underline
 unpacked
 unpatched

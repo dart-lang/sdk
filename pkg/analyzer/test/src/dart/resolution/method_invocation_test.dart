@@ -755,6 +755,7 @@ main() {
   math?.loadLibrary();
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 
@@ -778,6 +779,7 @@ main() {
   foo();
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 3),
     ]);
     _assertInvalidInvocation(
@@ -806,6 +808,7 @@ main() {
   math.foo(0);
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -1309,13 +1312,15 @@ main() {
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary();
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
 
     var import = findElement.importFind('dart:math');
 
@@ -1337,6 +1342,7 @@ main() {
   math.loadLibrary(1 + 2);
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 7),
     ]);
 
@@ -1769,6 +1775,7 @@ main() {
   math();
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 40, 4),
     ]);
     assertElement(findNode.simple('math()'), findElement.prefix('math'));
@@ -2332,14 +2339,16 @@ class MethodInvocationResolutionWithNullSafetyTest
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' deferred as a;
 
 main() {
   a.loadLibrary();
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 22, 8),
+    ]);
 
     var import = findElement.importFind('package:test/a.dart');
 

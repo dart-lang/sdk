@@ -197,6 +197,7 @@ main() {
   new math.A();
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
 

@@ -217,11 +217,6 @@ class ImportsVerifier {
   /// element, the import directive can be marked as used (removed from the
   /// unusedImports) by looking at the resolved `lib` in `lib.X`, instead of
   /// looking at which library the `lib.X` resolves.
-  ///
-  /// TODO (jwren) Since multiple [ImportDirective]s can share the same
-  /// [PrefixElement], it is possible to have an unreported unused import in
-  /// situations where two imports use the same prefix and at least one import
-  /// directive is used.
   final HashMap<PrefixElement, List<ImportDirective>> _prefixElementMap =
       HashMap<PrefixElement, List<ImportDirective>>();
 
@@ -410,22 +405,21 @@ class ImportsVerifier {
 
   /// Remove elements from [_unusedImports] using the given [usedElements].
   void removeUsedElements(UsedImportedElements usedElements) {
-    // Stop if all the imports and shown names are known to be used.
-    if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
-      return;
-    }
+    bool everythingIsKnownToBeUsed() =>
+        _unusedImports.isEmpty && _unusedShownNamesMap.isEmpty;
+
     // Process import prefixes.
     usedElements.prefixMap
         .forEach((PrefixElement prefix, List<Element> elements) {
-      List<ImportDirective> importDirectives = _prefixElementMap[prefix];
-      if (importDirectives != null) {
-        int importLength = importDirectives.length;
-        for (int i = 0; i < importLength; i++) {
-          ImportDirective importDirective = importDirectives[i];
-          _unusedImports.remove(importDirective);
-          int elementLength = elements.length;
-          for (int j = 0; j < elementLength; j++) {
-            Element element = elements[j];
+      if (everythingIsKnownToBeUsed()) {
+        return;
+      }
+      // Find import directives using namespaces.
+      for (var importDirective in _prefixElementMap[prefix] ?? []) {
+        Namespace namespace = _computeNamespace(importDirective);
+        for (var element in elements) {
+          if (namespace?.getPrefixed(prefix.name, element.name) != null) {
+            _unusedImports.remove(importDirective);
             _removeFromUnusedShownNamesMap(element, importDirective);
           }
         }
@@ -433,15 +427,13 @@ class ImportsVerifier {
     });
     // Process top-level elements.
     for (Element element in usedElements.elements) {
-      // Stop if all the imports and shown names are known to be used.
-      if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
+      if (everythingIsKnownToBeUsed()) {
         return;
       }
       // Find import directives using namespaces.
-      String name = element.name;
       for (ImportDirective importDirective in _allImports) {
         Namespace namespace = _computeNamespace(importDirective);
-        if (namespace?.get(name) != null) {
+        if (namespace?.get(element.name) != null) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(element, importDirective);
         }
@@ -449,15 +441,13 @@ class ImportsVerifier {
     }
     // Process extension elements.
     for (ExtensionElement extensionElement in usedElements.usedExtensions) {
-      // Stop if all the imports and shown names are known to be used.
-      if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
+      if (everythingIsKnownToBeUsed()) {
         return;
       }
       // Find import directives using namespaces.
-      String name = extensionElement.name;
       for (ImportDirective importDirective in _allImports) {
         Namespace namespace = _computeNamespace(importDirective);
-        if (namespace?.get(name) == extensionElement) {
+        if (namespace?.get(extensionElement.name) == extensionElement) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(extensionElement, importDirective);
         }
