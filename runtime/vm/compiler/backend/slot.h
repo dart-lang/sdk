@@ -295,6 +295,9 @@ class Slot : public ZoneAllocated {
     return static_cast<const T*>(data_);
   }
 
+  // There is a fixed statically known number of native slots so we cache
+  // them statically.
+  static AcqRelAtomic<Slot*> native_fields_;
   static const Slot& GetNativeSlot(Kind kind);
 
   const Kind kind_;
