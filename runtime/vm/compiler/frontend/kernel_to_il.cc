@@ -867,6 +867,10 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashMap_setUsedData:
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
+    case MethodRecognizer::kWeakProperty_getKey:
+    case MethodRecognizer::kWeakProperty_setKey:
+    case MethodRecognizer::kWeakProperty_getValue:
+    case MethodRecognizer::kWeakProperty_setValue:
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
@@ -1212,6 +1216,32 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += StoreInstanceField(
           TokenPosition::kNoSource, Slot::LinkedHashMap_deleted_keys(),
           StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier);
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kWeakProperty_getKey:
+      ASSERT(function.NumParameters() == 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::WeakProperty_key());
+      break;
+    case MethodRecognizer::kWeakProperty_setKey:
+      ASSERT(function.NumParameters() == 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 Slot::WeakProperty_key());
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kWeakProperty_getValue:
+      ASSERT(function.NumParameters() == 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::WeakProperty_value());
+      break;
+    case MethodRecognizer::kWeakProperty_setValue:
+      ASSERT(function.NumParameters() == 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 Slot::WeakProperty_value());
       body += NullConstant();
       break;
     case MethodRecognizer::kUtf8DecoderScan:

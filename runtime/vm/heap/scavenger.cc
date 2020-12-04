@@ -118,7 +118,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         freelist_(freelist),
         bytes_promoted_(0),
         visiting_old_object_(nullptr),
-        promoted_list_(promotion_stack) {}
+        promoted_list_(promotion_stack),
+        delayed_weak_properties_(WeakProperty::null()) {}
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                           ObjectPtr* first,
@@ -426,7 +427,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   ObjectPtr visiting_old_object_;
 
   PromotionWorkList promoted_list_;
-  WeakPropertyPtr delayed_weak_properties_ = nullptr;
+  WeakPropertyPtr delayed_weak_properties_;
 
   NewPage* head_ = nullptr;
   NewPage* tail_ = nullptr;  // Allocating from here.
@@ -1181,9 +1182,9 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
   // for which the keys have become reachable. Potentially this adds more
   // objects to the to space.
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = nullptr;
-  while (cur_weak != nullptr) {
-    uword next_weak = cur_weak->ptr()->next_;
+  delayed_weak_properties_ = WeakProperty::null();
+  while (cur_weak != WeakProperty::null()) {
+    WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
     // Promoted weak properties are not enqueued. So we can guarantee that
     // we do not need to think about store barriers here.
     ASSERT(cur_weak->IsNewObject());
@@ -1197,14 +1198,14 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
     ASSERT(from_->Contains(raw_addr));
     uword header = *reinterpret_cast<uword*>(raw_addr);
     // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
+    cur_weak->ptr()->next_ = WeakProperty::null();
     if (IsForwarding(header)) {
       cur_weak->ptr()->VisitPointersNonvirtual(this);
     } else {
       EnqueueWeakProperty(cur_weak);
     }
     // Advance to next weak property in the queue.
-    cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+    cur_weak = next_weak;
   }
 }
 
@@ -1244,8 +1245,8 @@ void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
   uword header = *reinterpret_cast<uword*>(raw_addr);
   ASSERT(!IsForwarding(header));
 #endif  // defined(DEBUG)
-  ASSERT(raw_weak->ptr()->next_ == 0);
-  raw_weak->ptr()->next_ = static_cast<uword>(delayed_weak_properties_);
+  ASSERT(raw_weak->ptr()->next_ == WeakProperty::null());
+  raw_weak->ptr()->next_ = delayed_weak_properties_;
   delayed_weak_properties_ = raw_weak;
 }
 
@@ -1330,11 +1331,11 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
   // The queued weak properties at this point do not refer to reachable keys,
   // so we clear their key and value fields.
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = nullptr;
-  while (cur_weak != nullptr) {
-    uword next_weak = cur_weak->ptr()->next_;
+  delayed_weak_properties_ = WeakProperty::null();
+  while (cur_weak != WeakProperty::null()) {
+    WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
     // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
+    cur_weak->ptr()->next_ = WeakProperty::null();
 
 #if defined(DEBUG)
     ObjectPtr raw_key = cur_weak->ptr()->key_;
@@ -1348,7 +1349,7 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
     WeakProperty::Clear(cur_weak);
 
     // Advance to next weak property in the queue.
-    cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+    cur_weak = next_weak;
   }
 }
 

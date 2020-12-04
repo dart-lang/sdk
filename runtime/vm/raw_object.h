@@ -2898,9 +2898,9 @@ class WeakPropertyLayout : public InstanceLayout {
   VISIT_TO(ObjectPtr, value)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  // Linked list is chaining all pending weak properties.
-  // Untyped to make it clear that it is not to be visited by GC.
-  uword next_;
+  // Linked list is chaining all pending weak properties. Not visited by
+  // pointer visitors.
+  WeakPropertyPtr next_;
 
   friend class GCMarker;
   template <bool>

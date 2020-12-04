@@ -34,7 +34,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         page_space_(page_space),
         work_list_(marking_stack),
         deferred_work_list_(deferred_marking_stack),
-        delayed_weak_properties_(nullptr),
+        delayed_weak_properties_(WeakProperty::null()),
         marked_bytes_(0),
         marked_micros_(0) {
     ASSERT(thread_->isolate_group() == isolate_group);
@@ -48,12 +48,12 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   bool ProcessPendingWeakProperties() {
     bool marked = false;
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
-    delayed_weak_properties_ = nullptr;
-    while (cur_weak != nullptr) {
-      uword next_weak = cur_weak->ptr()->next_;
+    delayed_weak_properties_ = WeakProperty::null();
+    while (cur_weak != WeakProperty::null()) {
+      WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
       ObjectPtr raw_key = cur_weak->ptr()->key_;
       // Reset the next pointer in the weak property.
-      cur_weak->ptr()->next_ = 0;
+      cur_weak->ptr()->next_ = WeakProperty::null();
       if (raw_key->ptr()->IsMarked()) {
         ObjectPtr raw_val = cur_weak->ptr()->value_;
         marked =
@@ -67,7 +67,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         EnqueueWeakProperty(cur_weak);
       }
       // Advance to next weak property in the queue.
-      cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+      cur_weak = next_weak;
     }
     return marked;
   }
@@ -133,8 +133,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ASSERT(raw_weak->IsOldObject());
     ASSERT(raw_weak->IsWeakProperty());
     ASSERT(raw_weak->ptr()->IsMarked());
-    ASSERT(raw_weak->ptr()->next_ == 0);
-    raw_weak->ptr()->next_ = static_cast<uword>(delayed_weak_properties_);
+    ASSERT(raw_weak->ptr()->next_ == WeakProperty::null());
+    raw_weak->ptr()->next_ = delayed_weak_properties_;
     delayed_weak_properties_ = raw_weak;
   }
 
@@ -185,16 +185,16 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     work_list_.Finalize();
     // Clear pending weak properties.
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
-    delayed_weak_properties_ = nullptr;
+    delayed_weak_properties_ = WeakProperty::null();
     intptr_t weak_properties_cleared = 0;
-    while (cur_weak != nullptr) {
-      uword next_weak = cur_weak->ptr()->next_;
-      cur_weak->ptr()->next_ = 0;
+    while (cur_weak != WeakProperty::null()) {
+      WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
+      cur_weak->ptr()->next_ = WeakProperty::null();
       RELEASE_ASSERT(!cur_weak->ptr()->key_->ptr()->IsMarked());
       WeakProperty::Clear(cur_weak);
       weak_properties_cleared++;
       // Advance to next weak property in the queue.
-      cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+      cur_weak = next_weak;
     }
   }
 

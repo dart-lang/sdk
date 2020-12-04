@@ -4322,6 +4322,7 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(property, kWeakPropertyCid,
                                      WeakProperty::InstanceSize());
       ReadFromTo(property);
+      property->ptr()->next_ = WeakProperty::null();
     }
   }
 };

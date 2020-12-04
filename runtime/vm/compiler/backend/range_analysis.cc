@@ -2736,6 +2736,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
+    case Slot::Kind::kWeakProperty_key:
+    case Slot::Kind::kWeakProperty_value:
       // Not an integer valued field.
       UNREACHABLE();
       break;

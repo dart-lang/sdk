@@ -10968,13 +10968,15 @@ class RegExp : public Instance {
 class WeakProperty : public Instance {
  public:
   ObjectPtr key() const { return raw_ptr()->key(); }
-
   void set_key(const Object& key) const { raw_ptr()->set_key(key.raw()); }
+  static intptr_t key_offset() { return OFFSET_OF(WeakPropertyLayout, key_); }
 
   ObjectPtr value() const { return raw_ptr()->value(); }
-
   void set_value(const Object& value) const {
     raw_ptr()->set_value(value.raw());
+  }
+  static intptr_t value_offset() {
+    return OFFSET_OF(WeakPropertyLayout, value_);
   }
 
   static WeakPropertyPtr New(Heap::Space space = Heap::kNew);
@@ -10984,7 +10986,7 @@ class WeakProperty : public Instance {
   }
 
   static void Clear(WeakPropertyPtr raw_weak) {
-    ASSERT(raw_weak->ptr()->next_ == 0);
+    ASSERT(raw_weak->ptr()->next_ == WeakProperty::null());
     // This action is performed by the GC. No barrier.
     raw_weak->ptr()->key_ = Object::null();
     raw_weak->ptr()->value_ = Object::null();

@@ -24713,9 +24713,7 @@ WeakPropertyPtr WeakProperty::New(Heap::Space space) {
          Class::null());
   ObjectPtr raw = Object::Allocate(WeakProperty::kClassId,
                                    WeakProperty::InstanceSize(), space);
-  WeakPropertyPtr result = static_cast<WeakPropertyPtr>(raw);
-  result->ptr()->next_ = 0;  // Init the list to NULL.
-  return result;
+  return static_cast<WeakPropertyPtr>(raw);
 }
 
 const char* WeakProperty::ToCString() const {

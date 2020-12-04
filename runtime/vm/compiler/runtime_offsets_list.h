@@ -285,6 +285,8 @@
   FIELD(MonomorphicSmiableCall, expected_cid_offset)                           \
   FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
   FIELD(MonomorphicSmiableCall, target_offset)                                 \
+  FIELD(WeakProperty, key_offset)                                              \
+  FIELD(WeakProperty, value_offset)                                            \
   ARRAY(Array, element_offset)                                                 \
   ARRAY(TypeArguments, type_at_offset)                                         \
   NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \

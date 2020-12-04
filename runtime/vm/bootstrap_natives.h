@@ -355,8 +355,8 @@ namespace dart {
   V(LinkedHashMap_setUsedData, 2)                                              \
   V(LinkedHashMap_getDeletedKeys, 1)                                           \
   V(LinkedHashMap_setDeletedKeys, 2)                                           \
-  V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
+  V(WeakProperty_setKey, 2)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
   V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \

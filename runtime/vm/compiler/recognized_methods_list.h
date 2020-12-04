@@ -158,6 +158,10 @@ namespace dart {
   V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 0xaa10069e)         \
   V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0x29549b9e)   \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0xac0f03a2)   \
+  V(_WeakProperty, get:key, WeakProperty_getKey, 0x16b8624c)                   \
+  V(_WeakProperty, set:key, WeakProperty_setKey, 0x8b5df091)                   \
+  V(_WeakProperty, get:value, WeakProperty_getValue, 0x0baa0898)               \
+  V(_WeakProperty, set:value, WeakProperty_setValue, 0x804f96dd)               \
   V(::, _classRangeCheck, ClassRangeCheck, 0x071d2ec8)                         \
   V(::, _abi, FfiAbi, 0x54918e73)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x2d4e5e32)                \
