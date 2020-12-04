@@ -9,12 +9,12 @@ namespace bin {
 
 OptionProcessor* OptionProcessor::first_ = NULL;
 
-bool OptionProcessor::IsValidFlag(const char* name,
-                                  const char* prefix,
-                                  intptr_t prefix_length) {
-  const intptr_t name_length = strlen(name);
-  return ((name_length > prefix_length) &&
-          (strncmp(name, prefix, prefix_length) == 0));
+bool OptionProcessor::IsValidFlag(const char* name) {
+  return name[0] == '-' && name[1] == '-' && name[2] != '\0';
+}
+
+bool OptionProcessor::IsValidShortFlag(const char* name) {
+  return name[0] == '-' && name[1] != '\0';
 }
 
 const char* OptionProcessor::ProcessOption(const char* option,
