@@ -261,7 +261,7 @@ class _GrowableList<T> extends ListBase<T> {
   void add(T value) {
     var len = length;
     if (len == _capacity) {
-      _grow(_nextCapacity(len));
+      _growToNextCapacity();
     }
     _setLength(len + 1);
     this[len] = value;
@@ -310,7 +310,7 @@ class _GrowableList<T> extends ListBase<T> {
         if (this.length != newLen) throw new ConcurrentModificationError(this);
         len = newLen;
       }
-      _grow(_nextCapacity(_capacity));
+      _growToNextCapacity();
     } while (true);
   }
 
@@ -368,6 +368,14 @@ class _GrowableList<T> extends ListBase<T> {
       }
     }
     _setData(newData);
+  }
+
+  // This method is marked as never-inline to conserve code size.
+  // It is called in rare cases, but used in the add() which is
+  // used very often and always inlined.
+  @pragma("vm:never-inline")
+  void _growToNextCapacity() {
+    _grow(_nextCapacity(_capacity));
   }
 
   void _shrink(int new_capacity, int new_length) {
