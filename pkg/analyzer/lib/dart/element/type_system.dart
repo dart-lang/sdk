@@ -38,11 +38,13 @@ abstract class TypeSystem {
   /// Instantiate the given generic element using the type arguments that
   /// correspond to the bounds of its type parameters.
   ///
-  /// One and only one of [classElement] or [functionTypeAliasElement] must
+  /// One and only one of [classElement] or [typeAliasElement] must
   /// be provided.
   DartType instantiateToBounds2({
     ClassElement classElement,
-    FunctionTypeAliasElement functionTypeAliasElement,
+    @Deprecated("Use 'typeAliasElement' instead")
+        FunctionTypeAliasElement functionTypeAliasElement,
+    TypeAliasElement typeAliasElement,
     @required NullabilitySuffix nullabilitySuffix,
   });
 

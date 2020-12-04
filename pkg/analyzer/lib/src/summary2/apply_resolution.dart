@@ -461,13 +461,13 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _assertNoLocalElements();
 
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
+    var element = node.declaredElement as TypeAliasElementImpl;
     assert(element != null);
 
     _enclosingElements.add(element);
 
     node.typeParameters?.accept(this);
-    node.functionType?.accept(this);
+    node.type?.accept(this);
     node.metadata?.accept(this);
     element.isSimplyBounded = _resolution.readByte() != 0;
     element.hasSelfReference = _resolution.readByte() != 0;

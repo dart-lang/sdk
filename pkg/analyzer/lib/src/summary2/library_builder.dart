@@ -168,7 +168,7 @@ class LibraryBuilder {
           reference.node ??= node;
           localScope.declare(name, reference);
 
-          FunctionTypeAliasElementImpl.forLinkedNode(
+          TypeAliasElementImpl.forLinkedNodeFactory(
               linkingUnit.reference.element, reference, node);
         } else if (node is ast.GenericTypeAlias) {
           var name = node.name.name;
@@ -177,7 +177,7 @@ class LibraryBuilder {
 
           localScope.declare(name, reference);
 
-          FunctionTypeAliasElementImpl.forLinkedNode(
+          TypeAliasElementImpl.forLinkedNodeFactory(
               linkingUnit.reference.element, reference, node);
         } else if (node is ast.MixinDeclaration) {
           var name = node.name.name;

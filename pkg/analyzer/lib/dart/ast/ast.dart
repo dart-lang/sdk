@@ -2933,6 +2933,7 @@ abstract class GenericTypeAlias implements TypeAlias {
 
   /// Set the equal sign separating the name being defined from the function
   /// type to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set equals(Token token);
 
   /// Return the type of function being defined by the alias.
@@ -2943,6 +2944,7 @@ abstract class GenericTypeAlias implements TypeAlias {
 
   /// Set the type of function being defined by the alias to the given
   /// [functionType].
+  @Deprecated('Clients should not build AST manually')
   set functionType(GenericFunctionType functionType);
 
   /// Return the type being defined by the alias.
@@ -2954,6 +2956,7 @@ abstract class GenericTypeAlias implements TypeAlias {
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList typeParameters);
 }
 

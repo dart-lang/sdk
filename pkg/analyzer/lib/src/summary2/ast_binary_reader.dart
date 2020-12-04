@@ -1001,7 +1001,7 @@ class AstBinaryReader {
     var documentationTokenIndexList = _readUint30List();
 
     var typeParameters = _readOptionalNode() as TypeParameterList;
-    var functionType = _readOptionalNode();
+    var type = _readOptionalNode();
     var name = readNode() as SimpleIdentifier;
     var metadata = _readNodeList<Annotation>();
 
@@ -1012,7 +1012,7 @@ class AstBinaryReader {
       name,
       typeParameters,
       Tokens.EQ,
-      functionType,
+      type,
       Tokens.SEMICOLON,
     ) as GenericTypeAliasImpl;
 

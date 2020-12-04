@@ -3298,14 +3298,15 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitGenericTypeAlias(GenericTypeAlias node) {
+    var nodeImpl = node as GenericTypeAliasImpl;
     if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      nodeImpl.typeParameters = _newNode as TypeParameterList;
       return true;
     } else if (identical(node.type, _oldNode)) {
-      (node as GenericTypeAliasImpl).type = _newNode as TypeAnnotation;
+      nodeImpl.type = _newNode as TypeAnnotation;
       return true;
     } else if (_replaceInList(node.metadata)) {
       return true;

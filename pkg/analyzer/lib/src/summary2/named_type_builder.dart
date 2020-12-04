@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -10,7 +11,6 @@ import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
@@ -19,7 +19,7 @@ import 'package:meta/meta.dart';
 /// The type builder for a [TypeName].
 class NamedTypeBuilder extends TypeBuilder {
   /// TODO(scheglov) Replace with `DartType` in `TypeAliasElementImpl`.
-  static const _rawFunctionTypeKey = '_rawFunctionType';
+  static const _aliasedTypeKey = '_aliasedType';
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   /// The type system of the library with the type name.
@@ -66,6 +66,13 @@ class NamedTypeBuilder extends TypeBuilder {
         node: node);
   }
 
+  /// TODO(scheglov) Only when enabled both in the element, and target?
+  bool get _isNonFunctionTypeAliasesEnabled {
+    return element.library.featureSet.isEnabled(
+      Feature.nonfunction_type_aliases,
+    );
+  }
+
   @override
   R accept<R>(TypeVisitor<R> visitor) {
     if (visitor is LinkingTypeVisitor<R>) {
@@ -92,20 +99,15 @@ class NamedTypeBuilder extends TypeBuilder {
       );
       type = typeSystem.toLegacyType(type);
       _type = type;
-    } else if (element is FunctionTypeAliasElement) {
-      var rawType = _getRawFunctionType(element);
-      if (rawType is FunctionType) {
+    } else if (element is TypeAliasElementImpl) {
+      var aliasedType = _getAliasedType(element);
+      if (aliasedType != null) {
         var parameters = element.typeParameters;
         var arguments = _buildArguments(parameters);
-        var substitution = Substitution.fromPairs(parameters, arguments);
-        var instantiated = substitution.substituteType(rawType) as FunctionType;
-        var type = FunctionTypeImpl(
-          typeFormals: instantiated.typeFormals,
-          parameters: instantiated.parameters,
-          returnType: instantiated.returnType,
-          nullabilitySuffix: nullabilitySuffix,
-          element: element,
+        element.aliasedType = aliasedType;
+        var type = element.instantiate(
           typeArguments: arguments,
+          nullabilitySuffix: nullabilitySuffix,
         );
         type = typeSystem.toLegacyType(type);
         _type = type;
@@ -151,6 +153,27 @@ class NamedTypeBuilder extends TypeBuilder {
 
     return NamedTypeBuilder(typeSystem, element, arguments, nullabilitySuffix,
         node: node);
+  }
+
+  DartType _buildAliasedType(TypeAnnotation node) {
+    if (_isNonFunctionTypeAliasesEnabled) {
+      if (node != null) {
+        return _buildType(node?.type);
+      } else {
+        return _dynamicType;
+      }
+    } else {
+      if (node is GenericFunctionType) {
+        return _buildType(node?.type);
+      } else {
+        return FunctionTypeImpl(
+          typeFormals: const <TypeParameterElement>[],
+          parameters: const <ParameterElement>[],
+          returnType: _dynamicType,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
+    }
   }
 
   /// Build arguments that correspond to the type [parameters].
@@ -215,19 +238,6 @@ class NamedTypeBuilder extends TypeBuilder {
     );
   }
 
-  DartType _buildGenericFunctionType(GenericFunctionType node) {
-    if (node != null) {
-      return _buildType(node?.type);
-    } else {
-      return FunctionTypeImpl(
-        typeFormals: const <TypeParameterElement>[],
-        parameters: const <ParameterElement>[],
-        returnType: _dynamicType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }
-  }
-
   DartType _buildNodeType(TypeAnnotation node) {
     if (node == null) {
       return _dynamicType;
@@ -246,32 +256,22 @@ class NamedTypeBuilder extends TypeBuilder {
     }).toList();
   }
 
-  NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
-    if (hasQuestion) {
-      return NullabilitySuffix.question;
-    } else if (typeSystem.isNonNullableByDefault) {
-      return NullabilitySuffix.none;
-    } else {
-      return NullabilitySuffix.star;
-    }
-  }
-
-  DartType _getRawFunctionType(FunctionTypeAliasElementImpl element) {
+  DartType _getAliasedType(TypeAliasElementImpl element) {
     // If the element is not being linked, there is no reason (or a way,
     // because the linked node might be read only partially) to go through
     // its node - all its types have already been built.
     if (!element.linkedContext.isLinking) {
-      return element.function.type;
+      return element.aliasedType;
     }
 
     var typedefNode = element.linkedNode;
 
     // Break a possible recursion.
-    var existing = typedefNode.getProperty(_rawFunctionTypeKey) as DartType;
+    var existing = typedefNode.getProperty(_aliasedTypeKey) as DartType;
     if (existing != null) {
       return existing;
     } else {
-      _setRawFunctionType(typedefNode, _dynamicType);
+      _setAliasedType(typedefNode, _dynamicType);
     }
 
     if (typedefNode is FunctionTypeAlias) {
@@ -281,15 +281,25 @@ class NamedTypeBuilder extends TypeBuilder {
         parameterList: typedefNode.parameters,
         hasQuestion: false,
       );
-      _setRawFunctionType(typedefNode, result);
+      _setAliasedType(typedefNode, result);
       return result;
     } else if (typedefNode is GenericTypeAlias) {
-      var functionNode = typedefNode.functionType;
-      var functionType = _buildGenericFunctionType(functionNode);
-      _setRawFunctionType(typedefNode, functionType);
-      return functionType;
+      var aliasedTypeNode = typedefNode.type;
+      var aliasedType = _buildAliasedType(aliasedTypeNode);
+      _setAliasedType(typedefNode, aliasedType);
+      return aliasedType;
     } else {
       throw StateError('(${element.runtimeType}) $element');
+    }
+  }
+
+  NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
+    if (hasQuestion) {
+      return NullabilitySuffix.question;
+    } else if (typeSystem.isNonNullableByDefault) {
+      return NullabilitySuffix.none;
+    } else {
+      return NullabilitySuffix.star;
     }
   }
 
@@ -306,8 +316,8 @@ class NamedTypeBuilder extends TypeBuilder {
     return List<DartType>.filled(length, _dynamicType);
   }
 
-  static void _setRawFunctionType(AstNode node, DartType type) {
-    node.setProperty(_rawFunctionTypeKey, type);
+  static void _setAliasedType(AstNode node, DartType type) {
+    node.setProperty(_aliasedTypeKey, type);
   }
 
   static List<TypeParameterElement> _typeParameters(TypeParameterList node) {

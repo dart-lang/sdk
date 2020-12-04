@@ -742,10 +742,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _pushScopeTypeParameters(node.typeParameters);
 
     _writeOptionalNode(node.typeParameters);
-    _writeOptionalNode(node.functionType);
+    _writeOptionalNode(node.type);
     _storeTypeAlias(node);
 
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
+    var element = node.declaredElement as TypeAliasElementImpl;
     // TODO(scheglov) pack into one byte
     _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
     _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);

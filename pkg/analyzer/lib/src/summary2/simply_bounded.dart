@@ -46,10 +46,10 @@ void computeSimplyBounded(
       var element = node2.declaredElement as ClassElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is GenericTypeAlias) {
-      var element = node2.declaredElement as FunctionTypeAliasElementImpl;
+      var element = node2.declaredElement as TypeAliasElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is FunctionTypeAlias) {
-      var element = node2.declaredElement as FunctionTypeAliasElementImpl;
+      var element = node2.declaredElement as TypeAliasElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else {
       throw UnimplementedError('${node2.runtimeType}');

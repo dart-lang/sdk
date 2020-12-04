@@ -502,9 +502,12 @@ class TypeSystemImpl implements TypeSystem {
   @override
   DartType instantiateToBounds2({
     ClassElement classElement,
-    FunctionTypeAliasElement functionTypeAliasElement,
+    @Deprecated("Use 'typeAliasElement' instead")
+        FunctionTypeAliasElement functionTypeAliasElement,
+    TypeAliasElement typeAliasElement,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
+    typeAliasElement ??= functionTypeAliasElement;
     if (classElement != null) {
       var typeParameters = classElement.typeParameters;
       var typeArguments = _defaultTypeArguments(typeParameters);
@@ -514,10 +517,10 @@ class TypeSystemImpl implements TypeSystem {
       );
       type = toLegacyType(type);
       return type;
-    } else if (functionTypeAliasElement != null) {
-      var typeParameters = functionTypeAliasElement.typeParameters;
+    } else if (typeAliasElement != null) {
+      var typeParameters = typeAliasElement.typeParameters;
       var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = functionTypeAliasElement.instantiate(
+      var type = typeAliasElement.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );

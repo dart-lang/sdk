@@ -998,16 +998,16 @@ class ResolverVisitor extends ScopedVisitor {
     // TODO(scheglov) Change corresponding visiting places to visit comments
     // with name scopes set for correct comments resolution.
     if (parent is GenericTypeAlias) {
-      var element = parent.declaredElement as FunctionTypeAliasElement;
+      var element = parent.declaredElement as TypeAliasElement;
       var outerScope = nameScope;
       try {
         nameScope = TypeParameterScope(nameScope, element.typeParameters);
 
-        var functionElement = element.function;
-        if (functionElement != null) {
+        var aliasedElement = element.aliasedElement;
+        if (aliasedElement is GenericFunctionTypeElement) {
           nameScope = FormalParameterScope(
-            TypeParameterScope(nameScope, functionElement.typeParameters),
-            functionElement.parameters,
+            TypeParameterScope(nameScope, aliasedElement.typeParameters),
+            aliasedElement.parameters,
           );
         }
 
@@ -2826,16 +2826,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     Scope outerScope = nameScope;
     try {
-      var element = node.declaredElement as FunctionTypeAliasElement;
+      var element = node.declaredElement as TypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       super.visitGenericTypeAlias(node);
 
-      GenericFunctionTypeElement functionElement = element.function;
-      if (functionElement != null) {
-        nameScope = FormalParameterScope(
-          nameScope,
-          functionElement.parameters,
-        );
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        nameScope = FormalParameterScope(nameScope, aliasedElement.parameters);
         visitGenericTypeAliasInFunctionScope(node);
       }
     } finally {

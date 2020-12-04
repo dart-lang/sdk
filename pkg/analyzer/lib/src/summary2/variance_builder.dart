@@ -73,8 +73,8 @@ class VarianceBuilder {
           }
         }
         return result;
-      } else if (element is FunctionTypeAliasElementImpl) {
-        _functionTypeAliasElement(element);
+      } else if (element is TypeAliasElementImpl) {
+        _typeAliasElement(element);
 
         var result = Variance.unrelated;
 
@@ -177,17 +177,6 @@ class VarianceBuilder {
     }
   }
 
-  void _functionTypeAliasElement(FunctionTypeAliasElementImpl element) {
-    var node = element.linkedNode;
-    if (node is GenericTypeAlias) {
-      _genericTypeAlias(node);
-    } else if (node is FunctionTypeAlias) {
-      _functionTypeAlias(node);
-    } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
-    }
-  }
-
   void _genericTypeAlias(GenericTypeAlias node) {
     var parameterList = node.typeParameters;
     if (parameterList == null) {
@@ -224,6 +213,17 @@ class VarianceBuilder {
       }
     } finally {
       _visit.remove(node);
+    }
+  }
+
+  void _typeAliasElement(TypeAliasElementImpl element) {
+    var node = element.linkedNode;
+    if (node is GenericTypeAlias) {
+      _genericTypeAlias(node);
+    } else if (node is FunctionTypeAlias) {
+      _functionTypeAlias(node);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 

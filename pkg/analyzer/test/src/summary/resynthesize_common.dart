@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -83,6 +84,12 @@ mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   static final FeatureSet featureSetNullSafe = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.12.0'),
     flags: [],
+  );
+
+  static final FeatureSet featureSetNonFunctionTypeAliases =
+      FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.12.0'),
+    flags: [EnableString.nonfunction_type_aliases],
   );
 
   test_class_abstract() async {
@@ -1294,8 +1301,8 @@ class C<T extends F> {}
 typedef F(C value);
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(C<dynamic> value);
-notSimplyBounded class C<T extends dynamic Function(C<dynamic>) = dynamic Function(C<dynamic>)> {
+notSimplyBounded typedef F = dynamic Function(C<dynamic Function()> value);
+notSimplyBounded class C<T extends dynamic Function() = dynamic Function()> {
 }
 ''');
   }
@@ -1406,9 +1413,9 @@ typedef F(G value);
 typedef G(F value);
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(dynamic Function(dynamic) value);
-notSimplyBounded typedef G = dynamic Function(dynamic value);
-notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic)) = dynamic Function(dynamic Function(dynamic))> {
+notSimplyBounded typedef F = dynamic Function(dynamic Function() value);
+notSimplyBounded typedef G = dynamic Function(dynamic Function() value);
+notSimplyBounded class C<T extends dynamic Function() = dynamic Function()> {
 }
 ''');
   }
@@ -7476,7 +7483,7 @@ typedef F<T> = void Function<U>(int a);
 typedef F<X extends F> = Function(F);
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<X> = dynamic Function();
+notSimplyBounded typedef F<X extends dynamic Function()> = dynamic Function(dynamic Function() );
 ''');
   }
 
@@ -10667,7 +10674,7 @@ typedef F = G Function();
 typedef G = F Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function();
+notSimplyBounded typedef F = dynamic Function() Function();
 notSimplyBounded typedef G = dynamic Function() Function();
 ''');
   }
@@ -10677,7 +10684,7 @@ notSimplyBounded typedef G = dynamic Function() Function();
 typedef F = List<F> Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function();
+notSimplyBounded typedef F = List<dynamic Function()> Function();
 ''');
   }
 
@@ -10713,7 +10720,7 @@ typedef F = void Function();
 typedef void F<T extends F>();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends void Function()> = void Function();
+notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
 ''');
   }
 
@@ -11988,6 +11995,189 @@ dynamic Function() f;
 ''');
   }
 
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X<T> = A<int, T>;
+class A<T, U> {}
+class B implements X<String> {}
+''');
+    checkElementText(library, r'''
+typedef X<T> = A<int, T>;
+class A<T, U> {
+}
+class B implements A<int, String> {
+}
+''');
+  }
+
+  @failingTest
+  test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X<T> = A<T>?;
+class A<T> {}
+class B implements X<int> {}
+''');
+    checkElementText(library, r'''
+typedef X<T> = A<int, T>;
+class A<T, U> {
+}
+class B implements A<int, String> {
+}
+''');
+  }
+
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_asInterfaceType_void() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = void;
+class A {}
+class B {}
+class C implements A, X, B {}
+''');
+    checkElementText(library, r'''
+typedef X = void;
+class A {
+}
+class B {
+}
+class C implements A, B {
+}
+''');
+  }
+
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_asMixinType() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = A<int>;
+class A<T> {}
+class B with X {}
+''');
+    checkElementText(library, r'''
+typedef X = A<int>;
+class A<T> {
+}
+class B extends Object with A<int> {
+  synthetic B();
+}
+''');
+  }
+
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_asSuperType_interfaceType() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = A<int>;
+class A<T> {}
+class B extends X {}
+''');
+    checkElementText(library, r'''
+typedef X = A<int>;
+class A<T> {
+}
+class B extends A<int> {
+}
+''');
+  }
+
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_using_dynamic() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = dynamic;
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+typedef A = dynamic;
+void f(dynamic a) {}
+''');
+  }
+
+  test_typedef_nonFunction_using_interface_disabled() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+typedef A = int;
+void f(A a) {}
+''');
+
+    var alias = library.definingCompilationUnit.typeAliases[0];
+    _assertTypeStr(alias.aliasedType, 'dynamic Function()');
+
+    checkElementText(library, r'''
+typedef A = dynamic Function();
+void f(dynamic Function() a) {}
+''');
+  }
+
+  test_typedef_nonFunction_using_interface_noTypeParameters() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = int;
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+typedef A = int;
+void f(int a) {}
+''');
+  }
+
+  test_typedef_nonFunction_using_interface_withTypeParameters() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = Map<int, T>;
+void f(A<String> a) {}
+''');
+    checkElementText(library, r'''
+typedef A<T> = Map<int, T>;
+void f(Map<int, String> a) {}
+''');
+  }
+
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_using_Never() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = Never;
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+typedef A = Never;
+void f(Never a) {}
+''');
+  }
+
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_using_typeParameter() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = T;
+void f1(A a) {}
+void f2(A<int> a) {}
+''');
+    checkElementText(library, r'''
+typedef A<T> = T;
+void f1(dynamic a) {}
+void f2(int a) {}
+''');
+  }
+
+  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_using_void() async {
+    featureSet = featureSetNonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = void;
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+typedef A = void;
+void f(void a) {}
+''');
+  }
+
   test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
@@ -12156,7 +12346,7 @@ class D {
     var library = await checkLibrary('typedef void F<T extends F>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends void Function()> = void Function();
+notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
 ''');
   }
 
@@ -12164,7 +12354,7 @@ notSimplyBounded typedef F<T extends void Function()> = void Function();
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<void Function()>> = void Function();
+notSimplyBounded typedef F<T extends List<dynamic Function()>> = void Function();
 ''');
   }
 

@@ -333,8 +333,7 @@ class LinkedElementFactory {
       assert(reference.element != null);
       return reference.element;
     } else if (node is FunctionTypeAlias || node is GenericTypeAlias) {
-      FunctionTypeAliasElementImpl.forLinkedNode(
-          parentElement, reference, node);
+      TypeAliasElementImpl.forLinkedNodeFactory(parentElement, reference, node);
       assert(reference.element != null);
       return reference.element;
     } else if (node is MethodDeclaration) {

@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -357,9 +358,29 @@ class PubspecYamlFileConfig {
   }
 }
 
+mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
+  @override
+  String get testPackageLanguageVersion => null;
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  @nonVirtual
+  @override
+  void setUp() {
+    super.setUp();
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: [EnableString.nonfunction_type_aliases],
+      ),
+    );
+  }
+}
+
 mixin WithNullSafetyMixin on PubPackageResolutionTest {
   @override
-  String get testPackageLanguageVersion => '2.12';
+  String get testPackageLanguageVersion => null;
 
   @override
   bool get typeToStringWithNullability => true;
