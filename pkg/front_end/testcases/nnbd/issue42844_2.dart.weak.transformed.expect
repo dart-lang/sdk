@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42844_2.dart:6:17: Error: Final field 'n' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final dynamic n; // Error.
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field dynamic n = null;
+  static field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
+  static factory •(dynamic n) → self::C
+    let<BottomType> #redirecting_factory = self::D::• in invalid-expression;
+}
+class D extends core::Object implements self::C {
+  final field dynamic n;
+  constructor •(dynamic n) → self::D
+    : self::D::n = n, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

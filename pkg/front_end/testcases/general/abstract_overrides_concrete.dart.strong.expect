@@ -1,0 +1,102 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:17:7: Error: The implementation of 'foo' in the non-abstract class 'C' does not conform to its interface.
+// class C extends B {}
+//       ^
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:6:8: Context: The method 'A.foo' has fewer positional arguments than those of overridden method 'B.foo'.
+//   void foo() {}
+//        ^
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:14:8: Context: This is the overridden method ('foo').
+//   void foo([a]);
+//        ^
+//
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:19:7: Error: The implementation of 'foo' in the non-abstract class 'D' does not conform to its interface.
+// class D extends A implements I {}
+//       ^
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:6:8: Context: The method 'A.foo' has fewer positional arguments than those of overridden method 'I.foo'.
+//   void foo() {}
+//        ^
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:10:8: Context: This is the overridden method ('foo').
+//   void foo([a]);
+//        ^
+//
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:23:7: Error: The implementation of 'foo' in the non-abstract class 'F' does not conform to its interface.
+// class F extends E {}
+//       ^
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:6:8: Context: The method 'A.foo' has fewer positional arguments than those of overridden method 'E.foo'.
+//   void foo() {}
+//        ^
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:21:16: Context: This is the overridden method ('foo').
+// abstract class E extends A implements I {}
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method foo() → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I*
+    : super core::Object::•()
+    ;
+  abstract method foo([dynamic a = #C1]) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+  abstract method foo([dynamic a = #C1]) → void;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+}
+class D extends self::A implements self::I {
+  synthetic constructor •() → self::D*
+    : super self::A::•()
+    ;
+  abstract member-signature method foo([dynamic a = #C1]) → void; -> self::I::foo
+}
+abstract class E extends self::A implements self::I {
+  synthetic constructor •() → self::E*
+    : super self::A::•()
+    ;
+  abstract member-signature method foo([dynamic a = #C1]) → void; -> self::I::foo
+}
+class F extends self::E {
+  synthetic constructor •() → self::F*
+    : super self::E::•()
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AwaitInLateLocalVariableInitializerTest extends DriverResolutionTest
+class AwaitInLateLocalVariableInitializerTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   static const _errorCode =
       CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER;
@@ -24,31 +23,31 @@ class AwaitInLateLocalVariableInitializerTest extends DriverResolutionTest
     await assertErrorsInCode('''
 main() {
   var v = () async {
-    late v2 = await 42;
+    late var v2 = await 42;
     print(v2);
   };
   print(v);
 }
 ''', [
-      error(_errorCode, 44, 5),
+      error(_errorCode, 48, 5),
     ]);
   }
 
   test_late_await() async {
     await assertErrorsInCode('''
 main() async {
-  late v = await 42;
+  late var v = await 42;
   print(v);
 }
 ''', [
-      error(_errorCode, 26, 5),
+      error(_errorCode, 30, 5),
     ]);
   }
 
   test_late_await_inClosure_blockBody() async {
     await assertNoErrorsInCode('''
 main() async {
-  late v = () async {
+  late var v = () async {
     await 42;
   };
   print(v);
@@ -59,7 +58,7 @@ main() async {
   test_late_await_inClosure_expressionBody() async {
     await assertNoErrorsInCode('''
 main() async {
-  late v = () async => await 42;
+  late var v = () async => await 42;
   print(v);
 }
 ''');
@@ -68,7 +67,7 @@ main() async {
   test_no_await() async {
     await assertNoErrorsInCode('''
 main() async {
-  late v = 42;
+  late var v = 42;
   print(v);
 }
 ''');

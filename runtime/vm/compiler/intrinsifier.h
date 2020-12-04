@@ -34,7 +34,9 @@ class Intrinsifier : public AllStatic {
   static void InitializeState();
 
  private:
+  friend class GraphIntrinsifier;  // For CanIntrinsifyFieldAccessor.
   static bool CanIntrinsify(const Function& function);
+  static bool CanIntrinsifyFieldAccessor(const Function& function);
 };
 
 }  // namespace compiler

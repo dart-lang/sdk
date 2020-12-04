@@ -7,16 +7,16 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 extension Extension on self::Class* {
   get property = self::Extension|get#property;
@@ -47,3 +47,13 @@ static method main() → dynamic {
   let final core::int* #t21 = self::Extension|get#property(c) in #t21.{core::num::==}(null) ?{core::int*} 0 : #t21;
   let final core::int* #t22 = self::Extension|get#property(c) in #t22.{core::num::==}(null) ?{core::int*} 0 : #t22;
 }
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:21:20 -> IntConstant(42)
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:22:31 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
+Extra constant evaluation: evaluated: 122, effectively constant: 6

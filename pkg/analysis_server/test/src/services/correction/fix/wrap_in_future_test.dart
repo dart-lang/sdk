@@ -24,7 +24,7 @@ class WrapInFutureTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_returning_null_for_future;
 
   Future<void> test_asyncFor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future<String> f() {
   return null;
 }

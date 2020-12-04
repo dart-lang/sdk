@@ -24,7 +24,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, trace_deoptimization);
 DEFINE_FLAG(bool,
             print_stacktrace_at_throw,
@@ -129,26 +128,15 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
-  Bytecode& bytecode = Bytecode::Handle();
   Smi& offset = Smi::Handle();
   for (; frame != NULL; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
     }
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
-      if (bytecode.function() == Function::null()) {
-        continue;
-      }
-      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-      builder->AddFrame(bytecode, offset);
-    } else {
-      code = frame->LookupDartCode();
-      ASSERT(code.ContainsInstructionAt(frame->pc()));
-      offset = Smi::New(frame->pc() - code.PayloadStart());
-      builder->AddFrame(code, offset);
-    }
+    code = frame->LookupDartCode();
+    ASSERT(code.ContainsInstructionAt(frame->pc()));
+    offset = Smi::New(frame->pc() - code.PayloadStart());
+    builder->AddFrame(code, offset);
   }
 }
 
@@ -252,7 +240,7 @@ class ExceptionHandlerFinder : public StackResource {
   void ExecuteCatchEntryMoves(const CatchEntryMoves& moves) {
     Zone* zone = Thread::Current()->zone();
     auto& value = Object::Handle(zone);
-    auto& dst_values = Array::Handle(zone, Array::New(moves.count()));
+    GrowableArray<Object*> dst_values;
 
     uword fp = handler_fp;
     ObjectPool* pool = nullptr;
@@ -309,7 +297,7 @@ class ExceptionHandlerFinder : public StackResource {
           UNREACHABLE();
       }
 
-      dst_values.SetAt(j, value);
+      dst_values.Add(&Object::Handle(zone, value.raw()));
     }
 
     {
@@ -317,8 +305,7 @@ class ExceptionHandlerFinder : public StackResource {
 
       for (int j = 0; j < moves.count(); j++) {
         const CatchEntryMove& move = moves.At(j);
-        value = dst_values.At(j);
-        *TaggedSlotAt(fp, move.dest_slot()) = value.raw();
+        *TaggedSlotAt(fp, move.dest_slot()) = dst_values[j]->raw();
       }
     }
   }
@@ -384,8 +371,8 @@ CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void CatchEntryMove::WriteTo(WriteStream* stream) {
-  using Writer = WriteStream::Raw<sizeof(int32_t), int32_t>;
+void CatchEntryMove::WriteTo(BaseWriteStream* stream) {
+  using Writer = BaseWriteStream::Raw<sizeof(int32_t), int32_t>;
   Writer::Write(stream, src_);
   Writer::Write(stream, dest_and_kind_);
 }
@@ -623,9 +610,7 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
                                StackFrameIterator::kNoCrossThreadIteration);
       for (StackFrame* frame = frames.NextFrame(); frame != nullptr;
            frame = frames.NextFrame()) {
-        if (frame->is_interpreted()) {
-          continue;
-        } else if (frame->fp() >= frame_pointer) {
+        if (frame->fp() >= frame_pointer) {
           break;
         }
         if (frame->IsMarkedForLazyDeopt()) {
@@ -678,18 +663,6 @@ void Exceptions::JumpToFrame(Thread* thread,
                              uword stack_pointer,
                              uword frame_pointer,
                              bool clear_deopt_at_target) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // TODO(regis): We still possibly need to unwind interpreter frames if they
-  // are callee frames of the C++ frame handling the exception.
-  if (FLAG_enable_interpreter) {
-    Interpreter* interpreter = thread->interpreter();
-    if ((interpreter != NULL) && interpreter->HasFrame(frame_pointer)) {
-      interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
-                               thread);
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   const uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
@@ -780,7 +753,10 @@ static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
-  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
+  // available, it is the innermost error handler. If one is available, so
+  // should jump there instead.
+  RELEASE_ASSERT(thread->long_jump_base() == nullptr);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 #if !defined(PRODUCT)
@@ -879,7 +855,10 @@ static void ThrowExceptionHelper(Thread* thread,
     // the isolate etc.). This can happen in the compiler, which is not
     // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, UnhandledException::New(exception, stacktrace, Heap::kOld));
+        zone, exception.raw() == isolate->object_store()->out_of_memory()
+                  ? isolate->isolate_object_store()
+                        ->preallocated_unhandled_exception()
+                  : UnhandledException::New(exception, stacktrace, Heap::kOld));
     stacktrace = StackTrace::null();
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            unhandled_exception, stacktrace);
@@ -1019,7 +998,10 @@ void Exceptions::ReThrow(Thread* thread,
 void Exceptions::PropagateError(const Error& error) {
   ASSERT(!error.IsNull());
   Thread* thread = Thread::Current();
-  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
+  // available, it is the innermost error handler. If one is available, so
+  // should jump there instead.
+  RELEASE_ASSERT(thread->long_jump_base() == nullptr);
   Zone* zone = thread->zone();
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then
@@ -1122,10 +1104,18 @@ void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
 
-void Exceptions::ThrowLateInitializationError(const String& name) {
+void Exceptions::ThrowLateFieldNotInitialized(const String& name) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, name);
-  Exceptions::ThrowByType(Exceptions::kLateInitializationError, args);
+  Exceptions::ThrowByType(Exceptions::kLateFieldNotInitialized, args);
+}
+
+void Exceptions::ThrowLateFieldAssignedDuringInitialization(
+    const String& name) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, name);
+  Exceptions::ThrowByType(Exceptions::kLateFieldAssignedDuringInitialization,
+                          args);
 }
 
 ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
@@ -1215,9 +1205,15 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();
       break;
-    case kLateInitializationError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::LateInitializationError();
+    case kLateFieldAssignedDuringInitialization:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::LateError();
+      constructor_name = &Symbols::DotFieldADI();
+      break;
+    case kLateFieldNotInitialized:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::LateError();
+      constructor_name = &Symbols::DotFieldNI();
       break;
   }
 

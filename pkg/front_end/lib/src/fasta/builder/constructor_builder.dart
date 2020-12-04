@@ -11,6 +11,8 @@ import 'package:kernel/core_types.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
+import '../dill/dill_member_builder.dart';
+
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/expression_generator_helper.dart'
@@ -18,17 +20,21 @@ import '../kernel/expression_generator_helper.dart'
 
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
+import '../kernel/kernel_target.dart' show ClonedFunctionNode;
 
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
         Message,
-        messageMoreThanOneSuperOrThisInitializer,
+        messageMoreThanOneSuperInitializer,
+        messageRedirectingConstructorWithAnotherInitializer,
+        messageRedirectingConstructorWithMultipleRedirectInitializers,
+        messageRedirectingConstructorWithSuperInitializer,
         messageSuperInitializerNotLast,
-        messageThisInitializerNotAlone,
         noLength;
 
+import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
@@ -68,8 +74,8 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   /// The [Constructor] built by this builder.
   Constructor get constructor;
 
-  void injectInvalidInitializer(
-      Message message, int charOffset, ExpressionGeneratorHelper helper);
+  void injectInvalidInitializer(Message message, int charOffset, int length,
+      ExpressionGeneratorHelper helper);
 
   void addInitializer(
       Initializer initializer, ExpressionGeneratorHelper helper);
@@ -152,6 +158,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
   @override
   Member get invokeTarget => constructor;
+
+  @override
+  Iterable<Member> get exportedMembers => [constructor];
 
   @override
   ConstructorBuilder get origin => actualOrigin ?? this;
@@ -273,14 +282,14 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   Member get member => constructor;
 
   @override
-  void injectInvalidInitializer(
-      Message message, int charOffset, ExpressionGeneratorHelper helper) {
+  void injectInvalidInitializer(Message message, int charOffset, int length,
+      ExpressionGeneratorHelper helper) {
     List<Initializer> initializers = _constructor.initializers;
     Initializer lastInitializer = initializers.removeLast();
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, noLength));
+        helper.buildProblem(message, charOffset, length));
     initializers.add(error..parent = _constructor);
     initializers.add(lastInitializer);
   }
@@ -290,32 +299,64 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       Initializer initializer, ExpressionGeneratorHelper helper) {
     List<Initializer> initializers = _constructor.initializers;
     if (initializer is SuperInitializer) {
-      if (superInitializer != null || redirectingInitializer != null) {
-        injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
-            initializer.fileOffset, helper);
+      if (superInitializer != null) {
+        injectInvalidInitializer(messageMoreThanOneSuperInitializer,
+            initializer.fileOffset, "super".length, helper);
+      } else if (redirectingInitializer != null) {
+        injectInvalidInitializer(
+            messageRedirectingConstructorWithSuperInitializer,
+            initializer.fileOffset,
+            "super".length,
+            helper);
       } else {
         initializers.add(initializer..parent = _constructor);
         superInitializer = initializer;
       }
     } else if (initializer is RedirectingInitializer) {
-      if (superInitializer != null || redirectingInitializer != null) {
-        injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
-            initializer.fileOffset, helper);
-      } else if (_constructor.initializers.isNotEmpty) {
-        Initializer first = _constructor.initializers.first;
-        Initializer error = helper.buildInvalidInitializer(helper.buildProblem(
-            messageThisInitializerNotAlone, first.fileOffset, noLength));
-        initializers.add(error..parent = _constructor);
+      if (superInitializer != null) {
+        // Point to the existing super initializer.
+        injectInvalidInitializer(
+            messageRedirectingConstructorWithSuperInitializer,
+            superInitializer.fileOffset,
+            "super".length,
+            helper);
+      } else if (redirectingInitializer != null) {
+        injectInvalidInitializer(
+            messageRedirectingConstructorWithMultipleRedirectInitializers,
+            initializer.fileOffset,
+            noLength,
+            helper);
+      } else if (initializers.isNotEmpty) {
+        // Error on all previous ones.
+        for (int i = 0; i < initializers.length; i++) {
+          Initializer initializer = initializers[i];
+          int length = noLength;
+          if (initializer is AssertInitializer) length = "assert".length;
+          Initializer error = helper.buildInvalidInitializer(
+              helper.buildProblem(
+                  messageRedirectingConstructorWithAnotherInitializer,
+                  initializer.fileOffset,
+                  length));
+          error.parent = _constructor;
+          initializers[i] = error;
+        }
+        initializers.add(initializer..parent = _constructor);
+        redirectingInitializer = initializer;
       } else {
         initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
       }
     } else if (redirectingInitializer != null) {
+      int length = noLength;
+      if (initializer is AssertInitializer) length = "assert".length;
       injectInvalidInitializer(
-          messageThisInitializerNotAlone, initializer.fileOffset, helper);
+          messageRedirectingConstructorWithAnotherInitializer,
+          initializer.fileOffset,
+          length,
+          helper);
     } else if (superInitializer != null) {
-      injectInvalidInitializer(
-          messageSuperInitializerNotLast, superInitializer.fileOffset, helper);
+      injectInvalidInitializer(messageSuperInitializerNotLast,
+          initializer.fileOffset, noLength, helper);
     } else {
       initializers.add(initializer..parent = _constructor);
     }
@@ -395,5 +436,28 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     Set<FieldBuilder> result = _initializedFields;
     _initializedFields = null;
     return result;
+  }
+}
+
+class SyntheticConstructorBuilder extends DillConstructorBuilder {
+  MemberBuilderImpl _origin;
+  ClonedFunctionNode _clonedFunctionNode;
+
+  SyntheticConstructorBuilder(
+      SourceClassBuilder parent, Constructor constructor,
+      {MemberBuilder origin, ClonedFunctionNode clonedFunctionNode})
+      : _origin = origin,
+        _clonedFunctionNode = clonedFunctionNode,
+        super(constructor, parent);
+
+  void buildOutlineExpressions(
+      LibraryBuilder libraryBuilder, CoreTypes coreTypes) {
+    if (_origin != null) {
+      // Ensure that default value expressions have been created for [_origin].
+      _origin.buildOutlineExpressions(libraryBuilder, coreTypes);
+      _clonedFunctionNode.cloneDefaultValues();
+      _clonedFunctionNode = null;
+      _origin = null;
+    }
   }
 }

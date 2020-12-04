@@ -25,7 +25,7 @@ class ExchangeOperandsTest extends AssistProcessorTest {
     for (var i = 0; i <= 0; i++) {
       var initialOperator = initialOperators[i];
       var resultOperator = resultOperators[i];
-      await resolveTestUnit('''
+      await resolveTestCode('''
 bool main(int a, int b) {
   return a $initialOperator b;
 }
@@ -39,7 +39,7 @@ bool main(int a, int b) {
   }
 
   Future<void> test_extended_mixOperator_1() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 * 2 * 3 + 4;
 }
@@ -52,7 +52,7 @@ main() {
   }
 
   Future<void> test_extended_mixOperator_2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2 - 3 + 4;
 }
@@ -65,7 +65,7 @@ main() {
   }
 
   Future<void> test_extended_sameOperator_afterFirst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2 + 3;
 }
@@ -78,7 +78,7 @@ main() {
   }
 
   Future<void> test_extended_sameOperator_afterSecond() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2 + 3;
 }
@@ -91,7 +91,7 @@ main() {
   }
 
   Future<void> test_extraLength() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   111 + 222;
 }
@@ -100,7 +100,7 @@ main() {
   }
 
   Future<void> test_onOperand() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   111 + 222;
 }
@@ -109,7 +109,7 @@ main() {
   }
 
   Future<void> test_selectionWithBinary() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2 + 3;
 }
@@ -118,7 +118,7 @@ main() {
   }
 
   Future<void> test_simple_afterOperator() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2;
 }
@@ -131,7 +131,7 @@ main() {
   }
 
   Future<void> test_simple_beforeOperator() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2;
 }
@@ -144,7 +144,7 @@ main() {
   }
 
   Future<void> test_simple_fullSelection() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2;
 }
@@ -160,7 +160,7 @@ main() {
   }
 
   Future<void> test_simple_withLength() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   1 + 2;
 }

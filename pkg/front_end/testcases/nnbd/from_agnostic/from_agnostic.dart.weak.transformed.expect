@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd/from_agnostic/from_agnostic.dart:8:12: Error: Constant evaluation error:
 // const c2 = {a: 0, b: 1};
@@ -21,7 +22,6 @@
 // const c3 = {a, b};
 //       ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 

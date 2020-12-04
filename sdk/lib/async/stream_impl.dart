@@ -946,26 +946,32 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
   }
 }
 
-/**
- * Simple implementation of [StreamIterator].
- *
- * Pauses the stream between calls to [moveNext].
- */
+/// Simple implementation of [StreamIterator].
+///
+/// Pauses the stream between calls to [moveNext].
 class _StreamIterator<T> implements StreamIterator<T> {
-  // The stream iterator is always in one of four states.
+  // The stream iterator is always in one of five states.
   // The value of the [_stateData] field depends on the state.
   //
-  // When `_subscription == null` and `_stateData != null`:
+  // When `_subscription == null`, `_stateData != null`, and not listened yet:
   // The stream iterator has been created, but [moveNext] has not been called
   // yet. The [_stateData] field contains the stream to listen to on the first
   // call to [moveNext] and [current] returns `null`.
   //
-  // When `_subscription != null` and `!_isPaused`:
+  // When `_subscription == null`, `_stateData != null`, during `listen` call.
+  // The `listen` call has not returned a subscription yet.
+  // The `_stateData` contains the future returned by the first [moveNext]
+  // call. This state is only detected inside the stream event callbacks,
+  // since it's the only case where they can get called while `_subscription`
+  // is `null`. (A well-behaved stream should not be emitting events during
+  // the `listen` call, but some do anyway). The [current] is `null`.
+  //
+  // When `_subscription != null` and `!_hasValue`:
   // The user has called [moveNext] and the iterator is waiting for the next
   // event. The [_stateData] field contains the [_Future] returned by the
   // [_moveNext] call and [current] returns `null.`
   //
-  // When `_subscription != null` and `_isPaused`:
+  // When `_subscription != null` and `_hasValue`:
   // The most recent call to [moveNext] has completed with a `true` value
   // and [current] provides the value of the data event.
   // The [_stateData] field contains the [current] value.
@@ -1000,26 +1006,23 @@ class _StreamIterator<T> implements StreamIterator<T> {
   /// This will usually cause the [_subscription] to be paused, but as an
   /// optimization, we only pause after the [moveNext] future has been
   /// completed.
-  bool _isPaused = false;
+  bool _hasValue = false;
 
-  _StreamIterator(final Stream<T> stream) : _stateData = stream {
-    ArgumentError.checkNotNull(stream, "stream");
-  }
+  _StreamIterator(final Stream<T> stream)
+      : _stateData = checkNotNullable(stream, "stream");
 
   T get current {
-    if (_subscription != null && _isPaused) {
-      return _stateData as dynamic;
-    }
+    if (_hasValue) return _stateData as dynamic;
     return null as dynamic;
   }
 
   Future<bool> moveNext() {
     var subscription = _subscription;
     if (subscription != null) {
-      if (_isPaused) {
+      if (_hasValue) {
         var future = new _Future<bool>();
         _stateData = future;
-        _isPaused = false;
+        _hasValue = false;
         subscription.resume();
         return future;
       }
@@ -1038,24 +1041,38 @@ class _StreamIterator<T> implements StreamIterator<T> {
     var stateData = _stateData;
     if (stateData != null) {
       Stream<T> stream = stateData as dynamic;
-      _subscription = stream.listen(_onData,
-          onError: _onError, onDone: _onDone, cancelOnError: true);
       var future = new _Future<bool>();
       _stateData = future;
+      // The `listen` call may invoke user code, and it might try to emit
+      // events.
+      // We ignore data events during `listen`, but error or done events
+      // are used to asynchronously complete the future and set `_stateData`
+      // to null.
+      // This ensures that we do no other user-code callbacks during `listen`
+      // than the `onListen` itself. If that code manages to call `moveNext`
+      // again on this iterator, then we will get here and fail when the
+      // `_stateData` is a future instead of a stream.
+      var subscription = stream.listen(_onData,
+          onError: _onError, onDone: _onDone, cancelOnError: true);
+      if (_stateData != null) {
+        _subscription = subscription;
+      }
       return future;
     }
     return Future._falseFuture;
   }
 
   Future cancel() {
-    StreamSubscription<T>? subscription = _subscription;
-    Object? stateData = _stateData;
+    var subscription = _subscription;
+    var stateData = _stateData;
     _stateData = null;
     if (subscription != null) {
       _subscription = null;
-      if (!_isPaused) {
+      if (!_hasValue) {
         _Future<bool> future = stateData as dynamic;
         future._asyncComplete(false);
+      } else {
+        _hasValue = false;
       }
       return subscription.cancel();
     }
@@ -1063,28 +1080,41 @@ class _StreamIterator<T> implements StreamIterator<T> {
   }
 
   void _onData(T data) {
-    assert(_subscription != null && !_isPaused);
+    // Ignore events sent during the `listen` call
+    // (which can happen if misusing synchronous broadcast stream controllers),
+    // or after `cancel` or `done` (for *really* misbehaving streams).
+    if (_subscription == null) return;
     _Future<bool> moveNextFuture = _stateData as dynamic;
     _stateData = data;
-    _isPaused = true;
+    _hasValue = true;
     moveNextFuture._complete(true);
-    if (_isPaused) _subscription?.pause();
+    if (_hasValue) _subscription?.pause();
   }
 
   void _onError(Object error, StackTrace stackTrace) {
-    assert(_subscription != null && !_isPaused);
+    var subscription = _subscription;
     _Future<bool> moveNextFuture = _stateData as dynamic;
     _subscription = null;
     _stateData = null;
-    moveNextFuture._completeError(error, stackTrace);
+    if (subscription != null) {
+      moveNextFuture._completeError(error, stackTrace);
+    } else {
+      // Event delivered during `listen` call.
+      moveNextFuture._asyncCompleteError(error, stackTrace);
+    }
   }
 
   void _onDone() {
-    assert(_subscription != null && !_isPaused);
+    var subscription = _subscription;
     _Future<bool> moveNextFuture = _stateData as dynamic;
     _subscription = null;
     _stateData = null;
-    moveNextFuture._complete(false);
+    if (subscription != null) {
+      moveNextFuture._completeWithValue(false);
+    } else {
+      // Event delivered during `listen` call.
+      moveNextFuture._asyncCompleteWithValue(false);
+    }
   }
 }
 
@@ -1122,15 +1152,22 @@ class _MultiStreamController<T> extends _AsyncStreamController<T>
   _MultiStreamController() : super(null, null, null, null);
 
   void addSync(T data) {
-    _subscription._add(data);
+    if (!_mayAddEvent) throw _badEventState();
+    if (hasListener) _subscription._add(data);
   }
 
   void addErrorSync(Object error, [StackTrace? stackTrace]) {
-    _subscription._addError(error, stackTrace ?? StackTrace.empty);
+    if (!_mayAddEvent) throw _badEventState();
+    if (hasListener) {
+      _subscription._addError(error, stackTrace ?? StackTrace.empty);
+    }
   }
 
   void closeSync() {
-    _subscription._close();
+    if (isClosed) return;
+    if (!_mayAddEvent) throw _badEventState();
+    _state |= _StreamController._STATE_CLOSED;
+    if (hasListener) _subscription._close();
   }
 
   Stream<T> get stream {

@@ -14,15 +14,29 @@ class B {
   var field = 1;
   method() => 1;
 
-  B.forward()
-
-  ;
+  B.forward();
 
   test() {
     this?.field = 1;
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+    //  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.field += 1;
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+    //  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.field;
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+    //  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.method();
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+    //  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }
 }
 

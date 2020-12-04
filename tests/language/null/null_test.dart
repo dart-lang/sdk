@@ -145,13 +145,13 @@ void test() {
 
   // Test cast, "as", operator.
   Expect.equals(null, null as Null);
-  if (isStrongMode) {
+  if (hasSoundNullSafety) {
     Expect.throwsTypeError(() => null as Object);
   } else {
     Expect.equals(null, null as Object);
   }
   Expect.equals(null, null as Object?);
-  if (isStrongMode) {
+  if (hasSoundNullSafety) {
     Expect.throwsTypeError(() => null as int);
   } else {
     Expect.equals(null, null as int);
@@ -163,13 +163,13 @@ void test() {
   Expect.equals(null, new Generic<int?>().cast(null));
 
   Expect.equals(null, obj as Null);
-  if (isStrongMode) {
+  if (hasSoundNullSafety) {
     Expect.throwsTypeError(() => obj as Object);
   } else {
     Expect.equals(null, obj as Object);
   }
   Expect.equals(null, obj as Object?);
-  if (isStrongMode) {
+  if (hasSoundNullSafety) {
     Expect.throwsTypeError(() => obj as int);
   } else {
     Expect.equals(null, obj as int);

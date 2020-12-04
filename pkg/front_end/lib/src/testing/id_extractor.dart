@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
+import '../api_prototype/lowering_predicates.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
 Id computeMemberId(Member node) {
@@ -11,7 +12,7 @@ Id computeMemberId(Member node) {
   if (node.enclosingClass != null) {
     className = node.enclosingClass.name;
   }
-  String memberName = node.name.name;
+  String memberName = node.name.text;
   if (node is Procedure && node.kind == ProcedureKind.Setter) {
     memberName += '=';
   }
@@ -203,14 +204,14 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
       node.arguments.accept(this);
-    } else if (node.name.name == '==' &&
+    } else if (node.name.text == '==' &&
         receiver is VariableGet &&
         receiver.variable.name == null) {
       // This is a desugared `?.`.
-    } else if (node.name.name == '[]') {
+    } else if (node.name.text == '[]') {
       computeForNode(node, computeDefaultNodeId(node));
       super.visitMethodInvocation(node);
-    } else if (node.name.name == '[]=') {
+    } else if (node.name.text == '[]=') {
       computeForNode(node, createUpdateId(node));
       super.visitMethodInvocation(node);
     } else {
@@ -246,7 +247,12 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    computeForNode(node, computeDefaultNodeId(node));
+    computeForNode(
+        node,
+        computeDefaultNodeId(node,
+            // TODO(johnniwinther): Remove this when late lowered setter
+            //  functions can have an offset.
+            skipNodeWithNoOffset: isLateLoweredLocalSetter(node.variable)));
     super.visitFunctionDeclaration(node);
   }
 

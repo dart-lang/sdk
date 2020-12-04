@@ -20,7 +20,7 @@ class MakeClassAbstractTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.MAKE_CLASS_ABSTRACT;
 
   Future<void> test_declaresAbstractMethod() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   m();
 }
@@ -33,7 +33,7 @@ abstract class A {
   }
 
   Future<void> test_inheritsAbstractMethod() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   m();
 }

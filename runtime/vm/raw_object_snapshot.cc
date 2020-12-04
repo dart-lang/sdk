@@ -61,7 +61,7 @@ void ClassLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   if (writer->can_send_any_object() ||
-      writer->AllowObjectsInDartLibrary(library_)) {
+      writer->AllowObjectsInDartLibrary(library())) {
     writer->WriteClassId(this);
   } else {
     // We do not allow regular dart instances in isolate messages.
@@ -110,7 +110,7 @@ TypePtr Type::ReadFrom(SnapshotReader* reader,
   type.SetTypeTestingStub(code);
 
   if (is_canonical) {
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(Thread::Current(), nullptr);
   }
 
   return type.raw();
@@ -122,7 +122,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
                          bool as_reference) {
   ASSERT(writer != NULL);
 
-  if (signature_ != Function::null()) {
+  if (signature() != Function::null()) {
     writer->SetWriteException(Exceptions::kArgument,
                               "Illegal argument in isolate message"
                               " : (function types are not supported yet)");
@@ -132,7 +132,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   // Only resolved and finalized types should be written to a snapshot.
   ASSERT((type_state_ == TypeLayout::kFinalizedInstantiated) ||
          (type_state_ == TypeLayout::kFinalizedUninstantiated));
-  ASSERT(type_class_id_ != Object::null());
+  ASSERT(type_class_id() != Object::null());
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -141,13 +141,13 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kTypeCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  if (type_class_id_->IsHeapObject()) {
+  if (type_class_id()->IsHeapObject()) {
     // Type class is still an unresolved class.
     UNREACHABLE();
   }
 
   // Lookup the type class.
-  SmiPtr raw_type_class_id = Smi::RawCast(type_class_id_);
+  SmiPtr raw_type_class_id = Smi::RawCast(type_class_id());
   ClassPtr type_class =
       writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
 
@@ -167,7 +167,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
-  ASSERT(type_class_id_ != Object::null());
+  ASSERT(type_class_id() != Object::null());
   SnapshotWriterVisitor visitor(writer, as_reference);
   visitor.VisitPointers(from(), to());
 
@@ -262,7 +262,7 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.SetTypeTestingStub(code);
 
   if (is_canonical) {
-    type_parameter ^= type_parameter.Canonicalize();
+    type_parameter ^= type_parameter.Canonicalize(Thread::Current(), nullptr);
   }
 
   return type_parameter.raw();
@@ -297,13 +297,13 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 
   if (parameterized_class_id_ != kFunctionCid) {
-    ASSERT(parameterized_function_ == Function::null());
+    ASSERT(parameterized_function() == Function::null());
     // Write out the parameterized class.
     ClassPtr param_class =
         writer->isolate()->class_table()->At(parameterized_class_id_);
     writer->WriteObjectImpl(param_class, kAsReference);
   } else {
-    ASSERT(parameterized_function_ != Function::null());
+    ASSERT(parameterized_function() != Function::null());
   }
 }
 
@@ -333,7 +333,7 @@ TypeArgumentsPtr TypeArguments::ReadFrom(SnapshotReader* reader,
 
   // Set the canonical bit.
   if (is_canonical) {
-    type_arguments = type_arguments.Canonicalize();
+    type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
   }
 
   return type_arguments.raw();
@@ -353,10 +353,10 @@ void TypeArgumentsLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the length field.
-  writer->Write<ObjectPtr>(length_);
+  writer->Write<ObjectPtr>(length());
 
   // Write out the individual types.
-  intptr_t len = Smi::Value(length_);
+  intptr_t len = Smi::Value(length());
   for (intptr_t i = 0; i < len; i++) {
     // The Dart VM reuses type argument lists across instances in order
     // to reduce memory footprint, this can sometimes lead to a type from
@@ -366,10 +366,10 @@ void TypeArgumentsLayout::WriteTo(SnapshotWriter* writer,
     if (!writer->can_send_any_object()) {
       // Lookup the type class.
       TypePtr raw_type = Type::RawCast(types()[i]);
-      SmiPtr raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id_);
+      SmiPtr raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id());
       ClassPtr type_class =
           writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
-      if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library_)) {
+      if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library())) {
         writer->WriteVMIsolateObject(kDynamicType);
       } else {
         writer->WriteObjectImpl(types()[i], as_reference);
@@ -399,8 +399,8 @@ void ClosureLayout::WriteTo(SnapshotWriter* writer,
   // Check if closure is serializable, throw an exception otherwise.
   FunctionPtr func = writer->IsSerializableClosure(ClosurePtr(this));
   if (func != Function::null()) {
-    writer->WriteStaticImplicitClosure(object_id, func,
-                                       writer->GetObjectTags(this));
+    writer->WriteStaticImplicitClosure(
+        object_id, func, writer->GetObjectTags(this), delayed_type_arguments());
     return;
   }
 
@@ -545,7 +545,6 @@ void ContextScopeLayout::WriteTo(SnapshotWriter* writer,
 
 MESSAGE_SNAPSHOT_UNREACHABLE(AbstractType);
 MESSAGE_SNAPSHOT_UNREACHABLE(Bool);
-MESSAGE_SNAPSHOT_UNREACHABLE(Bytecode);
 MESSAGE_SNAPSHOT_UNREACHABLE(ClosureData);
 MESSAGE_SNAPSHOT_UNREACHABLE(Code);
 MESSAGE_SNAPSHOT_UNREACHABLE(CodeSourceMap);
@@ -566,10 +565,8 @@ MESSAGE_SNAPSHOT_UNREACHABLE(LocalVarDescriptors);
 MESSAGE_SNAPSHOT_UNREACHABLE(MegamorphicCache);
 MESSAGE_SNAPSHOT_UNREACHABLE(Namespace);
 MESSAGE_SNAPSHOT_UNREACHABLE(ObjectPool);
-MESSAGE_SNAPSHOT_UNREACHABLE(ParameterTypeCheck);
 MESSAGE_SNAPSHOT_UNREACHABLE(PatchClass);
 MESSAGE_SNAPSHOT_UNREACHABLE(PcDescriptors);
-MESSAGE_SNAPSHOT_UNREACHABLE(RedirectionData);
 MESSAGE_SNAPSHOT_UNREACHABLE(Script);
 MESSAGE_SNAPSHOT_UNREACHABLE(SignatureData);
 MESSAGE_SNAPSHOT_UNREACHABLE(SingleTargetCache);
@@ -717,11 +714,7 @@ InstancePtr Instance::ReadFrom(SnapshotReader* reader,
   Instance& obj = Instance::ZoneHandle(reader->zone(), Instance::null());
   obj ^= Object::Allocate(kInstanceCid, Instance::InstanceSize(), Heap::kNew);
   if (ObjectLayout::IsCanonical(tags)) {
-    const char* error_str = NULL;
-    obj = obj.CheckAndCanonicalize(reader->thread(), &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
+    obj = obj.Canonicalize(reader->thread());
   }
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
@@ -940,7 +933,7 @@ void OneByteStringLayout::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
-                writer->GetObjectTags(this), length_, data());
+                writer->GetObjectTags(this), length(), data());
 }
 
 void TwoByteStringLayout::WriteTo(SnapshotWriter* writer,
@@ -948,7 +941,7 @@ void TwoByteStringLayout::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
-                writer->GetObjectTags(this), length_, data());
+                writer->GetObjectTags(this), length(), data());
 }
 
 ExternalOneByteStringPtr ExternalOneByteString::ReadFrom(SnapshotReader* reader,
@@ -975,7 +968,7 @@ void ExternalOneByteStringLayout::WriteTo(SnapshotWriter* writer,
                                           bool as_reference) {
   // Serialize as a non-external one byte string.
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
-                writer->GetObjectTags(this), length_, external_data_);
+                writer->GetObjectTags(this), length(), external_data_);
 }
 
 void ExternalTwoByteStringLayout::WriteTo(SnapshotWriter* writer,
@@ -984,7 +977,7 @@ void ExternalTwoByteStringLayout::WriteTo(SnapshotWriter* writer,
                                           bool as_reference) {
   // Serialize as a non-external two byte string.
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
-                writer->GetObjectTags(this), length_, external_data_);
+                writer->GetObjectTags(this), length(), external_data_);
 }
 
 ArrayPtr Array::ReadFrom(SnapshotReader* reader,
@@ -1041,11 +1034,7 @@ ImmutableArrayPtr ImmutableArray::ReadFrom(SnapshotReader* reader,
     // Read all the individual elements for inlined objects.
     reader->ArrayReadFrom(object_id, *array, len, tags);
     if (ObjectLayout::IsCanonical(tags)) {
-      const char* error_str = NULL;
-      *array ^= array->CheckAndCanonicalize(reader->thread(), &error_str);
-      if (error_str != NULL) {
-        FATAL1("Failed to canonicalize: %s", error_str);
-      }
+      *array ^= array->Canonicalize(reader->thread());
     }
   }
   return raw(*array);
@@ -1057,7 +1046,7 @@ void ArrayLayout::WriteTo(SnapshotWriter* writer,
                           bool as_reference) {
   ASSERT(!this->IsCanonical());
   writer->ArrayWriteTo(object_id, kArrayCid, writer->GetObjectTags(this),
-                       length_, type_arguments_, data(), as_reference);
+                       length(), type_arguments(), data(), as_reference);
 }
 
 void ImmutableArrayLayout::WriteTo(SnapshotWriter* writer,
@@ -1354,11 +1343,7 @@ TypedDataPtr TypedData::ReadFrom(SnapshotReader* reader,
   // When reading a script snapshot or a message snapshot we always have
   // to canonicalize the object.
   if (ObjectLayout::IsCanonical(tags)) {
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(reader->thread(), &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
+    result ^= result.Canonicalize(reader->thread());
     ASSERT(!result.IsNull());
     ASSERT(result.IsCanonical());
   }
@@ -1388,7 +1373,6 @@ ExternalTypedDataPtr ExternalTypedData::ReadFrom(SnapshotReader* reader,
 
 // This function's name can appear in Observatory.
 static void IsolateMessageTypedDataFinalizer(void* isolate_callback_data,
-                                             Dart_WeakPersistentHandle handle,
                                              void* buffer) {
   free(buffer);
 }
@@ -1476,9 +1460,6 @@ void TypedDataLayout::WriteTo(SnapshotWriter* writer,
     writer->Write<ObjectPtr>(length_);
     uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
     void* passed_data = malloc(bytes);
-    if (passed_data == NULL) {
-      OUT_OF_MEMORY();
-    }
     memmove(passed_data, data, bytes);
     static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
         bytes,
@@ -1561,9 +1542,6 @@ void ExternalTypedDataLayout::WriteTo(SnapshotWriter* writer,
   writer->Write<ObjectPtr>(length_);
   uint8_t* data = reinterpret_cast<uint8_t*>(data_);
   void* passed_data = malloc(bytes);
-  if (passed_data == NULL) {
-    OUT_OF_MEMORY();
-  }
   memmove(passed_data, data, bytes);
   static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
       bytes,
@@ -1721,9 +1699,9 @@ void TransferableTypedDataLayout::WriteTo(SnapshotWriter* writer,
       length, data, tpeer,
       // Finalizer does nothing - in case of failure to serialize,
       // [data] remains wrapped in sender's [TransferableTypedData].
-      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {},
+      [](void* data, void* peer) {},
       // This is invoked on successful serialization of the message
-      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
+      [](void* data, void* peer) {
         TransferableTypedDataPeer* tpeer =
             reinterpret_cast<TransferableTypedDataPeer*>(peer);
         tpeer->handle()->EnsureFreedExternal(IsolateGroup::Current());

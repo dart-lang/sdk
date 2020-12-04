@@ -5,16 +5,40 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InstanceCreationDriverResolutionTest);
+    defineReflectiveTests(InstanceCreationTest);
+    defineReflectiveTests(InstanceCreationWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InstanceCreationDriverResolutionTest extends DriverResolutionTest {
+class InstanceCreationTest extends PubPackageResolutionTest
+    with InstanceCreationTestCases {}
+
+mixin InstanceCreationTestCases on PubPackageResolutionTest {
+  test_demoteType() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A(T t);
+}
+
+void f<S>(S s) {
+  if (s is int) {
+    A(s);
+  }
+}
+
+''');
+
+    assertType(
+      findNode.instanceCreation('A(s)'),
+      'A<S>',
+    );
+  }
+
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
     await assertErrorsInCode(r'''
 final foo = Map<int>();
@@ -42,8 +66,8 @@ main() {
   new Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          53, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+          5),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -58,7 +82,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class Foo<X> {
   Foo.bar();
 }
@@ -70,8 +94,8 @@ main() {
   new p.Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          44, 3),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 44,
+          3),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the
@@ -97,8 +121,8 @@ main() {
   Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          49, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 49,
+          5),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -117,7 +141,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class Foo<X> {
   Foo.bar();
 }
@@ -129,8 +153,8 @@ main() {
   p.Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          43, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 43,
+          5),
     ]);
 
     var import = findElement.import('package:test/a.dart');
@@ -147,3 +171,7 @@ main() {
     );
   }
 }
+
+@reflectiveTest
+class InstanceCreationWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, InstanceCreationTestCases {}

@@ -14,10 +14,10 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
+import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
-import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/kernel/loader.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
@@ -26,7 +26,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
-import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../helpers/args_helper.dart';
@@ -75,21 +74,22 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
   @override
   VariableScopeModel variableScopeModel;
 
-  ir.ConstantEvaluator _constantEvaluator;
+  Dart2jsConstantEvaluator _constantEvaluator;
 
   @override
   ir.StaticTypeContext staticTypeContext;
 
   StaticTypeVisitorBase(
-      ir.Component component, ir.ClassHierarchy classHierarchy)
-      : super(
+      ir.Component component, ir.ClassHierarchy classHierarchy,
+      {ir.EvaluationMode evaluationMode})
+      : assert(evaluationMode != null),
+        super(
             new ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
-            classHierarchy) {
-    _constantEvaluator = new ir.ConstantEvaluator(
-        const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true),
-        const {},
-        typeEnvironment,
-        const ir.SimpleErrorReporter());
+            classHierarchy,
+            new StaticTypeCacheImpl()) {
+    _constantEvaluator = new Dart2jsConstantEvaluator(
+        typeEnvironment, const ir.SimpleErrorReporter().report,
+        evaluationMode: evaluationMode);
   }
 
   @override
@@ -149,7 +149,8 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   DynamicVisitor(this.reporter, this.component, this._allowedListPath,
       this.analyzedUrisFilter)
       : super(component,
-            new ir.ClassHierarchy(component, new ir.CoreTypes(component)));
+            new ir.ClassHierarchy(component, new ir.CoreTypes(component)),
+            evaluationMode: ir.EvaluationMode.weak);
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
@@ -309,7 +310,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     ir.DartType staticType = node?.accept(this);
     assert(
         node is! ir.Expression ||
-            staticType == typeEnvironment.nullType ||
+            staticType is ir.NullType ||
             staticType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(
                 staticType,

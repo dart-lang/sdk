@@ -77,11 +77,7 @@ class TextDocumentChangeHandler
 
 class TextDocumentCloseHandler
     extends MessageHandler<DidCloseTextDocumentParams, void> {
-  /// Whether analysis roots are based on open files and should be updated.
-  bool updateAnalysisRoots;
-
-  TextDocumentCloseHandler(LspAnalysisServer server, this.updateAnalysisRoots)
-      : super(server);
+  TextDocumentCloseHandler(LspAnalysisServer server) : super(server);
 
   @override
   Method get handlesMessage => Method.textDocument_didClose;
@@ -98,25 +94,7 @@ class TextDocumentCloseHandler
       server.removePriorityFile(path);
       server.documentVersions.remove(path);
       server.onOverlayDestroyed(path);
-
-      if (updateAnalysisRoots) {
-        // If there are no other open files in this context, we can remove it
-        // from the analysis roots.
-        final contextFolder = server.contextManager.getContextFolderFor(path);
-        var hasOtherFilesInContext = false;
-        for (var otherDocPath in server.documentVersions.keys) {
-          if (server.contextManager.getContextFolderFor(otherDocPath) ==
-              contextFolder) {
-            hasOtherFilesInContext = true;
-            break;
-          }
-        }
-        if (!hasOtherFilesInContext) {
-          final projectFolder =
-              _findProjectFolder(server.resourceProvider, path);
-          server.updateAnalysisRoots([], [projectFolder]);
-        }
-      }
+      server.removeTemporaryAnalysisRoot(path);
 
       return success();
     });
@@ -125,13 +103,7 @@ class TextDocumentCloseHandler
 
 class TextDocumentOpenHandler
     extends MessageHandler<DidOpenTextDocumentParams, void> {
-  /// Whether analysis roots are based on open files and should be updated.
-  bool updateAnalysisRoots;
-
-  DateTime lastSentAnalyzeOpenFilesWarnings;
-
-  TextDocumentOpenHandler(LspAnalysisServer server, this.updateAnalysisRoots)
-      : super(server);
+  TextDocumentOpenHandler(LspAnalysisServer server) : super(server);
 
   @override
   Method get handlesMessage => Method.textDocument_didOpen;
@@ -154,38 +126,21 @@ class TextDocumentOpenHandler
       );
       server.onOverlayCreated(path, doc.text);
 
-      final driver = server.contextManager.getDriverFor(path);
+      final driver = server.getAnalysisDriver(path);
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
 
       driver?.addFile(path);
 
-      // If there was no current driver for this file, then we may need to add
-      // its project folder as an analysis root.
-      if (updateAnalysisRoots && driver == null) {
-        final projectFolder = _findProjectFolder(server.resourceProvider, path);
-        if (projectFolder != null) {
-          server.updateAnalysisRoots([projectFolder], []);
-        } else {
-          // There was no pubspec - ideally we should add just the file
-          // here but we don't currently support that.
-          // https://github.com/dart-lang/sdk/issues/32256
-
-          // Send a warning to the user, but only if we haven't already in the
-          // last 60 seconds.
-          if (lastSentAnalyzeOpenFilesWarnings == null ||
-              (DateTime.now()
-                      .difference(lastSentAnalyzeOpenFilesWarnings)
-                      .inSeconds >
-                  60)) {
-            lastSentAnalyzeOpenFilesWarnings = DateTime.now();
-            server.showMessageToUser(
-                MessageType.Warning,
-                'When using onlyAnalyzeProjectsWithOpenFiles, files opened that '
-                'are not contained within project folders containing pubspec.yaml, '
-                '.packages or BUILD files will not be analyzed.');
-          }
-        }
+      // Figure out the best analysis root for this file and register it as a temporary
+      // analysis root. We need to register it even if we found a driver, so that if
+      // the driver existed only because of another open file, it will not be removed
+      // when that file is closed.
+      final analysisRoot = driver?.contextRoot?.root ??
+          _findProjectFolder(server.resourceProvider, path) ??
+          dirname(path);
+      if (analysisRoot != null) {
+        server.addTemporaryAnalysisRoot(path, analysisRoot);
       }
 
       server.addPriorityFile(path);

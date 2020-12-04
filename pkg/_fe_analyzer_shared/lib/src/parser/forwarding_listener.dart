@@ -13,11 +13,6 @@ class ForwardingListener implements Listener {
   ForwardingListener([this.listener]);
 
   @override
-  set suppressParseErrors(bool value) {
-    listener?.suppressParseErrors = value;
-  }
-
-  @override
   Uri get uri => listener?.uri;
 
   @override
@@ -143,6 +138,11 @@ class ForwardingListener implements Listener {
   @override
   void beginExport(Token token) {
     listener?.beginExport(token);
+  }
+
+  @override
+  void beginUncategorizedTopLevelDeclaration(Token token) {
+    listener?.beginUncategorizedTopLevelDeclaration(token);
   }
 
   @override
@@ -392,8 +392,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginThenControlFlow(Token token) {
-    listener?.beginThenControlFlow(token);
+  void handleThenControlFlow(Token token) {
+    listener?.handleThenControlFlow(token);
   }
 
   @override
@@ -463,11 +463,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    listener?.discardTypeReplacedWithCommentTypeAssign();
-  }
-
-  @override
   void endArguments(int count, Token beginToken, Token endToken) {
     listener?.endArguments(count, beginToken, endToken);
   }
@@ -487,6 +482,11 @@ class ForwardingListener implements Listener {
   @override
   void endBinaryExpression(Token token) {
     listener?.endBinaryExpression(token);
+  }
+
+  @override
+  void handleEndingBinaryExpression(Token token) {
+    listener?.handleEndingBinaryExpression(token);
   }
 
   @override
@@ -1005,8 +1005,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTopLevelDeclaration(Token token) {
-    listener?.endTopLevelDeclaration(token);
+  void endTopLevelDeclaration(Token nextToken) {
+    listener?.endTopLevelDeclaration(nextToken);
+  }
+
+  @override
+  void beginFields(Token lastConsumed) {
+    listener?.beginFields(lastConsumed);
   }
 
   @override
@@ -1121,8 +1126,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
-    listener?.handleClassExtends(extendsKeyword);
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
+    listener?.handleClassExtends(extendsKeyword, typeCount);
   }
 
   @override

@@ -276,6 +276,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         ir.DartType typeArgument = _readDartTypeNode(functionTypeVariables);
         return new ir.FutureOrType(typeArgument, nullability);
+      case DartTypeNodeKind.nullType:
+        return const ir.NullType();
     }
     throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }
@@ -543,8 +545,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         OutputUnit unit = readOutputUnitReference();
         return new DeferredGlobalConstantValue(constant, unit);
       case ConstantValueKind.DUMMY_INTERCEPTOR:
-        AbstractValue abstractValue = readAbstractValue();
-        return new DummyInterceptorConstantValue(abstractValue);
+        return DummyInterceptorConstantValue();
       case ConstantValueKind.UNREACHABLE:
         return UnreachableConstantValue();
       case ConstantValueKind.JS_NAME:

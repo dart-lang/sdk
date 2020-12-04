@@ -12,7 +12,7 @@ import 'package:analyzer/src/context/builder.dart' as old
     show ContextBuilder, ContextBuilderOptions;
 import 'package:analyzer/src/context/context_root.dart' as old;
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
-    show MemoryByteStore;
+    show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -39,11 +39,13 @@ class ContextBuilderImpl implements ContextBuilder {
 
   @override
   AnalysisContext createContext(
-      {@required ContextRoot contextRoot,
+      {ByteStore byteStore,
+      @required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
       bool enableIndex = false,
       List<String> librarySummaryPaths,
       @deprecated PerformanceLog performanceLog,
+        bool retainDataForTesting = false,
       @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath,
       String sdkSummaryPath}) {
@@ -51,7 +53,7 @@ class ContextBuilderImpl implements ContextBuilder {
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
 
-    var byteStore = MemoryByteStore();
+    byteStore ??= MemoryByteStore();
     var fileContentOverlay = FileContentOverlay();
     performanceLog ??= PerformanceLog(StringBuffer());
 
@@ -84,6 +86,7 @@ class ContextBuilderImpl implements ContextBuilder {
     builder.fileContentOverlay = fileContentOverlay;
     builder.enableIndex = enableIndex;
     builder.performanceLog = performanceLog;
+    builder.retainDataForTesting = retainDataForTesting;
 
     old.ContextRoot oldContextRoot = old.ContextRoot(
         contextRoot.root.path, contextRoot.excludedPaths.toList(),

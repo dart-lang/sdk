@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -18,8 +16,10 @@ abstract class ChangeBuilder {
   /// Initialize a newly created change builder. If the builder will be used to
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
-  factory ChangeBuilder({AnalysisSession session, ChangeWorkspace workspace}) =
-      ChangeBuilderImpl;
+  factory ChangeBuilder(
+      {AnalysisSession session,
+      ChangeWorkspace workspace,
+      String eol}) = ChangeBuilderImpl;
 
   /// Return the range of the selection for the change being built, or `null` if
   /// there is no selection.
@@ -55,6 +55,10 @@ abstract class ChangeBuilder {
   /// for any particular kind of file.
   Future<void> addGenericFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit);
+
+  /// Return a copy of this change builder that is constructed in such as was
+  /// that changes to the copy will not effect this change builder.
+  ChangeBuilder copy();
 
   /// Set the selection for the change being built to the given [position].
   void setSelection(Position position);

@@ -41,7 +41,7 @@ class ErrorsReportedOnceTest {
 
   Future<void> test_once() async {
     var testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    var driver = Driver(isTesting: true);
+    var driver = Driver();
     await driver.start(
         [path.join(testDir, 'foo.dart'), path.join(testDir, 'bar.dart')]);
 
@@ -56,7 +56,7 @@ class ErrorsReportedOnceTest {
 
   Future<void> test_once_machine() async {
     var testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    var driver = Driver(isTesting: true);
+    var driver = Driver();
     await driver.start([
       '--format',
       'machine',

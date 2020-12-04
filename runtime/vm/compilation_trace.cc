@@ -429,7 +429,7 @@ void CompilationTraceLoader::SpeculateInstanceCallTargets(
   }
 }
 
-TypeFeedbackSaver::TypeFeedbackSaver(WriteStream* stream)
+TypeFeedbackSaver::TypeFeedbackSaver(BaseWriteStream* stream)
     : stream_(stream),
       cls_(Class::Handle()),
       lib_(Library::Handle()),
@@ -448,7 +448,6 @@ static char* CompilerFlags() {
   ADD_FLAG(enable_asserts);
   ADD_FLAG(use_field_guards);
   ADD_FLAG(use_osr);
-  ADD_FLAG(causal_async_stacks);
   ADD_FLAG(fields_may_be_reset);
 #undef ADD_FLAG
 
@@ -744,6 +743,8 @@ ObjectPtr TypeFeedbackLoader::LoadFields() {
       fields_ = cls_.fields();
     }
 
+    SafepointWriteRwLocker ml(thread_,
+                              thread_->isolate_group()->program_lock());
     for (intptr_t i = 0; i < num_fields; i++) {
       field_name_ = ReadString();
       intptr_t guarded_cid = cid_map_[ReadInt()];
@@ -895,8 +896,10 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
         // ensure no arity mismatch crashes.
         target_name_ = call_site_.target_name();
         args_desc_ = call_site_.arguments_descriptor();
-        target_ = Resolver::ResolveDynamicForReceiverClass(
-            cls_, target_name_, ArgumentsDescriptor(args_desc_));
+        if (cls_.EnsureIsFinalized(thread_) == Error::null()) {
+          target_ = Resolver::ResolveDynamicForReceiverClass(
+              cls_, target_name_, ArgumentsDescriptor(args_desc_));
+        }
         if (!target_.IsNull()) {
           if (num_checked_arguments == 1) {
             call_site_.AddReceiverCheck(cids[0], target_, entry_usage);

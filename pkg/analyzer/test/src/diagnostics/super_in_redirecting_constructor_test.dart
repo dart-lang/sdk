@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class SuperInRedirectingConstructorTest extends DriverResolutionTest {
+class SuperInRedirectingConstructorTest extends PubPackageResolutionTest {
   test_redirectionSuper() async {
     await assertErrorsInCode(r'''
 class A {
@@ -33,7 +33,7 @@ class A {
   A.name() {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 18, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 18, 5),
       error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 18, 7),
     ]);
   }

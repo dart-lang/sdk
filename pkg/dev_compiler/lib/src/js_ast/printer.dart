@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // ignore_for_file: slash_for_doc_comments, unnecessary_const
 // ignore_for_file: always_declare_return_types, prefer_single_quotes
 // ignore_for_file: prefer_collection_literals, omit_local_variable_types
@@ -1326,11 +1328,11 @@ class Printer implements NodeVisitor {
     if (node.isStar) {
       out('*');
     } else {
-      var name = node.name.name;
+      var localName = localNamer.getName(node.name);
       if (node.asName == null) {
         // If our local was renamed, generate an implicit "as".
         // This is a convenience feature so imports and exports can be renamed.
-        var localName = localNamer.getName(node.name);
+        var name = node.name.name;
         if (localName != name) {
           out(export ? localName : name);
           out(' as ');
@@ -1338,7 +1340,7 @@ class Printer implements NodeVisitor {
           return;
         }
       }
-      out(name);
+      out(localName);
     }
     if (node.asName != null) {
       out(' as ');

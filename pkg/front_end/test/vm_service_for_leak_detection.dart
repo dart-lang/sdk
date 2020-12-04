@@ -30,6 +30,7 @@ main(List<String> args) async {
             new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
                 ["fileUri", "_libraryIdString"]),
           ],
+          true,
           true);
 
   if (args.length > 0 && args[0] == "--dart2js") {

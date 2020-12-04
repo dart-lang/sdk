@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: B:checks=[],indirectInstance,typeLiteral*/
+/*class: B:checks=[],indirectInstance*/
 class B {}
 
 /*class: C:checks=[],instance*/

@@ -2,6 +2,8 @@
 
 **Note**:
 
+  * This migration tool is now available through the SDK, using the `dart
+    migrate` command.  Support for running it via `pub activate` is deprecated.
   * The null safety migration tooling is in an early state and may have bugs and
     other issues.
   * As null safety is still in preview, we recommend only doing trial

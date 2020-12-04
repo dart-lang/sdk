@@ -21,8 +21,8 @@ part 'message.dart';
 part 'message_router.dart';
 part 'named_lookup.dart';
 
-final isolateControlPort = RawReceivePort();
-final scriptLoadPort = RawReceivePort();
+final isolateControlPort = RawReceivePort(null, 'Isolate Control Port');
+final scriptLoadPort = RawReceivePort(null, 'Script Load');
 
 abstract class IsolateEmbedderData {
   void cleanup();
@@ -139,6 +139,12 @@ typedef Future ServerStartCallback();
 /// Called when the server should be stopped.
 typedef Future ServerStopCallback();
 
+/// Called when DDS has connected.
+typedef Future<void> DdsConnectedCallback();
+
+/// Called when DDS has disconnected.
+typedef Future<void> DdsDisconnectedCallback();
+
 /// Called when the service is exiting.
 typedef Future CleanupCallback();
 
@@ -166,8 +172,9 @@ typedef Future<Uri> ServerInformamessage_routertionCallback();
 /// Called when we need information about the server.
 typedef Uri? ServerInformationCallback();
 
-/// Called when we want to [enable] or disable the web server.
-typedef Future<Uri?> WebServerControlCallback(bool enable);
+/// Called when we want to [enable] or disable the web server or silence VM
+/// service console messages.
+typedef Future<Uri?> WebServerControlCallback(bool enable, bool? silenceOutput);
 
 /// Called when we want to [enable] or disable new websocket connections to the
 /// server.
@@ -177,6 +184,8 @@ typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
 class VMServiceEmbedderHooks {
   static ServerStartCallback? serverStart;
   static ServerStopCallback? serverStop;
+  static DdsConnectedCallback? ddsConnected;
+  static DdsDisconnectedCallback? ddsDisconnected;
   static CleanupCallback? cleanup;
   static CreateTempDirCallback? createTempDir;
   static DeleteDirCallback? deleteDir;
@@ -230,6 +239,12 @@ class VMService extends MessageRouter {
           details:
               'Embedder does not support yielding to a VM service intermediary.');
     }
+
+    if (_ddsUri != null) {
+      return encodeRpcError(message, kFeatureDisabled,
+          details: 'A DDS instance is already connected at ${_ddsUri!}.');
+    }
+
     final uri = message.params['uri'];
     if (uri == null) {
       return encodeMissingParamError(message, 'uri');
@@ -243,104 +258,7 @@ class VMService extends MessageRouter {
     }
     acceptNewWebSocketConnections(false);
     _ddsUri = Uri.parse(uri);
-    return encodeSuccess(message);
-  }
-
-  void _clearClientName(Client client) {
-    final name = client.name;
-    client.name = null;
-    final clientsForName = clientResumePermissions[name];
-    if (clientsForName != null) {
-      clientsForName.clients.remove(client);
-      // If this was the last client with a given name, cleanup resume
-      // permissions.
-      if (clientsForName.clients.isEmpty) {
-        clientResumePermissions.remove(name);
-
-        // Check to see if we need to resume any isolates now that the last
-        // client of a given name has disconnected or changed names.
-        //
-        // An isolate will be resumed in this situation if:
-        //
-        // 1) This client required resume approvals for the current pause event
-        // associated with the isolate and all other required resume approvals
-        // have been provided by other clients.
-        //
-        // OR
-        //
-        // 2) This client required resume approvals for the current pause event
-        // associated with the isolate, no other clients require resume approvals
-        // for the current pause event, and at least one client has issued a resume
-        // request.
-        runningIsolates.isolates.forEach((_, isolate) async =>
-            await isolate.maybeResumeAfterClientChange(this, name));
-      }
-    }
-  }
-
-  /// Sets the name associated with a [Client].
-  ///
-  /// If any resume approvals were set for this client previously they will
-  /// need to be reset after a name change.
-  String _setClientName(Message message) {
-    final client = message.client!;
-    if (!message.params.containsKey('name')) {
-      return encodeRpcError(message, kInvalidParams,
-          details: "setClientName: missing required parameter 'name'");
-    }
-    final name = message.params['name'];
-    if (name is! String) {
-      return encodeRpcError(message, kInvalidParams,
-          details: "setClientName: invalid 'name' parameter: $name");
-    }
-    _setClientNameHelper(client, name);
-    return encodeSuccess(message);
-  }
-
-  void _setClientNameHelper(Client client, String name) {
-    _clearClientName(client);
-    name = name.isEmpty ? client.defaultClientName : name;
-    client.name = name;
-    clientResumePermissions.putIfAbsent(
-        client.name, () => _ClientResumePermissions());
-    clientResumePermissions[name]!.clients.add(client);
-  }
-
-  String _getClientName(Message message) => encodeResult(message, {
-        'type': 'ClientName',
-        'name': message.client!.name,
-      });
-
-  String _requirePermissionToResume(Message message) {
-    bool parsePermission(String argName) {
-      final arg = message.params[argName];
-      if (arg == null) {
-        return false;
-      }
-      if (arg is! bool) {
-        throw encodeRpcError(message, kInvalidParams,
-            details: "requirePermissionToResume: invalid '$argName': $arg");
-      }
-      return arg;
-    }
-
-    final client = message.client!;
-    int pauseTypeMask = 0;
-    try {
-      if (parsePermission('onPauseStart')) {
-        pauseTypeMask |= RunningIsolate.kPauseOnStartMask;
-      }
-      if (parsePermission('onPauseReload')) {
-        pauseTypeMask |= RunningIsolate.kPauseOnReloadMask;
-      }
-      if (parsePermission('onPauseExit')) {
-        pauseTypeMask |= RunningIsolate.kPauseOnExitMask;
-      }
-    } on dynamic catch (rpcError) {
-      return rpcError;
-    }
-
-    clientResumePermissions[client.name]!.permissionsMask = pauseTypeMask;
+    await VMServiceEmbedderHooks.ddsConnected!();
     return encodeSuccess(message);
   }
 
@@ -358,9 +276,6 @@ class VMService extends MessageRouter {
         _vmCancelStream(streamId);
       }
     }
-
-    // Clean up client approvals state.
-    _clearClientName(client);
 
     for (final service in client.services.keys) {
       _eventMessageHandler(
@@ -390,8 +305,9 @@ class VMService extends MessageRouter {
       final acceptNewWebSocketConnections =
           VMServiceEmbedderHooks.acceptNewWebSocketConnections;
       if (_ddsUri != null && acceptNewWebSocketConnections != null) {
-        acceptNewWebSocketConnections(true);
         _ddsUri = null;
+        VMServiceEmbedderHooks.ddsDisconnected!();
+        acceptNewWebSocketConnections(true);
       }
     }
   }
@@ -416,7 +332,8 @@ class VMService extends MessageRouter {
     }
   }
 
-  Future<void> _serverMessageHandler(int code, SendPort sp, bool enable) async {
+  Future<void> _serverMessageHandler(
+      int code, SendPort sp, bool enable, bool? silenceOutput) async {
     switch (code) {
       case Constants.WEB_SERVER_CONTROL_MESSAGE_ID:
         final webServerControl = VMServiceEmbedderHooks.webServerControl;
@@ -424,7 +341,7 @@ class VMService extends MessageRouter {
           sp.send(null);
           return;
         }
-        final uri = await webServerControl(enable);
+        final uri = await webServerControl(enable, silenceOutput);
         sp.send(uri);
         break;
       case Constants.SERVER_INFO_MESSAGE_ID:
@@ -512,27 +429,27 @@ class VMService extends MessageRouter {
         _exit();
         return;
       }
-      if (message.length == 3) {
-        final opcode = message[0];
-        if (opcode == Constants.METHOD_CALL_FROM_NATIVE) {
-          _handleNativeRpcCall(message[1], message[2]);
+      final opcode = message[0];
+      if (message.length == 3 && opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+        _handleNativeRpcCall(message[1], message[2]);
+        return;
+      }
+      if (message.length == 4) {
+        if ((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
+            (opcode == Constants.SERVER_INFO_MESSAGE_ID)) {
+          // This is a message interacting with the web server.
+          _serverMessageHandler(message[0], message[1], message[2], message[3]);
           return;
         } else {
-          // This is a message interacting with the web server.
-          assert((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
-              (opcode == Constants.SERVER_INFO_MESSAGE_ID));
-          _serverMessageHandler(message[0], message[1], message[2]);
+          // This is a message informing us of the birth or death of an
+          // isolate.
+          _controlMessageHandler(
+              message[0], message[1], message[2], message[3]);
           return;
         }
       }
-      if (message.length == 4) {
-        // This is a message informing us of the birth or death of an
-        // isolate.
-        _controlMessageHandler(message[0], message[1], message[2], message[3]);
-        return;
-      }
+      print('Internal vm-service error: ignoring illegal message: $message');
     }
-    print('Internal vm-service error: ignoring illegal message: $message');
   }
 
   VMService._internal() : eventPort = isolateControlPort {
@@ -559,11 +476,9 @@ class VMService extends MessageRouter {
   }
 
   Client? _findFirstClientThatHandlesService(String service) {
-    if (clients != null) {
-      for (Client c in clients) {
-        if (c.services.containsKey(service)) {
-          return c;
-        }
+    for (Client c in clients) {
+      if (c.services.containsKey(service)) {
+        return c;
       }
     }
     return null;
@@ -685,22 +600,20 @@ class VMService extends MessageRouter {
     final namespace = _getNamespace(message.method!);
     final method = _getMethod(message.method!);
     final client = clients[namespace];
-    if (client != null) {
-      if (client.services.containsKey(method)) {
-        final id = _serviceRequests.newId();
-        final oldId = message.serial;
-        final completer = Completer<String>();
-        client.serviceHandles[id] = (Message? m) {
-          if (m != null) {
-            completer.complete(json.encode(m.forwardToJson({'id': oldId})));
-          } else {
-            completer.complete(encodeRpcError(message, kServiceDisappeared));
-          }
-        };
-        client.post(
-            Response.json(message.forwardToJson({'id': id, 'method': method})));
-        return completer.future;
-      }
+    if (client.services.containsKey(method)) {
+      final id = _serviceRequests.newId();
+      final oldId = message.serial;
+      final completer = Completer<String>();
+      client.serviceHandles[id] = (Message? m) {
+        if (m != null) {
+          completer.complete(json.encode(m.forwardToJson({'id': oldId})));
+        } else {
+          completer.complete(encodeRpcError(message, kServiceDisappeared));
+        }
+      };
+      client.post(
+          Response.json(message.forwardToJson({'id': id, 'method': method})));
+      return completer.future;
     }
     return encodeRpcError(message, kMethodNotFound,
         details: 'Unknown service: ${message.method}');
@@ -752,15 +665,6 @@ class VMService extends MessageRouter {
       if (message.method == 'registerService') {
         return await _registerService(message);
       }
-      if (message.method == 'setClientName') {
-        return _setClientName(message);
-      }
-      if (message.method == 'getClientName') {
-        return _getClientName(message);
-      }
-      if (message.method == 'requirePermissionToResume') {
-        return _requirePermissionToResume(message);
-      }
       if (message.method == 'getSupportedProtocols') {
         return await _getSupportedProtocols(message);
       }
@@ -808,7 +712,11 @@ void _onStart() native 'VMService_OnStart';
 void _onExit() native 'VMService_OnExit';
 
 /// Notify the VM that the server's address has changed.
-void onServerAddressChange(String? address)
+void onServerAddressChange(String? address) {
+  _onServerAddressChange(address);
+}
+
+void _onServerAddressChange(String? address)
     native 'VMService_OnServerAddressChange';
 
 /// Subscribe to a service stream.

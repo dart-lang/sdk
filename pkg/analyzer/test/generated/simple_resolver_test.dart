@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import 'resolver_test_case.dart';
 
 main() {
@@ -18,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class SimpleResolverTest extends DriverResolutionTest {
+class SimpleResolverTest extends PubPackageResolutionTest {
   test_argumentResolution_required_matching() async {
     await resolveTestCode(r'''
 class A {
@@ -422,7 +422,7 @@ void f() {
   }
 
   test_entryPoint_exported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 main() {}
 ''');
 
@@ -457,7 +457,7 @@ main() {}
   }
 
   test_enum_externalLibrary() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 enum EEE {A, B, C}
 ''');
     await assertNoErrorsInCode(r'''
@@ -538,69 +538,6 @@ class A {
     verifyTestResolved();
   }
 
-  test_getter_and_setter_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x += 1;
-  }
-}
-''');
-    verifyTestResolved();
-
-    // Verify that both the getter and setter for "x" in C.f() refer to the
-    // accessors defined in M2.
-    var leftHandSide = findNode.simple('x +=');
-    expect(
-      leftHandSide.staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-    expect(
-      leftHandSide.auxiliaryElements.staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
-  }
-
-  test_getter_and_setter_fromMixins_property_access() async {
-    await assertNoErrorsInCode(r'''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x += 1;
-}
-''');
-    verifyTestResolved();
-
-    // Verify that both the getter and setter for "x" in "new C().x" refer to
-    // the accessors defined in M2.
-    var leftHandSide = findNode.simple('x +=');
-    expect(
-      leftHandSide.staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-    expect(
-      leftHandSide.auxiliaryElements.staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
-  }
-
   test_getter_fromMixins_bare_identifier() async {
     await assertNoErrorsInCode('''
 class B {}
@@ -652,26 +589,12 @@ void main() {
     );
   }
 
-  @Deprecated('It was used internally, should not be part of API')
-  test_hasReferenceToSuper() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B {toString() => super.toString();}''');
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.hasReferenceToSuper, isFalse);
-
-    var b = findElement.class_('B');
-    expect(b.hasReferenceToSuper, isTrue);
-  }
-
   test_import_hide() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 set foo(value) {}
 class A {}''');
 
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 set foo(value) {}''');
 
     await assertNoErrorsInCode(r'''
@@ -686,7 +609,7 @@ A a;''');
   }
 
   test_import_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 f(int x) {
   return x * x;
 }''');
@@ -755,7 +678,7 @@ class H extends D<W> {
   }
 
   test_import_spaceInUri() async {
-    newFile('/test/lib/sub folder/a.dart', content: r'''
+    newFile('$testPackageLibPath/sub folder/a.dart', content: r'''
 foo() {}''');
 
     await assertNoErrorsInCode(r'''
@@ -1171,64 +1094,6 @@ class A {
     await assertNoErrorsInCode(r'''
 f(var p) {
   return null == p;
-}''');
-    verifyTestResolved();
-  }
-
-  test_setter_fromMixins_bare_identifier() async {
-    await resolveTestCode('''
-class B {}assertNoErrorsInCode
-class M1 {
-  set x(value) {}
-}
-class M2 {
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x = 1;
-  }
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('x = ').staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-  }
-
-  test_setter_fromMixins_property_access() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  set x(value) {}
-}
-class M2 {
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x = 1;
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('x = ').staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-  }
-
-  test_setter_inherited() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get x => 0;
-  set x(int p) {}
-}
-class B extends A {
-  int get x => super.x == null ? 0 : super.x;
-  int f() => x = 1;
 }''');
     verifyTestResolved();
   }

@@ -32,7 +32,7 @@ class B extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t2 = this.{self::B::_#B#x} in #t2.==(null) ?{core::int} let final core::int #t3 = 42 in this.{self::B::_#B#x}.==(null) ?{core::int} this.{self::B::_#B#x} = #t3 : throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.") : #t2{core::int};
+    return let final core::int? #t2 = this.{self::B::_#B#x} in #t2.==(null) ?{core::int} let final core::int #t3 = 42 in this.{self::B::_#B#x}.==(null) ?{core::int} this.{self::B::_#B#x} = #t3 : throw new _in::LateError::fieldADI("x") : #t2{core::int};
 }
 class C extends core::Object {
   field core::int? _#C#x;
@@ -53,3 +53,8 @@ static method fisk() → dynamic async
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///later.dart:46:18 -> IntConstant(42)
+Extra constant evaluation: evaluated: 17, effectively constant: 1

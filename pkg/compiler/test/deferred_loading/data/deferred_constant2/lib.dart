@@ -6,18 +6,21 @@
 
 library deferred_constants2_lib;
 
-/*class: Constant:OutputUnit(1, {lib})*/
+/*class: Constant:
+ class_unit=1{lib},
+ type_unit=1{lib}
+*/
 class Constant {
-  /*member: Constant.value:OutputUnit(1, {lib})*/
+  /*member: Constant.value:member_unit=1{lib}*/
   final value;
 
   const Constant(this.value);
 
-  /*member: Constant.==:OutputUnit(1, {lib})*/
+  /*member: Constant.==:member_unit=1{lib}*/
   @override
   operator ==(other) => other is Constant && value == other.value;
 
-  /*member: Constant.hashCode:OutputUnit(1, {lib})*/
+  /*member: Constant.hashCode:member_unit=1{lib}*/
   @override
   get hashCode => 0;
 }

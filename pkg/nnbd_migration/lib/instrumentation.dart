@@ -257,6 +257,7 @@ enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
   argumentErrorCheckNotNull,
+  callTearOff,
   compoundAssignment,
   // See [DummyOrigin].
   dummy,
@@ -266,6 +267,7 @@ enum EdgeOriginKind {
   fieldFormalParameter,
   fieldNotInitialized,
   forEachVariable,
+  getterSetterCorrespondence,
   greatestLowerBound,
   ifNull,
   implicitMixinSuperCall,
@@ -276,6 +278,7 @@ enum EdgeOriginKind {
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
+  iteratorMethodReturn,
   listLengthConstructor,
   literal,
   namedParameterNotSupplied,

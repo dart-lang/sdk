@@ -350,9 +350,11 @@ class _RegExp implements RegExp {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ];
 
+  @pragma("vm:recognized", "asm-intrinsic")
   List<int>? _ExecuteMatch(String str, int start_index)
       native "RegExp_ExecuteMatch";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   List<int>? _ExecuteMatchSticky(String str, int start_index)
       native "RegExp_ExecuteMatchSticky";
 }
@@ -376,7 +378,7 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
 
   _AllMatchesIterator(this._re, this._str, this._nextIndex);
 
-  RegExpMatch get current => _current!;
+  RegExpMatch get current => _current as RegExpMatch;
 
   static bool _isLeadSurrogate(int c) {
     return c >= 0xd800 && c <= 0xdbff;

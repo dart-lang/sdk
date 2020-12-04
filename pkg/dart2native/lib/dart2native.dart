@@ -39,11 +39,13 @@ Future markExecutable(String outputFile) {
 
 Future generateAotKernel(String dart, String genKernel, String platformDill,
     String sourceFile, String kernelFile, String packages, List<String> defines,
-    {List<String> extraGenKernelOptions = const []}) {
+    {String enableExperiment = '',
+    List<String> extraGenKernelOptions = const []}) {
   return Process.run(dart, [
     genKernel,
     '--platform',
     platformDill,
+    if (enableExperiment.isNotEmpty) '--enable-experiment=${enableExperiment}',
     '--aot',
     '-Ddart.vm.product=true',
     ...(defines.map((d) => '-D${d}')),

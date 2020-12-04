@@ -12,7 +12,8 @@ namespace dart {
 DEBUG_ONLY(DECLARE_FLAG(bool, trace_write_barrier_elimination);)
 
 ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_JoinSuccessors) {
-  DEBUG_ONLY(FLAG_trace_write_barrier_elimination = true);
+  DEBUG_ONLY(
+      SetFlagScope<bool> sfs(&FLAG_trace_write_barrier_elimination, true));
   const char* nullable_tag = TestCase::NullableTag();
   const char* null_assert_tag = TestCase::NullAssertTag();
 
@@ -82,7 +83,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_JoinSuccessors) {
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
-  DEBUG_ONLY(FLAG_trace_write_barrier_elimination = true);
+  DEBUG_ONLY(
+      SetFlagScope<bool> sfs(&FLAG_trace_write_barrier_elimination, true));
   // Ensure that we process every block at least once during the analysis
   // phase so that the out-sets will be initialized. If we don't process
   // each block at least once, the store "c.next = n" will be marked
@@ -137,7 +139,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
-  DEBUG_ONLY(FLAG_trace_write_barrier_elimination = true);
+  DEBUG_ONLY(
+      SetFlagScope<bool> sfs(&FLAG_trace_write_barrier_elimination, true));
   const char* nullable_tag = TestCase::NullableTag();
 
   // Test that array allocations are not considered usable after a
@@ -163,7 +166,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
           c = C();
         }
         array[0] = c;
-        return c;
+        return array;
       }
 
       main() { foo(10); }
@@ -202,6 +205,51 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
 
   EXPECT(store_into_c->ShouldEmitStoreBarrier() == false);
   EXPECT(store_into_array->ShouldEmitStoreBarrier() == true);
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Regress43786) {
+  DEBUG_ONLY(
+      SetFlagScope<bool> sfs(&FLAG_trace_write_barrier_elimination, true));
+  const char* kScript = R"(
+      foo() {
+        final root = List<dynamic>.filled(128, null);
+        List<dynamic> last = root;
+        for (int i = 0; i < 10 * 1024; ++i) {
+          final nc = List<dynamic>.filled(128, null);
+          last[0] = nc;
+          last = nc;
+        }
+      }
+
+      main() { foo(); }
+      )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+
+  Invoke(root_library, "main");
+
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  StoreIndexedInstr* store_into_phi = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          kMatchAndMoveCreateArray,
+          kMatchAndMoveGoto,
+          kMatchAndMoveBranchTrue,
+          kMatchAndMoveCreateArray,
+          {kMatchAndMoveStoreIndexed, &store_into_phi},
+      },
+      kMoveGlob));
+
+  EXPECT(store_into_phi->array()->definition()->IsPhi());
+  EXPECT(store_into_phi->ShouldEmitStoreBarrier());
 }
 
 }  // namespace dart

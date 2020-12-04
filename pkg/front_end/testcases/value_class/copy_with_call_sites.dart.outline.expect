@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:21: Error: The parameter 'bar' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   Foo copyWith({int bar, int bar2}) {
+//                     ^^^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:30: Error: The parameter 'bar2' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   Foo copyWith({int bar, int bar2}) {
+//                              ^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int? numberOfLegs;
+  constructor •({required core::int? numberOfLegs}) → self::Animal
+    ;
+}
+@val::valueClass
+class Cat extends self::Animal {
+  final field core::int? numberOfWhiskers;
+  synthetic constructor •() → self::Cat
+    ;
+}
+class Foo extends core::Object {
+  field core::int? bar;
+  field core::int? bar2;
+  constructor •({core::int? bar, core::int? bar2}) → self::Foo
+    ;
+  method copyWith({core::int bar, core::int bar2}) → self::Foo
+    ;
+}
+@val::valueClass
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    ;
+  static method combine(core::int hash, core::int value) → core::int
+    ;
+  static method finish(core::int hash) → core::int
+    ;
+}
+static const field core::String valueClass = "valueClass";
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///copy_with_call_sites.dart:12:2 -> StringConstant("valueClass")
+Evaluated: StaticGet @ org-dartlang-testcase:///copy_with_call_sites.dart:25:2 -> StringConstant("valueClass")
+Extra constant evaluation: evaluated: 2, effectively constant: 2

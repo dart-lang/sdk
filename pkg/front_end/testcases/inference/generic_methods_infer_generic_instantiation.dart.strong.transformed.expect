@@ -30,7 +30,7 @@ import self as self;
 import "dart:core" as core;
 
 import "dart:math" as math;
-import "dart:math";
+import "dart:math" show min;
 
 class C extends core::Object {
   synthetic constructor •() → self::C*
@@ -38,16 +38,16 @@ class C extends core::Object {
     ;
   method m<T extends core::num* = core::num*>(self::C::m::T* x, self::C::m::T* y) → self::C::m::T*
     return null;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
   self::takeIII(#C1<core::int*>);
@@ -125,3 +125,34 @@ constants  {
   #C1 = tearoff math::max
   #C2 = tearoff math::min
 }
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:16:16 -> PartialInstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:17:16 -> PartialInstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:18:16 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:19:16 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:20:16 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:21:16 -> PartialInstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:22:16 -> PartialInstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:23:16 -> PartialInstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:24:16 -> PartialInstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:26:70 -> PartialInstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:28:73 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:30:73 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:31:70 -> PartialInstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:32:70 -> PartialInstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:35:11 -> PartialInstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:36:11 -> PartialInstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:37:11 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:38:11 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:39:11 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:40:11 -> PartialInstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:41:11 -> PartialInstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:42:11 -> PartialInstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:43:11 -> PartialInstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:45:65 -> PartialInstantiationConstant(min<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:46:72 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:47:72 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:48:65 -> PartialInstantiationConstant(min<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:49:65 -> PartialInstantiationConstant(min<Object*>)
+Extra constant evaluation: evaluated: 133, effectively constant: 28

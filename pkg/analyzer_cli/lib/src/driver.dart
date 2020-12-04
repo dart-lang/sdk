@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -28,8 +28,8 @@ import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart'
-    show PerformanceTag;
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -54,11 +54,9 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
-@visibleForTesting
 StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-@visibleForTesting
 StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
@@ -68,9 +66,6 @@ bool containsLintRuleEntry(YamlMap options) {
 }
 
 class Driver with HasContextMixin implements CommandLineStarter {
-  static final PerformanceTag _analyzeAllTag =
-      PerformanceTag('Driver._analyzeAll');
-
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
   @override
@@ -102,9 +97,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   PathFilter pathFilter;
 
   /// Create a new Driver instance.
-  ///
-  /// [isTesting] is true if we're running in a test environment.
-  Driver({bool isTesting = false});
+  Driver({@Deprecated('This parameter has no effect') bool isTesting = false});
 
   /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
@@ -126,7 +119,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     linter.registerLintRules();
 
     // Parse commandline options.
-    var options = CommandLineOptions.parse(args);
+    var options = CommandLineOptions.parse(resourceProvider, args);
 
     // Do analysis.
     if (options.buildMode) {
@@ -140,7 +133,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       batchRunner.runAsBatch(args, (List<String> args) async {
         // TODO(brianwilkerson) Determine whether this await is necessary.
         await null;
-        var options = CommandLineOptions.parse(args);
+        var options = CommandLineOptions.parse(resourceProvider, args);
         return await _analyzeAll(options);
       });
     } else {
@@ -184,12 +177,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _analyzeAllTag.makeCurrent();
-    try {
-      return await _analyzeAllImpl(options);
-    } finally {
-      previous.makeCurrent();
-    }
+
+    return await _analyzeAllImpl(options);
   }
 
   /// Perform analysis according to the given [options].
@@ -298,6 +287,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
             }
           }
         } else if (shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+          var errors = <AnalysisError>[];
           try {
             var file = resourceProvider.getFile(path);
             var content = file.readAsStringSync();
@@ -305,17 +295,46 @@ class Driver with HasContextMixin implements CommandLineStarter {
             if (node is YamlMap) {
               var validator =
                   PubspecValidator(resourceProvider, file.createSource());
-              var lineInfo = LineInfo.fromContent(content);
-              var errors = validator.validate(node.nodes);
-              formatter.formatErrors([
-                ErrorsResultImpl(analysisDriver.currentSession, path, null,
-                    lineInfo, false, errors)
-              ]);
+              errors.addAll(validator.validate(node.nodes));
+            }
+
+            if (analysisDriver != null && analysisDriver.analysisOptions.lint) {
+              var visitors = <LintRule, PubspecVisitor>{};
+              for (var linter in analysisDriver.analysisOptions.lintRules) {
+                if (linter is LintRule) {
+                  var visitor = linter.getPubspecVisitor();
+                  if (visitor != null) {
+                    visitors[linter] = visitor;
+                  }
+                }
+              }
+              if (visitors.isNotEmpty) {
+                var sourceUri = resourceProvider.pathContext.toUri(path);
+                var pubspecAst = Pubspec.parse(content,
+                    sourceUrl: sourceUri, resourceProvider: resourceProvider);
+                var listener = RecordingErrorListener();
+                var reporter = ErrorReporter(listener,
+                    resourceProvider.getFile(path).createSource(sourceUri),
+                    isNonNullableByDefault: false);
+                for (var entry in visitors.entries) {
+                  entry.key.reporter = reporter;
+                  pubspecAst.accept(entry.value);
+                }
+                errors.addAll(listener.errors);
+              }
+            }
+
+            if (errors.isNotEmpty) {
               for (var error in errors) {
                 var severity = determineProcessedSeverity(
                     error, options, analysisDriver.analysisOptions);
                 allResult = allResult.max(severity);
               }
+              var lineInfo = LineInfo.fromContent(content);
+              formatter.formatErrors([
+                ErrorsResultImpl(analysisDriver.currentSession, path, null,
+                    lineInfo, false, errors)
+              ]);
             }
           } catch (exception) {
             // If the file cannot be analyzed, ignore it.
@@ -392,23 +411,19 @@ class Driver with HasContextMixin implements CommandLineStarter {
       CommandLineOptions options, SendPort sendPort) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _analyzeAllTag.makeCurrent();
-    try {
-      if (options.buildModePersistentWorker) {
-        var workerLoop = sendPort == null
-            ? AnalyzerWorkerLoop.std(resourceProvider,
-                dartSdkPath: options.dartSdkPath)
-            : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
-                dartSdkPath: options.dartSdkPath);
-        await workerLoop.run();
-        return ErrorSeverity.NONE;
-      } else {
-        return await BuildMode(resourceProvider, options, stats,
-                ContextCache(resourceProvider, options, verbosePrint))
-            .analyze();
-      }
-    } finally {
-      previous.makeCurrent();
+
+    if (options.buildModePersistentWorker) {
+      var workerLoop = sendPort == null
+          ? AnalyzerWorkerLoop.std(resourceProvider,
+              dartSdkPath: options.dartSdkPath)
+          : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
+              dartSdkPath: options.dartSdkPath);
+      await workerLoop.run();
+      return ErrorSeverity.NONE;
+    } else {
+      return await BuildMode(resourceProvider, options, stats,
+              ContextCache(resourceProvider, options, verbosePrint))
+          .analyze();
     }
   }
 
@@ -441,7 +456,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Setup embedding.
     if (includeSdkResolver) {
-      var embedderSdk = EmbedderSdk(resourceProvider, embedderMap);
+      var embedderSdk = EmbedderSdk(
+        resourceProvider,
+        embedderMap,
+        languageVersion: sdk.languageVersion,
+      );
       if (embedderSdk.libraryMap.size() == 0) {
         // The embedder uri resolver has no mappings. Use the default Dart SDK
         // uri resolver.
@@ -449,7 +468,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } else {
         // The embedder uri resolver has mappings, use it instead of the default
         // Dart SDK uri resolver.
-        embedderSdk.analysisOptions = analysisOptions;
         resolvers.add(DartUriResolver(embedderSdk));
       }
     }
@@ -658,10 +676,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
         sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
       } else {
         var dartSdkPath = options.dartSdkPath;
-        var dartSdk = FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(dartSdkPath));
-        dartSdk.analysisOptions = analysisOptions;
-        sdk = dartSdk;
+        sdk = FolderBasedDartSdk(
+          resourceProvider,
+          resourceProvider.getFolder(dartSdkPath),
+        );
       }
     }
   }
@@ -697,7 +715,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
             previous.showPackageWarningsPrefix &&
         newOptions.showSdkWarnings == previous.showSdkWarnings &&
         newOptions.lints == previous.lints &&
-        newOptions.strongMode == previous.strongMode &&
         _equalLists(
             newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&

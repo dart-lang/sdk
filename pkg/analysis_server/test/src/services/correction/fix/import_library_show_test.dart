@@ -26,7 +26,7 @@ extension E on int {
   String m() => '';
 }
 ''');
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'lib.dart' show A;
 void f(A a) {
   print('$a ${E(3).m()}');
@@ -45,7 +45,7 @@ void f(A a) {
 class A {}
 class B {}
 ''');
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'lib.dart' show A;
 main() {
   A a;
@@ -64,7 +64,7 @@ main() {
   }
 
   Future<void> test_sdk() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'dart:collection' show HashMap;
 main() {
   HashMap s = null;
@@ -89,7 +89,7 @@ extension E on int {
   static String m() => '';
 }
 ''');
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'lib.dart' show A;
 void f(A a) {
   print('$a ${E.m()}');

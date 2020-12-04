@@ -48,7 +48,7 @@ class CaughtException implements Exception {
   /// [stackTrace], and [message].
   CaughtException.withMessage(
       this.message, this.exception, StackTrace stackTrace)
-      : this.stackTrace = stackTrace ?? StackTrace.current;
+      : stackTrace = stackTrace ?? StackTrace.current;
 
   /// Recursively unwrap this [CaughtException] if it itself contains a
   /// [CaughtException].

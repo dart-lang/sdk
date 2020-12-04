@@ -1,0 +1,94 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/simple.dart:13:31: Error: No named parameter with the name 'numberOfLegs'.
+//   Animal firstAnimal = Animal(numberOfLegs: 4);
+//                               ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/simple.dart:8:7: Context: The class 'Animal' has a constructor that takes no arguments.
+// class Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/simple.dart:14:32: Error: No named parameter with the name 'numberOfLegs'.
+//   Animal secondAnimal = Animal(numberOfLegs: 4);
+//                                ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/simple.dart:8:7: Context: The class 'Animal' has a constructor that takes no arguments.
+// class Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/simple.dart:15:31: Error: No named parameter with the name 'numberOfLegs'.
+//   Animal thirdAnimal = Animal(numberOfLegs: 3);
+//                               ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/simple.dart:8:7: Context: The class 'Animal' has a constructor that takes no arguments.
+// class Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/simple.dart:9:13: Error: Final field 'numberOfLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int numberOfLegs = null;
+  synthetic constructor •({required core::int numberOfLegs}) → self::Animal
+    : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
+    ;
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
+    return other is self::Animal && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Animal}.{self::Animal::numberOfLegs});
+  get /*isLegacy*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine("org-dartlang-testcase:///simple.dartAnimal".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}));
+  method /*isLegacy*/ toString() → core::String
+    return "Animal(numberOfLegs: ${this.{self::Animal::numberOfLegs}.{core::int::toString}()})";
+  method /*isLegacy*/ copyWith({core::int numberOfLegs}) → dynamic
+    return new self::Animal::•(numberOfLegs: numberOfLegs);
+}
+static method main() → dynamic {
+  self::Animal firstAnimal = invalid-expression "pkg/front_end/testcases/value_class/simple.dart:13:31: Error: No named parameter with the name 'numberOfLegs'.
+  Animal firstAnimal = Animal(numberOfLegs: 4);
+                              ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Animal;
+  self::Animal secondAnimal = invalid-expression "pkg/front_end/testcases/value_class/simple.dart:14:32: Error: No named parameter with the name 'numberOfLegs'.
+  Animal secondAnimal = Animal(numberOfLegs: 4);
+                               ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Animal;
+  self::Animal thirdAnimal = invalid-expression "pkg/front_end/testcases/value_class/simple.dart:15:31: Error: No named parameter with the name 'numberOfLegs'.
+  Animal thirdAnimal = Animal(numberOfLegs: 3);
+                              ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Animal;
+  self::expect(true, firstAnimal.{core::Object::==}(secondAnimal));
+  self::expect(false, firstAnimal.{core::Object::==}(thirdAnimal));
+  self::expect(true, firstAnimal.{core::Object::hashCode}.{core::num::==}(secondAnimal.{core::Object::hashCode}));
+  self::expect(false, firstAnimal.{core::Object::hashCode}.{core::num::==}(thirdAnimal.{core::Object::hashCode}));
+}
+static method expect(core::Object? expected, core::Object? actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected=${expected}, actual=${actual}";
+}
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    : super core::Object::•()
+    ;
+  static method combine(core::int hash, core::int value) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
+  }
+  static method finish(core::int hash) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+  }
+}
+static const field core::String valueClass = #C1;
+
+constants  {
+  #C1 = "valueClass"
+}

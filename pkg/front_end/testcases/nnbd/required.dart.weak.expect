@@ -2,7 +2,8 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/required.dart:29:8: Error: Optional parameter 'x' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:29:8: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   foo({x}) {}
 //        ^
 //
@@ -21,7 +22,8 @@ library /*isNonNullableByDefault*/;
 //   f2 = (int a = 42, [int b]) {};
 //               ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:48:15: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:48:15: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void g({int a, required int b = 42}) {}
 //               ^
 //
@@ -29,7 +31,8 @@ library /*isNonNullableByDefault*/;
 //   void g({int a, required int b = 42}) {}
 //                               ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:49:13: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:49:13: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   f = ({int a, required int b = 42}) {};
 //             ^
 //
@@ -37,11 +40,13 @@ library /*isNonNullableByDefault*/;
 //   f = ({int a, required int b = 42}) {};
 //                             ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:52:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:52:28: Error: The parameter 'b' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void g2(int a = 42, [int b]) {}
 //                            ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:53:26: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:53:26: Error: The parameter 'b' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   f2 = (int a = 42, [int b]) {};
 //                          ^
 //
@@ -74,23 +79,23 @@ class C extends self::A {
     ;
   method foo({core::int x = #C1}) → dynamic {}
 }
-static field ({a: core::int, required b: core::int}) → dynamic field = ({core::int a = #C1, required core::int b = #C2}) → core::Null? {};
+static field ({a: core::int, required b: core::int}) → dynamic field = ({core::int a = #C1, required core::int b = #C2}) → Null {};
 static method method({core::int a = #C1, required core::int b = #C2, required final core::int c = #C2}) → dynamic {}
 static method ok() → dynamic {
   ({a: core::int, required b: core::int}) → dynamic f;
   function g({core::int a = #C1, required core::int b = #C2}) → void {}
-  f = ({core::int a = #C1, required core::int b = #C2}) → core::Null? {};
+  f = ({core::int a = #C1, required core::int b = #C2}) → Null {};
   (core::int, [core::int]) → dynamic f2;
   function g2(core::int a, [core::int b = #C1]) → void {}
-  f2 = (core::int a, [core::int b = #C1]) → core::Null? {};
+  f2 = (core::int a, [core::int b = #C1]) → Null {};
 }
 static method error() → dynamic {
   ({a: core::int, required b: core::int}) → dynamic f;
   function g({core::int a = #C2, required core::int b = #C1}) → void {}
-  f = ({core::int a = #C2, required core::int b = #C1}) → core::Null? {};
+  f = ({core::int a = #C2, required core::int b = #C1}) → Null {};
   (core::int, [core::int]) → dynamic f2;
   function g2(core::int a = #C1, [core::int b = #C2]) → void {}
-  f2 = (core::int a = #C1, [core::int b = #C2]) → core::Null? {};
+  f2 = (core::int a = #C1, [core::int b = #C2]) → Null {};
 }
 static method main() → dynamic {}
 

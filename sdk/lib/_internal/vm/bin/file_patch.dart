@@ -174,9 +174,17 @@ abstract class _FileSystemWatcher {
       assert(watcherPath.count > 0);
       watcherPath.count--;
       if (watcherPath.count == 0) {
-        _unwatchPath(_id!, watcherPath.pathId);
-        _pathWatchedEnd();
-        _idMap.remove(watcherPath.pathId);
+        var pathId = watcherPath.pathId;
+        // DirectoryWatchHandle(aka pathId) might be closed already initiated
+        // by issueReadEvent for example. When that happens, appropriate closeEvent
+        // will arrive to us and we will remove this pathId from _idMap. If that
+        // happens we should not try to close it again as pathId is no
+        // longer usable(the memory it points to might be released)
+        if (_idMap.containsKey(pathId)) {
+          _unwatchPath(_id!, pathId);
+          _pathWatchedEnd();
+          _idMap.remove(pathId);
+        }
       }
       _watcherPath = null;
     }
@@ -299,6 +307,15 @@ abstract class _FileSystemWatcher {
           }
         }
       } else if (event == RawSocketEvent.closed) {
+        // After this point we should not try to do anything with pathId as
+        // the handle it represented is closed and gone now.
+        if (_idMap.containsKey(pathId)) {
+          _idMap.remove(pathId);
+          if (_idMap.isEmpty && _id != null) {
+            _closeWatcher(_id!);
+            _id = null;
+          }
+        }
       } else if (event == RawSocketEvent.readClosed) {
         // If Directory watcher buffer overflows, it will send an readClosed event.
         // Normal closing will cancel stream subscription so that path is

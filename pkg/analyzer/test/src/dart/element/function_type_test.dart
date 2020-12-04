@@ -75,14 +75,14 @@ class FunctionTypeTest with ElementsTypesMixin {
     expect(f.typeFormals, typeFormals, reason: 'typeFormals');
   }
 
-  GenericTypeAliasElementImpl genericTypeAliasElement(
+  FunctionTypeAliasElementImpl functionTypeAliasElement(
     String name, {
     List<ParameterElement> parameters = const [],
     DartType returnType,
     List<TypeParameterElement> typeParameters = const [],
     List<TypeParameterElement> innerTypeParameters = const [],
   }) {
-    var aliasElement = GenericTypeAliasElementImpl(name, 0);
+    var aliasElement = FunctionTypeAliasElementImpl(name, 0);
     aliasElement.typeParameters = typeParameters;
 
     var functionElement = GenericFunctionTypeElementImpl.forOffset(0);
@@ -406,55 +406,6 @@ class FunctionTypeTest with ElementsTypesMixin {
         element: isNull,
         displayName: 'Object Function()',
         returnType: same(objectType));
-  }
-
-  @deprecated
-  test_synthetic_substitute() {
-    // Map<T, U> Function<U extends T>(T x, U y)
-    var t = typeParameter('T');
-    var u = typeParameter('U', bound: typeParameterTypeNone(t));
-    var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
-    var y = requiredParameter(name: 'y', type: typeParameterTypeNone(u));
-    FunctionType f = FunctionTypeImpl.synthetic(
-        mapOf(typeParameterTypeNone(t), typeParameterTypeNone(u)), [u], [x, y],
-        nullabilitySuffix: NullabilitySuffix.star);
-    FunctionType substituted =
-        f.substitute2([objectType], [typeParameterTypeNone(t)]);
-    var uSubstituted = substituted.typeFormals[0];
-    basicChecks(substituted,
-        element: isNull,
-        displayName: 'Map<Object, U> Function<U extends Object>(Object, U)',
-        returnType: mapOf(objectType, typeParameterTypeNone(uSubstituted)),
-        typeFormals: [uSubstituted],
-        normalParameterNames: ['x', 'y'],
-        normalParameterTypes: [
-          same(objectType),
-          typeParameterTypeNone(uSubstituted)
-        ],
-        parameters: hasLength(2));
-  }
-
-  @deprecated
-  test_synthetic_substitute_argument_length_mismatch() {
-    // dynamic Function()
-    var t = typeParameter('T');
-    FunctionType f = FunctionTypeImpl.synthetic(dynamicType, [], [],
-        nullabilitySuffix: NullabilitySuffix.star);
-    expect(() => f.substitute2([], [typeParameterTypeStar(t)]),
-        throwsA(TypeMatcher<ArgumentError>()));
-  }
-
-  @deprecated
-  test_synthetic_substitute_unchanged() {
-    // dynamic Function<U>(U x)
-    var t = typeParameter('T');
-    var u = typeParameter('U');
-    var x = requiredParameter(name: 'x', type: typeParameterTypeStar(u));
-    FunctionType f = FunctionTypeImpl.synthetic(dynamicType, [u], [x],
-        nullabilitySuffix: NullabilitySuffix.star);
-    FunctionType substituted =
-        f.substitute2([objectType], [typeParameterTypeStar(t)]);
-    expect(substituted, same(f));
   }
 
   test_synthetic_typeFormals() {

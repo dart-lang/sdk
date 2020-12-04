@@ -1,5 +1,6 @@
+library;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/general/constant_truncate.dart:5:14: Error: Constant evaluation error:
 // const a0 = 0 ~/ 0; // error
@@ -301,7 +302,6 @@
 // const f5 = double.negativeInfinity ~/ double.negativeInfinity; // error
 //       ^
 //
-library;
 import self as self;
 import "dart:core" as core;
 

@@ -98,7 +98,61 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   void _destroy() native "SecureSocket_Destroy";
 
-  void handshake() native "SecureSocket_Handshake";
+  int _handshake(SendPort replyPort) native "SecureSocket_Handshake";
+
+  void _markAsTrusted(int certificatePtr, bool isTrusted)
+      native "SecureSocket_MarkAsTrusted";
+
+  static X509Certificate _newX509CertificateWrapper(int certificatePtr)
+      native "SecureSocket_NewX509CertificateWrapper";
+
+  Future<bool> handshake() {
+    Completer<bool> evaluatorCompleter = Completer<bool>();
+
+    ReceivePort rpEvaluateResponse = ReceivePort();
+    rpEvaluateResponse.listen((data) {
+      List list = data as List;
+      // incoming messages (bool isTrusted, int certificatePtr) is
+      // sent by TrustEvaluator native port after system evaluates
+      // the certificate chain
+      if (list.length != 2) {
+        throw Exception("Invalid number of arguments in evaluate response");
+      }
+      bool isTrusted = list[0] as bool;
+      int certificatePtr = list[1] as int;
+      if (!isTrusted) {
+        if (badCertificateCallback != null) {
+          try {
+            isTrusted = badCertificateCallback!(
+                _newX509CertificateWrapper(certificatePtr));
+          } catch (e, st) {
+            evaluatorCompleter.completeError(e, st);
+            rpEvaluateResponse.close();
+            return;
+          }
+        }
+      }
+      _markAsTrusted(certificatePtr, isTrusted);
+      evaluatorCompleter.complete(true);
+      rpEvaluateResponse.close();
+    });
+
+    const int kSslErrorWantCertificateVerify = 16; // ssl.h:558
+    int handshakeResult;
+    try {
+      handshakeResult = _handshake(rpEvaluateResponse.sendPort);
+    } catch (e, st) {
+      rpEvaluateResponse.close();
+      rethrow;
+    }
+    if (handshakeResult == kSslErrorWantCertificateVerify) {
+      return evaluatorCompleter.future;
+    } else {
+      // Response is ready, no need for evaluate response receive port
+      rpEvaluateResponse.close();
+      return Future<bool>.value(false);
+    }
+  }
 
   void rehandshake() => throw new UnimplementedError();
 
@@ -113,8 +167,15 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   X509Certificate? get peerCertificate native "SecureSocket_PeerCertificate";
 
-  void registerBadCertificateCallback(Function callback)
+  void _registerBadCertificateCallback(Function callback)
       native "SecureSocket_RegisterBadCertificateCallback";
+
+  Function? badCertificateCallback;
+
+  void registerBadCertificateCallback(Function callback) {
+    badCertificateCallback = callback;
+    _registerBadCertificateCallback(callback);
+  }
 
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler)
       native "SecureSocket_RegisterHandshakeCompleteCallback";
@@ -205,7 +266,7 @@ class _SecurityContext extends NativeFieldWrapperClass1
 class _X509CertificateImpl extends NativeFieldWrapperClass1
     implements X509Certificate {
   // The native field must be set manually on a new object, in native code.
-  // This is done by WrappedX509 in secure_socket.cc.
+  // This is done by WrappedX509Certificate in security_context.cc.
   _X509CertificateImpl._();
 
   Uint8List get _der native "X509_Der";

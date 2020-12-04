@@ -15,33 +15,31 @@ import 'package:observatory/service_common.dart';
 export 'package:observatory/service_common.dart';
 
 class _IOWebSocket implements CommonWebSocket {
-  WebSocket _webSocket;
+  WebSocket? _webSocket;
 
-  void connect(String address, void onOpen(), void onMessage(dynamic data),
-      void onError(), void onClose()) {
-    WebSocket.connect(address).then((WebSocket socket) {
-      _webSocket = socket;
-      _webSocket.listen(onMessage,
+  Future<void> connect(WebSocketVMTarget target, void onOpen(),
+      void onMessage(dynamic data), void onError(), void onClose()) async {
+    try {
+      _webSocket = await WebSocket.connect(target.networkAddress);
+      _webSocket!.listen(onMessage,
           onError: (dynamic) => onError(),
           onDone: onClose,
           cancelOnError: true);
       onOpen();
-    }).catchError((e, st) {
+    } catch (_) {
       onError();
-    });
+    }
   }
 
   bool get isOpen =>
-      (_webSocket != null) && (_webSocket.readyState == WebSocket.open);
+      (_webSocket != null) && (_webSocket!.readyState == WebSocket.open);
 
   void send(dynamic data) {
-    _webSocket.add(data);
+    _webSocket!.add(data);
   }
 
   void close() {
-    if (_webSocket != null) {
-      _webSocket.close();
-    }
+    _webSocket?.close();
   }
 
   Future<ByteData> nonStringToByteData(dynamic data) {

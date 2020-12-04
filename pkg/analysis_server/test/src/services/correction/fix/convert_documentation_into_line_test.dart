@@ -25,7 +25,7 @@ class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
 
   /// More coverage in the `convert_to_documentation_line_test.dart` assist test.
   Future<void> test_onText() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   /**
    * AAAAAAA [int] AAAAAAA

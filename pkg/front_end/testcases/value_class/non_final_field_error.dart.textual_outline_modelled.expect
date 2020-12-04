@@ -1,0 +1,8 @@
+import 'value_class_support_lib.dart';
+
+@valueClass
+class Animal {
+  int numberOfLegs;
+}
+
+main() {}

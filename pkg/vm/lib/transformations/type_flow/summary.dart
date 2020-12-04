@@ -27,7 +27,7 @@ abstract class Statement extends TypeExpr {
   @override
   Type getComputedType(List<Type> types) {
     final type = types[index];
-    assertx(type != null);
+    assert(type != null);
     return type;
   }
 
@@ -74,9 +74,6 @@ class Parameter extends Statement {
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
-  // Whether this parameter is passed at all call-sites.
-  bool isAlwaysPassed = true;
-
   Parameter(this.name, this.staticTypeForNarrowing);
 
   @override
@@ -102,13 +99,12 @@ class Parameter extends Statement {
   Type get argumentType => _argumentType;
 
   void _observeArgumentType(Type argType, TypeHierarchy typeHierarchy) {
-    assertx(argType.isSpecialized);
+    assert(argType.isSpecialized);
     _argumentType = _argumentType.union(argType, typeHierarchy);
-    assertx(_argumentType.isSpecialized);
+    assert(_argumentType.isSpecialized);
   }
 
   Type _observeNotPassed(TypeHierarchy typeHierarchy) {
-    isAlwaysPassed = false;
     final Type argType = defaultValue.specialize(typeHierarchy);
     _observeArgumentType(argType, typeHierarchy);
     return argType;
@@ -199,7 +195,7 @@ class Join extends Statement {
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
     Type type = null;
-    assertx(values.isNotEmpty);
+    assert(values.isNotEmpty);
     for (var value in values) {
       final valueType = value.getComputedType(computedTypes);
       type = type != null ? type.union(valueType, typeHierarchy) : valueType;
@@ -351,9 +347,9 @@ class Call extends Statement {
   }
 
   void _observeResultType(Type result, TypeHierarchy typeHierarchy) {
-    assertx(result.isSpecialized);
+    assert(result.isSpecialized);
     _resultType = _resultType.union(result, typeHierarchy);
-    assertx(_resultType.isSpecialized);
+    assert(_resultType.isSpecialized);
   }
 }
 
@@ -408,7 +404,7 @@ class Extract extends Statement {
             }
           }
         } else {
-          assertx(typeArg is UnknownType);
+          assert(typeArg is UnknownType);
         }
         if (extractedType == null || extracted == extractedType) {
           extractedType = extracted;
@@ -458,7 +454,7 @@ class CreateConcreteType extends Statement {
     final types = new List<Type>(flattenedTypeArgs.length);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
-      assertx(computed is RuntimeType || computed is UnknownType);
+      assert(computed is RuntimeType || computed is UnknownType);
       if (computed is RuntimeType) hasRuntimeType = true;
       types[i] = computed;
     }
@@ -490,7 +486,7 @@ class CreateRuntimeType extends Statement {
     final types = new List<RuntimeType>(flattenedTypeArgs.length);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
-      assertx(computed is RuntimeType || computed is UnknownType);
+      assert(computed is RuntimeType || computed is UnknownType);
       if (computed is UnknownType) return const UnknownType();
       types[i] = computed;
     }
@@ -530,7 +526,7 @@ class TypeCheck extends Statement {
   bool canAlwaysSkip = true;
 
   TypeCheck(this.arg, this.type, this.node, this.staticType) {
-    assertx(node != null);
+    assert(node != null);
     isTestedOnlyOnCheckedEntryPoint =
         parameter != null && !parameter.isCovariant;
   }
@@ -551,7 +547,7 @@ class TypeCheck extends Statement {
     Type argType = arg.getComputedType(computedTypes);
     Type checkType = type.getComputedType(computedTypes);
     // TODO(sjindel/tfa): Narrow the result if possible.
-    assertx(checkType is UnknownType || checkType is RuntimeType);
+    assert(checkType is UnknownType || checkType is RuntimeType);
 
     bool canSkip = true; // Can this check be skipped on this invocation.
 
@@ -565,7 +561,7 @@ class TypeCheck extends Statement {
           typeHierarchy.fromStaticType(checkType.representedTypeRaw, true),
           typeHierarchy);
     } else {
-      assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
+      throw "Cannot see $checkType on RHS of TypeCheck.";
     }
 
     // If this check might be skipped on an
@@ -590,9 +586,9 @@ class TypeCheck extends Statement {
 /// Summary is a linear sequence of statements representing a type flow in
 /// one member, function or initializer.
 class Summary {
-  final int parameterCount;
-  final int positionalParameterCount;
-  final int requiredParameterCount;
+  int parameterCount;
+  int positionalParameterCount;
+  int requiredParameterCount;
 
   List<Statement> _statements = <Statement>[];
   TypeExpr result = null;
@@ -628,9 +624,9 @@ class Summary {
     final args = arguments.values;
     final positionalArgCount = arguments.positionalCount;
     final namedArgCount = arguments.namedCount;
-    assertx(requiredParameterCount <= positionalArgCount);
-    assertx(positionalArgCount <= positionalParameterCount);
-    assertx(namedArgCount <= parameterCount - positionalParameterCount);
+    assert(requiredParameterCount <= positionalArgCount);
+    assert(positionalArgCount <= positionalParameterCount);
+    assert(namedArgCount <= parameterCount - positionalParameterCount);
 
     // Interpret statements sequentially, calculating the result type
     // of each statement and putting it into the 'types' list parallel
@@ -642,12 +638,6 @@ class Summary {
     // The first `parameterCount` statements are Parameters.
 
     List<Type> types = new List<Type>(_statements.length);
-
-    if (arguments.unknownArity) {
-      for (int i = 0; i < parameterCount; ++i) {
-        (_statements[i] as Parameter).isAlwaysPassed = false;
-      }
-    }
 
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
@@ -674,7 +664,7 @@ class Summary {
     int argIndex = 0;
     for (int i = positionalParameterCount; i < parameterCount; i++) {
       final Parameter param = _statements[i] as Parameter;
-      assertx(param.defaultValue != null);
+      assert(param.defaultValue != null);
       if ((argIndex < namedArgCount) && (argNames[argIndex] == param.name)) {
         final argType =
             args[positionalArgCount + argIndex].specialize(typeHierarchy);
@@ -687,12 +677,12 @@ class Summary {
           types[i] = argType;
         }
       } else {
-        assertx((argIndex == namedArgCount) ||
+        assert((argIndex == namedArgCount) ||
             (param.name.compareTo(argNames[argIndex]) < 0));
         types[i] = param._observeNotPassed(typeHierarchy);
       }
     }
-    assertx(argIndex == namedArgCount);
+    assert(argIndex == namedArgCount);
 
     for (int i = parameterCount; i < _statements.length; i++) {
       // Test if tracing is enabled to avoid expensive message formatting.
@@ -726,6 +716,26 @@ class Summary {
     return new Args<Type>(argTypes, names: argNames);
   }
 
+  Type argumentType(Member member, VariableDeclaration memberParam) {
+    final int firstParamIndex =
+        numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
+    final positional = member.function.positionalParameters;
+    for (int i = 0; i < positional.length; i++) {
+      if (positional[i] == memberParam) {
+        final Parameter param = _statements[firstParamIndex + i] as Parameter;
+        assert(param.name == memberParam.name);
+        return param.argumentType;
+      }
+    }
+    for (int i = positionalParameterCount; i < parameterCount; i++) {
+      final Parameter param = _statements[i] as Parameter;
+      if (param.name == memberParam.name) {
+        return param.argumentType;
+      }
+    }
+    throw "Could not find argument type of parameter ${memberParam.name}";
+  }
+
   List<VariableDeclaration> get uncheckedParameters {
     final params = List<VariableDeclaration>();
     for (Statement statement in _statements) {
@@ -738,14 +748,29 @@ class Summary {
     return params;
   }
 
-  Set<String> alwaysPassedOptionalParameters() {
-    final params = Set<String>();
-    for (int i = requiredParameterCount; i < parameterCount; ++i) {
-      final Parameter p = _statements[i] as Parameter;
-      if (p.isAlwaysPassed) {
-        params.add(p.name);
-      }
+  /// Update the summary parameters to reflect a signature change with moved
+  /// and/or removed parameters.
+  void adjustFunctionParameters(Member member) {
+    // Just keep the parameters part of the summary, assuming that the rest is
+    // not used in later phases. The index values in the statements will be
+    // incorrect, but those are assumed to be not used either.
+    final int implicit =
+        (hasReceiverArg(member) ? 1 : 0) + numTypeParams(member);
+    final Map<String, Parameter> paramsByName = {};
+    for (int i = implicit; i < parameterCount; i++) {
+      final Parameter param = statements[i];
+      paramsByName[param.name] = param;
     }
-    return params;
+    FunctionNode function = member.function;
+    statements.length = implicit;
+    for (VariableDeclaration param in function.positionalParameters) {
+      statements.add(paramsByName[param.name]);
+    }
+    positionalParameterCount = statements.length;
+    for (VariableDeclaration param in function.namedParameters) {
+      statements.add(paramsByName[param.name]);
+    }
+    parameterCount = statements.length;
+    requiredParameterCount = implicit + function.requiredParameterCount;
   }
 }

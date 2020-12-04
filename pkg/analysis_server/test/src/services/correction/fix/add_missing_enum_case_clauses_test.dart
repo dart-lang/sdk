@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,21 +21,25 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
-  Future<void> assertHasFixWithFilter(String expected) async {
-    var noError = true;
-    await assertHasFix(expected, errorFilter: (error) {
-      if (noError &&
+  bool Function(AnalysisError) get _filter {
+    var hasError = false;
+    return (error) {
+      if (!hasError &&
           error.errorCode ==
               StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
-        noError = false;
+        hasError = true;
         return true;
       }
       return false;
-    });
+    };
+  }
+
+  Future<void> assertHasFixWithFilter(String expected) async {
+    await assertHasFix(expected, errorFilter: _filter);
   }
 
   Future<void> test_empty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 enum E {a, b, c}
 void f(E e) {
   switch (e) {
@@ -59,8 +64,19 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_incomplete_switchStatement() async {
+    await resolveTestCode(r'''
+enum E {a, b, c}
+
+void f(E e) {
+  switch(e
+}
+''');
+    await assertNoFix(errorFilter: _filter);
+  }
+
   Future<void> test_nonEmpty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 enum E {a, b, c}
 void f(E e) {
   switch (e) {

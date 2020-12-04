@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ConditionalExpressionTest extends DriverResolutionTest {
+class ConditionalExpressionTest extends PubPackageResolutionTest {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, int b, int c) {
@@ -44,8 +43,8 @@ T a<T>() => throw '';
 
   test_type() async {
     await assertNoErrorsInCode('''
-main(bool b) {
-  return b ? 42 : null;
+void f(bool b) {
+  b ? 42 : null;
 }
 ''');
     assertType(findNode.conditionalExpression('b ?'), 'int?');

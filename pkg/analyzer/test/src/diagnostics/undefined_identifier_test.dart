@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedIdentifierTest extends DriverResolutionTest {
+class UndefinedIdentifierTest extends PubPackageResolutionTest {
   @failingTest
   test_commentReference() async {
     await assertErrorsInCode('''
@@ -26,6 +25,28 @@ class A {
 }''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 5, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
+    ]);
+  }
+
+  test_compoundAssignment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3),
+    ]);
+  }
+
+  test_compoundAssignment_noGetter_noSetter() async {
+    await assertErrorsInCode('''
+void f() {
+  foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 3),
     ]);
   }
 
@@ -55,6 +76,18 @@ f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 40, 1),
+    ]);
+  }
+
+  test_forStatement_ForPartsWithDeclarations_initializer() async {
+    await assertErrorsInCode('''
+void f() {
+  for (var x = x;;) {
+    x;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
     ]);
   }
 
@@ -115,8 +148,32 @@ f() { C.m(); }
     ]);
   }
 
+  test_postfixExpression_increment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  foo++;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3),
+    ]);
+  }
+
+  test_prefixExpression_increment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  ++foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 34, 3),
+    ]);
+  }
+
   test_private_getter() async {
-    newFile("/test/lib/lib.dart", content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 class A {
   var _foo;
@@ -134,7 +191,7 @@ class B extends A {
   }
 
   test_private_setter() async {
-    newFile("/test/lib/lib.dart", content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 class A {
   var _foo;
@@ -164,17 +221,40 @@ main() {
   test_synthetic_whenMethodName_defined() async {
     await assertErrorsInCode(r'''
 print(x) {}
-main(int p) {
+void f(int p) {
   p.();
 }
 ''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
     ]);
   }
 }
 
 @reflectiveTest
 class UndefinedIdentifierWithNullSafetyTest extends UndefinedIdentifierTest
-    with WithNullSafetyMixin {}
+    with WithNullSafetyMixin {
+  test_get_from_external_variable_final_valid() async {
+    await assertNoErrorsInCode('''
+external final int x;
+int f() => x;
+''');
+  }
+
+  test_get_from_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+int f() => x;
+''');
+  }
+
+  test_set_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+void f(int value) {
+  x = value;
+}
+''');
+  }
+}

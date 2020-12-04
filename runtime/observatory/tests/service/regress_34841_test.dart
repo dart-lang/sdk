@@ -57,8 +57,8 @@ var tests = <IsolateTest>[
 
     // Make sure we can translate it all.
     for (int place in coveragePlaces) {
-      int line = script.tokenToLine(place);
-      int column = script.tokenToCol(place);
+      int? line = script.tokenToLine(place);
+      int? column = script.tokenToCol(place);
       if (line == null || column == null) {
         throw "Token $place translated to $line:$column";
       }

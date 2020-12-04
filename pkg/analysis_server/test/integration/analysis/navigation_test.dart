@@ -28,7 +28,7 @@ part 'test2.dart';
 class Class<TypeParameter> {
   Class.constructor(); /* constructor declaration */
 
-  TypeParameter field;
+  TypeParameter field = (throw 0);
 
   method() {}
 }
@@ -39,7 +39,7 @@ function(FunctionTypeAlias parameter) {
   print(parameter());
 }
 
-int topLevelVariable;
+int topLevelVariable = 0;
 
 main() {
   Class<int> localVariable = new Class<int>.constructor(); // usage
@@ -115,21 +115,21 @@ part of foo;
         'constructor(); // usage',
         'constructor(); /* constructor declaration */',
         ElementKind.CONSTRUCTOR);
-    checkLocal('field;', 'field;', ElementKind.FIELD);
+    checkLocal('field = (', 'field = (', ElementKind.FIELD);
     checkLocal('function(() => localVariable.field)',
         'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
     checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
         ElementKind.FUNCTION_TYPE_ALIAS);
-    checkLocal('field)', 'field;', ElementKind.GETTER);
+    checkLocal('field)', 'field = (', ElementKind.GETTER);
     checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
     checkLocal(
         'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
     checkLocal('method();', 'method() {', ElementKind.METHOD);
     checkLocal('parameter());', 'parameter) {', ElementKind.PARAMETER);
-    checkLocal('field = 1', 'field;', ElementKind.SETTER);
-    checkLocal('topLevelVariable;', 'topLevelVariable;',
+    checkLocal('field = 1', 'field = (', ElementKind.SETTER);
+    checkLocal('topLevelVariable = 0;', 'topLevelVariable = 0;',
         ElementKind.TOP_LEVEL_VARIABLE);
-    checkLocal(
-        'TypeParameter field;', 'TypeParameter>', ElementKind.TYPE_PARAMETER);
+    checkLocal('TypeParameter field = (', 'TypeParameter>',
+        ElementKind.TYPE_PARAMETER);
   }
 }

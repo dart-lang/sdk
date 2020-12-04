@@ -45,26 +45,26 @@ void ObjectLayout::Validate(IsolateGroup* isolate_group) const {
     return;
   }
   // Validate that the tags_ field is sensible.
-  uint32_t tags = tags_;
+  uword tags = tags_;
   if (IsNewObject()) {
     if (!NewBit::decode(tags)) {
-      FATAL1("New object missing kNewBit: %x\n", tags);
+      FATAL1("New object missing kNewBit: %" Px "\n", tags);
     }
     if (OldBit::decode(tags)) {
-      FATAL1("New object has kOldBit: %x\n", tags);
+      FATAL1("New object has kOldBit: %" Px "\n", tags);
     }
     if (OldAndNotMarkedBit::decode(tags)) {
-      FATAL1("New object has kOldAndNotMarkedBit: %x\n", tags);
+      FATAL1("New object has kOldAndNotMarkedBit: %" Px "\n", tags);
     }
     if (OldAndNotRememberedBit::decode(tags)) {
-      FATAL1("New object has kOldAndNotRememberedBit: %x\n", tags);
+      FATAL1("New object has kOldAndNotRememberedBit: %" Px "\n", tags);
     }
   } else {
     if (NewBit::decode(tags)) {
-      FATAL1("Old object has kNewBit: %x\n", tags);
+      FATAL1("Old object has kNewBit: %" Px "\n", tags);
     }
     if (!OldBit::decode(tags)) {
-      FATAL1("Old object missing kOldBit: %x\n", tags);
+      FATAL1("Old object missing kOldBit: %" Px "\n", tags);
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
@@ -90,7 +90,7 @@ void ObjectLayout::Validate(IsolateGroup* isolate_group) const {
 // compaction when the class objects are moving. Can use the class
 // id in the header and the sizes in the Class Table.
 // Cannot deference ptr()->tags_. May dereference other parts of the object.
-intptr_t ObjectLayout::HeapSizeFromClass(uint32_t tags) const {
+intptr_t ObjectLayout::HeapSizeFromClass(uword tags) const {
   intptr_t class_id = ClassIdTag::decode(tags);
   intptr_t instance_size = 0;
   switch (class_id) {
@@ -268,7 +268,7 @@ intptr_t ObjectLayout::HeapSizeFromClass(uint32_t tags) const {
     } while ((instance_size > tags_size) && (--retries_remaining > 0));
   }
   if ((instance_size != tags_size) && (tags_size != 0)) {
-    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %x\n",
+    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
            instance_size, tags_size, tags);
   }
 #endif  // DEBUG
@@ -333,13 +333,6 @@ intptr_t ObjectLayout::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #define RAW_VISITPOINTERS(clazz) case kFfi##clazz##Cid:
       CLASS_LIST_FFI_TYPE_MARKER(RAW_VISITPOINTERS) {
         // NativeType do not have any fields or type arguments.
-        size = HeapSize();
-        break;
-      }
-#undef RAW_VISITPOINTERS
-#define RAW_VISITPOINTERS(clazz) case k##clazz##Cid:
-      CLASS_LIST_WASM(RAW_VISITPOINTERS) {
-        // These wasm types do not have any fields or type arguments.
         size = HeapSize();
         break;
       }
@@ -505,7 +498,6 @@ bool ObjectLayout::FindObject(FindObjectVisitor* visitor) {
   }
 
 REGULAR_VISITOR(Class)
-REGULAR_VISITOR(Bytecode)
 REGULAR_VISITOR(Type)
 REGULAR_VISITOR(TypeRef)
 REGULAR_VISITOR(TypeParameter)
@@ -514,14 +506,11 @@ REGULAR_VISITOR(Function)
 COMPRESSED_VISITOR(Closure)
 REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
-REGULAR_VISITOR(RedirectionData)
 REGULAR_VISITOR(FfiTrampolineData)
-REGULAR_VISITOR(Field)
 REGULAR_VISITOR(Script)
 REGULAR_VISITOR(Library)
 REGULAR_VISITOR(LibraryPrefix)
 REGULAR_VISITOR(Namespace)
-REGULAR_VISITOR(ParameterTypeCheck)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
 REGULAR_VISITOR(MonomorphicSmiableCall)
@@ -592,6 +581,26 @@ NULL_VISITOR(WeakSerializationReference)
 REGULAR_VISITOR(WeakSerializationReference)
 #endif
 
+intptr_t FieldLayout::VisitFieldPointers(FieldPtr raw_obj,
+                                         ObjectPointerVisitor* visitor) {
+  ASSERT(raw_obj->IsHeapObject());
+  ASSERT_UNCOMPRESSED(Field);
+  visitor->VisitPointers(raw_obj->ptr()->from(), raw_obj->ptr()->to());
+
+  if (visitor->trace_values_through_fields()) {
+    if (Field::StaticBit::decode(raw_obj->ptr()->kind_bits_)) {
+      visitor->isolate_group()->ForEachIsolate(
+          [&](Isolate* isolate) {
+            intptr_t index =
+                Smi::Value(raw_obj->ptr()->host_offset_or_field_id_);
+            visitor->VisitPointer(&isolate->field_table()->table()[index]);
+          },
+          /*at_safepoint=*/true);
+    }
+  }
+  return Field::InstanceSize();
+}
+
 bool CodeLayout::ContainsPC(const ObjectPtr raw_obj, uword pc) {
   if (!raw_obj->IsCode()) return false;
   auto const raw_code = static_cast<const CodePtr>(raw_obj);
@@ -626,16 +635,6 @@ intptr_t CodeLayout::VisitCodePointers(CodePtr raw_obj,
 #endif
 }
 
-bool BytecodeLayout::ContainsPC(ObjectPtr raw_obj, uword pc) {
-  if (raw_obj->IsBytecode()) {
-    BytecodePtr raw_bytecode = static_cast<BytecodePtr>(raw_obj);
-    uword start = raw_bytecode->ptr()->instructions_;
-    uword size = raw_bytecode->ptr()->instructions_size_;
-    return (pc - start) <= size;  // pc may point past last instruction.
-  }
-  return false;
-}
-
 intptr_t ObjectPoolLayout::VisitObjectPoolPointers(
     ObjectPoolPtr raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -645,8 +644,7 @@ intptr_t ObjectPoolLayout::VisitObjectPoolPointers(
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
         ObjectPool::TypeBits::decode(entry_bits[i]);
-    if ((entry_type == ObjectPool::EntryType::kTaggedObject) ||
-        (entry_type == ObjectPool::EntryType::kNativeEntryData)) {
+    if (entry_type == ObjectPool::EntryType::kTaggedObject) {
       visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }
@@ -666,7 +664,7 @@ intptr_t InstanceLayout::VisitInstancePointers(InstancePtr raw_obj,
                                                ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  uint32_t tags = raw_obj->ptr()->tags_;
+  uword tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
     instance_size = visitor->isolate_group()->GetClassSizeForHeapWalkAt(

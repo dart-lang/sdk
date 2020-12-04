@@ -19,15 +19,11 @@ abstract class ExpressionVisitor<R> {
   R visitVariableSet(VariableSet node) => defaultExpression(node);
   R visitPropertyGet(PropertyGet node) => defaultExpression(node);
   R visitPropertySet(PropertySet node) => defaultExpression(node);
-  R visitDirectPropertyGet(DirectPropertyGet node) => defaultExpression(node);
-  R visitDirectPropertySet(DirectPropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
   R visitStaticSet(StaticSet node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
-  R visitDirectMethodInvocation(DirectMethodInvocation node) =>
-      defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -148,15 +144,11 @@ class TreeVisitor<R>
   R visitVariableSet(VariableSet node) => defaultExpression(node);
   R visitPropertyGet(PropertyGet node) => defaultExpression(node);
   R visitPropertySet(PropertySet node) => defaultExpression(node);
-  R visitDirectPropertyGet(DirectPropertyGet node) => defaultExpression(node);
-  R visitDirectPropertySet(DirectPropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
   R visitStaticSet(StaticSet node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
-  R visitDirectMethodInvocation(DirectMethodInvocation node) =>
-      defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -281,6 +273,7 @@ class DartTypeVisitor<R> {
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   R visitNeverType(NeverType node) => defaultDartType(node);
+  R visitNullType(NullType node) => defaultDartType(node);
 }
 
 class DartTypeVisitor1<R, T> {
@@ -297,6 +290,7 @@ class DartTypeVisitor1<R, T> {
       defaultDartType(node, arg);
   R visitTypedefType(TypedefType node, T arg) => defaultDartType(node, arg);
   R visitNeverType(NeverType node, T arg) => defaultDartType(node, arg);
+  R visitNullType(NullType node, T arg) => defaultDartType(node, arg);
 }
 
 /// Visitor for [Constant] nodes.
@@ -420,7 +414,8 @@ class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
 
   /// Visits [node] if not already visited to compute a value for [node].
   ///
-  /// If the value has already been computed the cached value is returned immediately.
+  /// If the value has already been computed the cached value is returned
+  /// immediately.
   ///
   /// Call this method to compute values for subnodes recursively, while only
   /// visiting each subnode once.
@@ -534,6 +529,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   R visitNeverType(NeverType node) => defaultDartType(node);
+  R visitNullType(NullType node) => defaultDartType(node);
 
   // Constants
   R defaultConstant(Constant node) => defaultNode(node);
@@ -667,10 +663,6 @@ abstract class ExpressionVisitor1<R, T> {
   R visitVariableSet(VariableSet node, T arg) => defaultExpression(node, arg);
   R visitPropertyGet(PropertyGet node, T arg) => defaultExpression(node, arg);
   R visitPropertySet(PropertySet node, T arg) => defaultExpression(node, arg);
-  R visitDirectPropertyGet(DirectPropertyGet node, T arg) =>
-      defaultExpression(node, arg);
-  R visitDirectPropertySet(DirectPropertySet node, T arg) =>
-      defaultExpression(node, arg);
   R visitSuperPropertyGet(SuperPropertyGet node, T arg) =>
       defaultExpression(node, arg);
   R visitSuperPropertySet(SuperPropertySet node, T arg) =>
@@ -678,8 +670,6 @@ abstract class ExpressionVisitor1<R, T> {
   R visitStaticGet(StaticGet node, T arg) => defaultExpression(node, arg);
   R visitStaticSet(StaticSet node, T arg) => defaultExpression(node, arg);
   R visitMethodInvocation(MethodInvocation node, T arg) =>
-      defaultExpression(node, arg);
-  R visitDirectMethodInvocation(DirectMethodInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitSuperMethodInvocation(SuperMethodInvocation node, T arg) =>
       defaultExpression(node, arg);

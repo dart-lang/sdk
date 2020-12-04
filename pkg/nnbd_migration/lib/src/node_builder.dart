@@ -228,10 +228,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var decoratedType = node.parameter.accept(this);
+    var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (node.defaultValue != null) {
       node.defaultValue.accept(this);
       return null;
     } else if (node.declaredElement.hasRequired) {
+      return null;
+    } else if (hint != null && hint.kind == HintCommentKind.required) {
+      _variables.recordRequiredHint(source, node, hint);
       return null;
     }
     if (decoratedType == null) {
@@ -418,7 +422,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       decoratedFunctionType = node.functionType.accept(this);
     });
     _variables.recordDecoratedElementType(
-        (node.declaredElement as GenericTypeAliasElement).function,
+        (node.declaredElement as FunctionTypeAliasElement).function,
         decoratedFunctionType);
     return null;
   }
@@ -631,6 +635,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         () => typeAnnotation?.accept(this));
     var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (hint != null && hint.kind == HintCommentKind.late_) {
+      _variables.recordLateHint(source, node, hint);
+    }
+    if (hint != null && hint.kind == HintCommentKind.lateFinal) {
       _variables.recordLateHint(source, node, hint);
     }
     for (var variable in node.variables) {

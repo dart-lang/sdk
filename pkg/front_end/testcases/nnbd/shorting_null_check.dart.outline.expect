@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int zero;
+  field core::int? zeroOrNull;
+  constructor •(core::int zero, [core::int? zeroOrNull]) → self::A
+    ;
+}
+class Foo extends core::Object {
+  field self::Bar? bar;
+  constructor •(self::Bar? bar) → self::Foo
+    ;
+  operator [](core::int? index) → self::Bar?
+    ;
+}
+class Bar extends core::Object {
+  field core::int baz;
+  constructor •(core::int baz) → self::Bar
+    ;
+  operator [](core::int index) → core::int
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+}
+static method test1(self::A? a) → core::int?
+  ;
+static method test2(self::A? a) → core::int?
+  ;
+static method test3(self::A? a) → core::bool?
+  ;
+static method test4(self::A? a) → core::bool?
+  ;
+static method test5(self::Foo? foo) → self::Bar?
+  ;
+static method test6(self::Foo? foo) → core::int?
+  ;
+static method test7(self::Foo? foo, core::int baz) → core::int?
+  ;
+static method test8(self::Foo? foo, core::int? bar) → self::Bar?
+  ;
+static method test9(self::Foo? foo, core::int? bar) → core::int?
+  ;
+static method test10(self::Foo? foo, core::int? bar, core::int baz) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;

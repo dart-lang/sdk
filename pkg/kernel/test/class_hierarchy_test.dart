@@ -167,7 +167,7 @@ class B extends self::A {
         hierarchy.getDispatchTargets(a), unorderedEquals([methodA1, methodA2]));
 
     // Add a member to A, but only update A.
-    a.addMember(methodA3);
+    a.addProcedure(methodA3);
     hierarchy.applyMemberChanges([a]);
     expect(hierarchy.getDispatchTargets(b),
         unorderedEquals([methodA1, methodA2, methodB1]));
@@ -453,7 +453,8 @@ class B extends self::A {
 ''');
 
     // The documentation says:
-    // It is possible for two methods to override one another in both directions.
+    // It is possible for two methods to override one another in both
+    // directions.
     _assertOverridePairs(b, ['test::B.foo overrides test::A.foo']);
   }
 
@@ -1216,10 +1217,9 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
     var b_int = new InterfaceType(b, Nullability.legacy, [int]);
-    expect(hierarchy.getTypeAsInstanceOf(b_int, a, library, coreTypes),
+    expect(hierarchy.getTypeAsInstanceOf(b_int, a, library),
         new InterfaceType(a, Nullability.legacy, [int, bool]));
-    expect(
-        hierarchy.getTypeAsInstanceOf(b_int, objectClass, library, coreTypes),
+    expect(hierarchy.getTypeAsInstanceOf(b_int, objectClass, library),
         new InterfaceType(objectClass, Nullability.legacy));
   }
 
@@ -1228,12 +1228,12 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
     void callback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
       var suffix = isSetter ? '=' : '';
-      String declaredName =
-          '${qualifiedMemberNameToString(declaredMember, includeLibraryName: true)}'
-          '$suffix';
-      String interfaceName =
-          '${qualifiedMemberNameToString(interfaceMember, includeLibraryName: true)}'
-          '$suffix';
+      String declaredMemberName =
+          qualifiedMemberNameToString(declaredMember, includeLibraryName: true);
+      String declaredName = '${declaredMemberName}$suffix';
+      String interfaceMemberName = qualifiedMemberNameToString(interfaceMember,
+          includeLibraryName: true);
+      String interfaceName = '${interfaceMemberName}$suffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     }

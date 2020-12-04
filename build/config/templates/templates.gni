@@ -17,8 +17,6 @@
 #     variables = "app_name=chrome_shell app_version=1"
 #   }
 template("file_template") {
-  set_sources_assignment_filter([])
-
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }

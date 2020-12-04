@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/kernel.dart';
 import 'kernel_helpers.dart';
 
@@ -35,7 +37,7 @@ bool isAllowInterop(Expression node) {
   if (node is StaticInvocation) {
     var target = node.target;
     return _isLibrary(target.enclosingLibrary, ['dart:js']) &&
-        target.name.name == 'allowInterop';
+        target.name.text == 'allowInterop';
   }
   return false;
 }
@@ -80,7 +82,7 @@ bool isJSExportNameAnnotation(Expression value) =>
 /// Whether [i] is a `spread` invocation (to be used on function arguments
 /// to have them compiled as `...` spread args in ES6 outputs).
 bool isJSSpreadInvocation(Procedure target) =>
-    target.name.name == 'spread' && _isJSLibrary(target.enclosingLibrary);
+    target.name.text == 'spread' && _isJSLibrary(target.enclosingLibrary);
 
 bool isJSName(Expression value) =>
     isBuiltinAnnotation(value, '_js_helper', 'JSName');

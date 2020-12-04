@@ -69,7 +69,6 @@
     "Dynamic access of 'dart.collection::_modifications'.": 5,
     "Dynamic access of 'dart.collection::_map'.": 4,
     "Dynamic access of 'dart.collection::_elements'.": 1,
-    "Dynamic access of 'dart.collection::_element'.": 1,
     "Dynamic access of 'dart.collection::_first'.": 1
   },
   "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
@@ -110,16 +109,7 @@
     "Dynamic access of 'dart.io::_path'.": 1,
     "Dynamic access of 'pid'.": 1,
     "Dynamic access of 'dart.io::_arguments'.": 1,
-    "Dynamic access of 'dart.io::_workingDirectory'.": 2,
-    "Dynamic access of 'isListening'.": 3,
-    "Dynamic access of 'address'.": 4,
-    "Dynamic access of 'host'.": 5,
-    "Dynamic access of 'port'.": 3,
-    "Dynamic access of 'remoteAddress'.": 2,
-    "Dynamic access of 'remotePort'.": 2,
-    "Dynamic access of 'isTcp'.": 1,
-    "Dynamic access of 'type'.": 1,
-    "Dynamic access of 'name'.": 1
+    "Dynamic access of 'dart.io::_workingDirectory'.": 2
   },
   "org-dartlang-sdk:///lib/io/link.dart": {
     "Dynamic invocation of '[]'.": 3

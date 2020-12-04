@@ -36,6 +36,9 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// reported.
   Builder lookupLocalMemberByName(Name name,
       {bool setter: false, bool required: false});
+
+  /// Calls [f] for each member declared in this extension.
+  void forEach(void f(String name, Builder builder));
 }
 
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
@@ -87,6 +90,11 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
+  void forEach(void f(String name, Builder builder)) {
+    scope.forEach(f);
+  }
+
+  @override
   bool get isExtension => true;
 
   @override
@@ -111,7 +119,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   Builder lookupLocalMemberByName(Name name,
       {bool setter: false, bool required: false}) {
     Builder builder =
-        lookupLocalMember(name.name, setter: setter, required: required);
+        lookupLocalMember(name.text, setter: setter, required: required);
     if (builder != null && name.isPrivate && library.library != name.library) {
       builder = null;
     }

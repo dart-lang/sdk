@@ -9,7 +9,6 @@ import 'error/test_all.dart' as error;
 import 'file_system/test_all.dart' as file_system;
 import 'generated/test_all.dart' as generated;
 import 'instrumentation/test_all.dart' as instrumentation;
-import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
 import 'verify_diagnostics_test.dart' as verify_diagnostics;
@@ -23,7 +22,6 @@ main() {
     file_system.main();
     generated.main();
     instrumentation.main();
-    parse_compilation_unit.main();
     source.main();
     src.main();
     verify_diagnostics.main();

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,8 +14,25 @@ main() {
 }
 
 @reflectiveTest
-class NotInitializedNonNullableInstanceFieldTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class NotInitializedNonNullableInstanceFieldTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
+  test_abstract_field_non_nullable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+''');
+  }
+
+  test_abstract_field_non_nullable_with_constructor() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+  A();
+}
+''');
+  }
+
   test_class_factoryConstructor() async {
     await assertNoErrorsInCode('''
 class A {
@@ -67,6 +83,23 @@ class A {
   int x;
 
   A() : x = 0;
+}
+''');
+  }
+
+  test_external_field_non_nullable() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+''');
+  }
+
+  test_external_field_non_nullable_with_constructor() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+  A();
 }
 ''');
   }

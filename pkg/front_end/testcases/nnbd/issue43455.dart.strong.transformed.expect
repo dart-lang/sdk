@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class C<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%, self::C::Y>
+    : super core::Object::•()
+    ;
+  method test(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y? y) → dynamic {
+    core::Set<core::Object?> v = block {
+      final core::Set<core::Object?> #t1 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t1.{core::Set::add}{Invariant}(x);
+      #t1.{core::Set::add}{Invariant}(42);
+    } =>#t1;
+    core::Set<core::Object?> w = block {
+      final core::Set<core::Object?> #t2 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t2.{core::Set::add}{Invariant}(42);
+      #t2.{core::Set::add}{Invariant}(x);
+    } =>#t2;
+    core::Set<core::Object?> p = block {
+      final core::Set<core::Object?> #t3 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t3.{core::Set::add}{Invariant}(y);
+      #t3.{core::Set::add}{Invariant}(42);
+    } =>#t3;
+    core::Set<core::Object?> q = block {
+      final core::Set<core::Object?> #t4 = new col::_CompactLinkedHashSet::•<core::Object?>();
+      #t4.{core::Set::add}{Invariant}(42);
+      #t4.{core::Set::add}{Invariant}(y);
+    } =>#t4;
+    self::assertRightSubtype(v);
+    self::assertLeftSubtype<core::Set<core::Object?>>(v);
+    self::assertRightSubtype(w);
+    self::assertLeftSubtype<core::Set<core::Object?>>(w);
+    self::assertRightSubtype(p);
+    self::assertLeftSubtype<core::Set<core::Object?>>(p);
+    self::assertRightSubtype(q);
+    self::assertLeftSubtype<core::Set<core::Object?>>(q);
+    if(x is{ForNonNullableByDefault} core::Object?) {
+      core::Set<core::Object?> v = block {
+        final core::Set<core::Object?> #t5 = new col::_CompactLinkedHashSet::•<core::Object?>();
+        #t5.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */});
+        #t5.{core::Set::add}{Invariant}(42);
+      } =>#t5;
+      core::Set<core::Object?> w = block {
+        final core::Set<core::Object?> #t6 = new col::_CompactLinkedHashSet::•<core::Object?>();
+        #t6.{core::Set::add}{Invariant}(42);
+        #t6.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */});
+      } =>#t6;
+      self::assertRightSubtype(v);
+      self::assertLeftSubtype<core::Set<core::Object?>>(v);
+      self::assertRightSubtype(w);
+      self::assertLeftSubtype<core::Set<core::Object?>>(w);
+    }
+  }
+}
+static method assertRightSubtype(dynamic x) → dynamic {
+  x as{ForNonNullableByDefault} core::Set<core::Object?>;
+}
+static method assertLeftSubtype<X extends core::Object? = dynamic>(self::assertLeftSubtype::X% x) → dynamic {
+  new col::_CompactLinkedHashSet::•<core::Object?>() as{ForNonNullableByDefault} self::assertLeftSubtype::X%;
+}
+static method main() → dynamic {
+  new self::C::•<core::int?, core::int>().{self::C::test}(42, null);
+  new self::C::•<core::int?, core::int>().{self::C::test}(null, null);
+}

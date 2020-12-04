@@ -15,6 +15,8 @@
 #include "platform/globals.h"
 #include "platform/utils.h"
 
+#define DART_DEV_ISOLATE_NAME "dartdev"
+
 namespace dart {
 namespace bin {
 
@@ -39,6 +41,10 @@ class DartDevIsolate {
 
   static bool should_run_dart_dev() { return should_run_dart_dev_; }
 
+  // Attempts to find the DartDev snapshot. If the snapshot cannot be found,
+  // the VM will shutdown.
+  static Utils::CStringUniquePtr TryResolveDartDevSnapshotPath();
+
   // Starts a DartDev instance in a new isolate and runs it to completion.
   //
   // Returns true if the VM should run the result in `script`, in which case
@@ -46,7 +52,7 @@ class DartDevIsolate {
   // values.
   static DartDev_Result RunDartDev(
       Dart_IsolateGroupCreateCallback create_isolate,
-      const char* packages_file,
+      char** packages_file,
       char** script,
       CommandLineOptions* dart_options);
 
@@ -56,7 +62,7 @@ class DartDevIsolate {
     DartDevRunner() {}
 
     void Run(Dart_IsolateGroupCreateCallback create_isolate,
-             const char* packages_file,
+             char** package_config_override_,
              char** script,
              CommandLineOptions* dart_options);
 
@@ -70,6 +76,7 @@ class DartDevIsolate {
 
     static DartDev_Result result_;
     static char** script_;
+    static char** package_config_override_;
     static std::unique_ptr<char*[], void (*)(char**)> argv_;
     static intptr_t argc_;
 
@@ -82,10 +89,6 @@ class DartDevIsolate {
   };
 
  private:
-  // Attempts to find the DartDev snapshot. If the snapshot cannot be found,
-  // the VM will shutdown.
-  static Utils::CStringUniquePtr TryResolveDartDevSnapshotPath();
-
   static DartDevRunner runner_;
   static bool should_run_dart_dev_;
 

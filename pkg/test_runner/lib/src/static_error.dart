@@ -55,6 +55,44 @@ class ErrorSource {
 class StaticError implements Comparable<StaticError> {
   static const _unspecified = "unspecified";
 
+  /// The error codes for all of the analyzer errors that are non-fatal
+  /// warnings.
+  ///
+  /// We can't rely on the type ("STATIC_WARNING", etc.) because for historical
+  /// reasons the "warning" types contain a large number of actual compile
+  /// errors.
+  // TODO(rnystrom): This list was generated on 2020/07/24 based on the list
+  // of error codes in sdk/pkg/analyzer/lib/error/error.dart. Is there a more
+  // systematic way to handle this?
+  static const _analyzerWarningCodes = {
+    "STATIC_WARNING.ANALYSIS_OPTION_DEPRECATED",
+    "STATIC_WARNING.INCLUDE_FILE_NOT_FOUND",
+    "STATIC_WARNING.INCLUDED_FILE_WARNING",
+    "STATIC_WARNING.INVALID_OPTION",
+    "STATIC_WARNING.INVALID_SECTION_FORMAT",
+    "STATIC_WARNING.SPEC_MODE_REMOVED",
+    "STATIC_WARNING.UNRECOGNIZED_ERROR_CODE",
+    "STATIC_WARNING.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE",
+    "STATIC_WARNING.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES",
+    "STATIC_WARNING.UNSUPPORTED_OPTION_WITHOUT_VALUES",
+    "STATIC_WARNING.UNSUPPORTED_VALUE",
+    "STATIC_WARNING.CAMERA_PERMISSIONS_INCOMPATIBLE",
+    "STATIC_WARNING.NO_TOUCHSCREEN_FEATURE",
+    "STATIC_WARNING.NON_RESIZABLE_ACTIVITY",
+    "STATIC_WARNING.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE",
+    "STATIC_WARNING.SETTING_ORIENTATION_ON_ACTIVITY",
+    "STATIC_WARNING.UNSUPPORTED_CHROME_OS_FEATURE",
+    "STATIC_WARNING.UNSUPPORTED_CHROME_OS_HARDWARE",
+    "STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION",
+    "STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR",
+    "STATIC_WARNING.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED",
+    "STATIC_WARNING.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL",
+    "STATIC_WARNING.MISSING_ENUM_CONSTANT_IN_SWITCH",
+    "STATIC_WARNING.UNNECESSARY_NON_NULL_ASSERTION",
+    "STATIC_WARNING.TOP_LEVEL_INSTANCE_GETTER",
+    "STATIC_WARNING.TOP_LEVEL_INSTANCE_METHOD",
+  };
+
   /// Parses the set of static error expectations defined in the Dart source
   /// file [source].
   static List<StaticError> parseExpectations(String source) =>
@@ -294,6 +332,25 @@ class StaticError implements Comparable<StaticError> {
     var result = "line $line, column $column";
     if (length != null) result += ", length $length";
     return result;
+  }
+
+  /// Whether this error is only considered a warning on all front ends that
+  /// report it.
+  bool get isWarning {
+    var analyzer = _errors[ErrorSource.analyzer];
+    if (analyzer != null && !_analyzerWarningCodes.contains(analyzer)) {
+      return false;
+    }
+
+    // TODO(42787): Once CFE starts reporting warnings, encode that in the
+    // message somehow and then look for it here.
+    if (hasError(ErrorSource.cfe)) return false;
+
+    // TODO(rnystrom): If the web compilers report warnings, encode that in the
+    // message somehow and then look for it here.
+    if (hasError(ErrorSource.web)) return false;
+
+    return true;
   }
 
   String toString() {

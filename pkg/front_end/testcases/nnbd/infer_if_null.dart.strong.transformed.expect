@@ -67,3 +67,21 @@ static method test7(self::A7? a) → dynamic {
   core::String? s2 = let final self::A7? #t22 = a in #t22.{core::Object::==}(null) ?{core::String?} null : let final core::String? #t23 = #t22.{self::A7::bar} in #t23.{core::String::==}(null) ?{core::String} #t22.{self::A7::bar} = "bar" : #t23{core::String};
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:20 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:20 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:27 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:27 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:17 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:17 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:24 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:24 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:15 -> DoubleConstant(3.14)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:21 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:15 -> DoubleConstant(3.14)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:21 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:28 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:28 -> StringConstant("bar")
+Extra constant evaluation: evaluated: 112, effectively constant: 14

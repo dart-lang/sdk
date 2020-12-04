@@ -22,7 +22,12 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 }
 
 constants  {
-  #C1 = <core::Null?>[]
+  #C1 = <Null>[]
   #C2 = true
   #C3 = <core::int*>[]
 }
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:5:44 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:7:44 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 18, effectively constant: 2

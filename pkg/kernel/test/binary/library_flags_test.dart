@@ -46,7 +46,6 @@ main() {
     for (bool isNonNullableByDefault in [true, false]) {
       for (NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode
           in [
-        NonNullableByDefaultCompiledMode.Disabled,
         NonNullableByDefaultCompiledMode.Weak,
         NonNullableByDefaultCompiledMode.Strong,
         NonNullableByDefaultCompiledMode.Agnostic,

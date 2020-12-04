@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class MultipleSuperInitializersTest extends DriverResolutionTest {
+class MultipleSuperInitializersTest extends PubPackageResolutionTest {
   test_twoSuperInitializers() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -22,7 +22,7 @@ class B extends A {
   B() : super(), super() {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 39, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 39, 5),
       error(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, 48, 7),
     ]);
   }

@@ -311,7 +311,8 @@ class Forest {
 
   /// Return a representation of a block of [statements] at the given
   /// [fileOffset].
-  Statement createBlock(int fileOffset, List<Statement> statements) {
+  Statement createBlock(
+      int fileOffset, int fileEndOffset, List<Statement> statements) {
     assert(fileOffset != null);
     List<Statement> copy;
     for (int i = 0; i < statements.length; i++) {
@@ -323,7 +324,9 @@ class Forest {
         copy.add(statement);
       }
     }
-    return new Block(copy ?? statements)..fileOffset = fileOffset;
+    return new Block(copy ?? statements)
+      ..fileOffset = fileOffset
+      ..fileEndOffset = fileEndOffset;
   }
 
   /// Return a representation of a break statement.
@@ -424,12 +427,21 @@ class Forest {
   }
 
   /// Return a representation of a logical expression at the given [fileOffset]
-  /// having the [leftOperand], [rightOperand] and the [operator]
+  /// having the [leftOperand], [rightOperand] and the [operatorString]
   /// (either `&&` or `||`).
   Expression createLogicalExpression(int fileOffset, Expression leftOperand,
-      String operator, Expression rightOperand) {
+      String operatorString, Expression rightOperand) {
     assert(fileOffset != null);
-    assert(operator == '&&' || operator == '||');
+    LogicalExpressionOperator operator;
+    if (operatorString == '&&') {
+      operator = LogicalExpressionOperator.AND;
+    } else if (operatorString == '||') {
+      operator = LogicalExpressionOperator.OR;
+    } else {
+      throw new UnsupportedError(
+          "Unhandled logical operator '$operatorString'");
+    }
+
     return new LogicalExpression(leftOperand, operator, rightOperand)
       ..fileOffset = fileOffset;
   }

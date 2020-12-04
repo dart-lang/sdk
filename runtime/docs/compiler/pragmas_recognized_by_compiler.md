@@ -135,3 +135,18 @@ class C {
   final int value;
 }
 ```
+
+### Marking recognized methods
+
+```dart
+@pragma("vm:recognized", <kind>)
+```
+
+Marks the method as one of the methods specially recognized by the VM. Here,
+<kind> is one of `"asm-intrinsic"`, `"graph-intrinsic"` or `"other"`,
+corresponding to the category the recognized method belongs to, as defined in
+[`recognized_methods_list.h`](../../vm/compiler/recognized_methods_list.h).
+
+The pragmas must match exactly the set of recognized methods.  This enables
+kernel-level analyses and optimizations to query whether a method is recognized
+by the VM. The correspondence is checked when running in debug mode.

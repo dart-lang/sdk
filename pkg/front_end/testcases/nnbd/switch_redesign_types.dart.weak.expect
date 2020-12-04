@@ -1,16 +1,3 @@
-//
-// Problems in component:
-//
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:37:16: Error: Case expression 'D {}' does not have a primitive operator '=='.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
-//     case const D(42): // Error: D has custom operator ==.
-//                ^
-//
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Case expression 'D {}' does not have a primitive operator '=='.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
-//     case x: // Error: D has custom operator ==.
-//          ^
-//
 library /*isNonNullableByDefault*/;
 //
 // Problems in library:
@@ -31,6 +18,16 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd/switch_redesign_types.dart:30:11: Context: The switch expression is here.
 //   switch (b) {
 //           ^
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:37:16: Error: Case expression 'D {}' does not have a primitive operator '=='.
+//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
+//     case const D(42): // Error: D has custom operator ==.
+//                ^
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Case expression 'D {}' does not have a primitive operator '=='.
+//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
+//     case x: // Error: D has custom operator ==.
+//          ^
 //
 import self as self;
 import "dart:core" as core;

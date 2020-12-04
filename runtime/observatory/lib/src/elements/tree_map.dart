@@ -11,7 +11,7 @@ abstract class TreeMap<T> {
   String getBackground(T node);
   String getLabel(T node);
   String getTooltip(T node) => getLabel(node);
-  T getParent(T node);
+  T? getParent(T node);
   Iterable<T> getChildren(T node);
   void onSelect(T node);
   void onDetails(T node);
@@ -34,7 +34,8 @@ abstract class TreeMap<T> {
     div.onDoubleClick.listen((event) {
       event.stopPropagation();
       if (depth == 0) {
-        onSelect(getParent(node)); // Zoom out.
+        var p = getParent(node);
+        onSelect(p ?? node); // Zoom out.
       } else {
         onSelect(node); // Zoom in.
       }

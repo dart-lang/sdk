@@ -30,6 +30,7 @@ final _variables = {
   "jscl": _Variable.bool((c) => c.runtime.isJSCommandLine),
   "minified": _Variable.bool((c) => c.isMinified),
   "mode": _Variable((c) => c.mode.name, Mode.names),
+  "nnbd": _Variable((TestConfiguration c) => c.nnbdMode.name, NnbdMode.names),
   "runtime": _Variable(_runtimeName, _runtimeNames),
   "spec_parser": _Variable.bool((c) => c.compiler == Compiler.specParser),
   "system": _Variable(_systemName, _systemNames),

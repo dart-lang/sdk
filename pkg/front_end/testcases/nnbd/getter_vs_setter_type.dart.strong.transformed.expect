@@ -1,0 +1,155 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:14:12: Error: The type 'int?' of the getter 'A.property3' is not a subtype of the type 'int' of the setter 'A.property3'.
+//   int? get property3; // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:16:12: Context: This is the declaration of the setter 'A.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:48:12: Error: The type 'int?' of the inherited getter 'B1.property3' is not a subtype of the type 'int' of the setter 'B2.property3'.
+//   void set property3(int i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:32:12: Context: This is the declaration of the getter 'B1.property3'.
+//   int? get property3;
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:54:12: Error: The type 'int?' of the inherited field 'B1.property6' is not a subtype of the type 'int' of the setter 'B2.property6'.
+//   void set property6(int i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:38:14: Context: This is the declaration of the field 'B1.property6'.
+//   final int? property6;
+//              ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:78:12: Error: The type 'int?' of the getter 'C2.property3' is not a subtype of the type 'int' of the inherited setter 'C1.property3'.
+//   int? get property3; // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:62:12: Context: This is the declaration of the setter 'C1.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:86:12: Error: The return type of the method 'C2.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
+// Change to a subtype of 'int'.
+//   int? get property6; // error
+//            ^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:68:7: Context: This is the overridden method ('property6').
+//   int property6;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:86:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
+//   int? get property6; // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:68:7: Context: This is the declaration of the setter 'C1.property6'.
+//   int property6;
+//       ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:105:16: Error: The type 'int?' of the inherited getter 'D1.property3' is not a subtype of the type 'int' of the inherited setter 'D2.property3'.
+// abstract class D3 implements D1, D2 /* error on property3 */ {}
+//                ^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:94:12: Context: This is the declaration of the getter 'D1.property3'.
+//   int? get property3;
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:102:12: Context: This is the declaration of the setter 'D2.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:107:16: Error: The type 'int?' of the inherited getter 'D1.property3' is not a subtype of the type 'int' of the inherited setter 'D2.property3'.
+// abstract class D4 implements D3 /* no need for error on property3 */ {}
+//                ^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:94:12: Context: This is the declaration of the getter 'D1.property3'.
+//   int? get property3;
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:102:12: Context: This is the declaration of the setter 'D2.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  field core::int property4;
+  field core::int? property5;
+  covariant field core::int property6;
+  constructor •(core::int property4, core::int? property5, core::int property6) → self::A
+    : self::A::property4 = property4, self::A::property5 = property5, self::A::property6 = property6, super core::Object::•()
+    ;
+  abstract get property1() → core::int;
+  abstract set property1(core::int i) → void;
+  abstract get property2() → core::int;
+  abstract set property2(core::int? i) → void;
+  abstract get property3() → core::int?;
+  abstract set property3(core::int i) → void;
+}
+abstract class B1 extends core::Object {
+  final field core::int property4;
+  final field core::int property5;
+  final field core::int? property6;
+  constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
+    : self::B1::property4 = property4, self::B1::property5 = property5, self::B1::property6 = property6, super core::Object::•()
+    ;
+  abstract get property1() → core::int;
+  abstract get property2() → core::int;
+  abstract get property3() → core::int?;
+}
+abstract class B2 extends core::Object implements self::B1 {
+  synthetic constructor •() → self::B2
+    : super core::Object::•()
+    ;
+  abstract set property1(core::int i) → void;
+  abstract set property2(core::int? i) → void;
+  abstract set property3(core::int i) → void;
+  abstract set property4(core::int i) → void;
+  abstract set property5(core::int? i) → void;
+  abstract set property6(core::int i) → void;
+}
+abstract class C1 extends core::Object {
+  field core::int property4;
+  field core::int? property5;
+  field core::int property6;
+  constructor •(core::int property4, core::int? property5, core::int property6) → self::C1
+    : self::C1::property4 = property4, self::C1::property5 = property5, self::C1::property6 = property6, super core::Object::•()
+    ;
+  abstract set property1(core::int i) → void;
+  abstract set property2(core::int? i) → void;
+  abstract set property3(core::int i) → void;
+}
+abstract class C2 extends core::Object implements self::C1 {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+  abstract get property1() → core::int;
+  abstract get property2() → core::int;
+  abstract get property3() → core::int?;
+  abstract get property4() → core::int;
+  abstract get property5() → core::int;
+  abstract get property6() → core::int?;
+}
+abstract class D1 extends core::Object {
+  synthetic constructor •() → self::D1
+    : super core::Object::•()
+    ;
+  abstract get property1() → core::int;
+  abstract get property2() → core::int;
+  abstract get property3() → core::int?;
+}
+abstract class D2 extends core::Object {
+  synthetic constructor •() → self::D2
+    : super core::Object::•()
+    ;
+  abstract set property1(core::int i) → void;
+  abstract set property2(core::int? i) → void;
+  abstract set property3(core::int i) → void;
+}
+abstract class D3 extends core::Object implements self::D1, self::D2 {
+  synthetic constructor •() → self::D3
+    : super core::Object::•()
+    ;
+}
+abstract class D4 extends core::Object implements self::D3 {
+  synthetic constructor •() → self::D4
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

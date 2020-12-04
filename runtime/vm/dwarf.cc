@@ -115,66 +115,33 @@ Dwarf::Dwarf(Zone* zone)
     : zone_(zone),
       reverse_obfuscation_trie_(CreateReverseObfuscationTrie(zone)),
       codes_(zone, 1024),
-      code_to_address_(zone),
+      code_to_name_(zone),
       functions_(zone, 1024),
       function_to_index_(zone),
       scripts_(zone, 1024),
       script_to_index_(zone),
       temp_(0) {}
 
-SegmentRelativeOffset Dwarf::CodeAddress(const Code& code) const {
-  const auto& pair = code_to_address_.LookupValue(&code);
-  // This is only used by Elf::Finalize(), and the image writers always give a
-  // text offset when calling AddCode() for an Elf object's Dwarf object. Thus,
-  // we should have known code offsets for each code object in the map.
-  ASSERT(pair.offset != SegmentRelativeOffset::kUnknownOffset);
-  return pair;
-}
-
-intptr_t Dwarf::AddCode(const Code& orig_code,
-                        const SegmentRelativeOffset& offset) {
+void Dwarf::AddCode(const Code& orig_code, const char* name) {
   ASSERT(!orig_code.IsNull());
-  // We should never get the no-argument constructed version here.
-  ASSERT(offset.offset != SegmentRelativeOffset::kInvalidOffset);
-  // Generate an appropriately zoned ZoneHandle for storing.
-  const auto& code = Code::ZoneHandle(zone_, orig_code.raw());
+  ASSERT(name != nullptr);
 
-  // For now, we assume one of two flows for a given code object:
-  // ELF: Calls to AddCode(code, vm, offset), vm and offset are the same over
-  //      all calls.
-  // Assembly: An initial call to AddCode(code, vm) (assembly), possibly
-  //     followed by a later call to AddCode(code, vm, offset)
-  //     (separate debugging info ELF)
-  if (offset.offset == SegmentRelativeOffset::kUnknownOffset) {
-    // A call without an address should always come before any calls with
-    // addresses.
-    ASSERT(code_to_address_.Lookup(&code) == nullptr);
-    // Insert a marker so on later calls, we know we've already added to codes_.
-    code_to_address_.Insert(CodeAddressPair(&code, offset));
-  } else {
-    const auto& old_value = code_to_address_.LookupValue(&code);
-    // ELF does not need to know the index. If we've already added this Code
-    // object to codes_ in a previous call, don't bother scanning codes_ to find
-    // the corresponding index, just return -1 instead.
-    switch (old_value.offset) {
-      case SegmentRelativeOffset::kInvalidOffset:
-        code_to_address_.Insert(CodeAddressPair(&code, offset));
-        break;  // Still need to add to codes_.
-      case SegmentRelativeOffset::kUnknownOffset:
-        // Code objects should only be associated with either the VM or isolate.
-        ASSERT_EQUAL(old_value.vm, offset.vm);
-        code_to_address_.Update(CodeAddressPair(&code, offset));
-        return -1;
-      default:
-        // The information for the code object shouldn't have changed since the
-        // previous update.
-        ASSERT(old_value == offset);
-        return -1;
-    }
+  if (auto const old_pair = code_to_name_.Lookup(&orig_code)) {
+    // Dwarf objects can be shared, so we may get the same information for a
+    // given code object in different calls. In DEBUG mode, make sure the
+    // information is the same before returning.
+    ASSERT(old_pair->value != nullptr);
+    ASSERT_EQUAL(strcmp(old_pair->value, name), 0);
+    return;
   }
 
-  const intptr_t index = codes_.length();
+  // Generate an appropriately zoned ZoneHandle for storing.
+  const auto& code = Code::ZoneHandle(zone_, orig_code.raw());
   codes_.Add(&code);
+  // Currently assumes the name has the same lifetime as the Zone of the
+  // Dwarf object (which is currently true).  Otherwise, need to copy.
+  code_to_name_.Insert({&code, name});
+
   if (code.IsFunctionCode()) {
     const Function& function = Function::Handle(zone_, code.function());
     AddFunction(function);
@@ -188,7 +155,6 @@ intptr_t Dwarf::AddCode(const Code& orig_code,
       AddFunction(function);
     }
   }
-  return index;
 }
 
 intptr_t Dwarf::AddFunction(const Function& function) {
@@ -309,8 +275,6 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
 }
 
 void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
-  SnapshotTextObjectNamer namer(zone_);
-
   // 7.5.1.1 Compilation Unit Header
 
   // Unit length.
@@ -343,10 +307,15 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
   // The highest instruction address in this object file that is part of our
   // compilation unit. Dwarf consumers use this to quickly decide which
   // compilation unit DIE to consult for a given pc.
-  intptr_t last_code_index = codes_.length() - 1;
-  const Code& last_code = *(codes_[last_code_index]);
-  auto const last_code_name = namer.SnapshotNameFor(last_code_index, last_code);
-  stream->OffsetFromSymbol(last_code_name, last_code.Size());
+  if (codes_.is_empty()) {
+    // No code objects in this program, so set high_pc to same as low_pc.
+    stream->OffsetFromSymbol(kIsolateSnapshotInstructionsAsmSymbol, 0);
+  } else {
+    const Code& last_code = *codes_.Last();
+    auto const last_code_name = code_to_name_.LookupValue(&last_code);
+    ASSERT(last_code_name != nullptr);
+    stream->OffsetFromSymbol(last_code_name, last_code.Size());
+  }
 
   // DW_AT_stmt_list (offset into .debug_line)
   // Indicates which line number program is associated with this compilation
@@ -388,7 +357,6 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
 void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
   Function& function = Function::Handle(zone_);
   Script& script = Script::Handle(zone_);
-  SnapshotTextObjectNamer namer(zone_);
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
     RELEASE_ASSERT(!code.IsNull());
@@ -399,7 +367,8 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     function = code.function();
     intptr_t function_index = LookupFunction(function);
     script = function.script();
-    const char* asm_name = namer.SnapshotNameFor(i, code);
+    const char* asm_name = code_to_name_.LookupValue(&code);
+    ASSERT(asm_name != nullptr);
 
     stream->uleb128(kConcreteFunction);
     // DW_AT_abstract_origin
@@ -415,7 +384,7 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     if (node != NULL) {
       for (InliningNode* child = node->children_head; child != NULL;
            child = child->children_next) {
-        WriteInliningNode(stream, child, asm_name, script, &namer);
+        WriteInliningNode(stream, child, asm_name, script);
       }
     }
 
@@ -514,8 +483,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
 void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
                               InliningNode* node,
                               const char* root_asm_name,
-                              const Script& parent_script,
-                              SnapshotTextObjectNamer* namer) {
+                              const Script& parent_script) {
   intptr_t file = LookupScript(parent_script);
   intptr_t function_index = LookupFunction(node->function);
   const Script& script = Script::Handle(zone_, node->function.script());
@@ -538,7 +506,7 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
-    WriteInliningNode(stream, child, root_asm_name, script, namer);
+    WriteInliningNode(stream, child, root_asm_name, script);
   }
 
   stream->uleb128(0);  // End of children.
@@ -617,11 +585,11 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
   Array& functions = Array::Handle(zone_);
   GrowableArray<const Function*> function_stack(zone_, 8);
   GrowableArray<DwarfPosition> token_positions(zone_, 8);
-  SnapshotTextObjectNamer namer(zone_);
 
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
-    auto const asm_name = namer.SnapshotNameFor(i, code);
+    auto const asm_name = code_to_name_.LookupValue(&code);
+    ASSERT(asm_name != nullptr);
 
     map = code.code_source_map();
     if (map.IsNull()) {
@@ -731,8 +699,8 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
     const intptr_t last_code_index = codes_.length() - 1;
     const Code& last_code = *(codes_[last_code_index]);
     const intptr_t last_pc_offset = last_code.Size();
-    const char* last_asm_name =
-        namer.SnapshotNameFor(last_code_index, last_code);
+    const char* last_asm_name = code_to_name_.LookupValue(&last_code);
+    ASSERT(last_asm_name != nullptr);
 
     stream->u1(DW_LNS_advance_pc);
     if (previous_asm_name != nullptr) {
@@ -774,7 +742,7 @@ const char* Dwarf::Deobfuscate(const char* cstr) {
     i += offset;
   }
   if (!changed) return cstr;
-  return OS::SCreate(zone_, "%s", buffer.buf());
+  return OS::SCreate(zone_, "%s", buffer.buffer());
 }
 
 Trie<const char>* Dwarf::CreateReverseObfuscationTrie(Zone* zone) {

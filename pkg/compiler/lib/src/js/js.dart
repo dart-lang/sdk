@@ -18,11 +18,14 @@ export 'js_debug.dart';
 String prettyPrint(Node node,
     {bool enableMinification: false,
     bool allowVariableMinification: true,
+    bool preferSemicolonToNewlineInMinifiedOutput: false,
     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
   // TODO(johnniwinther): Do we need all the options here?
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: enableMinification,
       minifyLocalVariables: allowVariableMinification,
+      preferSemicolonToNewlineInMinifiedOutput:
+          preferSemicolonToNewlineInMinifiedOutput,
       renamerForNames: renamerForNames);
   SimpleJavaScriptPrintingContext context =
       new SimpleJavaScriptPrintingContext();

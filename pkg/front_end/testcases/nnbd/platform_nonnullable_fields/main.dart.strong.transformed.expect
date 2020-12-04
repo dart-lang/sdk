@@ -21,7 +21,10 @@ library /*isNonNullableByDefault*/;
 //   int field;
 //       ^^^^^
 //
-// pkg/front_end/testcases/nnbd/platform_nonnullable_fields/patch_lib2.dart:37:7: Error: This constructor should initialize field 'field' because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/platform_nonnullable_fields/origin_lib.dart:8:3: Error: This constructor should initialize field 'field' because its type 'int' doesn't allow null.
+//   Class2.constructor1();
+//   ^
+// pkg/front_end/testcases/nnbd/platform_nonnullable_fields/patch_lib2.dart:37:7: Context: 'field' is defined here.
 //   int field;
 //       ^^^^^
 //

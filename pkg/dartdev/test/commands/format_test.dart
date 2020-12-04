@@ -22,9 +22,25 @@ void format() {
     var result = p.runSync('format', ['--help']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Idiomatically formats Dart source code.'));
+    expect(result.stdout, contains('Idiomatically format Dart source code.'));
     expect(result.stdout,
         contains('Usage: dart format [options...] <files or directories...>'));
+
+    // Does not show verbose help.
+    expect(result.stdout.contains('--stdin-name'), isFalse);
+  });
+
+  test('--help --verbose', () {
+    p = project();
+    var result = p.runSync('format', ['--help', '--verbose']);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Idiomatically format Dart source code.'));
+    expect(result.stdout,
+        contains('Usage: dart format [options...] <files or directories...>'));
+
+    // Shows verbose help.
+    expect(result.stdout, contains('--stdin-name'));
   });
 
   test('unchanged', () {

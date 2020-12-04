@@ -18,6 +18,7 @@ import '../elements/types.dart';
 import '../js_emitter/native_emitter.dart';
 import '../native/enqueue.dart';
 import '../native/behavior.dart';
+import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -203,6 +204,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.RTI_VALUE:
         case TypeUseKind.TYPE_ARGUMENT:
         case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
+        case TypeUseKind.CONSTRUCTOR_REFERENCE:
           failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
           break;
       }
@@ -410,6 +412,14 @@ class CodegenImpactTransformer {
 
     for (ConstantUse constantUse in impact.constantUses) {
       switch (constantUse.value.kind) {
+        case ConstantValueKind.SET:
+        case ConstantValueKind.MAP:
+        case ConstantValueKind.CONSTRUCTED:
+        case ConstantValueKind.INSTANTIATION:
+        case ConstantValueKind.LIST:
+          transformed.registerStaticUse(StaticUse.staticInvoke(
+              _closedWorld.commonElements.findType, CallStructure.ONE_ARG));
+          break;
         case ConstantValueKind.DEFERRED_GLOBAL:
           _closedWorld.outputUnitData
               .registerConstantDeferredUse(constantUse.value);

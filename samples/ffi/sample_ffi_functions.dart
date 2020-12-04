@@ -200,46 +200,6 @@ main() {
   }
 
   {
-    // Passing in null for an int argument throws a null pointer exception.
-    BinaryOp sumPlus42 =
-        ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
-
-    int x = null;
-    try {
-      sumPlus42(43, x);
-    } on Error {
-      print('Expected exception on passing null for int');
-    }
-  }
-
-  {
-    // Passing in null for a double argument throws a null pointer exception.
-    DoubleUnaryOp times1_337Double = ffiTestFunctions
-        .lookupFunction<NativeDoubleUnaryOp, DoubleUnaryOp>("Times1_337Double");
-
-    double x = null;
-    try {
-      times1_337Double(x);
-    } on Error {
-      print('Expected exception on passing null for double');
-    }
-  }
-
-  {
-    // Passing in null for an int argument throws a null pointer exception.
-    VigesimalOp sumManyNumbers = ffiTestFunctions
-        .lookupFunction<NativeVigesimalOp, VigesimalOp>("SumManyNumbers");
-
-    int x = null;
-    try {
-      sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13,
-          14.0, 15, 16.0, 17, 18.0, x, 20.0);
-    } on Error {
-      print('Expected exception on passing null for int');
-    }
-  }
-
-  {
     // Passing in nullptr for a pointer argument results in a nullptr in c.
     Int64PointerUnOp nullableInt64ElemAt1 =
         ffiTestFunctions.lookupFunction<Int64PointerUnOp, Int64PointerUnOp>(

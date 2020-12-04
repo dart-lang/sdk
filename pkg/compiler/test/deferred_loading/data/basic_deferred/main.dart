@@ -7,9 +7,9 @@
 import 'lib.dart' deferred as lib;
 
 /*member: main:
- OutputUnit(main, {}),
- constants=[FunctionConstant(funky)=OutputUnit(1, {lib})]
+ constants=[FunctionConstant(funky)=1{lib}],
+ member_unit=main{}
 */
-main() => lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
+main() => lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
       (lib.funky)();
     });

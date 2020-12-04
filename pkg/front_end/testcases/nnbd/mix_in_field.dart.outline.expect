@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Mixin extends core::Object {
+  field FutureOr<Null>m;
+  synthetic constructor •() → self::Mixin
+    ;
+}
+abstract class _Class&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Object&Mixin
+    : super core::Object::•()
+    ;
+}
+class Class extends self::_Class&Object&Mixin {
+  synthetic constructor •() → self::Class
+    ;
+  method test(dynamic t1) → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

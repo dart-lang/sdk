@@ -93,7 +93,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -126,7 +126,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Mark that the thread has not exited generated Dart code.
   __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
@@ -298,61 +298,36 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 #endif
 }
 
-void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateSharedStubGeneric(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    std::function<void()> perform_runtime_call) {
   // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateSharedStub(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    const RuntimeEntry* target,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    bool store_runtime_result_in_result_register) {
+  // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
+                                          bool with_fpu_regs) {
+  // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
     Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
+  // Only used in AOT.
   __ Breakpoint();
 }
 
@@ -389,7 +364,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   {
     Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -425,7 +400,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ movl(Address(ESP, target::kWordSize), ECX);  // Function to call.
   __ call(wrapper_address);
 
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Mark that the thread has not exited generated Dart code.
   __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
@@ -858,7 +833,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
+      uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orl(EDI, Immediate(tags));
       __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
     }
@@ -980,7 +955,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -1054,134 +1029,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ret();
 }
 
-// Called when invoking compiled Dart code from interpreted Dart code.
-// Input parameters:
-//   ESP : points to return address.
-//   ESP + 4 : target raw code
-//   ESP + 8 : arguments raw descriptor array.
-//   ESP + 12: address of first argument.
-//   ESP + 16 : current thread.
-void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
-    Assembler* assembler) {
-  const intptr_t kTargetCodeOffset = 3 * target::kWordSize;
-  const intptr_t kArgumentsDescOffset = 4 * target::kWordSize;
-  const intptr_t kArgumentsOffset = 5 * target::kWordSize;
-  const intptr_t kThreadOffset = 6 * target::kWordSize;
-
-  __ pushl(Address(ESP, 0));  // Marker for the profiler.
-  __ EnterFrame(0);
-
-  // Push code object to PC marker slot.
-  __ movl(EAX, Address(EBP, kThreadOffset));
-  __ pushl(Address(EAX, target::Thread::invoke_dart_code_stub_offset()));
-
-  // Save C++ ABI callee-saved registers.
-  __ pushl(EBX);
-  __ pushl(ESI);
-  __ pushl(EDI);
-
-  // Set up THR, which caches the current thread in Dart code.
-  __ movl(THR, EAX);
-
-#if defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  // Save the current VMTag on the stack.
-  __ movl(ECX, Assembler::VMTagAddress());
-  __ pushl(ECX);
-
-  // Save top resource and top exit frame info. Use EDX as a temporary register.
-  // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ movl(EDX, Address(THR, target::Thread::top_resource_offset()));
-  __ pushl(EDX);
-  __ movl(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
-
-  __ movl(EAX, Address(THR, target::Thread::exit_through_ffi_offset()));
-  __ pushl(EAX);
-  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(0));
-
-  // The constant target::frame_layout.exit_link_slot_from_entry_fp must be
-  // kept in sync with the code below.
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -8);
-  __ movl(EDX, Address(THR, target::Thread::top_exit_frame_info_offset()));
-  __ pushl(EDX);
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
-          Immediate(0));
-
-  // Mark that the thread is executing Dart code. Do this after initializing the
-  // exit link for the profiler.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
-  // Load arguments descriptor array into EDX.
-  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
-
-  // Load number of arguments into EBX and adjust count for type arguments.
-  __ movl(EBX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
-  __ cmpl(
-      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
-      Immediate(0));
-  Label args_count_ok;
-  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ addl(EBX, Immediate(target::ToRawSmi(1)));  // Include the type arguments.
-  __ Bind(&args_count_ok);
-  // Save number of arguments as Smi on stack, replacing ArgumentsDesc.
-  __ movl(Address(EBP, kArgumentsDescOffset), EBX);
-  __ SmiUntag(EBX);
-
-  // Set up arguments for the dart call.
-  Label push_arguments;
-  Label done_push_arguments;
-  __ testl(EBX, EBX);  // check if there are arguments.
-  __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
-  __ movl(EAX, Immediate(0));
-
-  // Compute address of 'arguments array' data area into EDI.
-  __ movl(EDI, Address(EBP, kArgumentsOffset));
-
-  __ Bind(&push_arguments);
-  __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
-  __ pushl(ECX);
-  __ incl(EAX);
-  __ cmpl(EAX, EBX);
-  __ j(LESS, &push_arguments, Assembler::kNearJump);
-  __ Bind(&done_push_arguments);
-
-  // Call the dart code entrypoint.
-  __ movl(EAX, Address(EBP, kTargetCodeOffset));
-  __ call(FieldAddress(EAX, target::Code::entry_point_offset()));
-
-  // Read the saved number of passed arguments as Smi.
-  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
-  // Get rid of arguments pushed on the stack.
-  __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
-
-  // Restore the saved top exit frame info and top resource back into the
-  // Isolate structure.
-  __ popl(Address(THR, target::Thread::top_exit_frame_info_offset()));
-  __ popl(Address(THR, target::Thread::exit_through_ffi_offset()));
-  __ popl(Address(THR, target::Thread::top_resource_offset()));
-
-  // Restore the current VMTag from the stack.
-  __ popl(Assembler::VMTagAddress());
-
-#if defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  // Restore C++ ABI callee-saved registers.
-  __ popl(EDI);
-  __ popl(ESI);
-  __ popl(EBX);
-
-  // Restore the frame pointer.
-  __ LeaveFrame();
-  __ popl(ECX);
-
-  __ ret();
-}
-
 // Helper to generate space allocation of context stub.
 // This does not initialise the fields of the context.
 // Input:
@@ -1213,9 +1060,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // EDX: number of context variables.
   __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+  static auto const kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+  static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(ABOVE_EQUAL, slow_case, kJumpLength);
 
@@ -1251,7 +1098,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // EAX: new object.
     // EDX: number of context variables.
     // EBX: size and bit tags.
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orl(EBX, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
   }
@@ -1606,8 +1453,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     // EDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
     ASSERT(target::Class::GetId(cls) != kIllegalCid);
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(
-        target::Class::GetId(cls), instance_size);
+    uword tags = target::MakeTagWordForNewSpaceObject(target::Class::GetId(cls),
+                                                      instance_size);
     __ movl(Address(EAX, target::Object::tags_offset()), Immediate(tags));
     __ addl(EAX, Immediate(kHeapObjectTag));
 
@@ -2256,83 +2103,7 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
 
-  // When using the interpreter, the function's code may now point to the
-  // InterpretCall stub. Make sure EAX, ECX, and EDX are preserved.
   __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
-}
-
-// Stub for interpreting a function call.
-// EDX: Arguments descriptor.
-// EAX: Function.
-void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-  __ EnterStubFrame();
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Adjust arguments count for type arguments vector.
-  __ movl(ECX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(ECX);
-  __ cmpl(
-      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
-      Immediate(0));
-  Label args_count_ok;
-  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ incl(ECX);
-  __ Bind(&args_count_ok);
-
-  // Compute argv.
-  __ leal(EBX,
-          Address(EBP, ECX, TIMES_4,
-                  target::frame_layout.param_end_from_fp * target::kWordSize));
-
-  // Indicate decreasing memory addresses of arguments with negative argc.
-  __ negl(ECX);
-
-  __ pushl(THR);  // Arg 4: Thread.
-  __ pushl(EBX);  // Arg 3: Argv.
-  __ pushl(ECX);  // Arg 2: Negative argc.
-  __ pushl(EDX);  // Arg 1: Arguments descriptor
-  __ pushl(EAX);  // Arg 0: Function
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
-
-  // Mark that the thread exited generated code through a runtime call.
-  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(target::Thread::exit_through_runtime_call()));
-
-  // Mark that the thread is executing VM code.
-  __ movl(EAX,
-          Address(THR, target::Thread::interpret_call_entry_point_offset()));
-  __ movl(Assembler::VMTagAddress(), EAX);
-
-  __ call(EAX);
-
-  __ Drop(5);
-
-  // Mark that the thread is executing Dart code.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
-  // Mark that the thread has not exited generated Dart code.
-  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(0));
-
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
-          Immediate(0));
-
-  __ LeaveFrame();
-  __ ret();
 }
 
 // ECX: Contains an ICData.
@@ -2413,34 +2184,74 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // TOS + 0: return address.
 // TOS + 1: function type arguments (only if n == 4, can be raw_null).
 // TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in ECX: null -> not found, otherwise result (true or false).
+// TOS + 3: destination_type (only used if n >= 3).
+// TOS + 4: instance.
+// TOS + 5: SubtypeTestCache.
+//
+// No registers are preserved by this stub.
+//
+// Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
+// result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
+  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
 
-  static intptr_t kFunctionTypeArgumentsInBytes = 1 * target::kWordSize;
-  static intptr_t kInstantiatorTypeArgumentsInBytes = 2 * target::kWordSize;
-  static intptr_t kInstanceOffsetInBytes = 3 * target::kWordSize;
-  static intptr_t kCacheOffsetInBytes = 4 * target::kWordSize;
+  // We represent the depth of as a depth from the top of the stack at the
+  // start of the stub. That is, depths for input values are non-negative and
+  // depths for values pushed during the stub are negative.
 
-  const Register kInstanceCidOrFunction = ECX;
-  const Register kInstanceInstantiatorTypeArgumentsReg = EBX;
+  // Used to initialize depths for conditionally-pushed values.
+  const intptr_t kNoDepth = kIntptrMin;
+  // Offset of the original top of the stack from the current top of stack.
+  intptr_t original_tos_offset = 0;
+
+  // Inputs use relative depths.
+  static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
+  static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
+  static constexpr intptr_t kDestinationTypeDepth = 3;
+  static constexpr intptr_t kInstanceDepth = 4;
+  static constexpr intptr_t kCacheDepth = 5;
+  // Others use absolute depths. We initialize conditionally pushed values to
+  // kNoInput for extra checking.
+  intptr_t kInstanceParentFunctionTypeArgumentsDepth = kNoDepth;
+  intptr_t kInstanceDelayedFunctionTypeArgumentsDepth = kNoDepth;
+
+  // Other values are stored in non-kInstanceReg registers from TypeTestABI.
+  const Register kCacheArrayReg = TypeTestABI::kInstantiatorTypeArgumentsReg;
+  const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
+  const Register kInstanceCidOrFunction =
+      TypeTestABI::kFunctionTypeArgumentsReg;
+  const Register kInstanceInstantiatorTypeArgumentsReg =
+      TypeTestABI::kDstTypeReg;
+
+  // Loads a value at the given depth from the stack into dst.
+  auto load_from_stack = [&](Register dst, intptr_t depth) {
+    ASSERT(depth != kNoDepth);
+    __ LoadFromStack(dst, original_tos_offset + depth);
+  };
+
+  // Compares a value at the given depth from the stack to the value in src.
+  auto compare_to_stack = [&](Register src, intptr_t depth) {
+    ASSERT(depth != kNoDepth);
+    __ CompareToStack(src, original_tos_offset + depth);
+  };
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
 
-  __ movl(TypeTestABI::kInstanceReg, Address(ESP, kInstanceOffsetInBytes));
+  load_from_stack(TypeTestABI::kInstanceReg, kInstanceDepth);
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other)
-  __ movl(EDX, Address(ESP, kCacheOffsetInBytes));
+  load_from_stack(kCacheArrayReg, kCacheDepth);
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
-  __ movl(EDX, FieldAddress(EDX, target::SubtypeTestCache::cache_offset()));
-  __ addl(EDX, Immediate(target::Array::data_offset() - kHeapObjectTag));
+  __ movl(
+      kCacheArrayReg,
+      FieldAddress(kCacheArrayReg, target::SubtypeTestCache::cache_offset()));
+  __ addl(kCacheArrayReg,
+          Immediate(target::Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-  if (n >= 4) {
+  if (n >= 5) {
     __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   } else {
     __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
@@ -2453,12 +2264,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movl(kInstanceCidOrFunction,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
-    if (n >= 2) {
+    if (n >= 3) {
       __ movl(
           kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 6) {
+      if (n >= 7) {
         __ pushl(
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::delayed_type_arguments_offset()));
@@ -2473,21 +2284,22 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 2) {
+    if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(EDI, kInstanceCidOrFunction);
+      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
       __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
-      __ movl(EDI,
-              FieldAddress(
-                  EDI, target::Class::
+      __ movl(
+          kScratchReg,
+          FieldAddress(kScratchReg,
+                       target::Class::
                            host_type_arguments_field_offset_in_words_offset()));
-      __ cmpl(EDI, Immediate(target::Class::kNoTypeArguments));
+      __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
       __ movl(kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(TypeTestABI::kInstanceReg, EDI, TIMES_4, 0));
+              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_4, 0));
       __ Bind(&has_no_type_arguments);
 
-      if (n >= 6) {
+      if (n >= 7) {
         __ pushl(raw_null);  // delayed.
         __ pushl(raw_null);  // function.
       }
@@ -2495,84 +2307,97 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ SmiTag(kInstanceCidOrFunction);
   }
 
-  const intptr_t kInstanceParentFunctionTypeArgumentsFromSp = 0;
-  const intptr_t kInstanceDelayedFunctionTypeArgumentsFromSp =
-      target::kWordSize;
-  const intptr_t args_offset = n >= 6 ? 2 * target::kWordSize : 0;
+  if (n >= 7) {
+    // Now that instance handling is done, both the delayed and parent function
+    // type arguments stack slots have been set, so any input uses must be
+    // offset by the new values and the new values can now be accessed in
+    // the following code without issue when n >= 6.
+    original_tos_offset = 2;
+    kInstanceDelayedFunctionTypeArgumentsDepth = -1;
+    kInstanceParentFunctionTypeArgumentsDepth = -2;
+  }
 
-  Label found, not_found, next_iteration;
+  Label done, next_iteration;
 
   // Loop header.
   __ Bind(&loop);
-  __ movl(
-      EDI,
-      Address(EDX, target::kWordSize *
-                       target::SubtypeTestCache::kInstanceClassIdOrFunction));
-  __ cmpl(EDI, raw_null);
-  __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpl(EDI, kInstanceCidOrFunction);
+  __ movl(kScratchReg,
+          Address(kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
+  __ cmpl(kScratchReg, raw_null);
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ cmpl(kScratchReg, kInstanceCidOrFunction);
   if (n == 1) {
-    __ j(EQUAL, &found, Assembler::kNearJump);
+    __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ movl(kScratchReg,
+            Address(kCacheArrayReg,
+                    target::kWordSize *
+                        target::SubtypeTestCache::kDestinationType));
+    compare_to_stack(kScratchReg, kDestinationTypeDepth);
+    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ cmpl(kInstanceInstantiatorTypeArgumentsReg,
-            Address(EDX, target::kWordSize *
-                             target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 2) {
-      __ j(EQUAL, &found, Assembler::kNearJump);
+            Address(kCacheArrayReg,
+                    target::kWordSize *
+                        target::SubtypeTestCache::kInstanceTypeArguments));
+    if (n == 3) {
+      __ j(EQUAL, &done, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ movl(
-          EDI,
-          Address(EDX,
+          kScratchReg,
+          Address(kCacheArrayReg,
                   target::kWordSize *
                       target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmpl(EDI,
-              Address(ESP, args_offset + kInstantiatorTypeArgumentsInBytes));
+      compare_to_stack(kScratchReg, kInstantiatorTypeArgumentsDepth);
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movl(
-          EDI,
-          Address(EDX, target::kWordSize *
-                           target::SubtypeTestCache::kFunctionTypeArguments));
-      __ cmpl(EDI, Address(ESP, args_offset + kFunctionTypeArgumentsInBytes));
-      if (n == 4) {
-        __ j(EQUAL, &found, Assembler::kNearJump);
+      __ movl(kScratchReg,
+              Address(kCacheArrayReg,
+                      target::kWordSize *
+                          target::SubtypeTestCache::kFunctionTypeArguments));
+      compare_to_stack(kScratchReg, kFunctionTypeArgumentsDepth);
+      if (n == 5) {
+        __ j(EQUAL, &done, Assembler::kNearJump);
       } else {
-        ASSERT(n == 6);
+        ASSERT(n == 7);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
-        __ movl(EDI,
-                Address(EDX, target::kWordSize *
-                                 target::SubtypeTestCache::
-                                     kInstanceParentFunctionTypeArguments));
-        __ cmpl(EDI, Address(ESP, kInstanceParentFunctionTypeArgumentsFromSp));
+        __ movl(kScratchReg,
+                Address(kCacheArrayReg,
+                        target::kWordSize *
+                            target::SubtypeTestCache::
+                                kInstanceParentFunctionTypeArguments));
+        compare_to_stack(kScratchReg,
+                         kInstanceParentFunctionTypeArgumentsDepth);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ movl(EDI,
-                Address(EDX, target::kWordSize *
-                                 target::SubtypeTestCache::
-                                     kInstanceDelayedFunctionTypeArguments));
-        __ cmpl(EDI, Address(ESP, kInstanceDelayedFunctionTypeArgumentsFromSp));
-        __ j(EQUAL, &found, Assembler::kNearJump);
+        __ movl(kScratchReg,
+                Address(kCacheArrayReg,
+                        target::kWordSize *
+                            target::SubtypeTestCache::
+                                kInstanceDelayedFunctionTypeArguments));
+        compare_to_stack(kScratchReg,
+                         kInstanceDelayedFunctionTypeArgumentsDepth);
+        __ j(EQUAL, &done, Assembler::kNearJump);
       }
     }
   }
   __ Bind(&next_iteration);
-  __ addl(EDX, Immediate(target::kWordSize *
-                         target::SubtypeTestCache::kTestEntryLength));
+  __ addl(kCacheArrayReg,
+          Immediate(target::kWordSize *
+                    target::SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
 
-  __ Bind(&found);
-  __ movl(ECX, Address(EDX, target::kWordSize *
-                                target::SubtypeTestCache::kTestResult));
-  if (n == 6) {
+  __ Bind(&done);
+  // In the not found case, the test result slot is null, so we can
+  // unconditionally load from the cache entry.
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
+          Address(kCacheArrayReg,
+                  target::kWordSize * target::SubtypeTestCache::kTestResult));
+  if (n >= 7) {
     __ Drop(2);
-  }
-  __ ret();
-
-  __ Bind(&not_found);
-  __ movl(ECX, raw_null);
-  if (n == 6) {
-    __ Drop(2);
+    original_tos_offset = 0;  // In case we add any input uses after this point.
   }
   __ ret();
 }
@@ -2583,56 +2408,18 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 2);
+void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 4);
+void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 6);
-}
-
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
+void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.
@@ -2672,7 +2459,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ Bind(&exit_through_non_ffi);
 
   // Set tag.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
@@ -3076,6 +2863,143 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
 
   __ Bind(&cache_lookup);
   GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+static ScaleFactor GetScaleFactor(intptr_t size) {
+  switch (size) {
+    case 1:
+      return TIMES_1;
+    case 2:
+      return TIMES_2;
+    case 4:
+      return TIMES_4;
+    case 8:
+      return TIMES_8;
+    case 16:
+      return TIMES_16;
+  }
+  UNREACHABLE();
+  return static_cast<ScaleFactor>(0);
+}
+
+void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                          intptr_t cid) {
+  const intptr_t element_size = TypedDataElementSizeInBytes(cid);
+  const intptr_t max_len = TypedDataMaxNewSpaceElements(cid);
+  ScaleFactor scale_factor = GetScaleFactor(element_size);
+
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == EAX);
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == EAX);
+
+  // Save length argument for possible runtime call, as
+  // EAX is clobbered.
+  Label call_runtime;
+  __ pushl(AllocateTypedDataArrayABI::kLengthReg);
+
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
+  __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
+  /* Check that length is a positive Smi. */
+  /* EDI: requested array length argument. */
+  __ testl(EDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &call_runtime);
+  __ cmpl(EDI, Immediate(0));
+  __ j(LESS, &call_runtime);
+  __ SmiUntag(EDI);
+  /* Check for maximum allowed length. */
+  /* EDI: untagged array length. */
+  __ cmpl(EDI, Immediate(max_len));
+  __ j(GREATER, &call_runtime);
+  /* Special case for scaling by 16. */
+  if (scale_factor == TIMES_16) {
+    /* double length of array. */
+    __ addl(EDI, EDI);
+    /* only scale by 8. */
+    scale_factor = TIMES_8;
+  }
+
+  const intptr_t fixed_size_plus_alignment_padding =
+      target::TypedData::InstanceSize() +
+      target::ObjectAlignment::kObjectAlignment - 1;
+  __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding));
+  __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
+  __ movl(EAX, Address(THR, target::Thread::top_offset()));
+  __ movl(EBX, EAX);
+  /* EDI: allocation size. */
+  __ addl(EBX, EDI);
+  __ j(CARRY, &call_runtime);
+
+  /* Check if the allocation fits into the remaining space. */
+  /* EAX: potential new object start. */
+  /* EBX: potential next object start. */
+  /* EDI: allocation size. */
+  __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
+  __ j(ABOVE_EQUAL, &call_runtime);
+
+  /* Successfully allocated the object(s), now update top to point to */
+  /* next object start and initialize the object. */
+  __ movl(Address(THR, target::Thread::top_offset()), EBX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+
+  /* Initialize the tags. */
+  /* EAX: new object start as a tagged pointer. */
+  /* EBX: new object end address. */
+  /* EDI: allocation size. */
+  {
+    Label size_tag_overflow, done;
+    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+                           target::ObjectAlignment::kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&size_tag_overflow);
+    __ movl(EDI, Immediate(0));
+    __ Bind(&done);
+    /* Get the class index and insert it into the tags. */
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    __ orl(EDI, Immediate(tags));
+    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI); /* Tags. */
+  }
+
+  /* Set the length field. */
+  /* EAX: new object start as a tagged pointer. */
+  /* EBX: new object end address. */
+  __ popl(EDI); /* Array length. */
+  __ StoreIntoObjectNoBarrier(
+      EAX, FieldAddress(EAX, target::TypedDataBase::length_offset()), EDI);
+
+  /* Initialize all array elements to 0. */
+  /* EAX: new object start as a tagged pointer. */
+  /* EBX: new object end address. */
+  /* EDI: iterator which initially points to the start of the variable */
+  /* ECX: scratch register. */
+  /* data area to be initialized. */
+  __ xorl(ECX, ECX); /* Zero. */
+  __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));
+  __ StoreInternalPointer(
+      EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()), EDI);
+  Label done, init_loop;
+  __ Bind(&init_loop);
+  __ cmpl(EDI, EBX);
+  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+  __ movl(Address(EDI, 0), ECX);
+  __ addl(EDI, Immediate(target::kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+  __ Bind(&done);
+
+  __ ret();
+
+  __ Bind(&call_runtime);
+  __ popl(EDI);  // Array length
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());  // Make room for the result.
+  __ pushl(Immediate(target::ToRawSmi(cid)));
+  __ pushl(EDI);  // Array length
+  __ CallRuntime(kAllocateTypedDataRuntimeEntry, 2);
+  __ Drop(2);  // Drop arguments.
+  __ popl(AllocateTypedDataArrayABI::kResultReg);
+  __ LeaveStubFrame();
+  __ ret();
 }
 
 }  // namespace compiler

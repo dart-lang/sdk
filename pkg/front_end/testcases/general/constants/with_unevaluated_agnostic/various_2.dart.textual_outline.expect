@@ -1,0 +1,50 @@
+import 'various_2_lib.dart' as lib;
+
+typedef F1<T> = T Function(T);
+typedef F2 = T Function<T>(T);
+const objectTypeLiteral = Object;
+const int Function(int) partialInstantiation = lib.id1;
+const instance = const lib.Class<int>(0);
+const instance2 = const lib.Class<dynamic>([42]);
+const functionTypeLiteral = F1;
+const genericFunctionTypeLiteral = F2;
+const listLiteral = <int>[0];
+const listLiteral2 = <dynamic>[
+  <int>[42]
+];
+const setLiteral = <int>{0};
+const setLiteral2 = <dynamic>{
+  <int>[42]
+};
+const mapLiteral = <int, String>{0: 'foo'};
+const mapLiteral2 = <dynamic, dynamic>{
+  <int>[42]: 'foo',
+  null: <int>[42]
+};
+const listConcatenation = <int>[...listLiteral];
+const setConcatenation = <int>{...setLiteral};
+const mapConcatenation = <int, String>{...mapLiteral};
+const objectTypeLiteralIdentical =
+    identical(objectTypeLiteral, lib.objectTypeLiteral);
+const partialInstantiationIdentical =
+    identical(partialInstantiation, lib.partialInstantiation);
+const instanceIdentical = identical(instance, lib.instance);
+const instance2Identical = identical(instance2, lib.instance2);
+const functionTypeLiteralIdentical =
+    identical(functionTypeLiteral, lib.functionTypeLiteral);
+const genericFunctionTypeLiteralIdentical =
+    identical(genericFunctionTypeLiteral, lib.genericFunctionTypeLiteral);
+const listLiteralIdentical = identical(listLiteral, lib.listLiteral);
+const listLiteral2Identical = identical(listLiteral2, lib.listLiteral2);
+const setLiteralIdentical = identical(setLiteral, lib.setLiteral);
+const setLiteral2Identical = identical(setLiteral2, lib.setLiteral2);
+const mapLiteralIdentical = identical(mapLiteral, lib.mapLiteral);
+const mapLiteral2Identical = identical(mapLiteral2, lib.mapLiteral2);
+const listConcatenationIdentical =
+    identical(listConcatenation, lib.listConcatenation);
+const setConcatenationIdentical =
+    identical(setConcatenation, lib.setConcatenation);
+const mapConcatenationIdentical =
+    identical(mapConcatenation, lib.mapConcatenation);
+main() {}
+test(expected, actual) {}

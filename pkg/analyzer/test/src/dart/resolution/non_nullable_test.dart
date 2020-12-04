@@ -8,8 +8,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +18,8 @@ main() {
 }
 
 @reflectiveTest
-class NonNullableTest extends DriverResolutionTest with WithNullSafetyMixin {
+class NonNullableTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_class_hierarchy() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -60,7 +60,7 @@ class C {
   }
 
   test_library_typeProvider_typeSystem() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await resolveTestCode(r'''
@@ -164,13 +164,13 @@ main() {
 
   test_local_typeParameter() async {
     await assertErrorsInCode('''
-main<T>(T a) {
+void f<T>(T a) {
   T x = a;
   T? y;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
 
     assertType(findNode.typeName('T x'), 'T');
@@ -290,7 +290,7 @@ f() {
 
   test_parameter_genericFunctionType() async {
     await assertNoErrorsInCode('''
-main(int? Function(bool, String?)? a) {
+void f(int? Function(bool, String?)? a) {
 }
 ''');
 
@@ -302,8 +302,8 @@ main(int? Function(bool, String?)? a) {
 
   test_parameter_getterNullAwareAccess_interfaceType() async {
     await assertNoErrorsInCode(r'''
-main(int? x) {
-  return x?.isEven;
+void f(int? x) {
+  x?.isEven;
 }
 ''');
 
@@ -312,7 +312,7 @@ main(int? x) {
 
   test_parameter_interfaceType() async {
     await assertNoErrorsInCode('''
-main(int? a, int b) {
+void f(int? a, int b) {
 }
 ''');
 
@@ -322,7 +322,7 @@ main(int? a, int b) {
 
   test_parameter_interfaceType_generic() async {
     await assertNoErrorsInCode('''
-main(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
+void f(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
 }
 ''');
 
@@ -338,8 +338,8 @@ class C {
   bool x() => true;
 }
 
-main(C? c) {
-  return c?.x();
+void f(C? c) {
+  c?.x();
 }
 ''');
 
@@ -348,7 +348,7 @@ main(C? c) {
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {
     await assertNoErrorsInCode(r'''
-main(int? x, int y) {
+void f(int? x, int y) {
   x ??= y;
 }
 ''');
@@ -357,7 +357,7 @@ main(int? x, int y) {
 
   test_parameter_nullCoalesceAssign_nullableInt_nullableInt() async {
     await assertNoErrorsInCode(r'''
-main(int? x) {
+void f(int? x) {
   x ??= x;
 }
 ''');
@@ -366,7 +366,7 @@ main(int? x) {
 
   test_parameter_typeParameter() async {
     await assertNoErrorsInCode('''
-main<T>(T a, T? b) {
+void f<T>(T a, T? b) {
 }
 ''');
 
@@ -409,7 +409,7 @@ main() {
     await assertNoErrorsInCode('''
 typedef F<T> = int Function(T)?;
 
-main(F<int> a, F<double>? b) {}
+void f(F<int> a, F<double>? b) {}
 ''');
 
     assertType(findNode.typeName('F<int>'), 'int Function(int)?');
@@ -435,7 +435,7 @@ main() {
 }
 
 @reflectiveTest
-class NullableTest extends DriverResolutionTest {
+class NullableTest extends PubPackageResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 

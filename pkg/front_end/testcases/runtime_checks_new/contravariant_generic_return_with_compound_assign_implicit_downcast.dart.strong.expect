@@ -2,6 +2,14 @@ library test;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:30:14: Error: The type 'C<num>' of the getter 'D.value' is not assignable to the type 'int Function(int)' of the setter 'D.value'.
+//  - 'C' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart'.
+//   C<num> get value => getValue;
+//              ^^^^^
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:32:12: Context: This is the declaration of the setter 'D.value'.
+//   void set value(int Function(int) value) {
+//            ^^^^^
+//
 // pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:46: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
 //   d.value /*@ checkReturn=(num*) ->* num* */ += 1;
 //                                              ^
@@ -20,16 +28,16 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     ;
   operator +(core::int* i) → (self::C::T*) →* core::num*
     return this.{self::C::plusResult};
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class D extends core::Object {
   final field self::C<core::num*>* getValue;
@@ -42,16 +50,16 @@ class D extends core::Object {
   set value((core::int*) →* core::int* value) → void {
     this.{self::D::setValue} = value;
   }
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method expectTypeError(() →* void callback) → void {
   try {
@@ -77,7 +85,7 @@ static method main() → void {
                                              ^" in (#t1.{self::D::value}.{self::C::+}(1) as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
   self::expect(let final self::D* #t3 = d in let final core::int* #t4 = 0 in #t3.{self::D::setValue}.call(#t4), 1);
   d = new self::D::•(new self::C::•<core::num*>(#C2));
-  self::expectTypeError(() → core::Null? {
+  self::expectTypeError(() → Null {
     let final self::D* #t5 = d in #t5.{self::D::value} = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:48: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
     d.value /*@ checkReturn=(num*) ->* num* */ += 1;
                                                ^" in (#t5.{self::D::value}.{self::C::+}(1) as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;

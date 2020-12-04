@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Determines if the given [token] is followed by a nullability hint, and if
@@ -43,11 +44,11 @@ HintComment getPrefixHint(Token token) {
     var lexeme = commentToken.lexeme;
     if (lexeme.startsWith('/*') &&
         lexeme.endsWith('*/') &&
-        lexeme.length > 'late'.length) {
+        lexeme.length >= '/*late*/'.length) {
       var commentText =
           lexeme.substring('/*'.length, lexeme.length - '*/'.length).trim();
+      var commentOffset = commentToken.offset;
       if (commentText == 'late') {
-        var commentOffset = commentToken.offset;
         var lateOffset = commentOffset + commentToken.lexeme.indexOf('late');
         return HintComment(
             HintCommentKind.late_,
@@ -55,6 +56,27 @@ HintComment getPrefixHint(Token token) {
             commentOffset,
             lateOffset,
             lateOffset + 'late'.length,
+            commentToken.end,
+            token.offset);
+      } else if (commentText == 'late final') {
+        var lateOffset = commentOffset + commentToken.lexeme.indexOf('late');
+        return HintComment(
+            HintCommentKind.lateFinal,
+            commentOffset,
+            commentOffset,
+            lateOffset,
+            lateOffset + 'late final'.length,
+            commentToken.end,
+            token.offset);
+      } else if (commentText == 'required') {
+        var requiredOffset =
+            commentOffset + commentToken.lexeme.indexOf('required');
+        return HintComment(
+            HintCommentKind.required,
+            commentOffset,
+            commentOffset,
+            requiredOffset,
+            requiredOffset + 'required'.length,
             commentToken.end,
             token.offset);
       }
@@ -65,7 +87,7 @@ HintComment getPrefixHint(Token token) {
 
 /// Information about a hint found in a source file.
 class HintComment {
-  static final _alphaNumericRegexp = RegExp('[a-zA-Z0-9]');
+  static final _identifierCharRegexp = RegExp('[a-zA-Z0-9_]');
 
   /// What kind of hint this is.
   final HintCommentKind kind;
@@ -108,8 +130,8 @@ class HintComment {
     bool appendSpace = false;
     var removeOffset = _removeOffset;
     var removeEnd = _removeEnd;
-    if (_isAlphaNumericBeforeOffset(sourceText, removeOffset) &&
-        _isAlphaNumericAtOffset(sourceText, _keepOffset)) {
+    if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
+        _isIdentifierCharAtOffset(sourceText, _keepOffset)) {
       if (sourceText[removeOffset] == ' ') {
         // We can just keep this space.
         removeOffset++;
@@ -117,8 +139,8 @@ class HintComment {
         prependSpace = true;
       }
     }
-    if (_isAlphaNumericBeforeOffset(sourceText, _keepEnd) &&
-        _isAlphaNumericAtOffset(sourceText, removeEnd)) {
+    if (_isIdentifierCharBeforeOffset(sourceText, _keepEnd) &&
+        _isIdentifierCharAtOffset(sourceText, removeEnd)) {
       if (sourceText[removeEnd - 1] == ' ') {
         // We can just keep this space.
         removeEnd--;
@@ -142,9 +164,9 @@ class HintComment {
   Map<int, List<AtomicEdit>> changesToRemove(String sourceText,
       {AtomicEditInfo info}) {
     bool appendSpace = false;
-    var removeOffset = this._removeOffset;
-    if (_isAlphaNumericBeforeOffset(sourceText, removeOffset) &&
-        _isAlphaNumericAtOffset(sourceText, _removeEnd)) {
+    var removeOffset = _removeOffset;
+    if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
+        _isIdentifierCharAtOffset(sourceText, _removeEnd)) {
       if (sourceText[removeOffset] == ' ') {
         // We can just keep this space.
         removeOffset++;
@@ -173,13 +195,13 @@ class HintComment {
     };
   }
 
-  static bool _isAlphaNumericAtOffset(String sourceText, int offset) {
+  static bool _isIdentifierCharAtOffset(String sourceText, int offset) {
     return offset < sourceText.length &&
-        _alphaNumericRegexp.hasMatch(sourceText[offset]);
+        _identifierCharRegexp.hasMatch(sourceText[offset]);
   }
 
-  static bool _isAlphaNumericBeforeOffset(String sourceText, int offset) {
-    return offset > 0 && _alphaNumericRegexp.hasMatch(sourceText[offset - 1]);
+  static bool _isIdentifierCharBeforeOffset(String sourceText, int offset) {
+    return offset > 0 && _identifierCharRegexp.hasMatch(sourceText[offset - 1]);
   }
 }
 
@@ -196,4 +218,49 @@ enum HintCommentKind {
   /// The comment `/*late*/`, which indicates that the variable declaration
   /// should be late.
   late_,
+
+  /// The comment `/*late final*/`, which indicates that the variable
+  /// declaration should be late and final.
+  lateFinal,
+
+  /// The comment `/*required*/`, which indicates that the parameter should be
+  /// required.
+  required,
+}
+
+extension FormalParameterExtensions on FormalParameter {
+  // TODO(srawlins): Add this to FormalParameter interface.
+  Token get firstTokenAfterCommentAndMetadata {
+    var parameter = this is DefaultFormalParameter
+        ? (this as DefaultFormalParameter).parameter
+        : this as NormalFormalParameter;
+    if (parameter is FieldFormalParameter) {
+      if (parameter.keyword != null) {
+        return parameter.keyword;
+      } else if (parameter.type != null) {
+        return parameter.type.beginToken;
+      } else {
+        return parameter.thisKeyword;
+      }
+    } else if (parameter is FunctionTypedFormalParameter) {
+      if (parameter.covariantKeyword != null) {
+        return parameter.covariantKeyword;
+      } else if (parameter.returnType != null) {
+        return parameter.returnType.beginToken;
+      } else {
+        return parameter.identifier.token;
+      }
+    } else if (parameter is SimpleFormalParameter) {
+      if (parameter.covariantKeyword != null) {
+        return parameter.covariantKeyword;
+      } else if (parameter.keyword != null) {
+        return parameter.keyword;
+      } else if (parameter.type != null) {
+        return parameter.type.beginToken;
+      } else {
+        return parameter.identifier.token;
+      }
+    }
+    return null;
+  }
 }

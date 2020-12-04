@@ -43,9 +43,7 @@ extension E on T<dynamic> {
   T<dynamic> foo(T<dynamic> t) => t;
 }
 
-X foo<X>(X x) => x;
-
-T<Type> Function(T<Type>) id;
+T<Object> Function(T<Object>) id = (x) => x;
 
 main() {
   var v8 = <T<C>>[];

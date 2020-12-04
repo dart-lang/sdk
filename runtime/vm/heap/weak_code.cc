@@ -69,6 +69,9 @@ void WeakCodeReferences::DisableCode() {
   }
 
   UpdateArrayTo(Object::null_array());
+
+  // TODO(dartbug.com/36097): This has to walk all mutator threads when
+  // disabling code.
   // Disable all code on stack.
   Code& code = Code::Handle();
   {
@@ -76,12 +79,10 @@ void WeakCodeReferences::DisableCode() {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     while (frame != NULL) {
-      if (!frame->is_interpreted()) {
-        code = frame->LookupDartCode();
-        if (IsOptimizedCode(code_objects, code)) {
-          ReportDeoptimization(code);
-          DeoptimizeAt(code, frame);
-        }
+      code = frame->LookupDartCode();
+      if (IsOptimizedCode(code_objects, code)) {
+        ReportDeoptimization(code);
+        DeoptimizeAt(code, frame);
       }
       frame = iterator.NextFrame();
     }

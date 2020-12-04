@@ -48,6 +48,9 @@ declare_args() {
 template("_application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
   assert(defined(invoker.training_args), "Must specify 'training_args'")
+  if (defined(invoker.dart_snapshot_kind)) {
+    dart_snapshot_kind = invoker.dart_snapshot_kind
+  }
   snapshot_vm_args = []
   if (defined(invoker.vm_args)) {
     snapshot_vm_args = invoker.vm_args
@@ -124,16 +127,10 @@ template("_application_snapshot") {
       # "kernel_snapshot" passes this if needed, we always pass it)
       "-Dsdk_hash=$sdk_hash",
     ]
-    if (dart_platform_bytecode) {
-      args += [
-        "--gen-bytecode",
-        "--drop-ast",
-        "--bytecode-options=source-positions",
-      ]
-    }
     args += [ rebase_path(main_dart) ]
   }
 
+  # Create a snapshot from kernel built above.
   dart_action(target_name) {
     deps = extra_deps + [ ":${target_name}_dill" ]
     depfile = "$output.d"
@@ -143,6 +140,10 @@ template("_application_snapshot") {
     inputs = extra_inputs
 
     outputs = [ output ]
+
+    # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
+    # snapshot (creating a circular dep. for kernel-service_snapshot).
+    dfe = "$_dart_root/pkg/vm/bin/kernel_service.dart"
 
     abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output, root_build_dir)

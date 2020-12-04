@@ -4,6 +4,8 @@
 
 // Macro-benchmark for ffi with boringssl.
 
+// @dart=2.9
+
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';

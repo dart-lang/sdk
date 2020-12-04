@@ -96,7 +96,7 @@ class FieldKeyValueTrait {
     if (token_pos.IsReal()) {
       return token_pos.value();
     }
-    return key->binary_declaration_offset();
+    return key->kernel_offset();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -301,7 +301,7 @@ class Precompiler : public ValueObject {
 
   void TraceForRetainedFunctions();
   void FinalizeDispatchTable();
-  void ReplaceFunctionPCRelativeCallEntries();
+  void ReplaceFunctionStaticCallEntries();
   void DropFunctions();
   void DropFields();
   void TraceTypesFromRetainedClasses();

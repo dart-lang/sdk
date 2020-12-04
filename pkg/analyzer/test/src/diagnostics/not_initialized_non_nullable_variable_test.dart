@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,8 +14,22 @@ main() {
 }
 
 @reflectiveTest
-class NotInitializedNonNullableVariableTest extends DriverResolutionTest
+class NotInitializedNonNullableVariableTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_external_static_field_non_nullable() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static int x;
+}
+''');
+  }
+
+  test_external_variable_non_nullable() async {
+    await assertNoErrorsInCode('''
+external int x;
+''');
+  }
+
   test_staticField_futureOr_questionArgument_none() async {
     await assertNoErrorsInCode('''
 import 'dart:async';

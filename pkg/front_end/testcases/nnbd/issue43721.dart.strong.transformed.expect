@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43721.dart:13:7: Error: The argument type 'FutureOr<num?>' can't be assigned to the parameter type 'Object' because 'num?' is nullable and 'Object' isn't.
+//  - 'Object' is from 'dart:core'.
+//   foo(z); // Error.
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method foo(core::Object x) → dynamic {}
+static method bar(core::bool condition) → dynamic {
+  FutureOr<core::int?>x = null;
+  core::num n = 1;
+  FutureOr<core::num?>z = condition ?{FutureOr<core::num?>} x : n;
+  self::foo(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue43721.dart:13:7: Error: The argument type 'FutureOr<num?>' can't be assigned to the parameter type 'Object' because 'num?' is nullable and 'Object' isn't.
+ - 'Object' is from 'dart:core'.
+  foo(z); // Error.
+      ^" in let FutureOr<core::num?>#t2 = z in #t2.==(null) ?{core::Object} #t2 as{TypeError,ForNonNullableByDefault} core::Object : #t2{core::Object});
+}
+static method main() → dynamic {}

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class ExtensionOverrideArgumentNotAssignableTest extends DriverResolutionTest {
+class ExtensionOverrideArgumentNotAssignableTest
+    extends PubPackageResolutionTest {
   test_subtype() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -64,7 +64,7 @@ void f(B b) {
 
 @reflectiveTest
 class ExtensionOverrideArgumentNotAssignableWithNullSafetyTest
-    extends DriverResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_override_onNonNullable() async {
     await assertErrorsInCode(r'''
 extension E on String {

@@ -22,7 +22,6 @@
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
@@ -84,7 +83,6 @@ DEFINE_FLAG(bool,
             "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
@@ -106,7 +104,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
-    FLAG_causal_async_stacks = false;
     FLAG_lazy_async_stacks = true;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -179,6 +176,10 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
   RegExpEngine::CompilationResult result =
       RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
                               parsed_function, *ic_data_array, osr_id);
+  if (result.error_message != nullptr) {
+    Report::LongJump(LanguageError::Handle(
+        LanguageError::New(String::Handle(String::New(result.error_message)))));
+  }
   backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.
@@ -211,25 +212,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   Object& result = Object::Handle(zone);
-
-  if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
-    if (!function.HasBytecode()) {
-      result = kernel::BytecodeReader::ReadFunctionBytecode(thread, function);
-      if (!result.IsNull()) {
-        Exceptions::PropagateError(Error::Cast(result));
-      }
-    }
-    if (function.HasBytecode() && (FLAG_compilation_counter_threshold != 0)) {
-      // If interpreter is enabled and there is bytecode, LazyCompile stub
-      // (which calls CompileFunction) should proceed to InterpretCall in order
-      // to enter interpreter. In such case, compilation is postponed and
-      // triggered by interpreter later via CompileInterpretedFunction.
-      return;
-    }
-    // Fall back to compilation.
-  } else {
-    ASSERT(!function.HasCode());
-  }
+  ASSERT(!function.HasCode());
 
   result = Compiler::CompileFunction(thread, function);
   if (result.IsError()) {
@@ -491,13 +474,6 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
       Compiler::AbortBackgroundCompilation(
           DeoptId::kNone, "Optimizing Background compilation is being stopped");
     }
-  } else {
-    if (FLAG_enable_interpreter &&
-        !isolate()->background_compiler()->is_running()) {
-      // The background compiler is being stopped.
-      Compiler::AbortBackgroundCompilation(
-          DeoptId::kNone, "Background compilation is being stopped");
-    }
   }
 }
 
@@ -643,6 +619,13 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           CheckIfBackgroundCompilerIsBeingStopped(optimized());
         }
 
+        // Grab write program_lock outside of potential safepoint, that lock
+        // can't be waited for inside the safepoint.
+        // Initially read lock was added to guard direct_subclasses field
+        // access.
+        // Read lock was upgraded to write lock to guard dependent code updates.
+        SafepointWriteRwLocker ml(thread(),
+                                  thread()->isolate_group()->program_lock());
         // We have to ensure no mutators are running, because:
         //
         //   a) We allocate an instructions object, which might cause us to
@@ -779,9 +762,8 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
           function.set_is_background_optimizable(false);
 
           // Trigger another optimization soon on the main thread.
-          function.SetUsageCounter(optimized
-                                       ? FLAG_optimization_counter_threshold
-                                       : FLAG_compilation_counter_threshold);
+          function.SetUsageCounter(
+              optimized ? FLAG_optimization_counter_threshold : 0);
           return Error::null();
         } else if (error.IsLanguageError() &&
                    LanguageError::Cast(error).kind() == Report::kBailout) {
@@ -938,8 +920,6 @@ ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 #endif  // defined(SUPPORT_TIMELINE)
 
-  ASSERT(function.ShouldCompilerOptimize());
-
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, /* optimized = */ true,
@@ -974,21 +954,8 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 
     auto& var_descs = LocalVarDescriptors::Handle(zone);
 
-    if (function.is_declared_in_bytecode()) {
-      if (function.HasBytecode()) {
-        const auto& bytecode = Bytecode::Handle(zone, function.bytecode());
-        var_descs = bytecode.GetLocalVarDescriptors();
-        LocalVarDescriptorsBuilder builder;
-        builder.AddDeoptIdToContextLevelMappings(context_level_array);
-        builder.AddAll(zone, var_descs);
-        var_descs = builder.Done();
-      } else {
-        var_descs = Object::empty_var_descriptors().raw();
-      }
-    } else {
-      var_descs = parsed_function->scope()->GetVarDescriptors(
-          function, context_level_array);
-    }
+    var_descs = parsed_function->scope()->GetVarDescriptors(
+        function, context_level_array);
 
     ASSERT(!var_descs.IsNull());
     code.set_var_descriptors(var_descs);
@@ -1002,43 +969,20 @@ ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Object& result = Object::Handle(zone);
-  Array& functions = Array::Handle(zone, cls.functions());
+  // We don't expect functions() to change as the class was finalized.
+  ASSERT(cls.is_finalized());
+  Array& functions = Array::Handle(zone, cls.current_functions());
   Function& func = Function::Handle(zone);
   // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.is_abstract() &&
-        !func.IsRedirectingFactory()) {
+    if (!func.HasCode() && !func.is_abstract()) {
       result = CompileFunction(thread, func);
       if (result.IsError()) {
         return Error::Cast(result).raw();
       }
       ASSERT(!result.IsNull());
-    }
-  }
-  return Error::null();
-}
-
-ErrorPtr Compiler::ReadAllBytecode(const Class& cls) {
-  Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  Zone* zone = thread->zone();
-  Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
-  ASSERT(error.IsNull());
-  Array& functions = Array::Handle(zone, cls.functions());
-  Function& func = Function::Handle(zone);
-  // Compile all the regular functions.
-  for (int i = 0; i < functions.Length(); i++) {
-    func ^= functions.At(i);
-    ASSERT(!func.IsNull());
-    if (func.IsBytecodeAllowed(zone) && !func.HasBytecode() &&
-        !func.HasCode()) {
-      ErrorPtr error =
-          kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
-      if (error != Error::null()) {
-        return error;
-      }
     }
   }
   return Error::null();
@@ -1203,13 +1147,9 @@ void BackgroundCompiler::Run() {
         }
       }
       while (!function.IsNull()) {
-        if (is_optimizing()) {
-          Compiler::CompileOptimizedFunction(thread, function,
-                                             Compiler::kNoOSRDeoptId);
-        } else {
-          ASSERT(FLAG_enable_interpreter);
-          Compiler::CompileFunction(thread, function);
-        }
+        ASSERT(is_optimizing());
+        Compiler::CompileOptimizedFunction(thread, function,
+                                           Compiler::kNoOSRDeoptId);
 
         QueueElement* qelem = NULL;
         {

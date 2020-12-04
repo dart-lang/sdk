@@ -42,10 +42,11 @@ bigint_test: Skip # Issue 31659
 [ $compiler == dartdevc || $compiler == dartdevk ]
 bigint_test/03: SkipSlow # modPow is very slow
 bigint_test/15: SkipSlow # modPow is very slow
+list_concurrent_modify_self_test: SkipSlow # missing check causes list to grow to whole heap
 uri_parse_test: Slow, Pass
 uri_test: Slow, Pass
 
-[ $compiler == dartkb || $compiler == dartkp ]
+[ $compiler == dartkp ]
 bigint_parse_radix_test: Slow, Pass # --no_intrinsify
 bigint_test/03: SkipSlow # --no_intrinsify
 bigint_test/15: SkipSlow # --no_intrinsify

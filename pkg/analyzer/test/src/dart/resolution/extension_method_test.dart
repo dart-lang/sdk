@@ -9,8 +9,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -28,7 +27,7 @@ main() {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationTest extends DriverResolutionTest {
+class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
@@ -39,12 +38,14 @@ extension E on Object {
 
 class A {}
 '''),
+        ]),
+        MockSdkLibrary([
           MockSdkLibraryUnit('dart:test2', 'test2/test2.dart', r'''
 extension E on Object {
   int get a => 1;
 }
 '''),
-        ])
+        ]),
       ];
 
   test_constructor() async {
@@ -136,7 +137,7 @@ extension E<T extends Object> on T {
   }
 
   test_visibility_hidden() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int a = 1;
@@ -154,7 +155,7 @@ f(C c) {
   }
 
   test_visibility_notShown() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int a = 1;
@@ -172,7 +173,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byClass() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -193,12 +194,12 @@ f(C c) {
   }
 
   test_visibility_shadowed_byImport() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 extension E on Object {
   int get a => 1;
 }
 ''');
-    newFile('/test/lib/lib2.dart', content: '''
+    newFile('$testPackageLibPath/lib2.dart', content: '''
 class E {}
 class A {}
 ''');
@@ -217,7 +218,7 @@ f(Object o, A a) {
   }
 
   test_visibility_shadowed_byLocal_imported() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -258,7 +259,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byTopLevelVariable() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -279,7 +280,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_platformByNonPlatform() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 extension E on Object {
   int get a => 1;
 }
@@ -296,7 +297,7 @@ f(Object o, A a, B b) {
   }
 
   test_visibility_withPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -315,8 +316,8 @@ f(p.C c) {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationWithNullSafetyTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class ExtensionMethodsDeclarationWithNullSafetyTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_this_type_interface() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -354,7 +355,7 @@ extension E<T extends Object> on T {
 /// Tests that show that extension declarations support all of the possible
 /// types in the `on` clause.
 @reflectiveTest
-class ExtensionMethodsExtendedTypeTest extends DriverResolutionTest {
+class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest {
   test_named_generic() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -481,7 +482,7 @@ class ExtensionMethodsExtendedTypeWithNullSafetyTest
 /// Tests that extension members can be correctly resolved when referenced
 /// by code external to the extension declaration.
 @reflectiveTest
-class ExtensionMethodsExternalReferenceTest extends DriverResolutionTest {
+class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
     await assertNoErrorsInCode(r'''
@@ -559,8 +560,10 @@ f() {
 }
 ''');
     var invocation = findNode.functionExpressionInvocation('1(2)');
-    expect(invocation.staticInvokeType.element,
-        same(findElement.method('call', of: 'E')));
+    expect(
+      invocation.staticElement,
+      same(findElement.method('call', of: 'E')),
+    );
     assertInvokeType(invocation, 'int Function(int)');
   }
 
@@ -1008,8 +1011,15 @@ f(C c) {
   c[2] = 1;
 }
 ''');
-    var index = findNode.index('c[2]');
-    assertElement(index, findElement.method('[]=', of: 'C'));
+    assertAssignment(
+      findNode.assignment('[2] ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'C'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_indexEquals_fromExtension_functionType() async {
@@ -1021,8 +1031,15 @@ g(int Function(int) f) {
   f[2] = 3;
 }
 ''');
-    var index = findNode.index('f[2]');
-    assertElement(index, findElement.method('[]=', of: 'E'));
+    assertAssignment(
+      findNode.assignment('f[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_indexEquals_fromExtension_interfaceType() async {
@@ -1035,8 +1052,15 @@ f(C c) {
   c[2] = 3;
 }
 ''');
-    var index = findNode.index('c[2]');
-    assertElement(index, findElement.method('[]=', of: 'E'));
+    assertAssignment(
+      findNode.assignment('c[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_postfix_fromExtendedType() async {
@@ -1177,8 +1201,15 @@ g(int Function(int) f) {
   f.a = 1;
 }
 ''');
-    var access = findNode.prefixed('f.a');
-    assertElement(access, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_oneMatch() async {
@@ -1193,8 +1224,15 @@ f(C c) {
   c.a = 1;
 }
 ''');
-    var access = findNode.prefixed('c.a');
-    assertElement(access, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_tearoff_fromExtension_functionType() async {
@@ -1225,7 +1263,7 @@ f(C c) => c.a;
   }
 
   test_static_field_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1263,7 +1301,7 @@ f() {
   }
 
   test_static_getter_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1301,7 +1339,7 @@ f() {
   }
 
   test_static_method_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1339,7 +1377,7 @@ f() {
   }
 
   test_static_setter_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1353,9 +1391,16 @@ f() {
   p.E.a = 3;
 }
 ''');
-    var identifier = findNode.simple('a =');
-    var import = findElement.importFind('package:test/lib.dart');
-    assertElement(identifier, import.extension_('E').getSetter('a'));
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: importFind.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_setter_local() async {
@@ -1370,8 +1415,15 @@ f() {
   E.a = 3;
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_tearoff() async {
@@ -1659,8 +1711,15 @@ f(int? a) {
   a.foo = 1;
 }
 ''');
-    var access = findNode.prefixed('a.foo');
-    assertElement(access, findElement.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_fromInstance_nullAware() async {
@@ -1673,15 +1732,22 @@ f(int? a) {
   a?.foo = 1;
 }
 ''');
-    var access = findNode.propertyAccess('a?.foo');
-    assertElement(access, findElement.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int?',
+    );
   }
 }
 
 /// Tests that extension members can be correctly resolved when referenced
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
-class ExtensionMethodsInternalReferenceTest extends DriverResolutionTest {
+class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest {
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -1845,8 +1911,15 @@ extension E on C {
   void b() { this[2] = 1; }
 }
 ''');
-    var index = findNode.index('this[2]');
-    assertElement(index, findElement.method('[]=', of: 'C'));
+    assertAssignment(
+      findNode.assignment('this[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'C'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_indexEquals_fromThis_fromExtension() async {
@@ -1857,8 +1930,15 @@ extension E on C {
   void b() { this[2] = 3; }
 }
 ''');
-    var index = findNode.index('this[2]');
-    assertElement(index, findElement.method('[]=', of: 'E'));
+    assertAssignment(
+      findNode.assignment('this[2]'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_operator_unary_fromThis_fromExtendedType() async {
@@ -1890,35 +1970,49 @@ extension E on C {
   test_instance_setter_fromInstance() async {
     await assertNoErrorsInCode('''
 class C {
-  set a(int) {}
+  set a(int _) {}
 }
 
 extension E on C {
-  set a(int) {}
+  set a(int _) {}
   void m() {
     a = 3;
   }
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a', of: 'E'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_fromThis_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  set a(int) {}
+  set a(int _) {}
 }
 
 extension E on C {
-  set a(int) {}
+  set a(int _) {}
   void m() {
     this.a = 3;
   }
 }
 ''');
-    var access = findNode.propertyAccess('this.a');
-    assertElement(access, findElement.setter('a', of: 'C'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a', of: 'C'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_setter_fromThis_fromExtension() async {
@@ -1926,14 +2020,21 @@ extension E on C {
 class C {}
 
 extension E on C {
-  set a(int) {}
+  set a(int _) {}
   void m() {
     this.a = 3;
   }
 }
 ''');
-    var access = findNode.propertyAccess('this.a');
-    assertElement(access, findElement.setter('a', of: 'E'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_instance_tearoff_fromInstance() async {
@@ -2057,8 +2158,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_setter_fromStatic() async {
@@ -2072,8 +2180,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a =');
-    assertElement(identifier, findElement.setter('a'));
+    assertAssignment(
+      findNode.assignment('a = 3'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_static_tearoff_fromInstance() async {
@@ -2194,8 +2309,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a = 0;');
-    assertElement(identifier, findElement.topSet('a'));
+    assertAssignment(
+      findNode.assignment('a = 0'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topSet('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_topLevel_setter_fromStatic() async {
@@ -2212,8 +2334,15 @@ extension E on C {
   }
 }
 ''');
-    var identifier = findNode.simple('a = 0;');
-    assertElement(identifier, findElement.topSet('a'));
+    assertAssignment(
+      findNode.assignment('a = 0'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topSet('a'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 }
 

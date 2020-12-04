@@ -5,11 +5,18 @@
 // Test errors thrown by WasmMemory.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
-  Expect.throwsArgumentError(() => WasmMemory(1000000000));
-  var mem = WasmMemory(1000);
-  Expect.throwsArgumentError(() => mem.grow(1000000000));
+  // Empty wasm module.
+  var data = Uint8List.fromList(
+      [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x06, 0x81, 0x00, 0x00]);
+  var module = WasmModule(data);
+
+  Expect.throws(() => module.createMemory(1000000000));
+  var mem = module.createMemory(100);
+  Expect.throws(() => mem.grow(1000000000));
+  mem = module.createMemory(100, 200);
+  Expect.throws(() => mem.grow(300));
 }

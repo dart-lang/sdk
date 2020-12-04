@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
   Future<void> test_class() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class AAA {}
 class BBB {}
 ''');
@@ -27,7 +27,7 @@ class BBB {}
   }
 
   Future<void> test_function() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 void aaa() {}
 void bbb() {}
 ''');
@@ -36,7 +36,7 @@ void bbb() {}
   }
 
   Future<void> test_null() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class AAA {}
 class BBB {}
 ''');
@@ -50,7 +50,7 @@ class BBB {}
   }
 
   Future<void> test_topLevelVariable() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 int aaa, bbb;
 int ccc;
 ''');

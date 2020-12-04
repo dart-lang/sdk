@@ -152,7 +152,7 @@ abstract class Stream<T> {
   @Since("2.5")
   factory Stream.error(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     return (_AsyncStreamController<T>(null, null, null, null)
           .._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error))
           .._closeUnchecked())
@@ -483,11 +483,13 @@ abstract class Stream<T> {
    * On errors from this stream, the [onError] handler is called with the
    * error object and possibly a stack trace.
    *
-   * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace stackTrace)`. If [onError] accepts
-   * two arguments it is called with the error object and the stack trace
-   * (which could be `null` if this stream itself received an error without
-   * stack trace).
+   * The [onError] callback must be of type `void Function(Object error)` or
+   * `void Function(Object error, StackTrace)`.
+   * The function type determines whether [onError] is invoked with a stack
+   * trace argument.
+   * The stack trace argument may be [StackTrace.empty] if this stream received
+   * an error without a stack trace.
+   *
    * Otherwise it is called with just the error object.
    * If [onError] is omitted, any errors on this stream are considered unhandled,
    * and will be passed to the current [Zone]'s error handler.
@@ -667,12 +669,12 @@ abstract class Stream<T> {
    * If this stream sends an error that matches [test], then it is intercepted
    * by the [onError] function.
    *
-   * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace stackTrace)`.
+   * The [onError] callback must be of type `void Function(Object error)` or
+   * `void Function(Object error, StackTrace)`.
    * The function type determines whether [onError] is invoked with a stack
    * trace argument.
-   * The stack trace argument may be `null` if this stream received an error
-   * without a stack trace.
+   * The stack trace argument may be [StackTrace.empty] if this stream received
+   * an error without a stack trace.
    *
    * An asynchronous error `error` is matched by a test function if
    *`test(error)` returns true. If [test] is omitted, every error is considered
@@ -2210,20 +2212,22 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
 }
 
 /**
- * An [Iterator] like interface for the values of a [Stream].
+ * An [Iterator]-like interface for the values of a [Stream].
  *
  * This wraps a [Stream] and a subscription on the stream. It listens
  * on the stream, and completes the future returned by [moveNext] when the
  * next value becomes available.
  *
  * The stream may be paused between calls to [moveNext].
+ *
+ * The [current] value must only be used after a future returned by [moveNext]
+ * has completed with `true`, and only until [moveNext] is called again.
  */
 abstract class StreamIterator<T> {
   /** Create a [StreamIterator] on [stream]. */
-  factory StreamIterator(Stream<T> stream)
+  factory StreamIterator(Stream<T> stream) =>
       // TODO(lrn): use redirecting factory constructor when type
       // arguments are supported.
-      =>
       new _StreamIterator<T>(stream);
 
   /**
@@ -2245,14 +2249,16 @@ abstract class StreamIterator<T> {
   /**
    * The current value of the stream.
    *
-   * Is `null` before the first call to [moveNext] and after a call to
-   * `moveNext` completes with a `false` result or an error.
-   *
-   * When a `moveNext` call completes with `true`, the `current` field holds
+   * When a [moveNext] call completes with `true`, the [current] field holds
    * the most recent event of the stream, and it stays like that until the next
-   * call to `moveNext`.
-   * Between a call to `moveNext` and when its returned future completes,
-   * the value is unspecified.
+   * call to [moveNext]. This value must only be read after a call to [moveNext]
+   * has completed with `true`, and only until the [moveNext] is called again.
+   *
+   * If the StreamIterator has not yet been moved to the first element
+   * ([moveNext] has not been called and completed yet), or if the
+   * StreamIterator has been moved past the last element ([moveNext] has
+   * returned `false`), then [current] is unspecified. A [StreamIterator] may
+   * either throw or return an iterator-specific default value in that case.
    */
   T get current;
 
@@ -2344,6 +2350,8 @@ abstract class MultiStreamController<T> implements StreamController<T> {
    * Delivery can be delayed if other previously added events are
    * still pending delivery, if the subscription is paused,
    * or if the subscription isn't listening yet.
+   * If it's necessary to know whether the "done" event has been delievered,
+   * [done] future will complete when that has happened.
    */
   void closeSync();
 }

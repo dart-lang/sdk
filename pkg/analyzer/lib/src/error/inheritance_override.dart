@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:meta/meta.dart';
 
 class InheritanceOverrideVerifier {
@@ -422,13 +422,13 @@ class _ClassVerifier {
         var derivedElement = derivedOptionalElements[i];
         if (_isNonNullableByDefault &&
             derivedIsAbstract &&
-            derivedElement.initializer == null) {
+            !derivedElement.hasDefaultValue) {
           continue;
         }
         var name = derivedElement.name;
         for (var j = 0; j < baseOptionalElements.length; j++) {
           var baseParameter = baseOptionalElements[j];
-          if (name == baseParameter.name && baseParameter.initializer != null) {
+          if (name == baseParameter.name && baseParameter.hasDefaultValue) {
             var baseValue = baseParameter.computeConstantValue();
             var derivedResult = derivedElement.evaluationResult;
             if (!_constantValuesEqual(derivedResult.value, baseValue)) {
@@ -453,11 +453,11 @@ class _ClassVerifier {
         var derivedElement = derivedOptionalElements[i];
         if (_isNonNullableByDefault &&
             derivedIsAbstract &&
-            derivedElement.initializer == null) {
+            !derivedElement.hasDefaultValue) {
           continue;
         }
         var baseElement = baseOptionalElements[i];
-        if (baseElement.initializer != null) {
+        if (baseElement.hasDefaultValue) {
           var baseValue = baseElement.computeConstantValue();
           var derivedResult = derivedElement.evaluationResult;
           if (!_constantValuesEqual(derivedResult.value, baseValue)) {
@@ -581,18 +581,33 @@ class _ClassVerifier {
   /// because the class itself defines an abstract method with this [name],
   /// report the more specific error, and return `true`.
   bool _reportConcreteClassWithAbstractMember(String name) {
+    bool checkMemberNameCombo(ClassMember member, String memberName) {
+      if (memberName == name) {
+        reporter.reportErrorForNode(
+            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+            member,
+            [name, classElement.name]);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     for (var member in members) {
       if (member is MethodDeclaration) {
         var name2 = member.name.name;
         if (member.isSetter) {
           name2 += '=';
         }
-        if (name2 == name) {
-          reporter.reportErrorForNode(
-              CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-              member,
-              [name, classElement.name]);
-          return true;
+        if (checkMemberNameCombo(member, name2)) return true;
+      } else if (member is FieldDeclaration) {
+        for (var variableDeclaration in member.fields.variables) {
+          var name2 = variableDeclaration.name.name;
+          if (checkMemberNameCombo(member, name2)) return true;
+          if (!variableDeclaration.isFinal) {
+            name2 += '=';
+            if (checkMemberNameCombo(member, name2)) return true;
+          }
         }
       }
     }

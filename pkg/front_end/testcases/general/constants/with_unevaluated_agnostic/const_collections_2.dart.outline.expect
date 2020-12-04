@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::String> listWithUnevaluatedUnevaluatedFirst = const <core::String>[const core::String::fromEnvironment("foo"), const core::String::fromEnvironment("bar"), "hello", "world"];
+static const field core::List<core::String> listWithUnevaluatedUnevaluatedMiddle = const <core::String>["A", "few", "strings", const core::String::fromEnvironment("foo"), const core::String::fromEnvironment("bar"), "hello", "world", "and", "more"];
+static const field core::Set<core::String> setWithUnevaluatedUnevaluatedFirst = const <core::String>{const core::String::fromEnvironment("foo"), "hello", "world"};
+static const field core::Set<core::String> setWithUnevaluatedUnevaluatedMiddle = const <core::String>{"A", "few", "strings", const core::String::fromEnvironment("foo"), "hello", "world", "and", "more"};
+static const field core::Map<core::String, core::int> mapWithUnevaluatedUnevaluatedFirst = const <core::String, core::int>{const core::String::fromEnvironment("foo"): 42, "hello": 42, "world": 42};
+static const field core::Map<core::String, core::int> mapWithUnevaluatedUnevaluatedMiddle = const <core::String, core::int>{"A": 42, "few": 42, "strings": 42, const core::String::fromEnvironment("foo"): 42, "hello": 42, "world": 42, "and": 42, "more": 42};
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: ListLiteral @ org-dartlang-testcase:///const_collections_2.dart:5:58 -> ListConstant(const <String>["", "", "hello", "world"])
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:6:10 -> StringConstant("")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:7:10 -> StringConstant("")
+Evaluated with empty environment: ListLiteral @ org-dartlang-testcase:///const_collections_2.dart:12:59 -> ListConstant(const <String>["A", "few", "strings", "", "", "hello", "world", "and", "more"])
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:16:10 -> StringConstant("")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:17:10 -> StringConstant("")
+Evaluated with empty environment: SetLiteral @ org-dartlang-testcase:///const_collections_2.dart:24:56 -> SetConstant(const <String>{"", "hello", "world"})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:27:10 -> StringConstant("")
+Evaluated with empty environment: SetLiteral @ org-dartlang-testcase:///const_collections_2.dart:32:57 -> SetConstant(const <String>{"A", "few", "strings", "", "hello", "world", "and", "more"})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:38:10 -> StringConstant("")
+Evaluated with empty environment: MapLiteral @ org-dartlang-testcase:///const_collections_2.dart:45:61 -> MapConstant(const <String, int>{"": 42, "hello": 42, "world": 42})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:48:10 -> StringConstant("")
+Evaluated with empty environment: MapLiteral @ org-dartlang-testcase:///const_collections_2.dart:53:62 -> MapConstant(const <String, int>{"A": 42, "few": 42, "strings": 42, "": 42, "hello": 42, "world": 42, "and": 42, "more": 42})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections_2.dart:59:10 -> StringConstant("")
+Extra constant evaluation: evaluated: 14, effectively constant: 14

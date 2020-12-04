@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     show transformComponent;
@@ -25,6 +26,7 @@ runTestCase(Uri source) async {
       });
 
   component = transformComponent(component, /* enableAsserts = */ false);
+  verifyComponent(component);
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
 

@@ -22,12 +22,14 @@ class Flags {
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableAsserts = '--enable-asserts';
+  static const String enableNullAssertions = '--null-assertions';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
   static const String experimentalAllocationsPath =
       '--experimental-allocations-path';
 
+  static const String experimentalWrapped = '--experimental-wrapped';
   static const String experimentalPowersets = '--experimental-powersets';
 
   // Temporary experiment for code generation of locals for frequently used
@@ -39,6 +41,11 @@ class Flags {
 
   // Experimentally rely on JavaScript ToBoolean conversions.
   static const String experimentToBoolean = '--experiment-code-3';
+
+  // Experiment to make methods that are inferred as unreachable throw an
+  // exception rather than generate suspect code.
+  static const String experimentUnreachableMethodsThrow =
+      '--experiment-unreachable-throw';
 
   // Add instrumentation to log every method call.
   static const String experimentCallInstrumentation =
@@ -68,6 +75,10 @@ class Flags {
       '--no-frequency-based-minification';
   // Disables minification even if enabled by other options, e.g. '-O2'.
   static const String noMinify = '--no-minify';
+
+  static const String nativeNullAssertions = '--native-null-assertions';
+  static const String noNativeNullAssertions = '--no-native-null-assertions';
+
   static const String noSourceMaps = '--no-source-maps';
   static const String preserveUris = '--preserve-uris';
   static const String printLegacyStars = '--debug-print-legacy-stars';
@@ -87,10 +98,14 @@ class Flags {
   static const String verbose = '--verbose';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
+  static const String reportMetrics = '--report-metrics';
+  static const String reportAllMetrics = '--report-all-metrics';
 
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String writeClosedWorld = '--write-closed-world';
+  static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';
   static const String writeCodegen = '--write-codegen';
   static const String codegenShard = '--codegen-shard';
@@ -102,10 +117,6 @@ class Flags {
 
   static const String soundNullSafety = '--sound-null-safety';
   static const String noSoundNullSafety = '--no-sound-null-safety';
-
-  static const String newDeferredSplit = '--new-deferred-split';
-  static const String reportInvalidInferredDeferredTypes =
-      '--report-invalid-deferred-types';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
@@ -153,6 +164,9 @@ class Option {
   static const String enableLanguageExperiments =
       '${Flags.enableLanguageExperiments}|'
       '${Flags.enableLanguageExperiments}=.*';
+
+  static const String multiRoots = '--multi-root=.+';
+  static const String multiRootScheme = '--multi-root-scheme=.+';
 
   // Experimental options.
   static const String resolutionInput = '--resolution-input=.+';

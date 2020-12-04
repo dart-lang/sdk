@@ -144,12 +144,12 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
       core::Iterator<core::String> :sync-for-iterator = #t6{core::Iterable<core::String>}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::String #t7 = :sync-for-iterator.{core::Iterator::current};
-        #t5.{core::List::add}(#t7);
+        #t5.{core::List::add}{Invariant}(#t7);
       }
     }
   } =>#t5;
   core::Set<core::String> a = block {
-    final core::Set<core::String> #t8 = col::LinkedHashSet::•<core::String>();
+    final core::Set<core::String> #t8 = new col::_CompactLinkedHashSet::•<core::String>();
     final core::Iterable<dynamic>? #t9 = l;
     if(!#t9.{core::Object::==}(null)) {
       core::Iterator<dynamic> :sync-for-iterator = #t9{core::Iterable<dynamic>}.{core::Iterable::iterator};
@@ -157,19 +157,19 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
         {
           final core::String #t11 = #t10 as{TypeError,ForNonNullableByDefault} core::String;
-          #t8.{core::Set::add}(#t11);
+          #t8.{core::Set::add}{Invariant}(#t11);
         }
       }
     }
   } =>#t8;
   block {
-    final core::Set<core::String> #t12 = col::LinkedHashSet::•<core::String>();
+    final core::Set<core::String> #t12 = new col::_CompactLinkedHashSet::•<core::String>();
     final core::Iterable<core::String>? #t13 = l;
     if(!#t13.{core::Object::==}(null)) {
       core::Iterator<core::String> :sync-for-iterator = #t13{core::Iterable<core::String>}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::String #t14 = :sync-for-iterator.{core::Iterator::current};
-        #t12.{core::Set::add}(#t14);
+        #t12.{core::Set::add}{Invariant}(#t14);
       }
     }
   } =>#t12;
@@ -180,7 +180,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
       core::Iterator<core::MapEntry<core::String, core::int>> :sync-for-iterator = #t16{core::Map<core::String, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String, core::int> #t17 = :sync-for-iterator.{core::Iterator::current};
-        #t15.{core::Map::[]=}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
+        #t15.{core::Map::[]=}{Invariant}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
       }
     }
   } =>#t15;
@@ -191,7 +191,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
       core::Iterator<core::MapEntry<core::String, core::int>> :sync-for-iterator = #t19{core::Map<core::String, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String, core::int> #t20 = :sync-for-iterator.{core::Iterator::current};
-        #t18.{core::Map::[]=}(#t20.{core::MapEntry::key}, #t20.{core::MapEntry::value});
+        #t18.{core::Map::[]=}{Invariant}(#t20.{core::MapEntry::key}, #t20.{core::MapEntry::value});
       }
     }
   } =>#t18;
@@ -212,3 +212,13 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   } =>#t32;
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:22:11 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:22:11 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:42:8 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:42:8 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
+Extra constant evaluation: evaluated: 221, effectively constant: 6

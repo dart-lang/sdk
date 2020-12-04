@@ -8,6 +8,7 @@ import 'dart:async' show Future;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show clearStringTokenCanonicalizer;
+import 'package:kernel/ast.dart' as ir;
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
@@ -28,6 +29,8 @@ import 'environment.dart';
 import 'frontend_strategy.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
+import 'inferrer/powersets/wrapped.dart' show WrappedAbstractValueStrategy;
+import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
@@ -35,6 +38,7 @@ import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show CodegenInputs, JavaScriptImpactStrategy;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
+import 'js_model/js_world.dart';
 import 'kernel/kernel_strategy.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
@@ -135,11 +139,16 @@ abstract class Compiler {
     options.deriveOptions();
     options.validate();
 
-    abstractValueStrategy = options.experimentalPowersets
-        ? throw UnimplementedError('Powerset abstract value domain')
-        : options.useTrivialAbstractValueDomain
-            ? const TrivialAbstractValueStrategy()
-            : const TypeMaskStrategy();
+    abstractValueStrategy = options.useTrivialAbstractValueDomain
+        ? const TrivialAbstractValueStrategy()
+        : const TypeMaskStrategy();
+    if (options.experimentalWrapped || options.testMode) {
+      abstractValueStrategy =
+          WrappedAbstractValueStrategy(abstractValueStrategy);
+    } else if (options.experimentalPowersets) {
+      abstractValueStrategy = PowersetStrategy(abstractValueStrategy);
+    }
+
     CompilerTask kernelFrontEndTask;
     selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);
@@ -224,10 +233,23 @@ abstract class Compiler {
   Future runInternal(Uri uri) async {
     clearState();
     assert(uri != null);
-    // As far as I can tell, this branch is only used by test code.
     reporter.log('Compiling $uri (${options.buildId})');
 
-    if (options.readDataUri != null) {
+    if (options.readClosedWorldUri != null) {
+      ir.Component component =
+          await serializationTask.deserializeComponentAndUpdateOptions();
+      JsClosedWorld closedWorld =
+          await serializationTask.deserializeClosedWorld(
+              environment, abstractValueStrategy, component);
+      GlobalTypeInferenceResults globalTypeInferenceResults =
+          performGlobalTypeInference(closedWorld);
+      if (options.writeDataUri != null) {
+        serializationTask
+            .serializeGlobalTypeInference(globalTypeInferenceResults);
+        return;
+      }
+      await generateJavaScriptCode(globalTypeInferenceResults);
+    } else if (options.readDataUri != null) {
       GlobalTypeInferenceResults globalTypeInferenceResults =
           await serializationTask.deserializeGlobalTypeInference(
               environment, abstractValueStrategy);
@@ -355,9 +377,6 @@ abstract class Compiler {
 
     JClosedWorld closedWorld =
         closeResolution(mainFunction, resolutionEnqueuer.worldBuilder);
-    if (retainDataForTesting) {
-      backendClosedWorldForTesting = closedWorld;
-    }
     return closedWorld;
   }
 
@@ -402,37 +421,50 @@ abstract class Compiler {
     checkQueue(codegenEnqueuer);
   }
 
+  GlobalTypeInferenceResults globalTypeInferenceResultsTestMode(
+      GlobalTypeInferenceResults results) {
+    SerializationStrategy strategy = const BytesInMemorySerializationStrategy();
+    List<int> irData = strategy.unpackAndSerializeComponent(results);
+    List worldData = strategy.serializeGlobalTypeInferenceResults(results);
+    return strategy.deserializeGlobalTypeInferenceResults(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        strategy.deserializeComponent(irData),
+        worldData);
+  }
+
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
     _userCodeLocations.add(new CodeLocation(rootLibraryUri));
     selfTask.measureSubtask("compileFromKernel", () {
-      JClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
+      JsClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
-      if (stopAfterClosedWorld) return;
-      if (closedWorld != null) {
-        GlobalTypeInferenceResults globalInferenceResults =
-            performGlobalTypeInference(closedWorld);
-        if (options.writeDataUri != null) {
-          serializationTask
-              .serializeGlobalTypeInference(globalInferenceResults);
-          return;
-        }
-        if (options.testMode) {
-          SerializationStrategy strategy =
-              const BytesInMemorySerializationStrategy();
-          List<int> irData =
-              strategy.serializeComponent(globalInferenceResults);
-          List worldData = strategy.serializeData(globalInferenceResults);
-          globalInferenceResults = strategy.deserializeData(
-              options,
-              reporter,
-              environment,
-              abstractValueStrategy,
-              strategy.deserializeComponent(irData),
-              worldData);
-        }
-        if (stopAfterTypeInference) return;
-        generateJavaScriptCode(globalInferenceResults);
+      if (closedWorld == null) return;
+
+      if (retainDataForTesting) {
+        backendClosedWorldForTesting = closedWorld;
       }
+
+      if (options.writeClosedWorldUri != null) {
+        serializationTask.serializeComponent(
+            closedWorld.elementMap.programEnv.mainComponent);
+        serializationTask.serializeClosedWorld(closedWorld);
+        return;
+      }
+      if (stopAfterClosedWorld) return;
+      GlobalTypeInferenceResults globalInferenceResults =
+          performGlobalTypeInference(closedWorld);
+      if (options.writeDataUri != null) {
+        serializationTask.serializeGlobalTypeInference(globalInferenceResults);
+        return;
+      }
+      if (options.testMode) {
+        globalInferenceResults =
+            globalTypeInferenceResultsTestMode(globalInferenceResults);
+      }
+      if (stopAfterTypeInference) return;
+      generateJavaScriptCode(globalInferenceResults);
     });
   }
 

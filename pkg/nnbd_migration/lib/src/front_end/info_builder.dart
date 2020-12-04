@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
@@ -22,11 +24,16 @@ import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
   /// The node mapper for the migration state.
   NodeMapper nodeMapper;
+
+  /// The logger to use for showing progress when explaining the migration.
+  final Logger _logger;
 
   /// The resource provider used to access the file system.
   ResourceProvider provider;
@@ -49,7 +56,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.migration, this.nodeMapper);
+      this.migration, this.nodeMapper, this._logger);
 
   /// The provider used to get information about libraries.
   DriverProviderImpl get driverProvider => listener.server;
@@ -60,7 +67,10 @@ class InfoBuilder {
     var sourceInfoMap = info.sourceInformation;
     Set<UnitInfo> units =
         SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
+    var progressBar = ProgressBar(_logger, sourceInfoMap.length);
+
     for (var source in sourceInfoMap.keys) {
+      progressBar.tick();
       var filePath = source.fullName;
       var session = driverProvider.getAnalysisSession(filePath);
       if (!session.getFile(filePath).isPart) {
@@ -86,6 +96,7 @@ class InfoBuilder {
         }
       }
     }
+    progressBar.complete();
     return units;
   }
 
@@ -123,14 +134,16 @@ class InfoBuilder {
         'Reason', [_makeTraceEntry(info.description, info.codeReference)]));
   }
 
-  /// Return an edit that can be applied.
+  /// Returns a list of edits that can be applied.
   List<EditDetail> _computeEdits(
-      AtomicEditInfo fixInfo, int offset, String content) {
-    EditDetail _removeHint(String description) => EditDetail.fromSourceEdit(
+      AtomicEditInfo fixInfo, int offset, ResolvedUnitResult result) {
+    var content = result.content;
+
+    EditDetail removeHint(String description) => EditDetail.fromSourceEdit(
         description,
         fixInfo.hintComment.changesToRemove(content).toSourceEdits().single);
 
-    EditDetail _changeHint(String description, String replacement) =>
+    EditDetail changeHint(String description, String replacement) =>
         EditDetail.fromSourceEdit(
             description,
             fixInfo.hintComment
@@ -142,13 +155,27 @@ class InfoBuilder {
     var fixKind = fixInfo.description.kind;
     switch (fixKind) {
       case NullabilityFixKind.addLateDueToHint:
-        edits.add(_removeHint('Remove /*late*/ hint'));
+        edits.add(removeHint('Remove /*late*/ hint'));
+        break;
+      case NullabilityFixKind.addLateFinalDueToHint:
+        edits.add(removeHint('Remove /*late final*/ hint'));
         break;
       case NullabilityFixKind.addRequired:
-        // TODO(brianwilkerson) This doesn't verify that the meta package has
-        //  been imported.
-        edits
-            .add(EditDetail("Mark with '@required'.", offset, 0, '@required '));
+        var metaImport =
+            _findImportDirective(result.unit, 'package:meta/meta.dart');
+        if (metaImport == null) {
+          edits.add(
+              EditDetail('Add /*required*/ hint', offset, 0, '/*required*/ '));
+        } else {
+          var prefix = metaImport.prefix?.name;
+          if (prefix == null) {
+            edits.add(
+                EditDetail("Mark with '@required'", offset, 0, '@required '));
+          } else {
+            edits.add(EditDetail(
+                "Mark with '@required'", offset, 0, '@$prefix.required '));
+          }
+        }
         break;
       case NullabilityFixKind.checkExpression:
         // TODO(brianwilkerson) Determine whether we can know that the fix is
@@ -156,7 +183,7 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         break;
       case NullabilityFixKind.checkExpressionDueToHint:
-        edits.add(_removeHint('Remove /*!*/ hint'));
+        edits.add(removeHint('Remove /*!*/ hint'));
         break;
       case NullabilityFixKind.downcastExpression:
       case NullabilityFixKind.otherCastExpression:
@@ -177,12 +204,12 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*?*/ hint', offset, 0, '/*?*/'));
         break;
       case NullabilityFixKind.makeTypeNullableDueToHint:
-        edits.add(_changeHint('Change to /*!*/ hint', '/*!*/'));
-        edits.add(_removeHint('Remove /*?*/ hint'));
+        edits.add(changeHint('Change to /*!*/ hint', '/*!*/'));
+        edits.add(removeHint('Remove /*?*/ hint'));
         break;
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
-        edits.add(_removeHint('Remove /*!*/ hint'));
-        edits.add(_changeHint('Change to /*?*/ hint', '/*?*/'));
+        edits.add(removeHint('Remove /*!*/ hint'));
+        edits.add(changeHint('Change to /*?*/ hint', '/*?*/'));
         break;
       case NullabilityFixKind.addLate:
       case NullabilityFixKind.addLateDueToTestSetup:
@@ -201,6 +228,16 @@ class InfoBuilder {
       case NullabilityFixKind.compoundAssignmentHasNullableSource:
         // We don't offer any edits around bad compound assignments or bad
         // increment/decrement operations.
+        break;
+      case NullabilityFixKind.addImport:
+      case NullabilityFixKind.changeMethodName:
+        // These fix kinds have to do with changing iterable method calls to
+        // their "OrNull" equivalents.  We don't offer any hints around
+        // this transformation.
+        break;
+      case NullabilityFixKind.noValidMigrationForNull:
+        // We don't offer any edits around unmigratable `null`s.  The user has
+        // to fix manually.
         break;
     }
     return edits;
@@ -238,7 +275,7 @@ class InfoBuilder {
     var description = 'Non-nullability reason${target.suffix}';
     var step = node.whyNotNullable;
     if (step == null) {
-      if (node != this.info.never) {
+      if (node != info.never) {
         // 'never' indicates we're describing an edge to never, such as a `!`.
         traces.add(TraceInfo(description, [
           _nodeToTraceEntry(node,
@@ -312,21 +349,39 @@ class InfoBuilder {
     unitInfo.sources ??= _computeNavigationSources(result);
     var content = result.content;
     unitInfo.diskContent = content;
+    var alreadyMigrated =
+        result.unit.featureSet.isEnabled(Feature.non_nullable);
+    unitInfo.wasExplicitlyOptedOut = result.unit.languageVersionToken != null;
+    unitInfo.migrationStatus = alreadyMigrated
+        ? UnitMigrationStatus.alreadyMigrated
+        : UnitMigrationStatus.migrating;
     var regions = unitInfo.regions;
+
+    // There are certain rare conditions involving generated code in a bazel
+    // workspace that can cause a source file to get processed more than once by
+    // the migration tool (sometimes with a correct URI, sometimes with an
+    // incorrect URI that corresponds to a file path in the `bazel-out`
+    // directory).  That can cause this method to get called twice for the same
+    // unit.  To avoid this creating user-visible problems, we need to ensure
+    // that any regions left over from the previous invocation are cleared out
+    // before we re-populate the region list.
+    regions.clear();
+
     var lineInfo = result.unit.lineInfo;
     var insertions = <int, List<AtomicEdit>>{};
-    var hintsSeen = <HintComment>{};
+    var infosSeen = Set<AtomicEditInfo>.identity();
 
     // Apply edits and build the regions.
     var changes = sourceInfo.changes ?? {};
     var sourceOffsets = changes.keys.toList();
     sourceOffsets.sort();
     var offset = 0;
-    var lastSourceOffset = 0;
-    for (var sourceOffset in sourceOffsets) {
-      offset += sourceOffset - lastSourceOffset;
-      lastSourceOffset = sourceOffset;
-      var changesForSourceOffset = changes[sourceOffset];
+    var sourceOffset = 0;
+    for (var nextSourceOffset in sourceOffsets) {
+      var changesForSourceOffset = changes[nextSourceOffset];
+      var unchangedTextLength = nextSourceOffset - sourceOffset;
+      offset += unchangedTextLength;
+      sourceOffset += unchangedTextLength;
       for (var edit in changesForSourceOffset) {
         var length = edit.length;
         var replacement = edit.replacement;
@@ -338,55 +393,53 @@ class InfoBuilder {
         }
         var info = edit.info;
         var edits = info != null
-            ? _computeEdits(info, sourceOffset, result.content)
+            ? _computeEdits(info, sourceOffset, result)
             : <EditDetail>[];
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         var traces = info == null
             ? const <TraceInfo>[]
             : _computeTraces(info.fixReasons);
         var description = info?.description;
-        var hint = info?.hintComment;
-        var isCounted = hint == null || hintsSeen.add(hint);
-        if (description != null) {
-          var explanation = description.appliedMessage;
-          var kind = description.kind;
-          if (edit.isInsertion) {
-            regions.add(RegionInfo(
-                edit.isInformative ? RegionType.informative : RegionType.add,
-                offset,
-                replacement.length,
-                lineNumber,
-                explanation,
-                kind,
-                isCounted,
-                edits: edits,
-                traces: traces));
-          } else if (edit.isDeletion) {
-            regions.add(RegionInfo(
-                edit.isInformative ? RegionType.informative : RegionType.remove,
-                offset,
-                length,
-                lineNumber,
-                explanation,
-                kind,
-                isCounted,
-                edits: edits,
-                traces: traces));
-          } else if (edit.isReplacement) {
-            assert(!edit.isInformative);
-            regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, kind, isCounted,
-                edits: edits, traces: traces));
-            regions.add(RegionInfo(RegionType.add, end, replacement.length,
-                lineNumber, explanation, kind, isCounted,
-                edits: edits, traces: traces));
-          } else {
-            throw StateError(
-                'Edit is not an insertion, deletion, replacement, nor '
-                'informative: $edit');
-          }
+        var isCounted = info != null && infosSeen.add(info);
+        var explanation = description?.appliedMessage;
+        var kind = description?.kind;
+        if (edit.isInsertion) {
+          regions.add(RegionInfo(
+              edit.isInformative ? RegionType.informative : RegionType.add,
+              offset,
+              replacement.length,
+              lineNumber,
+              explanation,
+              kind,
+              isCounted,
+              edits: edits,
+              traces: traces));
+        } else if (edit.isDeletion) {
+          regions.add(RegionInfo(
+              edit.isInformative ? RegionType.informative : RegionType.remove,
+              offset,
+              length,
+              lineNumber,
+              explanation,
+              kind,
+              isCounted,
+              edits: edits,
+              traces: traces));
+        } else if (edit.isReplacement) {
+          assert(!edit.isInformative);
+          regions.add(RegionInfo(RegionType.remove, offset, length, lineNumber,
+              explanation, kind, isCounted,
+              edits: edits, traces: traces));
+          regions.add(RegionInfo(RegionType.add, end, replacement.length,
+              lineNumber, explanation, kind, isCounted,
+              edits: edits, traces: traces));
+        } else {
+          throw StateError(
+              'Edit is not an insertion, deletion, replacement, nor '
+              'informative: $edit');
         }
-        offset += replacement.length;
+        sourceOffset += length;
+        offset += length + replacement.length;
       }
     }
 
@@ -400,6 +453,17 @@ class InfoBuilder {
     unitInfo.migrationOffsetMapper = mapper;
     unitInfo.content = content;
     return unitInfo;
+  }
+
+  /// Searches [unit] for an import directive whose URI matches [uri], returning
+  /// it if found, or `null` if not found.
+  ImportDirective _findImportDirective(CompilationUnit unit, String uri) {
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective && directive.uriContent == uri) {
+        return directive;
+      }
+    }
+    return null;
   }
 
   TraceEntryInfo _makeTraceEntry(

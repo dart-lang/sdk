@@ -1,0 +1,130 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:32:26: Error: The parameter 'i' of the method 'B2.property6' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'B1.property6'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set property6(int i); // error
+//                          ^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:20:19: Context: This is the overridden method ('property6').
+//   late final int? property6;
+//                   ^
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:32:12: Error: The type 'int?' of the inherited getter 'B1.property6' is not a subtype of the type 'int' of the setter 'B2.property6'.
+//   void set property6(int i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:20:19: Context: This is the declaration of the getter 'B1.property6'.
+//   late final int? property6;
+//                   ^^^^^^^^^
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:52:12: Error: The return type of the method 'C2.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
+// Change to a subtype of 'int'.
+//   int? get property6; // error
+//            ^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:40:12: Context: This is the overridden method ('property6').
+//   late int property6;
+//            ^
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:52:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
+//   int? get property6; // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:40:12: Context: This is the declaration of the setter 'C1.property6'.
+//   late int property6;
+//            ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class A extends core::Object {
+  field core::int? _#A#property4 = null;
+  field core::int? _#A#property5 = null;
+  field core::bool _#A#property5#isSet = false;
+  field core::int? _#A#property6 = null;
+  constructor •(core::int property4, core::int? property5, core::int property6) → self::A
+    : self::A::_#A#property4 = property4, self::A::_#A#property5#isSet = true, self::A::_#A#property5 = property5, self::A::_#A#property6 = property6, super core::Object::•()
+    ;
+  get property4() → core::int
+    return let final core::int? #t1 = this.{self::A::_#A#property4} in #t1.==(null) ?{core::int} throw new _in::LateError::fieldNI("property4") : #t1{core::int};
+  set property4(core::int #t2) → void
+    this.{self::A::_#A#property4} = #t2;
+  get property5() → core::int?
+    return this.{self::A::_#A#property5#isSet} ?{core::int?} this.{self::A::_#A#property5} : throw new _in::LateError::fieldNI("property5");
+  set property5(core::int? #t3) → void {
+    this.{self::A::_#A#property5#isSet} = true;
+    this.{self::A::_#A#property5} = #t3;
+  }
+  get property6() → core::int
+    return let final core::int? #t4 = this.{self::A::_#A#property6} in #t4.==(null) ?{core::int} throw new _in::LateError::fieldNI("property6") : #t4{core::int};
+  set property6(covariant core::int #t5) → void
+    this.{self::A::_#A#property6} = #t5;
+}
+abstract class B1 extends core::Object {
+  field core::int? _#B1#property4 = null;
+  field core::int? _#B1#property5 = null;
+  field core::int? _#B1#property6 = null;
+  field core::bool _#B1#property6#isSet = false;
+  constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
+    : self::B1::_#B1#property4 = property4, self::B1::_#B1#property5 = property5, self::B1::_#B1#property6#isSet = true, self::B1::_#B1#property6 = property6, super core::Object::•()
+    ;
+  get property4() → core::int
+    return let final core::int? #t6 = this.{self::B1::_#B1#property4} in #t6.==(null) ?{core::int} throw new _in::LateError::fieldNI("property4") : #t6{core::int};
+  set property4(core::int #t7) → void
+    if(this.{self::B1::_#B1#property4}.==(null))
+      this.{self::B1::_#B1#property4} = #t7;
+    else
+      throw new _in::LateError::fieldAI("property4");
+  get property5() → core::int
+    return let final core::int? #t8 = this.{self::B1::_#B1#property5} in #t8.==(null) ?{core::int} throw new _in::LateError::fieldNI("property5") : #t8{core::int};
+  set property5(core::int #t9) → void
+    if(this.{self::B1::_#B1#property5}.==(null))
+      this.{self::B1::_#B1#property5} = #t9;
+    else
+      throw new _in::LateError::fieldAI("property5");
+  get property6() → core::int?
+    return this.{self::B1::_#B1#property6#isSet} ?{core::int?} this.{self::B1::_#B1#property6} : throw new _in::LateError::fieldNI("property6");
+  set property6(core::int? #t10) → void
+    if(this.{self::B1::_#B1#property6#isSet})
+      throw new _in::LateError::fieldAI("property6");
+    else {
+      this.{self::B1::_#B1#property6#isSet} = true;
+      this.{self::B1::_#B1#property6} = #t10;
+    }
+}
+abstract class B2 extends core::Object implements self::B1 {
+  synthetic constructor •() → self::B2
+    : super core::Object::•()
+    ;
+  abstract set property4(core::int i) → void;
+  abstract set property5(core::int? i) → void;
+  abstract set property6(core::int i) → void;
+}
+abstract class C1 extends core::Object {
+  field core::int? _#C1#property4 = null;
+  field core::int? _#C1#property5 = null;
+  field core::int? _#C1#property6 = null;
+  constructor •(core::int property4, core::int property5, core::int property6) → self::C1
+    : self::C1::_#C1#property4 = property4, self::C1::_#C1#property5 = property5, self::C1::_#C1#property6 = property6, super core::Object::•()
+    ;
+  get property4() → core::int
+    return let final core::int? #t11 = this.{self::C1::_#C1#property4} in #t11.==(null) ?{core::int} throw new _in::LateError::fieldNI("property4") : #t11{core::int};
+  set property4(core::int #t12) → void
+    this.{self::C1::_#C1#property4} = #t12;
+  get property5() → core::int
+    return let final core::int? #t13 = this.{self::C1::_#C1#property5} in #t13.==(null) ?{core::int} throw new _in::LateError::fieldNI("property5") : #t13{core::int};
+  set property5(core::int #t14) → void
+    this.{self::C1::_#C1#property5} = #t14;
+  get property6() → core::int
+    return let final core::int? #t15 = this.{self::C1::_#C1#property6} in #t15.==(null) ?{core::int} throw new _in::LateError::fieldNI("property6") : #t15{core::int};
+  set property6(core::int #t16) → void
+    this.{self::C1::_#C1#property6} = #t16;
+}
+abstract class C2 extends core::Object implements self::C1 {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+  abstract get property4() → core::int;
+  abstract get property5() → core::int;
+  abstract get property6() → core::int?;
+}
+static method main() → dynamic {}

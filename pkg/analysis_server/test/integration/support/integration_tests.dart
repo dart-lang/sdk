@@ -479,7 +479,7 @@ class Server {
       }
 
       _recordStdio('<== $trimmedLine');
-      var message;
+      Map message;
       try {
         message = json.decoder.convert(trimmedLine);
       } catch (exception) {
@@ -487,9 +487,8 @@ class Server {
         return;
       }
       outOfTestExpect(message, isMap);
-      Map messageAsMap = message;
-      if (messageAsMap.containsKey('id')) {
-        outOfTestExpect(messageAsMap['id'], isString);
+      if (message.containsKey('id')) {
+        outOfTestExpect(message['id'], isString);
         String id = message['id'];
         var completer = _pendingCommands[id];
         if (completer == null) {
@@ -497,10 +496,10 @@ class Server {
         } else {
           _pendingCommands.remove(id);
         }
-        if (messageAsMap.containsKey('error')) {
-          completer.completeError(ServerErrorMessage(messageAsMap));
+        if (message.containsKey('error')) {
+          completer.completeError(ServerErrorMessage(message));
         } else {
-          completer.complete(messageAsMap['result']);
+          completer.complete(message['result']);
         }
         // Check that the message is well-formed.  We do this after calling
         // completer.complete() or completer.completeError() so that we don't
@@ -509,9 +508,9 @@ class Server {
       } else {
         // Message is a notification.  It should have an event and possibly
         // params.
-        outOfTestExpect(messageAsMap, contains('event'));
-        outOfTestExpect(messageAsMap['event'], isString);
-        notificationProcessor(messageAsMap['event'], messageAsMap['params']);
+        outOfTestExpect(message, contains('event'));
+        outOfTestExpect(message['event'], isString);
+        notificationProcessor(message['event'], message['params']);
         // Check that the message is well-formed.  We do this after calling
         // notificationController.add() so that we don't stall the test in the
         // event of an error.
@@ -690,9 +689,7 @@ class _ListOf extends Matcher {
   /// Iterable matcher which we use to test the contents of the list.
   final Matcher iterableMatcher;
 
-  _ListOf(elementMatcher)
-      : elementMatcher = elementMatcher,
-        iterableMatcher = everyElement(elementMatcher);
+  _ListOf(this.elementMatcher) : iterableMatcher = everyElement(elementMatcher);
 
   @override
   Description describe(Description description) =>

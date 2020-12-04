@@ -27,11 +27,11 @@ final _headerEndRE = RegExp(r'isolate_instructions(?:=|: )([\da-f]+),? '
 //
 // Returns a new [StackTraceHeader] if [line] contains the needed header
 // information, otherwise returns `null`.
-StackTraceHeader _parseInstructionsLine(String line) {
+StackTraceHeader? _parseInstructionsLine(String line) {
   final match = _headerEndRE.firstMatch(line);
   if (match == null) return null;
-  final isolateAddr = int.parse(match[1], radix: 16);
-  final vmAddr = int.parse(match[2], radix: 16);
+  final isolateAddr = int.parse(match[1]!, radix: 16);
+  final vmAddr = int.parse(match[2]!, radix: 16);
   return StackTraceHeader(isolateAddr, vmAddr);
 }
 
@@ -81,12 +81,12 @@ final _traceLineRE = RegExp(
 /// any hexdecimal digits will be parsed as decimal.
 ///
 /// Returns null if the string is not of the expected format.
-PCOffset tryParseSymbolOffset(String s, [bool forceHexadecimal = false]) {
+PCOffset? tryParseSymbolOffset(String s, [bool forceHexadecimal = false]) {
   final match = _symbolOffsetRE.firstMatch(s);
   if (match == null) return null;
-  final symbolString = match.namedGroup('symbol');
-  final offsetString = match.namedGroup('offset');
-  int offset;
+  final symbolString = match.namedGroup('symbol')!;
+  final offsetString = match.namedGroup('offset')!;
+  int? offset;
   if (!forceHexadecimal && !offsetString.startsWith("0x")) {
     offset = int.tryParse(offsetString);
   }
@@ -108,9 +108,9 @@ PCOffset tryParseSymbolOffset(String s, [bool forceHexadecimal = false]) {
   return null;
 }
 
-PCOffset _retrievePCOffset(StackTraceHeader header, RegExpMatch match) {
+PCOffset? _retrievePCOffset(StackTraceHeader? header, RegExpMatch? match) {
   if (match == null) return null;
-  final restString = match.namedGroup('rest');
+  final restString = match.namedGroup('rest')!;
   // Try checking for symbol information first, since we don't need the header
   // information to translate it.
   if (restString.isNotEmpty) {
@@ -120,8 +120,8 @@ PCOffset _retrievePCOffset(StackTraceHeader header, RegExpMatch match) {
   // If we're parsing the absolute address, we can only convert it into
   // a PCOffset if we saw the instructions line of the stack trace header.
   if (header != null) {
-    final addressString = match.namedGroup('absolute');
-    final address = int.tryParse(addressString, radix: 16);
+    final addressString = match.namedGroup('absolute')!;
+    final address = int.parse(addressString, radix: 16);
     return header.offsetOf(address);
   }
   // If all other cases failed, check for a virtual address. Until this package
@@ -130,7 +130,7 @@ PCOffset _retrievePCOffset(StackTraceHeader header, RegExpMatch match) {
   // debugging information, the other methods should be tried first.
   final virtualString = match.namedGroup('virtual');
   if (virtualString != null) {
-    final address = int.tryParse(virtualString, radix: 16);
+    final address = int.parse(virtualString, radix: 16);
     return PCOffset(address, InstructionsSection.none);
   }
   return null;
@@ -138,7 +138,7 @@ PCOffset _retrievePCOffset(StackTraceHeader header, RegExpMatch match) {
 
 /// The [PCOffset]s for frames of the non-symbolic stack traces in [lines].
 Iterable<PCOffset> collectPCOffsets(Iterable<String> lines) sync* {
-  StackTraceHeader header;
+  StackTraceHeader? header;
   for (var line in lines) {
     final parsedHeader = _parseInstructionsLine(line);
     if (parsedHeader != null) {
@@ -184,7 +184,7 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
 
   Stream<String> bind(Stream<String> stream) async* {
     int depth = 0;
-    StackTraceHeader header;
+    StackTraceHeader? header;
     await for (final line in stream) {
       final parsedHeader = _parseInstructionsLine(line);
       if (parsedHeader != null) {
@@ -207,7 +207,7 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
       if (callInfo.isEmpty) continue;
       // Output the lines for the symbolic frame with the prefix found on the
       // original non-symbolic frame line.
-      final prefix = line.substring(0, lineMatch.start);
+      final prefix = line.substring(0, lineMatch!.start);
       for (final call in callInfo) {
         yield prefix + _stackTracePiece(call, depth++);
       }

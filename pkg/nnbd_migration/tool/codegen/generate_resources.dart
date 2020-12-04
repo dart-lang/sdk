@@ -88,9 +88,10 @@ String base64Encode(List<int> bytes) {
   return lines.join('\n');
 }
 
-void compileWebFrontEnd({bool devMode = false}) async {
+Future<void> compileWebFrontEnd({bool devMode = false}) async {
   var sdkBinDir = path.dirname(Platform.resolvedExecutable);
-  var dart2jsPath = path.join(sdkBinDir, 'dart2js');
+  var dart2jsBinary = Platform.isWindows ? 'dart2js.bat' : 'dart2js';
+  var dart2jsPath = path.join(sdkBinDir, dart2jsBinary);
 
   // dart2js -m -o output source
   var process = await Process.start(dart2jsPath, [

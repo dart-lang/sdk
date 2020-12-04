@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -89,17 +91,17 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
-    return interfaceTypeNone(element);
+    return interfaceTypeNone(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullQuestion {
     var element = typeProvider.nullType.element;
-    return interfaceTypeQuestion(element);
+    return interfaceTypeQuestion(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullStar {
     var element = typeProvider.nullType.element;
-    return interfaceTypeStar(element);
+    return interfaceTypeStar(element) as InterfaceTypeImpl;
   }
 
   InterfaceType get numNone {
@@ -149,7 +151,7 @@ mixin ElementsTypesMixin {
 
   LibraryElementImpl get testLibrary => null;
 
-  TypeProvider get typeProvider;
+  TypeProvider /*!*/ get typeProvider;
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
@@ -213,17 +215,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  FunctionType functionTypeAliasType(
-    FunctionTypeAliasElement element, {
-    List<DartType> typeArguments = const [],
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   FunctionTypeImpl functionTypeNone({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
@@ -267,42 +258,42 @@ mixin ElementsTypesMixin {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrNone(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrQuestion(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrStar(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureQuestion(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureStar(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   DartType futureType(DartType T) {
@@ -320,16 +311,6 @@ mixin ElementsTypesMixin {
     result.parameters = parameters;
     result.returnType = returnType ?? typeProvider.voidType;
     return result;
-  }
-
-  GenericTypeAliasElementImpl genericTypeAlias({
-    @required String name,
-    List<TypeParameterElement> typeParameters = const [],
-    @required GenericFunctionTypeElement function,
-  }) {
-    return GenericTypeAliasElementImpl(name, 0)
-      ..typeParameters = typeParameters
-      ..function = function;
   }
 
   InterfaceType interfaceType(
@@ -400,8 +381,19 @@ mixin ElementsTypesMixin {
     AnalysisContext analysisContext,
     AnalysisSessionImpl analysisSession,
   }) {
-    var library = LibraryElementImpl(analysisContext, analysisSession, uriStr,
-        -1, 0, typeSystem.isNonNullableByDefault);
+    var library = LibraryElementImpl(
+      analysisContext,
+      analysisSession,
+      uriStr,
+      -1,
+      0,
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+        flags: typeSystem.isNonNullableByDefault
+            ? [EnableString.non_nullable]
+            : [],
+      ),
+    );
     library.typeSystem = typeSystem;
     library.typeProvider = typeSystem.typeProvider;
 

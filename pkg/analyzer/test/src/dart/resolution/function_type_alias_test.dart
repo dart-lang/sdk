@@ -6,7 +6,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class FunctionTypeAliasResolutionTest extends DriverResolutionTest {
+class FunctionTypeAliasResolutionTest extends PubPackageResolutionTest {
   test_type_element() async {
     await resolveTestCode(r'''
 G<int> g;

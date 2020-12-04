@@ -22,7 +22,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, '');
     // Attempt to make an illegal modification to the file. This indicates the
     // client and server are out of sync and we expect the server to shut down.
-    final error = await expectErrorNotification<ShowMessageParams>(() async {
+    final error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
         Either2<TextDocumentContentChangeEvent1,
                 TextDocumentContentChangeEvent2>.t1(
@@ -58,7 +58,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     final notification =
         makeNotification(Method.fromJson(r'some/randomNotification'), null);
 
-    final notificationParams = await expectErrorNotification<ShowMessageParams>(
+    final notificationParams = await expectErrorNotification(
       () => channel.sendNotificationToServer(notification),
     );
     expect(notificationParams, isNotNull);

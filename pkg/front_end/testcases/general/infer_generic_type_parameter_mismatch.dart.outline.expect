@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<invariant T extends core::Object* = dynamic> = (T*, T*) →* T*;
+static method test1() → dynamic
+  ;
+static method test2() → dynamic
+  ;
+static method test3a() → dynamic
+  ;
+static method test3b() → dynamic
+  ;
+static method test4() → dynamic
+  ;
+static method test5() → dynamic
+  ;
+static method test6() → dynamic
+  ;
+static method test7() → dynamic
+  ;
+static method test8() → dynamic
+  ;
+static method main() → dynamic
+  ;

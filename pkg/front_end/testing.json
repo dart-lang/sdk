@@ -78,7 +78,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -99,7 +100,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -120,7 +122,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -141,7 +144,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -248,17 +252,6 @@
       "exclude": []
     },
     {
-      "name": "old_dill",
-      "kind": "Chain",
-      "source": "test/old_dill_suite.dart",
-      "path": "testcases/old_dills/dills/",
-      "status": "testcases/old_dills/old_dills.status",
-      "pattern": [
-        ".*\\.dill$"
-      ],
-      "exclude": []
-    },
-    {
       "name": "parser",
       "kind": "Chain",
       "source": "test/parser_suite.dart",
@@ -271,6 +264,19 @@
       "exclude": []
     },
     {
+      "name": "parser_all",
+      "kind": "Chain",
+      "source": "test/parser_all_suite.dart",
+      "path": "../../",
+      "status": "parser_testcases/parser_all.status",
+      "pattern": [
+        "pkg/front_end/.*\\.dart$",
+        "pkg/front_end/.*\\.crash_dart$",
+        "tests/.*\\.dart$"
+      ],
+      "exclude": []
+    },
+    {
       "name": "lint",
       "kind": "Chain",
       "source": "test/lint_suite.dart",
@@ -278,9 +284,11 @@
       "status": "test/lint_test.status",
       "pattern": [
         "_fe_analyzer_shared/lib/.*\\.dart$",
+        "kernel/lib/.*\\.dart$",
         "front_end/lib/.*\\.dart$"
       ],
       "exclude": [
+        "kernel/lib/transformations/.*\\.dart$",
         "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
         "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
@@ -474,6 +482,7 @@
     "exclude": [
       "^pkg/analysis_server/lib/src/analysis_server\\.dart",
       "test/analyser_ignored/",
+      "test/enable_non_nullable/data/",
       "test/extensions/data/",
       "test/id_testing/data/",
       "test/language_versioning/data/",

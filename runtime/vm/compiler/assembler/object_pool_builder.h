@@ -30,7 +30,6 @@ struct ObjectPoolBuilderEntry {
     kImmediate,
     kNativeFunction,
     kNativeFunctionWrapper,
-    kNativeEntryData,
   };
 
   using TypeBits = BitField<uint8_t, EntryType, 0, 7>;

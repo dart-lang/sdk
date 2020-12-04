@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -2925,7 +2923,8 @@ Completer<int> newCompleter() => null;
   }
 
   void _createRefactoringForStartEndComments() {
-    var offset = findEnd('// start') + '\n'.length;
+    final eol = testCode.contains('\r\n') ? '\r\n' : '\r';
+    var offset = findEnd('// start') + eol.length;
     var end = findOffset('// end');
     _createRefactoring(offset, end - offset);
   }

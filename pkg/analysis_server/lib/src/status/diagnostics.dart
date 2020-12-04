@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
 
@@ -17,7 +16,6 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -29,9 +27,6 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:path/path.dart' as path;
 
@@ -141,10 +136,6 @@ td.pre {
   color: #333;
 }
 ''';
-
-/// TODO(devoncarew): We're not currently tracking the time spent in specific
-/// lints by default (analysisOptions / driverOptions enableTiming)
-final bool _showLints = false;
 
 String get _sdkVersion {
   var version = Platform.version;
@@ -399,7 +390,7 @@ class ContentsPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var file = await server.resourceProvider.getFile(filePath);
+    var file = server.resourceProvider.getFile(filePath);
     if (!file.exists) {
       p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
       return;
@@ -441,13 +432,11 @@ class ContextsPage extends DiagnosticPageWithNav {
   String describe(AnalysisOptionsImpl options) {
     var b = StringBuffer();
 
-    b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
     b.write(writeOption('Implicit casts', options.implicitCasts));
     b.write(writeOption('Feature set', options.contextFeatures.toString()));
     b.write('<br>');
 
-    b.write(writeOption('Generate dart2js hints', options.dart2jsHint));
     b.write(writeOption('Generate hints', options.hint));
 
     return b.toString();
@@ -507,16 +496,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption(
         'Has pubspec.yaml file', folder.getChild('pubspec.yaml').exists));
     buf.writeln('</p>');
-
-    buf.writeln('</div>');
-
-    buf.writeln('<div class="column one-half">');
-    var sdk = driver?.sourceFactory?.dartSdk;
-    AnalysisOptionsImpl sdkOptions = sdk?.context?.analysisOptions;
-    if (sdkOptions != null) {
-      h3('SDK analysis options');
-      p(describe(sdkOptions), raw: true);
-    }
 
     buf.writeln('</div>');
 
@@ -775,12 +754,10 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(EnvironmentVariablesPage(this));
     pages.add(ExceptionsPage(this));
     //pages.add(new InstrumentationPage(this));
-    pages.add(ProfilePage(this));
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
     var server = socketServer.analysisServer;
-    pages.add(MLCompletionPage(this, server));
     pages.add(PluginsPage(this, server));
 
     if (server is AnalysisServer) {
@@ -994,7 +971,13 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     } else {
       prettyJson(server.capabilities.toJson());
     }
-    buf.writeln('</div>');
+    buf.writeln('</div>'); // half for server capabilities
+    buf.writeln('</div>'); // columns
+
+    h3('Current registrations');
+    p('Showing the LSP method name and the registration params sent to the '
+        'client.');
+    prettyJson(server.capabilitiesComputer.currentRegistrations);
   }
 }
 
@@ -1089,100 +1072,6 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
   }
 }
 
-class MLCompletionPage extends DiagnosticPageWithNav {
-  @override
-  final AbstractAnalysisServer server;
-
-  MLCompletionPage(DiagnosticsSite site, this.server)
-      : super(site, 'ml-completion', 'ML Completion',
-            description: 'Statistics for ML code completion.');
-
-  path.Context get pathContext => server.resourceProvider.pathContext;
-
-  @override
-  Future<void> generateContent(Map<String, String> params) async {
-    var hasMLComplete = CompletionRanking.instance != null;
-    if (!hasMLComplete) {
-      blankslate('''ML code completion is not enabled (see <a
-href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-powered-by-machine-learning"
->previewing Dart ML completion</a> for how to enable it).''');
-      return;
-    }
-
-    buf.writeln('ML completion enabled.<br>');
-
-    var isolateTimes = CompletionRanking
-        .instance.performanceMetrics.isolateInitTimes
-        .map((Duration time) {
-      return '${time.inMilliseconds}ms';
-    }).join(', ');
-    p('ML isolate init times: $isolateTimes');
-
-    var predictions = CompletionRanking
-        .instance.performanceMetrics.predictionResults
-        .toList();
-
-    if (predictions.isEmpty) {
-      blankslate('No completions recorded.');
-      return;
-    }
-
-    p('${CompletionRanking.instance.performanceMetrics.predictionRequestCount} '
-        'requests');
-
-    // draw a chart
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    var rowData = StringBuffer();
-    for (var prediction in predictions.reversed) {
-      // [' ', 101.5]
-      if (rowData.isNotEmpty) {
-        rowData.write(',');
-      }
-      rowData.write("[' ', ${prediction.elapsedTime.inMilliseconds}]");
-    }
-    buf.writeln('''
-      <script type="text/javascript">
-      google.charts.load('current', {'packages':['bar']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Completions', 'Time'],
-          $rowData
-        ]);
-        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
-        var chart = new google.charts.Bar(document.getElementById('chart-div'));
-        chart.draw(data, google.charts.Bar.convertOptions(options));
-      }
-      </script>
-''');
-
-    String summarize(PredictionResult prediction) {
-      var entries = prediction.results.entries.toList();
-      entries.sort((a, b) => b.value.compareTo(a.value));
-      var summary = entries
-          .take(3)
-          .map((entry) => '"${entry.key}":${entry.value.toStringAsFixed(3)}')
-          .join('<br>');
-      return summary;
-    }
-
-    // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln(
-        '<tr><th>Time</th><th>Results</th><th>Snippet</th><th>Top suggestions</th></tr>');
-    for (var prediction in predictions) {
-      buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(prediction.elapsedTime.inMilliseconds)}</td>'
-          '<td class="right">${prediction.results.length}</td>'
-          '<td><code>${escape(prediction.snippet)}</code></td>'
-          '<td class="right">${summarize(prediction)}</td>'
-          '</tr>');
-    }
-    buf.writeln('</table>');
-  }
-}
-
 class NotFoundPage extends DiagnosticPage {
   @override
   final String path;
@@ -1268,106 +1157,6 @@ class PluginsPage extends DiagnosticPageWithNav {
           }
         }
       }
-    }
-  }
-}
-
-class ProfilePage extends DiagnosticPageWithNav {
-  ProfilePage(DiagnosticsSite site)
-      : super(site, 'profile', 'Profiling Info',
-            description: 'Profiling performance tag data.');
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    h3('Profiling performance tag data');
-
-    // prepare sorted tags
-    var tags = PerformanceTag.all.toList();
-    tags.remove(ServerPerformanceStatistics.idle);
-    tags.remove(PerformanceTag.unknown);
-    tags.removeWhere((tag) => tag.elapsedMs == 0);
-    tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
-
-    // print total time
-    var totalTime =
-        tags.fold<int>(0, (int a, PerformanceTag tag) => a + tag.elapsedMs);
-    p('Total measured time: ${printMilliseconds(totalTime)}');
-
-    // draw a pie chart
-    var rowData =
-        tags.map((tag) => "['${tag.label}', ${tag.elapsedMs}]").join(',');
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    buf.writeln('''
-      <script type="text/javascript">
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(drawChart);
-
-        function drawChart() {
-          var data = new google.visualization.DataTable();
-          data.addColumn('string', 'Tag');
-          data.addColumn('number', 'Time (ms)');
-          data.addRows([$rowData]);
-          var options = {'title': 'Performance Tag Data', 'width': 700, 'height': 300};
-          var chart = new google.visualization.PieChart(document.getElementById('chart-div'));
-          chart.draw(data, options);
-        }
-      </script>
-''');
-
-    // write out a table
-    void _writeRow(List<String> data, {bool header = false}) {
-      buf.write('<tr>');
-      if (header) {
-        for (var d in data) {
-          buf.write('<th>$d</th>');
-        }
-      } else {
-        buf.write('<td>${data[0]}</td>');
-
-        for (var d in data.sublist(1)) {
-          buf.write('<td class="right">$d</td>');
-        }
-      }
-      buf.writeln('</tr>');
-    }
-
-    buf.write('<table>');
-    _writeRow(['Tag name', 'Time (in ms)', 'Percent'], header: true);
-    void writeRow(PerformanceTag tag) {
-      var percent = tag.elapsedMs / totalTime;
-      _writeRow([
-        tag.label,
-        printMilliseconds(tag.elapsedMs),
-        printPercentage(percent)
-      ]);
-    }
-
-    tags.forEach(writeRow);
-    buf.write('</table>');
-
-    if (_showLints) {
-      h3('Lint rule timings');
-      var rules = Registry.ruleRegistry.rules.toList();
-      var totalLintTime = rules.fold(0,
-          (sum, rule) => sum + lintRegistry.getTimer(rule).elapsedMilliseconds);
-      p('Total time spent in lints: ${printMilliseconds(totalLintTime)}');
-
-      rules.sort((first, second) {
-        var firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
-        var secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
-        if (firstTime == secondTime) {
-          return first.name.compareTo(second.name);
-        }
-        return secondTime - firstTime;
-      });
-      buf.write('<table>');
-      _writeRow(['Lint code', 'Time (in ms)'], header: true);
-      for (var rule in rules) {
-        var time = lintRegistry.getTimer(rule).elapsedMilliseconds;
-        _writeRow([rule.name, printMilliseconds(time)]);
-      }
-      buf.write('</table>');
     }
   }
 }

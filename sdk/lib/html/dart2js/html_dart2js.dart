@@ -8,7 +8,7 @@
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
  *
- * For information on writing web apps with Dart, see https://webdev.dartlang.org.
+ * For information on writing web apps with Dart, see https://dart.dev/web.
  *
  * {@category Web}
  */
@@ -665,7 +665,7 @@ class Animation extends EventTarget {
   set effect(AnimationEffectReadOnly? value) native;
 
   Future<Animation> get finished =>
-      promiseToFuture<Animation>(JS("", "#.finished", this));
+      promiseToFuture<Animation>(JS("creates:Animation;", "#.finished", this));
 
   String? get id native;
 
@@ -678,7 +678,7 @@ class Animation extends EventTarget {
   set playbackRate(num? value) native;
 
   Future<Animation> get ready =>
-      promiseToFuture<Animation>(JS("", "#.ready", this));
+      promiseToFuture<Animation>(JS("creates:Animation;", "#.ready", this));
 
   num? get startTime native;
 
@@ -1354,13 +1354,18 @@ class BackgroundFetchManager extends Interceptor {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<BackgroundFetchRegistration>(
-        JS("", "#.fetch(#, #, #)", this, id, requests, options_dict));
+    return promiseToFuture<BackgroundFetchRegistration>(JS(
+        "creates:BackgroundFetchRegistration;",
+        "#.fetch(#, #, #)",
+        this,
+        id,
+        requests,
+        options_dict));
   }
 
   Future<BackgroundFetchRegistration> get(String id) =>
       promiseToFuture<BackgroundFetchRegistration>(
-          JS("", "#.get(#)", this, id));
+          JS("creates:BackgroundFetchRegistration;", "#.get(#)", this, id));
 
   Future<List<dynamic>> getIds() =>
       promiseToFuture<List<dynamic>>(JS("", "#.getIds()", this));
@@ -1676,10 +1681,11 @@ class Body extends Interceptor {
 
   Future arrayBuffer() => promiseToFuture(JS("", "#.arrayBuffer()", this));
 
-  Future<Blob> blob() => promiseToFuture<Blob>(JS("", "#.blob()", this));
+  Future<Blob> blob() =>
+      promiseToFuture<Blob>(JS("creates:Blob;", "#.blob()", this));
 
   Future<FormData> formData() =>
-      promiseToFuture<FormData>(JS("", "#.formData()", this));
+      promiseToFuture<FormData>(JS("creates:FormData;", "#.formData()", this));
 
   Future json() => promiseToFuture(JS("", "#.json()", this));
 
@@ -1937,13 +1943,13 @@ class ButtonElement extends HtmlElement {
 
   set formAction(String? value) native;
 
-  String get formEnctype native;
+  String? get formEnctype native;
 
-  set formEnctype(String value) native;
+  set formEnctype(String? value) native;
 
-  String get formMethod native;
+  String? get formMethod native;
 
-  set formMethod(String value) native;
+  set formMethod(String? value) native;
 
   bool get formNoValidate native;
 
@@ -2020,11 +2026,11 @@ class CacheStorage extends Interceptor {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.match(#, #)", this, request, options_dict));
+        JS("creates:_Response;", "#.match(#, #)", this, request, options_dict));
   }
 
   Future open(String cacheName) =>
-      promiseToFuture(JS("", "#.open(#)", this, cacheName));
+      promiseToFuture(JS("creates:_Cache;", "#.open(#)", this, cacheName));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2120,15 +2126,15 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   /// The height of this canvas element in CSS pixels.
 
-  int get height native;
+  int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
   /// The width of this canvas element in CSS pixels.
 
-  int get width native;
+  int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   MediaStream captureStream([num? frameRate]) native;
 
@@ -3065,8 +3071,8 @@ class Clients extends Interceptor {
         JS("", "#.matchAll(#)", this, options_dict));
   }
 
-  Future<WindowClient> openWindow(String url) =>
-      promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
+  Future<WindowClient> openWindow(String url) => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.openWindow(#)", this, url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3318,7 +3324,8 @@ class CredentialsContainer extends Interceptor {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture(JS("", "#.create(#)", this, options_dict));
+    return promiseToFuture(
+        JS("creates:Credential;", "#.create(#)", this, options_dict));
   }
 
   Future get([Map? options]) {
@@ -3326,7 +3333,8 @@ class CredentialsContainer extends Interceptor {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture(JS("", "#.get(#)", this, options_dict));
+    return promiseToFuture(
+        JS("creates:Credential;", "#.get(#)", this, options_dict));
   }
 
   Future preventSilentAccess() =>
@@ -3335,8 +3343,8 @@ class CredentialsContainer extends Interceptor {
   Future requireUserMediation() =>
       promiseToFuture(JS("", "#.requireUserMediation()", this));
 
-  Future store(Credential credential) =>
-      promiseToFuture(JS("", "#.store(#)", this, credential));
+  Future store(Credential credential) => promiseToFuture(
+      JS("creates:Credential;", "#.store(#)", this, credential));
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13731,7 +13739,7 @@ class Element extends Node
       contextElement = _parseDocument!.createElement(tagName);
       _parseDocument!.body!.append(contextElement);
     }
-    var fragment;
+    DocumentFragment fragment;
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);
@@ -15994,9 +16002,9 @@ class FieldSetElement extends HtmlElement {
    */
   FieldSetElement.created() : super.created();
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   @Returns('HtmlCollection')
   @Creates('HtmlCollection')
@@ -16488,7 +16496,7 @@ class FontFace extends Interceptor {
   set featureSettings(String? value) native;
 
   Future<FontFace> get loaded =>
-      promiseToFuture<FontFace>(JS("", "#.loaded", this));
+      promiseToFuture<FontFace>(JS("creates:FontFace;", "#.loaded", this));
 
   String? get status native;
 
@@ -16513,7 +16521,7 @@ class FontFace extends Interceptor {
   set weight(String? value) native;
 
   Future<FontFace> load() =>
-      promiseToFuture<FontFace>(JS("", "#.load()", this));
+      promiseToFuture<FontFace>(JS("creates:FontFace;", "#.load()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17965,19 +17973,12 @@ class HtmlOptionsCollection extends HtmlCollection {
   * as the requested resource.
   * In the example above, the myData.json file must be co-located with the
   * app that uses it.
-  * You might be able to
-  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#a-note-on-cors-and-httprequest)
-  * by using CORS headers or JSONP.
   *
   * ## Other resources
   *
-  * * [Fetch Data Dynamically](https://www.dartlang.org/docs/tutorials/fetchdata/),
-  * a tutorial from _A Game of Darts_,
-  * shows two different ways to use HttpRequest to get a JSON file.
-  * * [Get Input from a Form](https://www.dartlang.org/docs/tutorials/forms/),
-  * another tutorial from _A Game of Darts_,
-  * shows using HttpRequest with a custom server.
-  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+  * * [Fetch data dynamically](https://dart.dev/tutorials/web/fetch-data/),
+  * a tutorial shows how to load data from a static file or from a server.
+  * * [Dart article on using HttpRequests](https://dart.dev/guides/libraries/library-tour#using-http-resources-with-httprequest)
   * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
   * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
@@ -18871,13 +18872,13 @@ class ImageCapture extends Interceptor {
 
   Future<PhotoCapabilities> getPhotoCapabilities() =>
       promiseToFuture<PhotoCapabilities>(
-          JS("", "#.getPhotoCapabilities()", this));
+          JS("creates:PhotoCapabilities;", "#.getPhotoCapabilities()", this));
 
   Future<Map<String, dynamic>?> getPhotoSettings() =>
       promiseToFutureAsMap(JS("", "#.getPhotoSettings()", this));
 
-  Future<ImageBitmap> grabFrame() =>
-      promiseToFuture<ImageBitmap>(JS("", "#.grabFrame()", this));
+  Future<ImageBitmap> grabFrame() => promiseToFuture<ImageBitmap>(
+      JS("creates:ImageBitmap;", "#.grabFrame()", this));
 
   Future setOptions(Map photoSettings) {
     var photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
@@ -18890,7 +18891,7 @@ class ImageCapture extends Interceptor {
       photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
     }
     return promiseToFuture<Blob>(
-        JS("", "#.takePhoto(#)", this, photoSettings_dict));
+        JS("creates:Blob;", "#.takePhoto(#)", this, photoSettings_dict));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -20475,14 +20476,20 @@ class MediaCapabilities extends Interceptor {
 
   Future<MediaCapabilitiesInfo> decodingInfo(Map configuration) {
     var configuration_dict = convertDartToNative_Dictionary(configuration);
-    return promiseToFuture<MediaCapabilitiesInfo>(
-        JS("", "#.decodingInfo(#)", this, configuration_dict));
+    return promiseToFuture<MediaCapabilitiesInfo>(JS(
+        "creates:MediaCapabilitiesInfo;",
+        "#.decodingInfo(#)",
+        this,
+        configuration_dict));
   }
 
   Future<MediaCapabilitiesInfo> encodingInfo(Map configuration) {
     var configuration_dict = convertDartToNative_Dictionary(configuration);
-    return promiseToFuture<MediaCapabilitiesInfo>(
-        JS("", "#.encodingInfo(#)", this, configuration_dict));
+    return promiseToFuture<MediaCapabilitiesInfo>(JS(
+        "creates:MediaCapabilitiesInfo;",
+        "#.encodingInfo(#)",
+        this,
+        configuration_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20547,8 +20554,8 @@ class MediaDevices extends EventTarget {
     if (constraints != null) {
       constraints_dict = convertDartToNative_Dictionary(constraints);
     }
-    return promiseToFuture<MediaStream>(
-        JS("", "#.getUserMedia(#)", this, constraints_dict));
+    return promiseToFuture<MediaStream>(JS(
+        "creates:MediaStream;", "#.getUserMedia(#)", this, constraints_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20856,7 +20863,7 @@ class MediaKeySystemAccess extends Interceptor {
   String? get keySystem native;
 
   Future createMediaKeys() =>
-      promiseToFuture(JS("", "#.createMediaKeys()", this));
+      promiseToFuture(JS("creates:MediaKeys;", "#.createMediaKeys()", this));
 
   Map getConfiguration() {
     return convertNativeToDart_Dictionary(_getConfiguration_1())!;
@@ -21740,34 +21747,34 @@ class MeterElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
-  num get high native;
+  num? get high native;
 
-  set high(num value) native;
+  set high(num? value) native;
 
   @Unstable()
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node>? get labels native;
 
-  num get low native;
+  num? get low native;
 
-  set low(num value) native;
+  set low(num? value) native;
 
-  num get max native;
+  num? get max native;
 
-  set max(num value) native;
+  set max(num? value) native;
 
-  num get min native;
+  num? get min native;
 
-  set min(num value) native;
+  set min(num? value) native;
 
-  num get optimum native;
+  num? get optimum native;
 
-  set optimum(num value) native;
+  set optimum(num? value) native;
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22748,10 +22755,11 @@ class Navigator extends NavigatorConcurrentHardware
   List<Gamepad?> _getGamepads() native;
 
   Future<RelatedApplication> getInstalledRelatedApps() =>
-      promiseToFuture<RelatedApplication>(
-          JS("", "#.getInstalledRelatedApps()", this));
+      promiseToFuture<RelatedApplication>(JS(
+          "creates:RelatedApplication;", "#.getInstalledRelatedApps()", this));
 
-  Future getVRDisplays() => promiseToFuture(JS("", "#.getVRDisplays()", this));
+  Future getVRDisplays() =>
+      promiseToFuture(JS("creates:VRDisplay;", "#.getVRDisplays()", this));
 
   @Unstable()
   void registerProtocolHandler(String scheme, String url, String title) native;
@@ -22783,8 +22791,12 @@ class Navigator extends NavigatorConcurrentHardware
 
   Future requestMediaKeySystemAccess(
           String keySystem, List<Map> supportedConfigurations) =>
-      promiseToFuture(JS("", "#.requestMediaKeySystemAccess(#, #)", this,
-          keySystem, supportedConfigurations));
+      promiseToFuture(JS(
+          "creates:MediaKeySystemAccess;",
+          "#.requestMediaKeySystemAccess(#, #)",
+          this,
+          keySystem,
+          supportedConfigurations));
 
   bool sendBeacon(String url, Object? data) native;
 
@@ -23988,7 +24000,7 @@ class OffscreenCanvas extends EventTarget {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture<Blob>(
-        JS("", "#.convertToBlob(#)", this, options_dict));
+        JS("creates:Blob;", "#.convertToBlob(#)", this, options_dict));
   }
 
   Object? getContext(String contextType, [Map? attributes]) {
@@ -24997,8 +25009,8 @@ class PaymentRequest extends EventTarget {
   Future<bool> canMakePayment() =>
       promiseToFuture<bool>(JS("", "#.canMakePayment()", this));
 
-  Future<PaymentResponse> show() =>
-      promiseToFuture<PaymentResponse>(JS("", "#.show()", this));
+  Future<PaymentResponse> show() => promiseToFuture<PaymentResponse>(
+      JS("creates:PaymentResponse;", "#.show()", this));
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25036,8 +25048,8 @@ class PaymentRequestEvent extends ExtendableEvent {
 
   Object? get total native;
 
-  Future<WindowClient> openWindow(String url) =>
-      promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
+  Future<WindowClient> openWindow(String url) => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.openWindow(#)", this, url));
 
   void respondWith(Future response) native;
 }
@@ -25470,23 +25482,23 @@ class Permissions extends Interceptor {
   Future<PermissionStatus> query(Map permission) {
     var permission_dict = convertDartToNative_Dictionary(permission);
     return promiseToFuture<PermissionStatus>(
-        JS("", "#.query(#)", this, permission_dict));
+        JS("creates:PermissionStatus;", "#.query(#)", this, permission_dict));
   }
 
   Future<PermissionStatus> request(Map permissions) {
     var permissions_dict = convertDartToNative_Dictionary(permissions);
-    return promiseToFuture<PermissionStatus>(
-        JS("", "#.request(#)", this, permissions_dict));
+    return promiseToFuture<PermissionStatus>(JS(
+        "creates:PermissionStatus;", "#.request(#)", this, permissions_dict));
   }
 
   Future<PermissionStatus> requestAll(List<Map> permissions) =>
-      promiseToFuture<PermissionStatus>(
-          JS("", "#.requestAll(#)", this, permissions));
+      promiseToFuture<PermissionStatus>(JS(
+          "creates:PermissionStatus;", "#.requestAll(#)", this, permissions));
 
   Future<PermissionStatus> revoke(Map permission) {
     var permission_dict = convertDartToNative_Dictionary(permission);
     return promiseToFuture<PermissionStatus>(
-        JS("", "#.revoke(#)", this, permission_dict));
+        JS("creates:PermissionStatus;", "#.revoke(#)", this, permission_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25905,7 +25917,7 @@ class PresentationReceiver extends Interceptor {
 
   Future<PresentationConnectionList> get connectionList =>
       promiseToFuture<PresentationConnectionList>(
-          JS("", "#.connectionList", this));
+          JS("creates:PresentationConnectionList;", "#.connectionList", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25935,14 +25947,15 @@ class PresentationRequest extends EventTarget {
 
   Future<PresentationAvailability> getAvailability() =>
       promiseToFuture<PresentationAvailability>(
-          JS("", "#.getAvailability()", this));
+          JS("creates:PresentationAvailability;", "#.getAvailability()", this));
 
   Future<PresentationConnection> reconnect(String id) =>
       promiseToFuture<PresentationConnection>(
-          JS("", "#.reconnect(#)", this, id));
+          JS("creates:PresentationConnection;", "#.reconnect(#)", this, id));
 
   Future<PresentationConnection> start() =>
-      promiseToFuture<PresentationConnection>(JS("", "#.start()", this));
+      promiseToFuture<PresentationConnection>(
+          JS("creates:PresentationConnection;", "#.start()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26109,7 +26122,8 @@ class PushManager extends Interceptor {
   static List<String>? get supportedContentEncodings native;
 
   Future<PushSubscription> getSubscription() =>
-      promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));
+      promiseToFuture<PushSubscription>(
+          JS("creates:PushSubscription;", "#.getSubscription()", this));
 
   Future permissionState([Map? options]) {
     var options_dict = null;
@@ -26125,7 +26139,7 @@ class PushManager extends Interceptor {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture<PushSubscription>(
-        JS("", "#.subscribe(#)", this, options_dict));
+        JS("creates:PushSubscription;", "#.subscribe(#)", this, options_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26943,8 +26957,11 @@ class RtcPeerConnection extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<RtcSessionDescription>(
-        JS("", "#.createAnswer(#)", this, options_dict));
+    return promiseToFuture<RtcSessionDescription>(JS(
+        "creates:RtcSessionDescription;",
+        "#.createAnswer(#)",
+        this,
+        options_dict));
   }
 
   @JSName('createDTMFSender')
@@ -26968,8 +26985,11 @@ class RtcPeerConnection extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<RtcSessionDescription>(
-        JS("", "#.createOffer(#)", this, options_dict));
+    return promiseToFuture<RtcSessionDescription>(JS(
+        "creates:RtcSessionDescription;",
+        "#.createOffer(#)",
+        this,
+        options_dict));
   }
 
   List<MediaStream> getLocalStreams() native;
@@ -26980,8 +27000,8 @@ class RtcPeerConnection extends EventTarget {
 
   List<RtcRtpSender> getSenders() native;
 
-  Future<RtcStatsReport> getStats() =>
-      promiseToFuture<RtcStatsReport>(JS("", "#.getStats()", this));
+  Future<RtcStatsReport> getStats() => promiseToFuture<RtcStatsReport>(
+      JS("creates:RtcStatsReport;", "#.getStats()", this));
 
   void removeStream(MediaStream? stream) native;
 
@@ -27769,11 +27789,15 @@ class ServiceWorkerContainer extends EventTarget {
   ServiceWorker? get controller native;
 
   Future<ServiceWorkerRegistration> get ready =>
-      promiseToFuture<ServiceWorkerRegistration>(JS("", "#.ready", this));
+      promiseToFuture<ServiceWorkerRegistration>(
+          JS("creates:ServiceWorkerRegistration;", "#.ready", this));
 
   Future<ServiceWorkerRegistration> getRegistration([String? documentURL]) =>
-      promiseToFuture<ServiceWorkerRegistration>(
-          JS("", "#.getRegistration(#)", this, documentURL));
+      promiseToFuture<ServiceWorkerRegistration>(JS(
+          "creates:ServiceWorkerRegistration;",
+          "#.getRegistration(#)",
+          this,
+          documentURL));
 
   Future<List<dynamic>> getRegistrations() =>
       promiseToFuture<List<dynamic>>(JS("", "#.getRegistrations()", this));
@@ -27783,8 +27807,12 @@ class ServiceWorkerContainer extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<ServiceWorkerRegistration>(
-        JS("", "#.register(#, #)", this, url, options_dict));
+    return promiseToFuture<ServiceWorkerRegistration>(JS(
+        "creates:ServiceWorkerRegistration;",
+        "#.register(#, #)",
+        this,
+        url,
+        options_dict));
   }
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -28945,18 +28973,13 @@ class StaticRange extends Interceptor {
  *     window.localStorage['key3'] = 'val3';
  *     assert(window.localStorage['key3'] == 'val3');
  *
- * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * You can use [Map](https://api.dart.dev/stable/dart-core/Map-class.html) APIs
  * such as containsValue(), clear(), and length:
  *
  *     assert(window.localStorage.containsValue('does not exist') == false);
  *     window.localStorage.clear();
  *     assert(window.localStorage.length == 0);
  *
- * For more examples of using this API, see
- * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
- * For details on using the Map API, see the
- * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
- * section of the library tour.
  */
 @Unstable()
 @Native("Storage")
@@ -29170,9 +29193,9 @@ class StyleElement extends HtmlElement {
 
   StyleSheet? get sheet native;
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31219,8 +31242,8 @@ class VRSession extends EventTarget {
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture(
-        JS("", "#.requestFrameOfReference(#, #)", this, type, options_dict));
+    return promiseToFuture(JS("creates:VRFrameOfReference;",
+        "#.requestFrameOfReference(#, #)", this, type, options_dict));
   }
 
   Stream<Event> get onBlur => blurEvent.forTarget(this);
@@ -32866,7 +32889,8 @@ class Window extends EventTarget
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
     }
-    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
+    return promiseToFuture(
+        JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
   }
 
   /**
@@ -33771,11 +33795,11 @@ class WindowClient extends Client {
 
   String? get visibilityState native;
 
-  Future<WindowClient> focus() =>
-      promiseToFuture<WindowClient>(JS("", "#.focus()", this));
+  Future<WindowClient> focus() => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.focus()", this));
 
-  Future<WindowClient> navigate(String url) =>
-      promiseToFuture<WindowClient>(JS("", "#.navigate(#)", this, url));
+  Future<WindowClient> navigate(String url) => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.navigate(#)", this, url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33935,7 +33959,8 @@ class WorkerGlobalScope extends EventTarget
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
     }
-    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
+    return promiseToFuture(
+        JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
   }
 
   void importScripts(String urls) native;
@@ -34346,8 +34371,8 @@ class _BudgetService extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<BudgetState> getBudget() =>
-      promiseToFuture<BudgetState>(JS("", "#.getBudget()", this));
+  Future<BudgetState> getBudget() => promiseToFuture<BudgetState>(
+      JS("creates:BudgetState;", "#.getBudget()", this));
 
   Future<double> getCost(String operation) =>
       promiseToFuture<double>(JS("", "#.getCost(#)", this, operation));
@@ -34387,8 +34412,8 @@ class _Clipboard extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<DataTransfer> read() =>
-      promiseToFuture<DataTransfer>(JS("", "#.read()", this));
+  Future<DataTransfer> read() => promiseToFuture<DataTransfer>(
+      JS("creates:DataTransfer;", "#.read()", this));
 
   Future<String> readText() =>
       promiseToFuture<String>(JS("", "#.readText()", this));
@@ -40135,7 +40160,7 @@ Function _registerCustomElement(context, document, String tag, [Map? options]) {
   //    ...
   //    var e = document.createElement('x-foo');
 
-  var extendsTagName = '';
+  String? extendsTagName = '';
   Type? type;
   if (options != null) {
     extendsTagName = options['extends'];

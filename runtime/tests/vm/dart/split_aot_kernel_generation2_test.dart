@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// OtherResources=../../../../tests/language/vm/regress_flutter_55345_test.dart
+// OtherResources=../../../../tests/language/mixin/regress_flutter_55345_test.dart
 
 // Runs regress_flutter_55345_test.dart using AOT kernel generation split into
 // 2 steps using '--from-dill' option.
@@ -14,5 +14,5 @@ import 'split_aot_kernel_generation_test.dart'
 
 main() async {
   await runSplitAOTKernelGenerationTest(Platform.script.resolve(
-      '../../../../tests/language/vm/regress_flutter_55345_test.dart'));
+      '../../../../tests/language/mixin/regress_flutter_55345_test.dart'));
 }

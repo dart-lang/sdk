@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -22,7 +22,7 @@ class AddLatePreNnbdTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_LATE;
 
   Future<void> test_withFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   final String s;
 }
@@ -32,15 +32,12 @@ class C {
 }
 
 @reflectiveTest
-class AddLateTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class AddLateTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_LATE;
 
   Future<void> test_withFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   final String s;
 }
@@ -53,7 +50,7 @@ class C {
   }
 
   Future<void> test_withLate() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   late s;
 }
@@ -62,7 +59,7 @@ class C {
   }
 
   Future<void> test_withType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String s;
 }

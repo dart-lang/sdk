@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -268,6 +268,9 @@ abstract class LinterContext {
   /// Return the result of evaluating the given expression.
   LinterConstantEvaluationResult evaluateConstant(Expression node);
 
+  /// Return `true` if the [feature] is enabled in the library being linted.
+  bool isEnabled(Feature feature);
+
   /// Resolve the name `id` or `id=` (if [setter] is `true`) an the location
   /// of the [node], according to the "16.35 Lexical Lookup" of the language
   /// specification.
@@ -355,17 +358,18 @@ class LinterContextImpl implements LinterContext {
     );
 
     var visitor = ConstantVisitor(
-      ConstantEvaluationEngine(
-        typeProvider,
-        declaredVariables,
-        typeSystem: typeSystem,
-      ),
+      ConstantEvaluationEngine(declaredVariables),
+      libraryElement,
       errorReporter,
     );
 
     var value = node.accept(visitor);
     return LinterConstantEvaluationResult(value, errorListener.errors);
   }
+
+  @override
+  bool isEnabled(Feature feature) =>
+      currentUnit.unit.declaredElement.library.featureSet.isEnabled(feature);
 
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
@@ -379,7 +383,7 @@ class LinterContextImpl implements LinterContext {
     }
 
     if (scope != null) {
-      var lookupResult = scope.lookup2(id);
+      var lookupResult = scope.lookup(id);
       var idElement = lookupResult.getter;
       var idEqElement = lookupResult.setter;
 
@@ -633,8 +637,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   }
 
   void reportPubLint(PSNode node) {
-    Source source = createSource(node.span.sourceUrl);
-
+    var source = node.source;
     // Cache error and location info for creating AnalysisErrorInfos
     AnalysisError error = AnalysisError(
         source, node.span.start.offset, node.span.length, lintCode);
@@ -671,7 +674,7 @@ class Maturity implements Comparable<Maturity> {
   const Maturity._(this.name, {this.ordinal});
 
   @override
-  int compareTo(Maturity other) => this.ordinal - other.ordinal;
+  int compareTo(Maturity other) => ordinal - other.ordinal;
 }
 
 /// [LintRule]s that implement this interface want to process only some types

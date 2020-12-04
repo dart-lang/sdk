@@ -8,8 +8,10 @@ import 'package:expect/expect.dart';
 
 /*class: Class1a:needsArgs*/
 class Class1a<T> {
+  /*member: Class1a.:*/
   Class1a();
 
+  /*member: Class1a.==:*/
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other?.runtimeType == runtimeType;
@@ -18,6 +20,7 @@ class Class1a<T> {
 
 /*class: Class1b:needsArgs*/
 class Class1b<T> extends Class1a<T> {
+  /*member: Class1b.:*/
   Class1b();
 }
 
@@ -25,13 +28,17 @@ class Class1b<T> extends Class1a<T> {
 // this class.
 /*class: Class1c:needsArgs*/
 class Class1c<T> implements Class1a<T> {
+  /*member: Class1c.:*/
   Class1c();
 }
 
+/*class: Class2:*/
 class Class2<T> {
+  /*member: Class2.:*/
   Class2();
 }
 
+/*member: main:*/
 main() {
   Class1a<int> cls1a = new Class1a<int>();
   Class1a<int> cls1b1 = new Class1b<int>();

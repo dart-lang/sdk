@@ -1,0 +1,12 @@
+xmm0 float
+xmm1 float
+xmm2 float
+xmm3 float
+xmm4 float
+xmm5 float
+xmm6 float
+xmm7 float
+S+0 float
+S+8 float
+=>
+xmm0 float

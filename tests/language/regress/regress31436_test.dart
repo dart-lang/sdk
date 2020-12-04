@@ -9,15 +9,15 @@ void block_test() {
   g = () {
     return [3];
   };
-  assert(g is List<Object> Function());
-  assert(g is! List<int> Function());
+  Expect.isTrue(g is List<Object> Function());
+  Expect.isFalse(g is List<int> Function());
   g().add("hello"); // No runtime error
   List<int> l = [3];
   g = () {
     return l;
   };
-  assert(g is List<Object> Function());
-  assert(g is List<int> Function());
+  Expect.isTrue(g is List<Object> Function());
+  Expect.isTrue(g is List<int> Function());
   Expect.throwsTypeError(() {
     g().add("hello"); // runtime error
   });
@@ -25,9 +25,9 @@ void block_test() {
   g = () {
     return o;
   }; // No implicit downcast on the assignment, implicit downcast on the return
-  assert(g is List<Object> Function());
-  assert(g is! List<int> Function());
-  assert(g is Object Function());
+  Expect.isTrue(g is List<Object> Function());
+  Expect.isFalse(g is List<int> Function());
+  Expect.isTrue(g is Object Function());
   g(); // No runtime error;
   o = 3;
   Expect.throwsTypeError(() {
@@ -38,22 +38,22 @@ void block_test() {
 void arrow_test() {
   List<Object> Function() g;
   g = () => [3];
-  assert(g is List<Object> Function());
-  assert(g is! List<int> Function());
+  Expect.isTrue(g is List<Object> Function());
+  Expect.isFalse(g is List<int> Function());
   g().add("hello"); // No runtime error
   List<int> l = [3];
   g = () => l;
-  assert(g is List<Object> Function());
-  assert(g is List<int> Function());
+  Expect.isTrue(g is List<Object> Function());
+  Expect.isTrue(g is List<int> Function());
   Expect.throwsTypeError(() {
     g().add("hello"); // runtime error
   });
   dynamic o = l;
   g = () =>
       o; // No implicit downcast on the assignment, implicit downcast on the return
-  assert(g is List<Object> Function());
-  assert(g is! List<int> Function());
-  assert(g is Object Function());
+  Expect.isTrue(g is List<Object> Function());
+  Expect.isFalse(g is List<int> Function());
+  Expect.isTrue(g is Object Function());
   g(); // No runtime error;
   o = 3;
   Expect.throwsTypeError(() {

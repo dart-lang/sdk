@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class AstRewriteMethodInvocationTest extends DriverResolutionTest {
+class AstRewriteMethodInvocationTest extends PubPackageResolutionTest {
   test_targetNull_cascade() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -95,7 +95,7 @@ f() {
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {
   A.named(T a);
 }
@@ -125,7 +125,7 @@ f() {
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {
   A.named(int a);
 }
@@ -138,8 +138,8 @@ f() {
   prefix.A.named<int>(0);
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          50, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 50,
+          5),
     ]);
 
     var importFind = findElement.importFind('package:test/a.dart');
@@ -163,7 +163,7 @@ f() {
   }
 
   test_targetPrefixedIdentifier_prefix_getter_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 A get foo => A();
 
 class A {
@@ -220,8 +220,8 @@ f() {
   A.named<int, String>(0);
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          52, 13),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
+          13),
     ]);
 
     var creation = findNode.instanceCreation('named<int, String>(0);');
@@ -263,7 +263,7 @@ f() {
   }
 
   test_targetSimpleIdentifier_prefix_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T, U> {
   A(int a);
 }
@@ -292,7 +292,7 @@ f() {
   }
 
   test_targetSimpleIdentifier_prefix_extension() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 
 extension E<T> on A {
@@ -321,7 +321,7 @@ f(prefix.A a) {
   }
 
   test_targetSimpleIdentifier_prefix_function() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void A<T, U>(int a) {}
 ''');
 

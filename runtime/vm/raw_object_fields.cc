@@ -47,9 +47,6 @@ namespace dart {
   F(ClosureData, closure_)                                                     \
   F(SignatureData, parent_function_)                                           \
   F(SignatureData, signature_type_)                                            \
-  F(RedirectionData, type_)                                                    \
-  F(RedirectionData, identifier_)                                              \
-  F(RedirectionData, target_)                                                  \
   F(Field, name_)                                                              \
   F(Field, owner_)                                                             \
   F(Field, type_)                                                              \
@@ -89,7 +86,6 @@ namespace dart {
   F(KernelProgramInfo, metadata_mappings_)                                     \
   F(KernelProgramInfo, scripts_)                                               \
   F(KernelProgramInfo, constants_)                                             \
-  F(KernelProgramInfo, bytecode_component_)                                    \
   F(KernelProgramInfo, potential_natives_)                                     \
   F(KernelProgramInfo, potential_pragma_functions_)                            \
   F(KernelProgramInfo, constants_table_)                                       \
@@ -105,18 +101,8 @@ namespace dart {
   F(Code, compressed_stackmaps_)                                               \
   F(Code, inlined_id_to_function_)                                             \
   F(Code, code_source_map_)                                                    \
-  F(Bytecode, object_pool_)                                                    \
-  F(Bytecode, instructions_)                                                   \
-  F(Bytecode, function_)                                                       \
-  F(Bytecode, exception_handlers_)                                             \
-  F(Bytecode, pc_descriptors_)                                                 \
-  F(Bytecode, closures_)                                                       \
   F(ExceptionHandlers, handled_types_data_)                                    \
   F(Context, parent_)                                                          \
-  F(ParameterTypeCheck, param_)                                                \
-  F(ParameterTypeCheck, type_or_bound_)                                        \
-  F(ParameterTypeCheck, name_)                                                 \
-  F(ParameterTypeCheck, cache_)                                                \
   F(SingleTargetCache, target_)                                                \
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \
@@ -166,7 +152,6 @@ namespace dart {
   F(Closure, context_)                                                         \
   F(Closure, hash_)                                                            \
   F(String, length_)                                                           \
-  F(String, hash_)                                                             \
   F(Array, type_arguments_)                                                    \
   F(Array, length_)                                                            \
   F(GrowableObjectArray, type_arguments_)                                      \
@@ -188,10 +173,14 @@ namespace dart {
   F(RegExp, num_bracket_expressions_)                                          \
   F(RegExp, capture_name_map_)                                                 \
   F(RegExp, pattern_)                                                          \
-  F(RegExp, external_one_byte_function_)                                       \
-  F(RegExp, external_two_byte_function_)                                       \
-  F(RegExp, external_one_byte_sticky_function_)                                \
-  F(RegExp, external_two_byte_sticky_function_)                                \
+  F(RegExp, one_byte_)                                                         \
+  F(RegExp, two_byte_)                                                         \
+  F(RegExp, external_one_byte_)                                                \
+  F(RegExp, external_two_byte_)                                                \
+  F(RegExp, one_byte_sticky_)                                                  \
+  F(RegExp, two_byte_sticky_)                                                  \
+  F(RegExp, external_one_byte_sticky_)                                         \
+  F(RegExp, external_two_byte_sticky_)                                         \
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
@@ -215,11 +204,15 @@ namespace dart {
   F(Code, deopt_info_array_)                                                   \
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
-  F(Function, bytecode_)                                                       \
   F(Function, unoptimized_code_)                                               \
-  F(Field, saved_initial_value_)                                               \
   F(Field, type_test_cache_)                                                   \
   F(WeakSerializationReference, target_)
+
+#define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
+  F(ReceivePort, debug_name_)                                                  \
+  F(ReceivePort, allocation_location_)
+
+#define NON_HEADER_HASH_CLASSES_AND_FIELDS(F) F(String, hash_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {
@@ -240,6 +233,14 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
 // clang-format off
 OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
     COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#if !defined(PRODUCT)
+    NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
+
+#if !defined(HASH_IN_OBJECT_HEADER)
+    NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
+
 #if defined(DART_PRECOMPILED_RUNTIME)
     AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #else

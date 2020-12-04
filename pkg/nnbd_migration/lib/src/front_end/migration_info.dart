@@ -10,6 +10,7 @@ import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/unit_link.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
 import 'package:path/path.dart' as path;
 
@@ -77,14 +78,14 @@ class MigrationInfo {
 
   MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
 
+  /// The path of the Dart logo displayed in the toolbar.
+  String get dartLogoPath => PreviewSite.dartLogoPath;
+
   /// The path to the highlight.pack.js script, relative to [unitInfo].
   String get highlightJsPath => PreviewSite.highlightJsPath;
 
   /// The path to the highlight.pack.js stylesheet, relative to [unitInfo].
   String get highlightStylePath => PreviewSite.highlightCssPath;
-
-  /// The path of the Dart logo displayed in the toolbar.
-  String get dartLogoPath => PreviewSite.dartLogoPath;
 
   /// The path of the Material icons font.
   String get materialIconsPath => PreviewSite.materialIconsPath;
@@ -104,8 +105,8 @@ class MigrationInfo {
     var links = <UnitLink>[];
     for (var unit in units) {
       var count = unit.fixRegions.length;
-      links.add(
-          UnitLink(unit.path, pathContext.split(computeName(unit)), count));
+      links.add(UnitLink(unit.path, pathContext.split(computeName(unit)), count,
+          unit.wasExplicitlyOptedOut, unit.migrationStatus));
     }
     return links;
   }
@@ -178,9 +179,15 @@ class RegionInfo {
   final int lineNumber;
 
   /// The explanation to be displayed for the region.
+  ///
+  /// `null` if this region doesn't represent a fix (e.g. it's just whitespace
+  /// change to preserve formatting).
   final String explanation;
 
   /// The kind of fix that was applied.
+  ///
+  /// `null` if this region doesn't represent a fix (e.g. it's just whitespace
+  /// change to preserve formatting).
   final NullabilityFixKind kind;
 
   /// Indicates whether this region should be counted in the edit summary.
@@ -274,6 +281,25 @@ class UnitInfo {
   /// maintain an offset mapper from current disk state to migration result.
   OffsetMapper diskChangesOffsetMapper = OffsetMapper.identity;
 
+  /// Whether this compilation unit was explicitly opted out of null safety at
+  /// the start of this migration.
+  bool wasExplicitlyOptedOut;
+
+  /// Indicates the migration status of this unit.
+  ///
+  /// After all migration phases have completed, this indicates that a file was
+  /// already migrated, or is being migrated during this migration.
+  ///
+  /// A user can change this migration status from the preview interface:
+  /// * An already migrated unit cannot be changed.
+  /// * During an initial migration, in which a package is migrated to null
+  ///   safety, the user can toggle a file's migration status between
+  ///   "migrating" and "opting out."
+  /// * During a follow-up migration, in which a package has been migrated to
+  ///   null safety, but some files have been opted out, the user can toggle a
+  ///   file's migration status between "migrating" and "keeping opted out."
+  UnitMigrationStatus migrationStatus;
+
   /// Initialize a newly created unit.
   UnitInfo(this.path);
 
@@ -285,12 +311,14 @@ class UnitInfo {
 
   /// Returns the [regions] that represent a fixed (changed) region of code.
   List<RegionInfo> get fixRegions => regions
-      .where((region) => region.regionType != RegionType.informative)
+      .where((region) =>
+          region.regionType != RegionType.informative && region.kind != null)
       .toList();
 
   /// Returns the [regions] that are informative.
   List<RegionInfo> get informativeRegions => regions
-      .where((region) => region.regionType == RegionType.informative)
+      .where((region) =>
+          region.regionType == RegionType.informative && region.kind != null)
       .toList();
 
   /// The object used to map the pre-edit offsets in the navigation targets to
@@ -352,6 +380,6 @@ class UnitInfo {
   /// Returns the [RegionInfo] at offset [offset].
   // TODO(srawlins): This is O(n), used each time the user clicks on a region.
   //  Consider changing the type of [regions] to facilitate O(1) searching.
-  RegionInfo regionAt(int offset) =>
-      regions.firstWhere((region) => region.offset == offset);
+  RegionInfo regionAt(int offset) => regions
+      .firstWhere((region) => region.kind != null && region.offset == offset);
 }

@@ -8,7 +8,7 @@ library;
 //
 import self as self;
 
-import "dart:core";
+import "dart:core" show int;
 
 static method testDynamic() → invalid-type
   ;

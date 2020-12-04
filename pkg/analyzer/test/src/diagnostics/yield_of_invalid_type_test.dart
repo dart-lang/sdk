@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,19 +15,17 @@ main() {
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest extends DriverResolutionTest {
+class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
   test_none_asyncStar_dynamic_to_streamInt() async {
     await assertErrorsInCode(
         '''
-import 'dart:async';
-
 Stream<int> f() async* {
   dynamic a = 0;
   yield a;
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 72, 1),
+          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 50, 1),
         ], legacy: []));
   }
 
@@ -64,8 +61,6 @@ Iterable<int> f() async* {
 
   test_none_asyncStar_int_to_streamDynamic() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 Stream f() async* {
   yield 0;
 }
@@ -74,8 +69,6 @@ Stream f() async* {
 
   test_none_asyncStar_int_to_streamInt() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 Stream<int> f() async* {
   yield 0;
 }
@@ -84,13 +77,11 @@ Stream<int> f() async* {
 
   test_none_asyncStar_int_to_streamString() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 Stream<String> f() async* {
   yield 0;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 58, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 36, 1),
     ]);
   }
 
@@ -162,14 +153,12 @@ Iterable<String> f() sync* {
 
   test_none_syncStar_int_to_stream() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 Stream<int> f() sync* {
   yield 0;
 }
 ''', [
-      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 22, 11),
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 54, 1),
+      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 11),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 32, 1),
     ]);
   }
 
@@ -193,8 +182,6 @@ g() => throw 0;
 
   test_star_asyncStar_dynamic_to_streamDynamic() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 Stream f() async* {
   yield* g();
 }
@@ -205,8 +192,6 @@ g() => throw 0;
 
   test_star_asyncStar_dynamic_to_streamInt() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 Stream<int> f() async* {
   yield* g();
 }
@@ -238,34 +223,28 @@ f() async* {
 
   test_star_asyncStar_iterableInt_to_streamInt() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 Stream<int> f() async* {
   var a = <int>[];
   yield* a;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 75, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 53, 1),
     ]);
   }
 
   test_star_asyncStar_iterableString_to_streamInt() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 Stream<int> f() async* {
   var a = <String>[];
   yield* a;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 78, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 56, 1),
     ]);
   }
 
   test_star_asyncStar_streamDynamic_to_dynamic() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 f() async* {
   yield* g();
 }
@@ -277,8 +256,6 @@ Stream g() => throw 0;
   test_star_asyncStar_streamDynamic_to_streamInt() async {
     await assertErrorsInCode(
         '''
-import 'dart:async';
-
 Stream<int> f() async* {
   yield* g();
 }
@@ -286,14 +263,12 @@ Stream<int> f() async* {
 Stream g() => throw 0;
 ''',
         expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 56, 3),
+          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 34, 3),
         ], legacy: []));
   }
 
   test_star_asyncStar_streamInt_to_dynamic() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 f() async* {
   yield* g();
 }
@@ -304,8 +279,6 @@ Stream<int> g() => throw 0;
 
   test_star_asyncStar_streamInt_to_streamInt() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 Stream<int> f() async* {
   yield* g();
 }
@@ -316,15 +289,13 @@ Stream<int> g() => throw 0;
 
   test_star_asyncStar_streamString_to_streamInt() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 Stream<int> f() async* {
   yield* g();
 }
 
 Stream<String> g() => throw 0;
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 56, 3),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 34, 3),
     ]);
   }
 

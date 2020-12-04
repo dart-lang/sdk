@@ -1,8 +1,22 @@
-import("//build/rust/rust.gni")
+import("../../build/rust/rust.gni")
 
-component("wasmer") {
-  public = [ "wasmer.hh" ]
-  deps = [ ":wasmer_lib" ]
+shared_library("wasmer_wrap") {
+  sources = [
+    "../../runtime/include/dart_api_dl.c",
+    "finalizers.cc",
+  ]
+  deps = [
+    ":wasmer_lib",
+    "../../runtime/bin:dart",
+  ]
+  include_dirs = [ "../../runtime" ]
+  defines = [ "DART_SHARED_LIB" ]
+  if (is_linux) {
+    libs = [ "rt" ]
+  }
+
+  # Force linking of all wasmer symbols.
+  ldflags = [ "-Wl,--no-as-needed" ]
 }
 
 rust_library("wasmer_lib") {

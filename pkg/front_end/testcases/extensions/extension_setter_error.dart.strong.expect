@@ -14,16 +14,16 @@ class GenericClass<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
   set setter = self::GenericExtension|set#setter;
@@ -34,7 +34,7 @@ static method error() → dynamic {
   self::expect(null, let final self::GenericClass<core::int*>* #t1 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/extension_setter_error.dart:13:41: Error: A value of type 'GenericClass<int>' can't be assigned to a variable of type 'GenericClass<double>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/extension_setter_error.dart'.
   expect(null, GenericExtension<double>(genericClass).setter = null);
-                                        ^" in genericClass as{TypeError} self::GenericClass<core::double*>* in let final core::Null? #t3 = null in let final void #t4 = self::GenericExtension|set#setter<core::double*>(#t1, #t3) in #t3);
+                                        ^" in genericClass as{TypeError} self::GenericClass<core::double*>* in let final Null #t3 = null in let final void #t4 = self::GenericExtension|set#setter<core::double*>(#t1, #t3) in #t3);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual)) {

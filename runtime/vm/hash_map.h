@@ -423,15 +423,17 @@ class DirectChainedHashMap
 
 template <typename KeyValueTrait>
 class MallocDirectChainedHashMap
-    : public BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc> {
+    : public BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc> {
  public:
   MallocDirectChainedHashMap()
-      : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(NULL) {}
+      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(NULL) {
+  }
 
   // The only use of the copy constructor seems to be in hash_map_test.cc.
   // Not disallowing it for now just in case there are other users.
   MallocDirectChainedHashMap(const MallocDirectChainedHashMap& other)
-      : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(other) {}
+      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(
+            other) {}
 
  private:
   void operator=(const MallocDirectChainedHashMap& other) = delete;
@@ -572,6 +574,25 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IntMap);
+};
+
+template <typename V>
+class IdentitySetKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef V Key;
+  typedef V Value;
+  typedef V Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return reinterpret_cast<intptr_t>(key);
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
 };
 
 }  // namespace dart

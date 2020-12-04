@@ -25,7 +25,7 @@ class ConvertToNullAwareTest extends FixProcessorLintTest {
 
   /// More coverage in the `convert_to_null_aware_test.dart` assist test.
   Future<void> test_equal_nullOnLeft() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   int m();
 }

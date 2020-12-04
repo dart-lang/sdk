@@ -2,31 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+import '../../../../abstract_context.dart';
 import '../../../../abstract_single_unit.dart';
+
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 /// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
 abstract class FixProcessorLintTest extends FixProcessorTest {
-  /// The offset of the lint marker in the code being analyzed.
-  int lintOffset = -1;
-
   /// Return the lint code being tested.
   String get lintCode;
 
@@ -37,23 +38,11 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   }
 
   @override
-  void _createAnalysisOptionsFile() {
-    createAnalysisOptionsFile(experiments: experiments, lints: [lintCode]);
-  }
-
-  /// Find the error that is to be fixed by computing the errors in the file,
-  /// using the [errorFilter] to filter out errors that should be ignored, and
-  /// expecting that there is a single remaining error. The error filter should
-  /// return `true` if the error should not be ignored.
-  @override
-  Future<AnalysisError> _findErrorToFix(
-      bool Function(AnalysisError) errorFilter,
-      {int length}) async {
-    if (lintOffset < 0) {
-      return super._findErrorToFix(errorFilter, length: 0);
-    }
-    return AnalysisError(
-        testSource, lintOffset, length ?? 0, LintCode(lintCode, '<ignored>'));
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(
+      lints: [lintCode],
+    );
   }
 }
 
@@ -70,10 +59,6 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
   String resultCode;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, or `null` if there are no experiments that should be enabled.
-  List<String> get experiments => null;
-
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
 
@@ -88,6 +73,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       String target,
       int expectedNumberOfFixesForKind,
       String matchFixMessage}) async {
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
     var error = await _findErrorToFix(errorFilter, length: length);
     var fix = await _assertHasFix(error,
         expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
@@ -108,8 +96,11 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
-  void assertHasFixAllFix(ErrorCode errorCode, String expected,
+  Future<void> assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String target}) async {
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
     var error = await _findErrorToFixOfType(errorCode);
     var fix = await _assertHasFixAllFix(error);
     change = fix.change;
@@ -171,7 +162,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     verifyNoTestUnitErrors = false;
-    _createAnalysisOptionsFile();
+    useLineEndingsForPlatform = true;
   }
 
   /// Computes fixes and verifies that there is a fix for the given [error] of the appropriate kind.
@@ -277,26 +268,23 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
+    var analysisContext = contextFor(testFile);
+
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(driver.analysisContext);
+    tracker.addContext(analysisContext);
 
     var context = DartFixContextImpl(
+      InstrumentationService.NULL_SERVICE,
       workspace,
       testAnalysisResult,
       error,
       (name) {
         var provider = TopLevelDeclarationsProvider(tracker);
         provider.doTrackerWork();
-        return provider.get(driver.analysisContext, testFile, name);
+        return provider.get(analysisContext, testFile, name);
       },
     );
     return await DartFixContributor().computeFixes(context);
-  }
-
-  /// Create the analysis options file needed in order to correctly analyze the
-  /// test file.
-  void _createAnalysisOptionsFile() {
-    createAnalysisOptionsFile(experiments: experiments);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,
@@ -343,5 +331,22 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       positions.add(Position(testFile, offset));
     }
     return positions;
+  }
+}
+
+mixin WithNullSafetyLintMixin on AbstractContextTest {
+  /// Return the lint code being tested.
+  String get lintCode;
+
+  @override
+  String get testPackageLanguageVersion => '2.12';
+
+  @nonVirtual
+  @override
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(
+      lints: [lintCode],
+    );
   }
 }

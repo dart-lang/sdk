@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,10 +24,10 @@ import 'test_strategies.dart';
 /// The return type separator: →
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   DeclaredVariables declaredVariables = DeclaredVariables();
-  SourceFactory sourceFactory;
-  MockSdk sdk;
+  /*late final*/ SourceFactory sourceFactory;
+  /*late final*/ MockSdk sdk;
 
-  String testFile;
+  /*late final*/ String testFile;
   Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
@@ -77,10 +75,15 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ResynthesizeTestHelpers].
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
-  FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
+  static final FeatureSet featureSetLegacy = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.9.0'),
+    flags: [],
+  );
 
-  FeatureSet get enableNnbd =>
-      FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+  static final FeatureSet featureSetNullSafe = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.12.0'),
+    flags: [],
+  );
 
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
@@ -916,7 +919,7 @@ class C {
   }
 
   test_class_field_const_late() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library =
         await checkLibrary('class C { static late const int i = 0; }');
     checkElementText(library, r'''
@@ -936,7 +939,7 @@ class C {
   }
 
   test_class_field_implicit_type_late() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('class C { late var x; }');
     checkElementText(library, r'''
 class C {
@@ -955,7 +958,7 @@ class C {
   }
 
   test_class_field_static_late() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''
 class C {
@@ -975,7 +978,7 @@ class C {
   }
 
   test_class_fields_late() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class C {
   late int foo;
@@ -994,7 +997,7 @@ class C {
   }
 
   test_class_fields_late_final() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class C {
   late final int foo;
@@ -1013,7 +1016,7 @@ class C {
   }
 
   test_class_fields_late_final_initialized() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class C {
   late final int foo = 0;
@@ -1292,7 +1295,7 @@ typedef F(C value);
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(C<dynamic> value);
-notSimplyBounded class C<T extends dynamic Function(C<dynamic>)> {
+notSimplyBounded class C<T extends dynamic Function(C<dynamic>) = dynamic Function(C<dynamic>)> {
 }
 ''');
   }
@@ -1304,7 +1307,7 @@ notSimplyBounded class C<T extends dynamic Function(C<dynamic>)> {
 class C<T extends C<dynamic>> {}
 ''');
     checkElementText(library, r'''
-class C<T extends C<dynamic>> {
+class C<T extends C<dynamic> = C<dynamic>> {
 }
 ''');
   }
@@ -1328,7 +1331,7 @@ class C<T extends D> {}
 class D<T extends D> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends D<dynamic>> {
+notSimplyBounded class C<T extends D<dynamic> = D<dynamic>> {
 }
 notSimplyBounded class D<T extends D<dynamic>> {
 }
@@ -1341,7 +1344,7 @@ class C<T extends D<T>> {}
 class D<T> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends D<T>> {
+notSimplyBounded class C<T extends D<T> = D<dynamic>> {
 }
 class D<T> {
 }
@@ -1356,9 +1359,9 @@ class C<T extends D<dynamic>> {}
 class D<T extends D<T>> {}
 ''');
     checkElementText(library, r'''
-class C<T extends D<dynamic>> {
+class C<T extends D<dynamic> = D<dynamic>> {
 }
-notSimplyBounded class D<T extends D<T>> {
+notSimplyBounded class D<T extends D<T> = D<dynamic>> {
 }
 ''');
   }
@@ -1368,7 +1371,7 @@ notSimplyBounded class D<T extends D<T>> {
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends void Function(T)> {
+notSimplyBounded class C<T extends void Function(T) = void Function(Null)> {
 }
 ''');
   }
@@ -1378,7 +1381,7 @@ notSimplyBounded class C<T extends void Function(T)> {
 class C<T extends T Function()> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends T Function()> {
+notSimplyBounded class C<T extends T Function() = dynamic Function()> {
 }
 ''');
   }
@@ -1388,7 +1391,7 @@ notSimplyBounded class C<T extends T Function()> {
 class C<T extends void Function()> {}
 ''');
     checkElementText(library, r'''
-class C<T extends void Function()> {
+class C<T extends void Function() = void Function()> {
 }
 ''');
   }
@@ -1405,7 +1408,7 @@ typedef G(F value);
     checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(dynamic Function(dynamic) value);
 notSimplyBounded typedef G = dynamic Function(dynamic value);
-notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic))> {
+notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic)) = dynamic Function(dynamic Function(dynamic))> {
 }
 ''');
   }
@@ -1438,7 +1441,7 @@ class C<T extends D> {}
 class D<T> {}
 ''');
     checkElementText(library, r'''
-class C<T extends D<dynamic>> {
+class C<T extends D<dynamic> = D<dynamic>> {
 }
 class D<T> {
 }
@@ -1458,7 +1461,7 @@ class C<T> {
   }
 
   test_class_ref_nullability_none() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class C {}
 C c;
@@ -1474,7 +1477,7 @@ C c;
   }
 
   test_class_ref_nullability_question() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class C {}
 C? c;
@@ -1490,7 +1493,7 @@ C? c;
   }
 
   test_class_ref_nullability_star() async {
-    featureSet = disableNnbd;
+    featureSet = featureSetLegacy;
     var library = await checkLibrary('''
 class C {}
 C c;
@@ -1678,7 +1681,7 @@ class C<T extends Object, U extends D> {}
 class D {}
 ''');
     checkElementText(library, r'''
-class C<T, U extends D> {
+class C<T = Object, U extends D = D> {
 }
 class D {
 }
@@ -1712,7 +1715,7 @@ notSimplyBounded class C<T extends dynamic, U, V extends dynamic> {
   test_class_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('class C<T extends List<U>, U> {}');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends List<U>, U> {
+notSimplyBounded class C<T extends List<U> = List<dynamic>, U> {
 }
 ''');
   }
@@ -1727,32 +1730,173 @@ notSimplyBounded class C<T extends U, U> {
 
   test_class_type_parameters_variance_contravariant() async {
     var library = await checkLibrary('class C<in T> {}');
-    checkElementText(library, r'''
-class C<in T> {
+    checkElementText(
+        library,
+        r'''
+class C<contravariant T> {
 }
-''');
+''',
+        withTypeParameterVariance: true);
   }
 
   test_class_type_parameters_variance_covariant() async {
     var library = await checkLibrary('class C<out T> {}');
-    checkElementText(library, r'''
-class C<out T> {
+    checkElementText(
+        library,
+        r'''
+class C<covariant T> {
 }
-''');
+''',
+        withTypeParameterVariance: true);
   }
 
   test_class_type_parameters_variance_invariant() async {
     var library = await checkLibrary('class C<inout T> {}');
-    checkElementText(library, r'''
-class C<inout T> {
+    checkElementText(
+        library,
+        r'''
+class C<invariant T> {
 }
-''');
+''',
+        withTypeParameterVariance: true);
   }
 
   test_class_type_parameters_variance_multiple() async {
     var library = await checkLibrary('class C<inout T, in U, out V> {}');
+    checkElementText(
+        library,
+        r'''
+class C<invariant T, contravariant U, covariant V> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
+    var library = await checkLibrary(r'''
+typedef F<X> = void Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<contravariant X> = void Function(X );
+notSimplyBounded class A<covariant X extends void Function(X) = void Function(Null)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_contravariant_nullSafe() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+typedef F<X> = void Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<contravariant X> = void Function(X );
+notSimplyBounded class A<covariant X extends void Function(X) = void Function(Never)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_invariant_legacy() async {
+    var library = await checkLibrary(r'''
+typedef F<X> = X Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<invariant X> = X Function(X );
+notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dynamic)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_invariant_nullSafe() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+typedef F<X> = X Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<invariant X> = X Function(X );
+notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dynamic)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_both_legacy() async {
+    var library = await checkLibrary(r'''
+class A<X extends X Function(X)> {}
+''');
     checkElementText(library, r'''
-class C<inout T, in U, out V> {
+notSimplyBounded class A<X extends X Function(X) = dynamic Function(Null)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_both_nullSafe() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+class A<X extends X Function(X)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends X Function(X) = dynamic Function(Never)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_contravariant_legacy() async {
+    var library = await checkLibrary(r'''
+class A<X extends void Function(X)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends void Function(X) = void Function(Null)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_contravariant_nullSafe() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+class A<X extends void Function(X)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends void Function(X) = void Function(Never)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_covariant_legacy() async {
+    var library = await checkLibrary(r'''
+class A<X extends X Function()> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends X Function() = dynamic Function()> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_covariant_nullSafe() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+class A<X extends X Function()> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends X Function() = dynamic Function()> {
 }
 ''');
   }
@@ -2562,7 +2706,7 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
   }
 
   test_compilationUnit_nnbd_disabled_via_dart_directive() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 // @dart=2.2
 ''');
@@ -2570,15 +2714,106 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
   }
 
   test_compilationUnit_nnbd_disabled_via_feature_set() async {
-    featureSet = disableNnbd;
+    featureSet = featureSetLegacy;
     var library = await checkLibrary('');
     expect(library.isNonNullableByDefault, isFalse);
   }
 
   test_compilationUnit_nnbd_enabled() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('');
     expect(library.isNonNullableByDefault, isTrue);
+  }
+
+  test_const_asExpression() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary('''
+const num a = 0;
+const b = a as int;
+''');
+    checkElementText(library, '''
+const num a = 0;
+const int b =
+        a/*location: test.dart;a?*/ as
+        int/*location: dart:core;int*/;
+''');
+  }
+
+  test_const_assignmentExpression() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = (a += 1);
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    ParenthesizedExpression
+      expression: AssignmentExpression
+        leftHandSide: SimpleIdentifier
+          staticElement: <null>
+          staticType: null
+          token: a
+        operator: +=
+        readElement: self::@getter::a
+        readType: int
+        rightHandSide: IntegerLiteral
+          literal: 1
+          staticType: int
+        staticElement: dart:core::@class::num::@method::+
+        staticType: int
+        writeElement: self::@getter::a
+        writeType: dynamic
+      staticType: int
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_cascadeExpression() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+const a = 0..isEven..abs();
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    CascadeExpression
+      cascadeSections
+        PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            staticElement: dart:core::@class::int::@getter::isEven
+            staticType: bool
+            token: isEven
+          staticType: bool
+        MethodInvocation
+          argumentList: ArgumentList
+          methodName: SimpleIdentifier
+            staticElement: dart:core::@class::int::@method::abs
+            staticType: int Function()
+            token: abs
+          operator: ..
+          staticInvokeType: null
+          staticType: int
+      staticType: int
+      target: IntegerLiteral
+        literal: 0
+        staticType: int
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
   }
 
   test_const_classField() async {
@@ -2651,6 +2886,50 @@ class C {
   const C();
 }
 ''');
+  }
+
+  test_const_indexExpression() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+const a = [0];
+const b = 0;
+const c = a[b];
+''');
+    checkElementText(
+      library,
+      r'''
+const List<int> a;
+  constantInitializer
+    ListLiteral
+      elements
+        IntegerLiteral
+          literal: 0
+          staticType: int
+      staticType: List<int>
+const int b;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int c;
+  constantInitializer
+    IndexExpression
+      index: SimpleIdentifier
+        staticElement: self::@getter::b
+        staticType: int
+        token: b
+      staticElement: MethodMember
+        base: dart:core::@class::List::@method::[]
+        substitution: {E: int}
+      staticType: int
+      target: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: List<int>
+        token: a
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
   }
 
   test_const_inference_downward_list() async {
@@ -3115,6 +3394,20 @@ const dynamic V = const
 ''');
   }
 
+  test_const_isExpression() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary('''
+const a = 0;
+const b = a is int;
+''');
+    checkElementText(library, '''
+const int a = 0;
+const bool b =
+        a/*location: test.dart;a?*/ is
+        int/*location: dart:core;int*/;
+''');
+  }
+
   test_const_length_ofClassConstField() async {
     var library = await checkLibrary(r'''
 class C {
@@ -3389,6 +3682,44 @@ const Object x = const <
         withTypes: true);
   }
 
+  test_const_methodInvocation() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+T f<T>(T a) => a;
+const b = f<int>(0);
+''');
+    checkElementText(
+      library,
+      r'''
+const int b;
+  constantInitializer
+    MethodInvocation
+      argumentList: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      methodName: SimpleIdentifier
+        staticElement: self::@function::f
+        staticType: T Function<T>(T)
+        token: f
+      staticInvokeType: null
+      staticType: int
+      typeArguments: TypeArgumentList
+        arguments
+          TypeName
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::int
+              staticType: null
+              token: int
+            type: int
+T f(T a) {}
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     var library = await checkLibrary(r'''
 class C {
@@ -3458,6 +3789,104 @@ class C {
   void methodNamedWithoutDefault({dynamic p}) {}
 }
 ''');
+  }
+
+  test_const_postfixExpression_increment() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = a++;
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PostfixExpression
+      operand: SimpleIdentifier
+        staticElement: <null>
+        staticType: null
+        token: a
+      operator: ++
+      readElement: self::@getter::a
+      readType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticType: int
+      writeElement: self::@getter::a
+      writeType: dynamic
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_postfixExpression_nullCheck() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+const int? a = 0;
+const b = a!;
+''');
+    checkElementText(
+      library,
+      r'''
+const int? a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PostfixExpression
+      operand: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: int?
+        token: a
+      operator: !
+      staticElement: <null>
+      staticType: int
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_prefixExpression_increment() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = ++a;
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PrefixExpression
+      operand: SimpleIdentifier
+        staticElement: <null>
+        staticType: null
+        token: a
+      operator: ++
+      readElement: self::@getter::a
+      readType: int
+      staticElement: dart:core::@class::num::@method::+
+      staticType: int
+      writeElement: self::@getter::a
+      writeType: dynamic
+''',
+      annotateNullability: true,
+      withFullyResolvedAst: true,
+    );
   }
 
   test_const_reference_staticField() async {
@@ -3993,9 +4422,11 @@ const num vIfNull = 1 ?? 2.0;
 const vNull = null;
 const vBoolFalse = false;
 const vBoolTrue = true;
-const vInt = 1;
+const vIntPositive = 1;
+const vIntNegative = -2;
 const vIntLong1 = 0x7FFFFFFFFFFFFFFF;
 const vIntLong2 = 0xFFFFFFFFFFFFFFFF;
+const vIntLong3 = 0x8000000000000000;
 const vDouble = 2.3;
 const vString = 'abc';
 const vStringConcat = 'aaa' 'bbb';
@@ -4006,9 +4437,11 @@ const vSymbol = #aaa.bbb.ccc;
 const dynamic vNull = null;
 const bool vBoolFalse = false;
 const bool vBoolTrue = true;
-const int vInt = 1;
+const int vIntPositive = 1;
+const int vIntNegative = -2;
 const int vIntLong1 = 9223372036854775807;
 const int vIntLong2 = -1;
+const int vIntLong3 = -9223372036854775808;
 const double vDouble = 2.3;
 const String vString = 'abc';
 const String vStringConcat = 'aaabbb';
@@ -4018,7 +4451,7 @@ const Symbol vSymbol = #aaa.bbb.ccc;
   }
 
   test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary(r'''
 const String? a = '';
 
@@ -4377,6 +4810,35 @@ class C {
 }
 int foo() {}
 ''');
+  }
+
+  test_constructor_initializers_field_optionalPositionalParameter() async {
+    var library = await checkLibrary('''
+class A {
+  final int _f;
+  const A([int f = 0]) : _f = f;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  final int _f;
+  const A([int f = 0]);
+    constantInitializers
+      ConstructorFieldInitializer
+        equals: =
+        expression: SimpleIdentifier
+          staticElement: f@41
+          staticType: int
+          token: f
+        fieldName: SimpleIdentifier
+          staticElement: self::@class::A::@field::_f
+          staticType: null
+          token: _f
+}
+''',
+        withFullyResolvedAst: true);
   }
 
   test_constructor_initializers_field_withParameter() async {
@@ -5056,7 +5518,7 @@ class D {
   }
 
   test_defaultValue_eliminateTypeParameters() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class A<T> {
   const X({List<T> a = const []});
@@ -6062,6 +6524,20 @@ extension E on int {
 ''');
   }
 
+  test_field_abstract() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary('''
+abstract class C {
+  abstract int i;
+}
+''');
+    checkElementText(library, '''
+abstract class C {
+  abstract int i;
+}
+''');
+  }
+
   test_field_covariant() async {
     var library = await checkLibrary('''
 class C {
@@ -6088,6 +6564,20 @@ class C {
    * Docs
    */
   dynamic x;
+}
+''');
+  }
+
+  test_field_external() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary('''
+abstract class C {
+  external int i;
+}
+''');
+    checkElementText(library, '''
+abstract class C {
+  external int i;
 }
 ''');
   }
@@ -6189,6 +6679,46 @@ abstract class D {
 ''');
   }
 
+  test_field_inferred_type_nonStatic_inherited_resolveInitializer() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+abstract class A {
+  const A();
+  List<int> get f;
+}
+class B extends A {
+  const B();
+  final f = [a];
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  List<int> get f;
+  const A();
+}
+class B extends A {
+  final List<int> f;
+    constantInitializer
+      ListLiteral
+        elements
+          SimpleIdentifier
+            staticElement: self::@getter::a
+            staticType: int
+            token: a
+        staticType: List<int>
+  const B();
+}
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_field_inferred_type_static_implicit_initialized() async {
     var library = await checkLibrary('class C { static var v = 0; }');
     checkElementText(library, r'''
@@ -6280,7 +6810,7 @@ class C {
   }
 
   test_field_type_inferred_Never() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary(r'''
 class C {
   var a = throw 42;
@@ -6298,7 +6828,7 @@ class C {
   }
 
   test_field_type_inferred_nonNullify() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
 
     addSource('/a.dart', '''
 // @dart = 2.7
@@ -6581,6 +7111,168 @@ dynamic g() {}
 ''');
   }
 
+  test_functionTypeAlias_enclosingElements() async {
+    var library = await checkLibrary(r'''
+typedef void F<T>(int a);
+''');
+    var unit = library.definingCompilationUnit;
+
+    var F = unit.functionTypeAliases[0];
+    expect(F.name, 'F');
+
+    var T = F.typeParameters[0];
+    expect(T.name, 'T');
+    expect(T.enclosingElement, same(F));
+
+    var function = F.function;
+    expect(function.enclosingElement, same(F));
+
+    var a = function.parameters[0];
+    expect(a.name, 'a');
+    expect(a.enclosingElement, same(function));
+  }
+
+  test_functionTypeAlias_type_element() async {
+    var library = await checkLibrary(r'''
+typedef T F<T>();
+F<int> a;
+''');
+    var unit = library.definingCompilationUnit;
+    var type = unit.topLevelVariables[0].type as FunctionType;
+    expect(type.element.enclosingElement, same(unit.functionTypeAliases[0]));
+    _assertTypeStrings(type.typeArguments, ['int*']);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_contravariant() async {
+    var library = await checkLibrary(r'''
+typedef void F<T>(T a);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<contravariant T> = void Function(T a);
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_contravariant2() async {
+    var library = await checkLibrary(r'''
+typedef void F1<T>(T a);
+typedef F1<T> F2<T>();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<contravariant T> = void Function(T a);
+typedef F2<contravariant T> = void Function(T) Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_contravariant3() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> F2<T>();
+typedef void F1<T>(T a);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F2<contravariant T> = void Function(T) Function();
+typedef F1<contravariant T> = void Function(T a);
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_covariant() async {
+    var library = await checkLibrary(r'''
+typedef T F<T>();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<covariant T> = T Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_covariant2() async {
+    var library = await checkLibrary(r'''
+typedef List<T> F<T>();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<covariant T> = List<T> Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_covariant3() async {
+    var library = await checkLibrary(r'''
+typedef T F1<T>();
+typedef F1<T> F2<T>();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<covariant T> = T Function();
+typedef F2<covariant T> = T Function() Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_covariant4() async {
+    var library = await checkLibrary(r'''
+typedef void F1<T>(T a);
+typedef void F2<T>(F1<T> a);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<contravariant T> = void Function(T a);
+typedef F2<covariant T> = void Function(void Function(T) a);
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_invariant() async {
+    var library = await checkLibrary(r'''
+typedef T F<T>(T a);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<invariant T> = T Function(T a);
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_invariant2() async {
+    var library = await checkLibrary(r'''
+typedef T F1<T>();
+typedef F1<T> F2<T>(T a);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<covariant T> = T Function();
+typedef F2<invariant T> = T Function() Function(T a);
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_functionTypeAlias_typeParameters_variance_unrelated() async {
+    var library = await checkLibrary(r'''
+typedef void F<T>(int a);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<unrelated T> = void Function(int a);
+''',
+        withTypeParameterVariance: true);
+  }
+
   test_futureOr() async {
     var library = await checkLibrary('import "dart:async"; FutureOr<int> x;');
     checkElementText(library, r'''
@@ -6631,7 +7323,7 @@ FutureOr<int> f() {}
   }
 
   test_generic_function_type_nullability_none() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 void Function() f;
 ''');
@@ -6644,7 +7336,7 @@ void Function() f;
   }
 
   test_generic_function_type_nullability_question() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 void Function()? f;
 ''');
@@ -6657,7 +7349,7 @@ void Function()? f;
   }
 
   test_generic_function_type_nullability_star() async {
-    featureSet = disableNnbd;
+    featureSet = featureSetLegacy;
     var library = await checkLibrary('''
 void Function() f;
 ''');
@@ -6754,6 +7446,31 @@ typedef F2<V2> = V2 Function();
 ''');
   }
 
+  test_genericTypeAlias_enclosingElements() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function<U>(int a);
+''');
+    var unit = library.definingCompilationUnit;
+
+    var F = unit.functionTypeAliases[0];
+    expect(F.name, 'F');
+
+    var T = F.typeParameters[0];
+    expect(T.name, 'T');
+    expect(T.enclosingElement, same(F));
+
+    var function = F.function;
+    expect(function.enclosingElement, same(F));
+
+    var U = function.typeParameters[0];
+    expect(U.name, 'U');
+    expect(U.enclosingElement, same(function));
+
+    var a = function.parameters[0];
+    expect(a.name, 'a');
+    expect(a.enclosingElement, same(function));
+  }
+
   test_genericTypeAlias_recursive() async {
     var library = await checkLibrary('''
 typedef F<X extends F> = Function(F);
@@ -6761,6 +7478,122 @@ typedef F<X extends F> = Function(F);
     checkElementText(library, r'''
 notSimplyBounded typedef F<X> = dynamic Function();
 ''');
+  }
+
+  test_genericTypeAlias_typeParameters_variance_contravariant() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function(T);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<contravariant T> = void Function(T );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_contravariant2() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = void Function(T);
+typedef F2<T> = F1<T> Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<contravariant T> = void Function(T );
+typedef F2<contravariant T> = void Function(T) Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_covariant() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = T Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<covariant T> = T Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_covariant2() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = List<T> Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<covariant T> = List<T> Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_covariant3() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = T Function();
+typedef F2<T> = F1<T> Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<covariant T> = T Function();
+typedef F2<covariant T> = T Function() Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_covariant4() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = void Function(T);
+typedef F2<T> = void Function(F1<T>);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<contravariant T> = void Function(T );
+typedef F2<covariant T> = void Function(void Function(T) );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_invariant() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = T Function(T);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<invariant T> = T Function(T );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_invariant2() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = T Function();
+typedef F2<T> = F1<T> Function(T);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<covariant T> = T Function();
+typedef F2<invariant T> = T Function() Function(T );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_unrelated() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function(int);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<unrelated T> = void Function(int );
+''',
+        withTypeParameterVariance: true);
   }
 
   test_getter_documented() async {
@@ -7099,6 +7932,16 @@ Stream<dynamic> s;
 ''');
   }
 
+  test_import_show_offsetEnd() async {
+    var library = await checkLibrary('''
+import "dart:math" show e, pi;
+''');
+    var import = library.imports[0];
+    var combinator = import.combinators[0] as ShowElementCombinator;
+    expect(combinator.offset, 19);
+    expect(combinator.end, 29);
+  }
+
   test_import_uri() async {
     allowMissingFiles = true;
     var library = await checkLibrary('''
@@ -7185,7 +8028,7 @@ class A {
 }
 class B extends A {
 }
-class S<T extends A> {
+class S<T extends A = A> {
   S(T _);
 }
 S<B> s;
@@ -7361,7 +8204,7 @@ dynamic f<T>() {}
   }
 
   test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class A {
   static final foo = bar(1.2);
@@ -7410,7 +8253,7 @@ abstract class D {
   }
 
   test_inferred_type_nullability_class_ref_none() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     addSource('/a.dart', 'int f() => 0;');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -7426,7 +8269,7 @@ int x;
   }
 
   test_inferred_type_nullability_class_ref_question() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     addSource('/a.dart', 'int? f() => 0;');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -7442,7 +8285,7 @@ int? x;
   }
 
   test_inferred_type_nullability_function_type_none() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     addSource('/a.dart', 'void Function() f() => () {};');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -7458,7 +8301,7 @@ void Function() x;
   }
 
   test_inferred_type_nullability_function_type_question() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     addSource('/a.dart', 'void Function()? f() => () {};');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -7782,69 +8625,141 @@ void f() {}
 ''');
   }
 
-  test_instanceInference_operator_equal_legacy() async {
-    var library = await checkLibrary(r'''
-class A1 {
+  test_instanceInference_operator_equal_legacy_from_legacy() async {
+    addLibrarySource('/legacy.dart', r'''
+// @dart = 2.7
+class LegacyDefault {
   bool operator==(other) => false;
 }
-class A2 {
+class LegacyObject {
+  bool operator==(Object other) => false;
+}
+class LegacyInt {
   bool operator==(int other) => false;
 }
-class B1 extends A1 {
+''');
+    var library = await checkLibrary(r'''
+import 'legacy.dart';
+class X1 extends LegacyDefault  {
   bool operator==(other) => false;
 }
-class B2 extends A2 {
+class X2 extends LegacyObject {
+  bool operator==(other) => false;
+}
+class X3 extends LegacyInt {
   bool operator==(other) => false;
 }
 ''');
     checkElementText(
         library,
         r'''
-class A1 {
+import 'legacy.dart';
+class X1 extends LegacyDefault* {
   bool* ==(dynamic other) {}
 }
-class A2 {
-  bool* ==(int* other) {}
+class X2 extends LegacyObject* {
+  bool* ==(Object* other) {}
 }
-class B1 extends A1* {
-  bool* ==(dynamic other) {}
-}
-class B2 extends A2* {
+class X3 extends LegacyInt* {
   bool* ==(int* other) {}
 }
 ''',
         annotateNullability: true);
   }
 
-  test_instanceInference_operator_equal_nnbd() async {
-    featureSet = enableNnbd;
-    var library = await checkLibrary(r'''
-class A1 {
+  test_instanceInference_operator_equal_legacy_from_legacy_nullSafe() async {
+    featureSet = featureSetNullSafe;
+    addLibrarySource('/legacy.dart', r'''
+// @dart = 2.7
+class LegacyDefault {
   bool operator==(other) => false;
 }
-class A2 {
+class LegacyObject {
+  bool operator==(Object other) => false;
+}
+class LegacyInt {
   bool operator==(int other) => false;
 }
-class B1 extends A1 {
+''');
+    addLibrarySource('/nullSafe.dart', r'''
+class NullSafeDefault {
   bool operator==(other) => false;
 }
-class B2 extends A2 {
+class NullSafeObject {
+  bool operator==(Object other) => false;
+}
+class NullSafeInt {
+  bool operator==(int other) => false;
+}
+''');
+    var library = await checkLibrary(r'''
+// @dart = 2.7
+import 'legacy.dart';
+import 'nullSafe.dart';
+class X1 extends LegacyDefault implements NullSafeDefault {
+  bool operator==(other) => false;
+}
+class X2 extends LegacyObject implements NullSafeObject {
+  bool operator==(other) => false;
+}
+class X3 extends LegacyInt implements NullSafeInt {
   bool operator==(other) => false;
 }
 ''');
     checkElementText(
         library,
         r'''
-class A1 {
+import 'legacy.dart';
+import 'nullSafe.dart';
+class X1 extends LegacyDefault* implements NullSafeDefault* {
+  bool* ==(dynamic other) {}
+}
+class X2 extends LegacyObject* implements NullSafeObject* {
+  bool* ==(Object* other) {}
+}
+class X3 extends LegacyInt* implements NullSafeInt* {
+  bool* ==(int* other) {}
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_instanceInference_operator_equal_nullSafe_from_nullSafe() async {
+    featureSet = featureSetNullSafe;
+    addLibrarySource('/nullSafe.dart', r'''
+class NullSafeDefault {
+  bool operator==(other) => false;
+}
+class NullSafeObject {
+  bool operator==(Object other) => false;
+}
+class NullSafeInt {
+  bool operator==(int other) => false;
+}
+''');
+    var library = await checkLibrary(r'''
+import 'nullSafe.dart';
+class X1 extends NullSafeDefault {
+  bool operator==(other) => false;
+}
+class X2 extends NullSafeObject {
+  bool operator==(other) => false;
+}
+class X3 extends NullSafeInt {
+  bool operator==(other) => false;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'nullSafe.dart';
+class X1 extends NullSafeDefault {
   bool ==(Object other) {}
 }
-class A2 {
-  bool ==(int other) {}
-}
-class B1 extends A1 {
+class X2 extends NullSafeObject {
   bool ==(Object other) {}
 }
-class B2 extends A2 {
+class X3 extends NullSafeInt {
   bool ==(int other) {}
 }
 ''',
@@ -7857,7 +8772,7 @@ class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<S extends num, T extends C<S, T>> {
+notSimplyBounded class C<S extends num = num, T extends C<S, T> = C<num, dynamic>> {
 }
 C<num, C<num, dynamic>> c;
 ''');
@@ -7873,7 +8788,7 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 class B {
   C<C<dynamic>> c3;
@@ -7889,7 +8804,7 @@ class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<T, U>, U extends num> {
+notSimplyBounded class C<T extends C<T, U> = C<dynamic, num>, U extends num = num> {
 }
 C<C<dynamic, num>, num> c;
 ''');
@@ -7923,7 +8838,7 @@ typedef F<T extends num>(T p);
 F f;
 ''');
     checkElementText(library, r'''
-typedef F<T extends num> = dynamic Function(T p);
+typedef F<T extends num = num> = dynamic Function(T p);
 dynamic Function(num) f;
 ''');
   }
@@ -7937,7 +8852,7 @@ B b;
     checkElementText(library, r'''
 class A<T> {
 }
-notSimplyBounded class B<T extends int Function(), U extends A<T>> {
+notSimplyBounded class B<T extends int Function() = int Function(), U extends A<T> = A<int Function()>> {
 }
 B<int Function(), A<int Function()>> b;
 ''');
@@ -7949,7 +8864,7 @@ typedef F<T extends num> = S Function<S>(T p);
 F f;
 ''');
     checkElementText(library, r'''
-typedef F<T extends num> = S Function<S>(T p);
+typedef F<T extends num = num> = S Function<S>(T p);
 S Function<S>(num) f;
 ''');
   }
@@ -7962,10 +8877,10 @@ class A<R extends B> {
 class B<T extends num> {}
 ''');
     checkElementText(library, r'''
-class A<R extends B<num>> {
+class A<R extends B<num> = B<num>> {
   final List<B<num>> values;
 }
-class B<T extends num> {
+class B<T extends num = num> {
 }
 ''');
   }
@@ -7976,7 +8891,7 @@ class C<T extends num> {}
 C c;
 ''');
     checkElementText(library, r'''
-class C<T extends num> {
+class C<T extends num = num> {
 }
 C<num> c;
 ''');
@@ -8472,7 +9387,7 @@ class C {
         element: self::@class::C::@getter::foo
         name: SimpleIdentifier
           staticElement: self::@class::C::@getter::foo
-          staticType: int
+          staticType: null
           token: foo
 }
   metadata
@@ -8480,7 +9395,7 @@ class C {
       element: self::@getter::foo
       name: SimpleIdentifier
         staticElement: self::@getter::foo
-        staticType: int
+        staticType: null
         token: foo
   typeParameters
     T
@@ -8491,7 +9406,7 @@ class C {
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
-            staticType: int
+            staticType: null
             token: foo
 const int foo;
   constantInitializer
@@ -8709,7 +9624,7 @@ extension E on int {
         element: self::@extension::E::@getter::foo
         name: SimpleIdentifier
           staticElement: self::@extension::E::@getter::foo
-          staticType: int
+          staticType: null
           token: foo
 }
   metadata
@@ -8717,7 +9632,7 @@ extension E on int {
       element: self::@getter::foo
       name: SimpleIdentifier
         staticElement: self::@getter::foo
-        staticType: int
+        staticType: null
         token: foo
   typeParameters
     T
@@ -8728,7 +9643,7 @@ extension E on int {
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
-            staticType: int
+            staticType: null
             token: foo
 const int foo;
   constantInitializer
@@ -8883,15 +9798,54 @@ const dynamic b = null;
   }
 
   test_metadata_importDirective() async {
-    addLibrarySource('/foo.dart', 'const b = null;');
+    addLibrarySource('/foo.dart', 'const b = 0;');
     var library = await checkLibrary('@a import "foo.dart"; const a = b;');
-    checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
+    checkElementText(
+        library,
+        '''
 import 'foo.dart';
-const dynamic a =
-        b/*location: foo.dart;b?*/;
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+const int a;
+  constantInitializer
+    SimpleIdentifier
+      staticElement: ${toUriStr('/foo.dart')}::@getter::b
+      staticType: int
+      token: b
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_importDirective_hasShow() async {
+    var library = await checkLibrary(r'''
+@a
+import "dart:math" show Random;
+
+const a = 0;
 ''');
+    checkElementText(
+        library,
+        r'''
+import 'dart:math' show Random;
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_invalid_classDeclaration() async {
@@ -9018,7 +9972,7 @@ mixin M on Object {
         element: self::@mixin::M::@getter::foo
         name: SimpleIdentifier
           staticElement: self::@mixin::M::@getter::foo
-          staticType: int
+          staticType: null
           token: foo
 }
   metadata
@@ -9026,7 +9980,7 @@ mixin M on Object {
       element: self::@getter::foo
       name: SimpleIdentifier
         staticElement: self::@getter::foo
-        staticType: int
+        staticType: null
         token: foo
   typeParameters
     T
@@ -9037,7 +9991,7 @@ mixin M on Object {
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
-            staticType: int
+            staticType: null
             token: foo
 const int foo;
   constantInitializer
@@ -9084,6 +10038,23 @@ const dynamic a = null;
 unit: foo.dart
 
 ''');
+  }
+
+  test_metadata_partDirective2() async {
+    addSource('/a.dart', r'''
+part of 'test.dart';
+''');
+    addSource('/b.dart', r'''
+part of 'test.dart';
+''');
+    var library = await checkLibrary('''
+part 'a.dart';
+part 'b.dart';
+''');
+
+    // The difference with the test above is that we ask the part first.
+    // There was a bug that we were not loading library directives.
+    expect(library.parts[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {
@@ -9342,7 +10313,7 @@ class C {
 }
 class D {
 }
-mixin M<T extends num, U> on A, B implements C, D {
+mixin M<T extends num = num, U> on A, B implements C, D {
   T f;
   U get g {}
   void set s(int v) {}
@@ -9394,7 +10365,7 @@ mixin M<U> on A<U*>* {
   }
 
   test_mixin_inference_nullSafety() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary(r'''
 class A<T> {}
 mixin M<U> on A<U> {}
@@ -9414,8 +10385,33 @@ mixin M<U> on A<U> {
         annotateNullability: true);
   }
 
+  test_mixin_inference_nullSafety2() async {
+    featureSet = featureSetNullSafe;
+    addLibrarySource('/a.dart', r'''
+class A<T> {}
+
+mixin B<T> on A<T> {}
+mixin C<T> on A<T> {}
+''');
+    var library = await checkLibrary(r'''
+// @dart=2.8
+import 'a.dart';
+
+class D extends A<int> with B<int>, C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class D extends A<int*>* with B<int*>*, C<int*>* {
+  synthetic D();
+}
+''',
+        annotateNullability: true);
+  }
+
   test_mixin_inference_nullSafety_mixed_inOrder() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     addLibrarySource('/a.dart', r'''
 class A<T> {}
 mixin M<U> on A<U> {}
@@ -9438,7 +10434,7 @@ class B extends A<int*>* with M<int*>* {
 
   @FailingTest(reason: 'Out-of-order inference is not specified yet')
   test_mixin_inference_nullSafety_mixed_outOfOrder() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     addLibrarySource('/a.dart', r'''
 // @dart = 2.8
 class A<T> {}
@@ -9478,34 +10474,46 @@ mixin B on A {
 
   test_mixin_type_parameters_variance_contravariant() async {
     var library = await checkLibrary('mixin M<in T> {}');
-    checkElementText(library, r'''
-mixin M<in T> on Object {
+    checkElementText(
+        library,
+        r'''
+mixin M<contravariant T> on Object {
 }
-''');
+''',
+        withTypeParameterVariance: true);
   }
 
   test_mixin_type_parameters_variance_covariant() async {
     var library = await checkLibrary('mixin M<out T> {}');
-    checkElementText(library, r'''
-mixin M<out T> on Object {
+    checkElementText(
+        library,
+        r'''
+mixin M<covariant T> on Object {
 }
-''');
+''',
+        withTypeParameterVariance: true);
   }
 
   test_mixin_type_parameters_variance_invariant() async {
     var library = await checkLibrary('mixin M<inout T> {}');
-    checkElementText(library, r'''
-mixin M<inout T> on Object {
+    checkElementText(
+        library,
+        r'''
+mixin M<invariant T> on Object {
 }
-''');
+''',
+        withTypeParameterVariance: true);
   }
 
   test_mixin_type_parameters_variance_multiple() async {
     var library = await checkLibrary('mixin M<inout T, in U, out V> {}');
-    checkElementText(library, r'''
-mixin M<inout T, in U, out V> on Object {
+    checkElementText(
+        library,
+        r'''
+mixin M<invariant T, contravariant U, covariant V> on Object {
 }
-''');
+''',
+        withTypeParameterVariance: true);
   }
 
   test_nameConflict_exportedAndLocal() async {
@@ -9650,6 +10658,26 @@ void f<T, U>() {
 ''');
     checkElementText(library, r'''
 void f<T, U>() {}
+''');
+  }
+
+  test_new_typedef_notSimplyBounded_functionType_returnType() async {
+    var library = await checkLibrary('''
+typedef F = G Function();
+typedef G = F Function();
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function();
+notSimplyBounded typedef G = dynamic Function() Function();
+''');
+  }
+
+  test_new_typedef_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
+    var library = await checkLibrary('''
+typedef F = List<F> Function();
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function();
 ''');
   }
 
@@ -10233,6 +11261,16 @@ bool f() {}
 ''');
   }
 
+  test_top_level_variable_external() async {
+    featureSet = featureSetNullSafe;
+    var library = await checkLibrary('''
+external int i;
+''');
+    checkElementText(library, '''
+external int i;
+''');
+  }
+
   test_type_arguments_explicit_dynamic_dynamic() async {
     var library = await checkLibrary('Map<dynamic, dynamic> m;');
     checkElementText(library, r'''
@@ -10272,6 +11310,20 @@ Map<dynamic, dynamic> m;
     var library = await checkLibrary('dynamic d;');
     checkElementText(library, r'''
 dynamic d;
+''');
+  }
+
+  test_type_inference_assignmentExpression_references_onTopLevelVariable() async {
+    var library = await checkLibrary('''
+var a = () {
+  b += 0;
+  return 0;
+};
+var b = 0;
+''');
+    checkElementText(library, '''
+int Function() a;
+int b;
 ''');
   }
 
@@ -10436,7 +11488,7 @@ class A {
 }
 class B extends A {
 }
-class C<T extends A> {
+class C<T extends A = A> {
   final T f;
   const C(T this.f);
 }
@@ -10497,7 +11549,7 @@ dynamic v;
   }
 
   test_type_never_disableNnbd() async {
-    featureSet = disableNnbd;
+    featureSet = featureSetLegacy;
     var library = await checkLibrary('Never d;');
     checkElementText(
         library,
@@ -10508,7 +11560,7 @@ Null* d;
   }
 
   test_type_never_enableNnbd() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('Never d;');
     checkElementText(
         library,
@@ -10518,44 +11570,8 @@ Never d;
         annotateNullability: true);
   }
 
-  @deprecated
-  test_type_param_generic_function_type_nullability_legacy() async {
-    featureSet = disableNnbd;
-    var library = await checkLibrary('''
-T f<T>(T t) {}
-var g = f;
-''');
-    checkElementText(library, '''
-T Function<T>(T) g;
-T f<T>(T t) {}
-''');
-    var g = library.definingCompilationUnit.topLevelVariables[0];
-    var t = (g.type as FunctionType).typeFormals[0];
-    // TypeParameterElement.type has a nullability suffix of `star` regardless
-    // of whether it appears in a migrated library.
-    expect(t.type.nullabilitySuffix, NullabilitySuffix.star);
-  }
-
-  @deprecated
-  test_type_param_generic_function_type_nullability_migrated() async {
-    featureSet = enableNnbd;
-    var library = await checkLibrary('''
-T f<T>(T t) {}
-var g = f;
-''');
-    checkElementText(library, '''
-T Function<T>(T) g;
-T f<T>(T t) {}
-''');
-    var g = library.definingCompilationUnit.topLevelVariables[0];
-    var t = (g.type as FunctionType).typeFormals[0];
-    // TypeParameterElement.type has a nullability suffix of `star` regardless
-    // of whether it appears in a migrated library.
-    expect(t.type.nullabilitySuffix, NullabilitySuffix.star);
-  }
-
   test_type_param_ref_nullability_none() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class C<T> {
   T t;
@@ -10572,7 +11588,7 @@ class C<T> {
   }
 
   test_type_param_ref_nullability_question() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('''
 class C<T> {
   T? t;
@@ -10589,7 +11605,7 @@ class C<T> {
   }
 
   test_type_param_ref_nullability_star() async {
-    featureSet = disableNnbd;
+    featureSet = featureSetLegacy;
     var library = await checkLibrary('''
 class C<T> {
   T t;
@@ -10981,7 +11997,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -10995,7 +12011,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> );
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11009,7 +12025,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11023,7 +12039,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11037,7 +12053,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11130,7 +12146,7 @@ typedef F<T, U> = U Function(T t);
     var library = await checkLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
-typedef F<T, U extends D> = U Function(T t);
+typedef F<T = Object, U extends D = D> = U Function(T t);
 class D {
 }
 ''');
@@ -11155,14 +12171,14 @@ notSimplyBounded typedef F<T extends List<void Function()>> = void Function();
   test_typedef_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<U>, U> = U Function(T t);
+notSimplyBounded typedef F<T extends List<U> = List<Null>, U> = U Function(T t);
 ''');
   }
 
   test_typedef_type_parameters_f_bound_simple() async {
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U, U> = U Function(T t);
+notSimplyBounded typedef F<T extends U = Null, U> = U Function(T t);
 ''');
   }
 
@@ -11170,7 +12186,7 @@ notSimplyBounded typedef F<T extends U, U> = U Function(T t);
     var library =
         await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U, U> = U Function(T t);
+notSimplyBounded typedef F<T extends U = Null, U> = U Function(T t);
 ''');
   }
 
@@ -11352,7 +12368,7 @@ class C {
       element: <null>
       name: SimpleIdentifier
         staticElement: <null>
-        staticType: dynamic
+        staticType: null
         token: foo
 ''',
         withFullyResolvedAst: true);
@@ -11380,7 +12396,7 @@ class C {
       element: <null>
       name: SimpleIdentifier
         staticElement: <null>
-        staticType: dynamic
+        staticType: null
         token: v
 ''',
         withFullyResolvedAst: true);
@@ -11465,7 +12481,7 @@ const int i = 0;
   }
 
   test_variable_const_late() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('late const int i = 0;');
     checkElementText(library, r'''
 late const int i = 0;
@@ -11555,6 +12571,21 @@ void set x(int _) {}
 ''');
   }
 
+  test_variable_implicit() async {
+    var library = await checkLibrary('int get x => 0;');
+
+    // We intentionally don't check the text, because we want to test
+    // requesting individual elements, not all accessors/variables at once.
+    var getter = _elementOfDefiningUnit(library, '@getter', 'x')
+        as PropertyAccessorElementImpl;
+    var variable = getter.variable as TopLevelVariableElementImpl;
+    expect(variable, isNotNull);
+    expect(variable.isFinal, isTrue);
+    expect(variable.getter, same(getter));
+    expect('${variable.type}', 'int*');
+    expect(variable, same(_elementOfDefiningUnit(library, '@field', 'x')));
+  }
+
   test_variable_implicit_type() async {
     var library = await checkLibrary('var x;');
     checkElementText(library, r'''
@@ -11616,7 +12647,7 @@ int v;
   }
 
   test_variable_late() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('late int x = 0;');
     checkElementText(
         library,
@@ -11629,7 +12660,7 @@ synthetic void set x(int _x) {}
   }
 
   test_variable_late_final() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('late final int x;');
     checkElementText(
         library,
@@ -11642,7 +12673,7 @@ synthetic void set x(int _x) {}
   }
 
   test_variable_late_final_initialized() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary('late final int x = 0;');
     checkElementText(
         library,
@@ -11723,7 +12754,7 @@ int get x {}
   }
 
   test_variable_type_inferred_Never() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
     var library = await checkLibrary(r'''
 var a = throw 42;
 ''');
@@ -11747,7 +12778,7 @@ dynamic a;
   }
 
   test_variable_type_inferred_nonNullify() async {
-    featureSet = enableNnbd;
+    featureSet = featureSetNullSafe;
 
     addSource('/a.dart', '''
 // @dart = 2.7
@@ -11790,15 +12821,15 @@ const A<int> a;
     InstanceCreationExpression
       argumentList: ArgumentList
       constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: int}
         type: TypeName
           name: SimpleIdentifier
             staticElement: self::@class::A
             staticType: null
             token: A
           type: A<int>
-      staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
-        substitution: {T: int}
       staticType: A<int>
 ''',
         withFullyResolvedAst: true);
@@ -11816,12 +12847,33 @@ int j;
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
   }
+
+  void _assertTypeStrings(List<DartType> types, List<String> expected) {
+    var typeStringList = types.map((e) {
+      return e.getDisplayString(withNullability: true);
+    }).toList();
+    expect(typeStringList, expected);
+  }
+
+  Element _elementOfDefiningUnit(LibraryElementImpl library,
+      [String name1, String name2, String name3]) {
+    var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
+    var reference = unit.reference;
+
+    [name1, name2, name3].takeWhile((e) => e != null).forEach((name) {
+      reference = reference.getChild(name);
+    });
+
+    var elementFactory = unit.linkedContext.elementFactory;
+    return elementFactory.elementOfReference(reference);
+  }
 }
 
 /// Mixin containing helper methods for testing summary resynthesis.  Intended
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
-mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
-  Future<LibraryElementImpl> checkLibrary(String text,
+mixin ResynthesizeTestHelpers
+    implements ResynthesizeTestStrategy, ResourceProviderMixin {
+  Future<LibraryElementImpl /*!*/ > checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
     throw 42;
 //    Source source = addTestSource(text);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -133,53 +131,62 @@ main() {
     });
   }
 
-  Future<void> test_getHover() {
+  Future<void> test_getHover() async {
     writeFile(pathname, text);
     standardAnalysisSetup();
 
     // Note: analysis.getHover doesn't wait for analysis to complete--it simply
     // returns the latest results that are available at the time that the
     // request is made.  So wait for analysis to finish before testing anything.
-    return analysisFinished.then((_) {
-      var tests = <Future>[];
-      tests.add(checkHover('topLevelVar;', 11, ['List', 'topLevelVar'],
-          'top level variable', ['List']));
-      tests.add(checkHover(
-          'func(', 4, ['func', 'int', 'param'], 'function', null,
-          docRegexp: 'Documentation for func'));
-      tests.add(checkHover('int param', 3, ['int'], 'class', null,
-          isCore: true, docRegexp: '.*'));
-      tests.add(checkHover('param)', 5, ['int', 'param'], 'parameter', ['int'],
-          isLocal: true, docRegexp: 'Documentation for func'));
-      tests.add(checkHover('num localVar', 3, ['num'], 'class', null,
-          isCore: true, docRegexp: '.*'));
-      tests.add(checkHover(
-          'localVar =', 8, ['num', 'localVar'], 'local variable', ['num'],
-          isLocal: true));
-      tests.add(checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
-          'top level variable', ['List']));
-      tests.add(checkHover(
-          'length;', 6, ['get', 'length', 'int'], 'getter', null,
-          isCore: true, docRegexp: '.*'));
-      tests.add(checkHover(
-          'length =', 6, ['set', 'length', 'int'], 'setter', null,
-          isCore: true, docRegexp: '.*'));
-      tests.add(checkHover('param;', 5, ['int', 'param'], 'parameter', ['int'],
-          isLocal: true,
-          docRegexp: 'Documentation for func',
-          parameterRegexps: ['.*']));
-      tests.add(checkHover('add(', 3, ['add'], 'method', ['dynamic', 'void'],
-          isCore: true, docRegexp: '.*'));
-      tests.add(checkHover(
-          'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],
-          isLocal: true, parameterRegexps: ['.*']));
-      tests.add(checkHover(
-          'func(35', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
-          docRegexp: 'Documentation for func'));
-      tests.add(checkHover('35', 2, null, null, ['int'],
-          isLiteral: true, parameterRegexps: ['int', 'param']));
-      tests.add(checkNoHover('comment'));
-      return Future.wait(tests);
-    });
+    await analysisFinished;
+
+    await checkHover('topLevelVar;', 11, ['List', 'topLevelVar'],
+        'top level variable', ['List']);
+
+    await checkHover('func(', 4, ['func', 'int', 'param'], 'function', null,
+        docRegexp: 'Documentation for func');
+
+    await checkHover('int param', 3, ['int'], 'class', null,
+        isCore: true, docRegexp: '.*');
+
+    await checkHover('param)', 5, ['int', 'param'], 'parameter', ['int'],
+        isLocal: true, docRegexp: 'Documentation for func');
+
+    await checkHover('num localVar', 3, ['num'], 'class', null,
+        isCore: true, docRegexp: '.*');
+
+    await checkHover(
+        'localVar =', 8, ['num', 'localVar'], 'local variable', ['num'],
+        isLocal: true);
+
+    await checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
+        'top level variable', ['List']);
+
+    await checkHover('length;', 6, ['get', 'length', 'int'], 'getter', null,
+        isCore: true, docRegexp: '.*');
+
+    await checkHover('length =', 6, ['set', 'length', 'int'], 'setter', null,
+        isCore: true, docRegexp: '.*');
+
+    await checkHover('param;', 5, ['int', 'param'], 'parameter', ['int'],
+        isLocal: true,
+        docRegexp: 'Documentation for func',
+        parameterRegexps: ['.*']);
+
+    await checkHover('add(', 3, ['add'], 'method', ['dynamic', 'void'],
+        isCore: true, docRegexp: '.*');
+
+    await checkHover(
+        'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],
+        isLocal: true, parameterRegexps: ['.*']);
+
+    await checkHover(
+        'func(35', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
+        docRegexp: 'Documentation for func');
+
+    await checkHover('35', 2, null, null, ['int'],
+        isLiteral: true, parameterRegexps: ['int', 'param']);
+
+    await checkNoHover('comment');
   }
 }

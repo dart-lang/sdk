@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,10 +14,10 @@ main() {
 }
 
 @reflectiveTest
-class IfElementTest extends DriverResolutionTest {
+class IfElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-main(bool Function() b) {
+void f(bool Function() b) {
   <int>[if ( b() ) 0];
 }
 ''');

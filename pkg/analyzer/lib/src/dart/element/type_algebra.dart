@@ -249,7 +249,6 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
-      freshElement.type = freshType;
       substitution[element] = freshType;
 
       if (!element.isLegacyCovariant) {
@@ -404,7 +403,7 @@ abstract class _TypeSubstitutor
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    int before = this.useCounter;
+    int before = useCounter;
 
     var inner = this;
     var typeFormals = type.typeFormals;
@@ -426,7 +425,7 @@ abstract class _TypeSubstitutor
     var returnType = type.returnType.accept(inner);
     var typeArguments = _mapList(type.typeArguments);
 
-    if (this.useCounter == before) return type;
+    if (useCounter == before) return type;
 
     return FunctionTypeImpl(
       typeFormals: typeFormals,
@@ -451,7 +450,7 @@ abstract class _TypeSubstitutor
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    int before = this.useCounter;
+    int before = useCounter;
 
     var inner = this;
     var typeFormals = type.typeFormals;
@@ -472,7 +471,7 @@ abstract class _TypeSubstitutor
 
     var returnType = type.returnType.accept(inner);
 
-    if (this.useCounter == before) return type;
+    if (useCounter == before) return type;
 
     return FunctionTypeBuilder(
       typeFormals,

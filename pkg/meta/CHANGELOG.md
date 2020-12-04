@@ -1,3 +1,21 @@
+## 1.3.0-nullsafety.6
+
+* Update SDK constraints to `>=2.12.0-0 <3.0.0` based on beta release
+    guidelines.
+
+## 1.3.0-nullsafety.5
+
+* Allow prerelease versions of the `2.12` sdk.
+
+## 1.3.0-nullsafety.4
+
+* Introduce `@internal` to annotate elements that should not be used outside of
+  the package in which the element is declared.
+
+## 1.3.0-nullsafety.3
+
+* Allow 2.10 stable and 2.11.0 dev SDK versions.
+
 ## 1.3.0-nullsafety.2
 
 * Update for the 2.10 dev sdk.

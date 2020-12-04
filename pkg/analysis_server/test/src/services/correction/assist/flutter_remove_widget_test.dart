@@ -19,9 +19,16 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_childIntoChild_multiLine() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -57,8 +64,7 @@ main() {
   }
 
   Future<void> test_childIntoChild_singleLine() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Padding(
@@ -82,8 +88,7 @@ main() {
   }
 
   Future<void> test_childIntoChildren() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -119,8 +124,7 @@ main() {
   }
 
   Future<void> test_childrenMultipleIntoChild() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Center(
@@ -137,8 +141,7 @@ main() {
   }
 
   Future<void> test_childrenOneIntoChild() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Center(
@@ -161,8 +164,7 @@ main() {
   }
 
   Future<void> test_childrenOneIntoReturn() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   return /*caret*/Column(
@@ -181,8 +183,7 @@ main() {
   }
 
   Future<void> test_intoChildren() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(

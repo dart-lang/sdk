@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart'
@@ -165,15 +164,20 @@ class GenericInferrer {
     var knownTypes = <TypeParameterElement, DartType>{};
     for (int i = 0; i < typeFormals.length; i++) {
       TypeParameterElement typeParam = typeFormals[i];
-      var constraints = this._constraints[typeParam];
-      var typeParamBound = typeParam.bound != null
-          ? Substitution.fromPairs(typeFormals, inferredTypes)
-              .substituteType(typeParam.bound)
-          : typeProvider.dynamicType;
+      var constraints = _constraints[typeParam];
+
+      var typeParamBound = typeParam.bound;
+      if (typeParamBound != null) {
+        typeParamBound = Substitution.fromPairs(typeFormals, inferredTypes)
+            .substituteType(typeParamBound);
+        typeParamBound = _toLegacyElementIfOptOut(typeParamBound);
+      } else {
+        typeParamBound = typeProvider.dynamicType;
+      }
 
       var inferred = inferredTypes[i];
       bool success =
-          constraints.every((c) => c.isSatisifedBy(_typeSystem, inferred));
+          constraints.every((c) => c.isSatisfiedBy(_typeSystem, inferred));
       if (success && !typeParamBound.isDynamic) {
         // If everything else succeeded, check the `extends` constraint.
         var extendsConstraint = _TypeConstraint.fromExtends(
@@ -182,7 +186,7 @@ class GenericInferrer {
           isNonNullableByDefault: isNonNullableByDefault,
         );
         constraints.add(extendsConstraint);
-        success = extendsConstraint.isSatisifedBy(_typeSystem, inferred);
+        success = extendsConstraint.isSatisfiedBy(_typeSystem, inferred);
       }
 
       if (!success) {
@@ -224,8 +228,13 @@ class GenericInferrer {
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
         // mode.
-        if (errorNode is ConstructorName) {
-          String constructorName = '${errorNode.type}.${errorNode.name}';
+        if (errorNode is ConstructorName &&
+            !(errorNode.type.type as InterfaceType)
+                .element
+                .hasOptionalTypeArgs) {
+          String constructorName = errorNode.name == null
+              ? errorNode.type.name.name
+              : '${errorNode.type}.${errorNode.name}';
           errorReporter?.reportErrorForNode(
               HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
               errorNode,
@@ -339,8 +348,8 @@ class GenericInferrer {
       // will fail.
       upper = _typeSystem.getGreatestLowerBound(upper, constraint.upperBound);
       lower = _typeSystem.getLeastUpperBound(lower, constraint.lowerBound);
-      upper = _toLegacyType(upper);
-      lower = _toLegacyType(lower);
+      upper = _toLegacyElementIfOptOut(upper);
+      lower = _toLegacyElementIfOptOut(lower);
     }
 
     // Prefer the known bound, if any.
@@ -400,7 +409,7 @@ class GenericInferrer {
     Iterable<_TypeConstraint> isSatisified(bool expected) => constraintsByOrigin
         .values
         .where((l) =>
-            l.every((c) => c.isSatisifedBy(_typeSystem, inferred)) == expected)
+            l.every((c) => c.isSatisfiedBy(_typeSystem, inferred)) == expected)
         .expand((i) => i);
 
     String unsatisified = _formatConstraints(isSatisified(false));
@@ -467,14 +476,17 @@ class GenericInferrer {
   void _nonNullifyTypes(List<DartType> types) {
     if (_typeSystem.isNonNullableByDefault) {
       for (var i = 0; i < types.length; i++) {
-        types[i] = nonNullifyType(_typeSystem, types[i]);
+        types[i] = _typeSystem.nonNullifyLegacy(types[i]);
       }
+    }
+    for (var i = 0; i < types.length; i++) {
+      types[i] = _typeSystem.demoteType(types[i]);
     }
   }
 
   /// If in a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
-  DartType _toLegacyType(DartType type) {
+  DartType _toLegacyElementIfOptOut(DartType type) {
     if (isNonNullableByDefault) return type;
     return NullabilityEliminator.perform(typeProvider, type);
   }
@@ -537,8 +549,10 @@ class _TypeConstraint extends _TypeRange {
 
   bool get isDownwards => origin is! _TypeConstraintFromArgument;
 
-  bool isSatisifedBy(TypeSystemImpl ts, DartType type) =>
-      ts.isSubtypeOf2(lowerBound, type) && ts.isSubtypeOf2(type, upperBound);
+  bool isSatisfiedBy(TypeSystemImpl ts, DartType type) {
+    return ts.isSubtypeOf2(lowerBound, type) &&
+        ts.isSubtypeOf2(type, upperBound);
+  }
 
   /// Converts this constraint to a message suitable for a type inference error.
   @override

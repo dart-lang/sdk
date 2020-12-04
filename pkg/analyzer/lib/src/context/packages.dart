@@ -6,8 +6,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:meta/meta.dart';
-// ignore: deprecated_member_use
-import 'package:package_config/packages_file.dart' as dot_packages;
+import 'package:package_config/src/packages_file.dart'
+    as package_config_packages_file;
 import 'package:pub_semver/pub_semver.dart';
 
 /// Find [Packages] starting from the given [start] resource.
@@ -45,18 +45,24 @@ Packages findPackagesFrom(ResourceProvider provider, Resource start) {
 Packages parseDotPackagesFile(ResourceProvider provider, File file) {
   var uri = file.toUri();
   var content = file.readAsBytesSync();
-  var uriMap = dot_packages.parse(content, uri);
+  // TODO(srawlins): Replacing these two imports with public imports currently
+  // requires a sweeping breaking change, from synchronous code to asynchronous,
+  // including in our public APIs. When synchronous public APIs become
+  // available, use those.
+  // See https://github.com/dart-lang/package_config/issues/95.
+  var packageConfig = package_config_packages_file.parse(
+      content, uri, (Object error) => throw error);
 
   var map = <String, Package>{};
-  for (var name in uriMap.keys) {
-    var libUri = uriMap[name];
+  for (var package in packageConfig.packages) {
+    var libUri = package.packageUriRoot;
     var libPath = fileUriToNormalizedPath(
       provider.pathContext,
       libUri,
     );
     var libFolder = provider.getFolder(libPath);
-    map[name] = Package(
-      name: name,
+    map[package.name] = Package(
+      name: package.name,
       rootFolder: libFolder,
       libFolder: libFolder,
       languageVersion: null,
@@ -116,18 +122,22 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
 /// location).  OTOH, if the file has the `.packages` format, still look
 /// for a `.dart_tool/package_config.json` relative to the specified [file].
 Packages parsePackagesFile(ResourceProvider provider, File file) {
-  var content = file.readAsStringSync();
-  var isJson = content.trimLeft().startsWith('{');
-  if (isJson) {
-    return parsePackageConfigJsonFile(provider, file);
-  } else {
-    var relativePackageConfigFile = file.parent
-        .getChildAssumingFolder('.dart_tool')
-        .getChildAssumingFile('package_config.json');
-    if (relativePackageConfigFile.exists) {
-      return parsePackageConfigJsonFile(provider, relativePackageConfigFile);
+  try {
+    var content = file.readAsStringSync();
+    var isJson = content.trimLeft().startsWith('{');
+    if (isJson) {
+      return parsePackageConfigJsonFile(provider, file);
+    } else {
+      var relativePackageConfigFile = file.parent
+          .getChildAssumingFolder('.dart_tool')
+          .getChildAssumingFile('package_config.json');
+      if (relativePackageConfigFile.exists) {
+        return parsePackageConfigJsonFile(provider, relativePackageConfigFile);
+      }
+      return parseDotPackagesFile(provider, file);
     }
-    return parseDotPackagesFile(provider, file);
+  } catch (e) {
+    return Packages.empty;
   }
 }
 

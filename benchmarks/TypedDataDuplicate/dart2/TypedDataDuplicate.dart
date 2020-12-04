@@ -4,6 +4,8 @@
 
 // Micro-benchmarks for copying typed data lists.
 
+// @dart=2.9
+
 import 'dart:typed_data';
 
 import 'package:benchmark_harness/benchmark_harness.dart';

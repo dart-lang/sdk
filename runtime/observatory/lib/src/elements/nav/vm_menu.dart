@@ -12,13 +12,13 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
 class NavVMMenuElement extends CustomElement implements Renderable {
-  RenderingScheduler<NavVMMenuElement> _r;
+  late RenderingScheduler<NavVMMenuElement> _r;
 
   Stream<RenderedEvent<NavVMMenuElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.EventRepository _events;
-  StreamSubscription _updatesSubscription;
+  late M.VM _vm;
+  late M.EventRepository _events;
+  late StreamSubscription _updatesSubscription;
   Iterable<Element> _content = const [];
 
   M.VM get vm => _vm;
@@ -30,7 +30,7 @@ class NavVMMenuElement extends CustomElement implements Renderable {
   }
 
   factory NavVMMenuElement(M.VM vm, M.EventRepository events,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(events != null);
     NavVMMenuElement e = new NavVMMenuElement.created();
@@ -46,7 +46,7 @@ class NavVMMenuElement extends CustomElement implements Renderable {
   void attached() {
     super.attached();
     _updatesSubscription = _events.onVMUpdate.listen((e) {
-      _vm = e.vm;
+      _vm = e.vm as M.VM;
       _r.dirty();
     });
     _r.enable();
@@ -62,13 +62,13 @@ class NavVMMenuElement extends CustomElement implements Renderable {
 
   void render() {
     final content = (_vm.isolates.map<Element>((isolate) {
-      return new NavMenuItemElement(isolate.name,
+      return new NavMenuItemElement(isolate.name!,
               queue: _r.queue, link: Uris.inspect(isolate))
           .element;
     }).toList()
       ..addAll(_content));
     children = <Element>[
-      navMenu(vm.displayName, link: Uris.vm(), content: content)
+      navMenu(vm.displayName!, link: Uris.vm(), content: content)
     ];
   }
 }

@@ -15,7 +15,10 @@ const C2 = 1010;
 
 const C2b = const C(1010);
 
-/*class: D:null*/
+/*class: D:
+ class_unit=none,
+ type_unit=none
+*/
 class D {
   static const C3 = "string2";
 
@@ -28,7 +31,7 @@ const C5 = const C(1);
 
 const C6 = const C(2);
 
-/*member: foo:OutputUnit(1, {lib1})*/
+/*member: foo:member_unit=1{lib1}*/
 foo() {
   print("lib1");
   main.foo();

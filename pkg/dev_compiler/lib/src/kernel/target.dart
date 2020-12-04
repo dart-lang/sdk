@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 import 'dart:core' hide MapEntry;
 
@@ -32,7 +34,13 @@ class DevCompilerTarget extends Target {
   bool get enableSuperMixins => true;
 
   @override
-  bool get supportsLateFields => false;
+  int get enabledLateLowerings => LateLowering.all;
+
+  @override
+  bool get supportsLateLoweringSentinel => false;
+
+  @override
+  bool get useStaticFieldLowering => false;
 
   // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
   //  calls encoded with an explicit property get or disallows getter calls.
@@ -143,7 +151,7 @@ class DevCompilerTarget extends Target {
       ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(
+      JsInteropChecks(coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }
@@ -178,7 +186,7 @@ class DevCompilerTarget extends Target {
       var ctor = coreTypes.index
           .getClass('dart:core', '_Invocation')
           .constructors
-          .firstWhere((c) => c.name.name == name);
+          .firstWhere((c) => c.name.text == name);
       return ConstructorInvocation(ctor, Arguments(positional));
     }
 
@@ -186,10 +194,8 @@ class DevCompilerTarget extends Target {
       return createInvocation('getter', [SymbolLiteral(name.substring(4))]);
     }
     if (name.startsWith('set:')) {
-      return createInvocation('setter', [
-        SymbolLiteral(name.substring(4) + '='),
-        arguments.positional.single
-      ]);
+      return createInvocation('setter',
+          [SymbolLiteral(name.substring(4)), arguments.positional.single]);
     }
     var ctorArgs = <Expression>[
       SymbolLiteral(name),
@@ -361,7 +367,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
 
   @override
   void visitProcedure(Procedure node) {
-    if (node.name.isPrivate && node.isInstanceMember && node.function != null) {
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        node.isInstanceMember &&
+        // No need to check abstract methods.
+        node.function.body != null) {
       _privateProcedures.add(node);
     }
     super.visitProcedure(node);
@@ -369,7 +382,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
 
   @override
   void visitField(Field node) {
-    if (node.name.isPrivate && isCovariantField(node)) _privateFields.add(node);
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        isCovariantField(node)) {
+      _privateFields.add(node);
+    }
     super.visitField(node);
   }
 
@@ -380,32 +400,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   }
 
   @override
-  void visitDirectPropertyGet(DirectPropertyGet node) {
-    _checkTearoff(node.target);
-    super.visitDirectPropertyGet(node);
-  }
-
-  @override
   void visitPropertySet(PropertySet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitPropertySet(node);
   }
 
   @override
-  void visitDirectPropertySet(DirectPropertySet node) {
-    _checkTarget(node.receiver, node.target);
-    super.visitDirectPropertySet(node);
-  }
-
-  @override
   void visitMethodInvocation(MethodInvocation node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitMethodInvocation(node);
-  }
-
-  @override
-  void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    _checkTarget(node.receiver, node.target);
-    super.visitDirectMethodInvocation(node);
   }
 }

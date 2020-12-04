@@ -7,6 +7,6 @@ part of models;
 abstract class Guarded<T> {
   bool get isValue;
   bool get isSentinel;
-  Sentinel get asSentinel;
-  T get asValue;
+  Sentinel? get asSentinel;
+  T? get asValue;
 }

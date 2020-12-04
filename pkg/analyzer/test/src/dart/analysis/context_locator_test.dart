@@ -352,6 +352,42 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outerRoot.packagesFile, overridePackagesFile);
   }
 
+  void test_locateRoots_nested_packageConfigJson() {
+    var outerRootFolder = newFolder('/test/outer');
+    var outerOptionsFile = newOptionsFile('/test/outer');
+    var outerPackagesFile = _newPackageConfigFile('/test/outer');
+    var innerRootFolder = newFolder('/test/outer/examples/inner');
+    var innerPackagesFile = _newPackageConfigFile('/test/outer/examples/inner');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [outerRootFolder.path],
+    );
+    expect(roots, hasLength(2));
+
+    var outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(
+      outerRoot.excludedPaths,
+      unorderedEquals([
+        outerPackagesFile.parent.path,
+        innerRootFolder.path,
+      ]),
+    );
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, outerPackagesFile);
+
+    var innerRoot = findRoot(roots, innerRootFolder);
+    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(
+      innerRoot.excludedPaths,
+      unorderedEquals([
+        innerPackagesFile.parent.path,
+      ]),
+    );
+    expect(innerRoot.optionsFile, outerOptionsFile);
+    expect(innerRoot.packagesFile, innerPackagesFile);
+  }
+
   void test_locateRoots_nested_packages() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newOptionsFile('/test/outer');
@@ -440,9 +476,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
-  @failingTest
   void test_locateRoots_options_withExclude() {
-    // https://github.com/dart-lang/sdk/issues/35519
     Folder rootFolder = newFolder('/test/outer');
     newFolder('/test/outer/test/data');
     File dataFile = newFile('/test/outer/test/data/test.dart');
@@ -529,6 +563,27 @@ analyzer:
     expect(package1Root.packagesFile, packagesFile);
   }
 
+  void test_locateRoots_single_dir_prefer_packageConfigJson() {
+    var rootFolder = newFolder('/test');
+    var optionsFile = newOptionsFile('/test');
+    newPackagesFile('/test'); // the file is not used
+    var packageConfigJsonFile = _newPackageConfigFile('/test');
+
+    var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    var contentRoot = findRoot(roots, rootFolder);
+    expect(contentRoot.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(
+      contentRoot.excludedPaths,
+      unorderedEquals(
+        [packageConfigJsonFile.parent.path],
+      ),
+    );
+    expect(contentRoot.optionsFile, optionsFile);
+    expect(contentRoot.packagesFile, packageConfigJsonFile);
+  }
+
   void test_locateRoots_single_file_inheritedOptions_directPackages() {
     File optionsFile = newOptionsFile('/test');
     File packagesFile = newPackagesFile('/test/root');
@@ -543,5 +598,14 @@ analyzer:
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);
     expect(package1Root.packagesFile, packagesFile);
+  }
+
+  File _newPackageConfigFile(String directoryPath) {
+    String path = join(
+      directoryPath,
+      ContextLocatorImpl.DOT_DART_TOOL_NAME,
+      ContextLocatorImpl.PACKAGE_CONFIG_JSON_NAME,
+    );
+    return newFile(path);
   }
 }

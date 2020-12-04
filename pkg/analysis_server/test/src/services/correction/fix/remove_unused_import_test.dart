@@ -20,8 +20,15 @@ class RemoveUnusedImportTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_all_diverseImports() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 import 'dart:math';
 import 'dart:async';
@@ -35,7 +42,7 @@ main() {
   }
 
   Future<void> test_all_diverseImports2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:async';
@@ -56,7 +63,7 @@ main() {
   }
 
   Future<void> test_all_singleLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math'; import 'dart:math'; import 'dart:math';
 main() {
 }
@@ -68,11 +75,11 @@ main() {
   }
 
   Future<void> test_anotherImportOnLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math'; import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
   print(f);
 }
 ''');
@@ -80,14 +87,14 @@ main() {
 import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
   print(f);
 }
 ''');
   }
 
   Future<void> test_duplicateImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 import 'dart:math';
 
@@ -105,7 +112,7 @@ main() {
   }
 
   Future<void> test_multipleOfSame_all() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 import 'dart:math';
 import 'dart:math';
@@ -119,7 +126,7 @@ main() {
   }
 
   Future<void> test_severalLines() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import
   'dart:math';
 main() {
@@ -132,7 +139,7 @@ main() {
   }
 
   Future<void> test_single() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 main() {
 }

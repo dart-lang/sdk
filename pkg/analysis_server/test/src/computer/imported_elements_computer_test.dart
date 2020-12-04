@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
+import '../../services/refactoring/abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -222,7 +221,8 @@ plusThree(int x) {
   }
 
   Future<void> test_package_multipleInSame() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 class A {
   static String a = '';
 }
@@ -230,6 +230,12 @@ class B {
   static String b = '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'A.a + B.b';
     var content = '''
 import 'package:foo/foo.dart';
@@ -239,16 +245,23 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['A', 'B']),
+      ImportedElements(fooPath, '', ['A', 'B']),
     ]);
   }
 
   Future<void> test_package_noPrefix() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 class Foo {
   static String first = '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'Foo.first';
     var content = '''
 import 'package:foo/foo.dart';
@@ -258,16 +271,23 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+      ImportedElements(fooPath, '', ['Foo']),
     ]);
   }
 
   Future<void> test_package_prefix_selected_class() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 class Foo {
   static String first = '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'f.Foo.first';
     var content = '''
 import 'package:foo/foo.dart' as f;
@@ -277,14 +297,21 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
+      ImportedElements(fooPath, 'f', ['Foo']),
     ]);
   }
 
   Future<void> test_package_prefix_selected_function() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 String foo() => '';
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'f.foo()';
     var content = '''
 import 'package:foo/foo.dart' as f;
@@ -294,14 +321,21 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
+      ImportedElements(fooPath, 'f', ['foo']),
     ]);
   }
 
   Future<void> test_package_prefix_selected_getter() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 String foo = '';
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'f.foo';
     var content = '''
 import 'package:foo/foo.dart' as f;
@@ -311,14 +345,21 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
+      ImportedElements(fooPath, 'f', ['foo']),
     ]);
   }
 
   Future<void> test_package_prefix_selected_setter() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 String foo = '';
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'f.foo';
     var content = '''
 import 'package:foo/foo.dart' as f;
@@ -328,16 +369,23 @@ main() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo=']),
+      ImportedElements(fooPath, 'f', ['foo=']),
     ]);
   }
 
   Future<void> test_package_prefix_unselected() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 class Foo {
   static String first = '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'Foo.first';
     var content = '''
 import 'package:foo/foo.dart' as f;
@@ -347,17 +395,24 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+      ImportedElements(fooPath, '', ['Foo']),
     ]);
   }
 
   Future<void> test_package_prefixedAndNot() async {
-    addPackageFile('foo', 'foo.dart', '''
+    var fooPath = '$workspaceRootPath/foo/lib/foo.dart';
+    newFile(fooPath, content: '''
 class Foo {
   static String first = '';
   static String second = '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+    );
+
     var selection = 'f.Foo.first + Foo.second';
     var content = '''
 import 'package:foo/foo.dart';
@@ -368,8 +423,8 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
-      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
+      ImportedElements(fooPath, '', ['Foo']),
+      ImportedElements(fooPath, 'f', ['Foo']),
     ]);
   }
 

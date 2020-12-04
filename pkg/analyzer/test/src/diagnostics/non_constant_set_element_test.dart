@@ -2,23 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantSetElementTest);
-    defineReflectiveTests(NonConstantSetElementWithConstantsTest);
   });
 }
 
 @reflectiveTest
-class NonConstantSetElementTest extends DriverResolutionTest {
+class NonConstantSetElementTest extends PubPackageResolutionTest
+    with NonConstantSetElementTestCases {}
+
+mixin NonConstantSetElementTestCases on PubPackageResolutionTest {
   test_const_forElement() async {
     await assertErrorsInCode(r'''
 const Set set = {};
@@ -29,119 +28,71 @@ var v = const {for (final x in set) x};
   }
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) 0 else a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 59, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 59, 1),
+    ]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) a else 0};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
+    ]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) 0 else a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 59, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 59, 1),
+    ]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) a else 0};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
+    ]);
   }
 
   test_const_ifElement_thenFalse_constThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 var v = const <int>{if (1 < 0) a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 12),
-              ]);
+''');
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 12),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
+    ]);
   }
 
   test_const_ifElement_thenTrue_constThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 var v = const <int>{if (1 > 0) a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 12),
-              ]);
+''');
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 12),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 52, 1),
+    ]);
   }
 
   test_const_parameter() async {
@@ -154,18 +105,12 @@ f(a) {
   }
 
   test_const_spread_final() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 final Set x = null;
 var v = const {...x};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 38, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 35, 4),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 38, 1),
+    ]);
   }
 
   test_const_topVar() async {
@@ -183,13 +128,4 @@ final dynamic a = 0;
 var v = <int>{a};
 ''');
   }
-}
-
-@reflectiveTest
-class NonConstantSetElementWithConstantsTest extends NonConstantSetElementTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

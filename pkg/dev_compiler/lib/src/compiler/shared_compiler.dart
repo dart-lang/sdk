@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 import 'package:meta/meta.dart';
 
@@ -445,7 +447,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   }
 
   /// Returns the canonical name to refer to the Dart library.
-  @protected
   js_ast.Identifier emitLibraryName(Library library) {
     // Avoid adding the dart:_runtime to _imports when our runtime unit tests
     // import it explicitly. It will always be implicitly imported.

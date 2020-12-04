@@ -1,0 +1,101 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/value_extends_non_value.dart:18:22: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat firstCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+//                      ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_extends_non_value.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat extends Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_extends_non_value.dart:19:23: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat secondCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+//                       ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_extends_non_value.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat extends Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_extends_non_value.dart:20:22: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat thirdCat = Cat(numberOfLegs: 4, numberOfWhiskers: 0);
+//                      ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_extends_non_value.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat extends Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_extends_non_value.dart:14:13: Error: Final field 'numberOfWhiskers' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfWhiskers;
+//             ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int numberOfLegs;
+  constructor •({required core::int numberOfLegs = #C1}) → self::Animal
+    : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
+    ;
+}
+class Cat extends self::Animal {
+  final field core::int numberOfWhiskers = null;
+  synthetic constructor •({required core::int numberOfWhiskers, core::int numberOfLegs}) → self::Cat
+    : self::Cat::numberOfWhiskers = numberOfWhiskers, super self::Animal::•(numberOfLegs)
+    ;
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
+    return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
+  get /*isLegacy*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///value_extends_non_value.dartCat".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
+  method /*isLegacy*/ toString() → core::String
+    return "Cat(numberOfLegs: ${this.{self::Animal::numberOfLegs}.{core::int::toString}()}, numberOfWhiskers: ${this.{self::Cat::numberOfWhiskers}.{core::int::toString}()})";
+  method /*isLegacy*/ copyWith({core::int numberOfLegs, core::int numberOfWhiskers}) → dynamic
+    return new self::Cat::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
+}
+static method main() → dynamic {
+  self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:18:22: Error: No named parameter with the name 'numberOfLegs'.
+  Cat firstCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+                     ^^^^^^^^^^^^";
+  self::Cat secondCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:19:23: Error: No named parameter with the name 'numberOfLegs'.
+  Cat secondCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+                      ^^^^^^^^^^^^";
+  self::Cat thirdCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:20:22: Error: No named parameter with the name 'numberOfLegs'.
+  Cat thirdCat = Cat(numberOfLegs: 4, numberOfWhiskers: 0);
+                     ^^^^^^^^^^^^";
+  self::expect(true, firstCat.{core::Object::==}(secondCat));
+  self::expect(false, firstCat.{core::Object::==}(thirdCat));
+  self::expect(true, firstCat.{core::Object::hashCode}.{core::num::==}(secondCat.{core::Object::hashCode}));
+  self::expect(false, firstCat.{core::Object::hashCode}.{core::num::==}(thirdCat.{core::Object::hashCode}));
+}
+static method expect(core::Object? expected, core::Object? actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected=${expected}, actual=${actual}";
+}
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    : super core::Object::•()
+    ;
+  static method combine(core::int hash, core::int value) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
+  }
+  static method finish(core::int hash) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+  }
+}
+static const field core::String valueClass = #C2;
+
+constants  {
+  #C1 = null
+  #C2 = "valueClass"
+}

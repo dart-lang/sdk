@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -1884,10 +1885,10 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
         requiredParameter(type: numNone),
         namedParameter(name: 'n', type: numNone),
       ],
-      returnType: intStar,
+      returnType: intNone,
     );
 
-    var T2 = functionTypeStar(
+    var T2 = functionTypeNone(
       parameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
@@ -1938,7 +1939,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
         requiredParameter(type: numNone),
         positionalParameter(type: doubleNone),
       ],
-      returnType: intStar,
+      returnType: intNone,
     );
 
     _checkLeastUpperBound(T1, T2, expected);
@@ -1999,6 +2000,20 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       );
     }
   }
+
+  test_unrelated() {
+    var T1 = functionTypeNone(returnType: intNone);
+
+    _checkLeastUpperBound(T1, intNone, objectNone);
+    _checkLeastUpperBound(T1, intQuestion, objectQuestion);
+    _checkLeastUpperBound(T1, intStar, objectStar);
+
+    _checkLeastUpperBound(
+      T1,
+      futureOrNone(functionQuestion),
+      objectQuestion,
+    );
+  }
 }
 
 @reflectiveTest
@@ -2018,6 +2033,39 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var typeC = interfaceTypeNone(C);
 
     _checkLeastUpperBound(typeB, typeC, typeB);
+  }
+
+  test_directInterface_legacy() {
+    typeSystem = analysisContext.typeSystemLegacy;
+
+    // (null safe) class A<T> {}
+    // (legacy)    class B implements A<int> {}
+    // (null safe) class C implements A<int> {}
+
+    var A = class_(
+      name: 'A',
+      typeParameters: [typeParameter('T')],
+    );
+
+    var B = class_(
+      name: 'B',
+      interfaces: [
+        interfaceTypeStar(A, typeArguments: [intStar])
+      ],
+    );
+
+    var C = class_(
+      name: 'C',
+      interfaces: [
+        interfaceTypeNone(A, typeArguments: [intNone])
+      ],
+    );
+
+    _checkLeastUpperBound(
+      interfaceTypeNone(B),
+      interfaceTypeNone(C),
+      interfaceTypeNone(A, typeArguments: [intStar]),
+    );
   }
 
   test_directSuperclass() {
@@ -2164,6 +2212,73 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     assertLUB(aNone, aQuestion, aQuestion);
     assertLUB(aNone, aStar, aStar);
     assertLUB(aNone, aNone, aNone);
+  }
+
+  void test_sharedMixin1() {
+    // mixin M {}
+    // class B with M {}
+    // class C with M {}
+
+    var M = mixin_(name: 'M');
+    var M_none = interfaceTypeNone(M);
+
+    var B = class_(name: 'B', mixins: [M_none]);
+    var B_none = interfaceTypeNone(B);
+
+    var C = class_(name: 'C', mixins: [M_none]);
+    var C_none = interfaceTypeNone(C);
+
+    _checkLeastUpperBound(B_none, C_none, M_none);
+  }
+
+  void test_sharedMixin2() {
+    // mixin M1 {}
+    // mixin M2 {}
+    // mixin M3 {}
+    // class A with M1, M2 {}
+    // class B with M1, M3 {}
+
+    var M1 = mixin_(name: 'M1');
+    var M1_none = interfaceTypeNone(M1);
+
+    var M2 = mixin_(name: 'M2');
+    var M2_none = interfaceTypeNone(M2);
+
+    var M3 = mixin_(name: 'M3');
+    var M3_none = interfaceTypeNone(M3);
+
+    var A = class_(name: 'A', mixins: [M1_none, M2_none]);
+    var A_none = interfaceTypeNone(A);
+
+    var B = class_(name: 'B', mixins: [M1_none, M3_none]);
+    var B_none = interfaceTypeNone(B);
+
+    _checkLeastUpperBound(A_none, B_none, M1_none);
+  }
+
+  void test_sharedMixin3() {
+    // mixin M1 {}
+    // mixin M2 {}
+    // mixin M3 {}
+    // class A with M2, M1 {}
+    // class B with M3, M1 {}
+
+    var M1 = mixin_(name: 'M1');
+    var M1_none = interfaceTypeNone(M1);
+
+    var M2 = mixin_(name: 'M2');
+    var M2_none = interfaceTypeNone(M2);
+
+    var M3 = mixin_(name: 'M3');
+    var M3_none = interfaceTypeNone(M3);
+
+    var A = class_(name: 'A', mixins: [M2_none, M1_none]);
+    var A_none = interfaceTypeNone(A);
+
+    var B = class_(name: 'B', mixins: [M3_none, M1_none]);
+    var B_none = interfaceTypeNone(B);
+
+    _checkLeastUpperBound(A_none, B_none, M1_none);
   }
 
   void test_sharedSuperclass1() {
@@ -2560,6 +2675,50 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  /// UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  /// UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  test_futureOr_future() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _checkLeastUpperBound(
+        futureNone(T1),
+        futureOrNone(T2),
+        futureOrNone(expected),
+      );
+    }
+
+    check(intNone, doubleNone, numNone);
+    check(intNone, stringNone, objectNone);
+  }
+
+  /// UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  test_futureOr_futureOr() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _checkLeastUpperBound(
+        futureOrNone(T1),
+        futureOrNone(T2),
+        futureOrNone(expected),
+      );
+    }
+
+    check(intNone, doubleNone, numNone);
+    check(intNone, stringNone, objectNone);
+  }
+
+  /// UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  /// UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
+  test_futureOr_other() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _checkLeastUpperBound(
+        futureOrNone(T1),
+        T2,
+        futureOrNone(expected),
+      );
+    }
+
+    check(intNone, doubleNone, numNone);
+    check(intNone, stringNone, objectNone);
+  }
+
   test_identical() {
     void check(DartType type) {
       _checkLeastUpperBound(type, type, type);
@@ -2577,7 +2736,7 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(
       interfaceTypeNone(A),
       functionTypeNone(returnType: voidNone),
-      objectStar,
+      objectNone,
     );
   }
 
@@ -2909,7 +3068,7 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(
       S_none,
       typeParameterTypeNone(U),
-      interfaceTypeNone(A, typeArguments: [objectNone]),
+      interfaceTypeNone(A, typeArguments: [objectQuestion]),
     );
   }
 
@@ -2929,7 +3088,7 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(
       typeParameterTypeNone(T),
       functionTypeNone(returnType: voidNone),
-      objectNone,
+      objectQuestion,
     );
   }
 
@@ -2949,15 +3108,23 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(typeT, C_none, A_none);
   }
 
-  void test_typeParameter_interface_noBound() {
+  void test_typeParameter_interface_bounded_objectQuestion() {
     var T = typeParameter('T', bound: objectQuestion);
-
-    var A = class_(name: 'A');
 
     _checkLeastUpperBound(
       typeParameterTypeNone(T),
-      interfaceTypeNone(A),
-      objectNone,
+      intNone,
+      objectQuestion,
+    );
+  }
+
+  void test_typeParameter_interface_noBound() {
+    var T = typeParameter('T');
+
+    _checkLeastUpperBound(
+      typeParameterTypeNone(T),
+      intNone,
+      objectQuestion,
     );
   }
 
@@ -3199,26 +3366,28 @@ class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
   }
 
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
-    var expectedStr = _typeString(expected);
+    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() async {
+      var expectedStr = _typeString(expected);
 
-    var result = typeSystem.getLeastUpperBound(T1, T2);
-    var resultStr = _typeString(result);
-    expect(result, expected, reason: '''
+      var result = typeSystem.getLeastUpperBound(T1, T2);
+      var resultStr = _typeString(result);
+      expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
 
-    // Check that the result is an upper bound.
-    expect(typeSystem.isSubtypeOf2(T1, result), true);
-    expect(typeSystem.isSubtypeOf2(T2, result), true);
+      // Check that the result is an upper bound.
+      expect(typeSystem.isSubtypeOf2(T1, result), true);
+      expect(typeSystem.isSubtypeOf2(T2, result), true);
 
-    // Check for symmetry.
-    result = typeSystem.getLeastUpperBound(T2, T1);
-    resultStr = _typeString(result);
-    expect(result, expected, reason: '''
+      // Check for symmetry.
+      result = typeSystem.getLeastUpperBound(T2, T1);
+      resultStr = _typeString(result);
+      expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
+    });
   }
 
   String _typeParametersStr(TypeImpl type) {

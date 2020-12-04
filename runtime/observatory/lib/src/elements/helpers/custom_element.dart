@@ -9,14 +9,15 @@ HtmlElement element(CustomElement e) => e.element;
 
 class CustomElement {
   static Expando reverseElements = new Expando();
-  static CustomElement reverse(HtmlElement element) => reverseElements[element];
+  static CustomElement reverse(HtmlElement element) =>
+      reverseElements[element] as CustomElement;
 
   static List<CustomElement> toBeAttached = <CustomElement>[];
   static void drainAttached() {
     // Send 'attached' to elements that have been attached to the document.
     bool fired = false;
     var connectedElements = toBeAttached
-        .where((CustomElement element) => element.element.isConnected)
+        .where((CustomElement element) => element.element.isConnected!)
         .toList();
     for (CustomElement element in connectedElements) {
       toBeAttached.remove(element);
@@ -47,7 +48,7 @@ class CustomElement {
 
   final HtmlElement element;
   CustomElement.created(String elementClass)
-      : element = document.createElement("shadow") {
+      : element = document.createElement("shadow") as HtmlElement {
     reverseElements[element] = this;
     element.classes = [elementClass];
 
@@ -60,7 +61,7 @@ class CustomElement {
   void attached() {}
   void detached() {}
 
-  Element get parent => element.parent;
+  Element? get parent => element.parent;
 
   List<Element> get children => element.children;
   set children(List<Element> c) => element.children = c;
@@ -68,11 +69,11 @@ class CustomElement {
   CssClassSet get classes => element.classes;
   set classes(dynamic c) => element.classes = c;
 
-  String get title => element.title;
-  set title(String t) => element.title = t;
+  String? get title => element.title;
+  set title(String? t) => element.title = t;
 
-  String get text => element.text;
-  set text(String t) => element.text = t;
+  String? get text => element.text;
+  set text(String? t) => element.text = t;
 
   CssStyleDeclaration get style => element.style;
 

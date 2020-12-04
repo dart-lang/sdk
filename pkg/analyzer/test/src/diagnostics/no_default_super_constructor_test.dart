@@ -5,16 +5,20 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoDefaultSuperConstructorTest);
+    defineReflectiveTests(NoDefaultSuperConstructorWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class NoDefaultSuperConstructorTest extends DriverResolutionTest {
+class NoDefaultSuperConstructorTest extends PubPackageResolutionTest
+    with NoDefaultSuperConstructorTestCases {}
+
+mixin NoDefaultSuperConstructorTestCases on PubPackageResolutionTest {
   test_explicitDefaultSuperConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -79,5 +83,40 @@ class B extends A {}
 ''', [
       error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 31, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class NoDefaultSuperConstructorWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with NoDefaultSuperConstructorTestCases, WithNullSafetyMixin {
+  test_super_requiredParameter_legacySubclass_explicitConstructor() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  A({required String s});
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart=2.8
+import 'a.dart';
+
+class B extends A {
+  B();
+}
+''');
+  }
+
+  test_super_requiredParameter_legacySubclass_implicitConstructor() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  A({required String s});
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart=2.8
+import 'a.dart';
+
+class B extends A {}
+''');
   }
 }

@@ -13,7 +13,8 @@ class DirectCallMetadata {
   final bool checkReceiverForNull;
 
   DirectCallMetadata(Member target, bool checkReceiverForNull)
-      : this.byReference(getMemberReference(target), checkReceiverForNull);
+      : this.byReference(
+            getMemberReferenceGetter(target), checkReceiverForNull);
 
   DirectCallMetadata.byReference(
       this._targetReference, this.checkReceiverForNull);
@@ -40,7 +41,7 @@ class DirectCallMetadataRepository
   @override
   void writeToBinary(DirectCallMetadata metadata, Node node, BinarySink sink) {
     sink.writeNullAllowedCanonicalNameReference(
-        getCanonicalNameOfMember(metadata.target));
+        getCanonicalNameOfMemberGetter(metadata.target));
     sink.writeByte(metadata.checkReceiverForNull ? 1 : 0);
   }
 

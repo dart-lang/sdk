@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int numberOfLegs;
+  synthetic constructor •() → self::Animal
+    ;
+}
+@val::valueClass
+class Cat extends core::Object implements self::Animal {
+  final field core::int numberOfLegs;
+  final field core::int numberOfWhiskers;
+  synthetic constructor •() → self::Cat
+    ;
+}
+abstract class Animal2 extends core::Object {
+  synthetic constructor •() → self::Animal2
+    ;
+  abstract get numberOfLegs() → core::int;
+}
+@val::valueClass
+class Cat2 extends core::Object implements self::Animal2 {
+  final field core::int numberOfLegs;
+  final field core::int numberOfWhiskers;
+  synthetic constructor •() → self::Cat2
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(core::Object? expected, core::Object? actual) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    ;
+  static method combine(core::int hash, core::int value) → core::int
+    ;
+  static method finish(core::int hash) → core::int
+    ;
+}
+static const field core::String valueClass = "valueClass";
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///value_implements_non_value.dart:11:2 -> StringConstant("valueClass")
+Evaluated: StaticGet @ org-dartlang-testcase:///value_implements_non_value.dart:21:2 -> StringConstant("valueClass")
+Extra constant evaluation: evaluated: 2, effectively constant: 2

@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  method call() → core::num?
+    ;
+}
+static method fooContext(self::A x) → void
+  ;
+static method barContext(core::List<self::A> x) → void
+  ;
+static method bazContext(() → core::num f) → void
+  ;
+static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::B?> m, core::List<self::B>? l2, core::Map<self::B, self::B>? m2) → self::A
+  ;
+static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, core::Map<core::List<self::B?>, core::List<self::B?>> m) → core::List<self::A>
+  ;
+static method baz(self::C c) → void
+  ;
+static method boz(Null x) → self::A
+  ;
+static method main() → dynamic
+  ;

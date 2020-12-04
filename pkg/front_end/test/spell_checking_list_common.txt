@@ -273,9 +273,11 @@ begins
 behaved
 behaves
 behavior
+behavioral
 behaviors
 behind
 being
+believes
 belong
 belongs
 below
@@ -299,6 +301,7 @@ bits
 bitwise
 black
 block
+blocked
 blocks
 blogs
 blue
@@ -429,7 +432,9 @@ check
 checked
 checker
 checking
+checkpoints
 checks
+chian
 child
 children
 choice
@@ -446,6 +451,10 @@ clashing
 class
 classes
 classic
+classification
+classifications
+classifies
+classify
 clause
 clauses
 clean
@@ -573,6 +582,7 @@ conform
 conformed
 confuse
 confused
+conjunction
 connect
 connected
 connection
@@ -788,9 +798,11 @@ deprecate
 deprecated
 depromotes
 depth
+dereferenced
 derivation
 derive
 derived
+descendant
 descendants
 describe
 described
@@ -834,6 +846,7 @@ didn't
 diet
 differ
 difference
+differences
 different
 differently
 dig
@@ -851,6 +864,7 @@ directory
 disable
 disabled
 disabling
+disallowed
 disambiguate
 disambiguated
 disappear
@@ -904,6 +918,7 @@ driver
 drop
 dropped
 dropping
+drops
 due
 dump
 dumped
@@ -1010,7 +1025,9 @@ equate
 equivalence
 equivalent
 equivalents
+erasure
 erroneous
+erroneously
 error
 errors
 escape
@@ -1059,6 +1076,7 @@ executed
 executes
 executing
 execution
+exempt
 exercise
 exhaustive
 exist
@@ -1369,6 +1387,7 @@ holding
 holds
 hood
 hooks
+horns
 horribly
 host
 hostnames
@@ -1477,6 +1496,7 @@ informally
 information
 informational
 informs
+inherently
 inherit
 inheritable
 inheritance
@@ -1519,6 +1539,7 @@ instantiating
 instantiation
 instantiations
 instead
+instruct
 instruction
 instructions
 instrumentation
@@ -1760,8 +1781,10 @@ magic
 main
 mainly
 maintain
+maintains
 major
 make
+makers
 makes
 making
 malformed
@@ -1803,6 +1826,7 @@ means
 meant
 measurably
 measure
+measurements
 mechanism
 medium
 meet
@@ -1830,6 +1854,7 @@ middle
 might
 millisecond
 milliseconds
+mimics
 minimal
 minimum
 minor
@@ -1839,6 +1864,7 @@ mirrors
 misleading
 mismatch
 mismatches
+mismatching
 missing
 misused
 mix
@@ -1851,6 +1877,7 @@ mixins
 mock
 mode
 model
+modeling
 models
 modes
 modifiable
@@ -1911,6 +1938,7 @@ nature
 nearest
 necessarily
 necessary
+necessity
 need
 needed
 needing
@@ -1958,6 +1986,7 @@ notice
 noticed
 notifies
 now
+nowhere
 null
 nullability
 nullable
@@ -2115,6 +2144,7 @@ peek
 peel
 peeled
 peeling
+peels
 pending
 percent
 percolate
@@ -2275,9 +2305,11 @@ promote
 promoted
 promoter
 promotes
+promoting
 promotion
 promotions
 propagate
+propagated
 propagates
 propagating
 propagation
@@ -2346,6 +2378,7 @@ ready
 real
 realigned
 realized
+realizing
 really
 reason
 reasonable
@@ -2400,6 +2433,7 @@ refine
 refinement
 refinements
 reflecting
+reflects
 regardless
 region
 regions
@@ -2758,6 +2792,7 @@ specifying
 speed
 speedup
 split
+splits
 splitter
 spread
 spreadable
@@ -2781,6 +2816,7 @@ starts
 startup
 state
 stateful
+stateless
 statement
 statement's
 statements
@@ -2857,6 +2893,7 @@ sufficient
 sufficiently
 suffix
 suffixes
+sugar
 suggested
 suitable
 suites
@@ -2879,6 +2916,7 @@ supposed
 suppress
 suppressed
 sure
+surface
 surrogate
 surrogates
 surrounding
@@ -2984,6 +3022,7 @@ throwing
 thrown
 throws
 thumb
+thunk
 thus
 time
 timeline
@@ -3149,6 +3188,7 @@ unsigned
 unsized
 unskip
 unsorted
+unsoundness
 unspecified
 unsplit
 unstable

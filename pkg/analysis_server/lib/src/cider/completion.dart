@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -79,7 +77,6 @@ class CiderCompletionComputer {
       var completionRequest = CompletionRequestImpl(
         resolvedUnit,
         offset,
-        false,
         CompletionPerformance(),
       );
       var dartdocDirectiveInfo = DartdocDirectiveInfo();
@@ -109,7 +106,7 @@ class CiderCompletionComputer {
           });
 
           performance.getDataInt('count').add(result.length);
-          return result;
+          return result.toList();
         },
       );
 

@@ -10,7 +10,7 @@ import 'package:test_api/src/frontend/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,12 +19,12 @@ main() {
 }
 
 @reflectiveTest
-class AmbiguousImportTest extends DriverResolutionTest {
+class AmbiguousImportTest extends PubPackageResolutionTest {
   test_as() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -35,6 +35,7 @@ f(p) {p as N;}''', [
     ]);
   }
 
+  @FailingTest(reason: 'Different approach to MockSdk')
   test_dart() async {
     await assertErrorsInCode('''
 import 'dart:async';
@@ -47,10 +48,10 @@ Future v;
   }
 
   test_extends() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -63,10 +64,10 @@ class A extends N {}''', [
   }
 
   test_implements() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -79,28 +80,28 @@ class A implements N {}''', [
   }
 
   test_inPart() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}
 ''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}
 ''');
-    newFile('/test/lib/part.dart', content: '''
+    newFile('$testPackageLibPath/part.dart', content: '''
 part of lib;
 class A extends N {}
 ''');
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 import 'lib1.dart';
 import 'lib2.dart';
 part 'part.dart';
 ''');
     ResolvedUnitResult libResult =
-        await resolveFile(convertPath('/test/lib/lib.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/lib.dart'));
     ResolvedUnitResult partResult =
-        await resolveFile(convertPath('/test/lib/part.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/part.dart'));
     expect(libResult.errors, hasLength(0));
     GatheringErrorListener()
       ..addAll(partResult.errors)
@@ -111,10 +112,10 @@ part 'part.dart';
   }
 
   test_instanceCreation() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -127,10 +128,10 @@ f() {new N();}''', [
   }
 
   test_is() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -142,10 +143,10 @@ f(p) {p is N;}''', [
   }
 
   test_qualifier() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -157,10 +158,10 @@ g() { N.FOO; }''', [
   }
 
   test_typeAnnotation() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -187,10 +188,10 @@ class B<T extends N> {}''', [
   }
 
   test_typeArgument_annotation() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -203,10 +204,10 @@ A<N> f() { return null; }''', [
   }
 
   test_typeArgument_instanceCreation() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
 class N {}''');
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile("$testPackageLibPath/lib2.dart", content: '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -218,34 +219,99 @@ f() {new A<N>();}''', [
     ]);
   }
 
-  test_varRead() async {
-    newFile("/test/lib/lib1.dart", content: '''
-library lib1;
-var v;''');
-    newFile("/test/lib/lib2.dart", content: '''
-library lib2;
-var v;''');
+  test_variable_read() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
     await assertErrorsInCode('''
-import 'lib1.dart';
-import 'lib2.dart';
-f() { g(v); }
-g(p) {}''', [
+import 'a.dart';
+import 'b.dart';
+
+void f() {
+  x;
+}
+''', [
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
     ]);
   }
 
-  test_varWrite() async {
-    newFile("/test/lib/lib1.dart", content: '''
-library lib1;
-var v;''');
-    newFile("/test/lib/lib2.dart", content: '''
-library lib2;
-var v;''');
+  test_variable_read_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
     await assertErrorsInCode('''
-import 'lib1.dart';
-import 'lib2.dart';
-f() { v = 0; }''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 1),
+import 'a.dart' as p;
+import 'b.dart' as p;
+
+void f() {
+  p.x;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
+    ]);
+  }
+
+  test_variable_write() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+
+void f() {
+  x = 0;
+  x += 1;
+  ++x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 57, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 69, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 74, 1),
+    ]);
+  }
+
+  test_variable_write_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart' as p;
+import 'b.dart' as p;
+
+void f() {
+  p.x = 0;
+  p.x += 1;
+  ++p.x;
+  p.x++;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 71, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 85, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 92, 1),
     ]);
   }
 }

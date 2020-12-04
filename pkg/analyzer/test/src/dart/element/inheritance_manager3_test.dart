@@ -9,8 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
-import '../resolution/with_null_safety_mixin.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -1045,7 +1044,7 @@ class B extends A {
 class InheritanceManager3WithNullSafetyTest extends _InheritanceManager3Base
     with WithNullSafetyMixin {
   test_getInheritedMap_topMerge_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.6
 class A {
   void foo({int a}) {}
@@ -1095,7 +1094,7 @@ class Y extends A<Object?> with M<dynamic> {}
   }
 
   test_getMember_optIn_inheritsOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -1119,7 +1118,7 @@ class B extends A {
   }
 
   test_getMember_optIn_inheritsOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.6
 class A {
   int foo(int a, int b) => 0;
@@ -1204,7 +1203,7 @@ class X extends A implements B {}
   }
 
   test_getMember_optOut_inheritsOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -1230,7 +1229,7 @@ class B extends A {
   }
 
   test_getMember_optOut_mixesOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -1255,12 +1254,12 @@ class B with A {
   }
 
   test_getMember_optOut_passOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
 ''');
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.6
 import 'a.dart';
 class B extends A {
@@ -1284,7 +1283,7 @@ class C extends B {}
   }
 }
 
-class _InheritanceManager3Base extends DriverResolutionTest {
+class _InheritanceManager3Base extends PubPackageResolutionTest {
   InheritanceManager3 manager;
 
   @override

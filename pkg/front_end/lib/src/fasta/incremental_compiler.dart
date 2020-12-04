@@ -4,17 +4,21 @@
 
 library fasta.incremental_compiler;
 
-import 'dart:async' show Future;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
         CanonicalNameError,
         CanonicalNameSdkError,
         CompilationModeError,
+        InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
-        SubComponentView;
+        SubComponentView,
+        mergeCompilationModeOrThrow;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
@@ -58,6 +62,8 @@ import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import 'builder/builder.dart' show Builder;
 
 import 'builder/class_builder.dart' show ClassBuilder;
+
+import 'builder/field_builder.dart' show FieldBuilder;
 
 import 'builder/library_builder.dart' show LibraryBuilder;
 
@@ -125,7 +131,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
 
   final Ticker ticker;
-
+  final bool resetTicker;
   final bool outlineOnly;
   bool trackNeededDillLibraries = false;
   Set<Library> neededDillLibraries;
@@ -160,6 +166,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       this.context, this.componentToInitializeFrom,
       [bool outlineOnly, this.incrementalSerializer])
       : ticker = context.options.ticker,
+        resetTicker = true,
         initializeFromDillUri = null,
         this.outlineOnly = outlineOnly ?? false,
         this.initializedForExpressionCompilationOnly = false {
@@ -171,6 +178,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       bool outlineOnly,
       this.incrementalSerializer])
       : ticker = context.options.ticker,
+        resetTicker = true,
         componentToInitializeFrom = null,
         this.outlineOnly = outlineOnly ?? false,
         this.initializedForExpressionCompilationOnly = false {
@@ -178,8 +186,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   IncrementalCompiler.forExpressionCompilationOnly(
-      this.context, this.componentToInitializeFrom)
+      this.context, this.componentToInitializeFrom,
+      [bool resetTicker])
       : ticker = context.options.ticker,
+        this.resetTicker = resetTicker ?? true,
         initializeFromDillUri = null,
         this.outlineOnly = false,
         this.incrementalSerializer = null,
@@ -201,7 +211,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Component> computeDelta(
       {List<Uri> entryPoints, bool fullComponent: false}) async {
-    ticker.reset();
+    if (resetTicker) {
+      ticker.reset();
+    }
     entryPoints ??= context.options.inputs;
     return context.runInContext<Component>((CompilerContext c) async {
       if (computeDeltaRunOnce && initializedForExpressionCompilationOnly) {
@@ -381,6 +393,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // We suppress finalization errors because they have already been
       // reported.
       await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
+      assert(_checkEquivalentScopes(
+          userCode.loader.builders, dillLoadedData.loader.builders));
 
       if (experimentalInvalidation != null) {
         /// If doing experimental invalidation that means that some of the old
@@ -423,6 +437,80 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     experimentalInvalidation = null;
     if (userBuilders.isEmpty) userBuilders = null;
     return newDillLibraryBuilders;
+  }
+
+  bool _checkEquivalentScopes(Map<Uri, LibraryBuilder> sourceLibraries,
+      Map<Uri, LibraryBuilder> dillLibraries) {
+    sourceLibraries.forEach((Uri uri, LibraryBuilder sourceLibraryBuilder) {
+      if (sourceLibraryBuilder is SourceLibraryBuilder) {
+        DillLibraryBuilder dillLibraryBuilder = dillLibraries[uri];
+        assert(
+            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder) ==
+                null,
+            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder));
+      }
+    });
+    return true;
+  }
+
+  String _hasEquivalentScopes(SourceLibraryBuilder sourceLibraryBuilder,
+      DillLibraryBuilder dillLibraryBuilder) {
+    bool isEquivalent = true;
+    StringBuffer sb = new StringBuffer();
+    sb.writeln('Mismatch on ${sourceLibraryBuilder.importUri}:');
+    sourceLibraryBuilder.exportScope
+        .forEachLocalMember((String name, Builder sourceBuilder) {
+      Builder dillBuilder =
+          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: false);
+      if (dillBuilder == null) {
+        if ((name == 'dynamic' || name == 'Never') &&
+            sourceLibraryBuilder.importUri == Uri.parse('dart:core')) {
+          // The source library builder for dart:core has synthetically
+          // injected builders for `dynamic` and `Never` which do not have
+          // corresponding classes in the AST.
+          return;
+        }
+        sb.writeln('No dill builder for ${name}: $sourceBuilder');
+        isEquivalent = false;
+      }
+    });
+    dillLibraryBuilder.exportScope
+        .forEachLocalMember((String name, Builder dillBuilder) {
+      Builder sourceBuilder = sourceLibraryBuilder.exportScope
+          .lookupLocalMember(name, setter: false);
+      if (sourceBuilder == null) {
+        sb.writeln('No source builder for ${name}: $dillBuilder');
+        isEquivalent = false;
+      }
+    });
+    sourceLibraryBuilder.exportScope
+        .forEachLocalSetter((String name, Builder sourceBuilder) {
+      Builder dillBuilder =
+          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: true);
+      if (dillBuilder == null) {
+        sb.writeln('No dill builder for ${name}=: $sourceBuilder');
+        isEquivalent = false;
+      }
+    });
+    dillLibraryBuilder.exportScope
+        .forEachLocalSetter((String name, Builder dillBuilder) {
+      Builder sourceBuilder = sourceLibraryBuilder.exportScope
+          .lookupLocalMember(name, setter: true);
+      if (sourceBuilder == null) {
+        sourceBuilder = sourceLibraryBuilder.exportScope
+            .lookupLocalMember(name, setter: false);
+        if (sourceBuilder is FieldBuilder && sourceBuilder.isAssignable) {
+          // Assignable fields can be lowered into a getter and setter.
+          return;
+        }
+        sb.writeln('No source builder for ${name}=: $dillBuilder');
+        isEquivalent = false;
+      }
+    });
+    if (isEquivalent) {
+      return null;
+    }
+    return sb.toString();
   }
 
   /// Compute which libraries to output and which (previous) errors/warnings we
@@ -696,11 +784,47 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     dillLoadedData.loader.currentSourceLoader = userCode.loader;
 
     // Re-use the libraries we've deemed re-usable.
+    List<bool> seenModes = [false, false, false, false];
     for (LibraryBuilder library in reusedLibraries) {
+      seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
       userCode.loader.builders[library.importUri] = library;
       if (library.importUri.scheme == "dart" &&
           library.importUri.path == "core") {
         userCode.loader.coreLibrary = library;
+      }
+    }
+    // Check compilation mode up against what we've seen here and set
+    // `hasInvalidNnbdModeLibrary` accordingly.
+    if (c.options.isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+      switch (c.options.nnbdMode) {
+        case NnbdMode.Weak:
+          // Don't expect strong or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+        case NnbdMode.Strong:
+          // Don't expect weak or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+        case NnbdMode.Agnostic:
+          // Don't expect strong, weak or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+      }
+    } else {
+      // Don't expect strong or invalid.
+      if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+        userCode.loader.hasInvalidNnbdModeLibrary = true;
       }
     }
 
@@ -884,7 +1008,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (previousSource == null || previousSource.isEmpty) {
         return null;
       }
-      String before = textualOutline(previousSource);
+      String before = textualOutline(previousSource, performModelling: true);
       if (before == null) {
         return null;
       }
@@ -892,7 +1016,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FileSystemEntity entity =
           c.options.fileSystem.entityForUri(builder.fileUri);
       if (await entity.exists()) {
-        now = textualOutline(await entity.readAsBytes());
+        now =
+            textualOutline(await entity.readAsBytes(), performModelling: true);
       }
       if (before != now) {
         return null;
@@ -1007,6 +1132,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
 
             if (e is InvalidKernelVersionError ||
+                e is InvalidKernelSdkVersionError ||
                 e is PackageChangedError ||
                 e is CanonicalNameSdkError ||
                 e is CompilationModeError) {
@@ -1254,27 +1380,44 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     // Report old problems that wasn't reported again.
-    for (List<DiagnosticMessageFromJson> messages
-        in remainingComponentProblems.values) {
+    Set<Uri> strongModeNNBDPackageOptOutUris;
+    for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
+        in remainingComponentProblems.entries) {
+      List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];
+        if (message.codeName == "StrongModeNNBDPackageOptOut") {
+          // Special case this: Don't issue them here; instead collect them
+          // to get their uris and re-issue a new error.
+          strongModeNNBDPackageOptOutUris ??= {};
+          strongModeNNBDPackageOptOutUris.add(entry.key);
+          continue;
+        }
         if (issuedProblems.add(message.toJsonString())) {
           context.options.reportDiagnosticMessage(message);
         }
       }
     }
+    if (strongModeNNBDPackageOptOutUris != null) {
+      // Get the builders for these uris; then call
+      // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
+      // a new error.
+      Set<LibraryBuilder> builders = {};
+      SourceLoader loader = userCode.loader;
+      for (LibraryBuilder builder in loader.builders.values) {
+        if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
+          builders.add(builder);
+        }
+      }
+      FormattedMessage message = loader.giveCombinedErrorForNonStrongLibraries(
+          builders,
+          emitNonPackageErrors: false);
+      issuedProblems.add(message.toJsonString());
+      // The problem was issued by the call so don't re-issue it here.
+    }
 
     // Save any new component-problems.
-    if (componentWithDill?.problemsAsJson != null) {
-      for (String jsonString in componentWithDill.problemsAsJson) {
-        DiagnosticMessageFromJson message =
-            new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
-      }
-    }
+    _addProblemsAsJsonToRemainingProblems(componentWithDill?.problemsAsJson);
     return new List<String>.from(issuedProblems);
   }
 
@@ -1472,8 +1615,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             .readComponent(data.component,
                 checkCanonicalNames: true, createView: true);
 
+        // Compute "output nnbd mode".
+        NonNullableByDefaultCompiledMode compiledMode;
+        if (c.options
+            .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+          switch (c.options.nnbdMode) {
+            case NnbdMode.Weak:
+              compiledMode = NonNullableByDefaultCompiledMode.Weak;
+              break;
+            case NnbdMode.Strong:
+              compiledMode = NonNullableByDefaultCompiledMode.Strong;
+              break;
+            case NnbdMode.Agnostic:
+              compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+              break;
+          }
+        } else {
+          compiledMode = NonNullableByDefaultCompiledMode.Weak;
+        }
+
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
+        // Also verify NNBD settings.
         for (Library lib in data.component.libraries) {
           if (lib.importUri.scheme == "package" &&
               uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
@@ -1483,6 +1646,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // TODO(jensj): Anything that doesn't depend on it can be kept.
             // For now just don't initialize from this dill.
             throw const PackageChangedError();
+          }
+          // Note: If a library has a NonNullableByDefaultCompiledMode.invalid
+          // we will throw and we won't initialize from it.
+          // That's wanted behavior.
+          if (compiledMode !=
+              mergeCompilationModeOrThrow(
+                  compiledMode, lib.nonNullableByDefaultCompiledMode)) {
+            throw new CompilationModeError(
+                "Can't compile to $compiledMode with library with mode "
+                "${lib.nonNullableByDefaultCompiledMode}.");
           }
         }
 
@@ -1502,14 +1675,36 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void saveComponentProblems(IncrementalCompilerData data) {
-    if (data.component.problemsAsJson != null) {
-      for (String jsonString in data.component.problemsAsJson) {
+    List<String> problemsAsJson = data.component.problemsAsJson;
+    _addProblemsAsJsonToRemainingProblems(problemsAsJson);
+  }
+
+  void _addProblemsAsJsonToRemainingProblems(List<String> problemsAsJson) {
+    if (problemsAsJson != null) {
+      for (String jsonString in problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
+        assert(message.uri != null ||
+            (message.involvedFiles != null &&
+                message.involvedFiles.isNotEmpty));
+        if (message.uri != null) {
+          List<DiagnosticMessageFromJson> messages =
+              remainingComponentProblems[message.uri] ??=
+                  new List<DiagnosticMessageFromJson>();
+          messages.add(message);
+        }
+        if (message.involvedFiles != null) {
+          // This indexes the same message under several uris - this way it will
+          // be issued as long as it's a problem. It will because of
+          // deduplication when we re-issue these (in reissueComponentProblems)
+          // only be reported once.
+          for (Uri uri in message.involvedFiles) {
+            List<DiagnosticMessageFromJson> messages =
+                remainingComponentProblems[uri] ??=
+                    new List<DiagnosticMessageFromJson>();
+            messages.add(message);
+          }
+        }
       }
     }
   }
@@ -1569,6 +1764,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return await context.runInContext((_) async {
       LibraryBuilder libraryBuilder =
           userCode.loader.read(libraryUri, -1, accessor: userCode.loader.first);
+      ticker.logMs("Loaded library $libraryUri");
 
       Class cls;
       if (className != null) {
@@ -1580,10 +1776,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.loader.seenMessages.clear();
 
       for (TypeParameter typeParam in typeDefinitions) {
-        if (!isLegalIdentifier(typeParam.name)) return null;
+        if (!isLegalIdentifier(typeParam.name)) {
+          userCode.loader.addProblem(
+              templateIncrementalCompilerIllegalTypeParameter
+                  .withArguments('$typeParam'),
+              typeParam.fileOffset,
+              0,
+              libraryUri);
+          return null;
+        }
       }
       for (String name in definitions.keys) {
-        if (!isLegalIdentifier(name)) return null;
+        if (!isLegalIdentifier(name)) {
+          userCode.loader.addProblem(
+              templateIncrementalCompilerIllegalParameter.withArguments(name),
+              // TODO: pass variable declarations instead of
+              // parameter names for proper location detection.
+              // https://github.com/dart-lang/sdk/issues/44158
+              -1,
+              -1,
+              libraryUri);
+          return null;
+        }
       }
 
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
@@ -1596,6 +1810,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         nameOrigin: libraryBuilder.library,
       );
       debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
+      ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryDependency dependency
@@ -1628,16 +1843,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
 
         debugLibrary.addImportsToScope();
+        ticker.logMs("Added imports");
       }
 
       HybridFileSystem hfs = userCode.fileSystem;
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      // TODO: pass variable declarations instead of
+      // parameter names for proper location detection.
+      // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
-              .map((name) => new VariableDeclarationImpl(name, 0))
+              .map((name) =>
+                  new VariableDeclarationImpl(name, 0, type: definitions[name])
+                    ..fileOffset =
+                        cls?.fileOffset ?? libraryBuilder.library.fileOffset)
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);
@@ -1661,6 +1883,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Make sure the library has a canonical name.
       Component c = new Component(libraries: [debugLibrary.library]);
       c.computeCanonicalNames();
+      ticker.logMs("Built debug library");
 
       userCode.runProcedureTransformations(procedure);
 

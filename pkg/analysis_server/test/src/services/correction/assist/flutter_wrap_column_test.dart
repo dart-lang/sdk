@@ -19,9 +19,16 @@ class FlutterWrapColumnTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_COLUMN;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_controlFlowCollections_if() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 Widget build(bool b) {
@@ -54,8 +61,7 @@ Widget build(bool b) {
   }
 
   Future<void> test_coveredByWidget() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -84,8 +90,7 @@ class FakeFlutter {
   }
 
   Future<void> test_coversWidgets() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -122,8 +127,7 @@ class FakeFlutter {
   }
 
   Future<void> test_endOfWidgetName() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {

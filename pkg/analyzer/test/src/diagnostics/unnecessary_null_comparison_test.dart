@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryNullComparisonFalseTest extends DriverResolutionTest
+class UnnecessaryNullComparisonFalseTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_equal_intLiteral() async {
     await assertNoErrorsInCode('''
@@ -30,19 +29,21 @@ f(int a, int? b) {
   }
 
   test_equal_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var a = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   a == null;
   null == a;
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_equal_legacyLibrary() async {
@@ -78,7 +79,7 @@ f(int? a) {
 }
 
 @reflectiveTest
-class UnnecessaryNullComparisonTrueTest extends DriverResolutionTest
+class UnnecessaryNullComparisonTrueTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_notEqual_intLiteral() async {
     await assertNoErrorsInCode('''
@@ -92,19 +93,21 @@ f(int a, int? b) {
   }
 
   test_notEqual_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var a = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   a != null;
   null != a;
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_notEqual_legacyLibrary() async {

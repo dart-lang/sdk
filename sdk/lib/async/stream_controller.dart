@@ -628,8 +628,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
    * Send or enqueue an error event.
    */
   void addError(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound. Use checkNotNullable.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     if (!_mayAddEvent) throw _badEventState();
     AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
@@ -835,6 +834,7 @@ abstract class _AsyncStreamControllerDispatch<T>
 // TODO(lrn): Use common superclass for callback-controllers when VM supports
 // constructors in mixin superclasses.
 
+@pragma("vm:entry-point")
 class _AsyncStreamController<T> = _StreamController<T>
     with _AsyncStreamControllerDispatch<T>;
 

@@ -4,10 +4,13 @@
 
 // @dart = 2.7
 
-/*class: C:OutputUnit(main, {})*/
+/*class: C:
+ class_unit=main{},
+ type_unit=main{}
+*/
 class C {
   const C(this.x);
 
-  /*member: C.x:OutputUnit(main, {})*/
+  /*member: C.x:member_unit=main{}*/
   final x;
 }

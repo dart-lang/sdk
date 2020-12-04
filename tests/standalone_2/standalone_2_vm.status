@@ -6,6 +6,9 @@
 link_natives_lazily_test: SkipByDesign # Not supported.
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 
+[ $runtime == vm ]
+typed_data_isolate_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+
 [ $system == android ]
 io/file_stat_test: Skip # Issue 26376
 io/file_system_watcher_test: Skip # Issue 26376
@@ -46,9 +49,6 @@ verbose_gc_to_bmu_test: Skip
 
 [ $arch == arm && $mode == release && $runtime == dart_precompiled && $system == android ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
-
-[ $arch == x64 && $compiler == dartkb && $runtime == vm && $system == linux ]
-io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 
 [ $arch == x64 && $mode == release && $runtime == vm && $system == linux ]
 io/http_bind_test: Pass, Timeout # Issue 35192

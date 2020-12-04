@@ -10,16 +10,14 @@ import shutil
 import sys
 import subprocess
 
-import bot
 import bot_utils
 
 utils = bot_utils.GetUtils()
 
 BUILD_OS = utils.GuessOS()
 BUILD_ARCHITECTURE = utils.GuessArchitecture()
-
-(bot_name, _) = bot.GetBotName()
-CHANNEL = bot_utils.GetChannelFromName(bot_name)
+BUILDER_NAME = os.environ.get('BUILDBOT_BUILDERNAME')
+CHANNEL = bot_utils.GetChannelFromName(BUILDER_NAME)
 
 
 def BuildArchitectures():
@@ -41,15 +39,17 @@ def BuildDartdocAPIDocs(dirname):
     dart_exe = os.path.join(dart_sdk, 'bin', 'dart')
     dartdoc_dart = os.path.join(bot_utils.DART_DIR, 'third_party', 'pkg',
                                 'dartdoc', 'bin', 'dartdoc.dart')
+    footer_text_file = os.path.join(bot_utils.DART_DIR, 'tools', 'bots',
+                                    'dartdoc_footer_text.html')
     footer_file = os.path.join(bot_utils.DART_DIR, 'tools', 'bots',
                                'dartdoc_footer.html')
     url = 'https://api.dartlang.org/stable'
-    with bot.BuildStep('Build API docs by dartdoc'):
-        bot_utils.run([
-            dart_exe, dartdoc_dart, '--sdk-docs', '--output', dirname,
-            '--enable-experiment', 'non-nullable', '--footer', footer_file,
-            '--rel-canonical-prefix=' + url
-        ])
+    print('Build API docs by dartdoc')
+    bot_utils.run([
+        dart_exe, dartdoc_dart, '--sdk-docs', '--output', dirname,
+        '--footer-text', footer_text_file, '--footer', footer_file,
+        '--rel-canonical-prefix=' + url
+    ])
 
 
 def CreateUploadVersionFile():
@@ -235,7 +235,10 @@ def DartArchiveFile(local_path, remote_path, checksum_files=False):
 def Run(command, env=None):
     print "Running %s" % ' '.join(command)
     print "Environment %s" % env
-    return bot.RunProcess(command, env=env)
+    sys.stdout.flush()
+    exit_code = subprocess.call(command)
+    if exit_code != 0:
+        raise OSError(exit_code)
 
 
 if __name__ == '__main__':
@@ -245,8 +248,8 @@ if __name__ == '__main__':
     elif CHANNEL != bot_utils.Channel.TRY:
         for arch in BuildArchitectures():
             sdk_path = BuildRootPath('dart-sdk', arch=arch)
-            with bot.BuildStep('Create and upload sdk zip for ' + arch):
-                CreateAndUploadSDKZip(arch, sdk_path)
+            print('Create and upload sdk zip for ' + arch)
+            CreateAndUploadSDKZip(arch, sdk_path)
         DartArchiveUnstrippedBinaries()
         if BUILD_OS == 'linux':
             CreateUploadVersionFile()

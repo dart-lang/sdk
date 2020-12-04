@@ -14,7 +14,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
 
 import 'calls.dart';
 import 'types.dart';
-import 'utils.dart';
 import '../pragma.dart';
 
 abstract class EntryPointsListener {
@@ -33,6 +32,9 @@ abstract class EntryPointsListener {
 
   /// Record the fact that given member is called from this.
   void recordMemberCalledViaThis(Member target);
+
+  /// Record the fact that given method is torn off.
+  void recordTearOff(Procedure target) {}
 }
 
 class PragmaEntryPointsVisitor extends RecursiveVisitor {
@@ -43,7 +45,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   PragmaEntryPointsVisitor(
       this.entryPoints, this.nativeCodeOracle, this.matcher) {
-    assertx(matcher != null);
+    assert(matcher != null);
   }
 
   PragmaEntryPointType _annotationsDefineRoot(List<Expression> annotations) {
@@ -85,8 +87,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       Member target = proc;
       while (target is Procedure && target.isRedirectingFactoryConstructor) {
         target = getRedirectingFactoryBody(target).target;
-        assertx(target != null);
-        assertx(
+        assert(target != null);
+        assert(
             (target is Procedure && target.isFactory) || target is Constructor);
       }
       entryPoints
@@ -198,7 +200,7 @@ class NativeCodeOracle {
   final PragmaAnnotationParser _matcher;
 
   NativeCodeOracle(this._libraryIndex, this._matcher) {
-    assertx(_matcher != null);
+    assert(_matcher != null);
   }
 
   void addClassReferencedFromNativeCode(Class klass) {
@@ -214,6 +216,22 @@ class NativeCodeOracle {
 
   bool isMemberReferencedFromNativeCode(Member member) =>
       _membersReferencedFromNativeCode.contains(member);
+
+  PragmaRecognizedType recognizedType(Member member) {
+    for (var annotation in member.annotations) {
+      ParsedPragma pragma = _matcher.parsePragma(annotation);
+      if (pragma is ParsedRecognized) {
+        return pragma.type;
+      }
+    }
+    return null;
+  }
+
+  bool isRecognized(Member member, [List<PragmaRecognizedType> expectedTypes]) {
+    PragmaRecognizedType type = recognizedType(member);
+    return type != null &&
+        (expectedTypes == null || expectedTypes.contains(type));
+  }
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.

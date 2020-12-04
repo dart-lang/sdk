@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/flag_list.h"
@@ -22,9 +23,29 @@ namespace dart {
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
+class GraphInstrinsicCodeGenScope {
+ public:
+  explicit GraphInstrinsicCodeGenScope(FlowGraphCompiler* compiler)
+      : compiler_(compiler), old_is_optimizing_(compiler->is_optimizing()) {
+    compiler_->is_optimizing_ = true;
+  }
+  ~GraphInstrinsicCodeGenScope() {
+    compiler_->is_optimizing_ = old_is_optimizing_;
+  }
+
+ private:
+  FlowGraphCompiler* compiler_;
+  bool old_is_optimizing_;
+};
+
 namespace compiler {
 
 static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
+  // For graph intrinsics we run the linearscan register allocator, which will
+  // pass opt=true for MakeLocationSummary. We therefore also have to ensure
+  // `compiler->is_optimizing()` is set to true during EmitNativeCode.
+  GraphInstrinsicCodeGenScope optimizing_scope(compiler);
+
   // The FlowGraph here is constructed by the intrinsics builder methods, and
   // is different from compiler->flow_graph(), the original method's flow graph.
   compiler->assembler()->Comment("Graph intrinsic begin");
@@ -75,6 +96,7 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   FlowGraph* graph =
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
   const Function& function = parsed_function.function();
+
   switch (function.recognized_kind()) {
 #define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name:                                         \
@@ -82,9 +104,15 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
     break;
 
     GRAPH_INTRINSICS_LIST(EMIT_CASE);
-    default:
-      return false;
 #undef EMIT_CASE
+    default:
+      if (function.IsImplicitGetterFunction()) {
+        if (!Build_ImplicitGetter(graph)) return false;
+      } else if (function.IsImplicitSetterFunction()) {
+        if (!Build_ImplicitSetter(graph)) return false;
+      } else {
+        return false;
+      }
   }
 
   if (FLAG_support_il_printer && FLAG_print_flow_graph &&
@@ -152,6 +180,27 @@ static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
   return safe_index;
 }
 
+static void VerifyParameterIsBoxed(BlockBuilder* builder, intptr_t arg_index) {
+  const auto& function = builder->function();
+  if (function.is_unboxed_parameter_at(arg_index)) {
+    FATAL2("Unsupported unboxed parameter %" Pd " in %s", arg_index,
+           function.ToFullyQualifiedCString());
+  }
+}
+
+static Definition* CreateBoxedParameterIfNeeded(BlockBuilder* builder,
+                                                Definition* value,
+                                                Representation representation,
+                                                intptr_t arg_index) {
+  const auto& function = builder->function();
+  if (function.is_unboxed_parameter_at(arg_index)) {
+    return builder->AddDefinition(
+        BoxInstr::Create(representation, new Value(value)));
+  } else {
+    return value;
+  }
+}
+
 static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
                                              Definition* value,
                                              Representation representation) {
@@ -184,6 +233,9 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   Definition* array = builder.AddParameter(0, /*with_frame=*/false);
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
 
+  VerifyParameterIsBoxed(&builder, 0);
+
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
@@ -286,6 +338,10 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
   Definition* value = builder.AddParameter(2, /*with_frame=*/false);
 
+  VerifyParameterIsBoxed(&builder, 0);
+  VerifyParameterIsBoxed(&builder, 2);
+
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
@@ -499,6 +555,9 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   Definition* str = builder.AddParameter(0, /*with_frame=*/false);
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
 
+  VerifyParameterIsBoxed(&builder, 0);
+
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index =
       PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
 
@@ -565,6 +624,9 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
 
   Definition* left = builder.AddParameter(0, /*with_frame=*/false);
   Definition* right = builder.AddParameter(1, /*with_frame=*/false);
+
+  VerifyParameterIsBoxed(&builder, 0);
+  VerifyParameterIsBoxed(&builder, 1);
 
   Cids* value_check = Cids::CreateMonomorphic(zone, cid);
   // Check argument. Receiver (left) is known to be a Float32x4.
@@ -672,6 +734,7 @@ static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* array = builder.AddParameter(0, /*with_frame=*/false);
+  VerifyParameterIsBoxed(&builder, 0);
 
   Definition* length = builder.AddDefinition(
       new LoadFieldInstr(new Value(array), field, builder.TokenPos()));
@@ -715,6 +778,7 @@ bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* array = builder.AddParameter(0, /*with_frame=*/false);
+  VerifyParameterIsBoxed(&builder, 0);
 
   Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
       new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));
@@ -733,6 +797,9 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
 
+  VerifyParameterIsBoxed(&builder, 0);
+
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index = PrepareIndexedOp(flow_graph, &builder, growable_array, index,
                            Slot::GrowableObjectArray_length());
 
@@ -758,6 +825,10 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
   Definition* value = builder.AddParameter(2, /*with_frame=*/false);
 
+  VerifyParameterIsBoxed(&builder, 0);
+  VerifyParameterIsBoxed(&builder, 2);
+
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::Array_length());
 
@@ -782,6 +853,10 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
   Definition* value = builder.AddParameter(2, /*with_frame=*/false);
 
+  VerifyParameterIsBoxed(&builder, 0);
+  VerifyParameterIsBoxed(&builder, 2);
+
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GrowableObjectArray_length());
 
@@ -808,6 +883,9 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   Definition* data = builder.AddParameter(1, /*with_frame=*/false);
   Zone* zone = flow_graph->zone();
 
+  VerifyParameterIsBoxed(&builder, 0);
+  VerifyParameterIsBoxed(&builder, 1);
+
   Cids* value_check = Cids::CreateMonomorphic(zone, kArrayCid);
   builder.AddInstruction(new CheckClassInstr(new Value(data), DeoptId::kNone,
                                              *value_check, builder.TokenPos()));
@@ -828,6 +906,9 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
 
   Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
   Definition* length = builder.AddParameter(1, /*with_frame=*/false);
+
+  VerifyParameterIsBoxed(&builder, 0);
+  VerifyParameterIsBoxed(&builder, 1);
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.TokenPos()));
@@ -1052,6 +1133,97 @@ bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound,
                                   flow_graph);
+}
+
+bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
+  // This code will only be invoked if our assumptions have been met (see
+  // [Intrinsifier::CanIntrinsifyFieldAccessor])
+  auto zone = flow_graph->zone();
+  const auto& function = flow_graph->function();
+  ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
+
+  auto& field = Field::Handle(zone, function.accessor_field());
+  if (Field::ShouldCloneFields()) {
+    field = field.CloneFromOriginal();
+  }
+  ASSERT(field.is_instance() && !field.is_late() && !field.needs_load_guard());
+
+  const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  auto receiver = builder.AddParameter(0, /*with_frame=*/false);
+  VerifyParameterIsBoxed(&builder, 0);
+
+  Definition* field_value = builder.AddDefinition(new (zone) LoadFieldInstr(
+      new (zone) Value(receiver), slot, builder.TokenPos()));
+
+  // We only support cases where we do not have to create a box (whose
+  // allocation could fail).
+  ASSERT(function.HasUnboxedReturnValue() ||
+         !FlowGraphCompiler::IsUnboxedField(field));
+
+  // We might need to unbox the field value before returning.
+  if (function.HasUnboxedReturnValue() &&
+      !FlowGraphCompiler::IsUnboxedField(field)) {
+    ASSERT(FLAG_precompiled_mode);
+    field_value = builder.AddUnboxInstr(
+        FlowGraph::ReturnRepresentationOf(flow_graph->function()),
+        new Value(field_value), /*is_checked=*/true);
+  }
+
+  builder.AddReturn(new (zone) Value(field_value));
+  return true;
+}
+
+bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
+  // This code will only be invoked if our assumptions have been met (see
+  // [Intrinsifier::CanIntrinsifyFieldAccessor])
+  auto zone = flow_graph->zone();
+  const auto& function = flow_graph->function();
+  ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
+
+  auto& field = Field::Handle(zone, function.accessor_field());
+  if (Field::ShouldCloneFields()) {
+    field = field.CloneFromOriginal();
+  }
+  ASSERT(field.is_instance() && !field.is_final());
+  ASSERT(!function.HasUnboxedParameters() ||
+         FlowGraphCompiler::IsUnboxedField(field));
+
+  const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
+
+  const auto barrier_mode = FlowGraphCompiler::IsUnboxedField(field)
+                                ? kNoStoreBarrier
+                                : kEmitStoreBarrier;
+
+  flow_graph->CreateCommonConstants();
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  auto receiver = builder.AddParameter(0, /*with_frame=*/false);
+  auto value = builder.AddParameter(1, /*with_frame=*/false);
+  VerifyParameterIsBoxed(&builder, 0);
+
+  if (!function.HasUnboxedParameters() &&
+      FlowGraphCompiler::IsUnboxedField(field)) {
+    // We do not support storing to possibly guarded fields in JIT in graph
+    // intrinsics.
+    ASSERT(FLAG_precompiled_mode);
+    value = builder.AddUnboxInstr(
+        FlowGraph::UnboxedFieldRepresentationOf(field), new Value(value),
+        /*is_checked=*/true);
+  }
+
+  builder.AddInstruction(new (zone) StoreInstanceFieldInstr(
+      slot, new (zone) Value(receiver), new (zone) Value(value), barrier_mode,
+      builder.TokenPos()));
+
+  builder.AddReturn(new (zone) Value(flow_graph->constant_null()));
+  return true;
 }
 
 }  // namespace compiler

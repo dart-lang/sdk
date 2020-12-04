@@ -1,0 +1,118 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_http" as _ht;
+
+import "dart:io";
+
+class Mock extends core::Object {
+  synthetic constructor •() → self::Mock*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class MockHttpHeaders extends self::Mock implements _ht::HttpHeaders {
+  synthetic constructor •() → self::MockHttpHeaders*
+    : super self::Mock::•()
+    ;
+  no-such-method-forwarder get date() → core::DateTime*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::DateTime*;
+  no-such-method-forwarder set date(core::DateTime* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get expires() → core::DateTime*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::DateTime*;
+  no-such-method-forwarder set expires(core::DateTime* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get ifModifiedSince() → core::DateTime*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::DateTime*;
+  no-such-method-forwarder set ifModifiedSince(core::DateTime* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get host() → core::String*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::String*;
+  no-such-method-forwarder set host(core::String* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get port() → core::int*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C12, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder set port(core::int* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C13, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get contentType() → _ht::ContentType*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C14, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} _ht::ContentType*;
+  no-such-method-forwarder set contentType(_ht::ContentType* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C15, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get contentLength() → core::int*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C16, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder set contentLength(core::int* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C17, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get persistentConnection() → core::bool*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C18, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder set persistentConnection(core::bool* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C19, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get chunkedTransferEncoding() → core::bool*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C20, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder set chunkedTransferEncoding(core::bool* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C21, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder operator [](core::String* name) → core::List<core::String*>*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C22, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::List<core::String*>*;
+  no-such-method-forwarder method value(core::String* name) → core::String*
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C23, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::String*;
+  no-such-method-forwarder method add(core::String* name, core::Object* value, {core::bool* preserveHeaderCase = #C24}) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C25, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name, value]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C26: preserveHeaderCase})));
+  no-such-method-forwarder method set(core::String* name, core::Object* value, {core::bool* preserveHeaderCase = #C24}) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C27, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name, value]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C26: preserveHeaderCase})));
+  no-such-method-forwarder method remove(core::String* name, core::Object* value) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C28, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name, value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder method removeAll(core::String* name) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C29, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder method forEach((core::String*, core::List<core::String*>*) →* void action) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C30, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder method noFolding(core::String* name) → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C31, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_http/http.dart */ clear() → void
+    return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C32, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #date
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C5 = #date=
+  #C6 = #expires
+  #C7 = #expires=
+  #C8 = #ifModifiedSince
+  #C9 = #ifModifiedSince=
+  #C10 = #host
+  #C11 = #host=
+  #C12 = #port
+  #C13 = #port=
+  #C14 = #contentType
+  #C15 = #contentType=
+  #C16 = #contentLength
+  #C17 = #contentLength=
+  #C18 = #persistentConnection
+  #C19 = #persistentConnection=
+  #C20 = #chunkedTransferEncoding
+  #C21 = #chunkedTransferEncoding=
+  #C22 = #[]
+  #C23 = #value
+  #C24 = false
+  #C25 = #add
+  #C26 = #preserveHeaderCase
+  #C27 = #set
+  #C28 = #remove
+  #C29 = #removeAll
+  #C30 = #forEach
+  #C31 = #noFolding
+  #C32 = #clear
+}

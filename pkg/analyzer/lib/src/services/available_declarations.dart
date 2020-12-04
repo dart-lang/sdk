@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -169,6 +170,12 @@ class DeclarationsContext {
   /// The set of features that are globally enabled for this context.
   FeatureSet get featureSet {
     return _analysisContext.analysisOptions.contextFeatures;
+  }
+
+  AnalysisDriver get _analysisDriver {
+    var session = _analysisContext.currentSession as AnalysisSessionImpl;
+    // ignore: deprecated_member_use_from_same_package
+    return session.getDriver();
   }
 
   /// Return libraries that are available to the file with the given [path].
@@ -434,11 +441,7 @@ class DeclarationsContext {
   }
 
   void _scheduleKnownFiles() {
-    var session = _analysisContext.currentSession as AnalysisSessionImpl;
-    // ignore: deprecated_member_use_from_same_package
-    var analysisDriver = session.getDriver();
-
-    for (var path in analysisDriver.knownFiles) {
+    for (var path in _analysisDriver.knownFiles) {
       if (_knownPathSet.add(path)) {
         if (!path.contains(r'/lib/src/') && !path.contains(r'\lib\src\')) {
           _knownPathList.add(path);
@@ -449,8 +452,7 @@ class DeclarationsContext {
   }
 
   void _scheduleSdkLibraries() {
-    // ignore: deprecated_member_use_from_same_package
-    var sdk = _analysisContext.currentSession.sourceFactory.dartSdk;
+    var sdk = _analysisDriver.sourceFactory.dartSdk;
     for (var uriStr in sdk.uris) {
       if (!uriStr.startsWith('dart:_')) {
         var uri = Uri.parse(uriStr);
@@ -702,15 +704,31 @@ class DeclarationsTracker {
 
   _File _getFileByUri(DeclarationsContext context, Uri uri) {
     var file = _uriToFile[uri];
-    if (file == null) {
-      var path = context._resolveUri(uri);
-      if (path != null) {
-        file = _File(this, path, uri);
-        _pathToFile[path] = file;
-        _uriToFile[uri] = file;
-        file.refresh(context);
-      }
+    if (file != null) {
+      return file;
     }
+
+    var path = context._resolveUri(uri);
+    if (path == null) {
+      return null;
+    }
+
+    try {
+      path = _resolveLinks(path);
+    } on FileSystemException {
+      // Not existing file, or the link target.
+    }
+
+    file = _pathToFile[path];
+    if (file != null) {
+      return file;
+    }
+
+    file = _File(this, path, uri);
+    _pathToFile[path] = file;
+    _uriToFile[uri] = file;
+
+    file.refresh(context);
     return file;
   }
 
@@ -788,6 +806,13 @@ class DeclarationsTracker {
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
     );
+  }
+
+  /// Return the [path] with resolved file system links.
+  String _resolveLinks(String path) {
+    var resource = _resourceProvider.getFile(path);
+    resource = resource.resolveSymbolicLinksSync();
+    return resource.path;
   }
 }
 

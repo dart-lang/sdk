@@ -1,0 +1,31 @@
+abstract class Key {
+  Key(int x, int y)
+      : foo = x ^ y,
+        bar = x ^ y {}
+  Key.NotDuplicate(int x, int y)
+      : foo = x ^ y,
+        bar = x ^ y {}
+  int bar;
+  int foo;
+  int get a => runtimeType.hashCode ^ null.hashCode;
+  int get b => runtimeType.hashCode ^ null.hashCode;
+  int get c {}
+  int get d {}
+  int get e => 1 + runtimeType.hashCode ^ null.hashCode + 3;
+  int get f => 1 + runtimeType.hashCode ^ null.hashCode + 3;
+  int get g {}
+  int get h {}
+  int i(int x, int y) => x ^ y;
+  int j(int x, int y) => x ^ y;
+  int k(int x, int y) {}
+  int l(int x, int y) {}
+  int m(int x, int y) {}
+  int n(int x, int y) {}
+  int o(int x, int y) => 1 + x ^ y + 3;
+  int p(int x, int y) => 1 + x ^ y + 3;
+  int q(int x, int y) {}
+  int r(int x, int y) {}
+  s(int x, int y) {}
+}
+
+main() {}

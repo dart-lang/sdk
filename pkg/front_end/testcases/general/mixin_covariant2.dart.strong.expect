@@ -1,0 +1,96 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Superclass extends core::Object {
+  synthetic constructor •() → self::Superclass*
+    : super core::Object::•()
+    ;
+  method method1(core::num* argument1, core::num* argument2) → core::String*
+    return "Superclass";
+  method method2(core::num* argument1, core::num* argument2) → core::String*
+    return "Superclass";
+  method method3(core::num* argument1, covariant core::int* argument2) → core::String*
+    return "Superclass";
+  method method4(core::num* argument1, covariant core::num* argument2) → core::String*
+    return "Superclass";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin*
+    : super core::Object::•()
+    ;
+  method method1(core::num* argument1, core::num* argument2) → core::String*
+    return "Mixin";
+  method method2(covariant core::int* argument1, core::num* argument2) → core::String*
+    return "Mixin";
+  method method3(core::num* argument1, core::num* argument2) → core::String*
+    return "Mixin";
+  method method4(covariant core::int* argument1, core::int* argument2) → core::String*
+    return "Mixin";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _Class&Superclass&Mixin = self::Superclass with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Superclass&Mixin*
+    : super self::Superclass::•()
+    ;
+  abstract forwarding-stub method method2(covariant core::num* argument1, core::num* argument2) → core::String*;
+  forwarding-stub method method3(core::num* argument1, covariant core::num* argument2) → core::String*
+    return super.{self::Superclass::method3}(argument1, argument2);
+  forwarding-stub method method4(covariant core::num* argument1, covariant core::num* argument2) → core::String*
+    return super.{self::Superclass::method4}(argument1, argument2);
+}
+class Class extends self::_Class&Superclass&Mixin {
+  synthetic constructor •() → self::Class*
+    : super self::_Class&Superclass&Mixin::•()
+    ;
+}
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::expect("Mixin", c.{self::Mixin::method1}(0, 1));
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method2}(0, 1));
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method3}(0, 1));
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method4}(0, 1));
+  self::Superclass* s = c;
+  self::expect("Mixin", s.{self::Superclass::method1}(0.5, 1.5));
+  self::throws(() → core::String* => s.{self::Superclass::method2}(0.5, 1.5));
+  self::expect("Mixin", s.{self::Superclass::method3}(0.5, 1));
+  self::throws(() → core::String* => s.{self::Superclass::method4}(0.5, 1));
+  self::expect("Mixin", s.{self::Superclass::method4}(1, 0.5));
+  self::Mixin* m = c;
+  self::expect("Mixin", m.{self::Mixin::method1}(0, 1));
+  self::expect("Mixin", m.{self::Mixin::method2}(0, 1));
+  self::expect("Mixin", m.{self::Mixin::method3}(0, 1));
+  self::expect("Mixin", m.{self::Mixin::method4}(0, 1));
+}
+static method expect(dynamic expected, dynamic actual) → void {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() →* void f) → void {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic _) {
+    return;
+  }
+  throw "Expected exception";
+}

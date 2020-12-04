@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -11,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartLinkedEditBuilderImpl;
@@ -22,7 +21,8 @@ import 'dart/dart_change_builder_mixin.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DartEditBuilderImplTest);
+    defineReflectiveTests(DartEditBuilderImpl_PreNullSafetyTest);
+    defineReflectiveTests(DartEditBuilderImpl_WithNullSafetyTest);
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
     defineReflectiveTests(ImportLibraryTest);
@@ -31,10 +31,96 @@ void main() {
 }
 
 @reflectiveTest
+class DartEditBuilderImpl_PreNullSafetyTest extends DartEditBuilderImplTest {
+  Future<void> test_writeParameter_covariantAndRequired() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isCovariant: true, isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace('covariant @required a'));
+    expect(edits[1].replacement,
+        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
+  }
+
+  Future<void> test_writeParameter_required_addImport() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('@required a'));
+    expect(edits[1].replacement,
+        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
+  }
+
+  Future<void> test_writeParameter_required_existingImport() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+import 'package:meta/meta.dart';
+
+class A {}
+''';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('@required a'));
+  }
+}
+
+@reflectiveTest
+class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest
+    with WithNullSafetyMixin {
+  Future<void> test_writeParameter_required_keyword() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('required a'));
+  }
+}
+
 class DartEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder(),
+      meta: true,
+    );
+  }
+
   Future<void> test_writeClassDeclaration_interfaces() async {
-    var path = convertPath('/home/test/lib/test.dart');
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
@@ -540,6 +626,65 @@ class C {
     expect(position.offset, equals(20));
   }
 
+  Future<void> test_writeImportedName_hasImport_first() async {
+    // addSource(convertPath('/home/test/lib/foo.dart'), '');
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+import 'foo.dart';
+''');
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeImportedName([
+          Uri.parse('package:test/foo.dart'),
+          Uri.parse('package:test/bar.dart')
+        ], 'Foo');
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('Foo'));
+  }
+
+  Future<void> test_writeImportedName_hasImport_second() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+import 'bar.dart';
+''');
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeImportedName([
+          Uri.parse('package:test/foo.dart'),
+          Uri.parse('package:test/bar.dart')
+        ], 'Foo');
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('Foo'));
+  }
+
+  Future<void> test_writeImportedName_needsImport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '');
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeImportedName([
+          Uri.parse('package:test/foo.dart'),
+          Uri.parse('package:test/bar.dart')
+        ], 'Foo');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"));
+    expect(edits[1].replacement, equalsIgnoringWhitespace('Foo'));
+  }
+
   Future<void> test_writeLocalVariableDeclaration_noType_initializer() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '''
@@ -547,7 +692,7 @@ void f() {
 
 }''';
     addSource(path, content);
-    await driver.getResult(path);
+    await resolveFile(path);
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -568,7 +713,7 @@ void f() {
 
 }''';
     addSource(path, content);
-    await driver.getResult(path);
+    await resolveFile(path);
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -594,7 +739,7 @@ void f() {
 
 }''';
     addSource(path, content);
-    await driver.getResult(path);
+    await resolveFile(path);
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -614,7 +759,7 @@ void f() {
 
 }''';
     addSource(path, content);
-    await driver.getResult(path);
+    await resolveFile(path);
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -634,7 +779,7 @@ void f() {
 }
 class MyClass {}''';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
 
     var A = unit.declarations[1] as ClassDeclaration;
 
@@ -665,7 +810,7 @@ void f() {
 }
 class MyClass {}''';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
 
     var A = unit.declarations[1] as ClassDeclaration;
 
@@ -701,7 +846,7 @@ void f() {
 }
 class MyClass {}''';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
 
     var A = unit.declarations[1] as ClassDeclaration;
 
@@ -830,6 +975,21 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('a'));
   }
 
+  Future<void> test_writeParameter_covariant() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isCovariant: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('covariant a'));
+  }
+
   Future<void> test_writeParameter_type() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';
@@ -856,7 +1016,7 @@ g() {
 class A {}
 ''';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
     var g = unit.declarations[1] as FunctionDeclaration;
     var body = g.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -878,7 +1038,7 @@ class A {}
     var content = 'f(int a, {bool b = false, String c}) {}';
     addSource(path, content);
 
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
     var elements = parameters.parameters.map((p) => p.declaredElement);
@@ -898,7 +1058,7 @@ class A {}
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'f(int a, [bool b = false, String c]) {}';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
     var elements = parameters.parameters.map((p) => p.declaredElement);
@@ -918,7 +1078,7 @@ class A {}
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'f(int i, String s) {}';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
     var elements = parameters.parameters.map((p) => p.declaredElement);
@@ -940,7 +1100,7 @@ f(int i, String s) {
   g(s, index: i);
 }''';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -963,7 +1123,7 @@ f(int i, String s) {
   g(s, i);
 }''';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
     var f = unit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -980,14 +1140,14 @@ f(int i, String s) {
   }
 
   Future<void> test_writeReference_method() async {
-    var aPath = convertPath('/a.dart');
+    var aPath = convertPath('$testPackageRootPath/a.dart');
     addSource(aPath, r'''
 class A {
   void foo() {}
 }
 ''');
 
-    var path = convertPath('/home/test/lib/test.dart');
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = r'''
 import 'a.dart';
 ''';
@@ -1007,10 +1167,10 @@ import 'a.dart';
   }
 
   Future<void> test_writeReference_topLevel_hasImport_noPrefix() async {
-    var aPath = convertPath('/home/test/lib/a.dart');
+    var aPath = convertPath('$testPackageRootPath/lib/a.dart');
     addSource(aPath, 'const a = 42;');
 
-    var path = convertPath('/home/test/lib/test.dart');
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = r'''
 import 'a.dart';
 ''';
@@ -1156,7 +1316,7 @@ import 'a.dart' as p;
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1369,7 +1529,7 @@ class B {}
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';
     addSource(path, content);
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1520,14 +1680,14 @@ class B {}
   }
 
   Future<ClassElement> _getClassElement(String path, String name) async {
-    var result = await driver.getUnitElement(path);
-    return result.element.getType(name);
+    var result = (await resolveFile(path))?.unit;
+    return result.declaredElement.getType(name);
   }
 
   Future<PropertyAccessorElement> _getTopLevelAccessorElement(
       String path, String name) async {
-    var result = await driver.getUnitElement(path);
-    return result.element.accessors.firstWhere((v) => v.name == name);
+    var result = (await resolveFile(path))?.unit;
+    return result.declaredElement.accessors.firstWhere((v) => v.name == name);
   }
 
   Future<InterfaceType> _getType(
@@ -1550,7 +1710,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''var f = () {}''');
 
-    var resolvedUnit = await driver.getResult(path);
+    var resolvedUnit = await resolveFile(path);
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
@@ -1567,7 +1727,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
-    var resolvedUnit = await driver.getResult(path);
+    var resolvedUnit = await resolveFile(path);
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
@@ -1680,7 +1840,7 @@ void functionAfter() {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
-    var resolvedUnit = await driver.getResult(path);
+    var resolvedUnit = await resolveFile(path);
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var type = findNode.typeAnnotation('String');
 
@@ -1703,7 +1863,7 @@ class A {}
 class B extends A {}
 class C extends B {}
 ''');
-    var unit = (await driver.getResult(path))?.unit;
+    var unit = (await resolveFile(path))?.unit;
     var classC = unit.declarations[2] as ClassDeclaration;
     var builder = DartLinkedEditBuilderImpl(null);
     builder.addSuperTypesAsSuggestions(
@@ -2670,12 +2830,12 @@ class B extends A {
       nameToOverride: 'value=',
       expected: '''
   @override
-  void set value(int value) {
+  set value(int value) {
     // TODO: implement value
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: SourceRange(133, 0),
+      selection: SourceRange(128, 0),
     );
   }
 
@@ -2692,13 +2852,13 @@ class B extends A {
       invokeSuper: true,
       expected: '''
   @override
-  void set value(int value) {
+  set value(int value) {
     // TODO: implement value
     super.value = value;
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: SourceRange(131, 20),
+      selection: SourceRange(126, 20),
     );
   }
 
@@ -2724,12 +2884,12 @@ class B extends A {
 
     ClassElement targetElement;
     {
-      var unitResult = await driver.getUnitElement(path);
+      var unitResult = (await resolveFile(path))?.unit;
       if (targetMixinName != null) {
-        targetElement = unitResult.element.mixins
+        targetElement = unitResult.declaredElement.mixins
             .firstWhere((e) => e.name == targetMixinName);
       } else {
-        targetElement = unitResult.element.types
+        targetElement = unitResult.declaredElement.types
             .firstWhere((e) => e.name == targetClassName);
       }
     }

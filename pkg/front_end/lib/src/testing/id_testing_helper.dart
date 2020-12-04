@@ -29,21 +29,27 @@ export '../fasta/messages.dart' show FormattedMessage;
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
 
+/// Test configuration used for testing CFE without nnbd in addition to the
+/// default state.
+const TestConfig cfeNoNonNullableConfig = const TestConfig(
+    cfeMarker, 'cfe without nnbd',
+    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: false});
+
 /// Test configuration used for testing CFE with nnbd in addition to the
 /// default state.
 const TestConfig cfeNonNullableConfig = const TestConfig(
     cfeWithNnbdMarker, 'cfe with nnbd',
-    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
+    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true});
 
 /// Test configuration used for testing CFE with nnbd as the default state.
 const TestConfig cfeNonNullableOnlyConfig = const TestConfig(
     cfeMarker, 'cfe with nnbd',
-    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
+    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true});
 
 class TestConfig {
   final String marker;
   final String name;
-  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final AllowedExperimentalFlags allowedExperimentalFlags;
   final Uri librariesSpecificationUri;
   // TODO(johnniwinther): Tailor support to redefine selected platform
@@ -53,7 +59,7 @@ class TestConfig {
   final NnbdMode nnbdMode;
 
   const TestConfig(this.marker, this.name,
-      {this.experimentalFlags = const {},
+      {this.explicitExperimentalFlags = const {},
       this.allowedExperimentalFlags,
       this.librariesSpecificationUri,
       this.compileSdk: false,
@@ -300,8 +306,8 @@ Future<TestResult<T>> runTestForConfig<T>(
   };
   options.debugDump = printCode;
   options.target = new NoneTarget(config.targetFlags);
-  options.experimentalFlags.addAll(config.experimentalFlags);
-  options.allowedExperimentalFlags = config.allowedExperimentalFlags;
+  options.explicitExperimentalFlags.addAll(config.explicitExperimentalFlags);
+  options.allowedExperimentalFlagsForTesting = config.allowedExperimentalFlags;
   options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {
     Set<Uri> testFiles =
@@ -375,7 +381,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       if (member.enclosingClass.isEnum) {
         if (member is Constructor ||
             member.isInstanceMember ||
-            member.name == 'values') {
+            member.name.text == 'values') {
           return;
         }
       }

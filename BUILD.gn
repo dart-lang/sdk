@@ -68,6 +68,12 @@ group("runtime") {
   }
 }
 
+# A separate target and not included in group("runtime"). This way the target\
+# "runtime" does not get many executables extra as build output.
+group("run_ffi_unit_tests") {
+  deps = [ "runtime/bin/ffi_unit_test:run_ffi_unit_tests" ]
+}
+
 group("runtime_kernel") {
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
@@ -105,10 +111,6 @@ group("dartdevc") {
 
 group("dartfmt") {
   deps = [ "utils/dartfmt" ]
-}
-
-group("dartfix") {
-  deps = [ "utils/dartfix" ]
 }
 
 group("analysis_server") {
@@ -163,22 +165,30 @@ if (is_fuchsia) {
     manifest = "build/fuchsia/dart.cmx"
 
     resource_files = [
-      ".packages",
+      ".dart_tool/package_config.json",
       "pkg/testing/test/hello_test.dart",
+      "tools/addlatexhash.dart",
     ]
     resource_dirs = [
-      "tests/standalone",
-      "tests/language_2",
+      "tests/standalone_2",
       "pkg/async_helper",
       "pkg/expect",
       "pkg/meta",
+      "pkg/native_stack_traces",
       "pkg/smith",
       "third_party/pkg/args",
       "third_party/pkg/async",
+      "third_party/pkg/charcode",
       "third_party/pkg/collection",
+      "third_party/pkg/convert",
+      "third_party/pkg/crypto",
+      "third_party/pkg/http",
+      "third_party/pkg/http_parser",
       "third_party/pkg/path",
       "third_party/pkg/pool",
       "third_party/pkg/stack_trace",
+      "third_party/pkg/string_scanner",
+      "third_party/pkg/typed_data",
     ]
 
     resources = []

@@ -567,18 +567,17 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register tmp1,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
-  StoreToOffset(kWord, exit_frame_fp, THR,
+  StoreToOffset(exit_frame_fp, THR,
                 target::Thread::top_exit_frame_info_offset());
 
-  StoreToOffset(kWord, exit_through_ffi, THR,
+  StoreToOffset(exit_through_ffi, THR,
                 target::Thread::exit_through_ffi_offset());
   Register tmp2 = exit_through_ffi;
 
   // Mark that the thread is executing native code.
-  StoreToOffset(kWord, destination_address, THR,
-                target::Thread::vm_tag_offset());
+  StoreToOffset(destination_address, THR, target::Thread::vm_tag_offset());
   LoadImmediate(tmp1, target::Thread::native_execution_state());
-  StoreToOffset(kWord, tmp1, THR, target::Thread::execution_state_offset());
+  StoreToOffset(tmp1, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
     EnterSafepoint(tmp1, tmp2);
@@ -639,16 +638,15 @@ void Assembler::TransitionNativeToGenerated(Register addr,
   }
 
   // Mark that the thread is executing Dart code.
-  LoadImmediate(state, target::Thread::vm_tag_compiled_id());
-  StoreToOffset(kWord, state, THR, target::Thread::vm_tag_offset());
+  LoadImmediate(state, target::Thread::vm_tag_dart_id());
+  StoreToOffset(state, THR, target::Thread::vm_tag_offset());
   LoadImmediate(state, target::Thread::generated_execution_state());
-  StoreToOffset(kWord, state, THR, target::Thread::execution_state_offset());
+  StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
   // Reset exit frame information in Isolate's mutator thread structure.
   LoadImmediate(state, 0);
-  StoreToOffset(kWord, state, THR,
-                target::Thread::top_exit_frame_info_offset());
-  StoreToOffset(kWord, state, THR, target::Thread::exit_through_ffi_offset());
+  StoreToOffset(state, THR, target::Thread::top_exit_frame_info_offset());
+  StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
 }
 
 void Assembler::clrex() {
@@ -1214,11 +1212,11 @@ static inline int ShiftOfOperandSize(OperandSize size) {
     case kByte:
     case kUnsignedByte:
       return 0;
-    case kHalfword:
-    case kUnsignedHalfword:
+    case kTwoBytes:
+    case kUnsignedTwoBytes:
       return 1;
-    case kWord:
-    case kUnsignedWord:
+    case kFourBytes:
+    case kUnsignedFourBytes:
       return 2;
     case kWordPair:
       return 3;
@@ -1388,14 +1386,14 @@ void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
       code = 1 | (idx << 1);
       break;
     }
-    case kHalfword:
-    case kUnsignedHalfword: {
+    case kTwoBytes:
+    case kUnsignedTwoBytes: {
       ASSERT((idx >= 0) && (idx < 4));
       code = 2 | (idx << 2);
       break;
     }
-    case kWord:
-    case kUnsignedWord: {
+    case kFourBytes:
+    case kUnsignedFourBytes: {
       ASSERT((idx >= 0) && (idx < 2));
       code = 4 | (idx << 3);
       break;
@@ -1514,14 +1512,17 @@ intptr_t Assembler::FindImmediate(int32_t imm) {
 }
 
 // Uses a code sequence that can easily be decoded.
-void Assembler::LoadWordFromPoolOffset(Register rd,
-                                       int32_t offset,
-                                       Register pp,
-                                       Condition cond) {
+void Assembler::LoadWordFromPoolIndex(Register rd,
+                                      intptr_t index,
+                                      Register pp,
+                                      Condition cond) {
   ASSERT((pp != PP) || constant_pool_allowed());
   ASSERT(rd != pp);
+  // PP is tagged on ARM.
+  const int32_t offset =
+      target::ObjectPool::element_offset(index) - kHeapObjectTag;
   int32_t offset_mask = 0;
-  if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
+  if (Address::CanHoldLoadOffset(kFourBytes, offset, &offset_mask)) {
     ldr(rd, Address(pp, offset), cond);
   } else {
     int32_t offset_hi = offset & ~offset_mask;  // signed
@@ -1632,8 +1633,7 @@ void Assembler::LoadObjectHelper(Register rd,
   // object pool.
   const auto index = is_unique ? object_pool_builder().AddObject(object)
                                : object_pool_builder().FindObject(object);
-  const int32_t offset = target::ObjectPool::element_offset(index);
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
+  LoadWordFromPoolIndex(rd, index, pp, cond);
 }
 
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
@@ -1650,9 +1650,9 @@ void Assembler::LoadNativeEntry(Register rd,
                                 const ExternalLabel* label,
                                 ObjectPoolBuilderEntry::Patchability patchable,
                                 Condition cond) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindNativeFunction(label, patchable));
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
+  const intptr_t index =
+      object_pool_builder().FindNativeFunction(label, patchable);
+  LoadWordFromPoolIndex(rd, index, PP, cond);
 }
 
 void Assembler::PushObject(const Object& object) {
@@ -1837,7 +1837,8 @@ void Assembler::StoreIntoObjectOffset(Register object,
                                       CanBeSmi can_value_be_smi,
                                       bool lr_reserved) {
   int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+  if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
+                                  &ignored)) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
                     can_value_be_smi, lr_reserved);
   } else {
@@ -1878,7 +1879,8 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
                                                Register value) {
   int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+  if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
+                                  &ignored)) {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
   } else {
     Register base = object == R9 ? R8 : R9;
@@ -1894,7 +1896,8 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                const Object& value) {
   ASSERT(IsOriginalObject(value));
   int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+  if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
+                                  &ignored)) {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
   } else {
     Register base = object == R9 ? R8 : R9;
@@ -2009,7 +2012,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
       target::Isolate::cached_class_table_table_offset();
 
   LoadIsolate(result);
-  LoadFromOffset(kWord, result, result, table_offset);
+  LoadFromOffset(result, result, table_offset);
   ldr(result, Address(result, class_id, LSL, target::kWordSizeLog2));
 }
 
@@ -2207,13 +2210,14 @@ OperandSize Address::OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-      return kWord;
+    case kTypeArgumentsCid:
+      return kFourBytes;
     case kOneByteStringCid:
     case kExternalOneByteStringCid:
       return kByte;
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
-      return kHalfword;
+      return kTwoBytes;
     case kTypedDataInt8ArrayCid:
       return kByte;
     case kTypedDataUint8ArrayCid:
@@ -2222,13 +2226,13 @@ OperandSize Address::OperandSizeFor(intptr_t cid) {
     case kExternalTypedDataUint8ClampedArrayCid:
       return kUnsignedByte;
     case kTypedDataInt16ArrayCid:
-      return kHalfword;
+      return kTwoBytes;
     case kTypedDataUint16ArrayCid:
-      return kUnsignedHalfword;
+      return kUnsignedTwoBytes;
     case kTypedDataInt32ArrayCid:
-      return kWord;
+      return kFourBytes;
     case kTypedDataUint32ArrayCid:
-      return kUnsignedWord;
+      return kUnsignedFourBytes;
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       return kDWord;
@@ -2254,15 +2258,15 @@ bool Address::CanHoldLoadOffset(OperandSize size,
                                 int32_t* offset_mask) {
   switch (size) {
     case kByte:
-    case kHalfword:
-    case kUnsignedHalfword:
+    case kTwoBytes:
+    case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
     }
     case kUnsignedByte:
-    case kWord:
-    case kUnsignedWord: {
+    case kFourBytes:
+    case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
     }
@@ -2287,16 +2291,16 @@ bool Address::CanHoldStoreOffset(OperandSize size,
                                  int32_t offset,
                                  int32_t* offset_mask) {
   switch (size) {
-    case kHalfword:
-    case kUnsignedHalfword:
+    case kTwoBytes:
+    case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
     }
     case kByte:
     case kUnsignedByte:
-    case kWord:
-    case kUnsignedWord: {
+    case kFourBytes:
+    case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
     }
@@ -2580,9 +2584,9 @@ void Assembler::Branch(const Code& target,
                        ObjectPoolBuilderEntry::Patchability patchable,
                        Register pp,
                        Condition cond) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index, pp, cond);
   Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()), cond);
 }
 
@@ -2597,9 +2601,9 @@ void Assembler::BranchLink(const Code& target,
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
   ldr(LR, FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
@@ -2621,9 +2625,9 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), equivalence));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), equivalence);
+  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
   ldr(LR, FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
@@ -2636,7 +2640,7 @@ void Assembler::BranchLink(const ExternalLabel* label) {
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   ASSERT(base != PC);
   ASSERT(base != IP);
-  LoadFromOffset(kWord, IP, base, offset);
+  LoadFromOffset(IP, base, offset);
   blx(IP);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -2695,10 +2699,10 @@ void Assembler::LoadDImmediate(DRegister dd,
   }
 }
 
-void Assembler::LoadFromOffset(OperandSize size,
-                               Register reg,
+void Assembler::LoadFromOffset(Register reg,
                                Register base,
                                int32_t offset,
+                               OperandSize size,
                                Condition cond) {
   ASSERT(size != kWordPair);
   int32_t offset_mask = 0;
@@ -2715,13 +2719,13 @@ void Assembler::LoadFromOffset(OperandSize size,
     case kUnsignedByte:
       ldrb(reg, Address(base, offset), cond);
       break;
-    case kHalfword:
+    case kTwoBytes:
       ldrsh(reg, Address(base, offset), cond);
       break;
-    case kUnsignedHalfword:
+    case kUnsignedTwoBytes:
       ldrh(reg, Address(base, offset), cond);
       break;
-    case kWord:
+    case kFourBytes:
       ldr(reg, Address(base, offset), cond);
       break;
     default:
@@ -2729,10 +2733,25 @@ void Assembler::LoadFromOffset(OperandSize size,
   }
 }
 
-void Assembler::StoreToOffset(OperandSize size,
-                              Register reg,
+void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  ASSERT(depth >= 0);
+  LoadFromOffset(dst, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::StoreToStack(Register src, intptr_t depth) {
+  ASSERT(depth >= 0);
+  StoreToOffset(src, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::CompareToStack(Register src, intptr_t depth) {
+  LoadFromStack(TMP, depth);
+  CompareRegisters(src, TMP);
+}
+
+void Assembler::StoreToOffset(Register reg,
                               Register base,
                               int32_t offset,
+                              OperandSize size,
                               Condition cond) {
   ASSERT(size != kWordPair);
   int32_t offset_mask = 0;
@@ -2747,10 +2766,10 @@ void Assembler::StoreToOffset(OperandSize size,
     case kByte:
       strb(reg, Address(base, offset), cond);
       break;
-    case kHalfword:
+    case kTwoBytes:
       strh(reg, Address(base, offset), cond);
       break;
-    case kWord:
+    case kFourBytes:
       str(reg, Address(base, offset), cond);
       break;
     default:
@@ -2841,16 +2860,12 @@ void Assembler::CopyDoubleField(Register dst,
     LoadDFromOffset(dtmp, src, target::Double::value_offset() - kHeapObjectTag);
     StoreDToOffset(dtmp, dst, target::Double::value_offset() - kHeapObjectTag);
   } else {
-    LoadFromOffset(kWord, tmp1, src,
-                   target::Double::value_offset() - kHeapObjectTag);
-    LoadFromOffset(
-        kWord, tmp2, src,
-        target::Double::value_offset() + target::kWordSize - kHeapObjectTag);
-    StoreToOffset(kWord, tmp1, dst,
-                  target::Double::value_offset() - kHeapObjectTag);
-    StoreToOffset(
-        kWord, tmp2, dst,
-        target::Double::value_offset() + target::kWordSize - kHeapObjectTag);
+    LoadFieldFromOffset(tmp1, src, target::Double::value_offset());
+    LoadFieldFromOffset(tmp2, src,
+                        target::Double::value_offset() + target::kWordSize);
+    StoreFieldToOffset(tmp1, dst, target::Double::value_offset());
+    StoreFieldToOffset(tmp2, dst,
+                       target::Double::value_offset() + target::kWordSize);
   }
 }
 
@@ -2865,31 +2880,23 @@ void Assembler::CopyFloat32x4Field(Register dst,
     StoreMultipleDToOffset(dtmp, 2, dst,
                            target::Float32x4::value_offset() - kHeapObjectTag);
   } else {
-    LoadFromOffset(kWord, tmp1, src,
-                   (target::Float32x4::value_offset() + 0 * target::kWordSize) -
-                       kHeapObjectTag);
-    LoadFromOffset(kWord, tmp2, src,
-                   (target::Float32x4::value_offset() + 1 * target::kWordSize) -
-                       kHeapObjectTag);
-    StoreToOffset(kWord, tmp1, dst,
-                  (target::Float32x4::value_offset() + 0 * target::kWordSize) -
-                      kHeapObjectTag);
-    StoreToOffset(kWord, tmp2, dst,
-                  (target::Float32x4::value_offset() + 1 * target::kWordSize) -
-                      kHeapObjectTag);
+    LoadFieldFromOffset(
+        tmp1, src, target::Float32x4::value_offset() + 0 * target::kWordSize);
+    LoadFieldFromOffset(
+        tmp2, src, target::Float32x4::value_offset() + 1 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp1, dst, target::Float32x4::value_offset() + 0 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp2, dst, target::Float32x4::value_offset() + 1 * target::kWordSize);
 
-    LoadFromOffset(kWord, tmp1, src,
-                   (target::Float32x4::value_offset() + 2 * target::kWordSize) -
-                       kHeapObjectTag);
-    LoadFromOffset(kWord, tmp2, src,
-                   (target::Float32x4::value_offset() + 3 * target::kWordSize) -
-                       kHeapObjectTag);
-    StoreToOffset(kWord, tmp1, dst,
-                  (target::Float32x4::value_offset() + 2 * target::kWordSize) -
-                      kHeapObjectTag);
-    StoreToOffset(kWord, tmp2, dst,
-                  (target::Float32x4::value_offset() + 3 * target::kWordSize) -
-                      kHeapObjectTag);
+    LoadFieldFromOffset(
+        tmp1, src, target::Float32x4::value_offset() + 2 * target::kWordSize);
+    LoadFieldFromOffset(
+        tmp2, src, target::Float32x4::value_offset() + 3 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp1, dst, target::Float32x4::value_offset() + 2 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp2, dst, target::Float32x4::value_offset() + 3 * target::kWordSize);
   }
 }
 
@@ -2904,31 +2911,23 @@ void Assembler::CopyFloat64x2Field(Register dst,
     StoreMultipleDToOffset(dtmp, 2, dst,
                            target::Float64x2::value_offset() - kHeapObjectTag);
   } else {
-    LoadFromOffset(kWord, tmp1, src,
-                   (target::Float64x2::value_offset() + 0 * target::kWordSize) -
-                       kHeapObjectTag);
-    LoadFromOffset(kWord, tmp2, src,
-                   (target::Float64x2::value_offset() + 1 * target::kWordSize) -
-                       kHeapObjectTag);
-    StoreToOffset(kWord, tmp1, dst,
-                  (target::Float64x2::value_offset() + 0 * target::kWordSize) -
-                      kHeapObjectTag);
-    StoreToOffset(kWord, tmp2, dst,
-                  (target::Float64x2::value_offset() + 1 * target::kWordSize) -
-                      kHeapObjectTag);
+    LoadFieldFromOffset(
+        tmp1, src, target::Float64x2::value_offset() + 0 * target::kWordSize);
+    LoadFieldFromOffset(
+        tmp2, src, target::Float64x2::value_offset() + 1 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp1, dst, target::Float64x2::value_offset() + 0 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp2, dst, target::Float64x2::value_offset() + 1 * target::kWordSize);
 
-    LoadFromOffset(kWord, tmp1, src,
-                   (target::Float64x2::value_offset() + 2 * target::kWordSize) -
-                       kHeapObjectTag);
-    LoadFromOffset(kWord, tmp2, src,
-                   (target::Float64x2::value_offset() + 3 * target::kWordSize) -
-                       kHeapObjectTag);
-    StoreToOffset(kWord, tmp1, dst,
-                  (target::Float64x2::value_offset() + 2 * target::kWordSize) -
-                      kHeapObjectTag);
-    StoreToOffset(kWord, tmp2, dst,
-                  (target::Float64x2::value_offset() + 3 * target::kWordSize) -
-                      kHeapObjectTag);
+    LoadFieldFromOffset(
+        tmp1, src, target::Float64x2::value_offset() + 2 * target::kWordSize);
+    LoadFieldFromOffset(
+        tmp2, src, target::Float64x2::value_offset() + 3 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp1, dst, target::Float64x2::value_offset() + 2 * target::kWordSize);
+    StoreFieldToOffset(
+        tmp2, dst, target::Float64x2::value_offset() + 3 * target::kWordSize);
   }
 }
 
@@ -3421,8 +3420,7 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
 
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(IP, tags);
     str(IP, FieldAddress(instance_reg, target::Object::tags_offset()));
   } else {
@@ -3464,8 +3462,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp2, tags);
     str(temp2,
         FieldAddress(instance, target::Object::tags_offset()));  // Store tags.
@@ -3550,8 +3547,8 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   ASSERT(array != IP);
   ASSERT(index != IP);
   const Register base = is_load ? IP : index;
-  if ((offset != 0) || (is_load && (size == kByte)) || (size == kHalfword) ||
-      (size == kUnsignedHalfword) || (size == kSWord) || (size == kDWord) ||
+  if ((offset != 0) || (is_load && (size == kByte)) || (size == kTwoBytes) ||
+      (size == kUnsignedTwoBytes) || (size == kSWord) || (size == kDWord) ||
       (size == kRegList)) {
     if (shift < 0) {
       ASSERT(shift == -1);

@@ -120,6 +120,16 @@ List<AstNode> _getSortedUnique(List<AstNode> items) {
   return sortedList;
 }
 
+String _getTypeCheckFailureMessage(TypeBase type) {
+  if (type is LiteralType) {
+    return 'must be the literal ${type.literal}';
+  } else if (type is LiteralUnionType) {
+    return 'must be one of the literals ${type.literalTypes.map((t) => t.literal).join(', ')}';
+  } else {
+    return 'must be of type ${type.dartTypeWithTypeArgs}';
+  }
+}
+
 bool _isSimpleType(TypeBase type) {
   const literals = ['num', 'String', 'bool'];
   return type is Type && literals.contains(type.dartType);
@@ -133,11 +143,13 @@ bool _isSpecType(TypeBase type) {
 
 /// Maps reserved words and identifiers that cause issues in field names.
 String _makeValidIdentifier(String identifier) {
-  // The SymbolKind class has uses these names which cause issues for code that
-  // uses them as types.
+  // Some identifiers used in LSP are reserved words in Dart, so map them to
+  // other values.
   const map = {
     'Object': 'Obj',
     'String': 'Str',
+    'class': 'class_',
+    'enum': 'enum_',
   };
   return map[identifier] ?? identifier;
 }
@@ -222,7 +234,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       ..write(')) {')
       ..indent()
       ..writeIndentedln(
-          "reporter.reportError('must be of type ${field.type.dartTypeWithTypeArgs}');")
+          "reporter.reportError('${_getTypeCheckFailureMessage(field.type).replaceAll("'", "\\'")}');")
       ..writeIndentedln('return false;')
       ..outdent()
       ..writeIndentedln('}')
@@ -260,25 +272,42 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndented('${interface.name}({')
     ..write(allFields.map((field) {
-      final annotation =
-          !field.allowsNull && !field.allowsUndefined ? '@required' : '';
-      return '$annotation this.${field.name}';
+      final isLiteral = field.type is LiteralType;
+      final isRequired =
+          !isLiteral && !field.allowsNull && !field.allowsUndefined;
+      final annotation = isRequired ? '@required' : '';
+      final valueCode =
+          isLiteral ? ' = ${(field.type as LiteralType).literal}' : '';
+      return '$annotation this.${field.name}$valueCode';
     }).join(', '))
     ..write('})');
-  final fieldsWithValidation =
-      allFields.where((f) => !f.allowsNull && !f.allowsUndefined).toList();
+  final fieldsWithValidation = allFields
+      .where(
+          (f) => (!f.allowsNull && !f.allowsUndefined) || f.type is LiteralType)
+      .toList();
   if (fieldsWithValidation.isNotEmpty) {
     buffer
       ..writeIndentedln(' {')
       ..indent();
     for (var field in fieldsWithValidation) {
-      buffer
-        ..writeIndentedln('if (${field.name} == null) {')
-        ..indent()
-        ..writeIndentedln(
-            "throw '${field.name} is required but was not provided';")
-        ..outdent()
-        ..writeIndentedln('}');
+      final type = field.type;
+      if (type is LiteralType) {
+        buffer
+          ..writeIndentedln('if (${field.name} != ${type.literal}) {')
+          ..indent()
+          ..writeIndentedln(
+              "throw '${field.name} may only be the literal ${type.literal.replaceAll("'", "\\'")}';")
+          ..outdent()
+          ..writeIndentedln('}');
+      } else if (!field.allowsNull && !field.allowsUndefined) {
+        buffer
+          ..writeIndentedln('if (${field.name} == null) {')
+          ..indent()
+          ..writeIndentedln(
+              "throw '${field.name} is required but was not provided';")
+          ..outdent()
+          ..writeIndentedln('}');
+      }
     }
     buffer
       ..outdent()
@@ -298,9 +327,14 @@ void _writeDocCommentsAndAnnotations(
     lines = _wrapLines(lines, (80 - 4 - buffer.totalIndent).clamp(0, 80));
     lines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
   }
-  if (node.isDeprecated) {
-    buffer.writeIndentedln('@core.deprecated');
-  }
+  // Marking LSP-deprecated fields as deprecated in Dart results in a lot
+  // of warnings because we still often populate these fields for clients that
+  // may still be using them. This code is useful for enabling temporarily
+  // and reviewing which deprecated fields we should still support but isn't
+  // generally useful to keep enabled.
+  // if (node.isDeprecated) {
+  //   buffer.writeIndentedln('@core.deprecated');
+  // }
 }
 
 void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
@@ -308,8 +342,13 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   final consts = namespace.members.cast<Const>().toList();
   final allowsAnyValue = enumClassAllowsAnyValue(namespace.name);
   final constructorName = allowsAnyValue ? '' : '._';
+  final firstValueType = consts.first.type;
+  // Enums can have constant values in their fields so if a field is a literal
+  // use its underlying type for type checking.
+  final requiredValueType =
+      firstValueType is LiteralType ? firstValueType.type : firstValueType;
   final typeOfValues =
-      resolveTypeAlias(consts.first.type, resolveEnumClasses: true);
+      resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
 
   buffer
     ..writeln('class ${namespace.name} {')
@@ -331,7 +370,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
       ..writeIndentedln('switch (obj) {')
       ..indent();
     consts.forEach((cons) {
-      buffer..writeIndentedln('case ${cons.valueAsLiteral}:');
+      buffer.writeIndentedln('case ${cons.valueAsLiteral}:');
     });
     buffer
       ..indent()
@@ -345,10 +384,13 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..outdent()
     ..writeIndentedln('}');
   namespace.members.whereType<Const>().forEach((cons) {
+    // We don't use any deprecated enum values, so ommit them entirely.
+    if (cons.isDeprecated) {
+      return;
+    }
     _writeDocCommentsAndAnnotations(buffer, cons);
-    buffer
-      ..writeIndentedln(
-          'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
+    buffer.writeIndentedln(
+        'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
   });
   buffer
     ..writeln()
@@ -447,11 +489,26 @@ void _writeFromJsonCode(
     _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: allowsNull);
     buffer.write(
         '))?.cast<${type.indexType.dartTypeWithTypeArgs}, ${type.valueType.dartTypeWithTypeArgs}>()');
+  } else if (type is LiteralUnionType) {
+    _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
+        allowsNull: allowsNull);
   } else if (type is UnionType) {
     _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
   } else {
     buffer.write('$valueCode');
   }
+}
+
+void _writeFromJsonCodeForLiteralUnion(
+    IndentableStringBuffer buffer, LiteralUnionType union, String valueCode,
+    {bool allowsNull}) {
+  final allowedValues = [
+    if (allowsNull) null,
+    ...union.literalTypes.map((t) => t.literal)
+  ];
+  buffer.write(
+      "const {${allowedValues.join(', ')}}.contains($valueCode) ? $valueCode : "
+      "throw '''\${$valueCode} was not one of (${allowedValues.join(', ')})'''");
 }
 
 void _writeFromJsonCodeForUnion(
@@ -609,7 +666,11 @@ void _writeJsonMapAssignment(
       ..writeIndentedln('if (${field.name} != null) {')
       ..indent();
   }
-  buffer..writeIndented('''$mapName['${field.name}'] = ${field.name}''');
+  // Suppress the ? operator if we've output a null check already.
+  final nullOp = shouldBeOmittedIfNoValue ? '' : '?';
+  final valueCode =
+      _isSpecType(field.type) ? '${field.name}$nullOp.toJson()' : field.name;
+  buffer.writeIndented('''$mapName['${field.name}'] = $valueCode''');
   if (!field.allowsUndefined && !field.allowsNull) {
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }
@@ -718,6 +779,8 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     buffer.write('true');
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is $fullDartType');
+  } else if (type is LiteralType) {
+    buffer.write('$valueCode == ${type.literal}');
   } else if (_isSpecType(type)) {
     buffer.write('$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {
@@ -737,7 +800,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
       buffer..write(' && (')..write('$valueCode.keys.every((item) => ');
       _writeTypeCheckCondition(
           buffer, interface, 'item', type.indexType, reporter);
-      buffer..write('&& $valueCode.values.every((item) => ');
+      buffer.write('&& $valueCode.values.every((item) => ');
       _writeTypeCheckCondition(
           buffer, interface, 'item', type.valueType, reporter);
       buffer.write(')))');

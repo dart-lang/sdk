@@ -10,6 +10,7 @@
 #include "vm/compiler/method_recognizer.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -75,14 +76,9 @@ FlowGraphSerializer::~FlowGraphSerializer() {
   object_store_->set_llvm_constant_hash_table(llvm_constant_map_.Release());
 }
 
-void FlowGraphSerializer::SerializeToBuffer(const FlowGraph* flow_graph,
-                                            TextBuffer* buffer) {
-  SerializeToBuffer(Thread::Current()->zone(), flow_graph, buffer);
-}
-
 void FlowGraphSerializer::SerializeToBuffer(Zone* zone,
                                             const FlowGraph* flow_graph,
-                                            TextBuffer* buffer) {
+                                            BaseTextBuffer* buffer) {
   ASSERT(buffer != nullptr);
   auto const sexp = SerializeToSExp(zone, flow_graph);
   if (FLAG_pretty_print_serialization) {
@@ -91,10 +87,6 @@ void FlowGraphSerializer::SerializeToBuffer(Zone* zone,
     sexp->SerializeToLine(buffer);
   }
   buffer->AddString("\n\n");
-}
-
-SExpression* FlowGraphSerializer::SerializeToSExp(const FlowGraph* flow_graph) {
-  return SerializeToSExp(Thread::Current()->zone(), flow_graph);
 }
 
 SExpression* FlowGraphSerializer::SerializeToSExp(Zone* zone,
@@ -163,7 +155,7 @@ SExpression* FlowGraphSerializer::BlockIdToSExp(intptr_t block_id) {
   return new (zone()) SExpSymbol(OS::SCreate(zone(), "B%" Pd "", block_id));
 }
 
-void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
+void FlowGraphSerializer::SerializeCanonicalName(BaseTextBuffer* b,
                                                  const Object& obj) {
   ASSERT(!obj.IsNull());
   if (obj.IsFunction()) {
@@ -223,9 +215,9 @@ void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
 
 SExpression* FlowGraphSerializer::CanonicalNameToSExp(const Object& obj) {
   ASSERT(!obj.IsNull());
-  TextBuffer b(100);
+  ZoneTextBuffer b(zone_, 100);
   SerializeCanonicalName(&b, obj);
-  return new (zone()) SExpSymbol(OS::SCreate(zone(), "%s", b.buf()));
+  return new (zone()) SExpSymbol(b.buffer());
 }
 
 SExpSymbol* FlowGraphSerializer::BlockEntryKindToTag(BlockEntryKind k) {

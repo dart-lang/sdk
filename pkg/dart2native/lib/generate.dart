@@ -24,6 +24,7 @@ Future<void> generateNative({
   String debugFile,
   String packages,
   List<String> defines,
+  String enableExperiment = '',
   bool enableAsserts = false,
   bool verbose = false,
   List<String> extraOptions = const [],
@@ -31,6 +32,9 @@ Future<void> generateNative({
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
     final sourcePath = path.canonicalize(path.normalize(sourceFile));
+    if (packages != null) {
+      packages = path.canonicalize(path.normalize(packages));
+    }
     final Kind outputKind = {
       'aot': Kind.aot,
       'exe': Kind.exe,
@@ -52,7 +56,8 @@ Future<void> generateNative({
 
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
     final kernelResult = await generateAotKernel(Platform.executable, genKernel,
-        productPlatformDill, sourcePath, kernelFile, packages, defines);
+        productPlatformDill, sourcePath, kernelFile, packages, defines,
+        enableExperiment: enableExperiment);
     if (kernelResult.exitCode != 0) {
       stderr.writeln(kernelResult.stdout);
       stderr.writeln(kernelResult.stderr);

@@ -36,9 +36,6 @@ for arg in "$@"; do
     --no-tfa | \
     --protobuf-tree-shaker | \
     --protobuf-tree-shaker-v2 | \
-    --gen-bytecode | \
-    --no-gen-bytecode | \
-    --bytecode-options=* | \
     --minimal-kernel | \
     --no-embed-sources | \
     -D* )
@@ -101,7 +98,7 @@ fi
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
-DART="tools/sdks/dart-sdk/bin/dart"
+DART="${SDK_DIR}/tools/sdks/dart-sdk/bin/dart"
 if [ ! -f "$DART" ]; then
   DART="$BIN_DIR/dart"
 fi

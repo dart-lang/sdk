@@ -30,15 +30,12 @@ namespace dart {
 #define I (isolate())
 #define Z (zone())
 
-static bool ShouldCloneFields() {
-  return Compiler::IsBackgroundCompilation() ||
-         FLAG_force_clone_compiler_objects;
-}
-
 JitCallSpecializer::JitCallSpecializer(
     FlowGraph* flow_graph,
     SpeculativeInliningPolicy* speculative_policy)
-    : CallSpecializer(flow_graph, speculative_policy, ShouldCloneFields()) {}
+    : CallSpecializer(flow_graph,
+                      speculative_policy,
+                      Field::ShouldCloneFields()) {}
 
 bool JitCallSpecializer::IsAllowedForInlining(intptr_t deopt_id) const {
   return true;
@@ -208,6 +205,9 @@ void JitCallSpecializer::VisitStoreInstanceField(
       }
       ASSERT(field.IsOriginal());
       field.set_is_unboxing_candidate(false);
+      Thread* thread = Thread::Current();
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
       field.DeoptimizeDependentCode();
     } else {
       flow_graph()->parsed_function().AddToGuardedFields(&field);

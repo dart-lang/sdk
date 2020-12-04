@@ -12,16 +12,16 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class InboundReferencesElement extends CustomElement implements Renderable {
-  RenderingScheduler<InboundReferencesElement> _r;
+  late RenderingScheduler<InboundReferencesElement> _r;
 
   Stream<RenderedEvent<InboundReferencesElement>> get onRendered =>
       _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.ObjectRef _object;
-  M.InboundReferencesRepository _references;
-  M.ObjectRepository _objects;
-  M.InboundReferences _inbounds;
+  late M.IsolateRef _isolate;
+  late M.ObjectRef _object;
+  late M.InboundReferencesRepository _references;
+  late M.ObjectRepository _objects;
+  M.InboundReferences? _inbounds;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -29,7 +29,7 @@ class InboundReferencesElement extends CustomElement implements Renderable {
 
   factory InboundReferencesElement(M.IsolateRef isolate, M.ObjectRef object,
       M.InboundReferencesRepository references, M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(object != null);
     assert(references != null);
@@ -75,7 +75,7 @@ class InboundReferencesElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    _inbounds = await _references.get(_isolate, _object.id);
+    _inbounds = await _references.get(_isolate, _object.id!);
     _r.dirty();
   }
 
@@ -83,7 +83,7 @@ class InboundReferencesElement extends CustomElement implements Renderable {
     if (_inbounds == null) {
       return const [];
     }
-    return _inbounds.elements.map<Element>(_createItem).toList();
+    return _inbounds!.elements.map<Element>(_createItem).toList();
   }
 
   Element _createItem(M.InboundReference reference) {

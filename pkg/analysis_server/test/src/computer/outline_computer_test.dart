@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
@@ -45,7 +43,7 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_columnWithChildren() async {
@@ -673,7 +671,7 @@ main(p()) {
   }
 
   Future<void> test_isTest_isTestGroup() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     var outline = await _computeOutline('''
 import 'package:meta/meta.dart';
 

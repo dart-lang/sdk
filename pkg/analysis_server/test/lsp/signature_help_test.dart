@@ -11,11 +11,48 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SignatureHelpTest);
+    defineReflectiveTests(SignatureHelpWithNullSafetyTest);
   });
 }
 
+mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
+  Future<void> testSignature(
+    String fileContent,
+    String expectedLabel,
+    String expectedDoc,
+    List<ParameterInformation> expectedParams, {
+    MarkupKind expectedFormat = MarkupKind.Markdown,
+    SignatureHelpContext context,
+  }) async {
+    final res = await getSignatureHelp(
+        mainFileUri, positionFromMarker(fileContent), context);
+
+    // TODO(dantup): Update this when there is clarification on how to handle
+    // no valid selected parameter.
+    expect(res.activeParameter, -1);
+    expect(res.activeSignature, equals(0));
+    expect(res.signatures, hasLength(1));
+    final sig = res.signatures.first;
+    expect(sig.label, equals(expectedLabel));
+    expect(sig.parameters, equals(expectedParams));
+
+    // Test the format matches the tests expectation.
+    // For clients that don't support MarkupContent it'll be a plain string,
+    // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
+    final doc = sig.documentation;
+    if (expectedFormat == null) {
+      // Plain string.
+      expect(doc.valueEquals(expectedDoc), isTrue);
+    } else {
+      final expected = MarkupContent(kind: expectedFormat, value: expectedDoc);
+      expect(doc.valueEquals(expected), isTrue);
+    }
+  }
+}
+
 @reflectiveTest
-class SignatureHelpTest extends AbstractLspAnalysisServerTest {
+class SignatureHelpTest extends AbstractLspAnalysisServerTest
+    with SignatureHelpMixin {
   Future<void> test_dartDocMacro() async {
     final content = '''
     /// {@template template_name}
@@ -151,6 +188,38 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       ],
       expectedFormat: MarkupKind.Markdown,
     );
+  }
+
+  Future<void> test_manualTrigger_invalidLocation() async {
+    // If the user invokes signature help, we should show it even if it's a
+    // location where we wouldn't automatically trigger (for example in a string).
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo('this is a (^test');
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    await testSignature(
+        content,
+        expectedLabel,
+        expectedDoc,
+        [
+          ParameterInformation(label: 'String s'),
+          ParameterInformation(label: 'int i'),
+        ],
+        expectedFormat: MarkupKind.Markdown,
+        context: SignatureHelpContext(
+          triggerKind: SignatureHelpTriggerKind.Invoked,
+          isRetrigger: false,
+        ));
   }
 
   Future<void> test_nonDartFile() async {
@@ -293,6 +362,62 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_triggerCharacter_invalidLocation() async {
+    // The client will automatically trigger when the user types ( so we need to
+    // ignore it when we're not in a suitable location.
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo('this is a (^test');
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    // Expect no result.
+    final res = await getSignatureHelp(
+      mainFileUri,
+      positionFromMarker(content),
+      SignatureHelpContext(
+        triggerKind: SignatureHelpTriggerKind.TriggerCharacter,
+        isRetrigger: false,
+      ),
+    );
+    expect(res, isNull);
+  }
+
+  Future<void> test_triggerCharacter_validLocation() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+        content,
+        expectedLabel,
+        expectedDoc,
+        [
+          ParameterInformation(label: 'String s'),
+          ParameterInformation(label: 'int i'),
+        ],
+        expectedFormat: MarkupKind.Markdown,
+        context: SignatureHelpContext(
+          triggerKind: SignatureHelpTriggerKind.Invoked,
+          isRetrigger: false,
+        ));
+  }
+
   Future<void> test_unopenFile() async {
     final content = '''
     /// Does foo.
@@ -317,36 +442,39 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       ],
     );
   }
+}
 
-  Future<void> testSignature(
-    String fileContent,
-    String expectedLabel,
-    String expectedDoc,
-    List<ParameterInformation> expectedParams, {
-    MarkupKind expectedFormat = MarkupKind.Markdown,
-  }) async {
-    final res =
-        await getSignatureHelp(mainFileUri, positionFromMarker(fileContent));
+@reflectiveTest
+class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
+    with SignatureHelpMixin {
+  @override
+  String get testPackageLanguageVersion => latestLanguageVersion;
 
-    // TODO(dantup): Update this when there is clarification on how to handle
-    // no valid selected parameter.
-    expect(res.activeParameter, -1);
-    expect(res.activeSignature, equals(0));
-    expect(res.signatures, hasLength(1));
-    final sig = res.signatures.first;
-    expect(sig.label, equals(expectedLabel));
-    expect(sig.parameters, equals(expectedParams));
-
-    // Test the format matches the tests expectation.
-    // For clients that don't support MarkupContent it'll be a plain string,
-    // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
-    final doc = sig.documentation;
-    if (expectedFormat == null) {
-      // Plain string.
-      expect(doc.valueEquals(expectedDoc), isTrue);
-    } else {
-      final expected = MarkupContent(kind: expectedFormat, value: expectedDoc);
-      expect(doc.valueEquals(expected), isTrue);
+  Future<void> test_params_requiredNamed() async {
+    // This test requires support for the "required" keyword.
+    final content = '''
+    /// Does foo.
+    foo(String s, {bool b = true, required bool a}) {
+      foo(^);
     }
+    ''';
+
+    final expectedLabel = 'foo(String s, {bool b = true, required bool a})';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'required bool a'),
+      ],
+    );
   }
 }

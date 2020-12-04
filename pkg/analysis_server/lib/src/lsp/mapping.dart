@@ -17,6 +17,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart'
     show ErrorOr, Either2, Either4;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/source_edits.dart';
@@ -33,7 +34,6 @@ import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 import 'package:meta/meta.dart';
 
 const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{
@@ -62,32 +62,53 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
           _asMarkup(preferredFormats, content));
 }
 
-/// Builds an LSP snippet string that uses a $1 tabstop to set the selected text
-/// after insertion.
-String buildSnippetStringWithSelection(
+/// Builds an LSP snippet string with supplied ranges as tabstops.
+String buildSnippetStringWithTabStops(
   String text,
-  int selectionOffset,
-  int selectionLength,
+  List<int> offsetLengthPairs,
 ) {
+  text ??= '';
+  offsetLengthPairs ??= const [];
+
   String escape(String input) => input.replaceAllMapped(
         RegExp(r'[$}\\]'), // Replace any of $ } \
         (c) => '\\${c[0]}', // Prefix with a backslash
       );
+
   // Snippets syntax is documented in the LSP spec:
-  // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
+  // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
   //
   // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
-  // Since we only need to support a single tab stop, our string is constructed of three parts:
-  // - Anything before the selection
-  // - The selection (which may or may not include text, depending on selectionLength)
-  // - Anything after the selection
-  final prefix = escape(text.substring(0, selectionOffset));
-  final selectionText = escape(
-      text.substring(selectionOffset, selectionOffset + selectionLength));
-  final selection = '\${1:$selectionText}';
-  final suffix = escape(text.substring(selectionOffset + selectionLength));
 
-  return '$prefix$selection$suffix';
+  final output = [];
+  var offset = 0;
+
+  // When there's only a single tabstop, it should be ${0} as this is treated
+  // specially as the final cursor position (if we use 1, the editor will insert
+  // a 0 at the end of the string which is not what we expect).
+  // When there are multiple, start with ${1} since these are placeholders the
+  // user can tab through and the editor-inserted ${0} at the end is expected.
+  var tabStopNumber = offsetLengthPairs.length <= 2 ? 0 : 1;
+
+  for (var i = 0; i < offsetLengthPairs.length; i += 2) {
+    final pairOffset = offsetLengthPairs[i];
+    final pairLength = offsetLengthPairs[i + 1];
+
+    // Add any text that came before this tabstop to the result.
+    output.add(escape(text.substring(offset, pairOffset)));
+
+    // Add this tabstop
+    final tabStopText =
+        escape(text.substring(pairOffset, pairOffset + pairLength));
+    output.add('\${${tabStopNumber++}:$tabStopText}');
+
+    offset = pairOffset + pairLength;
+  }
+
+  // Add any remaining text that was after the last tabstop.
+  output.add(escape(text.substring(offset)));
+
+  return output.join('');
 }
 
 /// Note: This code will fetch the version of each document being modified so
@@ -156,8 +177,9 @@ lsp.SymbolKind declarationKindToSymbolKind(
       case server.DeclarationKind.CONSTRUCTOR:
         return const [lsp.SymbolKind.Constructor];
       case server.DeclarationKind.ENUM:
-      case server.DeclarationKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.Enum];
+      case server.DeclarationKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.DeclarationKind.FIELD:
         return const [lsp.SymbolKind.Field];
       case server.DeclarationKind.FUNCTION:
@@ -199,8 +221,9 @@ lsp.CompletionItem declarationToCompletionItem(
   server.LineInfo lineInfo,
   dec.Declaration declaration,
   int replacementOffset,
-  int replacementLength,
-) {
+  int replacementLength, {
+  @required bool includeCommitCharacters,
+}) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
@@ -267,6 +290,8 @@ lsp.CompletionItem declarationToCompletionItem(
               lsp.CompletionItemTag.Deprecated
           ]
         : null,
+    commitCharacters:
+        includeCommitCharacters ? lsp.dartCompletionCommitCharacters : null,
     detail: getDeclarationCompletionDetail(declaration, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     deprecated:
@@ -284,7 +309,7 @@ lsp.CompletionItem declarationToCompletionItem(
         ? insertText
         : null, // insertText uses label if not set
     // data, used for completionItem/resolve.
-    data: lsp.CompletionItemResolutionInfo(
+    data: lsp.DartCompletionItemResolutionInfo(
         file: file,
         offset: offset,
         libId: includedSuggestionSet.id,
@@ -377,8 +402,9 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.CONSTRUCTOR_INVOCATION:
         return const [lsp.SymbolKind.Constructor];
       case server.ElementKind.ENUM:
-      case server.ElementKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.Enum];
+      case server.ElementKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.ElementKind.EXTENSION:
         return const [lsp.SymbolKind.Namespace];
       case server.ElementKind.FIELD:
@@ -538,15 +564,42 @@ List<lsp.DiagnosticTag> getDiagnosticTags(
 bool isDartDocument(lsp.TextDocumentIdentifier doc) =>
     doc?.uri?.endsWith('.dart');
 
-lsp.Location navigationTargetToLocation(String targetFilePath,
-    server.NavigationTarget target, server.LineInfo lineInfo) {
-  if (lineInfo == null) {
+lsp.Location navigationTargetToLocation(
+  String targetFilePath,
+  server.NavigationTarget target,
+  server.LineInfo targetLineInfo,
+) {
+  if (targetLineInfo == null) {
     return null;
   }
 
   return lsp.Location(
     uri: Uri.file(targetFilePath).toString(),
-    range: toRange(lineInfo, target.offset, target.length),
+    range: toRange(targetLineInfo, target.offset, target.length),
+  );
+}
+
+lsp.LocationLink navigationTargetToLocationLink(
+  server.NavigationRegion region,
+  server.LineInfo regionLineInfo,
+  String targetFilePath,
+  server.NavigationTarget target,
+  server.LineInfo targetLineInfo,
+) {
+  if (regionLineInfo == null || targetLineInfo == null) {
+    return null;
+  }
+
+  final nameRange = toRange(targetLineInfo, target.offset, target.length);
+  final codeRange = target.codeOffset != null && target.codeLength != null
+      ? toRange(targetLineInfo, target.codeOffset, target.codeLength)
+      : nameRange;
+
+  return lsp.LocationLink(
+    originSelectionRange: toRange(regionLineInfo, region.offset, region.length),
+    targetUri: Uri.file(targetFilePath).toString(),
+    targetRange: codeRange,
+    targetSelectionRange: nameRange,
   );
 }
 
@@ -735,8 +788,11 @@ lsp.CompletionItem toCompletionItem(
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion,
   int replacementOffset,
-  int replacementLength,
-) {
+  int replacementLength, {
+  @required bool includeCommitCharacters,
+  @required bool completeFunctionCalls,
+  Object resolutionData,
+}) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
@@ -749,14 +805,24 @@ lsp.CompletionItem toCompletionItem(
     label = label.substring(0, label.length - 1);
   }
 
-  if (suggestion.displayText == null) {
-    switch (suggestion.element?.kind) {
-      case server.ElementKind.CONSTRUCTOR:
-      case server.ElementKind.FUNCTION:
-      case server.ElementKind.METHOD:
-        label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
-        break;
-    }
+  // isCallable is used to suffix the label with parens so it's clear the item
+  // is callable.
+  //
+  // isInvocation means the location at which it's used is an invocation (and
+  // therefore it is appropriate to include the parens/parameters in the
+  // inserted text).
+  //
+  // In the case of show combinators, the parens will still be shown to indicate
+  // functions but they should not be included in the completions.
+  final elementKind = suggestion.element?.kind;
+  final isCallable = elementKind == server.ElementKind.CONSTRUCTOR ||
+      elementKind == server.ElementKind.FUNCTION ||
+      elementKind == server.ElementKind.METHOD;
+  final isInvocation =
+      suggestion.kind == server.CompletionSuggestionKind.INVOCATION;
+
+  if (suggestion.displayText == null && isCallable) {
+    label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
   }
 
   final supportsDeprecatedFlag =
@@ -776,13 +842,35 @@ lsp.CompletionItem toCompletionItem(
           supportedCompletionItemKinds, suggestion.kind, label);
 
   var insertTextFormat = lsp.InsertTextFormat.PlainText;
-  if (supportsSnippets && suggestion.selectionOffset != 0) {
-    insertTextFormat = lsp.InsertTextFormat.Snippet;
-    insertText = buildSnippetStringWithSelection(
-      suggestion.completion,
-      suggestion.selectionOffset,
-      suggestion.selectionLength,
-    );
+
+  // If the client supports snippets, we can support completeFunctionCalls or
+  // setting a selection.
+  if (supportsSnippets) {
+    // completeFunctionCalls should only work if commit characters are disabled
+    // otherwise the editor may insert parens that we're also inserting.
+    if (!includeCommitCharacters &&
+        completeFunctionCalls &&
+        isCallable &&
+        isInvocation) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      final hasRequiredParameters =
+          (suggestion.defaultArgumentListTextRanges?.length ?? 0) > 0;
+      final functionCallSuffix = hasRequiredParameters
+          ? buildSnippetStringWithTabStops(
+              suggestion.defaultArgumentListString,
+              suggestion.defaultArgumentListTextRanges,
+            )
+          : '\${0:}'; // No required params still gets a tabstop in the parens.
+      insertText += '($functionCallSuffix)';
+    } else if (suggestion.selectionOffset != 0 &&
+        // We don't need a tabstop if the selection is the end of the string.
+        suggestion.selectionOffset != suggestion.completion.length) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      insertText = buildSnippetStringWithTabStops(
+        suggestion.completion,
+        [suggestion.selectionOffset, suggestion.selectionLength],
+      );
+    }
   }
 
   // Because we potentially send thousands of these items, we should minimise
@@ -797,6 +885,9 @@ lsp.CompletionItem toCompletionItem(
               lsp.CompletionItemTag.Deprecated
           ]
         : null,
+    commitCharacters:
+        includeCommitCharacters ? dartCompletionCommitCharacters : null,
+    data: resolutionData,
     detail: getCompletionDetail(suggestion, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     documentation:
@@ -993,7 +1084,8 @@ ErrorOr<int> toOffset(
   lsp.Position pos, {
   failureIsCritial = false,
 }) {
-  if (pos.line > lineInfo.lineCount) {
+  // line is zero-based so cannot equal lineCount
+  if (pos.line >= lineInfo.lineCount) {
     return ErrorOr<int>.error(lsp.ResponseError(
         code: failureIsCritial
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
@@ -1044,27 +1136,31 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   ///     String s = 'foo'
   String getParamLabel(server.ParameterInfo p) {
     final def = p.defaultValue != null ? ' = ${p.defaultValue}' : '';
-    return '${p.type} ${p.name}$def';
+    final prefix =
+        p.kind == server.ParameterKind.REQUIRED_NAMED ? 'required ' : '';
+    return '$prefix${p.type} ${p.name}$def';
   }
 
   /// Gets the full signature label in the form
   ///     foo(String s, int i, bool a = true)
   String getSignatureLabel(server.AnalysisGetSignatureResult resp) {
-    final req = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.REQUIRED)
+    final positionalRequired = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.REQUIRED_POSITIONAL)
         .toList();
-    final opt = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.OPTIONAL)
+    final positionalOptional = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.OPTIONAL_POSITIONAL)
         .toList();
     final named = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.NAMED)
+        .where((p) =>
+            p.kind == server.ParameterKind.OPTIONAL_NAMED ||
+            p.kind == server.ParameterKind.REQUIRED_NAMED)
         .toList();
     final params = [];
-    if (req.isNotEmpty) {
-      params.add(req.map(getParamLabel).join(', '));
+    if (positionalRequired.isNotEmpty) {
+      params.add(positionalRequired.map(getParamLabel).join(', '));
     }
-    if (opt.isNotEmpty) {
-      params.add('[' + opt.map(getParamLabel).join(', ') + ']');
+    if (positionalOptional.isNotEmpty) {
+      params.add('[' + positionalOptional.map(getParamLabel).join(', ') + ']');
     }
     if (named.isNotEmpty) {
       params.add('{' + named.map(getParamLabel).join(', ') + '}');

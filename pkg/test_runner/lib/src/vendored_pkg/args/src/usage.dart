@@ -144,11 +144,11 @@ class Usage {
     var lines = text.split('\n');
 
     // Strip leading and trailing empty lines.
-    while (lines.length > 0 && lines[0].trim() == '') {
+    while (lines.isNotEmpty && lines[0].trim() == '') {
       lines.removeRange(0, 1);
     }
 
-    while (lines.length > 0 && lines[lines.length - 1].trim() == '') {
+    while (lines.isNotEmpty && lines[lines.length - 1].trim() == '') {
       lines.removeLast();
     }
 

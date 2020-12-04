@@ -43,6 +43,8 @@ bool CHA::HasSubclasses(const Class& cls) {
     // Class Object has subclasses, although we do not keep track of them.
     return true;
   }
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   const GrowableObjectArray& direct_subclasses =
       GrowableObjectArray::Handle(cls.direct_subclasses());
   return !direct_subclasses.IsNull() && (direct_subclasses.Length() > 0);
@@ -63,8 +65,11 @@ bool CHA::ConcreteSubclasses(const Class& cls,
     class_ids->Add(cls.id());
   }
 
+  // This is invoked from precompiler only, we can use unsafe version of
+  // Class::direct_subclasses getter.
+  ASSERT(FLAG_precompiled_mode);
   const GrowableObjectArray& direct_subclasses =
-      GrowableObjectArray::Handle(cls.direct_subclasses());
+      GrowableObjectArray::Handle(cls.direct_subclasses_unsafe());
   if (direct_subclasses.IsNull()) {
     return true;
   }
@@ -135,6 +140,7 @@ bool CHA::HasOverride(const Class& cls,
     return true;
   }
 
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   const GrowableObjectArray& cls_direct_subclasses =
       GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
   if (cls_direct_subclasses.IsNull()) {
@@ -149,7 +155,7 @@ bool CHA::HasOverride(const Class& cls,
       continue;
     }
 
-    if (direct_subclass.LookupDynamicFunction(function_name) !=
+    if (direct_subclass.LookupDynamicFunctionUnsafe(function_name) !=
         Function::null()) {
       return true;
     }

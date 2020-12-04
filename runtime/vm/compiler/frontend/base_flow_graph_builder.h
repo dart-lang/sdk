@@ -155,16 +155,19 @@ class BaseFlowGraphBuilder {
         next_used_try_index_(0),
         stack_(NULL),
         exit_collector_(exit_collector),
-        inlining_unchecked_entry_(inlining_unchecked_entry) {}
+        inlining_unchecked_entry_(inlining_unchecked_entry),
+        saved_args_desc_array_(
+            has_saved_args_desc_array()
+                ? Array::ZoneHandle(zone_, function_.saved_args_desc())
+                : Object::null_array()) {}
 
   Fragment LoadField(const Field& field, bool calls_initializer);
   Fragment LoadNativeField(const Slot& native_field,
                            bool calls_initializer = false);
-  Fragment LoadIndexed(intptr_t index_scale);
-  // Takes a [class_id] valid for StoreIndexed.
-  Fragment LoadIndexedTypedData(classid_t class_id,
-                                intptr_t index_scale,
-                                bool index_unboxed);
+  // Pass true for index_unboxed if indexing into external typed data.
+  Fragment LoadIndexed(classid_t class_id,
+                       intptr_t index_scale = compiler::target::kWordSize,
+                       bool index_unboxed = false);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
@@ -179,6 +182,9 @@ class BaseFlowGraphBuilder {
   void SetTempIndex(Definition* definition);
 
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment StoreLocal(LocalVariable* variable) {
+    return StoreLocal(TokenPosition::kNoSource, variable);
+  }
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreLocalRaw(TokenPosition position, LocalVariable* variable);
   Fragment LoadContextAt(int depth);
@@ -238,8 +244,8 @@ class BaseFlowGraphBuilder {
   //       goto B3
   //     B3:
   //       LoadLocal(t)
-  //
-  LocalVariable* MakeTemporary();
+  LocalVariable* MakeTemporary(const char* suffix = nullptr);
+  Fragment DropTemporary(LocalVariable** temp);
 
   InputsArray* GetArguments(int count);
 
@@ -255,6 +261,7 @@ class BaseFlowGraphBuilder {
                          bool number_check = false);
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
   Fragment Goto(JoinEntryInstr* destination);
+  Fragment UnboxedIntConstant(int64_t value, Representation representation);
   Fragment IntConstant(int64_t value);
   Fragment Constant(const Object& value);
   Fragment NullConstant();
@@ -311,11 +318,7 @@ class BaseFlowGraphBuilder {
 
   void InlineBailout(const char* reason);
 
-  Fragment LoadArgDescriptor() {
-    ASSERT(parsed_function_->has_arg_desc_var());
-    return LoadLocal(parsed_function_->arg_desc_var());
-  }
-
+  Fragment LoadArgDescriptor();
   Fragment TestTypeArgsLen(Fragment eq_branch,
                            Fragment neq_branch,
                            intptr_t num_type_args);
@@ -332,8 +335,10 @@ class BaseFlowGraphBuilder {
   Fragment AllocateClosure(TokenPosition position,
                            const Function& closure_function);
   Fragment CreateArray();
+  Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
+  Fragment InstantiateDynamicTypeArguments();
   Fragment LoadClassId();
 
   // Returns true if we are building a graph for inlining of a call site that
@@ -425,6 +430,18 @@ class BaseFlowGraphBuilder {
   // Sets raw parameter variables to inferred constant values.
   Fragment InitConstantParameters();
 
+  // Returns whether this function has a saved arguments descriptor array.
+  bool has_saved_args_desc_array() {
+    return function_.IsInvokeFieldDispatcher() ||
+           function_.IsNoSuchMethodDispatcher();
+  }
+
+  // Returns the saved arguments descriptor array for functions that have them.
+  const Array& saved_args_desc_array() {
+    ASSERT(has_saved_args_desc_array());
+    return saved_args_desc_array_;
+  }
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 
@@ -445,9 +462,9 @@ class BaseFlowGraphBuilder {
   InlineExitCollector* exit_collector_;
 
   const bool inlining_unchecked_entry_;
+  const Array& saved_args_desc_array_;
 
   friend class StreamingFlowGraphBuilder;
-  friend class BytecodeFlowGraphBuilder;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseFlowGraphBuilder);

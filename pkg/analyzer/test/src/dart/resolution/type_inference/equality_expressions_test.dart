@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class EqualTest extends DriverResolutionTest {
+class EqualTest extends PubPackageResolutionTest {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a, Object b) {
@@ -33,7 +32,7 @@ void f(Object a, Object b) {
 class EqualWithNullSafetyTest extends EqualTest with WithNullSafetyMixin {}
 
 @reflectiveTest
-class NotEqualTest extends DriverResolutionTest {
+class NotEqualTest extends PubPackageResolutionTest {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a, Object b) {

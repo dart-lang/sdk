@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,15 +14,16 @@ main() {
 }
 
 @reflectiveTest
-class ConstWithNonTypeTest extends DriverResolutionTest {
+class ConstWithNonTypeTest extends PubPackageResolutionTest {
   test_fromLibrary() async {
-    newFile('/test/lib/lib1.dart');
+    newFile('$testPackageLibPath/lib1.dart');
     await assertErrorsInCode('''
 import 'lib1.dart' as lib;
 void f() {
   const lib.A();
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 50, 1),
     ]);
   }

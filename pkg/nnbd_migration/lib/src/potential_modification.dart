@@ -42,7 +42,7 @@ class ConditionalModification {
           _KeepNode(node.thenElement),
           node.elseElement == null ? null : _KeepNode(node.elseElement));
     } else {
-      throw new UnimplementedError('TODO(paulberry)');
+      throw UnimplementedError('TODO(paulberry)');
     }
   }
 

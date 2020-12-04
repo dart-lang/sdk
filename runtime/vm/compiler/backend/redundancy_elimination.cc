@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/hash_map.h"
+#include "vm/object_store.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -443,6 +444,7 @@ class Place : public ValueObject {
   static bool IsAllocation(Definition* defn) {
     return (defn != NULL) &&
            (defn->IsAllocateObject() || defn->IsCreateArray() ||
+            defn->IsAllocateTypedData() ||
             defn->IsAllocateUninitializedContext() ||
             (defn->IsStaticCall() &&
              defn->AsStaticCall()->IsRecognizedFactory()));
@@ -1005,8 +1007,9 @@ class AliasedSet : public ZoneAllocated {
       return true;
     }
 
-    return (place->kind() == Place::kInstanceField) &&
-           !CanBeAliased(place->instance());
+    return ((place->kind() == Place::kInstanceField) ||
+            (place->kind() == Place::kConstantIndexed)) &&
+           (place->instance() != nullptr) && !CanBeAliased(place->instance());
   }
 
   // Returns true if there are direct loads from the given place.
@@ -1539,6 +1542,118 @@ void LICM::Optimize() {
   }
 }
 
+void DelayAllocations::Optimize(FlowGraph* graph) {
+  // Go through all AllocateObject instructions and move them down to their
+  // dominant use when doing so is sound.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> moved;
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+
+    for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
+         instr_it.Advance()) {
+      Definition* def = instr_it.Current()->AsDefinition();
+      if (def != nullptr && (def->IsAllocateObject() || def->IsCreateArray()) &&
+          def->env() == nullptr && !moved.HasKey(def)) {
+        Instruction* use = DominantUse(def);
+        if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
+          instr_it.RemoveCurrentFromGraph();
+          def->InsertBefore(use);
+          moved.Insert(def);
+        }
+      }
+    }
+  }
+}
+
+Instruction* DelayAllocations::DominantUse(Definition* def) {
+  // Find the use that dominates all other uses.
+
+  // Collect all uses.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> uses;
+  for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    uses.Insert(use);
+  }
+  for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    uses.Insert(use);
+  }
+
+  // Find the dominant use.
+  Instruction* dominant_use = nullptr;
+  auto use_it = uses.GetIterator();
+  while (auto use = use_it.Next()) {
+    // Start with the instruction before the use, then walk backwards through
+    // blocks in the dominator chain until we hit the definition or another use.
+    Instruction* instr = nullptr;
+    if (auto phi = (*use)->AsPhi()) {
+      // For phi uses, the dominant use only has to dominate the
+      // predecessor block corresponding to the phi input.
+      ASSERT(phi->InputCount() == phi->block()->PredecessorCount());
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        if (phi->InputAt(i)->definition() == def) {
+          instr = phi->block()->PredecessorAt(i)->last_instruction();
+          break;
+        }
+      }
+      ASSERT(instr != nullptr);
+    } else {
+      instr = (*use)->previous();
+    }
+
+    bool dominated = false;
+    while (instr != def) {
+      if (uses.HasKey(instr)) {
+        // We hit another use.
+        dominated = true;
+        break;
+      }
+      if (auto block = instr->AsBlockEntry()) {
+        instr = block->dominator()->last_instruction();
+      } else {
+        instr = instr->previous();
+      }
+    }
+    if (!dominated) {
+      if (dominant_use != nullptr) {
+        // More than one use reached the definition, which means no use
+        // dominates all other uses.
+        return nullptr;
+      }
+      dominant_use = *use;
+    }
+  }
+
+  return dominant_use;
+}
+
+bool DelayAllocations::IsOneTimeUse(Instruction* use, Definition* def) {
+  // Check that this use is always executed at most once for each execution of
+  // the definition, i.e. that there is no path from the use to itself that
+  // doesn't pass through the definition.
+  BlockEntryInstr* use_block = use->GetBlock();
+  BlockEntryInstr* def_block = def->GetBlock();
+  if (use_block == def_block) return true;
+
+  DirectChainedHashMap<IdentitySetKeyValueTrait<BlockEntryInstr*>> seen;
+  GrowableArray<BlockEntryInstr*> worklist;
+  worklist.Add(use_block);
+
+  while (!worklist.is_empty()) {
+    BlockEntryInstr* block = worklist.RemoveLast();
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      if (pred == use_block) return false;
+      if (pred == def_block) continue;
+      if (seen.HasKey(pred)) continue;
+      seen.Insert(pred);
+      worklist.Add(pred);
+    }
+  }
+  return true;
+}
+
 class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph, AliasedSet* aliased_set)
@@ -1942,6 +2057,40 @@ class LoadOptimizer : public ValueObject {
                   forward_def = alloc->type_arguments()->definition();
                 }
               }
+              gen->Add(place_id);
+              if (out_values == nullptr) out_values = CreateBlockOutValues();
+              (*out_values)[place_id] = forward_def;
+            }
+          }
+          continue;
+        } else if (auto alloc = instr->AsCreateArray()) {
+          for (Value* use = alloc->input_use_list(); use != nullptr;
+               use = use->next_use()) {
+            // Look for all immediate loads/stores from this object.
+            if (use->use_index() != 0) {
+              continue;
+            }
+            intptr_t place_id = -1;
+            Definition* forward_def = nullptr;
+            if (auto load = use->instruction()->AsLoadField()) {
+              if (load->slot().IsTypeArguments()) {
+                place_id = GetPlaceId(load);
+                forward_def = alloc->element_type()->definition();
+              }
+            } else if (use->instruction()->IsLoadIndexed() ||
+                       use->instruction()->IsStoreIndexed()) {
+              if (aliased_set_->CanBeAliased(alloc)) {
+                continue;
+              }
+              place_id = GetPlaceId(use->instruction());
+              if (aliased_set_->places()[place_id]->kind() !=
+                  Place::kConstantIndexed) {
+                continue;
+              }
+              // Set initial value of array element to null.
+              forward_def = graph_->constant_null();
+            }
+            if (forward_def != nullptr) {
               gen->Add(place_id);
               if (out_values == nullptr) out_values = CreateBlockOutValues();
               (*out_values)[place_id] = forward_def;
@@ -2890,10 +3039,22 @@ void DeadStoreElimination::Optimize(FlowGraph* graph) {
 // Allocation Sinking
 //
 
+static bool IsValidLengthForAllocationSinking(
+    ArrayAllocationInstr* array_alloc) {
+  const intptr_t kMaxAllocationSinkingNumElements = 32;
+  if (!array_alloc->HasConstantNumElements()) {
+    return false;
+  }
+  const intptr_t length = array_alloc->GetConstantNumElements();
+  return (length >= 0) && (length <= kMaxAllocationSinkingNumElements);
+}
+
 // Returns true if the given instruction is an allocation that
 // can be sunk by the Allocation Sinking pass.
 static bool IsSupportedAllocation(Instruction* instr) {
-  return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext();
+  return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext() ||
+         (instr->IsArrayAllocation() &&
+          IsValidLengthForAllocationSinking(instr->AsArrayAllocation()));
 }
 
 enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
@@ -2919,14 +3080,47 @@ enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 // optimistically and then checks each collected candidate strictly and unmarks
 // invalid candidates transitively until only strictly valid ones remain.
 static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
+  ASSERT(IsSupportedAllocation(use->definition()));
+
   if (use->instruction()->IsMaterializeObject()) {
     return true;
   }
 
-  StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
-  if (store != NULL) {
+  if (auto* store = use->instruction()->AsStoreInstanceField()) {
     if (use == store->value()) {
       Definition* instance = store->instance()->definition();
+      return IsSupportedAllocation(instance) &&
+             ((check_type == kOptimisticCheck) ||
+              instance->Identity().IsAllocationSinkingCandidate());
+    }
+    return true;
+  }
+
+  if (auto* store = use->instruction()->AsStoreIndexed()) {
+    if (use == store->index()) {
+      return false;
+    }
+    if (use == store->array()) {
+      if (!store->index()->BindsToSmiConstant()) {
+        return false;
+      }
+      const intptr_t index = store->index()->BoundSmiConstant();
+      if (index < 0 || index >= use->definition()
+                                    ->AsArrayAllocation()
+                                    ->GetConstantNumElements()) {
+        return false;
+      }
+      if (auto* alloc_typed_data = use->definition()->AsAllocateTypedData()) {
+        if (store->class_id() != alloc_typed_data->class_id() ||
+            !store->aligned() ||
+            store->index_scale() != compiler::target::Instance::ElementSizeFor(
+                                        alloc_typed_data->class_id())) {
+          return false;
+        }
+      }
+    }
+    if (use == store->value()) {
+      Definition* instance = store->array()->definition();
       return IsSupportedAllocation(instance) &&
              ((check_type == kOptimisticCheck) ||
               instance->Identity().IsAllocationSinkingCandidate());
@@ -2958,13 +3152,26 @@ static bool IsAllocationSinkingCandidate(Definition* alloc,
 
 // If the given use is a store into an object then return an object we are
 // storing into.
-static Definition* StoreInto(Value* use) {
-  StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
-  if (store != NULL) {
+static Definition* StoreDestination(Value* use) {
+  if (auto store = use->instruction()->AsStoreInstanceField()) {
     return store->instance()->definition();
   }
+  if (auto store = use->instruction()->AsStoreIndexed()) {
+    return store->array()->definition();
+  }
+  return nullptr;
+}
 
-  return NULL;
+// If the given instruction is a load from an object, then return an object
+// we are loading from.
+static Definition* LoadSource(Definition* instr) {
+  if (auto load = instr->AsLoadField()) {
+    return load->instance()->definition();
+  }
+  if (auto load = instr->AsLoadIndexed()) {
+    return load->array()->definition();
+  }
+  return nullptr;
 }
 
 // Remove the given allocation from the graph. It is not observable.
@@ -2993,10 +3200,6 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
 #endif
   ASSERT(alloc->input_use_list() == NULL);
   alloc->RemoveFromGraph();
-  if (alloc->ArgumentCount() > 0) {
-    ASSERT(alloc->ArgumentCount() == 1);
-    ASSERT(!alloc->HasPushArguments());
-  }
 }
 
 // Find allocation instructions that can be potentially eliminated and
@@ -3073,23 +3276,23 @@ void AllocationSinking::NormalizeMaterializations() {
 }
 
 // We transitively insert materializations at each deoptimization exit that
-// might see the given allocation (see ExitsCollector). Some of this
+// might see the given allocation (see ExitsCollector). Some of these
 // materializations are not actually used and some fail to compute because
 // they are inserted in the block that is not dominated by the allocation.
-// Remove them unused materializations from the graph.
+// Remove unused materializations from the graph.
 void AllocationSinking::RemoveUnusedMaterializations() {
   intptr_t j = 0;
   for (intptr_t i = 0; i < materializations_.length(); i++) {
     MaterializeObjectInstr* mat = materializations_[i];
-    if ((mat->input_use_list() == NULL) && (mat->env_use_list() == NULL)) {
+    if ((mat->input_use_list() == nullptr) &&
+        (mat->env_use_list() == nullptr)) {
       // Check if this materialization failed to compute and remove any
       // unforwarded loads. There were no loads from any allocation sinking
       // candidate in the beginning so it is safe to assume that any encountered
       // load was inserted by CreateMaterializationAt.
       for (intptr_t i = 0; i < mat->InputCount(); i++) {
-        LoadFieldInstr* load = mat->InputAt(i)->definition()->AsLoadField();
-        if ((load != NULL) &&
-            (load->instance()->definition() == mat->allocation())) {
+        Definition* load = mat->InputAt(i)->definition();
+        if (LoadSource(load) == mat->allocation()) {
           load->ReplaceUsesWith(flow_graph_->constant_null());
           load->RemoveFromGraph();
         }
@@ -3150,14 +3353,16 @@ void AllocationSinking::DiscoverFailedCandidates() {
       alloc->set_env_use_list(NULL);
       for (Value* use = alloc->input_use_list(); use != NULL;
            use = use->next_use()) {
-        if (use->instruction()->IsLoadField()) {
-          LoadFieldInstr* load = use->instruction()->AsLoadField();
+        if (use->instruction()->IsLoadField() ||
+            use->instruction()->IsLoadIndexed()) {
+          Definition* load = use->instruction()->AsDefinition();
           load->ReplaceUsesWith(flow_graph_->constant_null());
           load->RemoveFromGraph();
         } else {
           ASSERT(use->instruction()->IsMaterializeObject() ||
                  use->instruction()->IsPhi() ||
-                 use->instruction()->IsStoreInstanceField());
+                 use->instruction()->IsStoreInstanceField() ||
+                 use->instruction()->IsStoreIndexed());
         }
       }
     } else {
@@ -3199,17 +3404,34 @@ void AllocationSinking::Optimize() {
   //   v_1     <- LoadField(v_0, field_1)
   //           ...
   //   v_N     <- LoadField(v_0, field_N)
-  //   v_{N+1} <- MaterializeObject(field_1 = v_1, ..., field_N = v_{N})
+  //   v_{N+1} <- MaterializeObject(field_1 = v_1, ..., field_N = v_N)
+  //
+  // For typed data objects materialization looks like this:
+  //   v_1     <- LoadIndexed(v_0, index_1)
+  //           ...
+  //   v_N     <- LoadIndexed(v_0, index_N)
+  //   v_{N+1} <- MaterializeObject([index_1] = v_1, ..., [index_N] = v_N)
+  //
+  // For arrays materialization looks like this:
+  //   v_1     <- LoadIndexed(v_0, index_1)
+  //           ...
+  //   v_N     <- LoadIndexed(v_0, index_N)
+  //   v_{N+1} <- LoadField(v_0, Array.type_arguments)
+  //   v_{N+2} <- MaterializeObject([index_1] = v_1, ..., [index_N] = v_N,
+  //                                type_arguments = v_{N+1})
+  //
   for (intptr_t i = 0; i < candidates_.length(); i++) {
     InsertMaterializations(candidates_[i]);
   }
 
-  // Run load forwarding to eliminate LoadField instructions inserted above.
+  // Run load forwarding to eliminate LoadField/LoadIndexed instructions
+  // inserted above.
+  //
   // All loads will be successfully eliminated because:
-  //   a) they use fields (not offsets) and thus provide precise aliasing
+  //   a) they use fields/constant indices and thus provide precise aliasing
   //      information
-  //   b) candidate does not escape and thus its fields is not affected by
-  //      external effects from calls.
+  //   b) candidate does not escape and thus its fields/elements are not
+  //      affected by external effects from calls.
   LoadOptimizer::OptimizeGraph(flow_graph_);
 
   NormalizeMaterializations();
@@ -3313,23 +3535,57 @@ void AllocationSinking::CreateMaterializationAt(
   // instruction.
   Instruction* load_point = FirstMaterializationAt(exit);
 
-  // Insert load instruction for every field.
+  // Insert load instruction for every field and element.
   for (auto slot : slots) {
-    LoadFieldInstr* load =
-        new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->token_pos());
+    Definition* load = nullptr;
+    if (slot->IsArrayElement()) {
+      intptr_t array_cid, index;
+      if (alloc->IsCreateArray()) {
+        array_cid = kArrayCid;
+        index =
+            compiler::target::Array::index_at_offset(slot->offset_in_bytes());
+      } else if (auto alloc_typed_data = alloc->AsAllocateTypedData()) {
+        array_cid = alloc_typed_data->class_id();
+        index = slot->offset_in_bytes() /
+                compiler::target::Instance::ElementSizeFor(array_cid);
+      } else {
+        UNREACHABLE();
+      }
+      load = new (Z) LoadIndexedInstr(
+          new (Z) Value(alloc),
+          new (Z) Value(
+              flow_graph_->GetConstant(Smi::ZoneHandle(Z, Smi::New(index)))),
+          /*index_unboxed=*/false,
+          /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
+          array_cid, kAlignedAccess, DeoptId::kNone, alloc->token_pos());
+    } else {
+      load = new (Z)
+          LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->token_pos());
+    }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values->Add(new (Z) Value(load));
   }
 
-  MaterializeObjectInstr* mat = nullptr;
-  if (alloc->IsAllocateObject()) {
-    mat = new (Z)
-        MaterializeObjectInstr(alloc->AsAllocateObject(), slots, values);
+  const Class* cls = nullptr;
+  intptr_t num_elements = -1;
+  if (auto instr = alloc->AsAllocateObject()) {
+    cls = &(instr->cls());
+  } else if (auto instr = alloc->AsAllocateUninitializedContext()) {
+    cls = &Class::ZoneHandle(Object::context_class());
+    num_elements = instr->num_context_variables();
+  } else if (auto instr = alloc->AsCreateArray()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate()->object_store()->array_class());
+    num_elements = instr->GetConstantNumElements();
+  } else if (auto instr = alloc->AsAllocateTypedData()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate()->class_table()->At(instr->class_id()));
+    num_elements = instr->GetConstantNumElements();
   } else {
-    ASSERT(alloc->IsAllocateUninitializedContext());
-    mat = new (Z) MaterializeObjectInstr(
-        alloc->AsAllocateUninitializedContext(), slots, values);
+    UNREACHABLE();
   }
+  MaterializeObjectInstr* mat = new (Z) MaterializeObjectInstr(
+      alloc->AsAllocation(), *cls, num_elements, slots, values);
 
   flow_graph_->InsertBefore(exit, mat, nullptr, FlowGraph::kValue);
 
@@ -3384,7 +3640,7 @@ void AllocationSinking::ExitsCollector::Collect(Definition* alloc) {
   // this object.
   for (Value* use = alloc->input_use_list(); use != NULL;
        use = use->next_use()) {
-    Definition* obj = StoreInto(use);
+    Definition* obj = StoreDestination(use);
     if ((obj != NULL) && (obj != alloc)) {
       AddInstruction(&worklist_, obj);
     }
@@ -3408,14 +3664,27 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
 }
 
 void AllocationSinking::InsertMaterializations(Definition* alloc) {
-  // Collect all fields that are written for this instance.
+  // Collect all fields and array elements that are written for this instance.
   auto slots = new (Z) ZoneGrowableArray<const Slot*>(5);
 
   for (Value* use = alloc->input_use_list(); use != NULL;
        use = use->next_use()) {
-    StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
-    if ((store != NULL) && (store->instance()->definition() == alloc)) {
-      AddSlot(slots, store->slot());
+    if (StoreDestination(use) == alloc) {
+      if (auto store = use->instruction()->AsStoreInstanceField()) {
+        AddSlot(slots, store->slot());
+      } else if (auto store = use->instruction()->AsStoreIndexed()) {
+        const intptr_t index = store->index()->BoundSmiConstant();
+        intptr_t offset = -1;
+        if (alloc->IsCreateArray()) {
+          offset = compiler::target::Array::element_offset(index);
+        } else if (alloc->IsAllocateTypedData()) {
+          offset = index * store->index_scale();
+        } else {
+          UNREACHABLE();
+        }
+        AddSlot(slots,
+                Slot::GetArrayElementSlot(flow_graph_->thread(), offset));
+      }
     }
   }
 
@@ -3424,6 +3693,13 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
       AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
                                                    alloc_object->cls()));
     }
+  }
+  if (alloc->IsCreateArray()) {
+    AddSlot(slots,
+            Slot::GetTypeArgumentsSlotFor(
+                flow_graph_->thread(),
+                Class::Handle(
+                    Z, flow_graph_->isolate()->object_store()->array_class())));
   }
 
   // Collect all instructions that mention this object in the environment.

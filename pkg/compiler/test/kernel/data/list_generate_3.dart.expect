@@ -1,0 +1,51 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_interceptors" as _in;
+
+static field core::List<core::int*>* list1 = block {
+  final _in::JSArray<core::int*> _list = _in::JSArray::allocateGrowable<core::int*>(10);
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::int* i = i;
+    {
+      _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i);
+    }
+  }
+} =>_list;
+static field core::List<core::int*>* list2 = block {
+  final _in::JSArray<core::int*> _list = _in::JSArray::allocateGrowable<core::int*>(10);
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::int* i = i;
+    {
+      _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i);
+    }
+  }
+} =>_list;
+static field core::List<core::int*>* list3 = block {
+  final _in::JSArray<core::int*> _list = _in::JSArray::allocateFixed<core::int*>(10);
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::int* i = i;
+    {
+      _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i);
+    }
+  }
+} =>_list;
+static field core::List<core::int*>* list4 = core::List::generate<core::int*>(10, (core::int* i) → core::int* {
+  return i;
+}, growable: self::someGrowable);
+static field core::List<core::int*>* list5 = core::List::generate<core::int*>(10, (core::int* i) → core::int* {
+  if(i.{core::int::isEven})
+    return i.{core::num::+}(1);
+  return i.{core::num::-}(1);
+});
+static field core::List<core::int*>* list6 = core::List::generate<core::int*>(10, #C1);
+static field core::List<core::int*>* list7 = core::List::generate<core::int*>(10, self::bar);
+static field core::bool* someGrowable = true;
+static method foo(core::int* i) → core::int*
+  return i;
+static get bar() → (core::int*) →* core::int*
+  return #C1;
+static method main() → void {
+  self::someGrowable = !self::someGrowable;
+  core::print(<core::List<core::int*>*>[self::list1, self::list2, self::list3, self::list4, self::list5, self::list6, self::list7]);
+}

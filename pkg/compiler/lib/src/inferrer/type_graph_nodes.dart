@@ -968,6 +968,8 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       : super(abstractValueDomain, context, call, enclosing, selector,
             arguments, inLoop);
 
+  ir.StaticInvocation get invocationNode => _call as ir.StaticInvocation;
+
   MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
     return inferrer.types.getInferredTypeOfMember(calledElement);
   }
@@ -1502,7 +1504,20 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   @override
-  AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
+  AbstractValue computeType(InferrerEngine inferrer) {
+    AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
+    AbstractValue closureType = closure.type;
+    // We are not tracking closure calls, but if the receiver is not callable,
+    // the call will fail. The abstract value domain does not have a convenient
+    // method for detecting callable types, but we know `null` and unreachable
+    // code have no result type.  This is helpful for propagating
+    // unreachability, i.e. tree-shaking.
+    if (abstractValueDomain.isEmpty(closureType).isDefinitelyTrue ||
+        abstractValueDomain.isNull(closureType).isDefinitelyTrue) {
+      return abstractValueDomain.emptyType;
+    }
+    return safeType(inferrer);
+  }
 
   @override
   Iterable<MemberEntity> get callees {

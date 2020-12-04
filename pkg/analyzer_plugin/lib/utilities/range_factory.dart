@@ -15,6 +15,51 @@ final RangeFactory range = RangeFactory();
 /// A factory used to create instances of [SourceRange] based on various
 /// syntactic and semantic entities.
 class RangeFactory {
+  /// Return a source range that covers all of the arguments in the
+  /// [argumentList] between the [lower] and [upper] indices, inclusive. The
+  /// flag [forDeletion] controls whether a comma between the given indices and
+  /// the neighboring arguments should be included in the range. If the flag is
+  /// `true`, then the range can be deleted to delete the covered arguments and
+  /// leave a valid argument list. If the flag is `false`, then the range can be
+  /// replaced with different argument values.
+  ///
+  /// For example, given an argument list of `(a, b, c, d)`, a lower index of
+  /// `1` and an upper index of `2`, the range will cover the text `'b, c'` if
+  /// [forDeletion] is `false` and the text `', b, c'` if [forDeletion] is
+  /// `true`.
+  ///
+  /// Throws and exception if either the [lower] or [upper] bound is not a valid
+  /// index into the [argumentList] or if the [upper] bound is less than the
+  /// [lower] bound.
+  SourceRange argumentRange(
+      ArgumentList argumentList, int lower, int upper, bool forDeletion) {
+    var arguments = argumentList.arguments;
+    assert(lower >= 0 && lower < arguments.length);
+    assert(upper >= lower && upper < arguments.length);
+    if (lower == upper) {
+      // Remove a single argument.
+      if (forDeletion) {
+        return nodeInList(arguments, arguments[lower]);
+      }
+      return node(arguments[lower]);
+    } else if (!forDeletion) {
+      return startEnd(arguments[lower], arguments[upper]);
+    } else if (lower == 0) {
+      if (upper == arguments.length - 1) {
+        // Remove all of the arguments.
+        return endStart(
+            argumentList.leftParenthesis, argumentList.rightParenthesis);
+      } else {
+        // Remove a subset of the arguments starting with the first argument.
+        return startStart(arguments[lower], arguments[upper + 1]);
+      }
+    } else {
+      // Remove a subset of the arguments starting in the middle of the
+      // arguments.
+      return endEnd(arguments[lower - 1], arguments[upper]);
+    }
+  }
+
   /// Return a source range that covers the name of the given [element].
   SourceRange elementName(Element element) {
     return SourceRange(element.nameOffset, element.nameLength);

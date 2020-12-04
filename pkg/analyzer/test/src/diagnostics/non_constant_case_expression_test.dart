@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class NonConstantCaseExpressionTest extends DriverResolutionTest {
+class NonConstantCaseExpressionTest extends PubPackageResolutionTest {
   test_constField() async {
     await assertNoErrorsInCode(r'''
 void f(C e) {

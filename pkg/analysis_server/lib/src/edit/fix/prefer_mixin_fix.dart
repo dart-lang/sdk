@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
@@ -34,6 +35,7 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
           declaration.name.name == elem.name) {
         var processor = AssistProcessor(
           DartAssistContextImpl(
+              InstrumentationService.NULL_SERVICE,
               DartChangeWorkspace(listener.server.currentSessions),
               result,
               declaration.name.offset,

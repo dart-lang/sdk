@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -26,7 +24,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import '../util/element_type_matchers.dart';
 import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
@@ -49,9 +47,9 @@ void _fail(String message) {
 }
 
 @reflectiveTest
-class AnnotationElementResolverTest extends DriverResolutionTest {
+class AnnotationElementResolverTest extends PubPackageResolutionTest {
   test_class_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -60,10 +58,10 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isClassElement);
       expect(name1.staticElement.displayName, 'A');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isConstructorElement);
       expect(name2.staticElement.displayName, 'named');
       expect(name3, isNull);
@@ -80,7 +78,7 @@ class A {
   }
 
   test_class_prefixed_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -89,13 +87,13 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
+      assert(name3 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
       expect(name2.staticElement.displayName, 'A');
-      expect(name3, isNotNull);
       expect(name3.staticElement, isConstructorElement);
       expect(name3.staticElement.displayName, 'named');
       if (annotationElement is ConstructorElement) {
@@ -111,7 +109,7 @@ class A {
   }
 
   test_class_prefixed_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -120,13 +118,13 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
+      assert(name3 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
       expect(name2.staticElement.displayName, 'A');
-      expect(name3, isNotNull);
       expect(name3.staticElement, isPropertyAccessorElement);
       expect(name3.staticElement.displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
@@ -141,7 +139,7 @@ class A {
   }
 
   test_class_prefixed_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -150,10 +148,10 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
       expect(name2.staticElement.displayName, 'A');
       expect(name3, isNull);
@@ -169,7 +167,7 @@ class A {
   }
 
   test_class_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -178,10 +176,10 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isClassElement);
       expect(name1.staticElement.displayName, 'A');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isPropertyAccessorElement);
       expect(name2.staticElement.displayName, 'V');
       expect(name3, isNull);
@@ -197,7 +195,7 @@ class A {
   }
 
   test_class_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -206,7 +204,7 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
       expect(name1.staticElement, isClassElement);
       expect(name1.staticElement.displayName, 'A');
       expect(name2, isNull);
@@ -223,14 +221,14 @@ class A {
   }
 
   test_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
       expect(name1.staticElement, isPropertyAccessorElement);
       expect(name1.staticElement.displayName, 'V');
       expect(name2, isNull);
@@ -247,17 +245,17 @@ const V = 0;
   }
 
   test_topLevelVariable_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isPropertyAccessorElement);
       expect(name2.staticElement.displayName, 'V');
       expect(name3, isNull);
@@ -301,19 +299,19 @@ class C {}
 @reflectiveTest
 class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// The error listener to which errors will be reported.
-  GatheringErrorListener _listener;
+  /*late*/ GatheringErrorListener _listener;
 
   /// The type provider used to access the types.
-  TypeProvider _typeProvider;
+  /*late*/ TypeProvider _typeProvider;
 
   /// The library containing the code being resolved.
-  LibraryElementImpl _definingLibrary;
+  /*late*/ LibraryElementImpl _definingLibrary;
 
   /// The resolver visitor that maintains the state for the resolver.
-  ResolverVisitor _visitor;
+  /*late*/ ResolverVisitor _visitor;
 
   /// The resolver being used to resolve the test cases.
-  ElementResolver _resolver;
+  /*late*/ ElementResolver _resolver;
 
   @override
   TypeProvider get typeProvider => _typeProvider;
@@ -370,48 +368,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   void setUp() {
     _listener = GatheringErrorListener();
     _createResolver();
-  }
-
-  test_lookUpMethodInInterfaces() async {
-    InterfaceType intType = _typeProvider.intType;
-    //
-    // abstract class A { int operator[](int index); }
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    MethodElement operator =
-        ElementFactory.methodElement("[]", intType, [intType]);
-    classA.methods = <MethodElement>[operator];
-    //
-    // class B implements A {}
-    //
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    _encloseElement(classB);
-    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
-    //
-    // class C extends Object with B {}
-    //
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    _encloseElement(classC);
-    classC.mixins = <InterfaceType>[interfaceTypeStar(classB)];
-    //
-    // class D extends C {}
-    //
-    ClassElementImpl classD =
-        ElementFactory.classElement("D", interfaceTypeStar(classC));
-    _encloseElement(classD);
-    //
-    // D a;
-    // a[i];
-    //
-    SimpleIdentifier array = AstTestFactory.identifier3("a");
-    array.staticType = interfaceTypeStar(classD);
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: array,
-      index: AstTestFactory.identifier3("i"),
-    );
-    expect(_resolveIndexExpression(expression), same(operator));
-    _listener.assertNoErrors();
   }
 
   test_visitBreakStatement_withLabel() async {
@@ -708,195 +664,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitPrefixedIdentifier_nonDynamic() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    String getterName = "b";
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
-    classA.accessors = <PropertyAccessorElement>[getter];
-    SimpleIdentifier target = AstTestFactory.identifier3("a");
-    VariableElementImpl variable = ElementFactory.localVariableElement(target);
-    variable.type = interfaceTypeStar(classA);
-    target.staticElement = variable;
-    target.staticType = interfaceTypeStar(classA);
-    PrefixedIdentifier identifier = AstTestFactory.identifier(
-        target, AstTestFactory.identifier3(getterName));
-    _resolveNode(identifier);
-    expect(identifier.staticElement, same(getter));
-    expect(identifier.identifier.staticElement, same(getter));
-    _listener.assertNoErrors();
-  }
-
-  test_visitPrefixedIdentifier_staticClassMember_getter() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    // set accessors
-    String propName = "b";
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement(propName, true, _typeProvider.intType);
-    PropertyAccessorElement setter =
-        ElementFactory.setterElement(propName, true, _typeProvider.intType);
-    classA.accessors = <PropertyAccessorElement>[getter, setter];
-    // prepare "A.b"
-    SimpleIdentifier target = AstTestFactory.identifier3("A");
-    target.staticElement = classA;
-    target.staticType = interfaceTypeStar(classA);
-    PrefixedIdentifier identifier =
-        AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
-    // resolve
-    _resolveNode(identifier);
-    expect(identifier.staticElement, same(getter));
-    expect(identifier.identifier.staticElement, same(getter));
-    _listener.assertNoErrors();
-  }
-
-  test_visitPrefixedIdentifier_staticClassMember_method() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    // set methods
-    String propName = "m";
-    var method = ElementFactory.methodElement("m", _typeProvider.intType);
-    method.isStatic = true;
-    classA.methods = <MethodElement>[method];
-    // prepare "A.m"
-    SimpleIdentifier target = AstTestFactory.identifier3("A");
-    target.staticElement = classA;
-    target.staticType = interfaceTypeStar(classA);
-    PrefixedIdentifier identifier =
-        AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
-    AstTestFactory.expressionStatement(identifier);
-    // resolve
-    _resolveNode(identifier);
-    expect(identifier.staticElement, same(method));
-    expect(identifier.identifier.staticElement, same(method));
-    _listener.assertNoErrors();
-  }
-
-  test_visitPrefixedIdentifier_staticClassMember_setter() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    // set accessors
-    String propName = "b";
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement(propName, true, _typeProvider.intType);
-    PropertyAccessorElement setter =
-        ElementFactory.setterElement(propName, true, _typeProvider.intType);
-    classA.accessors = <PropertyAccessorElement>[getter, setter];
-    // prepare "A.b = null"
-    SimpleIdentifier target = AstTestFactory.identifier3("A");
-    target.staticElement = classA;
-    target.staticType = interfaceTypeStar(classA);
-    PrefixedIdentifier identifier =
-        AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
-    AstTestFactory.assignmentExpression(
-        identifier, TokenType.EQ, AstTestFactory.nullLiteral());
-    // resolve
-    _resolveNode(identifier);
-    expect(identifier.staticElement, same(setter));
-    expect(identifier.identifier.staticElement, same(setter));
-    _listener.assertNoErrors();
-  }
-
-  test_visitPropertyAccess_getter_identifier() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    String getterName = "b";
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
-    classA.accessors = <PropertyAccessorElement>[getter];
-    SimpleIdentifier target = AstTestFactory.identifier3("a");
-    target.staticType = interfaceTypeStar(classA);
-    PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
-    _resolveNode(access);
-    expect(access.propertyName.staticElement, same(getter));
-    _listener.assertNoErrors();
-  }
-
-  test_visitPropertyAccess_getter_super() async {
-    //
-    // class A {
-    //  int get b;
-    // }
-    // class B {
-    //   ... super.m ...
-    // }
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    String getterName = "b";
-    PropertyAccessorElement getter =
-        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
-    classA.accessors = <PropertyAccessorElement>[getter];
-    SuperExpression target = AstTestFactory.superExpression();
-    var classB = ElementFactory.classElement("B", interfaceTypeStar(classA));
-    _encloseElement(classB);
-    target.staticType = interfaceTypeStar(classB);
-    PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
-    AstTestFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstTestFactory.identifier3("m"),
-        AstTestFactory.formalParameterList(),
-        AstTestFactory.expressionFunctionBody(access));
-    _resolveNode(access);
-    expect(access.propertyName.staticElement, same(getter));
-    _listener.assertNoErrors();
-  }
-
-  test_visitPropertyAccess_setter_this() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    String setterName = "b";
-    PropertyAccessorElement setter =
-        ElementFactory.setterElement(setterName, false, _typeProvider.intType);
-    classA.accessors = <PropertyAccessorElement>[setter];
-    ThisExpression target = AstTestFactory.thisExpression();
-    target.staticType = interfaceTypeStar(classA);
-    PropertyAccess access = AstTestFactory.propertyAccess2(target, setterName);
-    AstTestFactory.assignmentExpression(
-        access, TokenType.EQ, AstTestFactory.integer(0));
-    _resolveNode(access);
-    expect(access.propertyName.staticElement, same(setter));
-    _listener.assertNoErrors();
-  }
-
-  test_visitSimpleIdentifier_classScope() async {
-    InterfaceType doubleType = _typeProvider.doubleType;
-    String fieldName = 'nan';
-    SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
-    _resolveInClass(node, doubleType.element);
-    expect(node.staticElement, doubleType.getGetter(fieldName));
-    _listener.assertNoErrors();
-  }
-
-  test_visitSimpleIdentifier_lexicalScope() async {
-    SimpleIdentifier node = AstTestFactory.identifier3("i");
-    VariableElementImpl element = ElementFactory.localVariableElement(node);
-    expect(_resolveIdentifier(node, [element]), same(element));
-    _listener.assertNoErrors();
-  }
-
-  test_visitSimpleIdentifier_lexicalScope_field_setter() async {
-    InterfaceType intType = _typeProvider.intType;
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    String fieldName = "a";
-    FieldElement field =
-        ElementFactory.fieldElement(fieldName, false, false, false, intType);
-    classA.fields = <FieldElement>[field];
-    classA.accessors = <PropertyAccessorElement>[field.getter, field.setter];
-    SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
-    AstTestFactory.assignmentExpression(
-        node, TokenType.EQ, AstTestFactory.integer(0));
-    _resolveInClass(node, classA);
-    PropertyAccessorElement element = node.staticElement;
-    expect(element.isSetter, isTrue);
-    _listener.assertNoErrors();
-  }
-
   test_visitSuperConstructorInvocation() async {
     ClassElementImpl superclass = ElementFactory.classElement2("A");
     _encloseElement(superclass);
@@ -1010,18 +777,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// has resolved the identifier.
   ///
   /// @param node the expression to be resolved
-  /// @param definedElements the elements that are to be defined in the scope in
-  ///          which the element is being resolved
-  /// @return the element to which the expression was resolved
-  Element _resolveIdentifier(Identifier node, [List<Element> definedElements]) {
-    _resolveNode(node, definedElements);
-    return node.staticElement;
-  }
-
-  /// Return the element associated with the given identifier after the resolver
-  /// has resolved the identifier.
-  ///
-  /// @param node the expression to be resolved
   /// @param enclosingClass the element representing the class enclosing the
   ///          identifier
   /// @return the element to which the expression was resolved
@@ -1039,19 +794,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       _visitor.enclosingClass = null;
       _visitor.nameScope = outerScope;
     }
-  }
-
-  /// Return the element associated with the given expression after the resolver
-  /// has resolved the expression.
-  ///
-  /// @param node the expression to be resolved
-  /// @param definedElements the elements that are to be defined in the scope in
-  ///          which the element is being resolved
-  /// @return the element to which the expression was resolved
-  Element _resolveIndexExpression(IndexExpression node,
-      [List<Element> definedElements]) {
-    _resolveNode(node, definedElements);
-    return node.staticElement;
   }
 
   /// Return the element associated with the given identifier after the resolver

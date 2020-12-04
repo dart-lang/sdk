@@ -2,20 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/testing/element_search.dart';
+import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 /// Finds an [Element] with the given [name].
@@ -37,47 +40,39 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
-  AnalysisDriver _driver;
+  final ByteStore _byteStore = MemoryByteStore();
 
-  /// The file system specific `/home/test/analysis_options.yaml` path.
-  String get analysisOptionsPath =>
-      convertPath('/home/test/analysis_options.yaml');
+  final Map<String, String> _declaredVariables = {};
 
-  AnalysisDriver get driver => _driver;
+  AnalysisContextCollection _analysisContextCollection;
 
-  AnalysisSession get session => driver.currentSession;
+  List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  /// The file system specific `/home/test/pubspec.yaml` path.
-  String get testPubspecPath => convertPath('/home/test/pubspec.yaml');
+  AnalysisSession get session => contextFor(testPackageRootPath).currentSession;
 
-  void addMetaPackage() {
-    addPackageFile('meta', 'meta.dart', r'''
-library meta;
+  /// The file system-specific `analysis_options.yaml` path.
+  String get testPackageAnalysisOptionsPath =>
+      convertPath('$testPackageRootPath/analysis_options.yaml');
 
-const Required required = const Required();
+  String get testPackageLanguageVersion => '2.9';
 
-class Required {
-  final String reason;
-  const Required([this.reason]);
-}
-''');
+  /// The file system-specific `pubspec.yaml` path.
+  String get testPackagePubspecPath =>
+      convertPath('$testPackageRootPath/pubspec.yaml');
+
+  String get testPackageRootPath => convertPath('/home/test');
+
+  String get workspaceRootPath => convertPath('/home');
+
+  void addSource(String path, String content) {
+    newFile(path, content: content);
   }
 
-  /// Add a new file with the given [pathInLib] to the package with the
-  /// given [packageName]. Then ensure that the test package depends on the
-  /// [packageName].
-  File addPackageFile(String packageName, String pathInLib, String content) {
-    var packagePath = '/.pub-cache/$packageName';
-    _addTestPackageDependency(packageName, packagePath);
-    return newFile('$packagePath/lib/$pathInLib', content: content);
-  }
+  AnalysisContext contextFor(String path) {
+    _createAnalysisContexts();
 
-  Source addSource(String path, String content, [Uri uri]) {
-    var file = newFile(path, content: content);
-    var source = file.createSource(uri);
-    driver.addFile(file.path);
-    driver.changeFile(file.path);
-    return source;
+    path = convertPath(path);
+    return _analysisContextCollection.contextFor(path);
   }
 
   /// Create an analysis options file based on the given arguments.
@@ -92,11 +87,12 @@ class Required {
       }
     }
 
-    newFile(analysisOptionsPath, content: buffer.toString());
+    newFile(testPackageAnalysisOptionsPath, content: buffer.toString());
+  }
 
-    if (_driver != null) {
-      _createDriver();
-    }
+  AnalysisDriver driverFor(String path) {
+    var context = contextFor(path) as DriverBasedAnalysisContext;
+    return context.driver;
   }
 
   Element findElementInUnit(CompilationUnit unit, String name,
@@ -106,54 +102,83 @@ class Required {
         .single;
   }
 
-  Future<CompilationUnit> resolveLibraryUnit(Source source) async {
-    return (await driver.getResult(source.fullName))?.unit;
+  @override
+  File newFile(String path, {String content = ''}) {
+    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
+      throw StateError('Only dart files can be changed after analysis.');
+    }
+
+    return super.newFile(path, content: content);
+  }
+
+  Future<ResolvedUnitResult> resolveFile(String path) async {
+    return contextFor(path).currentSession.getResolvedUnit(path);
   }
 
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
 
-    newFolder('/home/test');
-    newFile('/home/test/.packages', content: '''
-test:${toUriStr('/home/test/lib')}
-''');
-
-    _createDriver();
+    newFolder(testPackageRootPath);
+    writeTestPackageConfig();
   }
 
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
   }
 
-  void _addTestPackageDependency(String name, String rootPath) {
-    var packagesFile = getFile('/home/test/.packages');
-    var packagesContent = packagesFile.readAsStringSync();
+  void writePackageConfig(String path, PackageConfigFileBuilder config) {
+    newFile(path, content: config.toContent(toUriStr: toUriStr));
+  }
 
-    // Ignore if there is already the same package dependency.
-    if (packagesContent.contains('$name:file://')) {
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder config,
+    String languageVersion,
+    bool meta = false,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootPath: testPackageRootPath,
+      languageVersion: languageVersion ?? testPackageLanguageVersion,
+    );
+
+    if (meta) {
+      var metaPath = '/packages/meta';
+      MockPackages.addMetaPackageFiles(
+        getFolder(metaPath),
+      );
+      config.add(name: 'meta', rootPath: metaPath);
+    }
+
+    var path = '$testPackageRootPath/.dart_tool/package_config.json';
+    writePackageConfig(path, config);
+  }
+
+  /// Create all analysis contexts in [collectionIncludedPaths].
+  void _createAnalysisContexts() {
+    if (_analysisContextCollection != null) {
       return;
     }
 
-    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
-
-    packagesFile.writeAsStringSync(packagesContent);
-
-    _createDriver();
-  }
-
-  void _createDriver() {
-    var collection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath('/home')],
+    _analysisContextCollection = AnalysisContextCollectionImpl(
+      byteStore: _byteStore,
+      declaredVariables: _declaredVariables,
       enableIndex: true,
+      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: convertPath('/sdk'),
     );
-
-    var testPath = convertPath('/home/test');
-    var context = collection.contextFor(testPath) as DriverBasedAnalysisContext;
-
-    _driver = context.driver;
   }
+}
+
+mixin WithNullSafetyMixin on AbstractContextTest {
+  @override
+  String get testPackageLanguageVersion => '2.12';
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

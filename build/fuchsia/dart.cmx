@@ -8,7 +8,8 @@
       "deprecated-ambient-replace-as-executable",
       "root-ssl-certificates",
       "isolated-cache-storage",
-      "isolated-persistent-storage"
+      "isolated-persistent-storage",
+      "isolated-temp"
     ],
     "services": [
       "fuchsia.deprecatedtimezone.Timezone",
@@ -17,7 +18,6 @@
       "fuchsia.intl.PropertyProvider",
       "fuchsia.logger.LogSink",
       "fuchsia.net.NameLookup",
-      "fuchsia.netstack.Netstack",
       "fuchsia.posix.socket.Provider",
       "fuchsia.sysmem.Allocator",
       "fuchsia.timezone.Timezone",

@@ -170,25 +170,25 @@ void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
   Class2? nullable2 = n2;
   Class3? nullable3 = n3;
 
-  n1?.[nullable1];
-  n1?.[nullable1] = new Class1();
-  n1?.[nullable1]?.nonNullable1Method();
+  n1?[nullable1];
+  n1?[nullable1] = new Class1();
+  n1?[nullable1]?.nonNullable1Method();
   n1?.nonNullable1[nullable1];
   n1?.nonNullable1[nullable1] = new Class1();
   nullable1 = n1?.nonNullable1[nullable1] = new Class1();
   n1?.nonNullable1[nullable1]?.nonNullable1Method();
   n1?.nonNullable2[nullable2] += 0;
   nullable2 = n1?.nonNullable2[nullable2] += 0;
-  n1?.[nullable1] ??= nullable1;
-  nullable1 = n1?.[nullable1] ??= nullable1;
-  n2?.[nullable2] += 0;
-  nullable2 = n2?.[nullable2] += 0;
-  n2?.[nullable2] += 0;
-  nullable2 = n2?.[nullable2] += 0;
-  n2?.[nullable2]++;
-  nullable2 = n2?.[nullable2]++;
-  ++n2?.[nullable2];
-  nullable2 = ++n2?.[nullable2];
+  n1?[nullable1] ??= nullable1;
+  nullable1 = n1?[nullable1] ??= nullable1;
+  n2?[nullable2] += 0;
+  nullable2 = n2?[nullable2] += 0;
+  n2?[nullable2] += 0;
+  nullable2 = n2?[nullable2] += 0;
+  n2?[nullable2]++;
+  nullable2 = n2?[nullable2]++;
+  ++n2?[nullable2];
+  nullable2 = ++n2?[nullable2];
   n1?.nonNullable2[nullable2]++;
   nullable2 = n1?.nonNullable2[nullable2]++;
   ++n1?.nonNullable2[nullable2];
@@ -205,19 +205,19 @@ void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
   ++n1?.nonNullable2[nullable2][nullable2];
   nullable2 = ++n1?.nonNullable2[nullable2][nullable2];
 
-  n1?.[nullable1]?.[nullable1];
-  n1?.[nullable1]?.[nullable1] = new Class1();
-  nullable1 = n1?.[nullable1]?.[nullable1] = new Class1();
-  n1?.[nullable1]?.[nullable1]?.nonNullable1Method();
-  nullable1 = n1?.[nullable1]?.[nullable1]?.nonNullable1Method();
-  n1?.[nullable1]?.[nullable1] ??= nullable1;
-  nullable1 = n1?.[nullable1]?.[nullable1] ??= nullable1;
-  n3?.[nullable3]?.[nullable2] += 0;
-  nullable2 = n3?.[nullable3]?.[nullable2] += 0;
-  n3?.[nullable3]?.[nullable2]++;
-  nullable2 = n3?.[nullable3]?.[nullable2]++;
-  ++n3?.[nullable3]?.[nullable2];
-  nullable2 = ++n3?.[nullable3]?.[nullable2];
+  n1?[nullable1]?[nullable1];
+  n1?[nullable1]?[nullable1] = new Class1();
+  nullable1 = n1?[nullable1]?[nullable1] = new Class1();
+  n1?[nullable1]?[nullable1]?.nonNullable1Method();
+  nullable1 = n1?[nullable1]?[nullable1]?.nonNullable1Method();
+  n1?[nullable1]?[nullable1] ??= nullable1;
+  nullable1 = n1?[nullable1]?[nullable1] ??= nullable1;
+  n3?[nullable3]?[nullable2] += 0;
+  nullable2 = n3?[nullable3]?[nullable2] += 0;
+  n3?[nullable3]?[nullable2]++;
+  nullable2 = n3?[nullable3]?[nullable2]++;
+  ++n3?[nullable3]?[nullable2];
+  nullable2 = ++n3?[nullable3]?[nullable2];
 }
 
 void operatorAccess(Class1? n1, Class2? n2) {

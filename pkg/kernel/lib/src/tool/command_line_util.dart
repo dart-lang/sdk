@@ -19,8 +19,8 @@ class CommandLineHelper {
   static requireVariableArgumentCount(
       List<int> ok, List<String> args, void Function() usage) {
     if (!ok.contains(args.length)) {
-      print(
-          "Expected the argument count to be one of ${ok}, got ${args.length}.");
+      print("Expected the argument count to be one of ${ok}, got "
+          "${args.length}.");
       usage();
     }
   }

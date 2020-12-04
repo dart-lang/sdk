@@ -224,12 +224,12 @@ class TimingPrinter extends EventListener {
 
   TimingPrinter(this._startTime);
 
-  void done(TestCase testCase) {
-    for (var commandOutput in testCase.commandOutputs.values) {
+  void done(TestCase test) {
+    for (var commandOutput in test.commandOutputs.values) {
       var command = commandOutput.command;
       _commandOutputs.add(commandOutput);
       _commandToTestCases.putIfAbsent(command, () => <TestCase>[]);
-      _commandToTestCases[command].add(testCase);
+      _commandToTestCases[command].add(test);
     }
   }
 
@@ -430,7 +430,7 @@ class CompactProgressIndicator extends CompactIndicator {
   CompactProgressIndicator(DateTime startTime, this._formatter)
       : super(startTime);
 
-  void _printDoneProgress(TestCase testCase) {
+  void _printDoneProgress(TestCase test) {
     var percent = ((_completedTests / _foundTests) * 100).toInt().toString();
     var progressPadded = (_allTestsKnown ? percent : '--').padLeft(3);
     var passedPadded = _passedTests.toString().padLeft(5);

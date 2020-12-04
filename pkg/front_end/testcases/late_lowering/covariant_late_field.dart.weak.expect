@@ -16,18 +16,24 @@ import "dart:_internal" as _in;
 
 class A extends core::Object {
   field core::num? _#A#invariantField = null;
+  field core::bool _#A#invariantField#isSet = false;
   field core::num? _#A#covariantField = null;
+  field core::bool _#A#covariantField#isSet = false;
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   get invariantField() → core::num
-    return let final core::num? #t1 = this.{self::A::_#A#invariantField} in #t1.==(null) ?{core::num} throw new _in::LateInitializationErrorImpl::•("Field 'invariantField' has not been initialized.") : #t1{core::num};
-  set invariantField(core::num #t2) → void
+    return this.{self::A::_#A#invariantField#isSet} ?{core::num} let final core::num? #t1 = this.{self::A::_#A#invariantField} in #t1{core::num} : throw new _in::LateError::fieldNI("invariantField");
+  set invariantField(core::num #t2) → void {
+    this.{self::A::_#A#invariantField#isSet} = true;
     this.{self::A::_#A#invariantField} = #t2;
+  }
   get covariantField() → core::num
-    return let final core::num? #t3 = this.{self::A::_#A#covariantField} in #t3.==(null) ?{core::num} throw new _in::LateInitializationErrorImpl::•("Field 'covariantField' has not been initialized.") : #t3{core::num};
-  set covariantField(covariant core::num #t4) → void
+    return this.{self::A::_#A#covariantField#isSet} ?{core::num} let final core::num? #t3 = this.{self::A::_#A#covariantField} in #t3{core::num} : throw new _in::LateError::fieldNI("covariantField");
+  set covariantField(covariant core::num #t4) → void {
+    this.{self::A::_#A#covariantField#isSet} = true;
     this.{self::A::_#A#covariantField} = #t4;
+  }
 }
 abstract class B extends core::Object implements self::A {
   synthetic constructor •() → self::B

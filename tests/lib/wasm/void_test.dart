@@ -5,7 +5,7 @@
 // Test functions with void return type, and functions that take no args.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
@@ -25,10 +25,10 @@ void main() {
     0x80, 0x08, 0x0b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports());
-  var setFn = inst.lookupFunction<Void Function(Int64, Int64)>("set");
-  var getFn = inst.lookupFunction<Int64 Function()>("get");
-  Expect.isNull(setFn.call([123, 456]));
-  int n = getFn.call([]);
+  var inst = WasmModule(data).instantiate().build();
+  var setFn = inst.lookupFunction("set");
+  var getFn = inst.lookupFunction("get");
+  Expect.isNull(setFn(123, 456));
+  int n = getFn();
   Expect.equals(123 + 456, n);
 }

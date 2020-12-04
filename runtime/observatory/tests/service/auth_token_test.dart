@@ -17,13 +17,13 @@ Future<Null> testeeBefore() async {
   ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
   Expect.isNotNull(info.serverUri);
   // Ensure that we have the auth token in the path segments.
-  Expect.isTrue(info.serverUri.pathSegments.length > 1);
+  Expect.isTrue(info.serverUri!.pathSegments.length > 1);
   // Sanity check the length of the auth token.
-  Expect.isTrue(info.serverUri.pathSegments[0].length > 8);
+  Expect.isTrue(info.serverUri!.pathSegments[0].length > 8);
 
   // Try connecting to the server without the auth token, it should throw
   // an exception.
-  var port = info.serverUri.port;
+  var port = info.serverUri!.port;
   var url = Uri.parse('http://localhost:$port');
   var httpClient = new io.HttpClient();
   try {
@@ -35,7 +35,7 @@ Future<Null> testeeBefore() async {
 
   // Try connecting to the server with the auth token, it should succeed.
   try {
-    var request = await httpClient.getUrl(info.serverUri);
+    var request = await httpClient.getUrl(info.serverUri!);
   } catch (e) {
     fail('could not connect');
   }

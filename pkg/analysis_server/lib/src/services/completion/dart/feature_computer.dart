@@ -525,7 +525,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (node.operator.end <= offset) {
       // RHS
       if (node.operator.type == TokenType.EQ) {
-        return node.leftHandSide.staticType;
+        return node.writeType;
       }
       var method = node.staticElement;
       if (method != null) {

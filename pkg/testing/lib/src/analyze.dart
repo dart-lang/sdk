@@ -218,7 +218,7 @@ Future<Null> analyzeUris(
   List<String> arguments = <String>[
     "--packages=${toFilePath(packages)}",
     "--format=machine",
-    "--dart-sdk=${Uri.base.resolve('sdk/').toFilePath()}",
+    "--dart-sdk=${_findSdkPath()}",
   ];
   if (analysisOptions != null) {
     arguments.add("--options=${toFilePath(analysisOptions)}");
@@ -235,11 +235,7 @@ Future<Null> analyzeUris(
   }
   Stopwatch sw = new Stopwatch()..start();
   Process process = await startDart(
-      analyzer,
-      const <String>["--batch"],
-      dartArguments
-        ..remove("-c")
-        ..add("-DuseFastaScanner=true"));
+      analyzer, const <String>["--batch"], dartArguments..remove("-c"));
   process.stdin.writeln(arguments.join(" "));
   process.stdin.close();
 
@@ -271,6 +267,18 @@ Future<Null> analyzeUris(
   print("Running analyzer took: ${sw.elapsed}.");
   if (hasOutput) {
     throw "Non-empty output from analyzer.";
+  }
+}
+
+String _findSdkPath() {
+  var executableUri = Uri.file(Platform.executable);
+  if (File.fromUri(executableUri.resolve('../version')).existsSync()) {
+    return executableUri.resolve('..').toFilePath();
+  } else if (File.fromUri(executableUri.resolve('dart-sdk/version'))
+      .existsSync()) {
+    return executableUri.resolve('dart-sdk').toFilePath();
+  } else {
+    throw StateError('Cannot find dart-sdk for $executableUri');
   }
 }
 

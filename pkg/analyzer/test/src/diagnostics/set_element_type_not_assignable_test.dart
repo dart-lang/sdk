@@ -2,123 +2,75 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementTypeNotAssignableTest);
-    defineReflectiveTests(SetElementTypeNotAssignableWithConstantTest);
   });
 }
 
 @reflectiveTest
-class SetElementTypeNotAssignableTest extends DriverResolutionTest {
+class SetElementTypeNotAssignableTest extends PubPackageResolutionTest
+    with SetElementTypeNotAssignableTestCases {}
+
+mixin SetElementTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 const dynamic b = 0;
 var v = const <int>{if (1 < 0) a else b};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 62, 19),
-              ]);
+''');
   }
 
   test_const_ifElement_thenElseFalse_intString() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>{if (1 < 0) a else b};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 82,
-                    1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 64, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1),
+    ]);
   }
 
   test_const_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 var v = const <int>{if (1 < 0) 'a'};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
-                    3),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 20, 14),
-                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
-                    3),
-              ]);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
+    ]);
   }
 
   test_const_ifElement_thenFalse_intString_dynamic() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 'a';
 var v = const <int>{if (1 < 0) a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 43, 12),
-              ]);
+''');
   }
 
   test_const_ifElement_thenTrue_intInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 var v = const <int>{if (true) a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 11),
-              ]);
+''');
   }
 
   test_const_ifElement_thenTrue_intString() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 const dynamic a = 'a';
 var v = const <int>{if (true) a};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 53,
-                    1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 43, 11),
-              ]);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1),
+    ]);
   }
 
   test_const_spread_intInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 var v = const <int>{...[0, 1]};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 20, 9),
-              ]);
+''');
   }
 
   test_explicitTypeArgs_const() async {
@@ -196,14 +148,4 @@ var v = <int>{if (true) a};
 var v = <int>{...[0, 1]};
 ''');
   }
-}
-
-@reflectiveTest
-class SetElementTypeNotAssignableWithConstantTest
-    extends SetElementTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

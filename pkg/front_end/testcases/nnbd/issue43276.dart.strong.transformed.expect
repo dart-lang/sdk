@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43276.dart:6:14: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   C.gen({int i}); // error
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue43276.dart:8:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   factory C.fact({int i}) /* error */ {
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::C::redirect]/*isLegacy*/;
+  constructor gen({core::int i = #C1}) → self::C
+    : super core::Object::•()
+    ;
+  static factory fact({core::int i = #C1}) → self::C {
+    return new self::C::gen();
+  }
+  static factory redirect({core::int i = #C1}) → self::C
+    let<BottomType> #redirecting_factory = self::C::gen in invalid-expression;
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

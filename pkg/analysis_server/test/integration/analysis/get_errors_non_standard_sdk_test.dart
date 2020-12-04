@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -28,6 +27,8 @@ class AnalysisDomainGetErrorsTest
     Directory(path.join(sdkPath, 'lib', 'core')).createSync(recursive: true);
     Directory(path.join(sdkPath, 'lib', 'async')).createSync(recursive: true);
     Directory(path.join(sdkPath, 'lib', 'fake')).createSync(recursive: true);
+
+    File(path.join(sdkPath, 'version')).writeAsStringSync('2.12.0');
 
     File(path.join(sdkPath, 'lib', 'core', 'core.dart')).writeAsStringSync(r'''
 library dart.core;

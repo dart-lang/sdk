@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,15 +14,16 @@ main() {
 }
 
 @reflectiveTest
-class ForInWithConstVariableTest extends DriverResolutionTest {
+class ForInWithConstVariableTest extends PubPackageResolutionTest {
   test_forEach_loopVariable() async {
     await assertErrorsInCode(r'''
 f() {
-  for (const x in [0, 1, 2]) {}
+  for (const x in [0, 1, 2]) {
+    print(x);
+  }
 }
 ''', [
-      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 13, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 13, 5),
     ]);
   }
 }

@@ -29,8 +29,10 @@ Note: In LSP the client makes the first request so there is no obvious confirmat
 
 Client workspace settings are requested with `workspace/configuration` during initialization and re-requested whenever the client notifies the server with `workspace/didChangeConfiguration`. This allows the settings to take effect without restarting the server.
 
+- `dart.analysisExcludedFolders`: An array of paths (absolute or relative to each workspace folder) that should be excluded from analysis.
 - `dart.enableSdkFormatter`: When set to `false`, prevents registration (or unregisters) the SDK formatter. When set to `true` or not supplied, will register/reregister the SDK formatter.
 - `dart.lineLength`: The number of characters the formatter should wrap code at. If unspecified, code will be wrapped at `80` characters.
+- `dart.completeFunctionCalls`: Completes functions/methods with their required parameters.
 
 ## Method Status
 
@@ -93,7 +95,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/documentColor | | | | | |
 | textDocument/colorPresentation | | | | | |
 | textDocument/formatting | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/rangeFormatting | | | | | | requires support from dart_style?
+| textDocument/rangeFormatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/onTypeFormatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/rename | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/prepareRename | ✅ | ✅ | | ✅ | ✅ |
@@ -111,6 +113,14 @@ Returns: `{ port: number }`
 
 Starts the analzyer diagnostics server (if not already running) and returns the port number it's listening on.
 
+### dart/reanalyze Method
+
+Direction: Client -> Server
+Params: None
+Returns: None
+
+Forces re-reading of all potentially changed files, re-resolving of all referenced URIs, and corresponding re-analysis of everything affected in the current analysis roots. Clients should not usually need to call this method - needing to do so may indicate a bug in the server.
+
 ### dart/textDocument/super Method
 
 Direction: Client -> Server
@@ -119,12 +129,16 @@ Returns: `Location | null`
 
 Returns the location of the super definition of the class or method at the provided position or `null` if there isn't one.
 
-### $/analyzerStatus Notification
+### $/analyzerStatus Notification (Deprecated)
 
 Direction: Server -> Client
 Params: `{ isAnalyzing: boolean }`
 
 Notifies the client when analysis starts/completes.
+
+This notification is not sent if the client capabilities include `window.workDoneProgress == true` because analyzing status events will be sent using `$/progress`.
+
+This notification may be removed in a future Dart SDK release and should not be depended on.
 
 ### dart/textDocument/publishClosingLabels Notification
 

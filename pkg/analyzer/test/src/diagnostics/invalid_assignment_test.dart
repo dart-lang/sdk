@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -58,7 +57,7 @@ void f(Never x) {
   x = null;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 24, 5),
+      if (hasAssignmentLeftResolution) error(HintCode.DEAD_CODE, 24, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4),
     ]);
   }
@@ -71,7 +70,7 @@ void f() {
   x = null;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 37, 5),
+      if (hasAssignmentLeftResolution) error(HintCode.DEAD_CODE, 37, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
     ]);
   }
@@ -94,7 +93,7 @@ class B<T> {
 }
 
 @reflectiveTest
-class InvalidAssignmentTest extends DriverResolutionTest {
+class InvalidAssignmentTest extends PubPackageResolutionTest {
   test_assignment_to_dynamic() async {
     await assertErrorsInCode(r'''
 f() {
@@ -103,6 +102,17 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
+  }
+
+  test_cascadeExpression() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  // ignore:unused_local_variable
+  String v = (a)..isEven;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
     ]);
   }
 
@@ -152,16 +162,6 @@ f([String x = 0]) {
 f([String x = '0']) {
 }
 ''');
-  }
-
-  test_dynamic() async {
-    await assertErrorsInCode(r'''
-main() {
-  dynamic = 1;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 21, 1),
-    ]);
   }
 
   test_functionExpressionInvocation() async {
@@ -330,6 +330,17 @@ f(var y) {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 1),
+    ]);
+  }
+
+  test_parenthesizedExpression() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  // ignore:unused_local_variable
+  String v = (a);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
     ]);
   }
 

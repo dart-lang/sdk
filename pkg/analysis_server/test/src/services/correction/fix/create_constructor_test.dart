@@ -22,7 +22,7 @@ class CreateConstructorMixinTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
 
   Future<void> test_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {}
 
 main() {
@@ -45,7 +45,7 @@ class CreateConstructorTest extends FixProcessorTest {
 /// $_text200
 class A {}
 ''').path;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a.dart';
 
 main() {
@@ -65,7 +65,7 @@ class A {
 /// $_text200
 class A {}
 ''').path;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a.dart';
 
 main() {
@@ -81,7 +81,7 @@ class A {
   }
 
   Future<void> test_insteadOfSyntheticDefault() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int field;
 
@@ -107,7 +107,7 @@ main() {
 
   Future<void> test_mixin() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {}
 void f() {
   new M(3);
@@ -119,7 +119,7 @@ void f() {
   }
 
   Future<void> test_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   method() {}
 }
@@ -141,7 +141,7 @@ main() {
   }
 
   Future<void> test_named_emptyClassBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 main() {
   new A.named(1);

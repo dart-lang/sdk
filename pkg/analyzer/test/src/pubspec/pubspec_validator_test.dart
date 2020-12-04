@@ -49,7 +49,7 @@ class PubspecValidatorTest with ResourceProviderMixin {
     validator = PubspecValidator(resourceProvider, source);
   }
 
-  test_assetDirectoryDoesExists_noError() {
+  test_assetDirectoryDoesExist_noError() {
     newFolder('/sample/assets/logos');
     assertNoErrors('''
 name: sample
@@ -196,6 +196,206 @@ dependencies:
 ''');
   }
 
+  test_dependencyGit_malformed_empty() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:
+''');
+  }
+
+  test_dependencyGit_malformed_list() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:
+      - baz
+''');
+  }
+
+  test_dependencyGit_malformed_scalar() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git: baz
+''');
+  }
+
+  test_dependencyGit_noVersion_valid() {
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''');
+  }
+
+  test_dependencyGit_version_error() {
+    assertErrors('''
+name: sample
+version: 0.1.0
+dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+  }
+
+  test_dependencyGit_version_valid() {
+    assertNoErrors('''
+name: sample
+version: 0.1.0
+publish_to: none
+dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''');
+  }
+
+  test_dependencyGitPath() {
+    // git paths are not validated
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''');
+  }
+
+  test_dependencyPath_malformed_empty() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path:
+''');
+  }
+
+  test_dependencyPath_malformed_list() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: 
+     - baz
+''');
+  }
+
+  test_dependencyPath_noVersion_valid() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: /foo
+''');
+  }
+
+  test_dependencyPath_pubspecDoesNotExist() {
+    newFolder('/foo');
+    assertErrors('''
+name: sample
+dependencies:
+  foo:
+    path: /foo
+''', [PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST]);
+  }
+
+  test_dependencyPath_pubspecExists() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: /foo
+''');
+  }
+
+  test_dependencyPath_valid_absolute() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: /foo
+''');
+  }
+
+  test_dependencyPath_valid_relative() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: ../foo
+''');
+  }
+
+  test_dependencyPath_version_error() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertErrors('''
+name: sample
+version: 0.1.0
+dependencies:
+  foo:
+    path: /foo
+''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+  }
+
+  test_dependencyPath_version_valid() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+version: 0.1.0
+publish_to: none
+dependencies:
+  foo:
+    path: /foo
+''');
+  }
+
+  test_dependencyPathDoesNotExist_path_error() {
+    assertErrors('''
+name: sample
+dependencies:
+  foo:
+    path: does/not/exist
+''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+  }
+
   test_devDependenciesField_empty() {
     assertNoErrors('''
 name: sample
@@ -215,6 +415,41 @@ dev_dependencies: true
 name: sample
 dev_dependencies:
   a: any
+''');
+  }
+
+  test_devDependencyGit_version_no_error() {
+    // Git paths are OK in dev_dependencies
+    assertNoErrors('''
+name: sample
+version: 0.1.0
+dev_dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''');
+  }
+
+  test_devDependencyPathDoesNotExist_path_error() {
+    assertErrors('''
+name: sample
+dev_dependencies:
+  foo:
+    path: does/not/exist
+''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+  }
+
+  test_devDependencyPathExists() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+dev_dependencies:
+  foo:
+    path: /foo
 ''');
   }
 
@@ -268,6 +503,23 @@ name: 42
     assertNoErrors('''
 name: sample
 ''');
+  }
+
+  test_pathNotPosix_error() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertErrors(r'''
+name: sample
+version: 0.1.0
+publish_to: none
+dependencies:
+  foo:
+    path: \foo
+''', [
+      PubspecWarningCode.PATH_NOT_POSIX,
+    ]);
   }
 
   test_unnecessaryDevDependency_error() {

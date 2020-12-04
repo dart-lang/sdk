@@ -1,0 +1,47 @@
+const List<String> listWithUnevaluatedUnevaluatedFirst = [
+  String.fromEnvironment("foo"),
+  String.fromEnvironment("bar"),
+  "hello",
+  "world"
+];
+const List<String> listWithUnevaluatedUnevaluatedMiddle = [
+  "A",
+  "few",
+  "strings",
+  String.fromEnvironment("foo"),
+  String.fromEnvironment("bar"),
+  "hello",
+  "world",
+  "and",
+  "more"
+];
+const Set<String> setWithUnevaluatedUnevaluatedFirst = {
+  String.fromEnvironment("foo"),
+  "hello",
+  "world"
+};
+const Set<String> setWithUnevaluatedUnevaluatedMiddle = {
+  "A",
+  "few",
+  "strings",
+  String.fromEnvironment("foo"),
+  "hello",
+  "world",
+  "and",
+  "more"
+};
+const Map<String, int> mapWithUnevaluatedUnevaluatedFirst = {
+  String.fromEnvironment("foo"): 42,
+  "hello": 42,
+  "world": 42
+};
+const Map<String, int> mapWithUnevaluatedUnevaluatedMiddle = {
+  "A": 42,
+  "few": 42,
+  "strings": 42,
+  String.fromEnvironment("foo"): 42,
+  "hello": 42,
+  "world": 42,
+  "and": 42,
+  "more": 42
+};

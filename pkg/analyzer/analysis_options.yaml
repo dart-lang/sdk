@@ -11,8 +11,6 @@ analyzer:
     omit_local_variable_types: ignore
     # There are currently 3360 violations in lib/.
     prefer_single_quotes: ignore
-    # There are currently 2000 violations in lib/.
-    unnecessary_this: ignore
 
     # "strict-inference" is enabled, but "unused" parameters named '_' are
     # still reported.  Re-evaluate after
@@ -29,7 +27,11 @@ analyzer:
 linter:
   rules:
     - avoid_unused_constructor_parameters
+    - await_only_futures
     - empty_statements
+    - iterable_contains_unrelated_type
+    - list_remove_unrelated_type
     - prefer_typing_uninitialized_variables
     - unnecessary_brace_in_string_interps
+    - unnecessary_overrides
     - unnecessary_parenthesis

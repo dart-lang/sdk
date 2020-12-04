@@ -574,7 +574,7 @@ class TimelineBeginEndScope : public TimelineEventScope {
 };
 
 // A block of |TimelineEvent|s. Not thread safe.
-class TimelineEventBlock {
+class TimelineEventBlock : public MallocAllocated {
  public:
   static const intptr_t kBlockSize = 64;
 
@@ -707,7 +707,7 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
 };
 
 // Recorder of |TimelineEvent|s.
-class TimelineEventRecorder {
+class TimelineEventRecorder : public MallocAllocated {
  public:
   TimelineEventRecorder();
   virtual ~TimelineEventRecorder() {}

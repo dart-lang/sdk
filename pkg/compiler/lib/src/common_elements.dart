@@ -212,15 +212,6 @@ abstract class CommonElements {
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType streamType([DartType elementType]);
 
-  /// Returns `true` if [element] is a superclass of `String` or `num`.
-  bool isNumberOrStringSupertype(ClassEntity element);
-
-  /// Returns `true` if [element] is a superclass of `String`.
-  bool isStringOnlySupertype(ClassEntity element);
-
-  /// Returns `true` if [element] is a superclass of `List`.
-  bool isListSupertype(ClassEntity element);
-
   InterfaceType getConstantListTypeFor(InterfaceType sourceType);
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
@@ -450,6 +441,8 @@ abstract class CommonElements {
 
   FunctionEntity get defineProperty;
 
+  FunctionEntity get throwLateInitializationError;
+
   bool isExtractTypeArguments(FunctionEntity member);
 
   ClassEntity getInstantiationClass(int typeArgumentCount);
@@ -595,11 +588,19 @@ abstract class JCommonElements implements CommonElements {
   /// compilation.
   bool isUnnamedListConstructor(ConstructorEntity element);
 
-  /// Returns `true` if [element] is the 'filled' constructor of `List`.
+  /// Returns `true` if [element] is the named constructor of `List`,
+  /// e.g. `List.of`.
   ///
   /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
-  bool isFilledListConstructor(ConstructorEntity element);
+  bool isNamedListConstructor(String name, ConstructorEntity element);
+
+  /// Returns `true` if [element] is the named constructor of `JSArray`,
+  /// e.g. `JSArray.fixed`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  bool isNamedJSArrayConstructor(String name, ConstructorEntity element);
 
   bool isDefaultEqualityImplementation(MemberEntity element);
 
@@ -888,8 +889,16 @@ class CommonElementsImpl
   /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   @override
-  bool isFilledListConstructor(ConstructorEntity element) =>
-      element.name == 'filled' && element.enclosingClass == listClass;
+  bool isNamedListConstructor(String name, ConstructorEntity element) =>
+      element.name == name && element.enclosingClass == listClass;
+
+  /// Returns `true` if [element] is the [name]d constructor of `JSArray`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  @override
+  bool isNamedJSArrayConstructor(String name, ConstructorEntity element) =>
+      element.name == name && element.enclosingClass == jsArrayClass;
 
   @override
   DynamicType get dynamicType => _env.dynamicType;
@@ -981,19 +990,6 @@ class CommonElementsImpl
     }
     return _createInterfaceType(streamClass, [elementType]);
   }
-
-  @override
-  bool isNumberOrStringSupertype(ClassEntity element) {
-    return element == _findClass(coreLibrary, 'Comparable', required: false);
-  }
-
-  @override
-  bool isStringOnlySupertype(ClassEntity element) {
-    return element == _findClass(coreLibrary, 'Pattern', required: false);
-  }
-
-  @override
-  bool isListSupertype(ClassEntity element) => element == iterableClass;
 
   ClassEntity _findClass(LibraryEntity library, String name,
       {bool required: true}) {
@@ -1799,6 +1795,10 @@ class CommonElementsImpl
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
 
   @override
+  FunctionEntity get throwLateInitializationError =>
+      _findHelperFunction('throwLateInitializationError');
+
+  @override
   bool isExtractTypeArguments(FunctionEntity member) {
     return member.name == 'extractTypeArguments' &&
         member.library == internalLibrary;
@@ -2283,6 +2283,15 @@ abstract class ElementEnvironment {
   /// Calls [f] for each supertype of [cls].
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
+  /// Calls [f] for each SuperClass of [cls].
+  void forEachSuperClass(ClassEntity cls, void f(ClassEntity superClass)) {
+    for (var superClass = getSuperClass(cls);
+        superClass != null;
+        superClass = getSuperClass(superClass)) {
+      f(superClass);
+    }
+  }
+
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
@@ -2336,6 +2345,23 @@ abstract class ElementEnvironment {
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);
+
+  /// Returns the 'effective' mixin class if [cls] is a mixin application, and
+  /// `null` otherwise.
+  ///
+  /// The 'effective' mixin class is the class from which members are mixed in.
+  /// Normally this is the mixin class itself, but not if the mixin class itself
+  /// is a mixin application.
+  ///
+  /// Consider this hierarchy:
+  ///
+  ///     class A {}
+  ///     class B = Object with A {}
+  ///     class C = Object with B {}
+  ///
+  /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
+  /// _effective_ mixin class of both is `A`.
+  ClassEntity getEffectiveMixinClass(ClassEntity cls);
 }
 
 abstract class KElementEnvironment extends ElementEnvironment {
@@ -2376,23 +2402,6 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// Returns `true` if [cls] is a mixin application that mixes in methods with
   /// super calls.
   bool isSuperMixinApplication(ClassEntity cls);
-
-  /// Returns the 'effective' mixin class if [cls] is a mixin application, and
-  /// `null` otherwise.
-  ///
-  /// The 'effective' mixin class is the class from which members are mixed in.
-  /// Normally this is the mixin class itself, but not if the mixin class itself
-  /// is a mixin application.
-  ///
-  /// Consider this hierarchy:
-  ///
-  ///     class A {}
-  ///     class B = Object with A {}
-  ///     class C = Object with B {}
-  ///
-  /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
-  /// _effective_ mixin class of both is `A`.
-  ClassEntity getEffectiveMixinClass(ClassEntity cls);
 
   /// The default type of the [typeVariable].
   ///

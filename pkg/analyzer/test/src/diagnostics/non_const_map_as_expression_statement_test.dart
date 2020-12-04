@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class NonConstMapAsExpressionStatementTest extends DriverResolutionTest {
+class NonConstMapAsExpressionStatementTest extends PubPackageResolutionTest {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42850')
   test_beginningOfExpressiontatement() async {
     // TODO(srawlins) Fasta is not recovering well.

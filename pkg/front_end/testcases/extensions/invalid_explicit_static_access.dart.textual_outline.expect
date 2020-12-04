@@ -1,4 +1,4 @@
 extension Extension ;
-on String (){ }
-main() { }
-errors() { }
+on String (){}
+main() {}
+errors() {}

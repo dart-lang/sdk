@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,11 +14,11 @@ main() {
 }
 
 @reflectiveTest
-class MustCallSuperTest extends DriverResolutionTest with PackageMixin {
+class MustCallSuperTest extends PubPackageResolutionTest {
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
   }
 
   test_containsSuperCall() async {
@@ -47,8 +46,7 @@ class A {
 }
 class B extends A {
   @override
-  void a()
-  {}
+  void a() {}
 }
 ''', [
       error(HintCode.MUST_CALL_SUPER, 115, 1),
@@ -83,6 +81,68 @@ class B extends A {
 ''');
   }
 
+  test_fromExtendingClass_genericClass() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A<T> {
+  @mustCallSuper
+  void a() {}
+}
+class B extends A<int> {
+  @override
+  void a() {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 123, 1),
+    ]);
+  }
+
+  test_fromExtendingClass_genericMethod() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a<T>() {}
+}
+class B extends A {
+  @override
+  void a<T>() {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 118, 1),
+    ]);
+  }
+
+  test_fromExtendingClass_operator() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  operator ==(Object o) => o is A;
+}
+class B extends A {
+  @override
+  operator ==(Object o) => o is B;
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 140, 2),
+    ]);
+  }
+
+  test_fromExtendingClass_operator_containsSuperCall() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  operator ==(Object o) => o is A;
+}
+class B extends A {
+  @override
+  operator ==(Object o) => o is B && super == o;
+}
+''');
+  }
+
   test_fromInterface() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -110,6 +170,23 @@ class C with Mixin {
 }
 ''', [
       error(HintCode.MUST_CALL_SUPER, 120, 1),
+    ]);
+  }
+
+  test_fromMixin_throughExtendingClass() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+mixin M {
+  @mustCallSuper
+  void a() {}
+}
+class C with M {}
+class D extends C {
+  @override
+  void a() {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 133, 1),
     ]);
   }
 
@@ -171,7 +248,6 @@ mixin C on A {
   test_overriddenWithFuture() async {
     // https://github.com/flutter/flutter/issues/11646
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -192,7 +268,6 @@ class C extends A {
   test_overriddenWithFuture2() async {
     // https://github.com/flutter/flutter/issues/11646
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper

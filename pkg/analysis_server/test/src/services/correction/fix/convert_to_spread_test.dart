@@ -25,7 +25,7 @@ class ConvertToSpreadTest extends FixProcessorLintTest {
 
   /// More coverage in the `convert_to_spread_test.dart` assist test.
   Future<void> test_addAll_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
   print(['a']..addAll(ints.map((i) => i.toString()))..addAll(['c']));

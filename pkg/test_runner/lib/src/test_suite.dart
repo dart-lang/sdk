@@ -165,7 +165,19 @@ abstract class TestSuite {
       }
     }
 
-    return true;
+    // Normal runtime tests are always run.
+    if (testFile.isRuntimeTest) return true;
+
+    // Tests of web-specific static errors are run on web compilers.
+    if (testFile.isWebStaticErrorTest &&
+        (configuration.compiler == Compiler.dart2js ||
+            configuration.compiler == Compiler.dartdevc)) {
+      return true;
+    }
+
+    // Other static error tests are run on front-end-only configurations.
+    return configuration.compiler == Compiler.dart2analyzer ||
+        configuration.compiler == Compiler.fasta;
   }
 
   /// Whether a test with [expectations] should be skipped under the current
@@ -350,6 +362,128 @@ class VMUnitTest {
   final String expectation;
 
   VMUnitTest(this.name, this.expectation);
+}
+
+/// A specialized [TestSuite] that runs tests written in C to unit test
+/// the standalone (non-DartVM) C/C++ code.
+///
+/// The tests are compiled into an executable for all [targetAbis] by the
+/// build step.
+/// An executable lists its tests when run with the --list command line flag.
+/// Individual tests are run by specifying them on the command line.
+class FfiTestSuite extends TestSuite {
+  Map<String, String> runnerPaths;
+  final String dartDir;
+
+  static const targetAbis = [
+    "arm64_android",
+    "arm64_ios",
+    "arm64_linux",
+    "arm64_macos",
+    "arm_android",
+    "arm_ios",
+    "arm_linux",
+    "ia32_android",
+    "ia32_linux",
+    "ia32_win",
+    "x64_ios",
+    "x64_linux",
+    "x64_macos",
+    "x64_win",
+  ];
+
+  FfiTestSuite(TestConfiguration configuration)
+      : dartDir = Repository.dir.toNativePath(),
+        super(configuration, "ffi_unit", []) {
+    final binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
+
+    // For running the tests we use multiple binaries, one for each target ABI.
+    runnerPaths = Map.fromIterables(
+        targetAbis,
+        targetAbis.map((String config) =>
+            '$buildDir/run_ffi_unit_tests_$config$binarySuffix'));
+  }
+
+  void findTestCases(TestCaseEvent onTest, Map testCache) {
+    final statusFiles =
+        statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
+    final expectations = ExpectationSet.read(statusFiles, configuration);
+
+    runnerPaths.forEach((runnerName, runnerPath) {
+      try {
+        for (final test in _listTests(runnerName, runnerPath)) {
+          _addTest(expectations, test, onTest);
+        }
+      } catch (error, s) {
+        print(
+            "Fatal error occurred while parsing tests from $runnerName: $error");
+        print(s);
+        exit(1);
+      }
+    });
+  }
+
+  void _addTest(
+      ExpectationSet testExpectations, FfiUnitTest test, TestCaseEvent onTest) {
+    final fullName = '${test.runnerName}/${test.name}';
+    var expectations = testExpectations.expectations(fullName);
+
+    // Get the expectation from the test itself.
+    final testExpectation = Expectation.find(test.expectation);
+
+    // Update the legacy status-file based expectations to include
+    // [testExpectation].
+    if (testExpectation != Expectation.pass) {
+      expectations = {...expectations, testExpectation};
+      expectations.remove(Expectation.pass);
+    }
+
+    // Update the new workflow based expectations to include [testExpectation].
+    final testFile = TestFile.vmUnitTest(
+        hasSyntaxError: false,
+        hasCompileError: testExpectation == Expectation.compileTimeError,
+        hasRuntimeError: testExpectation == Expectation.runtimeError,
+        hasStaticWarning: false,
+        hasCrash: testExpectation == Expectation.crash);
+
+    final args = [
+      // This test has no VM, but pipe through vmOptions as test options.
+      // Passing `--vm-options=--update` will update all test expectations.
+      ...configuration.vmOptions,
+      test.name,
+    ];
+    final command = ProcessCommand(
+        'run_ffi_unit_test', test.runnerPath, args, environmentOverrides);
+
+    _addTestCase(testFile, fullName, [command], expectations, onTest);
+  }
+
+  Iterable<FfiUnitTest> _listTests(String runnerName, String runnerPath) {
+    final result = Process.runSync(runnerPath, ["--list"]);
+    if (result.exitCode != 0) {
+      throw "Failed to list tests: '$runnerPath --list'. "
+          "Process exited with ${result.exitCode}";
+    }
+
+    return (result.stdout as String)
+        .split('\n')
+        .map((line) => line.trim())
+        .where((name) => name.isNotEmpty)
+        .map((String line) {
+      final parts = line.split(' ');
+      assert(parts.length == 2);
+      return FfiUnitTest(runnerName, runnerPath, parts[0], parts[1]);
+    });
+  }
+}
+
+class FfiUnitTest {
+  final String runnerName;
+  final String runnerPath;
+  final String name;
+  final String expectation;
+
+  FfiUnitTest(this.runnerName, this.runnerPath, this.name, this.expectation);
 }
 
 /// A standard [TestSuite] implementation that searches for tests in a
@@ -557,21 +691,6 @@ class StandardTestSuite extends TestSuite {
   /// options.
   void _testCasesFromTestFile(
       TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
-    // Static error tests are skipped on every implementation except analyzer
-    // and Fasta.
-    // TODO(rnystrom): Should other configurations that use CFE support static
-    // error tests?
-    // TODO(rnystrom): Skipping this here is a little unusual because most
-    // skips are handled in _addTestCase(). However, if the configuration
-    // is running on a browser, calling _addTestCase() will try to create
-    // a set of commands which ultimately causes an exception in
-    // DummyRuntimeConfiguration. This avoids that.
-    if (testFile.isStaticErrorTest &&
-        configuration.compiler != Compiler.dart2analyzer &&
-        configuration.compiler != Compiler.fasta) {
-      return;
-    }
-
     // The configuration must support everything the test needs.
     if (!configuration.supportedFeatures.containsAll(testFile.requirements)) {
       return;
@@ -579,14 +698,14 @@ class StandardTestSuite extends TestSuite {
 
     var expectationSet = expectations.expectations(testFile.name);
     if (configuration.compilerConfiguration.hasCompiler &&
-        (testFile.hasCompileError || testFile.isStaticErrorTest)) {
+        (testFile.hasCompileError || !testFile.isRuntimeTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
       _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
       _enqueueBrowserTest(testFile, expectationSet, onTest);
-    } else if (suiteName == 'service') {
+    } else if (suiteName == 'service' || suiteName == 'service_2') {
       _enqueueServiceTest(testFile, expectationSet, onTest);
     } else {
       _enqueueStandardTest(testFile, expectationSet, onTest);
@@ -598,19 +717,17 @@ class StandardTestSuite extends TestSuite {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
-    assert(!vmOptionsList.isEmpty);
+    assert(vmOptionsList.isNotEmpty);
 
     for (var vmOptionsVariant = 0;
         vmOptionsVariant < vmOptionsList.length;
         vmOptionsVariant++) {
-      var vmOptions = vmOptionsList[vmOptionsVariant];
-      var allVmOptions = vmOptions;
-      if (!extraVmOptions.isEmpty) {
-        allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
-      }
-
+      var vmOptions = [
+        ...vmOptionsList[vmOptionsVariant],
+        ...extraVmOptions,
+      ];
       var isCrashExpected = expectations.contains(Expectation.crash);
-      var commands = _makeCommands(testFile, vmOptionsVariant, allVmOptions,
+      var commands = _makeCommands(testFile, vmOptionsVariant, vmOptions,
           commonArguments, isCrashExpected);
       var variantTestName = testFile.name;
       if (vmOptionsList.length > 1) {
@@ -626,32 +743,29 @@ class StandardTestSuite extends TestSuite {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
-    assert(!vmOptionsList.isEmpty);
+    assert(vmOptionsList.isNotEmpty);
 
     var emitDdsTest = false;
     for (var i = 0; i < 2; ++i) {
       for (var vmOptionsVariant = 0;
           vmOptionsVariant < vmOptionsList.length;
           vmOptionsVariant++) {
-        var vmOptions = vmOptionsList[vmOptionsVariant];
-        var allVmOptions = vmOptions;
-        if (!extraVmOptions.isEmpty) {
-          allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
-        }
-        if (emitDdsTest) {
-          allVmOptions.add('-DUSE_DDS=true');
-        }
+        var vmOptions = [
+          ...vmOptionsList[vmOptionsVariant],
+          ...extraVmOptions,
+          if (emitDdsTest) '-DUSE_DDS=true',
+        ];
         var isCrashExpected = expectations.contains(Expectation.crash);
         var commands = _makeCommands(
             testFile,
             vmOptionsVariant + (vmOptionsList.length * i),
-            allVmOptions,
+            vmOptions,
             commonArguments,
             isCrashExpected);
         var variantTestName =
             testFile.name + '/${emitDdsTest ? 'dds' : 'service'}';
         if (vmOptionsList.length > 1) {
-          variantTestName = "${testFile.name}_$vmOptionsVariant";
+          variantTestName = "${variantTestName}_$vmOptionsVariant";
         }
 
         _addTestCase(testFile, variantTestName, commands, expectations, onTest);
@@ -681,7 +795,7 @@ class StandardTestSuite extends TestSuite {
       for (var name in testFile.otherResources) {
         var namePath = Path(name);
         var fromPath = testFile.path.directoryPath.join(namePath);
-        File('$tempDir/$name').parent.createSync(recursive: true);
+        File('$tempDir/$name').createSync(recursive: true);
         File(fromPath.toNativePath()).copySync('$tempDir/$name');
       }
     }
@@ -692,7 +806,7 @@ class StandardTestSuite extends TestSuite {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (testFile.hasCompileError &&
+    if ((testFile.hasCompileError || testFile.isStaticErrorTest) &&
         compilerConfiguration.hasCompiler &&
         !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
@@ -746,7 +860,6 @@ class StandardTestSuite extends TestSuite {
       return "/$prefixDartDir/$fileRelativeToDartDir";
     }
 
-    // Unreachable.
     print("Cannot create URL for path $file. Not in build or dart directory.");
     exit(1);
   }
@@ -811,8 +924,16 @@ class StandardTestSuite extends TestSuite {
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
         var nullAssertions =
             testFile.sharedOptions.contains('--null-assertions');
-        content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
-            configuration.compiler, configuration.nnbdMode, nullAssertions);
+        var weakNullSafetyErrors =
+            testFile.ddcOptions.contains('--weak-null-safety-errors');
+        content = dartdevcHtml(
+            nameNoExt,
+            nameFromModuleRootNoExt,
+            jsDir,
+            configuration.compiler,
+            configuration.nnbdMode,
+            nullAssertions,
+            weakNullSafetyErrors);
       }
     }
 
@@ -897,7 +1018,6 @@ class StandardTestSuite extends TestSuite {
     const compilers = [
       Compiler.none,
       Compiler.dartk,
-      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.appJitk,
     ];

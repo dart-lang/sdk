@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' show max;
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -50,21 +52,19 @@ class InstantiatedClass {
   /// Return the interfaces that are directly implemented by this class.
   List<InstantiatedClass> get interfaces {
     var interfaces = element.interfaces;
-
-    var result = List<InstantiatedClass>(interfaces.length);
-    for (var i = 0; i < interfaces.length; i++) {
-      var interface = interfaces[i];
-      var substituted = _substitution.substituteType(interface);
-      result[i] = InstantiatedClass.of(substituted);
-    }
-
-    return result;
+    return _toInstantiatedClasses(interfaces);
   }
 
   /// Return `true` if this type represents the type 'Function' defined in the
   /// dart:core library.
   bool get isDartCoreFunction {
     return element.name == 'Function' && element.library.isDartCore;
+  }
+
+  /// Return the mixin that are directly implemented by this class.
+  List<InstantiatedClass> get mixins {
+    var mixins = element.mixins;
+    return _toInstantiatedClasses(mixins);
   }
 
   /// Return the superclass of this type, or `null` if this type represents
@@ -84,15 +84,7 @@ class InstantiatedClass {
   /// the type for the class `Object`.
   List<InstantiatedClass> get superclassConstraints {
     var constraints = element.superclassConstraints;
-
-    var result = List<InstantiatedClass>(constraints.length);
-    for (var i = 0; i < constraints.length; i++) {
-      var constraint = constraints[i];
-      var substituted = _substitution.substituteType(constraint);
-      result[i] = InstantiatedClass.of(substituted);
-    }
-
-    return result;
+    return _toInstantiatedClasses(constraints);
   }
 
   @visibleForTesting
@@ -115,6 +107,11 @@ class InstantiatedClass {
     return false;
   }
 
+  InstantiatedClass mapArguments(DartType Function(DartType) f) {
+    var mappedArguments = arguments.map(f).toList();
+    return InstantiatedClass(element, mappedArguments);
+  }
+
   @override
   String toString() {
     var buffer = StringBuffer();
@@ -133,6 +130,19 @@ class InstantiatedClass {
       typeArguments: arguments,
       nullabilitySuffix: nullability,
     );
+  }
+
+  List<InstantiatedClass> _toInstantiatedClasses(
+    List<InterfaceType> interfaces,
+  ) {
+    var result = List<InstantiatedClass>(interfaces.length);
+    for (var i = 0; i < interfaces.length; i++) {
+      var interface = interfaces[i];
+      var substituted = _substitution.substituteType(interface);
+      result[i] = InstantiatedClass.of(substituted);
+    }
+
+    return result;
   }
 }
 
@@ -232,6 +242,20 @@ class InterfaceLeastUpperBoundHelper {
     return result.withNullability(nullability);
   }
 
+  /// Return all of the superinterfaces of the given [type].
+  @visibleForTesting
+  Set<InstantiatedClass> computeSuperinterfaceSet(InstantiatedClass type) {
+    var result = <InstantiatedClass>{};
+    _addSuperinterfaces(result, type);
+    if (typeSystem.isNonNullableByDefault) {
+      return result;
+    } else {
+      return result.map((e) {
+        return e.mapArguments(typeSystem.toLegacyType);
+      }).toSet();
+    }
+  }
+
   /// Compute the least upper bound of types [i] and [j], both of which are
   /// known to be interface types.
   ///
@@ -258,20 +282,7 @@ class InterfaceLeastUpperBoundHelper {
   /// Object.
   @visibleForTesting
   static int computeLongestInheritancePathToObject(ClassElement element) {
-    return _computeLongestInheritancePathToObject(
-      element,
-      0,
-      <ClassElement>{},
-    );
-  }
-
-  /// Return all of the superinterfaces of the given [type].
-  @visibleForTesting
-  static Set<InstantiatedClass> computeSuperinterfaceSet(
-      InstantiatedClass type) {
-    var result = <InstantiatedClass>{};
-    _addSuperinterfaces(result, type);
-    return result;
+    return _computeLongestInheritancePathToObject(element, <ClassElement>{});
   }
 
   /// Add all of the superinterfaces of the given [type] to the given [set].
@@ -281,6 +292,14 @@ class InterfaceLeastUpperBoundHelper {
       if (!interface.isDartCoreFunction) {
         if (set.add(interface)) {
           _addSuperinterfaces(set, interface);
+        }
+      }
+    }
+
+    for (var mixin in type.mixins) {
+      if (!mixin.isDartCoreFunction) {
+        if (set.add(mixin)) {
+          _addSuperinterfaces(set, mixin);
         }
       }
     }
@@ -323,47 +342,53 @@ class InterfaceLeastUpperBoundHelper {
   /// is used to prevent infinite recursion in the case of a cyclic type
   /// structure.
   static int _computeLongestInheritancePathToObject(
-      ClassElement element, int depth, Set<ClassElement> visitedElements) {
+      ClassElement element, Set<ClassElement> visitedElements) {
     // Object case
     if (element.isDartCoreObject || visitedElements.contains(element)) {
-      return depth;
+      return 0;
     }
-    int longestPath = 1;
+    int longestPath = 0;
     try {
       visitedElements.add(element);
-      int pathLength;
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.superclassConstraints) {
-        pathLength = _computeLongestInheritancePathToObject(
-            interface.element, depth + 1, visitedElements);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
+        var pathLength = _computeLongestInheritancePathToObject(
+            interface.element, visitedElements);
+        longestPath = max(longestPath, 1 + pathLength);
       }
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.interfaces) {
-        pathLength = _computeLongestInheritancePathToObject(
-            interface.element, depth + 1, visitedElements);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
+        var pathLength = _computeLongestInheritancePathToObject(
+            interface.element, visitedElements);
+        longestPath = max(longestPath, 1 + pathLength);
       }
 
-      // finally, perform this same check on the super type
-      // TODO(brianwilkerson) Does this also need to add in the number of mixin
-      // classes?
-      InterfaceType supertype = element.supertype;
-      if (supertype != null) {
-        pathLength = _computeLongestInheritancePathToObject(
-            supertype.element, depth + 1, visitedElements);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
+      var supertype = element.supertype;
+      if (supertype == null) {
+        return longestPath;
       }
+
+      var superLength = _computeLongestInheritancePathToObject(
+          supertype.element, visitedElements);
+
+      var mixins = element.mixins;
+      for (var i = 0; i < mixins.length; i++) {
+        // class _X&S&M extends S implements M {}
+        // So, we choose the maximum length from S and M.
+        var mixinLength = _computeLongestInheritancePathToObject(
+          mixins[i].element,
+          visitedElements,
+        );
+        superLength = max(superLength, mixinLength);
+        // For this synthetic class representing the mixin application.
+        superLength++;
+      }
+
+      longestPath = max(longestPath, 1 + superLength);
     } finally {
       visitedElements.remove(element);
     }
@@ -428,8 +453,6 @@ class LeastUpperBoundHelper {
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
-
-  InterfaceType get _objectType => _typeSystem.typeProvider.objectType;
 
   /// Compute the least upper bound of two types.
   ///
@@ -659,10 +682,19 @@ class LeastUpperBoundHelper {
       return _functionType(T1, T2);
     }
 
-    // UP(T Function<...>(...), T2) = Object
-    // UP(T1, T Function<...>(...)) = Object
-    if (T1 is FunctionType || T2 is FunctionType) {
-      return _typeSystem.objectNone;
+    // UP(T Function<...>(...), T2) = UP(Object, T2)
+    if (T1 is FunctionType) {
+      return getLeastUpperBound(_typeSystem.objectNone, T2);
+    }
+
+    // UP(T1, T Function<...>(...)) = UP(T1, Object)
+    if (T2 is FunctionType) {
+      return getLeastUpperBound(T1, _typeSystem.objectNone);
+    }
+
+    var futureOrResult = _futureOr(T1, T2);
+    if (futureOrResult != null) {
+      return futureOrResult;
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
@@ -794,13 +826,70 @@ class LeastUpperBoundHelper {
     );
   }
 
+  DartType _futureOr(DartType T1, DartType T2) {
+    var T1_futureOr = T1 is InterfaceType && T1.isDartAsyncFutureOr
+        ? T1.typeArguments[0]
+        : null;
+
+    var T1_future = T1 is InterfaceType && T1.isDartAsyncFuture
+        ? T1.typeArguments[0]
+        : null;
+
+    var T2_futureOr = T2 is InterfaceType && T2.isDartAsyncFutureOr
+        ? T2.typeArguments[0]
+        : null;
+
+    var T2_future = T2 is InterfaceType && T2.isDartAsyncFuture
+        ? T2.typeArguments[0]
+        : null;
+
+    // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_futureOr != null && T2_futureOr != null) {
+      var T3 = getLeastUpperBound(T1_futureOr, T2_futureOr);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_future != null && T2_futureOr != null) {
+      var T3 = getLeastUpperBound(T1_future, T2_futureOr);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_futureOr != null && T2_future != null) {
+      var T3 = getLeastUpperBound(T1_futureOr, T2_future);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T2_futureOr != null) {
+      var T3 = getLeastUpperBound(T1, T2_futureOr);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_futureOr != null) {
+      var T3 = getLeastUpperBound(T1_futureOr, T2);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    return null;
+  }
+
   DartType _parameterType(ParameterElement a, ParameterElement b) {
     return _typeSystem.getGreatestLowerBound(a.type, b.type);
   }
 
+  /// TODO(scheglov) Use greatest closure.
+  /// See https://github.com/dart-lang/language/pull/1195
   DartType _typeParameterResolveToObjectBounds(DartType type) {
     var element = type.element;
-    type = type.resolveToBound(_objectType);
-    return Substitution.fromMap({element: _objectType}).substituteType(type);
+
+    var objectType = _typeSystem.isNonNullableByDefault
+        ? _typeSystem.objectQuestion
+        : _typeSystem.objectStar;
+
+    type = type.resolveToBound(objectType);
+    return Substitution.fromMap({element: objectType}).substituteType(type);
   }
 }

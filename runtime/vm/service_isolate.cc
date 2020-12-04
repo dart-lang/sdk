@@ -65,12 +65,14 @@ static ArrayPtr MakeServiceControlMessage(Dart_Port port_id,
 
 static ArrayPtr MakeServerControlMessage(const SendPort& sp,
                                          intptr_t code,
-                                         bool enable = false) {
-  const Array& list = Array::Handle(Array::New(3));
+                                         bool enable,
+                                         const Bool& silenceOutput) {
+  const Array& list = Array::Handle(Array::New(4));
   ASSERT(!list.IsNull());
   list.SetAt(0, Integer::Handle(Integer::New(code)));
   list.SetAt(1, sp);
   list.SetAt(2, Bool::Get(enable));
+  list.SetAt(3, silenceOutput);
   return list.raw();
 }
 
@@ -86,16 +88,19 @@ char* ServiceIsolate::startup_failure_reason_ = nullptr;
 
 void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
   const Array& message = Array::Handle(MakeServerControlMessage(
-      sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */));
+      sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */,
+      Bool::Handle() /* ignored */));
   ASSERT(!message.IsNull());
   MessageWriter writer(false);
   PortMap::PostMessage(
       writer.WriteMessage(message, port_, Message::kNormalPriority));
 }
 
-void ServiceIsolate::ControlWebServer(const SendPort& sp, bool enable) {
+void ServiceIsolate::ControlWebServer(const SendPort& sp,
+                                      bool enable,
+                                      const Bool& silenceOutput) {
   const Array& message = Array::Handle(MakeServerControlMessage(
-      sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable));
+      sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable, silenceOutput));
   ASSERT(!message.IsNull());
   MessageWriter writer(false);
   PortMap::PostMessage(
@@ -208,7 +213,7 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (!FLAG_show_invisible_isolates && Isolate::IsVMInternalIsolate(isolate)) {
+  if (Dart::VmIsolateNameEquals(isolate->name())) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -234,7 +239,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (!FLAG_show_invisible_isolates && Isolate::IsVMInternalIsolate(isolate)) {
+  if (Dart::VmIsolateNameEquals(isolate->name())) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -346,7 +351,7 @@ class RunServiceTask : public ThreadPool::Task {
 
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
-
+    api_flags.is_system_isolate = true;
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(ServiceIsolate::kName, ServiceIsolate::kName,
                               NULL, NULL, &api_flags, NULL, &error));
@@ -393,18 +398,18 @@ class RunServiceTask : public ThreadPool::Task {
     if (FLAG_trace_service) {
       OS::PrintErr("vm-service: ShutdownIsolate\n");
     }
-    Isolate* I = reinterpret_cast<Isolate*>(parameter);
-    ASSERT(ServiceIsolate::IsServiceIsolate(I));
+    Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(parameter));
     {
-      // Print the error if there is one.  This may execute dart code to
-      // print the exception object, so we need to use a StartIsolateScope.
-      ASSERT(Isolate::Current() == NULL);
-      StartIsolateScope start_scope(I);
-      Thread* T = Thread::Current();
-      ASSERT(I == T->isolate());
-      I->WaitForOutstandingSpawns();
+      auto T = Thread::Current();
+      TransitionNativeToVM transition(T);
       StackZone zone(T);
       HandleScope handle_scope(T);
+
+      auto I = T->isolate();
+      ASSERT(ServiceIsolate::IsServiceIsolate(I));
+
+      // Print the error if there is one.  This may execute dart code to
+      // print the exception object, so we need to use a StartIsolateScope.
       Error& error = Error::Handle(Z);
       error = T->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
@@ -416,11 +421,8 @@ class RunServiceTask : public ThreadPool::Task {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Error: %s\n",
                      error.ToErrorCString());
       }
-      Dart::RunShutdownCallback();
     }
-
-    // Shut the isolate down.
-    Dart::ShutdownIsolate(I);
+    Dart_ShutdownIsolate();
     if (FLAG_trace_service) {
       OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Shutdown.\n");
     }
@@ -579,6 +581,44 @@ void ServiceIsolate::BootVmServiceLibrary() {
   }
   ASSERT(port != ILLEGAL_PORT);
   ServiceIsolate::SetServicePort(port);
+}
+
+void ServiceIsolate::RegisterRunningIsolate(Isolate* isolate) {
+  ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
+
+  // Get library.
+  const String& library_url = Symbols::DartVMService();
+  ASSERT(!library_url.IsNull());
+  // TODO(bkonyi): hoist Thread::Current()
+  const Library& library =
+      Library::Handle(Library::LookupLibrary(Thread::Current(), library_url));
+  ASSERT(!library.IsNull());
+  // Get function.
+  const String& function_name = String::Handle(String::New("_registerIsolate"));
+  ASSERT(!function_name.IsNull());
+  const Function& register_function_ =
+      Function::Handle(library.LookupFunctionAllowPrivate(function_name));
+  ASSERT(!register_function_.IsNull());
+
+  // Setup arguments for call.
+  Dart_Port port_id = isolate->main_port();
+  const Integer& port_int = Integer::Handle(Integer::New(port_id));
+  ASSERT(!port_int.IsNull());
+  const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
+  const String& name = String::Handle(String::New(isolate->name()));
+  ASSERT(!name.IsNull());
+  const Array& args = Array::Handle(Array::New(3));
+  ASSERT(!args.IsNull());
+  args.SetAt(0, port_int);
+  args.SetAt(1, send_port);
+  args.SetAt(2, name);
+  const Object& r =
+      Object::Handle(DartEntry::InvokeFunction(register_function_, args));
+  if (FLAG_trace_service) {
+    OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
+                 name.ToCString(), port_id);
+  }
+  ASSERT(!r.IsError());
 }
 
 void ServiceIsolate::VisitObjectPointers(ObjectPointerVisitor* visitor) {}

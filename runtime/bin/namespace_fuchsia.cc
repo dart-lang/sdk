@@ -81,7 +81,7 @@ bool NamespaceImpl::SetCwd(Namespace* namespc, const char* new_path) {
   // Normalize it.
   char result[PATH_MAX];
   const intptr_t result_len =
-      File::CleanUnixPath(tbuf.buf(), result, PATH_MAX);
+      File::CleanUnixPath(tbuf.buffer(), result, PATH_MAX);
   if (result_len < 0) {
     errno = ENAMETOOLONG;
     return false;

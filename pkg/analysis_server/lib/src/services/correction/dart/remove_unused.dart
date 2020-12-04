@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -33,7 +34,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       final references = _findAllReferences(unit, element);
       // todo (pq): consider filtering for references that are limited to within the class.
       if (references.length == 1) {
-        var sourceRange;
+        SourceRange sourceRange;
         if (referencedNode is VariableDeclaration) {
           VariableDeclarationList parent = referencedNode.parent;
           if (parent.variables.length == 1) {
@@ -177,7 +178,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    final staticElement = node.staticElement;
+    final staticElement = node.writeOrReadElement;
     if (staticElement == element) {
       references.add(node);
     } else if (staticElement is PropertyAccessorElement) {

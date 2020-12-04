@@ -9,6 +9,8 @@
 #error "Should not include runtime"
 #endif
 
+#include "include/dart_tools_api.h"
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/flags.h"
@@ -121,6 +123,7 @@ class Heap {
   ObjectPtr FindNewObject(FindObjectVisitor* visitor);
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
+  void HintFreed(intptr_t size);
   void NotifyIdle(int64_t deadline);
   void NotifyLowMemory();
 
@@ -164,6 +167,7 @@ class Heap {
 
   // Initialize the heap and register it with the isolate.
   static void Init(IsolateGroup* isolate_group,
+                   bool is_vm_isolate,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
 
@@ -302,6 +306,7 @@ class Heap {
 #endif  // PRODUCT
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
+  bool is_vm_isolate() const { return is_vm_isolate_; }
 
   Monitor* barrier() const { return &barrier_; }
   Monitor* barrier_done() const { return &barrier_done_; }
@@ -351,6 +356,7 @@ class Heap {
   };
 
   Heap(IsolateGroup* isolate_group,
+       bool is_vm_isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
@@ -382,18 +388,13 @@ class Heap {
   void PrintStats();
   void PrintStatsToTimeline(TimelineEventScope* event, GCReason reason);
 
-  // Updates gc in progress flags.
-  bool BeginNewSpaceGC(Thread* thread);
-  void EndNewSpaceGC();
-  bool BeginOldSpaceGC(Thread* thread);
-  void EndOldSpaceGC();
-
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
   // Trigger major GC if 'gc_on_nth_allocation_' is set.
   void CollectForDebugging();
 
   IsolateGroup* isolate_group_;
+  bool is_vm_isolate_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;
@@ -411,10 +412,6 @@ class Heap {
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;
 
-  // GC on the heap is in progress.
-  Monitor gc_in_progress_monitor_;
-  bool gc_new_space_in_progress_;
-  bool gc_old_space_in_progress_;
   bool last_gc_was_old_space_;
   bool assume_scavenge_will_fail_;
 
@@ -438,6 +435,7 @@ class Heap {
   friend class ProgramVisitor;        // VisitObjectsImagePages
   friend class Serializer;            // VisitObjectsImagePages
   friend class HeapTestHelper;
+  friend class MetricsTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

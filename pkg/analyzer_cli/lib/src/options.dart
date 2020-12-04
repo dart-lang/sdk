@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' as io;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -18,7 +19,7 @@ const _binaryName = 'dartanalyzer';
 /// Shared exit handler.
 ///
 /// *Visible for testing.*
-ExitHandler exitHandler = exit;
+ExitHandler exitHandler = io.exit;
 
 T cast<T>(dynamic value) => value as T;
 
@@ -103,9 +104,6 @@ class CommandLineOptions {
   /// (Or null if not enabled.)
   final String perfReport;
 
-  /// Whether to enable parsing via the Fasta parser.
-  final bool useFastaParser;
-
   /// Batch mode (for unit testing)
   final bool batchMode;
 
@@ -127,11 +125,6 @@ class CommandLineOptions {
   /// Whether to treat info level items as fatal
   final bool infosAreFatal;
 
-  /// Whether to use strong static checking.
-  ///
-  /// This flag is deprecated and hard-coded to `true`.
-  final bool strongMode = true;
-
   /// Whether to treat lints as fatal
   // TODO(devoncarew): Deprecate and remove this flag.
   final bool lintsAreFatal;
@@ -151,8 +144,10 @@ class CommandLineOptions {
   final String summaryDepsOutput;
 
   /// Initialize options from the given parsed [args].
-  CommandLineOptions._fromArgs(ArgResults args)
-      : buildAnalysisOutput = cast(args['build-analysis-output']),
+  CommandLineOptions._fromArgs(
+    ResourceProvider resourceProvider,
+    ArgResults args,
+  )   : buildAnalysisOutput = cast(args['build-analysis-output']),
         buildMode = cast(args['build-mode']),
         buildModePersistentWorker = cast(args['persistent_worker']),
         buildSummaryInputs =
@@ -162,7 +157,10 @@ class CommandLineOptions {
         buildSummaryOutputSemantic =
             cast(args['build-summary-output-semantic']),
         buildSuppressExitCode = cast(args['build-suppress-exit-code']),
-        contextBuilderOptions = createContextBuilderOptions(args),
+        contextBuilderOptions = createContextBuilderOptions(
+          resourceProvider,
+          args,
+        ),
         dartSdkPath = cast(args['dart-sdk']),
         dartSdkSummaryPath = cast(args['dart-sdk-summary']),
         defaultLanguageVersion = cast(args['default-language-version']),
@@ -176,7 +174,6 @@ class CommandLineOptions {
         log = cast(args['log']),
         machineFormat = args['format'] == 'machine',
         perfReport = cast(args['x-perf-report']),
-        useFastaParser = cast(args['use-fasta-parser']),
         batchMode = cast(args['batch']),
         showPackageWarnings = cast(args['show-package-warnings']) ||
             cast(args['package-warnings']) ||
@@ -214,9 +211,10 @@ class CommandLineOptions {
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
-  static CommandLineOptions parse(List<String> args,
+  static CommandLineOptions parse(
+      ResourceProvider resourceProvider, List<String> args,
       {void Function(String msg) printAndFail = printAndFail}) {
-    var options = _parse(args);
+    var options = _parse(resourceProvider, args);
 
     /// Only happens in testing.
     if (options == null) {
@@ -236,7 +234,7 @@ class CommandLineOptions {
         return null; // Only reachable in testing.
       }
       // Check that SDK is existing directory.
-      if (!(Directory(sdkPath)).existsSync()) {
+      if (!(io.Directory(sdkPath)).existsSync()) {
         printAndFail('Invalid Dart SDK path: $sdkPath');
         return null; // Only reachable in testing.
       }
@@ -271,8 +269,9 @@ class CommandLineOptions {
   static String _getVersion() {
     try {
       // This is relative to bin/snapshot, so ../..
-      var versionPath = Platform.script.resolve('../../version').toFilePath();
-      var versionFile = File(versionPath);
+      var versionPath =
+          io.Platform.script.resolve('../../version').toFilePath();
+      var versionFile = io.File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.
@@ -280,7 +279,10 @@ class CommandLineOptions {
     }
   }
 
-  static CommandLineOptions _parse(List<String> args) {
+  static CommandLineOptions _parse(
+    ResourceProvider resourceProvider,
+    List<String> args,
+  ) {
     args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
 
     var verbose = args.contains('-v') || args.contains('--verbose');
@@ -437,14 +439,6 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: true)
-      // TODO(brianwilkerson) Remove the following option after we're sure that
-      // it's no longer being used.
-      ..addFlag('enable-assert-initializers',
-          help:
-              'Enable parsing of asserts in constructor initializers (deprecated).',
-          defaultsTo: null,
-          negatable: false,
-          hide: hide)
       ..addFlag('use-analysis-driver-memory-byte-store',
           help: 'Use memory byte store, not the file system cache.',
           defaultsTo: false,
@@ -471,15 +465,6 @@ class CommandLineOptions {
               'of "libraryUri".',
           splitCommas: false,
           hide: hide)
-      ..addFlag('use-fasta-parser',
-          help: 'Whether to enable parsing via the Fasta parser.',
-          defaultsTo: true,
-          hide: hide)
-      ..addFlag('preview-dart-2',
-          help: 'Enable the Dart 2.0 preview.',
-          defaultsTo: true,
-          hide: hide,
-          negatable: true)
       ..addFlag('train-snapshot',
           help: 'Analyze the given source for the purposes of training a '
               'dartanalyzer snapshot.',
@@ -504,7 +489,7 @@ class CommandLineOptions {
               'option. Got: $args');
           return null; // Only reachable in testing.
         }
-        return CommandLineOptions._fromArgs(results);
+        return CommandLineOptions._fromArgs(resourceProvider, results);
       }
 
       // Help requests.
@@ -565,7 +550,7 @@ class CommandLineOptions {
         }
       }
 
-      return CommandLineOptions._fromArgs(results);
+      return CommandLineOptions._fromArgs(resourceProvider, results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);
       _showUsage(parser);

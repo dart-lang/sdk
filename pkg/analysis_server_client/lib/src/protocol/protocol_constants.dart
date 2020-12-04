@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.28.0';
+const String PROTOCOL_VERSION = '1.32.1';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -222,6 +222,7 @@ const String EDIT_REQUEST_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
 const String EDIT_REQUEST_ORGANIZE_DIRECTIVES_FILE = 'file';
 const String EDIT_REQUEST_SORT_MEMBERS = 'edit.sortMembers';
 const String EDIT_REQUEST_SORT_MEMBERS_FILE = 'file';
+const String EDIT_RESPONSE_BULK_FIXES_DETAILS = 'details';
 const String EDIT_RESPONSE_BULK_FIXES_EDITS = 'edits';
 const String EDIT_RESPONSE_DARTFIX_DETAILS = 'details';
 const String EDIT_RESPONSE_DARTFIX_EDITS = 'edits';

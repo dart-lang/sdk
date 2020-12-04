@@ -9,6 +9,8 @@
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 
+#include <memory>
+
 #include "bin/builtin.h"
 #include "bin/reference_counting.h"
 #include "bin/security_context.h"
@@ -20,6 +22,21 @@ namespace bin {
 /* These are defined in root_certificates.cc. */
 extern const unsigned char* root_certificates_pem;
 extern unsigned int root_certificates_pem_length;
+
+class X509TrustState {
+ public:
+  X509TrustState(const X509* x509, bool is_trusted)
+      : x509_(x509), is_trusted_(is_trusted) {}
+
+  const X509* x509() const { return x509_; }
+  bool is_trusted() const { return is_trusted_; }
+
+ private:
+  const X509* x509_;
+  bool is_trusted_;
+
+  DISALLOW_COPY_AND_ASSIGN(X509TrustState);
+};
 
 class SSLFilter : public ReferenceCounted<SSLFilter> {
  public:
@@ -65,7 +82,8 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
                Dart_Handle protocols_handle);
   void Destroy();
   void FreeResources();
-  void Handshake();
+  void MarkAsTrusted(Dart_NativeArguments args);
+  int Handshake(Dart_Port reply_port);
   void GetSelectedProtocol(Dart_NativeArguments args);
   void Renegotiate(bool use_session_cache,
                    bool request_client_certificate,
@@ -90,6 +108,17 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 
   // The index of the external data field in _ssl that points to the SSLFilter.
   static int filter_ssl_index;
+  // The index of the external data field in _ssl that points to the
+  // SSLCertContext.
+  static int ssl_cert_context_index;
+
+  const X509TrustState* certificate_trust_state() {
+    return certificate_trust_state_.get();
+  }
+  Dart_Port reply_port() const { return reply_port_; }
+  Dart_Port trust_evaluate_reply_port() const {
+    return trust_evaluate_reply_port_;
+  }
 
  private:
   static const intptr_t kInternalBIOSize;
@@ -98,6 +127,9 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 
   SSL* ssl_;
   BIO* socket_side_;
+  // Currently only one(root) certificate is evaluated via
+  // TrustEvaluate mechanism.
+  std::unique_ptr<X509TrustState> certificate_trust_state_;
 
   uint8_t* buffers_[kNumBuffers];
   int buffer_size_;
@@ -110,6 +142,9 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   bool in_handshake_;
   bool is_server_;
   char* hostname_;
+
+  Dart_Port reply_port_ = ILLEGAL_PORT;
+  Dart_Port trust_evaluate_reply_port_ = ILLEGAL_PORT;
 
   static bool IsBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;

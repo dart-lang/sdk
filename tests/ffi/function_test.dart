@@ -69,13 +69,22 @@ QuadOp intComputation = ffiTestFunctions
 
 void testNativeFunctionFromLookup() {
   Expect.equals(49, sumPlus42(3, 4));
+  Expect.equals(49, (sumPlus42 as dynamic)(3, 4));
+  Expect.throwsNoSuchMethodError(() => (sumPlus42 as dynamic)());
+  Expect.throwsTypeError(() => (sumPlus42 as dynamic)(3, 4.0));
 
   Expect.equals(625, intComputation(125, 250, 500, 1000));
+  Expect.equals(625, (intComputation as dynamic)(125, 250, 500, 1000));
 
   Expect.equals(
       0x7FFFFFFFFFFFFFFF, intComputation(0, 0, 0, 0x7FFFFFFFFFFFFFFF));
   Expect.equals(
       -0x8000000000000000, intComputation(0, 0, 0, -0x8000000000000000));
+
+  Expect.equals(0x7FFFFFFFFFFFFFFF,
+      (intComputation as dynamic)(0, 0, 0, 0x7FFFFFFFFFFFFFFF));
+  Expect.equals(-0x8000000000000000,
+      (intComputation as dynamic)(0, 0, 0, -0x8000000000000000));
 }
 
 typedef NativeReturnMaxUint8 = Uint8 Function();

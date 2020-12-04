@@ -128,6 +128,20 @@ Representation FlowGraph::ReturnRepresentationOf(const Function& function) {
   }
 }
 
+Representation FlowGraph::UnboxedFieldRepresentationOf(const Field& field) {
+  switch (field.UnboxedFieldCid()) {
+    case kDoubleCid:
+      return kUnboxedDouble;
+    case kFloat32x4Cid:
+      return kUnboxedFloat32x4;
+    case kFloat64x2Cid:
+      return kUnboxedFloat64x2;
+    default:
+      RELEASE_ASSERT(field.is_non_nullable_integer());
+      return kUnboxedInt64;
+  }
+}
+
 void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
                                           Instruction* current,
                                           Instruction* replacement) {
@@ -538,9 +552,10 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   if (receiver_maybe_null) {
     const Class& null_class =
         Class::Handle(zone(), isolate()->object_store()->null_class());
-    const Function& target = Function::Handle(
-        zone(),
-        Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name));
+    Function& target = Function::Handle(zone());
+    if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
+      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
+    }
     if (!target.IsNull()) {
       return ToCheck::kCheckCid;
     }
@@ -1295,6 +1310,14 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     // Trim extra inputs of ClosureCall and LoadField instructions from
     // the environment. Inputs of those instructions are not pushed onto
     // the stack at the point where deoptimization can occur.
+    // Note that in case of LoadField there can be two possible situations,
+    // the code here handles LoadField to LoadField lazy deoptimization in
+    // which we are transitioning from position after the call to initialization
+    // stub in optimized code to a similar position after the call to
+    // initialization stub in unoptimized code. There is another variant
+    // (LoadField deoptimizing into a position after a getter call) which is
+    // handled in a different way (see
+    // CallSpecializer::InlineImplicitInstanceGetter).
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
                                         instr->ArgumentCount());
@@ -1444,13 +1467,23 @@ void FlowGraph::RenameRecursive(
           // there as incoming value by renaming or it was stored there by
           // StoreLocal which took this Phi from another local via LoadLocal,
           // to which this reasoning applies recursively.
+          //
           // This means that we are guaranteed to process LoadLocal for a
-          // matching variable first.
+          // matching variable first, unless there was an OSR with a non-empty
+          // expression stack. In the latter case, Phi inserted by
+          // FlowGraph::AddSyntheticPhis for expression temp will not have an
+          // assigned type and may be accessed by StoreLocal and subsequent
+          // LoadLocal.
+          //
           if (!phi->HasType()) {
-            ASSERT((index < phi->block()->phis()->length()) &&
-                   ((*phi->block()->phis())[index] == phi));
-            phi->UpdateType(
-                CompileType::FromAbstractType(load->local().type()));
+            // Check if phi corresponds to the same slot.
+            auto* phis = phi->block()->phis();
+            if ((index < phis->length()) && (*phis)[index] == phi) {
+              phi->UpdateType(
+                  CompileType::FromAbstractType(load->local().type()));
+            } else {
+              ASSERT(IsCompiledForOsr() && (phi->block()->stack_depth() > 0));
+            }
           }
         }
         break;
@@ -2349,10 +2382,9 @@ void FlowGraph::PopulateWithICData(const Function& function) {
           int num_args_checked =
               MethodRecognizer::NumArgsCheckedForStaticCall(target);
           const ICData& ic_data = ICData::ZoneHandle(
-              zone, ICData::New(function, String::Handle(zone, target.name()),
-                                arguments_descriptor, call->deopt_id(),
-                                num_args_checked, ICData::kStatic));
-          ic_data.AddTarget(target);
+              zone, ICData::NewForStaticCall(
+                        function, target, arguments_descriptor,
+                        call->deopt_id(), num_args_checked, ICData::kStatic));
           call->set_ic_data(&ic_data);
         }
       }

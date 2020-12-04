@@ -11,16 +11,16 @@ class Class extends core::Object {
   @core::pragma::_("dart2js:noInline")
   static method staticMethod() → dynamic
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 extension Extension on self::Class* {
   method extensionInstanceMethod = self::Extension|extensionInstanceMethod;
@@ -40,3 +40,12 @@ static method topLevelMethod() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:6:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:9:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:14:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:17:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:21:2 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Extra constant evaluation: evaluated: 8, effectively constant: 5

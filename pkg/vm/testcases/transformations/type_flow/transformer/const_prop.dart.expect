@@ -12,49 +12,49 @@ class A extends core::Object {
     return "bar";
 }
 class B extends core::Object /*isEnum*/  {
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7] [@vm.unboxing-info.metadata=()->i]  final field core::int* index;
-[@vm.inferred-type.metadata=dart.core::_OneByteString (value: B.b2)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  final field core::String* _name;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method toString() → core::String*
-    return [@vm.inferred-type.metadata=dart.core::_OneByteString (value: B.b2)] this.{=self::B::_name};
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4] [@vm.unboxing-info.metadata=()->i]  final field core::int* index;
+[@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B.b2")] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field core::String* _name;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method toString() → core::String*
+    return [@vm.direct-call.metadata=#lib::B._name] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B.b2")] this.{self::B::_name};
 }
-[@vm.unboxing-info.metadata=(i)->b]static method test0([@vm.inferred-type.metadata=dart.core::_Smi (value: 40)] core::int* arg) → void {
-  core::print(arg);
+static method test0() → void {
+  core::print(#C1);
 }
-static method test1([[@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] core::int* arg = #C1]) → void {
-  core::print(arg);
+static method test1() → void {
+  core::print(#C2);
 }
-static method test2({[@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int* arg = #C2}) → void {
-  core::print(arg);
+static method test2() → void {
+  core::print(#C3);
 }
 [@vm.unboxing-info.metadata=()->d]static get getD() → dynamic
   return 100.0;
-[@vm.unboxing-info.metadata=(d)->b]static method testDouble([@vm.inferred-type.metadata=dart.core::_Double (value: 3.14)] core::double* arg) → void {
-  core::print(arg);
+static method testDouble() → void {
+  core::print(#C4);
   core::print([@vm.inferred-type.metadata=dart.core::_Double (value: 100.0)] self::getD);
 }
-static method testStrings([@vm.inferred-type.metadata=#lib::A] self::A* a0, [@vm.inferred-type.metadata=dart.core::_OneByteString (value: bazz)] core::String* a1) → void {
-  core::print([@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: foo)] a0.{self::A::foo});
-  core::print([@vm.direct-call.metadata=#lib::A.getBar] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check) (value: bar)] a0.{self::A::getBar}());
-  core::print(a1);
+static method testStrings([@vm.inferred-type.metadata=#lib::A] self::A* a0) → void {
+  core::print([@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo")] a0.{self::A::foo});
+  core::print([@vm.direct-call.metadata=#lib::A.getBar] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check) (value: "bar")] a0.{self::A::getBar}());
+  core::print(#C5);
 }
-static method testPassEnum([@vm.inferred-type.metadata=#lib::B (value: const #lib::B{#lib::B.index: 1, #lib::B._name: B.b2})] self::B* arg) → void {
-  self::testPassEnum2(arg);
+static method testPassEnum() → void {
+  self::testPassEnum2();
 }
-static method testPassEnum2([@vm.inferred-type.metadata=#lib::B (value: const #lib::B{#lib::B.index: 1, #lib::B._name: B.b2})] self::B* arg) → void {
-  core::print(arg);
+static method testPassEnum2() → void {
+  core::print(#C8);
 }
 static method getList() → dynamic
-  return #C6;
-static method testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2, 3])] dynamic arg1, [[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[4, 5])] dynamic arg2 = #C9]) → void {
-  core::print(arg1);
-  core::print(arg2);
+  return #C11;
+static method testList() → void {
+  core::print(#C11);
+  core::print(#C14);
 }
 static method main() → dynamic {
-  self::test0(40);
+  self::test0();
   self::test1();
   self::test2();
-  self::testDouble(3.14);
-  self::testStrings(new self::A::•(), "bazz");
-  self::testPassEnum(#C11);
-  self::testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2, 3])] self::getList());
+  self::testDouble();
+  self::testStrings(new self::A::•());
+  self::testPassEnum();
+  let final dynamic #t1 = [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2, 3])] self::getList() in self::testList();
 }

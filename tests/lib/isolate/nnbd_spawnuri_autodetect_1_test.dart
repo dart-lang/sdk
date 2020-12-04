@@ -15,13 +15,15 @@ void main() {
   generateIsolateSource(sourcePath, "");
 
   try {
+    String sourceUri = Uri.file(sourcePath).toString();
+
     // Strong Isolate Spawning another Strong Isolate using spawnUri.
     testNullSafetyMode(
-        "$tmpDirPath/strong_strong.dart", "", sourcePath, 're: strong');
+        "$tmpDirPath/strong_strong.dart", "", sourceUri, 're: strong');
 
     // Weak Isolate Spawning a Strong Isolate using spawnUri.
     testNullSafetyMode(
-        "$tmpDirPath/weak_strong.dart", "2.6", sourcePath, 're: strong');
+        "$tmpDirPath/weak_strong.dart", "2.6", sourceUri, 're: strong');
   } finally {
     tmpDir.deleteSync(recursive: true);
   }

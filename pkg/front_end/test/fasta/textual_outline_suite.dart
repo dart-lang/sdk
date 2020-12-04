@@ -4,7 +4,6 @@
 
 library fasta.test.textual_outline_test;
 
-import 'dart:async' show Future;
 import 'dart:io';
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
@@ -22,6 +21,7 @@ import 'package:testing/testing.dart'
         runMe;
 
 import '../utils/kernel_chain.dart' show MatchContext;
+import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
 
 const List<Map<String, String>> EXPECTATIONS = [
   {
@@ -52,6 +52,10 @@ main([List<String> arguments = const []]) =>
 
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
+
+  @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
   Context(this.updateExpectations);
 
   final List<Step> steps = const <Step>[
@@ -72,29 +76,39 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
       String result = textualOutline(bytes,
-          throwOnUnexpected: true, performModelling: modelled);
+          throwOnUnexpected: true,
+          performModelling: modelled,
+          addMarkerForUnknownForTest: modelled);
       if (result == null) {
-        return new Result(null, context.expectationSet["EmptyOutput"],
-            description.uri, StackTrace.current);
+        return new Result(
+            null, context.expectationSet["EmptyOutput"], description.uri);
       }
 
       // In an attempt to make it less sensitive to formatting first remove
       // excess new lines, then format.
       List<String> lines = result.split("\n");
+      bool containsUnknownChunk = false;
       StringBuffer sb = new StringBuffer();
       for (String line in lines) {
-        if (line.trim() != "") sb.writeln(line);
+        if (line.trim() != "") {
+          if (line == "---- unknown chunk starts ----") {
+            containsUnknownChunk = true;
+          }
+          sb.writeln(line);
+        }
       }
       result = sb.toString().trim();
 
-      // Try to format.
-      Exception formatterException;
+      dynamic formatterException;
       StackTrace formatterExceptionSt;
-      try {
-        result = new DartFormatter().format(result);
-      } catch (e, st) {
-        formatterException = e;
-        formatterExceptionSt = st;
+      if (!containsUnknownChunk) {
+        // Try to format only if it doesn't contain the unknown chunk marker.
+        try {
+          result = new DartFormatter().format(result);
+        } catch (e, st) {
+          formatterException = e;
+          formatterExceptionSt = st;
+        }
       }
 
       String filename = ".textual_outline.expect";
@@ -107,8 +121,9 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (expectMatch.outcome != Expectation.Pass) return expectMatch;
 
       if (formatterException != null) {
-        return new Result(null, context.expectationSet["FormatterCrash"],
-            formatterException, formatterExceptionSt);
+        return new Result(
+            null, context.expectationSet["FormatterCrash"], formatterException,
+            trace: formatterExceptionSt);
       }
     }
 

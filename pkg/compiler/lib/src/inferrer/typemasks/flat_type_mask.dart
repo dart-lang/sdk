@@ -76,13 +76,12 @@ class FlatTypeMask implements TypeMask {
 
   /// Deserializes a [FlatTypeMask] object from [source].
   factory FlatTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
     ClassEntity base = source.readClassOrNull();
     int flags = source.readInt();
     source.end(tag);
-    CommonMasks commonMasks = closedWorld.abstractValueDomain;
-    return commonMasks.getCachedMask(
+    return domain.getCachedMask(
         base, flags, () => new FlatTypeMask._(base, flags));
   }
 
@@ -593,10 +592,13 @@ class FlatTypeMask implements TypeMask {
   }
 
   @override
-  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, CommonMasks domain) {
     if (isEmptyOrNull) return null;
-    if (closedWorld.includesClosureCall(selector, this)) return null;
-    Iterable<MemberEntity> targets = closedWorld.locateMembers(selector, this);
+    JClosedWorld closedWorld = domain._closedWorld;
+    if (closedWorld.includesClosureCallInDomain(selector, this, domain))
+      return null;
+    Iterable<MemberEntity> targets =
+        closedWorld.locateMembersInDomain(selector, this, domain);
     if (targets.length != 1) return null;
     MemberEntity result = targets.first;
     ClassEntity enclosing = result.enclosingClass;

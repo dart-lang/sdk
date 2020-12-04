@@ -41,6 +41,8 @@ main() {
   // type warning if b doesn't have type bool.  An incorrect parse of
   // "a || (b ?? c)" would allow b to have any type provided that c is bool.
   falsity || 1 ?? true;
+//        ^
+// [cfe] Operand of null-aware operation '??' has type 'bool' which excludes null.
 //           ^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
@@ -50,9 +52,11 @@ main() {
   // An incorrect parse of "a || (b ?? c)" would result in no checked-mode
   // error.
   Expect.throwsAssertionError(() => false || null ?? true);
+  //                                      ^
+  // [cfe] Operand of null-aware operation '??' has type 'bool' which excludes null.
   //                                         ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
+  // [cfe] The value 'null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
   //                                                 ^^^^
   // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 }

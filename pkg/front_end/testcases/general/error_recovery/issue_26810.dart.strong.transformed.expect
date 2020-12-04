@@ -1,0 +1,152 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:6:37: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int get a => runtimeType.hashCode xor null.hashCode;
+//                                     ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:11:41: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int get e => 1 + runtimeType.hashCode xor null.hashCode + 3;
+//                                         ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:16:28: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int i(int x, int y) => x xor y;
+//                            ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:23:32: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int o(int x, int y) => 1 + x xor y + 3;
+//                                ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:36:31: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   Key(int x, int y) : foo = x xor y, bar = x xor y {
+//                               ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:36:46: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   Key(int x, int y) : foo = x xor y, bar = x xor y {
+//                                              ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:8:43: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int get c { return runtimeType.hashCode xor null.hashCode; }
+//                                           ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:13:47: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int get g { return 1 + runtimeType.hashCode xor null.hashCode + 3; }
+//                                               ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:18:34: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int k(int x, int y) { return x xor y; }
+//                                  ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:20:36: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int m(int x, int y) { int z =  x xor y; return z; }
+//                                    ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:25:38: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//   int q(int x, int y) { return 1 + x xor y + 3; }
+//                                      ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:29:9: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//     s(x xor y, x xor y);
+//         ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:29:18: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//     s(x xor y, x xor y);
+//                  ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_26810.dart:37:22: Error: Binary operator 'xor' is written as '^' instead of the written out word.
+// Try replacing 'xor' with '^'.
+//     print("hello ${x xor y}");
+//                      ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Key extends core::Object {
+  field core::int* foo;
+  field core::int* bar;
+  constructor •(core::int* x, core::int* y) → self::Key*
+    : self::Key::foo = x.{core::int::^}(y), self::Key::bar = x.{core::int::^}(y), super core::Object::•() {
+    core::print("hello ${x.{core::int::^}(y)}");
+  }
+  constructor NotDuplicate(core::int* x, core::int* y) → self::Key*
+    : self::Key::foo = x.{core::int::^}(y), self::Key::bar = x.{core::int::^}(y), super core::Object::•() {
+    core::print("hello ${x.{core::int::^}(y)}");
+  }
+  get a() → core::int*
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
+  get b() → core::int*
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
+  get c() → core::int* {
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
+  }
+  get d() → core::int* {
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
+  }
+  get e() → core::int*
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
+  get f() → core::int*
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
+  get g() → core::int* {
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
+  }
+  get h() → core::int* {
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
+  }
+  method i(core::int* x, core::int* y) → core::int*
+    return x.{core::int::^}(y);
+  method j(core::int* x, core::int* y) → core::int*
+    return x.{core::int::^}(y);
+  method k(core::int* x, core::int* y) → core::int* {
+    return x.{core::int::^}(y);
+  }
+  method l(core::int* x, core::int* y) → core::int* {
+    return x.{core::int::^}(y);
+  }
+  method m(core::int* x, core::int* y) → core::int* {
+    core::int* z = x.{core::int::^}(y);
+    return z;
+  }
+  method n(core::int* x, core::int* y) → core::int* {
+    core::int* z = x.{core::int::^}(y);
+    return z;
+  }
+  method o(core::int* x, core::int* y) → core::int*
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
+  method p(core::int* x, core::int* y) → core::int*
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
+  method q(core::int* x, core::int* y) → core::int* {
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
+  }
+  method r(core::int* x, core::int* y) → core::int* {
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
+  }
+  method s(core::int* x, core::int* y) → dynamic {
+    this.{self::Key::s}(x.{core::int::^}(y), x.{core::int::^}(y));
+    this.{self::Key::s}(x.{core::int::^}(y), x.{core::int::^}(y));
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

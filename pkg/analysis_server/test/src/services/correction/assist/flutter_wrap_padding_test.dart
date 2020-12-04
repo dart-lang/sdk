@@ -19,9 +19,16 @@ class FlutterWrapPaddingTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_PADDING;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_aroundContainer() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -43,8 +50,7 @@ class FakeFlutter {
   }
 
   Future<void> test_aroundPadding() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -59,8 +65,7 @@ class FakeFlutter {
   }
 
   Future<void> test_inConstantContext() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget build() {

@@ -11,29 +11,33 @@ import 'package:pub_semver/pub_semver.dart';
 /// experimental flags.
 abstract class Feature {
   /// Feature information for the 2018 constant update.
-  static const constant_update_2018 = ExperimentalFeatures.constant_update_2018;
+  static final constant_update_2018 = ExperimentalFeatures.constant_update_2018;
 
   /// Feature information for non-nullability by default.
-  static const non_nullable = ExperimentalFeatures.non_nullable;
+  static final non_nullable = ExperimentalFeatures.non_nullable;
 
   /// Feature information for control flow collections.
-  static const control_flow_collections =
+  static final control_flow_collections =
       ExperimentalFeatures.control_flow_collections;
 
   /// Feature information for extension methods.
-  static const extension_methods = ExperimentalFeatures.extension_methods;
+  static final extension_methods = ExperimentalFeatures.extension_methods;
 
   /// Feature information for spread collections.
-  static const spread_collections = ExperimentalFeatures.spread_collections;
+  static final spread_collections = ExperimentalFeatures.spread_collections;
 
   /// Feature information for set literals.
-  static const set_literals = ExperimentalFeatures.set_literals;
+  static final set_literals = ExperimentalFeatures.set_literals;
 
   /// Feature information for the triple-shift operator.
-  static const triple_shift = ExperimentalFeatures.triple_shift;
+  static final triple_shift = ExperimentalFeatures.triple_shift;
+
+  /// Feature information for non-function type aliases.
+  static final nonfunction_type_aliases =
+      ExperimentalFeatures.nonfunction_type_aliases;
 
   /// Feature information for variance.
-  static const variance = ExperimentalFeatures.variance;
+  static final variance = ExperimentalFeatures.variance;
 
   /// If the feature may be enabled or disabled on the command line, the
   /// experimental flag that may be used to enable it.  Otherwise `null`.
@@ -41,9 +45,9 @@ abstract class Feature {
   /// Should be `null` if [status] is `current` or `abandoned`.
   String get experimentalFlag;
 
-  /// If [status] is not `future`, the first version of the Dart SDK in which
-  /// the given feature was supported.  Otherwise `null`.
-  Version get firstSupportedVersion;
+  /// If [status] is not `future`, the first language version in which this
+  /// feature was enabled by default.  Otherwise `null`.
+  Version get releaseVersion;
 
   /// The status of the feature.
   FeatureStatus get status;
@@ -64,8 +68,25 @@ abstract class FeatureSet {
 
   /// Computes the set of features implied by the given set of experimental
   /// enable flags.
+  @Deprecated("Use 'fromEnableFlags2' instead")
   factory FeatureSet.fromEnableFlags(List<String> flags) =
       ExperimentStatus.fromStrings;
+
+  /// Computes the set of features implied by the given set of experimental
+  /// enable flags.
+  factory FeatureSet.fromEnableFlags2({
+    @required Version sdkLanguageVersion,
+    @required List<String> flags,
+  }) = ExperimentStatus.fromStrings2;
+
+  /// Computes the set of features for the latest language version known
+  /// to the analyzer, without any experiments.  Use it only if you really
+  /// don't care which language version you want to use, and sure that the
+  /// code that you process is valid for the latest language version.
+  ///
+  /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
+  factory FeatureSet.latestLanguageVersion() =
+      ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.
   bool isEnabled(Feature feature);

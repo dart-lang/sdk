@@ -19,6 +19,19 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       script_(helper->script()),
       result_(Instance::Handle(zone_)) {}
 
+InstancePtr ConstantReader::ReadConstantInitializer() {
+  Tag tag = helper_->ReadTag();  // read tag.
+  switch (tag) {
+    case kSomething:
+      return ReadConstantExpression();
+    default:
+      H.ReportError(script_, TokenPosition::kNoSource,
+                    "Not a constant expression: unexpected kernel tag %s (%d)",
+                    Reader::TagName(tag), tag);
+  }
+  return result_.raw();
+}
+
 InstancePtr ConstantReader::ReadConstantExpression() {
   Tag tag = helper_->ReadTag();  // read tag.
   switch (tag) {
@@ -68,7 +81,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   // must be locked since mutator and background compiler can
   // access the array at the same time.
   {
-    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    SafepointMutexLocker ml(
+        H.thread()->isolate_group()->kernel_constants_mutex());
     KernelConstantsMap constant_map(H.info().constants());
     result_ ^= constant_map.GetOrNull(constant_offset);
     ASSERT(constant_map.Release().raw() == H.info().constants());
@@ -77,7 +91,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   // On miss, evaluate, and insert value.
   if (result_.IsNull()) {
     result_ = ReadConstantInternal(constant_offset);
-    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    SafepointMutexLocker ml(
+        H.thread()->isolate_group()->kernel_constants_mutex());
     KernelConstantsMap constant_map(H.info().constants());
     auto insert = constant_map.InsertNewOrGetValue(constant_offset, result_);
     ASSERT(insert == result_.raw());
@@ -190,8 +205,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       type_arguments.SetTypeAt(0, type);
       // Instantiate class.
       type = Type::New(list_class, type_arguments, TokenPosition::kNoSource);
-      type = ClassFinalizer::FinalizeType(*active_class_->klass, type,
-                                          ClassFinalizer::kCanonicalize);
+      type = ClassFinalizer::FinalizeType(type);
       type_arguments = type.arguments();
       // Fill array with constant elements.
       const intptr_t length = reader.ReadUInt();
@@ -213,7 +227,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     case kInstanceConstant: {
       const NameIndex index = reader.ReadCanonicalNameReference();
       const auto& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
-      if (!klass.is_declaration_loaded() && !klass.is_declared_in_bytecode()) {
+      if (!klass.is_declaration_loaded()) {
         FATAL1(
             "Trying to evaluate an instance constant whose references class "
             "%s is not loaded yet.",
@@ -237,8 +251,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
         // Instantiate class.
         auto& type = AbstractType::Handle(
             Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
-        type = ClassFinalizer::FinalizeType(*active_class_->klass, type,
-                                            ClassFinalizer::kCanonicalize);
+        type = ClassFinalizer::FinalizeType(type);
         type_arguments = type.arguments();
         instance.SetTypeArguments(type_arguments);
       } else {
@@ -278,7 +291,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
         type_arguments.SetTypeAt(j, type_translator.BuildType());
       }
-      type_arguments = type_arguments.Canonicalize();
+      type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
       // Make a copy of the old closure, and set delayed type arguments.
       Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.raw()));
       Function& function = Function::Handle(Z, closure.function());

@@ -1,0 +1,146 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:21: Error: The parameter 'bar' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   Foo copyWith({int bar, int bar2}) {
+//                     ^^^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:30: Error: The parameter 'bar2' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   Foo copyWith({int bar, int bar2}) {
+//                              ^^^^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:21:15: Error: Too many positional arguments: 0 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     return Foo(bar, bar2);
+//               ^
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:19:3: Context: Found this candidate, but the arguments don't match.
+//   Foo({this.bar, this.bar2});
+//   ^^^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:29:20: Error: No named parameter with the name 'numberOfWhiskers'.
+//  Cat cat = new Cat(numberOfWhiskers: 20, numberOfLegs: 4);
+//                    ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat extends Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:35:29: Error: The method 'copyWith' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'copyWith'.
+//  Cat cat4 = (cat as Object).copyWith(numberOfWhiskers: 4);
+//                             ^^^^^^^^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:43:10: Error: Non-nullable variable 'a' must be assigned before it can be used.
+//  A a2 = (a as dynamic).copyWith(x: 42, y: 42) as A;
+//          ^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:14:14: Error: Final field 'numberOfWhiskers' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int? numberOfWhiskers;
+//              ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int? numberOfLegs;
+  constructor •({required core::int? numberOfLegs = #C1}) → self::Animal
+    : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
+    ;
+}
+class Cat extends self::Animal {
+  final field core::int? numberOfWhiskers = null;
+  synthetic constructor •({required core::int? numberOfWhiskers, core::int? numberOfLegs}) → self::Cat
+    : self::Cat::numberOfWhiskers = numberOfWhiskers, super self::Animal::•(numberOfLegs)
+    ;
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
+    return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
+  get /*isLegacy*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///copy_with_call_sites.dartCat".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
+  method /*isLegacy*/ toString() → core::String
+    return "Cat(numberOfLegs: ${this.{self::Animal::numberOfLegs}.{core::int::toString}()}, numberOfWhiskers: ${this.{self::Cat::numberOfWhiskers}.{core::int::toString}()})";
+  method /*isLegacy*/ copyWith({core::int? numberOfLegs, core::int? numberOfWhiskers}) → dynamic
+    return new self::Cat::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
+}
+class Foo extends core::Object {
+  field core::int? bar;
+  field core::int? bar2;
+  constructor •({core::int? bar = #C1, core::int? bar2 = #C1}) → self::Foo
+    : self::Foo::bar = bar, self::Foo::bar2 = bar2, super core::Object::•()
+    ;
+  method copyWith({core::int bar = #C1, core::int bar2 = #C1}) → self::Foo {
+    return invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:21:15: Error: Too many positional arguments: 0 allowed, but 2 found.
+Try removing the extra positional arguments.
+    return Foo(bar, bar2);
+              ^";
+  }
+}
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
+    return other is self::A;
+  get /*isLegacy*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///copy_with_call_sites.dartA".{core::String::hashCode});
+  method /*isLegacy*/ toString() → core::String
+    return "A()";
+  method /*isLegacy*/ copyWith() → dynamic
+    return new self::A::•();
+}
+static method main() → dynamic {
+  self::Cat cat = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:29:20: Error: No named parameter with the name 'numberOfWhiskers'.
+ Cat cat = new Cat(numberOfWhiskers: 20, numberOfLegs: 4);
+                   ^^^^^^^^^^^^^^^^";
+  self::Cat cat2 = (let final dynamic #t1 = cat as{ForNonNullableByDefault} dynamic in #t1.copyWith(numberOfWhiskers: 4, numberOfLegs: #t1.numberOfLegs)) as{ForNonNullableByDefault} self::Cat;
+  self::Cat cat3 = (let final dynamic #t2 = ((cat as{ForNonNullableByDefault} dynamic).copyWith(numberOfWhiskers: 4) as{ForNonNullableByDefault} self::Cat) as{ForNonNullableByDefault} dynamic in #t2.copyWith(numberOfWhiskers: #t2.numberOfWhiskers, numberOfLegs: 3)) as{ForNonNullableByDefault} self::Cat;
+  self::Cat cat4 = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:35:29: Error: The method 'copyWith' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'copyWith'.
+ Cat cat4 = (cat as Object).copyWith(numberOfWhiskers: 4);
+                            ^^^^^^^^";
+  self::Cat cat5 = (let final dynamic #t3 = cat as{ForNonNullableByDefault} dynamic in #t3.copyWith(numberOfWhiskers: #t3.numberOfWhiskers, numberOfLegs: #t3.numberOfLegs)) as{ForNonNullableByDefault} self::Cat;
+  self::Cat cat6 = (let final dynamic #t4 = cat as{ForNonNullableByDefault} dynamic in #t4.copyWith(numberOfWhiskers: 4, numberOfLegs: #t4.numberOfLegs)) as{ForNonNullableByDefault} self::Cat;
+  self::A a;
+  self::A a2 = (let final dynamic #t5 = (let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:43:10: Error: Non-nullable variable 'a' must be assigned before it can be used.
+ A a2 = (a as dynamic).copyWith(x: 42, y: 42) as A;
+         ^" in a) as{ForNonNullableByDefault} dynamic in #t5.copyWith()) as{ForNonNullableByDefault} self::A;
+  self::Foo foo = new self::Foo::•(bar: 4, bar2: 5);
+  self::Foo foo2 = (foo as{ForNonNullableByDefault} dynamic).copyWith(bar: 4) as{ForNonNullableByDefault} self::Foo;
+}
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    : super core::Object::•()
+    ;
+  static method combine(core::int hash, core::int value) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
+  }
+  static method finish(core::int hash) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+  }
+}
+static const field core::String valueClass = #C2;
+
+constants  {
+  #C1 = null
+  #C2 = "valueClass"
+}
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///copy_with_call_sites.dart:26:7 -> StringConstant("A()")
+Extra constant evaluation: evaluated: 128, effectively constant: 1

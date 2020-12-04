@@ -10,8 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class ExtensionOverrideTest extends DriverResolutionTest {
+class ExtensionOverrideTest extends PubPackageResolutionTest {
   ExtensionElement extension;
   ExtensionOverride extensionOverride;
 
@@ -72,7 +71,7 @@ void f(A a) {
   }
 
   test_call_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   int call(String s) => 0;
@@ -94,7 +93,7 @@ void f(p.A a) {
 
   test_call_prefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   int call(T s) => 0;
@@ -126,7 +125,12 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: findElement.getter('g'),
+      type: 'int',
+    );
   }
 
   test_getter_noPrefix_noTypeArguments_functionExpressionInvocation() async {
@@ -166,11 +170,19 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: elementMatcher(
+        findElement.getter('g'),
+        substitution: {'T': 'int'},
+      ),
+      type: 'int',
+    );
   }
 
   test_getter_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   int get g => 0;
@@ -187,11 +199,17 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: importFind.getter('g'),
+      type: 'int',
+    );
   }
 
   test_getter_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   int get g => 0;
@@ -208,7 +226,16 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: elementMatcher(
+        importFind.getter('g'),
+        substitution: {'T': 'int'},
+      ),
+      type: 'int',
+    );
   }
 
   test_method_noPrefix_noTypeArguments() async {
@@ -242,7 +269,7 @@ void f(A a) {
   }
 
   test_method_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   void m() {}
@@ -263,7 +290,7 @@ void f(p.A a) {
   }
 
   test_method_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   void m() {}
@@ -331,7 +358,7 @@ f(){
   }
 
   test_operator_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   void operator +(int offset) {}
@@ -352,7 +379,7 @@ void f(p.A a) {
   }
 
   test_operator_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   void operator +(int offset) {}
@@ -384,7 +411,16 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setter_noPrefix_typeArguments() async {
@@ -399,11 +435,23 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setter_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   set s(int x) {}
@@ -420,11 +468,21 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: importFind.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setter_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   set s(int x) {}
@@ -441,7 +499,20 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        importFind.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_noPrefix_noTypeArguments() async {
@@ -457,7 +528,19 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: findElement.getter('s', of: 'E'),
+      readType: 'int',
+      writeElement: findElement.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_noPrefix_typeArguments() async {
@@ -473,11 +556,29 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: elementMatcher(
+        findElement.getter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      readType: 'int',
+      writeElement: elementMatcher(
+        findElement.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   int get s => 0;
@@ -495,11 +596,24 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: importFind.getter('s', of: 'E'),
+      readType: 'int',
+      writeElement: importFind.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   int get s => 0;
@@ -517,7 +631,26 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: elementMatcher(
+        importFind.getter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      readType: 'int',
+      writeElement: elementMatcher(
+        importFind.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_tearOff() async {
@@ -584,24 +717,6 @@ f(C c) => E(c).a;
     }
     expect(extensionOverride.argumentList.arguments, hasLength(1));
   }
-
-  void validatePropertyAccess() {
-    PropertyAccess access = extensionOverride.parent as PropertyAccess;
-    Element resolvedElement = access.propertyName.staticElement;
-    PropertyAccessorElement expectedElement;
-    if (access.propertyName.inSetterContext()) {
-      expectedElement = extension.getSetter('s');
-      if (access.propertyName.inGetterContext()) {
-        PropertyAccessorElement expectedGetter = extension.getGetter('s');
-        Element actualGetter =
-            access.propertyName.auxiliaryElements.staticElement;
-        expect(actualGetter, expectedGetter);
-      }
-    } else {
-      expectedElement = extension.getGetter('g');
-    }
-    expect(resolvedElement, expectedElement);
-  }
 }
 
 @reflectiveTest
@@ -637,10 +752,13 @@ void f(int? a) {
 }
 ''');
 
-    assertIndexExpression(
-      findNode.index('[0]'),
+    assertAssignment(
+      findNode.assignment('[0] ='),
       readElement: null,
+      readType: null,
       writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
       type: 'int?',
     );
   }

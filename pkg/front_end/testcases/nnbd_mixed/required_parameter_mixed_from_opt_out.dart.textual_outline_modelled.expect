@@ -1,0 +1,13 @@
+import 'required_parameter_mixed_from_opt_out_lib.dart';
+
+class Class extends Super with Mixin {}
+
+class SubClass extends Class {
+  void method({required covariant int named}) {}
+}
+
+class Super {
+  void method({required covariant int named}) {}
+}
+
+main() {}

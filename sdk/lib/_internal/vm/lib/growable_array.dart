@@ -130,14 +130,17 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get _capacity native "GrowableList_getCapacity";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get length native "GrowableList_getLength";
@@ -170,16 +173,21 @@ class _GrowableList<T> extends ListBase<T> {
     _setLength(new_length);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setLength(int new_length) native "GrowableList_setLength";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setData(_List array) native "GrowableList_setData";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   T operator [](int index) native "GrowableList_getIndexed";
 
+  @pragma("vm:recognized", "other")
   void operator []=(int index, T value) {
     _setIndexed(index, value);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setIndexed(int index, T? value) native "GrowableList_setIndexed";
 
   @pragma("vm:entry-point", "call")
@@ -203,6 +211,9 @@ class _GrowableList<T> extends ListBase<T> {
       var cap = _capacity;
       // Pregrow if we know iterable.length.
       var iterLen = iterable.length;
+      if (iterLen == 0) {
+        return;
+      }
       var newLen = len + iterLen;
       if (newLen > cap) {
         do {

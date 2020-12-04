@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(srujzs): Fix this test once web static error testing is supported.
-
 // Checks for static errors related to parameters for methods.
 
 @JS()
@@ -16,48 +14,48 @@ import 'package:expect/expect.dart';
 class Foo {
   external int singleNamedArg({int? a});
   //                                ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
   external int mixedNamedArgs(int a, {int? b});
   //                                       ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 }
 
 @JS()
 class Bar {
   external static int singleNamedArg({int? a});
   //                                       ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
   external static int mixedNamedArgs(int a, {int? b});
   //                                              ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 }
 
 external int singleNamedArg({int? a});
 //                                ^
-// [web] TODO(srujzs): Add error once supported.
+// [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 external int mixedNamedArgs(int a, {int? b});
 //                                       ^
-// [web] TODO(srujzs): Add error once supported.
+// [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 
 @JS()
 @anonymous
 class Baz {
   external int singleNamedArg({int? a});
   //                                ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
   external int mixedNamedArgs(int a, {int? b});
   //                                       ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 }
 
 @JS()
 abstract class Qux {
   external int singleNamedArg({int? a});
   //                                ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
   external int mixedNamedArgs(int a, {int? b});
   //                                       ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 }
 
 main() {}

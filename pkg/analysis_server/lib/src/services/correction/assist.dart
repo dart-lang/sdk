@@ -4,11 +4,15 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// The implementation of [DartAssistContext].
 class DartAssistContextImpl implements DartAssistContext {
+  @override
+  final InstrumentationService instrumentationService;
+
   @override
   final ChangeWorkspace workspace;
 
@@ -21,8 +25,8 @@ class DartAssistContextImpl implements DartAssistContext {
   @override
   final int selectionLength;
 
-  DartAssistContextImpl(this.workspace, this.resolveResult,
-      this.selectionOffset, this.selectionLength);
+  DartAssistContextImpl(this.instrumentationService, this.workspace,
+      this.resolveResult, this.selectionOffset, this.selectionLength);
 }
 
 /// An enumeration of possible assist kinds.
@@ -149,6 +153,8 @@ class DartAssistKind {
       AssistKind('dart.assist.flutter.wrap.padding', 32, 'Wrap with Padding');
   static const FLUTTER_WRAP_ROW =
       AssistKind('dart.assist.flutter.wrap.row', 32, 'Wrap with Row');
+  static const FLUTTER_WRAP_SIZED_BOX =
+      AssistKind('dart.assist.flutter.wrap.sizedBox', 32, 'Wrap with SizedBox');
   static const FLUTTER_WRAP_STREAM_BUILDER = AssistKind(
       'dart.assist.flutter.wrap.streamBuilder', 32, 'Wrap with StreamBuilder');
 

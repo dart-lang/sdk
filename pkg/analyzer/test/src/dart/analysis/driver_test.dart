@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -860,7 +858,7 @@ const x = 1;
 ''');
     var result = await driver.getResult(testFile);
     Annotation at_x = AstFinder.getClass(result.unit, 'C').metadata[0];
-    expect(at_x.elementAnnotation.constantValue.toIntValue(), 1);
+    expect(at_x.elementAnnotation.computeConstantValue().toIntValue(), 1);
   }
 
   test_const_circular_reference() async {
@@ -1273,6 +1271,43 @@ bbb() {}
     expect(files, contains(a));
     expect(files, contains(b));
     expect(files, isNot(contains(c)));
+  }
+
+  test_getFileSync_changedFile() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
+
+void f(A a) {}
+''');
+
+    // Ensure that [a.dart] library cycle is loaded.
+    // So, `a.dart` is in the library context.
+    await driver.getResult(a);
+
+    // Update the file, changing its API signature.
+    // Note that we don't call `changeFile`.
+    newFile(a, content: 'class A {}\n');
+
+    // Get the file.
+    // We have not called `changeFile(a)`, so we should not read the file.
+    // Moreover, doing this will create a new library cycle [a.dart].
+    // Library cycles are compared by their identity, so we would try to
+    // reload linked summary for [a.dart], and crash.
+    expect(driver.getFileSync(a).lineInfo.lineCount, 1);
+
+    // We have not read `a.dart`, so `A` is still not declared.
+    expect((await driver.getResult(b)).errors, isNotEmpty);
+
+    // Notify the driver that the file was changed.
+    driver.changeFile(a);
+
+    // So, `class A {}` is declared now.
+    expect(driver.getFileSync(a).lineInfo.lineCount, 2);
+    expect((await driver.getResult(b)).errors, isEmpty);
   }
 
   test_getFileSync_library() async {
@@ -1825,6 +1860,43 @@ var A2 = B1;
     expect(result1.unit, isNotNull);
   }
 
+  test_getSourceKind_changedFile() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: 'part of lib;');
+    newFile(b, content: r'''
+import 'a.dart';
+
+void f(A a) {}
+''');
+
+    // Ensure that [a.dart] library cycle is loaded.
+    // So, `a.dart` is in the library context.
+    await driver.getResult(a);
+
+    // Update the file, changing its API signature.
+    // Note that we don't call `changeFile`.
+    newFile(a, content: 'class A {}');
+
+    // Get the kind of the file.
+    // We have not called `changeFile(a)`, so we should not read the file.
+    // Moreover, doing this will create a new library cycle [a.dart].
+    // Library cycles are compared by their identity, so we would try to
+    // reload linked summary for [a.dart], and crash.
+    expect(await driver.getSourceKind(a), SourceKind.PART);
+
+    // We have not read `a.dart`, so `A` is still not declared.
+    expect((await driver.getResult(b)).errors, isNotEmpty);
+
+    // Notify the driver that the file was changed.
+    driver.changeFile(a);
+
+    // So, `class A {}` is declared now.
+    expect(await driver.getSourceKind(a), SourceKind.LIBRARY);
+    expect((await driver.getResult(b)).errors, isEmpty);
+  }
+
   test_getSourceKind_changeFile() async {
     var path = convertPath('/test/lib/test.dart');
     expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
@@ -2164,6 +2236,55 @@ import 'b.dart';
     expect(error.errorCode, CompileTimeErrorCode.MISSING_DART_LIBRARY);
   }
 
+  test_parseFile_changedFile() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
+
+void f(A a) {}
+''');
+
+    // Ensure that [a.dart] library cycle is loaded.
+    // So, `a.dart` is in the library context.
+    await driver.getResult(a);
+
+    // Update the file, changing its API signature.
+    // Note that we don't call `changeFile`.
+    newFile(a, content: 'class A {}');
+
+    // Parse the file.
+    // We have not called `changeFile(a)`, so we should not read the file.
+    // Moreover, doing this will create a new library cycle [a.dart].
+    // Library cycles are compared by their identity, so we would try to
+    // reload linked summary for [a.dart], and crash.
+    {
+      var parseResult = await driver.parseFile(a);
+      expect(parseResult.unit.declarations, isEmpty);
+    }
+
+    // We have not read `a.dart`, so `A` is still not declared.
+    {
+      var bResult = await driver.getResult(b);
+      expect(bResult.errors, isNotEmpty);
+    }
+
+    // Notify the driver that the file was changed.
+    driver.changeFile(a);
+
+    // So, `class A {}` is declared now.
+    {
+      var parseResult = driver.parseFileSync(a);
+      expect(parseResult.unit.declarations, hasLength(1));
+    }
+    {
+      var bResult = await driver.getResult(b);
+      expect(bResult.errors, isEmpty);
+    }
+  }
+
   test_parseFile_notAbsolutePath() async {
     expect(() async {
       await driver.parseFile('not_absolute.dart');
@@ -2179,21 +2300,96 @@ import 'b.dart';
     expect(driver.knownFiles, contains(p));
   }
 
-  test_parseFile_shouldRefresh() async {
-    var p = convertPath('/test/bin/a.dart');
+  test_parseFileSync_changedFile() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
 
-    newFile(p, content: 'class A {}');
-    driver.addFile(p);
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
 
-    // Get the result, so force the file reading.
-    await driver.getResult(p);
+void f(A a) {}
+''');
 
-    // Update the file.
-    newFile(p, content: 'class A2 {}');
+    // Ensure that [a.dart] library cycle is loaded.
+    // So, `a.dart` is in the library context.
+    await driver.getResult(a);
 
-    ParsedUnitResult parseResult = await driver.parseFile(p);
-    var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.name, 'A2');
+    // Update the file, changing its API signature.
+    // Note that we don't call `changeFile`.
+    newFile(a, content: 'class A {}');
+
+    // Parse the file.
+    // We have not called `changeFile(a)`, so we should not read the file.
+    // Moreover, doing this will create a new library cycle [a.dart].
+    // Library cycles are compared by their identity, so we would try to
+    // reload linked summary for [a.dart], and crash.
+    {
+      var parseResult = driver.parseFileSync(a);
+      expect(parseResult.unit.declarations, isEmpty);
+    }
+
+    // We have not read `a.dart`, so `A` is still not declared.
+    {
+      var bResult = await driver.getResult(b);
+      expect(bResult.errors, isNotEmpty);
+    }
+
+    // Notify the driver that the file was changed.
+    driver.changeFile(a);
+
+    // So, `class A {}` is declared now.
+    {
+      var parseResult = driver.parseFileSync(a);
+      expect(parseResult.unit.declarations, hasLength(1));
+    }
+    {
+      var bResult = await driver.getResult(b);
+      expect(bResult.errors, isEmpty);
+    }
+  }
+
+  test_parseFileSync_doesNotReadImportedFiles() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
+''');
+
+    expect(driver.fsState.knownFilePaths, isEmpty);
+
+    // Don't read `a.dart` when parse.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+
+    // Still don't read `a.dart` when parse the second time.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+  }
+
+  test_parseFileSync_doesNotReadPartedFiles() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: r'''
+part of my;
+''');
+    newFile(b, content: r'''
+library my;
+part 'a.dart';
+''');
+
+    expect(driver.fsState.knownFilePaths, isEmpty);
+
+    // Don't read `a.dart` when parse.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+
+    // Still don't read `a.dart` when parse the second time.
+    driver.parseFileSync(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
   }
 
   test_parseFileSync_languageVersion() async {
@@ -2234,23 +2430,6 @@ class A {}
     ParsedUnitResult parseResult = driver.parseFileSync(p);
     expect(parseResult, isNotNull);
     expect(driver.knownFiles, contains(p));
-  }
-
-  test_parseFileSync_shouldRefresh() async {
-    var p = convertPath('/test/bin/a.dart');
-
-    newFile(p, content: 'class A {}');
-    driver.addFile(p);
-
-    // Get the result, so force the file reading.
-    await driver.getResult(p);
-
-    // Update the file.
-    newFile(p, content: 'class A2 {}');
-
-    ParsedUnitResult parseResult = driver.parseFileSync(p);
-    var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.name, 'A2');
   }
 
   test_part_getErrors_afterLibrary() async {
@@ -2801,7 +2980,7 @@ var A = B;
 
     newFile(a, content: '');
     newFile(b, content: r'''
-import 'package:aaa/a.dart'; // ignore: unused_import
+import 'package:aaa/a.dart';
 A a;
 ''');
 
@@ -2813,7 +2992,7 @@ A a;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(1));
     expect(allResults[0].path, b);
-    expect(allResults[0].errors, hasLength(1));
+    expect(allResults[0].errors, hasLength(2));
 
     // Create generated file for `package:aaa/a.dart`.
     var aUri = Uri.parse('package:aaa/a.dart');
@@ -3146,7 +3325,7 @@ var v = 0
 
   ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
     var import = unit.directives[directiveIndex] as ImportDirective;
-    return import.element as ImportElement;
+    return import.element;
   }
 
   Source _getImportSource(CompilationUnit unit, int directiveIndex) {

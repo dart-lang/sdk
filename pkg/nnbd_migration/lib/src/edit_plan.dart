@@ -90,7 +90,7 @@ class AtomicEdit {
   /// Optional argument [info] contains information about why the change was
   /// made.
   const AtomicEdit.insert(this.replacement,
-      {this.info, this.isInformative: false})
+      {this.info, this.isInformative = false})
       : assert(replacement.length > 0),
         assert(isInformative is bool),
         length = 0;
@@ -105,13 +105,13 @@ class AtomicEdit {
         isInformative = false;
 
   /// Return `true` if this edit is a deletion (no characters added).
-  bool get isDeletion => replacement.length == 0;
+  bool get isDeletion => replacement.isEmpty;
 
   /// Return `true` if this edit is an insertion (no characters removed).
   bool get isInsertion => length == 0;
 
   /// Return `true` if this edit is a replacement.
-  bool get isReplacement => length > 0 && replacement.length > 0;
+  bool get isReplacement => length > 0 && replacement.isNotEmpty;
 
   @override
   String toString() {
@@ -495,11 +495,11 @@ class EditPlanner {
     }
   }
 
-  /// Creates a new edit plan that removes [node] from the AST.
+  /// Creates a new edit plan that removes [sourceNode] from the AST.
   ///
-  /// [node] must be one element of a variable length sequence maintained by
-  /// [node]'s parent (for example, a statement in a block, an element in a
-  /// list, a declaration in a class, etc.).  If it is not, an exception is
+  /// [sourceNode] must be one element of a variable length sequence maintained
+  /// by [sourceNode]'s parent (for example, a statement in a block, an element
+  /// in a list, a declaration in a class, etc.).  If it is not, an exception is
   /// thrown.
   ///
   /// Optional argument [info] contains information about why the change was
@@ -674,9 +674,10 @@ class EditPlanner {
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
-  EditPlan tryRemoveNode(AstNode sourceNode, {AtomicEditInfo info}) {
+  EditPlan tryRemoveNode(AstNode sourceNode,
+      {List<AstNode> sequenceNodes, AtomicEditInfo info}) {
     var parent = sourceNode.parent;
-    var sequenceNodes = _computeSequenceNodes(parent);
+    sequenceNodes ??= _computeSequenceNodes(parent);
     if (sequenceNodes == null) {
       return null;
     }
@@ -809,6 +810,8 @@ class EditPlanner {
       return node.elements;
     } else if (node is ArgumentList) {
       return node.arguments;
+    } else if (node is FormalParameter) {
+      return node.metadata;
     } else if (node is FormalParameterList) {
       return node.parameters;
     } else if (node is VariableDeclarationList) {
@@ -1525,7 +1528,8 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
       AstNode parent, List<AstNode> childNodes) {
     if (parent is Block ||
         parent is ClassDeclaration ||
-        parent is CompilationUnit) {
+        parent is CompilationUnit ||
+        parent is FormalParameter) {
       // These parent types don't use separators.
       return null;
     } else {

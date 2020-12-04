@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:test/test.dart';
@@ -156,13 +155,9 @@ class String{}class List{}class test <X extends !1String!2> {}''',
 class String{}class List{}class DateTime{}typedef T Y<T extends !1>(List input);''',
         <String>['1+DateTime', '1+String']);
 
-    // https://github.com/dart-lang/sdk/issues/33992
-    buildTests(
-        'testCommentSnippets029',
-        '''
+    buildTests('testCommentSnippets029', '''
 interface A<X> default B<X extends !1List!2> {}''',
-        <String>['1+DateTime', '2+List'],
-        failingTests: '12');
+        <String>['1+DateTime', '2+List']);
 
     buildTests('testCommentSnippets030', '''
 class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}final T!6 f = null;}''',

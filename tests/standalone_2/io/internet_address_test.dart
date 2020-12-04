@@ -208,6 +208,16 @@ void testRawPath() {
   Expect.equals(InternetAddressType.unix, address.type);
 }
 
+void testInvalidScopedId() {
+  // macOS will not throw an error.
+  try {
+    InternetAddress('::1%invalid');
+  } catch (e) {
+    Expect.type<ArgumentError>(e);
+    Expect.isTrue(e.toString().contains('scope ID'));
+  }
+}
+
 void main() {
   testDefaultAddresses();
   testConstructor();
@@ -218,4 +228,5 @@ void main() {
   testRawAddress();
   testRawAddressIPv6();
   testRawPath();
+  testInvalidScopedId();
 }

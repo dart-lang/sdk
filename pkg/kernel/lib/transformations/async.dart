@@ -213,7 +213,6 @@ class ExpressionLifter extends Transformer {
 
   TreeNode visitVariableSet(VariableSet expr) => unary(expr);
   TreeNode visitPropertyGet(PropertyGet expr) => unary(expr);
-  TreeNode visitDirectPropertyGet(DirectPropertyGet expr) => unary(expr);
   TreeNode visitSuperPropertySet(SuperPropertySet expr) => unary(expr);
   TreeNode visitStaticSet(StaticSet expr) => unary(expr);
   TreeNode visitNot(Not expr) => unary(expr);
@@ -222,13 +221,6 @@ class ExpressionLifter extends Transformer {
   TreeNode visitThrow(Throw expr) => unary(expr);
 
   TreeNode visitPropertySet(PropertySet expr) {
-    return transform(expr, () {
-      expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
-      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
-    });
-  }
-
-  TreeNode visitDirectPropertySet(DirectPropertySet expr) {
     return transform(expr, () {
       expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
       expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
@@ -249,13 +241,6 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitMethodInvocation(MethodInvocation expr) {
-    return transform(expr, () {
-      visitArguments(expr.arguments);
-      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
-    });
-  }
-
-  TreeNode visitDirectMethodInvocation(DirectMethodInvocation expr) {
     return transform(expr, () {
       visitArguments(expr.arguments);
       expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
@@ -351,7 +336,7 @@ class ExpressionLifter extends Transformer {
         new MethodInvocation(expr.right, new Name('=='),
             new Arguments(<Expression>[new BoolLiteral(true)])))));
     var then, otherwise;
-    if (expr.operator == '&&') {
+    if (expr.operatorEnum == LogicalExpressionOperator.AND) {
       then = rightBody;
       otherwise = null;
     } else {

@@ -1,0 +1,53 @@
+// Top level comment of sorts. With utf8 stuff → in it so offsets aren't byte
+// offset!
+
+library top_level_stuff;
+
+import "top_level_stuff_helper.dart";
+export "top_level_stuff_helper.dart";
+import "top_level_stuff_helper.dart" show a, b, c hide d, e, f show foo;
+export "top_level_stuff_helper.dart" show a, b, c hide d, e, f show foo;
+
+part 'top_level_stuff_helper.dart';
+
+@metadataOneOnThisOne("bla")
+@metadataTwoOnThisOne
+void toplevelMethod() {
+  // no content
+}
+
+List<E> anotherTopLevelMethod<E>() {
+  return null;
+}
+
+enum FooEnum { A, B, Bla }
+
+class FooClass {
+  // no content.
+}
+
+mixin FooMixin {
+  // no content.
+}
+
+class A<T> {
+  // no content.
+}
+
+typedef B = Function();
+
+mixin C<T> on A<T> {
+  // no content.
+}
+
+extension D<T> on A<T> {
+  // no content.
+}
+
+class E = A with FooClass;
+
+int field1;
+int field2, field3;
+int field4 = 42;
+
+@AnnotationAtEOF

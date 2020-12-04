@@ -51,10 +51,8 @@ abstract class D extends A implements B {
 
   set setterFromSetter(value);
 
-  // TODO(johnniwinther): This should be an error.
   get getterFromSetter;
 
-  // TODO(johnniwinther): This should be an error.
   set setterFromGetter(value);
 
   get getterFromGetterWithSetterConflict;
@@ -81,10 +79,8 @@ abstract class F implements A, B {
 
   set setterFromSetter(value);
 
-  // TODO(johnniwinther): This should be an error.
   get getterFromSetter;
 
-  // TODO(johnniwinther): This should be an error.
   set setterFromGetter(value);
 
   get getterFromGetterWithSetterConflict;

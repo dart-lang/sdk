@@ -81,7 +81,7 @@ replacer(String key, value) {
   return value;
 }
 
-String format(value) {
+String? format(value) {
   // Avoid double-escaping strings.
   if (value is String) return value;
   return stringify(value, allowInterop(replacer), 4);
@@ -90,8 +90,8 @@ String format(value) {
 class FormattedObject {
   FormattedObject(this.object, this.config);
 
-  Object object;
-  Object config;
+  Object? object;
+  Object? config;
 }
 
 /// Extract all object tags from a json ml expression to enable
@@ -127,17 +127,17 @@ main() async {
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
-  var goldenUrl = '/root_dart/tests/dartdevc_2/debugger/'
+  var goldenUrl = '/root_dart/tests/dartdevc/debugger/'
       'debugger_test_golden.txt?cacheBlock=$cacheBlocker';
 
-  String golden;
+  String? golden;
   try {
     golden = (await HttpRequest.getString(goldenUrl)).trim();
   } catch (e) {
     print("Warning: couldn't load golden file from $goldenUrl");
   }
 
-  document.body.append(new ScriptElement()
+  document.body!.append(new ScriptElement()
     ..type = 'text/javascript'
     ..innerHtml = r"""
 window.ExampleJSClass = function ExampleJSClass(x) {
@@ -324,7 +324,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
     if (actualStr != golden) {
       var helpMessage =
           'Debugger output does not match the golden data found in:\n'
-          'tests/dartdevc_2/debugger/debugger_test_golden.txt\n'
+          'tests/dartdevc/debugger/debugger_test_golden.txt\n'
           'The new golden data is copied to the clipboard when you click on '
           'this window.\n'
           'Please update the golden file with the following output and review '
@@ -333,16 +333,16 @@ window.ExampleJSClass = function ExampleJSClass(x) {
       print(helpMessage);
       // Copy text to clipboard on page click. We can't copy to the clipboard
       // without a click due to Chrome security.
-      TextAreaElement textField = new Element.tag('textarea');
+      var textField = new Element.tag('textarea') as TextAreaElement;
       textField.maxLength = 100000000;
       textField.text = actualStr;
       textField.style
         ..width = '800px'
         ..height = '400px';
-      document.body.append(new Element.tag('h3')
+      document.body!.append(new Element.tag('h3')
         ..innerHtml = helpMessage.replaceAll('\n', '<br>'));
-      document.body.append(textField);
-      document.body.onClick.listen((_) {
+      document.body!.append(textField);
+      document.body!.onClick.listen((_) {
         textField.select();
         var result = document.execCommand('copy');
         if (result) {

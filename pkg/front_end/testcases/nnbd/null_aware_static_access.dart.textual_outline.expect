@@ -1,0 +1,11 @@
+class C {
+  static int get staticMember => 0;
+  static void set staticMember(int value) {}
+  static int? get staticMember2 => 0;
+  static void set staticMember2(int? value) {}
+  static void staticMethod() {}
+  static List<int> get property => [0];
+  static Map<int, int?> get property2 => {};
+}
+
+void main() {}

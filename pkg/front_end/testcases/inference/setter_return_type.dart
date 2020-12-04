@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  dynamic set x(int value) {}
+  set x(int value) {}
 }
 
 abstract class I {

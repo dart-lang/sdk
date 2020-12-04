@@ -7,7 +7,6 @@
 import argparse
 import io
 import json
-import multiprocessing
 import os
 import subprocess
 import sys
@@ -193,18 +192,6 @@ def RunOneBuildCommand(build_config, args, env):
     return 0
 
 
-def RunOneGomaBuildCommand(options):
-    (env, args) = options
-    try:
-        print(' '.join(args))
-        process = subprocess.Popen(args, env=env, stdin=None)
-        process.wait()
-        print(' '.join(args) + " done.")
-        return process.returncode
-    except KeyboardInterrupt:
-        return 1
-
-
 def SanitizerEnvironmentVariables():
     with io.open('tools/bots/test_matrix.json', encoding='utf-8') as fd:
         config = json.loads(fd.read())
@@ -266,11 +253,22 @@ def Main():
             return 1
 
     # Run goma builds in parallel.
-    pool = multiprocessing.Pool(multiprocessing.cpu_count())
-    results = pool.map(RunOneGomaBuildCommand, goma_builds, chunksize=1)
-    for r in results:
-        if r != 0:
-            return 1
+    active_goma_builds = []
+    for (env, args) in goma_builds:
+        print(' '.join(args))
+        process = subprocess.Popen(args, env=env)
+        active_goma_builds.append([args, process])
+    while active_goma_builds:
+        time.sleep(0.1)
+        for goma_build in active_goma_builds:
+            (args, process) = goma_build
+            if process.poll() is not None:
+                print(' '.join(args) + " done.")
+                active_goma_builds.remove(goma_build)
+                if process.returncode != 0:
+                    for (_, to_kill) in active_goma_builds:
+                        to_kill.terminate()
+                    return 1
 
     endtime = time.time()
     print("The build took %.3f seconds" % (endtime - starttime))

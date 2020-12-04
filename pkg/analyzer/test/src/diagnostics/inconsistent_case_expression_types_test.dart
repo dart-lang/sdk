@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class InconsistentCaseExpressionTypesTest extends DriverResolutionTest {
+class InconsistentCaseExpressionTypesTest extends PubPackageResolutionTest {
   test_dynamic() async {
     // Even though A.S and S have a static type of "dynamic", we should see
     // that they match 'abc', because they are constant strings.
@@ -115,9 +114,9 @@ void f(var e) {
 
 @reflectiveTest
 class InconsistentCaseExpressionTypesWithNullSafetyTest
-    extends DriverResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_int_none_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
 

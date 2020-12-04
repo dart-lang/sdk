@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class InstanceAccessToStaticMemberTest extends DriverResolutionTest {
+class InstanceAccessToStaticMemberTest extends PubPackageResolutionTest {
   test_extension_getter() async {
     await assertErrorsInCode('''
 class C {}
@@ -61,19 +61,32 @@ f(C c) {
 class C {}
 
 extension E on C {
-  static set a(v) {}
+  static set a(int v) {}
 }
 
 f(C c) {
   c.a = 2;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 72, 1),
     ]);
-    assertElement(
-      findNode.simple('a = 2;'),
-      findElement.setter('a'),
+
+    assertAssignment(
+      findNode.assignment('a ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('a', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertElement(
+        findNode.simple('a = 2;'),
+        findElement.setter('a'),
+      );
+    }
   }
 
   test_method_reference() async {

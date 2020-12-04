@@ -1,0 +1,456 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/various.dart:162:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const ClassWithNonEmptyConstConstructor() {
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
+// const x1 = --x;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
+// const x2 = ++x;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
+// const x3 = x--;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
+// const x4 = x++;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+// const y1 = --y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+// const y2 = ++y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+// const y3 = y--;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+// const y4 = y++;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+// const function_const = () {};
+//                        ^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Can't access 'this' in a field initializer to read 'y'.
+//   final z1 = y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
+//   @AbstractClass()
+//    ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   @AbstractClass()
+//    ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+//   @AbstractClassWithConstructor()
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   @AbstractClassWithConstructor()
+//    ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+// const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
+//                                       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+//   const ExtendsFoo2();
+//         ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Not a constant expression.
+//   final z1 = y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:181:14: Error: Not a constant expression.
+//   final z2 = x;
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class AbstractClass extends core::Object {
+  synthetic constructor •() → self::AbstractClass*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class AbstractClassWithConstructor extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::AbstractClassWithConstructor*
+    : super core::Object::•()
+    ;
+  abstract method foo() → core::int*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class NotAbstractClass extends core::Object {
+  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  @AbstractClass()
+   ^"
+  field core::Object* foo;
+  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  @AbstractClassWithConstructor()
+   ^"
+  field core::Object* bar;
+  synthetic constructor •() → self::NotAbstractClass*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Foo extends core::Object /*hasConstConstructor*/  {
+  final field core::int* x;
+  final field core::int* y;
+  const constructor •(core::int* x) → self::Foo*
+    : self::Foo::x = x, self::Foo::y = "hello".{core::String::length}, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ExtendsFoo1 extends self::Foo {
+  synthetic constructor •() → self::ExtendsFoo1*
+    ;
+}
+class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
+  const constructor •() → self::ExtendsFoo2*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+  const ExtendsFoo2();
+        ^^^^^^^^^^^"
+    ;
+}
+class ConstClassWithFailingAssertWithEmptyMessage extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::ConstClassWithFailingAssertWithEmptyMessage*
+    : assert(false, ""), super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ClassWithTypeArguments<E extends core::Object* = dynamic, F extends core::Object* = dynamic, G extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •(self::ClassWithTypeArguments::E* e, self::ClassWithTypeArguments::F* f, self::ClassWithTypeArguments::G* g) → self::ClassWithTypeArguments<self::ClassWithTypeArguments::E*, self::ClassWithTypeArguments::F*, self::ClassWithTypeArguments::G*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ClassWithNonEmptyConstConstructor extends core::Object {
+  constructor •() → self::ClassWithNonEmptyConstConstructor*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ConstClassWithFinalFields1 extends core::Object /*hasConstConstructor*/  {
+  final field core::int* x = 1;
+  const constructor •() → self::ConstClassWithFinalFields1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ConstClassWithFinalFields2 extends core::Object /*hasConstConstructor*/  {
+  final field core::int* y = 1;
+  final field dynamic z1 = this.{self::ConstClassWithFinalFields2::y};
+  final field core::int* z2 = self::x;
+  const constructor •() → self::ConstClassWithFinalFields2*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::bool* barFromEnv = const core::bool::fromEnvironment("bar");
+static const field core::bool* hasBarEnv = const core::bool::hasEnvironment("bar");
+static const field core::bool* barFromEnvOrNull = const core::bool::fromEnvironment("bar", defaultValue: null);
+static const field core::bool* notBarFromEnvOrNull = !self::barFromEnvOrNull;
+static const field core::bool* conditionalOnNull = self::barFromEnvOrNull ?{core::bool*} true : false;
+static const field core::bool* nullAwareOnNullTrue = let final core::bool* #t2 = self::barFromEnvOrNull in #t2.{core::Object::==}(null) ?{core::bool*} true : #t2;
+static const field core::bool* nullAwareOnNullFalse = let final core::bool* #t3 = self::barFromEnvOrNull in #t3.{core::Object::==}(null) ?{core::bool*} false : #t3;
+static const field core::bool* andOnFalse = self::nullAwareOnNullFalse && self::nullAwareOnNullTrue;
+static const field core::bool* andOnFalse2 = self::nullAwareOnNullTrue && self::nullAwareOnNullFalse;
+static const field core::bool* andOnNull = self::barFromEnvOrNull && true;
+static const field core::bool* andOnNull2 = true && self::barFromEnvOrNull;
+static const field core::bool* orOnNull = self::barFromEnvOrNull || true;
+static const field core::bool* orOnNull2 = self::barFromEnvOrNull || false;
+static const field core::bool* orOnNull3 = true || self::barFromEnvOrNull;
+static const field core::bool* orOnNull4 = false || self::barFromEnvOrNull;
+static const field core::String* barFromEnvString = const core::String::fromEnvironment("bar");
+static const field core::String* barFromEnvOrNullString = const core::String::fromEnvironment("bar", defaultValue: null);
+static const field core::String* barFromEnvOrActualString = const core::String::fromEnvironment("bar", defaultValue: "hello");
+static const field core::String* nullFromEnvString = const core::String::fromEnvironment(self::barFromEnvOrNullString);
+static const field core::bool* barFromEnvBool = const core::bool::fromEnvironment("bar");
+static const field core::bool* barFromEnvOrNullBool = const core::bool::fromEnvironment("bar", defaultValue: null);
+static const field core::bool* barFromEnvOrActualBool = const core::bool::fromEnvironment("bar", defaultValue: true);
+static const field core::bool* nullFromEnvBool = const core::bool::fromEnvironment(self::barFromEnvOrNullString);
+static const field core::int* barFromEnvInt = const core::int::fromEnvironment("bar");
+static const field core::int* barFromEnvOrNullInt = const core::int::fromEnvironment("bar", defaultValue: null);
+static const field core::int* barFromEnvOrActualInt = const core::int::fromEnvironment("bar", defaultValue: 42);
+static const field core::int* nullFromEnvInt = const core::int::fromEnvironment(self::barFromEnvOrNullString);
+static const field core::bool* bazFromEnv = const core::bool::fromEnvironment("baz");
+static const field core::bool* hasBazEnv = const core::bool::hasEnvironment("baz");
+static const field core::int* bazFromEnvAsInt = const core::int::fromEnvironment("baz");
+static const field core::String* bazFromEnvAsString = const core::String::fromEnvironment("baz");
+static const field core::bool* bazTrueFromEnv = const core::bool::fromEnvironment("bazTrue");
+static const field core::bool* bazFalseFromEnv = const core::bool::fromEnvironment("bazFalse");
+static const field core::bool* trueBool = true;
+static const field core::bool* falseBool = false;
+static const field core::bool* binaryOnBoolCaret = self::trueBool.{core::bool::^}(self::falseBool);
+static const field core::bool* binaryOnBoolAmpersand = self::trueBool.{core::bool::&}(self::falseBool);
+static const field core::bool* binaryOnBoolBar = self::trueBool.{core::bool::|}(self::falseBool);
+static const field core::bool* binaryOnBoolBar2 = self::falseBool.{core::bool::|}(self::trueBool);
+static const field dynamic willBeDouble = const core::bool::fromEnvironment("foo") ?{core::num*} 42 : 42.42;
+static const field dynamic binaryOnDouble = self::willBeDouble.<<(2);
+static const field dynamic willBeInt = const core::bool::fromEnvironment("foo") ?{core::num*} 42.42 : 42;
+static const field dynamic binaryOnIntWithDoubleBad = self::willBeInt.<<(self::willBeDouble);
+static const field dynamic binaryOnIntWithDoubleOK = self::willBeInt.+(self::willBeDouble);
+static const field dynamic binaryOnIntWithString = self::willBeInt.<<("hello");
+static const field dynamic willBeString = const core::bool::fromEnvironment("foo") ?{core::Object*} 42.42 : "hello";
+static const field dynamic binaryOnStringWithStringOK = self::willBeString.+(" world");
+static const field dynamic binaryOnStringWithInt = self::willBeString.+(self::willBeInt);
+static const field dynamic binaryOnStringWithStringBad = self::willBeString.-(" world");
+static field core::int* x;
+static const field core::int* x1 = self::x = self::x.{core::num::-}(1);
+static const field core::int* x2 = self::x = self::x.{core::num::+}(1);
+static const field core::int* x3 = let final core::int* #t4 = self::x in let final core::int* #t5 = self::x = #t4.{core::num::-}(1) in #t4;
+static const field core::int* x4 = let final core::int* #t6 = self::x in let final core::int* #t7 = self::x = #t6.{core::num::+}(1) in #t6;
+static const field core::int* y = 1;
+static const field dynamic y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+const y1 = --y;
+             ^";
+static const field dynamic y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+const y2 = ++y;
+             ^";
+static const field core::int* y3 = let final core::int* #t8 = self::y in let final dynamic #t9 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+const y3 = y--;
+           ^" in #t8;
+static const field core::int* y4 = let final core::int* #t10 = self::y in let final dynamic #t11 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+const y4 = y++;
+           ^" in #t10;
+static field self::AbstractClassWithConstructor* abstractClassWithConstructor;
+static const field self::ExtendsFoo1* extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
+                                      ^^^^^^^^^^^" as{TypeError,ForDynamic} self::ExtendsFoo1*;
+static const field self::ExtendsFoo2* extendsFoo2 = const self::ExtendsFoo2::•();
+static const field self::Foo* foo1 = const self::Foo::•(42);
+static const field self::Foo* foo2 = const self::Foo::•(42);
+static const field core::bool* foosIdentical = core::identical(self::foo1, self::foo2);
+static const field core::bool* foosEqual = self::foo1.{self::Foo::==}(self::foo2);
+static const field core::Symbol* barFoo = const _in::Symbol::•("Foo");
+static const field core::Symbol* barFooEqual = const _in::Symbol::•("Foo=");
+static const field core::Symbol* tripleShiftSymbol = const _in::Symbol::•(">>>");
+static const field core::Symbol* symbolWithDots = const _in::Symbol::•("I.Have.Dots");
+static const field core::int* circularity1 = self::circularity2;
+static const field core::int* circularity2 = self::circularity3;
+static const field core::int* circularity3 = self::circularity4;
+static const field core::int* circularity4 = self::circularity1;
+static const field dynamic function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+const function_const = () {};
+                       ^^";
+static field () →* Null function_var;
+static field self::ConstClassWithFailingAssertWithEmptyMessage* failedAssertEmptyMessage;
+static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic>* classWithTypeArguments1 = const self::ClassWithTypeArguments::•<core::int*, core::int*, core::int*>(42, 42, 42);
+static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic>* classWithTypeArguments2 = const self::ClassWithTypeArguments::•<dynamic, dynamic, dynamic>(42, 42, 42);
+static const field core::bool* classWithTypeArgumentsIdentical = core::identical(self::classWithTypeArguments1, self::classWithTypeArguments2);
+static field self::ClassWithNonEmptyConstConstructor* classWithNonEmptyConstConstructor;
+static field self::ConstClassWithFinalFields2* constClassWithFinalFields;
+static const field core::bool* zeroPointZeroIdentical = core::identical(0.0, 0.0);
+static const field core::bool* zeroPointZeroIdenticalToZero = core::identical(0.0, 0);
+static const field core::bool* zeroIdenticalToZeroPointZero = core::identical(0, 0.0);
+static const field core::bool* nanIdentical = core::identical(0.{core::num::/}(0), 0.{core::num::/}(0));
+static const field core::bool* zeroPointZeroEqual = 0.0.{core::num::==}(0.0);
+static const field core::bool* zeroPointZeroEqualToZero = 0.0.{core::num::==}(0);
+static const field core::bool* zeroEqualToZeroPointZero = 0.{core::num::==}(0.0);
+static const field core::bool* nanEqual = 0.{core::num::/}(0).{core::num::==}(0.{core::num::/}(0));
+static const field dynamic willBecomeNull = const core::bool::fromEnvironment("foo") ?{<T extends core::Object* = dynamic>(T*) →* T*} self::id1 : null;
+static const field (core::int*) →* core::int* willBecomeNullToo = (const core::bool::fromEnvironment("foo") ?{dynamic} self::id1<core::int*> : self::willBecomeNull) as{TypeError,ForDynamic} (core::int*) →* core::int*;
+static const field (core::int*) →* core::int* partialInstantiation = (const core::bool::fromEnvironment("foo") ?{dynamic} self::willBecomeNull : self::id1<core::int*>) as{TypeError,ForDynamic} (core::int*) →* core::int*;
+static const field core::bool* yBool = true;
+static const field core::bool* zBool = !self::yBool;
+static const field core::Object* maybeInt = const core::bool::fromEnvironment("foo") ?{core::Object*} 42 : true;
+static const field core::bool* isItInt = self::maybeInt is core::int* ?{core::bool*} true : false;
+static const field core::Object* maybeInt2 = self::zBool ?{core::Object*} 42 : true;
+static const field core::bool* isItInt2 = self::maybeInt2 is core::int* ?{core::bool*} true : false;
+static const field core::int* maybeInt3 = self::zBool ?{core::int*} 42 : null;
+static const field core::bool* isItInt3 = self::maybeInt3 is core::int* ?{core::bool*} true : false;
+static method id1<T extends core::Object* = dynamic>(self::id1::T* t) → self::id1::T*
+  ;
+static method id2<T extends core::Object* = dynamic>(self::id2::T* t) → self::id2::T*
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: PropertyGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:6:31 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:7:30 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:9:11 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:10:35 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:11:32 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///various.dart:12:51 -> BoolConstant(true)
+Evaluated: Let @ org-dartlang-testcase:///various.dart:13:52 -> BoolConstant(false)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:14:46 -> BoolConstant(false)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:15:46 -> BoolConstant(false)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:16:24 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:17:33 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:18:23 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:19:24 -> NullConstant(null)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:20:29 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:21:33 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:23:39 -> StringConstant("")
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:25:11 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:27:11 -> StringConstant("hello")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:29:34 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:31:35 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:33:11 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:35:11 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:36:57 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:38:33 -> IntConstant(0)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:40:11 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:42:11 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:43:54 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:46:31 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:47:30 -> BoolConstant(true)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:48:35 -> IntConstant(42)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:49:41 -> StringConstant("42")
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:53:35 -> BoolConstant(true)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:54:36 -> BoolConstant(false)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:58:41 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:59:45 -> BoolConstant(false)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:60:39 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:61:41 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:63:64 -> DoubleConstant(42.42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:64:24 -> DoubleConstant(42.42)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:65:61 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:66:34 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:66:47 -> DoubleConstant(42.42)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:67:43 -> DoubleConstant(84.42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:68:31 -> IntConstant(42)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:70:39 -> StringConstant("hello")
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:71:49 -> StringConstant("hello world")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:31 -> StringConstant("hello")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:46 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:73:37 -> StringConstant("hello")
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:126:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:127:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:128:28 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:129:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:129:32 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:130:29 -> SymbolConstant(#Foo)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:131:34 -> SymbolConstant(#Foo=)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:132:40 -> SymbolConstant(#>>>)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:133:37 -> SymbolConstant(#I.Have.Dots)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:155:11 -> InstanceConstant(const ClassWithTypeArguments<int*, int*, int*>{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:157:11 -> InstanceConstant(const ClassWithTypeArguments<dynamic, dynamic, dynamic>{})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:159:5 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:187:32 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:188:38 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:189:38 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:190:22 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:192:32 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:193:38 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:194:36 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:195:24 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:200:66 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:203:39 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:205:39 -> PartialInstantiationConstant(id1<int*>)
+Evaluated: Not @ org-dartlang-testcase:///various.dart:208:20 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:210:46 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:211:38 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:212:25 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:213:40 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:214:25 -> NullConstant(null)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:215:40 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 136, effectively constant: 84

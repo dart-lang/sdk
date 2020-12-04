@@ -137,7 +137,11 @@ const nonSizeAlignment = <Abi, Map<NativeType, int>>{
   //
   // iOS 32 bit alignment:
   // https://developer.apple.com/documentation/uikit/app_and_environment/updating_your_app_from_32-bit_to_64-bit_architecture/updating_data_structures
-  Abi.wordSize32Align32: {NativeType.kDouble: 4, NativeType.kInt64: 4},
+  Abi.wordSize32Align32: {
+    NativeType.kDouble: 4,
+    NativeType.kInt64: 4,
+    NativeType.kUnit64: 4
+  },
 
   // The default for MSVC x86:
   // > The alignment-requirement for all data except structures, unions, and
@@ -188,6 +192,7 @@ class FfiTransformer extends Transformer {
   final Class intClass;
   final Class doubleClass;
   final Class listClass;
+  final Class typeClass;
   final Class pragmaClass;
   final Field pragmaName;
   final Field pragmaOptions;
@@ -229,6 +234,7 @@ class FfiTransformer extends Transformer {
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
         listClass = coreTypes.listClass,
+        typeClass = coreTypes.typeClass,
         pragmaClass = coreTypes.pragmaClass,
         pragmaName = coreTypes.pragmaName,
         pragmaOptions = coreTypes.pragmaOptions,

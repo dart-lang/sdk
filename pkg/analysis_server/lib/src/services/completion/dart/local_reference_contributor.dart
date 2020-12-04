@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
@@ -46,8 +42,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
     var suggestLocalFields = node is ConstructorDeclaration &&
         node.initializers.contains(request.target.entity);
 
-    var localVisitor;
-
     // Collect suggestions from the specific child [AstNode] that contains the
     // completion offset and all of its parents recursively.
     if (!opType.isPrefixed) {
@@ -69,10 +63,10 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent.parent;
         }
 
-        localVisitor = _LocalVisitor(request, builder, visibilityTracker,
-            suggestLocalFields: suggestLocalFields);
         try {
           builder.laterReplacesEarlier = false;
+          var localVisitor = _LocalVisitor(request, builder, visibilityTracker,
+              suggestLocalFields: suggestLocalFields);
           localVisitor.visit(node);
         } finally {
           builder.laterReplacesEarlier = true;
@@ -148,11 +142,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
     for (var type in classElement.allSupertypes) {
-      double inheritanceDistance;
-      if (request.useNewRelevance) {
-        inheritanceDistance = request.featureComputer
-            .inheritanceDistanceFeature(classElement, type.element);
-      }
+      var inheritanceDistance = request.featureComputer
+          .inheritanceDistanceFeature(classElement, type.element);
       _addSuggestionsForType(type, request, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
@@ -192,10 +183,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// The op type associated with the request.
   final OpType opType;
 
-  /// A flag indicating whether the suggestions should use the new relevance
-  /// scores.
-  final bool useNewRelevance;
-
   /// A flag indicating whether the target of the request is a function-valued
   /// argument in an argument list.
   final bool targetIsFunctionalArgument;
@@ -203,8 +190,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// A flag indicating whether local fields should be suggested.
   final bool suggestLocalFields;
 
-  /// Only used when [useNewRelevance] is `false`.
-  int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
+  /// A flag indicating whether suggestions are being made inside an `extends`
+  /// clause.
+  bool inExtendsClause = false;
 
   _VisibilityTracker visibilityTracker;
 
@@ -212,37 +200,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       {@required this.suggestLocalFields})
       : assert(visibilityTracker != null),
         opType = request.opType,
-        useNewRelevance = request.useNewRelevance,
         targetIsFunctionalArgument = request.target.isFunctionalArgument(),
-        super(request.offset) {
-    // Suggestions for inherited members are provided by
-    // InheritedReferenceContributor.
-    if (!useNewRelevance) {
-      // If the user typed an identifier starting with '_' then do not suppress
-      // the relevance of private members.
-      var data = request.result != null
-          ? request.result.content
-          : request.sourceContents;
-      var offset = request.offset;
-      if (data != null && 0 < offset && offset <= data.length) {
-        bool isIdentifierChar(int index) {
-          var code = data.codeUnitAt(index);
-          return isLetterOrDigit(code) || code == CHAR_UNDERSCORE;
-        }
-
-        if (isIdentifierChar(offset - 1)) {
-          while (offset > 0 && isIdentifierChar(offset - 1)) {
-            --offset;
-          }
-          if (data.codeUnitAt(offset) == CHAR_UNDERSCORE) {
-            privateMemberRelevance = null;
-          }
-        }
-      }
-    }
-  }
-
-  TypeProvider get typeProvider => request.libraryElement.typeProvider;
+        super(request.offset);
 
   CompletionSuggestionKind get _defaultKind => targetIsFunctionalArgument
       ? CompletionSuggestionKind.IDENTIFIER
@@ -404,7 +363,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMixin(MixinDeclaration declaration) {
-    if (visibilityTracker._isVisible(declaration.declaredElement) &&
+    if (!inExtendsClause &&
+        visibilityTracker._isVisible(declaration.declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
     }
@@ -443,6 +403,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         opType.includeTypeNameSuggestions) {
       builder.suggestTypeParameter(node.declaredElement);
     }
+  }
+
+  @override
+  void visitExtendsClause(ExtendsClause node) {
+    inExtendsClause = true;
+    super.visitExtendsClause(node);
   }
 
   /// Return `true` if the [identifier] is composed of one or more underscore

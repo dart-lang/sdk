@@ -1,5 +1,5 @@
 extension Extension ;
-on String (){ }
-main() { }
-errors() { }
-expect(expected, actual) { }
+on String (){}
+main() {}
+errors() {}
+expect(expected, actual) {}

@@ -229,6 +229,8 @@ const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
     case kFull:
       return "full";
+    case kFullCore:
+      return "full-core";
     case kFullJIT:
       return "full-jit";
     case kFullAOT:
@@ -458,11 +460,25 @@ ObjectPtr SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   if (func.IsNull()) {
     SetReadException("Invalid function object found in message.");
   }
+  TypeArguments& delayed_type_arguments = TypeArguments::Handle(zone());
+  delayed_type_arguments ^= ReadObjectImpl(kAsInlinedObject);
+
   func = func.ImplicitClosureFunction();
   ASSERT(!func.IsNull());
 
-  // Return the associated implicit static closure.
-  obj = func.ImplicitStaticClosure();
+  // If delayedtype arguments were provided, create and return new closure with
+  // those, otherwise return associated implicit static closure.
+  // Note that static closures can't have instantiator or function types since
+  // statics can't refer to class type arguments, don't have outer functions.
+  if (!delayed_type_arguments.IsNull()) {
+    const Context& context = Context::Handle(zone());
+    obj = Closure::New(
+        /*instantiator_type_arguments=*/Object::null_type_arguments(),
+        /*function_type_arguments=*/Object::null_type_arguments(),
+        delayed_type_arguments, func, context, Heap::kOld);
+  } else {
+    obj = func.ImplicitStaticClosure();
+  }
   return obj.raw();
 }
 
@@ -662,11 +678,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
       offset += kWordSize;
     }
     if (ObjectLayout::IsCanonical(tags)) {
-      const char* error_str = NULL;
-      *result = result->CheckAndCanonicalize(thread(), &error_str);
-      if (error_str != NULL) {
-        FATAL1("Failed to canonicalize %s\n", error_str);
-      }
+      *result = result->Canonicalize(thread());
       ASSERT(!result->IsNull());
     }
   }
@@ -893,12 +905,10 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 
 SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
-                               ReAlloc alloc,
-                               DeAlloc dealloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                bool can_send_any_object)
-    : BaseWriter(alloc, dealloc, initial_size),
+    : BaseWriter(initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
@@ -916,19 +926,25 @@ void SnapshotWriter::WriteObject(ObjectPtr rawobj) {
 }
 
 uint32_t SnapshotWriter::GetObjectTags(ObjectPtr raw) {
-  return raw->ptr()->tags_;
+  uword tags = raw->ptr()->tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  // Clear hash to make the narrowing cast safe / appease UBSAN.
+  tags = ObjectLayout::HashTag::update(0, tags);
+#endif
+  return tags;
 }
 
 uint32_t SnapshotWriter::GetObjectTags(ObjectLayout* raw) {
-  return raw->tags_;
+  uword tags = raw->tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  // Clear hash to make the narrowing cast safe / appease UBSAN.
+  tags = ObjectLayout::HashTag::update(0, tags);
+#endif
+  return tags;
 }
 
 uword SnapshotWriter::GetObjectTagsAndHash(ObjectPtr raw) {
-  uword result = raw->ptr()->tags_;
-#if defined(HASH_IN_OBJECT_HEADER)
-  result |= static_cast<uword>(raw->ptr()->hash_) << 32;
-#endif
-  return result;
+  return raw->ptr()->tags_;
 }
 
 #define VM_OBJECT_CLASS_LIST(V)                                                \
@@ -1128,7 +1144,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(ObjectPtr rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if ((cid == kCodeCid) || (cid == kBytecodeCid)) {
+  if (cid == kCodeCid) {
     WriteVMIsolateObject(kNullObject);
     return true;
   }
@@ -1307,15 +1323,17 @@ void SnapshotWriter::WriteClassId(ClassLayout* cls) {
   ASSERT(!IsSingletonClassId(class_id) && !IsBootstrapedClassId(class_id));
 
   // Write out the library url and class name.
-  LibraryPtr library = cls->library_;
+  LibraryPtr library = cls->library();
   ASSERT(library != Library::null());
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->name_, kAsInlinedObject);
+  WriteObjectImpl(cls->name(), kAsInlinedObject);
 }
 
-void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
-                                                FunctionPtr func,
-                                                intptr_t tags) {
+void SnapshotWriter::WriteStaticImplicitClosure(
+    intptr_t object_id,
+    FunctionPtr func,
+    intptr_t tags,
+    TypeArgumentsPtr delayed_type_arguments) {
   // Write out the serialization header value for this object.
   WriteInlinedObjectHeader(object_id);
 
@@ -1328,11 +1346,12 @@ void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
   // Write out the library url, class name and signature function name.
   ClassPtr cls = GetFunctionOwner(func);
   ASSERT(cls != Class::null());
-  LibraryPtr library = cls->ptr()->library_;
+  LibraryPtr library = cls->ptr()->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
-  WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
+  WriteObjectImpl(library->ptr()->url(), kAsInlinedObject);
+  WriteObjectImpl(cls->ptr()->name(), kAsInlinedObject);
+  WriteObjectImpl(func->ptr()->name(), kAsInlinedObject);
+  WriteObjectImpl(delayed_type_arguments, kAsInlinedObject);
 }
 
 void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
@@ -1379,7 +1398,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
   // Extract the function object to check if this closure
   // can be sent in an isolate message.
-  FunctionPtr func = closure->ptr()->function_;
+  FunctionPtr func = closure->ptr()->function();
   // We only allow closure of top level methods or static functions in a
   // class to be sent in isolate messages.
   if (can_send_any_object() &&
@@ -1403,8 +1422,8 @@ FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
 }
 
 ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
-  ObjectPtr owner = func->ptr()->owner_;
-  uint32_t tags = GetObjectTags(owner);
+  ObjectPtr owner = func->ptr()->owner();
+  uword tags = GetObjectTags(owner);
   intptr_t class_id = ObjectLayout::ClassIdTag::decode(tags);
   if (class_id == kClassCid) {
     return static_cast<ClassPtr>(owner);
@@ -1559,22 +1578,9 @@ void SnapshotWriterVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   }
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 MessageWriter::MessageWriter(bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
-                     malloc_allocator,
-                     malloc_deallocator,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
@@ -1612,9 +1618,10 @@ std::unique_ptr<Message> MessageWriter::WriteMessage(
   }
 
   MessageFinalizableData* finalizable_data = finalizable_data_;
-  finalizable_data_ = NULL;
-  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
-                      priority);
+  finalizable_data_ = nullptr;
+  intptr_t size;
+  uint8_t* buffer = Steal(&size);
+  return Message::New(dest_port, buffer, size, finalizable_data, priority);
 }
 
 }  // namespace dart

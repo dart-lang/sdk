@@ -6,4 +6,5 @@ abstract class A {
   abstract covariant num cn;
   abstract covariant var cx;
 }
-main() { }
+
+main() {}

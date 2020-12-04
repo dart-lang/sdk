@@ -3,6 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+
+/// The characters that will cause the editor to automatically commit the selected
+/// completion item.
+///
+/// For example, pressing `(` at the location of `^` in the code below would
+/// automatically commit the functions name and insert a `(` to avoid either having
+/// to press `<enter>` and then `(` or having `()` included in the completion items
+/// `insertText` (which is incorrect when passing a function around rather than
+/// invoking it).
+///
+///     myLongFunctionName();
+///     print(myLong^)
+///
+/// The `.` is not included because it falsely triggers whenver typing a
+/// cascade (`..`), inserting the very first completion instead of just a second
+/// period.
+const dartCompletionCommitCharacters = ['('];
 
 /// Set the characters that will cause the editor to automatically
 /// trigger completion.
@@ -26,13 +44,19 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 /// for the VS Code implementation of this.
 const dartCompletionTriggerCharacters = ['.', '=', '(', r'$'];
 
-/// TODO(dantup): Signature help triggering is even more sensitive to
-/// bad chars, so we'll need to implement the logic described here:
-/// https://github.com/dart-lang/sdk/issues/34241
-const dartSignatureHelpTriggerCharacters = <String>[];
+/// Characters that refresh signature help only if it's already open on the client.
+const dartSignatureHelpRetriggerCharacters = <String>[','];
+
+/// Characters that automatically trigger signature help when typed in the client.
+const dartSignatureHelpTriggerCharacters = <String>['('];
 
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];
+
+/// A [ProgressToken] used for reporting progress when the server is analyzing.
+final analyzingProgressToken = Either2<num, String>.t2('ANALYZING');
+
+final emptyWorkspaceEdit = WorkspaceEdit();
 
 /// Constants for command IDs that are exchanged between LSP client/server.
 abstract class Commands {
@@ -44,21 +68,26 @@ abstract class Commands {
     organizeImports,
     sendWorkspaceEdit,
     performRefactor,
+    fixAllOfErrorCodeInFile,
   ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
   static const performRefactor = 'refactor.perform';
+  static const fixAllOfErrorCodeInFile = 'edit.fixAll.errorCodeInFile';
 }
 
 abstract class CustomMethods {
   static const DiagnosticServer = Method('dart/diagnosticServer');
+  static const Reanalyze = Method('dart/reanalyze');
   static const PublishClosingLabels =
       Method('dart/textDocument/publishClosingLabels');
   static const PublishOutline = Method('dart/textDocument/publishOutline');
   static const PublishFlutterOutline =
       Method('dart/textDocument/publishFlutterOutline');
   static const Super = Method('dart/textDocument/super');
+  // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
+  // should be relying on it and we now support proper $/progress events.
   static const AnalyzerStatus = Method(r'$/analyzerStatus');
 }
 
@@ -72,6 +101,7 @@ abstract class DartCodeActionKind {
     CodeActionKind.SourceOrganizeImports,
     SortMembers,
     CodeActionKind.QuickFix,
+    CodeActionKind.Refactor,
   ];
   static const SortMembers = CodeActionKind('source.sortMembers');
 }
@@ -105,4 +135,10 @@ abstract class ServerErrorCodes {
   ///   crashing server endlessly. VS Code for example doesn't restart a server
   ///   if it crashes 5 times in the last 180 seconds."
   static const ClientServerInconsistentState = ErrorCodes(-32099);
+}
+
+/// Strings used in user prompts (window/showMessageRequest).
+abstract class UserPromptActions {
+  static const String cancel = 'Cancel';
+  static const String renameAnyway = 'Rename Anyway';
 }

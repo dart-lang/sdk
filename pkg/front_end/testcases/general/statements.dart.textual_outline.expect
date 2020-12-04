@@ -1,3 +1,3 @@
 foo() {}
-bar() async {}
+bar(d) async* {}
 main() {}

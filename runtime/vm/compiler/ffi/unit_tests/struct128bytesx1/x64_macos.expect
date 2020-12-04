@@ -1,0 +1,4 @@
+S+0 Compound(size: 128)
+rsi int32
+=>
+P(rdi int64, ret:rax int64) Compound(size: 128)

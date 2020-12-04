@@ -1,9 +1,9 @@
 @a
-const a = null;
 class C = D with E;
 
 class D {}
 
 class E {}
 
+const a = null;
 main() {}

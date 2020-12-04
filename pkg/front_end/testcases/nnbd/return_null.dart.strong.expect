@@ -6,11 +6,11 @@ library /*isNonNullableByDefault*/;
 // String returnImplicit() /*error*/ {
 //        ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
 //   return null; // error
 //          ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
 //     return null; // error
 //            ^
 //
@@ -31,11 +31,11 @@ library /*isNonNullableByDefault*/;
 //   String returnImplicit() /* error */ {
 //   ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
 //     return null; // error
 //            ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
 //       return null; // error
 //              ^
 //
@@ -68,7 +68,7 @@ class Enum extends core::Object /*isEnum*/  {
     : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{=self::Enum::_name};
+    return this.{self::Enum::_name};
 }
 static method returnImplicit() → core::String {
   core::print("foo");
@@ -78,14 +78,14 @@ String returnImplicit() /*error*/ {
 }
 static method returnExplicit() → core::String {
   core::print("foo");
-  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
   return null; // error
          ^" in null as{TypeError,ForNonNullableByDefault} core::String;
 }
 static method returnMixed(core::bool b) → core::String {
   if(b) {
     core::print("foo");
-    return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+    return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
            ^" in null as{TypeError,ForNonNullableByDefault} core::String;
   }
@@ -147,14 +147,14 @@ static method localFunctions() → dynamic {
   }
   function returnExplicit() → core::String {
     core::print("foo");
-    return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+    return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
            ^" in null as{TypeError,ForNonNullableByDefault} core::String;
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
-      return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null' can't be returned from a function with return type 'String'.
+      return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
       return null; // error
              ^" in null as{TypeError,ForNonNullableByDefault} core::String;
     }
@@ -170,7 +170,7 @@ static method localFunctions() → dynamic {
   ^" in null;
   }
   function returnAsync4() → FutureOr<core::int?> async {}
-  function returnAsync5() → asy::Future<core::Null?> async {}
+  function returnAsync5() → asy::Future<Null> async {}
   function returnAsync6() → asy::Future<core::int?> async {
     return null;
   }

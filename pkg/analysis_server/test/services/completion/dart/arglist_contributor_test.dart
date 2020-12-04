@@ -4,20 +4,22 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../abstract_context.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgListContributorTest);
+    defineReflectiveTests(ArgListContributorWithNullSafetyTest);
   });
 }
 
-@reflectiveTest
-class ArgListContributorTest extends DartCompletionContributorTest {
+mixin ArgListContributorMixin on DartCompletionContributorTest {
   void assertNoOtherSuggestions(Iterable<CompletionSuggestion> expected) {
     for (var suggestion in suggestions) {
       if (!expected.contains(suggestion)) {
@@ -76,7 +78,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       bool includeColon = true,
       bool includeComma = false}) {
     var expected = <CompletionSuggestion>[];
-    var paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {
       var completion = includeColon ? '$name: ' : name;
       // Selection should be before any trailing commas.
@@ -84,12 +85,8 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       if (includeComma) {
         completion = '$completion,';
       }
-      var relevance = requiredParamIndices.contains(paramIndex++)
-          ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
-          : DART_RELEVANCE_NAMED_PARAMETER;
       expected.add(assertSuggest(completion,
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: relevance,
           paramName: name,
           paramType: type,
           selectionOffset: selectionOffset));
@@ -106,7 +103,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
           suggestion.endsWith(',') ? suggestion.length - 1 : suggestion.length;
       expected.add(assertSuggest('$suggestion',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_NAMED_PARAMETER,
           selectionOffset: selectionOffset));
     }
     assertNoOtherSuggestions(expected);
@@ -116,7 +112,11 @@ class ArgListContributorTest extends DartCompletionContributorTest {
   DartCompletionContributor createContributor() {
     return ArgListContributor();
   }
+}
 
+@reflectiveTest
+class ArgListContributorTest extends DartCompletionContributorTest
+    with ArgListContributorMixin {
   Future<void> test_Annotation_imported_constructor_named_param() async {
     addSource('/home/test/lib/a.dart', '''
 library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
@@ -253,7 +253,6 @@ void main() {
 
     assertSuggest(
       '(a, b) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 10,
     );
 
@@ -349,7 +348,6 @@ void main() {
 
     assertSuggest(
       '(a, {b, c}) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 15,
     );
   }
@@ -382,13 +380,12 @@ void main() {
 
     assertSuggest(
       '(a, [b, c]) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 15,
     );
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/widgets.dart';
@@ -402,14 +399,13 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -425,13 +421,12 @@ import 'package:flutter/material.dart';
 
     assertSuggest('backgroundColor: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null, // No default values.
         selectionOffset: 17);
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -446,14 +441,13 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_2() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -468,7 +462,6 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -478,7 +471,7 @@ build() => new Row(
       test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
     // type it's children.
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -496,7 +489,6 @@ class DynamicRow extends Widget {
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -505,7 +497,7 @@ class DynamicRow extends Widget {
   Future<void>
       test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
     // Ensure we don't generate Map params for a future API
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -523,14 +515,13 @@ class MapRow extends Widget {
 
     assertSuggest('children: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         selectionOffset: 10,
         defaultArgListString: null);
   }
 
   Future<void>
       test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -548,7 +539,6 @@ class CustomScrollView extends Widget {
 
     assertSuggest('slivers: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 10,
         defaultArgumentListTextRanges: null);
@@ -559,7 +549,7 @@ class CustomScrollView extends Widget {
     // TODO(brianwilkerson) This test has been changed so that it no longer has
     // anything to do with Flutter (by moving the declaration of `foo` out of
     // the 'material' library). Determine whether the test is still valid.
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -575,7 +565,6 @@ foo({String children}) {}
 
     assertSuggest('children: ',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null);
   }
 
@@ -980,7 +969,7 @@ main() { new A(^, two: 'foo');}''');
   }
 
   Future<void> test_ArgumentList_local_constructor_required_param_0() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 class A { A({int one, @required String two: 'defaultValue'}) { } }
@@ -1092,5 +1081,66 @@ main() { f("16", radix: ^);}''');
       String bar() => true;''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  Future<void> test_superConstructorInvocation() async {
+    addTestSource('''
+class A {
+  final bool field1;
+  final int field2;
+  A({this.field1, this.field2});
+}
+class B extends A {
+  B() : super(^);
+}
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'field1': 'bool', 'field2': 'int'});
+  }
+}
+
+@reflectiveTest
+class ArgListContributorWithNullSafetyTest extends DartCompletionContributorTest
+    with WithNullSafetyMixin, ArgListContributorMixin {
+  Future<void> test_ArgumentList_nnbd_function_named_param() async {
+    addTestSource(r'''
+f({int? nullable, int nonnullable}) {}
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'nullable': 'int?',
+      'nonnullable': 'int',
+    });
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param_imported() async {
+    addSource('/home/test/lib/a.dart', '''
+f({int? nullable, int nonnullable}) {}''');
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addTestSource(r'''
+import "a.dart";
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'nullable': 'int?',
+      'nonnullable': 'int',
+    });
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param_legacy() async {
+    addSource('/home/test/lib/a.dart', '''
+// @dart = 2.8
+f({int named}) {}''');
+    addTestSource(r'''
+import "a.dart";
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'named': 'int*',
+    });
   }
 }

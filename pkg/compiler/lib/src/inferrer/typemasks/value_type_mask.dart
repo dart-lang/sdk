@@ -17,9 +17,9 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   /// Deserializes a [ValueTypeMask] object from [source].
   factory ValueTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
     ConstantValue constant = source.readConstant();
     source.end(tag);
     return new ValueTypeMask(forwardTo, constant);

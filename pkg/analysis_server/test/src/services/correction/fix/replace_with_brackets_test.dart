@@ -24,7 +24,7 @@ class ReplaceWithBracketsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.empty_statements;
 
   Future<void> test_outOfBlock_otherLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(bool c) {
   while(c)
   ;
@@ -40,7 +40,7 @@ void f(bool c) {
   }
 
   Future<void> test_outOfBlock_sameLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(bool c) {
   while(c);
   print('hi');

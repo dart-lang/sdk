@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class MapLiteralTest extends DriverResolutionTest {
+class MapLiteralTest extends PubPackageResolutionTest {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_entry_conflictingKey() async {
@@ -56,7 +55,17 @@ FutureOr<Map<int, String>> f() {
     assertType(setOrMapLiteral('{};'), 'Map<int, String>');
   }
 
-  test_context_noTypeArgs_noEntries() async {
+  test_context_noTypeArgs_noEntries_fromParameterType() async {
+    await assertNoErrorsInCode('''
+void f() {
+  useMap({});
+}
+void useMap(Map<int, String> _) {}
+''');
+    assertType(setOrMapLiteral('{})'), 'Map<int, String>');
+  }
+
+  test_context_noTypeArgs_noEntries_fromVariableType() async {
     await assertNoErrorsInCode('''
 Map<String, String> a = {};
 ''');
@@ -293,7 +302,7 @@ var a = {...b, ...c};
     await assertNoErrorsInCode(r'''
 mixin M on Map<String, int> {}
 
-main(M m1) {
+void f(M m1) {
   // ignore:unused_local_variable
   var m2 = {...m1};
 }

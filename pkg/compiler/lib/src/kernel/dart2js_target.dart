@@ -17,6 +17,7 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 
 import 'invocation_mirror_constants.dart';
+import 'transformations/lowering.dart' as lowering show transformLibraries;
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
   'async',
@@ -66,7 +67,13 @@ class Dart2jsTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  bool get supportsLateFields => false;
+  int get enabledLateLowerings => LateLowering.all;
+
+  @override
+  bool get supportsLateLoweringSentinel => false;
+
+  @override
+  bool get useStaticFieldLowering => false;
 
   // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
   //  calls encoded with an explicit property get or disallows getter calls.
@@ -75,6 +82,12 @@ class Dart2jsTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
+
+  @override
+  List<String> get extraIndexedLibraries => const [
+        'dart:_interceptors',
+        'dart:_js_helper',
+      ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
@@ -108,9 +121,13 @@ class Dart2jsTarget extends Target {
       ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       JsInteropChecks(
+              coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }
+    lowering.transformLibraries(
+        libraries, coreTypes, hierarchy, flags.enableNullSafety);
+    logger?.call("Lowering transformations performed");
   }
 
   @override
@@ -127,7 +144,7 @@ class Dart2jsTarget extends Target {
       name = name.substring(4);
     } else if (name.startsWith('set:')) {
       kind = invocationMirrorSetterKind;
-      name = name.substring(4) + '=';
+      name = name.substring(4);
     } else {
       kind = invocationMirrorMethodKind;
     }

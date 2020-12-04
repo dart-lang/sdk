@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "value_class_support_lib.dart" as val;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+@val::valueClass
+class EmptyClass extends core::Object {
+  synthetic constructor •() → self::EmptyClass
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    ;
+  static method combine(core::int hash, core::int value) → core::int
+    ;
+  static method finish(core::int hash) → core::int
+    ;
+}
+static const field core::String valueClass = "valueClass";
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///empty.dart:7:2 -> StringConstant("valueClass")
+Extra constant evaluation: evaluated: 1, effectively constant: 1

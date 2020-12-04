@@ -12,24 +12,47 @@ part of dart._runtime;
 @notNull
 external bool compileTimeFlag(String flag);
 
-_throwNullSafetyWarningError() => throw UnsupportedError(
-    'Null safety errors cannot be shown as warnings when running with sound '
-    'null safety.');
+_throwInvalidFlagError(String message) =>
+    throw UnsupportedError('Invalid flag combination.\n$message');
 
 @notNull
 bool _weakNullSafetyWarnings = false;
 
-/// Sets the runtime mode to show warnings when running with weak null safety.
+/// Sets the runtime mode to show warnings when types violate sound null safety.
 ///
-/// These are warnings for issues that will become errors when sound null safety
-/// is enabled. Showing warnings while running with sound null safety is not
-/// supported (they will be errors).
+/// This option is not compatible with weak null safety errors or sound null
+/// safety (the warnings will be errors).
 void weakNullSafetyWarnings(bool showWarnings) {
   if (showWarnings && compileTimeFlag('soundNullSafety')) {
-    _throwNullSafetyWarningError();
+    _throwInvalidFlagError(
+        'Null safety violations cannot be shown as warnings when running with '
+        'sound null safety.');
   }
 
   _weakNullSafetyWarnings = showWarnings;
+}
+
+@notNull
+bool _weakNullSafetyErrors = false;
+
+/// Sets the runtime mode to throw errors when types violate sound null safety.
+///
+/// This option is not compatible with weak null safety warnings (the warnings
+/// are now errors) or sound null safety (the errors are already errors).
+void weakNullSafetyErrors(bool showErrors) {
+  if (showErrors && compileTimeFlag('soundNullSafety')) {
+    _throwInvalidFlagError(
+        'Null safety violations are already thrown as errors when running with '
+        'sound null safety.');
+  }
+
+  if (showErrors && _weakNullSafetyWarnings) {
+    _throwInvalidFlagError(
+        'Null safety violations can be shown as warnings or thrown as errors, '
+        'not both.');
+  }
+
+  _weakNullSafetyErrors = showErrors;
 }
 
 @notNull
@@ -42,6 +65,18 @@ bool _nonNullAsserts = false;
 /// instead of printing a warning for the non-null parameters.
 void nonNullAsserts(bool enable) {
   _nonNullAsserts = enable;
+}
+
+@notNull
+bool _nativeNonNullAsserts = false;
+
+/// Enables null assertions on native APIs to make sure value returned from the
+/// browser is sound.
+///
+/// These apply to dart:html and similar web libraries. Note that these only are
+/// added in sound null-safety only.
+void nativeNonNullAsserts(bool enable) {
+  _nativeNonNullAsserts = enable;
 }
 
 final metadata = JS('', 'Symbol("metadata")');
@@ -168,7 +203,7 @@ F tearoffInterop<F extends Function?>(F f) {
 /// we disable type checks for in these cases, and allow any JS object to work
 /// as if it were an instance of this JS type.
 class LazyJSType extends DartType {
-  Function()? _getRawJSTypeFn;
+  Function() _getRawJSTypeFn;
   @notNull
   final String _dartName;
   Object? _rawJSType;
@@ -190,14 +225,14 @@ class LazyJSType extends DartType {
     // overhead, especially if exceptions are being thrown. Also it means the
     // behavior of a given type check can change later on.
     try {
-      raw = _getRawJSTypeFn!();
+      raw = _getRawJSTypeFn();
     } catch (e) {}
 
     if (raw == null) {
       _warn('Cannot find native JavaScript type ($_dartName) for type check');
     } else {
       _rawJSType = raw;
-      _getRawJSTypeFn = null; // Free the function that computes the JS type.
+      JS('', '#.push(() => # = null)', _resetFields, _rawJSType);
     }
     return raw;
   }
@@ -238,10 +273,12 @@ void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
 }
 
-void _nullWarn(arg) {
+void _nullWarn(message) {
   if (_weakNullSafetyWarnings) {
-    _warn('$arg\n'
+    _warn('$message\n'
         'This will become a failure when runtime null safety is enabled.');
+  } else if (_weakNullSafetyErrors) {
+    throw TypeErrorImpl(message);
   }
 }
 
@@ -369,7 +406,7 @@ class NullableType extends DartType {
   NullableType(@notNull this.type);
 
   @override
-  String get name => '$type?';
+  String get name => _jsInstanceOf(type, FunctionType) ? '($type)?' : '$type?';
 
   @override
   String toString() => name;
@@ -923,11 +960,11 @@ class GenericFunctionType extends AbstractFunctionType {
   List<TypeVariable> get typeFormals => _typeFormals;
 
   /// `true` if there are bounds on any of the generic type parameters.
-  get hasTypeBounds => _instantiateTypeBounds != null;
+  bool get hasTypeBounds => _instantiateTypeBounds != null;
 
   /// Checks that [typeArgs] satisfies the upper bounds of the [typeFormals],
   /// and throws a [TypeError] if they do not.
-  void checkBounds(List typeArgs) {
+  void checkBounds(List<Object> typeArgs) {
     // If we don't have explicit type parameter bounds, the bounds default to
     // a top type, so there's nothing to check here.
     if (!hasTypeBounds) return;
@@ -1281,7 +1318,7 @@ _isFunctionSubtype(ft1, ft2, @notNull bool strictMode) => JS('', '''(() => {
 
 /// Returns true if [t1] <: [t2].
 @notNull
-bool isSubtypeOf(@notNull Object t1, @notNull Object t2) {
+bool isSubtypeOf(@notNull t1, @notNull t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
   var map = JS<Object>('!', '#[#]', t1, _subtypeCache);
@@ -2033,7 +2070,7 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
   // Check interfaces.
   var getInterfaces = getImplements(subtype);
   if (getInterfaces != null) {
-    for (var iface in getInterfaces()!) {
+    for (var iface in getInterfaces()) {
       result = _getMatchingSupertype(iface, supertype);
       if (result != null) return result;
     }

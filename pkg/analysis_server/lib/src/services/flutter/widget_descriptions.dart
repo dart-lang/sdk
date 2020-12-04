@@ -273,7 +273,7 @@ class _WidgetDescriptionComputer {
     var classElement = constructorElement.enclosingElement;
     if (!classesBeingProcessed.add(classElement)) return;
 
-    var existingNamed = <ParameterElement>{};
+    var existingNamed = <String>{};
     if (instanceCreation != null) {
       for (var argumentExpression in instanceCreation.argumentList.arguments) {
         var parameter = argumentExpression.staticParameterElement;
@@ -282,7 +282,7 @@ class _WidgetDescriptionComputer {
         Expression valueExpression;
         if (argumentExpression is NamedExpression) {
           valueExpression = argumentExpression.expression;
-          existingNamed.add(parameter);
+          existingNamed.add(parameter.name);
         } else {
           valueExpression = argumentExpression;
         }
@@ -301,7 +301,7 @@ class _WidgetDescriptionComputer {
 
     for (var parameter in constructorElement.parameters) {
       if (!parameter.isNamed) continue;
-      if (existingNamed.contains(parameter)) continue;
+      if (existingNamed.contains(parameter.name)) continue;
 
       _addProperty(
         properties: properties,

@@ -21,16 +21,16 @@ set topLevelSetter(_) {}
 
 topLevelFunction() {}
 
-@JS('a') // JS_INTEROP_FIELD_NOT_SUPPORTED       //# 01: compile-time error
+@JS('a') // JS_INTEROP_FIELD_NOT_SUPPORTED  //# 01: compile-time error
 var topLevelJsInteropField; //# 01: continued
 
-@JS('a') // JS_INTEROP_NON_EXTERNAL_MEMBER       //# 02: compile-time error
+@JS('a') // JS_INTEROP_NON_EXTERNAL_MEMBER  //# 02: compile-time error
 get topLevelJsInteropGetter => null; //# 02: continued
 
-@JS('a') // JS_INTEROP_NON_EXTERNAL_MEMBER       //# 03: compile-time error
+@JS('a') // JS_INTEROP_NON_EXTERNAL_MEMBER  //# 03: compile-time error
 set topLevelJsInteropSetter(_) {} //# 03: continued
 
-@JS('a') // JS_INTEROP_NON_EXTERNAL_MEMBER       //# 04: compile-time error
+@JS('a') // JS_INTEROP_NON_EXTERNAL_MEMBER  //# 04: compile-time error
 topLevelJsInteropFunction() {} //# 04: continued
 
 external get externalTopLevelGetter;
@@ -61,13 +61,13 @@ class Class {
   @JS('a') // GENERIC  //# 10: compile-time error
   Class.jsInteropGenerative(); //# 10: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 11: compile-time error
+  @JS('a') // GENERIC  //# 11: compile-time error
   factory Class.jsInteropFact() => null; //# 11: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 12: compile-time error
+  @JS('a') // GENERIC  //# 12: compile-time error
   external Class.externalJsInteropGenerative(); //# 12: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 13: compile-time error
+  @JS('a') // GENERIC  //# 13: compile-time error
   external factory Class.externalJsInteropFact(); //# 13: continued
 
   var instanceField;
@@ -80,28 +80,28 @@ class Class {
   static set staticSetter(_) {}
   static staticMethod() {}
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 14: compile-time error
+  @JS('a') // GENERIC  //# 14: compile-time error
   var instanceJsInteropField; //# 14: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 15: compile-time error
+  @JS('a') // GENERIC  //# 15: compile-time error
   get instanceJsInteropGetter => null; //# 15: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 16: compile-time error
+  @JS('a') // GENERIC  //# 16: compile-time error
   set instanceJsInteropSetter(_) {} //# 16: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 17: compile-time error
+  @JS('a') // GENERIC  //# 17: compile-time error
   instanceJsInteropMethod() {} //# 17: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 18: compile-time error
+  @JS('a') // GENERIC  //# 18: compile-time error
   static var staticJsInteropField; //# 18: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 19: compile-time error
+  @JS('a') // GENERIC //# 19: compile-time error
   static get staticJsInteropGetter => null; //# 19: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 20: compile-time error
+  @JS('a') // GENERIC  //# 20: compile-time error
   static set staticJsInteropSetter(_) {} //# 20: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 21: compile-time error
+  @JS('a') // GENERIC  //# 21: compile-time error
   static staticJsInteropMethod() {} //# 21: continued
 
   // NON_NATIVE_EXTERNAL               //# 22: compile-time error
@@ -122,22 +122,22 @@ class Class {
   // NON_NATIVE_EXTERNAL           //# 27: compile-time error
   external static externalStaticMethod(); //# 27: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 28: compile-time error
+  @JS('a') // GENERIC  //# 28: compile-time error
   external get externalInstanceJsInteropGetter; //# 28: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 29: compile-time error
+  @JS('a') // GENERIC  //# 29: compile-time error
   external set externalInstanceJsInteropSetter(_); //# 29: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 30: compile-time error
+  @JS('a') // GENERIC  //# 30: compile-time error
   external externalInstanceJsInteropMethod(); //# 30: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 31: compile-time error
+  @JS('a') // GENERIC  //# 31: compile-time error
   external static get externalStaticJsInteropGetter; //# 31: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 32: compile-time error
+  @JS('a') // GENERIC  //# 32: compile-time error
   external static set externalStaticJsInteropSetter(_); //# 32: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 33: compile-time error
+  @JS('a') // GENERIC  //# 33: compile-time error
   external static externalStaticJsInteropMethod(); //# 33: continued
 }
 
@@ -167,13 +167,13 @@ class JsInteropClass {
   // IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED //# 38: compile-time error
   var instanceField; //# 38: continued
 
-  // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 39: compile-time error
+  // GENERIC //# 39: compile-time error
   get instanceGetter => null; //# 39: continued
 
-  // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 40: compile-time error
+  // GENERIC //# 40: compile-time error
   set instanceSetter(_) {} //# 40: continued
 
-  // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 41: compile-time error
+  // GENERIC //# 41: compile-time error
   instanceMethod() {} //# 41: continued
 
   // IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED //# 42: compile-time error
@@ -188,16 +188,16 @@ class JsInteropClass {
   // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 45: compile-time error
   static staticMethod() {} //# 45: continued
 
-  @JS('a') // IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED //# 46: compile-time error
+  @JS('a') // GENERIC //# 46: compile-time error
   var instanceJsInteropField; //# 46: continued
 
-  @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 48: compile-time error
+  @JS('a') // GENERIC //# 48: compile-time error
   get instanceJsInteropGetter => null; //# 48: continued
 
-  @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 49: compile-time error
+  @JS('a') // GENERIC //# 49: compile-time error
   set instanceJsInteropSetter(_) {} //# 49: continued
 
-  @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER //# 50: compile-time error
+  @JS('a') // GENERIC //# 50: compile-time error
   instanceJsInteropMethod() {} //# 50: continued
 
   @JS('a') // IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED //# 51: compile-time error

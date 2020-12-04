@@ -44,24 +44,24 @@ class ProcessItemTreeMap extends NormalTreeMap<Map> {
 }
 
 class ProcessSnapshotElement extends CustomElement implements Renderable {
-  RenderingScheduler<ProcessSnapshotElement> _r;
+  late RenderingScheduler<ProcessSnapshotElement> _r;
 
   Stream<RenderedEvent<ProcessSnapshotElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
+  late M.VM _vm;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
   M.NotificationRepository get notifications => _notifications;
   M.VMRef get vm => _vm;
 
   List<Map> _loadedSnapshots = <Map>[];
-  Map selection;
-  Map _snapshotA;
-  Map _snapshotB;
+  Map? selection;
+  Map? _snapshotA;
+  Map? _snapshotB;
 
   factory ProcessSnapshotElement(
       M.VM vm, M.EventRepository events, M.NotificationRepository notifications,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(events != null);
     assert(notifications != null);
@@ -145,10 +145,10 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
     input.type = 'file';
     input.multiple = false;
     input.onChange.listen((event) {
-      var file = input.files[0];
+      var file = input.files![0];
       var reader = new FileReader();
       reader.onLoad.listen((event) async {
-        _snapshotLoaded(jsonDecode(reader.result));
+        _snapshotLoaded(jsonDecode(reader.result as String));
       });
       reader.readAsText(file);
     });
@@ -224,7 +224,7 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
         ],
     ];
     if (selection == null) {
-      selection = _snapshotA["root"];
+      selection = _snapshotA!["root"];
     }
     _createTreeMap(report, new ProcessItemTreeMap(this), selection);
     return report;

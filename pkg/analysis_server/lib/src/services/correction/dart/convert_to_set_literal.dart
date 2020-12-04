@@ -178,6 +178,11 @@ class ConvertToSetLiteral extends CorrectionProducer {
           parent2.type?.type?.element == typeProvider.setElement) {
         return true;
       }
+    } else if (parent.parent is InvocationExpression) {
+      var parameterElement = creation.staticParameterElement;
+      if (parameterElement?.type?.element == typeProvider.setElement) {
+        return true;
+      }
     }
     return _hasUnambiguousElement(creation);
   }

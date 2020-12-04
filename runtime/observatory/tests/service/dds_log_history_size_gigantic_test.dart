@@ -29,7 +29,7 @@ Future setLogHistorySize(Isolate isolate, int size) async {
 Future<int> getLogHistorySize(Isolate isolate) async {
   final result = await isolate.invokeRpcNoUpgrade('getLogHistorySize', {});
   expect(result['type'], 'Size');
-  return result['size'];
+  return result['size'] as int;
 }
 
 var tests = <IsolateTest>[
@@ -59,7 +59,7 @@ var tests = <IsolateTest>[
     int i = 11;
     await subscribeToStream(isolate.vm, 'Logging', (event) async {
       expect(
-        event.logRecord['message'].valueAsString,
+        event.logRecord!['message'].valueAsString,
         'All work and no play makes Ben a dull boy ($i)',
       );
       i++;

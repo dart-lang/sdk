@@ -22,3 +22,7 @@ static method test_nullable_function_type_formal_param({() →? core::int f = #C
 constants  {
   #C1 = null
 }
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///nullable_param.dart:19:23 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 20, effectively constant: 1

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidConstantTest extends DriverResolutionTest {
+class InvalidConstantTest extends PubPackageResolutionTest {
   test_in_initializer_assert_condition() async {
     await assertErrorsInCode('''
 class A {
@@ -50,7 +49,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_field() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;''');
     await assertErrorsInCode('''
@@ -66,7 +65,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_field_nested() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;
 ''');
@@ -83,7 +82,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_redirecting() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;
 ''');
@@ -100,7 +99,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_super() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;
 ''');

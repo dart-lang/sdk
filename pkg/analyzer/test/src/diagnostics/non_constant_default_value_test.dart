@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class NonConstantDefaultValueTest extends DriverResolutionTest {
+class NonConstantDefaultValueTest extends PubPackageResolutionTest {
   test_appliedTypeParameter_defaultConstructorValue() async {
     await assertErrorsInCode(r'''
 void f<T>(T t) => t;

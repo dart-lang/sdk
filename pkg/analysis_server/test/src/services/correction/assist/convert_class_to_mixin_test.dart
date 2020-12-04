@@ -20,7 +20,7 @@ class ConvertClassToMixinTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_CLASS_TO_MIXIN;
 
   Future<void> test_abstract() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {}
 ''');
     await assertHasAssistAt('A', '''
@@ -29,7 +29,7 @@ mixin A {}
   }
 
   Future<void> test_extends_noSuper() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B extends A {}
 ''');
@@ -40,7 +40,7 @@ mixin B implements A {}
   }
 
   Future<void> test_extends_super() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -63,7 +63,7 @@ mixin B on A {
   }
 
   Future<void> test_extends_superSuper() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -88,7 +88,7 @@ mixin C on B {
   }
 
   Future<void> test_extendsImplements_noSuper() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B {}
 class C extends A implements B {}
@@ -101,7 +101,7 @@ mixin C implements A, B {}
   }
 
   Future<void> test_extendsImplements_super_extends() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -126,7 +126,7 @@ mixin C on A implements B {
   }
 
   Future<void> test_extendsWith_noSuper() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B {}
 class C extends A with B {}
@@ -139,7 +139,7 @@ mixin C implements A, B {}
   }
 
   Future<void> test_extendsWith_super_both() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -170,7 +170,7 @@ mixin C on A, B {
   }
 
   Future<void> test_extendsWith_super_extends() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -199,7 +199,7 @@ mixin C on A implements B {
   }
 
   Future<void> test_extendsWith_super_with() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -228,7 +228,7 @@ mixin C on B implements A {
   }
 
   Future<void> test_extendsWithImplements_noSuper() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B {}
 class C {}
@@ -243,7 +243,7 @@ mixin D implements A, B, C {}
   }
 
   Future<void> test_extendsWithImplements_super_both() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -276,7 +276,7 @@ mixin D on A, B implements C {
   }
 
   Future<void> test_extendsWithImplements_super_extends() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -307,7 +307,7 @@ mixin D on A implements B, C {
   }
 
   Future<void> test_extendsWithImplements_super_with() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }
@@ -338,7 +338,7 @@ mixin D on B implements A, C {
   }
 
   Future<void> test_implements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B implements A {}
 ''');
@@ -349,14 +349,14 @@ mixin B implements A {}
   }
 
   Future<void> test_noClauses_invalidSelection() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 ''');
     await assertNoAssistAt('{}');
   }
 
   Future<void> test_noClauses_selectKeyword() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 ''');
     await assertHasAssistAt('class', '''
@@ -365,7 +365,7 @@ mixin A {}
   }
 
   Future<void> test_noClauses_selectName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 ''');
     await assertHasAssistAt('A', '''
@@ -374,7 +374,7 @@ mixin A {}
   }
 
   Future<void> test_typeParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {}
 ''');
     await assertHasAssistAt('A', '''
@@ -383,7 +383,7 @@ mixin A<T> {}
   }
 
   Future<void> test_with_noSuper() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B with A {}
 ''');
@@ -394,7 +394,7 @@ mixin B implements A {}
   }
 
   Future<void> test_with_super() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   a() {}
 }

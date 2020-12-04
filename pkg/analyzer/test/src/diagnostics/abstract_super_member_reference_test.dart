@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AbstractSuperMemberReferenceTest extends DriverResolutionTest {
+class AbstractSuperMemberReferenceTest extends PubPackageResolutionTest {
   test_methodInvocation_mixin_implements() async {
     await assertErrorsInCode(r'''
 class A {
@@ -357,11 +357,25 @@ abstract class B extends A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3),
     ]);
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.setter('foo', of: 'A'),
-      'int',
+    assertSuperExpression(findNode.super_('super.foo'));
+
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess(
+        findNode.propertyAccess('super.foo'),
+        findElement.setter('foo', of: 'A'),
+        'int',
+      );
+    }
   }
 
   test_propertyAccess_setter_mixinHasNoSuchMethod() async {
@@ -379,11 +393,25 @@ class B extends Object with A {
       error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
     ]);
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.setter('foo', of: 'A'),
-      'int',
+    assertSuperExpression(findNode.super_('super.foo'));
+
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo', of: 'A'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess(
+        findNode.propertyAccess('super.foo'),
+        findElement.setter('foo', of: 'A'),
+        'int',
+      );
+    }
   }
 
   test_propertyAccess_setter_superHasNoSuchMethod() async {
@@ -399,11 +427,25 @@ class B extends A {
 }
 ''');
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.setter('foo', of: 'A'),
-      'int',
+    assertSuperExpression(findNode.super_('super.foo'));
+
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo', of: 'A'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess(
+        findNode.propertyAccess('super.foo'),
+        findElement.setter('foo', of: 'A'),
+        'int',
+      );
+    }
   }
 
   test_propertyAccess_setter_superSuperHasConcrete() async {
@@ -423,10 +465,24 @@ class C extends B {
 }
 ''');
 
-    assertPropertyAccess(
-      findNode.propertyAccess('super.foo'),
-      findElement.setter('foo', of: 'A'),
-      'int',
+    assertSuperExpression(findNode.super_('super.foo'));
+
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo', of: 'A'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess(
+        findNode.propertyAccess('super.foo'),
+        findElement.setter('foo', of: 'A'),
+        'int',
+      );
+    }
   }
 }

@@ -49,8 +49,10 @@ def GenerateCompileCommands(options):
     if gn_result != 0:
         return gn_result
 
-    out_folder = utils.GetBuildRoot(
-        HOST_OS, mode="debug", arch=options.arch, target_os=options.os)
+    out_folder = utils.GetBuildRoot(HOST_OS,
+                                    mode="debug",
+                                    arch=options.arch,
+                                    target_os=options.os)
 
     if not os.path.isdir(out_folder):
         return 1
@@ -91,12 +93,31 @@ def GenerateAnalysisOptions(options):
   """
     contents = """analyzer:
   exclude:
+    - benchmarks/**
+    - benchmarks-internal/**
     - docs/newsletter/20171103/**
+    - pkg/**
     - out/**
     - runtime/**
     - samples-dev/swarm/**
     - sdk/lib/**
-    - tests/**
+    - tests/co19/**
+    - tests/co19_2/**
+    - tests/corelib/**
+    - tests/corelib_2/**
+    - tests/dart2js/**
+    - tests/dart2js_2/**
+    - tests/dartdevc/**
+    - tests/dartdevc_2/**
+    - tests/ffi/**
+    - tests/ffi_2/**
+    - tests/language/**
+    - tests/language_2/**
+    - tests/lib/**
+    - tests/lib_2/**
+    - tests/modular/**
+    - tests/standalone/**
+    - tests/standalone_2/**
     - third_party/observatory_pub_packages/**
     - third_party/pkg/**
     - third_party/pkg_tested/dart_style/**
@@ -124,26 +145,30 @@ def main(argv):
         "analysis_options.yaml which are used by the analysis servers for "
         "c++ and Dart.")
 
-    parser.add_argument(
-        "-v", "--verbose", help="Verbose output.", action="store_true")
+    parser.add_argument("-v",
+                        "--verbose",
+                        help="Verbose output.",
+                        action="store_true")
 
-    parser.add_argument(
-        "-f", "--force", help="Override files.", action="store_true")
+    parser.add_argument("-f",
+                        "--force",
+                        help="Override files.",
+                        action="store_true")
 
-    parser.add_argument(
-        "-d", "--dir", help="Target directory.", default=utils.DART_DIR)
+    parser.add_argument("-d",
+                        "--dir",
+                        help="Target directory.",
+                        default=utils.DART_DIR)
 
-    parser.add_argument(
-        "-a",
-        "--arch",
-        help="Target architecture for runtime sources.",
-        default="x64")
+    parser.add_argument("-a",
+                        "--arch",
+                        help="Target architecture for runtime sources.",
+                        default="x64")
 
-    parser.add_argument(
-        "-s",
-        "--os",
-        help="Target operating system for runtime sources.",
-        default=HOST_OS)
+    parser.add_argument("-s",
+                        "--os",
+                        help="Target operating system for runtime sources.",
+                        default=HOST_OS)
 
     options = parser.parse_args(argv[1:])
 

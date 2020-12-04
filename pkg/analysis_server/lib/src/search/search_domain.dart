@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -27,9 +25,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  SearchDomainHandler(AnalysisServer server)
-      : server = server,
-        searchEngine = server.searchEngine;
+  SearchDomainHandler(this.server) : searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
     var params =

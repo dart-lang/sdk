@@ -13,13 +13,12 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:analysis_tool/tools.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
-
-import '../../test/utils/package_root.dart' as pkg_root;
 
 main() async {
   String analyzerPkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
@@ -210,9 +209,13 @@ part of 'syntactic_errors.dart';
   void generateFormatCode() {
     messagesYaml.forEach((name, entry) {
       if (entry is Map) {
-        if (entry['index'] is int && entry['analyzerCode'] is String) {
-          translatedFastaErrorCodes.add(name);
-          translatedEntries.add(entry);
+        if (entry['index'] is int) {
+          if (entry['analyzerCode'] is String) {
+            translatedFastaErrorCodes.add(name);
+            translatedEntries.add(entry);
+          } else {
+            throw invalidAnalyzerCode;
+          }
         }
       }
     });

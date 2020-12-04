@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../generated/test_support.dart';
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class ErrorReporterTest extends DriverResolutionTest {
+class ErrorReporterTest extends PubPackageResolutionTest {
   var listener = GatheringErrorListener();
 
   test_creation() async {
@@ -73,8 +73,8 @@ import 'dart:math';
   }
 
   test_reportErrorForNode_types_differentNames() async {
-    newFile('/test/lib/a.dart', content: 'class A {}');
-    newFile('/test/lib/b.dart', content: 'class B {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/b.dart', content: 'class B {}');
     await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
@@ -112,8 +112,8 @@ main() {
   }
 
   test_reportErrorForNode_types_sameName() async {
-    newFile('/test/lib/a.dart', content: 'class A {}');
-    newFile('/test/lib/b.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/b.dart', content: 'class A {}');
     await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
@@ -150,8 +150,8 @@ main() {
   }
 
   test_reportErrorForNode_types_sameName_functionType() async {
-    newFile('/test/lib/a.dart', content: 'class A{}');
-    newFile('/test/lib/b.dart', content: 'class A{}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A{}');
+    newFile('$testPackageLibPath/b.dart', content: 'class A{}');
     await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;
@@ -184,8 +184,8 @@ main() {
   }
 
   test_reportErrorForNode_types_sameName_nested() async {
-    newFile('/test/lib/a.dart', content: 'class A{}');
-    newFile('/test/lib/b.dart', content: 'class A{}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A{}');
+    newFile('$testPackageLibPath/b.dart', content: 'class A{}');
     await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;

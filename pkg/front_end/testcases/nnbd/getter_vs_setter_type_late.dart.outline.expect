@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:30:12: Error: The type 'int?' of the inherited field 'B1.property6' is not a subtype of the type 'int' of the setter 'B2.property6'.
+//   void set property6(int i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:20:19: Context: This is the declaration of the field 'B1.property6'.
+//   late final int? property6;
+//                   ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:50:12: Error: The return type of the method 'C2.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
+// Change to a subtype of 'int'.
+//   int? get property6; // error
+//            ^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:38:12: Context: This is the overridden method ('property6').
+//   late int property6;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:50:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
+//   int? get property6; // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:38:12: Context: This is the declaration of the setter 'C1.property6'.
+//   late int property6;
+//            ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  late field core::int property4;
+  late field core::int? property5;
+  late covariant field core::int property6;
+  constructor •(core::int property4, core::int? property5, core::int property6) → self::A
+    ;
+}
+abstract class B1 extends core::Object {
+  late final [setter] field core::int property4;
+  late final [setter] field core::int property5;
+  late final [setter] field core::int? property6;
+  constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
+    ;
+}
+abstract class B2 extends core::Object implements self::B1 {
+  synthetic constructor •() → self::B2
+    ;
+  abstract set property4(core::int i) → void;
+  abstract set property5(core::int? i) → void;
+  abstract set property6(core::int i) → void;
+}
+abstract class C1 extends core::Object {
+  late field core::int property4;
+  late field core::int property5;
+  late field core::int property6;
+  constructor •(core::int property4, core::int property5, core::int property6) → self::C1
+    ;
+}
+abstract class C2 extends core::Object implements self::C1 {
+  synthetic constructor •() → self::C2
+    ;
+  abstract get property4() → core::int;
+  abstract get property5() → core::int;
+  abstract get property6() → core::int?;
+}
+static method main() → dynamic
+  ;

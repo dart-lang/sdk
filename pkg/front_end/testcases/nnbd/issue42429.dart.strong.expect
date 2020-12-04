@@ -1,0 +1,234 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:13:13: Error: Type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
+//  - 'Object' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<Object> aObject; // Error.
+//             ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<T extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:14:11: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<num?> aNumNullable; // Error.
+//           ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<T extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:15:11: Error: Type argument 'int?' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<int?> aIntNullable; // Error.
+//           ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<T extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:16:11: Error: Type argument 'Null' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<Null> aNull; // Error.
+//           ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<T extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:17:21: Error: Type argument 'Object' doesn't conform to the bound 'num' of the type variable 'X' on 'FArgument'.
+//  - 'Object' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+//   FArgument<Object> fArgumentObject; // Error.
+//                     ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:7:19: Context: This is the type variable whose bound isn't conformed to.
+// typedef FArgument<X extends num> = Function(X);
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:18:19: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'FArgument'.
+// Try changing type arguments so that they conform to the bounds.
+//   FArgument<num?> fArgumentNumNullable; // Error.
+//                   ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:7:19: Context: This is the type variable whose bound isn't conformed to.
+// typedef FArgument<X extends num> = Function(X);
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:19:19: Error: Type argument 'int?' doesn't conform to the bound 'num' of the type variable 'X' on 'FArgument'.
+// Try changing type arguments so that they conform to the bounds.
+//   FArgument<int?> fArgumentIntNullable; // Error.
+//                   ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:7:19: Context: This is the type variable whose bound isn't conformed to.
+// typedef FArgument<X extends num> = Function(X);
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:20:19: Error: Type argument 'Null' doesn't conform to the bound 'num' of the type variable 'X' on 'FArgument'.
+// Try changing type arguments so that they conform to the bounds.
+//   FArgument<Null> fArgumentNull; // Error.
+//                   ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:7:19: Context: This is the type variable whose bound isn't conformed to.
+// typedef FArgument<X extends num> = Function(X);
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:21:19: Error: Type argument 'Object' doesn't conform to the bound 'num' of the type variable 'X' on 'FReturn'.
+//  - 'Object' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+//   FReturn<Object> fReturnObject; // Error.
+//                   ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:8:17: Context: This is the type variable whose bound isn't conformed to.
+// typedef FReturn<X extends num> = X Function();
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:22:17: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'FReturn'.
+// Try changing type arguments so that they conform to the bounds.
+//   FReturn<num?> fReturnNumNullable; // Error.
+//                 ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:8:17: Context: This is the type variable whose bound isn't conformed to.
+// typedef FReturn<X extends num> = X Function();
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:23:17: Error: Type argument 'int?' doesn't conform to the bound 'num' of the type variable 'X' on 'FReturn'.
+// Try changing type arguments so that they conform to the bounds.
+//   FReturn<int?> fReturnIntNullable; // Error.
+//                 ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:8:17: Context: This is the type variable whose bound isn't conformed to.
+// typedef FReturn<X extends num> = X Function();
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:24:17: Error: Type argument 'Null' doesn't conform to the bound 'num' of the type variable 'X' on 'FReturn'.
+// Try changing type arguments so that they conform to the bounds.
+//   FReturn<Null> fReturnNull; // Error.
+//                 ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:8:17: Context: This is the type variable whose bound isn't conformed to.
+// typedef FReturn<X extends num> = X Function();
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:25:17: Error: Type argument 'Object' doesn't conform to the bound 'num' of the type variable 'X' on 'FBoth'.
+//  - 'Object' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+//   FBoth<Object> fBothObject; // Error.
+//                 ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:9:15: Context: This is the type variable whose bound isn't conformed to.
+// typedef FBoth<X extends num> = X Function(X);
+//               ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:26:15: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'FBoth'.
+// Try changing type arguments so that they conform to the bounds.
+//   FBoth<num?> fBothNumNullable; // Error.
+//               ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:9:15: Context: This is the type variable whose bound isn't conformed to.
+// typedef FBoth<X extends num> = X Function(X);
+//               ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:27:15: Error: Type argument 'int?' doesn't conform to the bound 'num' of the type variable 'X' on 'FBoth'.
+// Try changing type arguments so that they conform to the bounds.
+//   FBoth<int?> fBothIntNullable; // Error.
+//               ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:9:15: Context: This is the type variable whose bound isn't conformed to.
+// typedef FBoth<X extends num> = X Function(X);
+//               ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:28:15: Error: Type argument 'Null' doesn't conform to the bound 'num' of the type variable 'X' on 'FBoth'.
+// Try changing type arguments so that they conform to the bounds.
+//   FBoth<Null> fBothNull; // Error.
+//               ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:9:15: Context: This is the type variable whose bound isn't conformed to.
+// typedef FBoth<X extends num> = X Function(X);
+//               ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:29:20: Error: Type argument 'Object' doesn't conform to the bound 'num' of the type variable 'X' on 'FNowhere'.
+//  - 'Object' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+//   FNowhere<Object> fNowhereObject; // Error.
+//                    ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:10:18: Context: This is the type variable whose bound isn't conformed to.
+// typedef FNowhere<X extends num> = Function();
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:30:18: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'FNowhere'.
+// Try changing type arguments so that they conform to the bounds.
+//   FNowhere<num?> fNowhereNumNullable; // Error.
+//                  ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:10:18: Context: This is the type variable whose bound isn't conformed to.
+// typedef FNowhere<X extends num> = Function();
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:31:18: Error: Type argument 'int?' doesn't conform to the bound 'num' of the type variable 'X' on 'FNowhere'.
+// Try changing type arguments so that they conform to the bounds.
+//   FNowhere<int?> fNowhereIntNullable; // Error.
+//                  ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:10:18: Context: This is the type variable whose bound isn't conformed to.
+// typedef FNowhere<X extends num> = Function();
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/issue42429.dart:32:18: Error: Type argument 'Null' doesn't conform to the bound 'num' of the type variable 'X' on 'FNowhere'.
+// Try changing type arguments so that they conform to the bounds.
+//   FNowhere<Null> fNowhereNull; // Error.
+//                  ^
+// pkg/front_end/testcases/nnbd/issue42429.dart:10:18: Context: This is the type variable whose bound isn't conformed to.
+// typedef FNowhere<X extends num> = Function();
+//                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef FArgument<contravariant X extends core::num = core::num> = (X) → dynamic;
+typedef FReturn<X extends core::num = core::num> = () → X;
+typedef FBoth<invariant X extends core::num = core::num> = (X) → X;
+typedef FNowhere<unrelated X extends core::num = core::num> = () → dynamic;
+class A<T extends core::num = core::num> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T>
+    : super core::Object::•()
+    ;
+}
+static method foo() → dynamic {
+  self::A<core::Object> aObject;
+  self::A<core::num?> aNumNullable;
+  self::A<core::int?> aIntNullable;
+  self::A<Null> aNull;
+  (core::Object) → dynamic fArgumentObject;
+  (core::num?) → dynamic fArgumentNumNullable;
+  (core::int?) → dynamic fArgumentIntNullable;
+  (Null) → dynamic fArgumentNull;
+  () → core::Object fReturnObject;
+  () → core::num? fReturnNumNullable;
+  () → core::int? fReturnIntNullable;
+  () → Null fReturnNull;
+  (core::Object) → core::Object fBothObject;
+  (core::num?) → core::num? fBothNumNullable;
+  (core::int?) → core::int? fBothIntNullable;
+  (Null) → Null fBothNull;
+  () → dynamic fNowhereObject;
+  () → dynamic fNowhereNumNullable;
+  () → dynamic fNowhereIntNullable;
+  () → dynamic fNowhereNull;
+  self::A<core::Object?> aObjectNullable;
+  self::A<dynamic> aDynamic;
+  self::A<void> aVoid;
+  self::A<core::num> aNum;
+  self::A<core::int> aInt;
+  self::A<Never> aNever;
+  (core::Object?) → dynamic fArgumentObjectNullable;
+  (dynamic) → dynamic fArgumentDynamic;
+  (void) → dynamic fArgumentVoid;
+  (core::num) → dynamic fArgumentNum;
+  (core::int) → dynamic fArgumentInt;
+  (Never) → dynamic fArgumentNever;
+  () → core::Object? fReturnObjectNullable;
+  () → dynamic fReturnDynamic;
+  () → void fReturnVoid;
+  () → core::num fReturnNum;
+  () → core::int fReturnInt;
+  () → Never fReturnNever;
+  (core::Object?) → core::Object? fBothObjectNullable;
+  (dynamic) → dynamic fBothDynamic;
+  (void) → void fBothVoid;
+  (core::num) → core::num fBothNum;
+  (core::int) → core::int fBothInt;
+  (Never) → Never fBothNever;
+  () → dynamic fNowhereObjectNullable;
+  () → dynamic fNowhereDynamic;
+  () → dynamic fNowhereVoid;
+  () → dynamic fNowhereNum;
+  () → dynamic fNowhereInt;
+  () → dynamic fNowhereNever;
+}
+static method main() → dynamic {}

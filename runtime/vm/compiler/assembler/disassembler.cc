@@ -4,8 +4,10 @@
 
 #include "vm/compiler/assembler/disassembler.h"
 
+#include "platform/text_buffer.h"
 #include "platform/unaligned.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/globals.h"
 #include "vm/instructions.h"
@@ -191,14 +193,14 @@ void Disassembler::Disassemble(uword start,
       for (intptr_t i = 1; i < inlined_functions.length(); i++) {
         const char* name = inlined_functions[i]->ToQualifiedCString();
         if (first) {
-          f.Print("        ;; Inlined [%s", name);
+          f.Printf("        ;; Inlined [%s", name);
           first = false;
         } else {
-          f.Print(" -> %s", name);
+          f.Printf(" -> %s", name);
         }
       }
       if (!first) {
-        f.Print("]\n");
+        f.AddString("]\n");
         formatter->Print("%s", str);
       }
     }
@@ -215,15 +217,17 @@ void Disassembler::Disassemble(uword start,
 }
 
 void Disassembler::DisassembleCodeHelper(const char* function_fullname,
+                                         const char* function_info,
                                          const Code& code,
                                          bool optimized) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone);
   if (FLAG_print_variable_descriptors) {
     var_descriptors = code.GetLocalVarDescriptors();
   }
-  THR_Print("Code for %sfunction '%s' {\n", optimized ? "optimized " : "",
-            function_fullname);
+  THR_Print("Code for %sfunction '%s' (%s) {\n", optimized ? "optimized " : "",
+            function_fullname, function_info);
   code.Disassemble();
   THR_Print("}\n");
 
@@ -287,13 +291,16 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  THR_Print("StackMaps for function '%s' {\n", function_fullname);
-  if (code.compressed_stackmaps() != CompressedStackMaps::null()) {
+  {
     const auto& stackmaps =
         CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
-    THR_Print("%s\n", stackmaps.ToCString());
+    CompressedStackMaps::Iterator it(thread, stackmaps);
+    TextBuffer buffer(100);
+    buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
+    it.WriteToBuffer(&buffer, "\n");
+    buffer.AddString("}\n");
+    THR_Print("%s", buffer.buffer());
   }
-  THR_Print("}\n");
 
   if (FLAG_print_variable_descriptors) {
     THR_Print("Variable Descriptors for function '%s' {\n", function_fullname);
@@ -450,9 +457,18 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
+  TextBuffer buffer(128);
   const char* function_fullname = function.ToFullyQualifiedCString();
+  buffer.Printf("%s", Function::KindToCString(function.kind()));
+  if (function.IsInvokeFieldDispatcher() ||
+      function.IsNoSuchMethodDispatcher()) {
+    const auto& args_desc_array = Array::Handle(function.saved_args_desc());
+    const ArgumentsDescriptor args_desc(args_desc_array);
+    buffer.AddString(", ");
+    args_desc.PrintTo(&buffer);
+  }
   LogBlock lb;
-  DisassembleCodeHelper(function_fullname, code, optimized);
+  DisassembleCodeHelper(function_fullname, buffer.buffer(), code, optimized);
 }
 
 void Disassembler::DisassembleStub(const char* name, const Code& code) {

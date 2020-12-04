@@ -4,8 +4,6 @@
 
 library fasta.get_dependencies;
 
-import 'dart:async' show Future;
-
 import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target;

@@ -29,13 +29,6 @@ const bool kScopeTrace =
 const int kScopeIndent =
     const int.fromEnvironment('global.type.flow.scope.indent', defaultValue: 1);
 
-/// Extended 'assert': always checks condition.
-assertx(bool cond, {details}) {
-  if (!cond) {
-    throw 'Assertion failed.' + (details != null ? ' Details: $details' : '');
-  }
-}
-
 abstract class _Logger {
   log(Object message, [int scopeChange = 0]);
 }
@@ -148,6 +141,7 @@ class Statistics {
   static int maxInvocationsCachedPerSelector = 0;
   static int approximateInvocationsCreated = 0;
   static int approximateInvocationsUsed = 0;
+  static int deepInvocationsDeferred = 0;
   static int classesDropped = 0;
   static int membersDropped = 0;
   static int methodBodiesDropped = 0;
@@ -177,6 +171,7 @@ class Statistics {
     maxInvocationsCachedPerSelector = 0;
     approximateInvocationsCreated = 0;
     approximateInvocationsUsed = 0;
+    deepInvocationsDeferred = 0;
     classesDropped = 0;
     membersDropped = 0;
     methodBodiesDropped = 0;
@@ -207,6 +202,7 @@ class Statistics {
     ${maxInvocationsCachedPerSelector} maximum invocations cached per selector
     ${approximateInvocationsCreated} approximate invocations created
     ${approximateInvocationsUsed} times approximate invocation is used
+    ${deepInvocationsDeferred} times invocation processing was deferred due to deep call stack
     ${classesDropped} classes dropped
     ${membersDropped} members dropped
     ${methodBodiesDropped} method bodies dropped
@@ -289,7 +285,7 @@ class UnionFind {
     if (id1 == id2) return;
     final int w1 = _elements[id1];
     final int w2 = _elements[id2];
-    assertx(w1 < 0 && w2 < 0);
+    assert(w1 < 0 && w2 < 0);
     if (w1 < w2) {
       _elements[id1] += w2;
       _elements[id2] = id1;
@@ -319,7 +315,7 @@ bool isNullLiteral(Expression expr) =>
     (expr is ConstantExpression && expr.constant is NullConstant);
 
 Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
-  if (node.name.name == '==') {
+  if (node.name.text == '==') {
     final lhs = node.receiver;
     final rhs = node.arguments.positional.single;
     if (isNullLiteral(lhs)) {
@@ -333,3 +329,45 @@ Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
 
 bool isComparisonWithNull(MethodInvocation node) =>
     getArgumentOfComparisonWithNull(node) != null;
+
+bool mayHaveSideEffects(Expression node) {
+  // Keep this function in sync with mayHaveOrSeeSideEffects:
+  // If new false cases are added here, add the corresponding visibility cases
+  // to mayHaveOrSeeSideEffects.
+  if (node is BasicLiteral ||
+      node is ConstantExpression ||
+      node is ThisExpression) {
+    return false;
+  }
+  if (node is VariableGet && !node.variable.isLate) {
+    return false;
+  }
+  if (node is StaticGet) {
+    final target = node.target;
+    if (target is Field && !target.isLate) {
+      final initializer = target.initializer;
+      if (initializer == null ||
+          initializer is BasicLiteral ||
+          initializer is ConstantExpression) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool mayHaveOrSeeSideEffects(Expression node) {
+  if (mayHaveSideEffects(node)) {
+    return true;
+  }
+  if (node is VariableGet && !node.variable.isFinal) {
+    return true;
+  }
+  if (node is StaticGet) {
+    final target = node.target;
+    if (target is Field && !target.isFinal) {
+      return true;
+    }
+  }
+  return false;
+}

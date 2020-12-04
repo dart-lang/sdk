@@ -28,16 +28,12 @@ intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
   return 0;
 }
 
-static bool IsABIPreservedRegister(Register reg) {
-  return ((1 << reg) & CallingConventions::kCalleeSaveCpuRegisters) != 0;
-}
-
 void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  ASSERT(IsABIPreservedRegister(CODE_REG));
-  ASSERT(!IsABIPreservedRegister(ARGS_DESC_REG));
-  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
-  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
-  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
+  COMPILE_ASSERT(!IsAbiPreservedRegister(ARGS_DESC_REG));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
 
   assembler->Comment("IntrinsicCallPrologue");
   assembler->movq(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
@@ -83,133 +79,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
 
   __ Bind(normal_ir_body);
 }
-
-#define TYPED_ARRAY_ALLOCATION(cid, max_len, scale_factor)                     \
-  Label fall_through;                                                          \
-  const intptr_t kArrayLengthStackOffset = 1 * target::kWordSize;              \
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, normal_ir_body, false));         \
-  __ movq(RDI, Address(RSP, kArrayLengthStackOffset)); /* Array length. */     \
-  /* Check that length is a positive Smi. */                                   \
-  /* RDI: requested array length argument. */                                  \
-  __ testq(RDI, Immediate(kSmiTagMask));                                       \
-  __ j(NOT_ZERO, normal_ir_body);                                              \
-  __ cmpq(RDI, Immediate(0));                                                  \
-  __ j(LESS, normal_ir_body);                                                  \
-  __ SmiUntag(RDI);                                                            \
-  /* Check for maximum allowed length. */                                      \
-  /* RDI: untagged array length. */                                            \
-  __ cmpq(RDI, Immediate(max_len));                                            \
-  __ j(GREATER, normal_ir_body);                                               \
-  /* Special case for scaling by 16. */                                        \
-  if (scale_factor == TIMES_16) {                                              \
-    /* double length of array. */                                              \
-    __ addq(RDI, RDI);                                                         \
-    /* only scale by 8. */                                                     \
-    scale_factor = TIMES_8;                                                    \
-  }                                                                            \
-  const intptr_t fixed_size_plus_alignment_padding =                           \
-      target::TypedData::InstanceSize() +                                      \
-      target::ObjectAlignment::kObjectAlignment - 1;                           \
-  __ leaq(RDI, Address(RDI, scale_factor, fixed_size_plus_alignment_padding)); \
-  __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));         \
-  __ movq(RAX, Address(THR, target::Thread::top_offset()));                    \
-  __ movq(RCX, RAX);                                                           \
-                                                                               \
-  /* RDI: allocation size. */                                                  \
-  __ addq(RCX, RDI);                                                           \
-  __ j(CARRY, normal_ir_body);                                                 \
-                                                                               \
-  /* Check if the allocation fits into the remaining space. */                 \
-  /* RAX: potential new object start. */                                       \
-  /* RCX: potential next object start. */                                      \
-  /* RDI: allocation size. */                                                  \
-  __ cmpq(RCX, Address(THR, target::Thread::end_offset()));                    \
-  __ j(ABOVE_EQUAL, normal_ir_body);                                           \
-                                                                               \
-  /* Successfully allocated the object(s), now update top to point to */       \
-  /* next object start and initialize the object. */                           \
-  __ movq(Address(THR, target::Thread::top_offset()), RCX);                    \
-  __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  /* Initialize the tags. */                                                   \
-  /* RAX: new object start as a tagged pointer. */                             \
-  /* RCX: new object end address. */                                           \
-  /* RDI: allocation size. */                                                  \
-  /* R13: scratch register. */                                                 \
-  {                                                                            \
-    Label size_tag_overflow, done;                                             \
-    __ cmpq(RDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));         \
-    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);                     \
-    __ shlq(RDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -          \
-                           target::ObjectAlignment::kObjectAlignmentLog2));    \
-    __ jmp(&done, Assembler::kNearJump);                                       \
-                                                                               \
-    __ Bind(&size_tag_overflow);                                               \
-    __ LoadImmediate(RDI, Immediate(0));                                       \
-    __ Bind(&done);                                                            \
-                                                                               \
-    /* Get the class index and insert it into the tags. */                     \
-    uint32_t tags =                                                            \
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);        \
-    __ orq(RDI, Immediate(tags));                                              \
-    __ movq(FieldAddress(RAX, target::Object::tags_offset()),                  \
-            RDI); /* Tags. */                                                  \
-  }                                                                            \
-  /* Set the length field. */                                                  \
-  /* RAX: new object start as a tagged pointer. */                             \
-  /* RCX: new object end address. */                                           \
-  __ movq(RDI, Address(RSP, kArrayLengthStackOffset)); /* Array length. */     \
-  __ StoreIntoObjectNoBarrier(                                                 \
-      RAX, FieldAddress(RAX, target::TypedDataBase::length_offset()), RDI);    \
-  /* Initialize all array elements to 0. */                                    \
-  /* RAX: new object start as a tagged pointer. */                             \
-  /* RCX: new object end address. */                                           \
-  /* RDI: iterator which initially points to the start of the variable */      \
-  /* RBX: scratch register. */                                                 \
-  /* data area to be initialized. */                                           \
-  __ xorq(RBX, RBX); /* Zero. */                                               \
-  __ leaq(RDI, FieldAddress(RAX, target::TypedData::InstanceSize()));          \
-  __ StoreInternalPointer(                                                     \
-      RAX, FieldAddress(RAX, target::TypedDataBase::data_field_offset()),      \
-      RDI);                                                                    \
-  Label done, init_loop;                                                       \
-  __ Bind(&init_loop);                                                         \
-  __ cmpq(RDI, RCX);                                                           \
-  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);                              \
-  __ movq(Address(RDI, 0), RBX);                                               \
-  __ addq(RDI, Immediate(target::kWordSize));                                  \
-  __ jmp(&init_loop, Assembler::kNearJump);                                    \
-  __ Bind(&done);                                                              \
-                                                                               \
-  __ ret();                                                                    \
-  __ Bind(normal_ir_body);
-
-static ScaleFactor GetScaleFactor(intptr_t size) {
-  switch (size) {
-    case 1:
-      return TIMES_1;
-    case 2:
-      return TIMES_2;
-    case 4:
-      return TIMES_4;
-    case 8:
-      return TIMES_8;
-    case 16:
-      return TIMES_16;
-  }
-  UNREACHABLE();
-  return static_cast<ScaleFactor>(0);
-}
-
-#define TYPED_DATA_ALLOCATOR(clazz)                                            \
-  void AsmIntrinsifier::TypedData_##clazz##_factory(Assembler* assembler,      \
-                                                    Label* normal_ir_body) {   \
-    intptr_t size = TypedDataElementSizeInBytes(kTypedData##clazz##Cid);       \
-    intptr_t max_len = TypedDataMaxNewSpaceElements(kTypedData##clazz##Cid);   \
-    ScaleFactor scale = GetScaleFactor(size);                                  \
-    TYPED_ARRAY_ALLOCATION(kTypedData##clazz##Cid, max_len, scale);            \
-  }
-CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
-#undef TYPED_DATA_ALLOCATOR
 
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in RAX.
@@ -1807,7 +1676,10 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
   __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
   __ SmiUntag(RDX);
-  __ movl(FieldAddress(RAX, target::String::hash_offset()), RDX);
+  __ shlq(RDX, Immediate(target::ObjectLayout::kHashTagPos));
+  // lock+orq is an atomic read-modify-write.
+  __ lock();
+  __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
   __ ret();
 }
 
@@ -2042,7 +1914,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
   __ incq(RAX);
   __ Bind(&set_hash_code);
-  __ movl(FieldAddress(RBX, target::String::hash_offset()), RAX);
+  __ shlq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
+  // lock+orq is an atomic read-modify-write.
+  __ lock();
+  __ orq(FieldAddress(RBX, target::Object::tags_offset()), RAX);
+  __ sarq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
   __ SmiTag(RAX);
   __ ret();
 }
@@ -2062,7 +1938,7 @@ static void TryAllocateString(Assembler* assembler,
   __ cmpq(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, false));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, Assembler::kFarJump));
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
@@ -2070,18 +1946,11 @@ static void TryAllocateString(Assembler* assembler,
   __ pushq(RDI);                          // Preserve length.
   if (cid == kOneByteStringCid) {
     // Untag length.
-    __ sarq(RDI, Immediate(kSmiTagShift));
+    __ SmiUntag(RDI);
   } else {
     // Untag length and multiply by element size -> no-op.
-    __ testq(RDI, RDI);
+    ASSERT(kSmiTagSize == 1);
   }
-  // If the length is 0 then we have to make the allocated size a bit bigger,
-  // otherwise the string takes up less space than an ExternalOneByteString,
-  // and cannot be externalized.  TODO(erikcorry): We should probably just
-  // return a static zero length string here instead.
-  __ j(NOT_ZERO, &not_zero_length);
-  __ addq(RDI, Immediate(1));
-  __ Bind(&not_zero_length);
   const intptr_t fixed_size_plus_alignment_padding =
       target::String::InstanceSize() +
       target::ObjectAlignment::kObjectAlignment - 1;
@@ -2124,7 +1993,7 @@ static void TryAllocateString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // This also clears the hash, which is in the high bits of the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orq(RDI, Immediate(tags));
     __ movq(FieldAddress(RAX, target::Object::tags_offset()), RDI);  // Tags.
@@ -2397,20 +2266,6 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
   __ ret();
 #endif
-}
-
-void AsmIntrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  __ LoadObject(RAX, NullObject());
-  __ movq(Address(THR, target::Thread::async_stack_trace_offset()), RAX);
-  __ ret();
-}
-
-void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  __ movq(Address(THR, target::Thread::async_stack_trace_offset()), RAX);
-  __ LoadObject(RAX, NullObject());
-  __ ret();
 }
 
 #undef __

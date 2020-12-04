@@ -10,7 +10,7 @@
     //^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
     //       ^
-    // [cfe] 'field_' is a final instance variable that has already been initialized.
+    // [cfe] 'field_' was already initialized by this constructor.
    ;
    Class.field(this.field_)
    // Test against duplicate final field initialization between initializing
@@ -19,15 +19,15 @@
     //^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
     //       ^
-    // [cfe] 'field_' is a final instance variable that has already been initialized.
+    // [cfe] 'field_' was already initialized by this constructor.
    ;
    // Test against duplicate final field initialization in initializing formals.
    Class.two_fields(this.field_
     , this.field_
     //     ^^^^^^
-    // [cfe] 'field_' is a final instance variable that has already been initialized.
-    //     ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_MULTIPLE_TIMES
+    // [cfe] 'field_' was already initialized by this constructor.
+    //     ^
     // [cfe] Duplicated parameter name 'field_'.
        );
    final field_;

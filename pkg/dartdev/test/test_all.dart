@@ -17,7 +17,12 @@ import 'commands/pub_test.dart' as pub;
 import 'commands/run_test.dart' as run;
 import 'commands/test_test.dart' as test;
 import 'core_test.dart' as core;
+import 'experiments_test.dart' as experiments;
+import 'no_such_file_test.dart' as no_such_file;
 import 'sdk_test.dart' as sdk;
+import 'smoke/implicit_smoke_test.dart' as implicit_smoke;
+import 'smoke/invalid_smoke_test.dart' as invalid_smoke;
+import 'smoke/smoke_test.dart' as smoke;
 import 'utils_test.dart' as utils;
 
 void main() {
@@ -25,17 +30,22 @@ void main() {
     analytics.main();
     analyze.main();
     create.main();
+    experiments.main();
     fix.main();
     flag.main();
     format.main();
     help.main();
+    implicit_smoke.main();
+    invalid_smoke.main();
     migrate.main();
+    no_such_file.main();
     pub.main();
     run.main();
     compile.main();
     test.main();
     core.main();
     sdk.main();
+    smoke.main();
     utils.main();
   });
 }

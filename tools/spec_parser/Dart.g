@@ -256,7 +256,7 @@ simpleFormalParameter
 
 // NB: It is an anomaly that VAR can be a return type (`var this.x()`).
 fieldFormalParameter
-    :    finalConstVarOrType? THIS '.' identifier formalParameterPart?
+    :    finalConstVarOrType? THIS '.' identifier (formalParameterPart '?'?)?
     ;
 
 defaultFormalParameter
@@ -414,18 +414,23 @@ redirection
     ;
 
 initializers
-    :    ':' superCallOrFieldInitializer (',' superCallOrFieldInitializer)*
+    :    ':' initializerListEntry (',' initializerListEntry)*
     ;
 
-superCallOrFieldInitializer
+initializerListEntry
     :    SUPER arguments
     |    SUPER '.' identifier arguments
     |    fieldInitializer
-    |    assertClause
+    |    assertion
     ;
 
 fieldInitializer
-    :    (THIS '.')? identifier '=' conditionalExpression cascadeSequence?
+    :    (THIS '.')? identifier '=' initializerExpression
+    ;
+
+initializerExpression
+    :    conditionalExpression
+    |    cascade
     ;
 
 factoryConstructorSignature
@@ -467,14 +472,16 @@ metadata
 
 metadatum
     :    constructorDesignation arguments
-    |    qualified
+    |    identifier
+    |    qualifiedName
     ;
 
 expression
     :    functionExpression
     |    throwExpression
     |    assignableExpression assignmentOperator expression
-    |    conditionalExpression cascadeSequence?
+    |    conditionalExpression
+    |    cascade
     ;
 
 expressionWithoutCascade
@@ -493,10 +500,15 @@ primary
     |    SUPER unconditionalAssignableSelector
     |    constObjectExpression
     |    newExpression
+    |    constructorInvocation
     |    functionPrimary
     |    '(' expression ')'
     |    literal
     |    identifier
+    ;
+
+constructorInvocation
+    :    typeName typeArguments '.' identifier arguments
     ;
 
 literal
@@ -546,7 +558,7 @@ elements
 
 element
     : expressionElement
-    | mapEntry
+    | mapElement
     | spreadElement
     | ifElement
     | forElement
@@ -556,7 +568,7 @@ expressionElement
     : expression
     ;
 
-mapEntry
+mapElement
     : expression ':' expression
     ;
 
@@ -643,12 +655,18 @@ namedArgument
     :    label expression
     ;
 
-cascadeSequence
-    :     ('?..' | '..') cascadeSection ('..' cascadeSection)*
+cascade
+    :     cascade '..' cascadeSection
+    |     conditionalExpression ('?..' | '..') cascadeSection
     ;
 
 cascadeSection
     :    cascadeSelector cascadeSectionTail
+    ;
+
+cascadeSelector
+    :    '[' expression ']'
+    |    identifier
     ;
 
 cascadeSectionTail
@@ -658,11 +676,6 @@ cascadeSectionTail
 
 cascadeAssignment
     :    assignmentOperator expressionWithoutCascade
-    ;
-
-cascadeSelector
-    :    '[' expression ']'
-    |    identifier
     ;
 
 assignmentOperator
@@ -812,12 +825,7 @@ awaitExpression
 
 postfixExpression
     :    assignableExpression postfixOperator
-    |    constructorInvocation selector*
     |    primary selector*
-    ;
-
-constructorInvocation
-    :    typeName typeArguments '.' identifier arguments
     ;
 
 postfixOperator
@@ -831,7 +839,7 @@ selector
     ;
 
 argumentPart
-    :    '?'? typeArguments? arguments
+    :    typeArguments? arguments
     ;
 
 incrementOperator
@@ -841,7 +849,6 @@ incrementOperator
 
 assignableExpression
     :    SUPER unconditionalAssignableSelector
-    |    constructorInvocation assignableSelectorPart
     |    primary assignableSelectorPart
     |    identifier
     ;
@@ -898,9 +905,8 @@ identifier
     |    FUNCTION // Built-in identifier that can be used as a type.
     ;
 
-qualified
-    :    typeIdentifier
-    |    typeIdentifier '.' identifier
+qualifiedName
+    :    typeIdentifier '.' identifier
     |    typeIdentifier '.' typeIdentifier '.' identifier
     ;
 
@@ -983,7 +989,7 @@ localFunctionDeclaration
     ;
 
 ifStatement
-    :    IF '(' expression ')' statement (ELSE statement | ())
+    :    IF '(' expression ')' statement (ELSE statement)?
     ;
 
 forStatement
@@ -1074,10 +1080,10 @@ yieldEachStatement
     ;
 
 assertStatement
-    :    assertClause ';'
+    :    assertion ';'
     ;
 
-assertClause
+assertion
     :    ASSERT '(' expression (',' expression)? ','? ')'
     ;
 
@@ -1099,8 +1105,7 @@ libraryImport
     ;
 
 importSpecification
-    :    IMPORT configurableUri (AS identifier)? combinator* ';'
-    |    IMPORT configurableUri DEFERRED AS identifier combinator* ';'
+    :    IMPORT configurableUri (DEFERRED? AS identifier)? combinator* ';'
     ;
 
 combinator
@@ -1248,7 +1253,8 @@ typedIdentifier
     ;
 
 constructorDesignation
-    :    qualified
+    :    typeIdentifier
+    |    qualifiedName
     |    typeName typeArguments ('.' identifier)?
     ;
 

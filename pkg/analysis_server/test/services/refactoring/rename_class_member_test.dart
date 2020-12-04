@@ -151,7 +151,7 @@ class B {
   }
 
   Future<void>
-      test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
+      test_checkFinalConditions_publicToPrivate_usedInNamedLibrary() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -170,7 +170,31 @@ main(A a) {
     refactoring.newName = '_newName';
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Renamed method will be invisible in 'my.lib'.");
+        expectedMessage:
+            "Renamed method will be invisible in '${convertPath("lib/lib.dart")}'.");
+  }
+
+  Future<void>
+      test_checkFinalConditions_publicToPrivate_usedInUnnamedLibrary() async {
+    await indexTestUnit('''
+class A {
+  var foo = 1;
+}
+''');
+    await indexUnit('/home/test/lib/lib.dart', '''
+import 'test.dart';
+
+main(A a) {
+  print(a.foo);
+}
+''');
+    createRenameRefactoringAtString('foo');
+    // check status
+    refactoring.newName = '_newName';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Renamed field will be invisible in '${convertPath("lib/lib.dart")}'.");
   }
 
   Future<void>
@@ -724,11 +748,18 @@ main(var a) {
   }
 
   Future<void> test_createChange_MethodElement_potential_inPubCache() async {
-    var externalPath = addPackageFile('aaa', 'lib.dart', r'''
+    var externalPath = '/.pub-cache/aaa/lib/lib.dart';
+    newFile(externalPath, content: r'''
 processObj(p) {
   p.test();
 }
-''').path;
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '/.pub-cache/aaa/'),
+    );
+
     await indexTestUnit('''
 import 'package:aaa/lib.dart';
 
@@ -797,7 +828,7 @@ main(var a) {
   }
 
   Future<void> test_createChange_outsideOfProject_declarationInPackage() async {
-    addPackageFile('aaa', 'aaa.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart', content: r'''
 class A {
   void test() {}
 }
@@ -806,6 +837,12 @@ void foo(A a) {
   a.test();
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
+
     await indexTestUnit('''
 import 'package:aaa/aaa.dart';
 

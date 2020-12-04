@@ -24,9 +24,9 @@ void main() {
               script,
             ],
           );
-          expect(result.exitCode, 0);
-          expect(result.stdout, contains('Smoke test!'));
           expect(result.stderr, isEmpty);
+          expect(result.stdout, contains('Smoke test!'));
+          expect(result.exitCode, 0);
         }
       });
 
@@ -44,9 +44,9 @@ void main() {
               script,
             ],
           );
-          expect(result.exitCode, 0);
-          expect(result.stdout, contains('Smoke test!'));
           expect(result.stderr, isEmpty);
+          expect(result.stdout, contains('Smoke test!'));
+          expect(result.exitCode, 0);
         }
       });
     },

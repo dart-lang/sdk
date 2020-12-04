@@ -91,11 +91,12 @@ enum SerializeState {
 class Snapshot {
  public:
   enum Kind {
-    kFull,     // Full snapshot of core libraries or an application.
-    kFullJIT,  // Full + JIT code
-    kFullAOT,  // Full + AOT code
-    kMessage,  // A partial snapshot used only for isolate messaging.
-    kNone,     // gen_snapshot
+    kFull,      // Full snapshot of an application.
+    kFullCore,  // Full snapshot of core libraries. Agnostic to null safety.
+    kFullJIT,   // Full + JIT code
+    kFullAOT,   // Full + AOT code
+    kMessage,   // A partial snapshot used only for isolate messaging.
+    kNone,      // gen_snapshot
     kInvalid
   };
   static const char* KindToCString(Kind kind);
@@ -130,13 +131,12 @@ class Snapshot {
   void set_kind(Kind value) { return Write<int64_t>(kKindOffset, value); }
 
   static bool IsFull(Kind kind) {
-    return (kind == kFull) || (kind == kFullJIT) || (kind == kFullAOT);
+    return (kind == kFull) || (kind == kFullCore) || (kind == kFullJIT) ||
+           (kind == kFullAOT);
   }
+  static bool IsAgnosticToNullSafety(Kind kind) { return (kind == kFullCore); }
   static bool IncludesCode(Kind kind) {
     return (kind == kFullJIT) || (kind == kFullAOT);
-  }
-  static bool IncludesBytecode(Kind kind) {
-    return (kind == kFull) || (kind == kFullJIT);
   }
 
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
@@ -171,7 +171,8 @@ class Snapshot {
 inline static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
                                         Snapshot::Kind isolate_kind) {
   if (vm_kind == isolate_kind) return true;
-  if (vm_kind == Snapshot::kFull && isolate_kind == Snapshot::kFullJIT)
+  if (((vm_kind == Snapshot::kFull) || (vm_kind == Snapshot::kFullCore)) &&
+      isolate_kind == Snapshot::kFullJIT)
     return true;
   return Snapshot::IsFull(isolate_kind);
 }
@@ -397,7 +398,6 @@ class SnapshotReader : public BaseReader {
   friend class MirrorReference;
   friend class Namespace;
   friend class PatchClass;
-  friend class RedirectionData;
   friend class RegExp;
   friend class Script;
   friend class SignatureData;
@@ -429,14 +429,14 @@ class MessageSnapshotReader : public SnapshotReader {
 
 class BaseWriter : public StackResource {
  public:
-  uint8_t* buffer() { return stream_.buffer(); }
+  uint8_t* Steal(intptr_t* length) { return stream_.Steal(length); }
   intptr_t BytesWritten() const { return stream_.bytes_written(); }
 
   // Writes raw data to the stream (basic type).
   // sizeof(T) must be in {1,2,4,8}.
   template <typename T>
   void Write(T value) {
-    WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
+    MallocWriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
 
   void WriteClassIDValue(classid_t value) { Write<uint32_t>(value); }
@@ -491,13 +491,8 @@ class BaseWriter : public StackResource {
   }
 
  protected:
-  BaseWriter(ReAlloc alloc, DeAlloc dealloc, intptr_t initial_size)
-      : StackResource(Thread::Current()),
-        buffer_(NULL),
-        stream_(&buffer_, alloc, initial_size),
-        dealloc_(dealloc) {
-    ASSERT(alloc != NULL);
-  }
+  explicit BaseWriter(intptr_t initial_size)
+      : StackResource(Thread::Current()), stream_(initial_size) {}
   ~BaseWriter() {}
 
   void ReserveHeader() {
@@ -506,21 +501,20 @@ class BaseWriter : public StackResource {
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    intptr_t length;
+    Snapshot* header = reinterpret_cast<Snapshot*>(Steal(&length));
     header->set_magic();
-    header->set_length(stream_.bytes_written());
+    header->set_length(length);
     header->set_kind(kind);
   }
 
   void FreeBuffer() {
-    dealloc_(stream_.buffer());
-    stream_.set_buffer(NULL);
+    intptr_t unused;
+    free(Steal(&unused));
   }
 
  private:
-  uint8_t* buffer_;
-  WriteStream stream_;
-  DeAlloc dealloc_;
+  MallocWriteStream stream_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseWriter);
 };
@@ -586,8 +580,6 @@ class SnapshotWriter : public BaseWriter {
  protected:
   SnapshotWriter(Thread* thread,
                  Snapshot::Kind kind,
-                 ReAlloc alloc,
-                 DeAlloc dealloc,
                  intptr_t initial_size,
                  ForwardList* forward_list,
                  bool can_send_any_object);
@@ -623,7 +615,8 @@ class SnapshotWriter : public BaseWriter {
 
   void WriteStaticImplicitClosure(intptr_t object_id,
                                   FunctionPtr func,
-                                  intptr_t tags);
+                                  intptr_t tags,
+                                  TypeArgumentsPtr delayed_type_arguments);
 
  protected:
   bool CheckAndWritePredefinedObject(ObjectPtr raw);
@@ -668,7 +661,6 @@ class SnapshotWriter : public BaseWriter {
 
   friend class ArrayLayout;
   friend class ClassLayout;
-  friend class ClosureDataLayout;
   friend class CodeLayout;
   friend class ContextScopeLayout;
   friend class DynamicLibraryLayout;

@@ -28,7 +28,7 @@ class TargetCalls {
   int unchecked = 0;
 
   // Leave a little room for some cases which always use the checked entry, like
-  // lazy compile stub or interpreter warm-up.
+  // lazy compile stub.
   static const int wiggle = 10;
 
   void expectChecked(int iterations) {

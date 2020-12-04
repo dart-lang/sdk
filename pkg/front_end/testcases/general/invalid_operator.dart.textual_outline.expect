@@ -144,4 +144,4 @@ class Operators7 {
   operator []<T>(a) => true;
   operator ~<T>() => true;
 }
-main() { }
+main() {}

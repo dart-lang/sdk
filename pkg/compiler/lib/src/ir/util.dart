@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/core_types.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../elements/entities.dart';
@@ -83,6 +80,12 @@ Variance convertVariance(ir.TypeParameter node) {
   }
 }
 
+/// Returns `true` if [node] is a null literal or a null constant.
+bool isNullLiteral(ir.Expression node) {
+  return node is ir.NullLiteral ||
+      (node is ir.ConstantExpression && node.constant is ir.NullConstant);
+}
+
 /// Kernel encodes a null-aware expression `a?.b` as
 ///
 ///     let final #1 = a in #1 == null ? null : #1.b
@@ -117,13 +120,13 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
         node.variable.isFinal &&
         body is ir.ConditionalExpression &&
         body.condition is ir.MethodInvocation &&
-        body.then is ir.NullLiteral) {
+        isNullLiteral(body.then)) {
       ir.MethodInvocation invocation = body.condition;
       ir.Expression receiver = invocation.receiver;
-      if (invocation.name.name == '==' &&
+      if (invocation.name.text == '==' &&
           receiver is ir.VariableGet &&
           receiver.variable == node.variable &&
-          invocation.arguments.positional.single is ir.NullLiteral) {
+          isNullLiteral(invocation.arguments.positional.single)) {
         // We have
         //   let #t1 = e0 in #t1 == null ? null : e1
         return new NullAwareExpression(node.variable, body.otherwise);
@@ -216,6 +219,9 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   bool visitNeverType(ir.NeverType node) => false;
 
   @override
+  bool visitNullType(ir.NullType node) => false;
+
+  @override
   bool visitVoidType(ir.VoidType node) => false;
 
   @override
@@ -236,3 +242,29 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
 /// and function type variables) are considered.
 bool containsFreeVariables(ir.DartType type) =>
     type.accept(const _FreeVariableVisitor());
+
+/// Returns true if [importUri] corresponds to dart:html and related libraries.
+bool _isWebLibrary(Uri importUri) =>
+    importUri.scheme == 'dart' &&
+        (importUri.path == 'html' ||
+            importUri.path == 'svg' ||
+            importUri.path == 'indexed_db' ||
+            importUri.path == 'web_audio' ||
+            importUri.path == 'web_gl' ||
+            importUri.path == 'web_sql' ||
+            importUri.path == 'html_common') ||
+    // Mock web library path for testing.
+    importUri.path
+        .contains('native_null_assertions/web_library_interfaces.dart');
+
+bool nodeIsInWebLibrary(ir.TreeNode node) {
+  if (node == null) return false;
+  if (node is ir.Library) return _isWebLibrary(node.importUri);
+  return nodeIsInWebLibrary(node.parent);
+}
+
+bool memberEntityIsInWebLibrary(MemberEntity entity) {
+  var importUri = entity?.library?.canonicalUri;
+  if (importUri == null) return false;
+  return _isWebLibrary(importUri);
+}

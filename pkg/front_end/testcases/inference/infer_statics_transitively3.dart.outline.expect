@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "infer_statics_transitively3_a.dart" as inf;
 
-import "org-dartlang-testcase:///infer_statics_transitively3_a.dart";
-import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" as p;
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" show a1, A;
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" as p show a2, A;
 
 static const field core::int* t1 = 1;
 static const field core::int* t2 = self::t1;
@@ -25,18 +25,27 @@ class A extends core::Object {
   static const field dynamic a3 = null;
   synthetic constructor •() → inf::A*
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static const field core::int* a1 = 3;
 static const field core::int* a2 = 4;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:12:12 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:13:12 -> IntConstant(3)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:14:14 -> IntConstant(4)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:15:14 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:16:16 -> NullConstant(null)
+Extra constant evaluation: evaluated: 5, effectively constant: 5

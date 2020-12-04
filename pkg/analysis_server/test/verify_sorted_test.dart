@@ -10,10 +10,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer_utilities/package_root.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
-
-import 'utils/package_root.dart';
 
 void main() {
   group('analysis_server', () {

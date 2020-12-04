@@ -171,6 +171,7 @@ class C extends B {
 }
 ''');
     // assume information for context.getLibrariesContaining has been cached
+    await resolveFile('$testPackageLibPath/myLib.dart');
     await computeSuggestions();
     _assertOverride('''
 @override
@@ -405,7 +406,7 @@ class B extends A {
   }
 
   Future<void> test_private_otherLibrary() async {
-    addSource('/home/test/lib/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   void foo() {}
   void _bar() {}
@@ -525,7 +526,6 @@ method() {
       failedCompletion('expected $completion', suggestions);
     }
     expect(cs.kind, equals(CompletionSuggestionKind.OVERRIDE));
-    expect(cs.relevance, equals(DART_RELEVANCE_HIGH));
     if (selectionOffset != null && selectionLength != null) {
       expect(cs.selectionOffset, selectionOffset);
       expect(cs.selectionLength, selectionLength);

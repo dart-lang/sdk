@@ -59,7 +59,7 @@ void main() => print('Hello, world!')
     String content = '''
 void main() => print('Hello, world!')
 ''';
-    String expectedPath;
+    /*late*/ String expectedPath;
     ParseStringResult result =
         _withMemoryFile(content, (resourceProvider, path) {
       expectedPath = path;
@@ -211,7 +211,7 @@ class A {}
     var result = parseString(
       content: content,
       throwIfDiagnostics: false,
-      featureSet: FeatureSet.fromEnableFlags([]),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
 
     var languageVersion = result.unit.languageVersionToken;
@@ -226,7 +226,7 @@ class A {}
     var result = parseString(
       content: content,
       throwIfDiagnostics: false,
-      featureSet: FeatureSet.fromEnableFlags([]),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
 
     expect(result.unit.languageVersionToken, isNull);

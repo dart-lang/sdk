@@ -36,7 +36,7 @@ static Dart_NativeFunction native_resolver(Dart_Handle name,
                                            bool* auto_setup_scope) {
   ASSERT(auto_setup_scope);
   *auto_setup_scope = false;
-  return reinterpret_cast<Dart_NativeFunction>(&NativeFunc);
+  return NativeFunc;
 }
 
 TEST_CASE(StackMapGC) {
@@ -71,6 +71,8 @@ TEST_CASE(StackMapGC) {
 
   // Now compile the two functions 'A.foo' and 'A.moo'
   String& function_moo_name = String::Handle(String::New("moo"));
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
   Function& function_moo =
       Function::Handle(cls.LookupStaticFunction(function_moo_name));
   EXPECT(CompilerTest::TestCompileFunction(function_moo));
@@ -98,7 +100,7 @@ TEST_CASE(StackMapGC) {
   int call_count = 0;
   PcDescriptors::Iterator iter(descriptors,
                                PcDescriptorsLayout::kUnoptStaticCall);
-  CompressedStackMapsBuilder compressed_maps_builder;
+  CompressedStackMapsBuilder compressed_maps_builder(thread->zone());
   while (iter.MoveNext()) {
     compressed_maps_builder.AddEntry(iter.PcOffset(), stack_bitmap, 0);
     ++call_count;
@@ -119,7 +121,7 @@ TEST_CASE(StackMapGC) {
 }
 
 ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
-  DescriptorList* descriptors = new DescriptorList(64);
+  DescriptorList* descriptors = new DescriptorList(thread->zone());
   ASSERT(descriptors != NULL);
   const intptr_t token_positions[] = {
       kMinInt32,

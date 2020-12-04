@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:27:7: Error: Expected 2 type arguments.
+// const Map<bool> MapWithUnevaluated = {
+//       ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:25:26: Error: Constant evaluation error:
+// const setNotAgnosticOK = {a, b};
+//                          ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:25:30: Context: Constant value is not strong/weak mode agnostic.
+// const setNotAgnosticOK = {a, b};
+//                              ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:25:7: Context: While analyzing:
+// const setNotAgnosticOK = {a, b};
+//       ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:31:26: Error: Constant evaluation error:
+// const mapNotAgnosticOK = {a: 0, b: 1};
+//                          ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:31:33: Context: Constant value is not strong/weak mode agnostic.
+// const mapNotAgnosticOK = {a: 0, b: 1};
+//                                 ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:31:7: Context: While analyzing:
+// const mapNotAgnosticOK = {a: 0, b: 1};
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::bool> listWithUnevaluated = #C5;
+static const field core::List<core::bool> listWithUnevaluatedSpread = #C8;
+static const field core::Set<core::bool> setWithUnevaluated = #C10;
+static const field core::Set<core::bool> setWithUnevaluatedSpread = #C12;
+static const field core::List<core::int> a = #C13;
+static const field core::List<core::int?> b = #C14;
+static const field core::Set<core::List<core::int?>> setNotAgnosticOK = invalid-expression "Constant value is not strong/weak mode agnostic.";
+static const field invalid-type MapWithUnevaluated = #C15;
+static const field core::Map<core::List<core::int?>, core::int> mapNotAgnosticOK = invalid-expression "Constant value is not strong/weak mode agnostic.";
+static method main() → dynamic {
+  core::print(#C5);
+  core::print(#C8);
+  core::print(#C10);
+  core::print(#C12);
+  core::print(<core::String>{"hello"});
+  core::print(#C17);
+}
+
+constants  {
+  #C1 = "foo"
+  #C2 = "bar"
+  #C3 = true
+  #C4 = <core::bool>[#C3]
+  #C5 = eval const <dynamic>[const core::bool::fromEnvironment(#C1)] + const <dynamic>[const core::bool::fromEnvironment(#C2)] + #C4
+  #C6 = false
+  #C7 = <core::bool>[#C6]
+  #C8 = eval #C4 + const <dynamic>[const core::bool::fromEnvironment(#C1)] + const <dynamic>[const core::bool::fromEnvironment(#C2)] + #C4 + #C7
+  #C9 = <core::bool>{#C3}
+  #C10 = eval const <dynamic>{const core::bool::fromEnvironment(#C1)} + const <dynamic>{const core::bool::fromEnvironment(#C2)} + #C9
+  #C11 = <core::bool>{#C6}
+  #C12 = eval #C9 + const <dynamic>{const core::bool::fromEnvironment(#C1)} + const <dynamic>{const core::bool::fromEnvironment(#C2)} + #C9 + #C11
+  #C13 = <core::int>[]
+  #C14 = <core::int?>[]
+  #C15 = eval const <dynamic, dynamic>{const core::bool::fromEnvironment(#C1): const core::bool::fromEnvironment(#C2)}
+  #C16 = "hello"
+  #C17 = <core::String>{#C16}
+}

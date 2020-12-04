@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import 'test_support.dart';
 
 main() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class NonHintCodeTest extends DriverResolutionTest {
+class NonHintCodeTest extends PubPackageResolutionTest {
   test_issue20904BuggyTypePromotionAtIfJoin_1() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
     await assertErrorsInCode(r'''
@@ -204,7 +204,7 @@ f(A a, B b) {
   }
 }
 
-class PubSuggestionCodeTest extends DriverResolutionTest {
+class PubSuggestionCodeTest extends PubPackageResolutionTest {
   // TODO(brianwilkerson) The tests in this class are not being run, and all but
   //  the first would fail. We should implement these checks and enable the
   //  tests.

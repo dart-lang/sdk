@@ -20,9 +20,8 @@ void main() {
 class LibraryPrefixContributorTest extends DartCompletionContributorTest {
   void assertSuggestLibraryPrefixes(List<String> expectedPrefixes) {
     for (var prefix in expectedPrefixes) {
-      var cs = assertSuggest(prefix,
-          csKind: CompletionSuggestionKind.IDENTIFIER,
-          relevance: DART_RELEVANCE_DEFAULT);
+      var cs =
+          assertSuggest(prefix, csKind: CompletionSuggestionKind.IDENTIFIER);
       var element = cs.element;
       expect(element, isNotNull);
       expect(element.kind, equals(ElementKind.LIBRARY));
@@ -304,6 +303,7 @@ main() {new ^ String x = "hello";}''');
     addTestSource('''
 part of testB;
 main() {new ^ String x = "hello";}''');
+    await analyzeTestPackageFiles();
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['math', 't']);
   }

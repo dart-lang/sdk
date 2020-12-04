@@ -174,9 +174,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * Removes [value] from the set.
    *
-   * Returns `true` if [value] was
-   * in the set. Returns `false` otherwise. The method has no effect
-   * if [value] was not in the set.
+   * Returns `true` if [value] was in the set. Returns `false` otherwise.
+   * The method has no effect if [value] was not in the set.
    */
   bool remove(Object? value);
 
@@ -255,7 +254,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    */
   void clear();
 
-  /* Creates a [Set] with the same elements and behavior as this `Set`.
+  /**
+   * Creates a [Set] with the same elements and behavior as this `Set`.
    *
    * The returned set behaves the same as this set
    * with regard to adding and removing elements.

@@ -40,10 +40,6 @@ Thread::~Thread() {
   ASSERT(isolate_ == NULL);
   ASSERT(store_buffer_block_ == NULL);
   ASSERT(marking_stack_block_ == NULL);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  delete interpreter_;
-  interpreter_ = nullptr;
-#endif
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -75,7 +71,6 @@ Thread::Thread(bool is_vm_isolate)
       store_buffer_block_(NULL),
       marking_stack_block_(NULL),
       vm_tag_(0),
-      async_stack_trace_(StackTrace::null()),
       unboxed_int64_runtime_arg_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
@@ -106,9 +101,6 @@ Thread::Thread(bool is_vm_isolate)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
-#endif
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      interpreter_(nullptr),
 #endif
       next_(NULL) {
 #if defined(SUPPORT_TIMELINE)
@@ -290,23 +282,6 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       UNREACHABLE();
       return "";
   }
-}
-
-StackTracePtr Thread::async_stack_trace() const {
-  return async_stack_trace_;
-}
-
-void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
-  ASSERT(!stack_trace.IsNull());
-  async_stack_trace_ = stack_trace.raw();
-}
-
-void Thread::set_raw_async_stack_trace(StackTracePtr raw_stack_trace) {
-  async_stack_trace_ = raw_stack_trace;
-}
-
-void Thread::clear_async_stack_trace() {
-  async_stack_trace_ = StackTrace::null();
 }
 
 bool Thread::EnterIsolate(Isolate* isolate) {
@@ -678,14 +653,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&async_stack_trace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ffi_callback_code_));
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (interpreter() != NULL) {
-    interpreter()->VisitObjectPointers(visitor);
-  }
-#endif
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
@@ -922,11 +890,6 @@ bool Thread::TopErrorHandlerIsSetJump() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // False positives: interpreter stack and native stack are unordered.
-  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
-    return true;
-#endif
   return reinterpret_cast<uword>(long_jump_base()) < top_exit_frame_info_;
 #endif
 }
@@ -938,11 +901,6 @@ bool Thread::TopErrorHandlerIsExitFrame() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // False positives: interpreter stack and native stack are unordered.
-  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
-    return true;
-#endif
   return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base());
 #endif
 }
@@ -1083,9 +1041,9 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
   }
 }
 
-const intptr_t kInitialCallbackIdsReserved = 1024;
+const intptr_t kInitialCallbackIdsReserved = 16;
 int32_t Thread::AllocateFfiCallbackId() {
-  Zone* Z = isolate()->current_zone();
+  Zone* Z = Thread::Current()->zone();
   if (ffi_callback_code_ == GrowableObjectArray::null()) {
     ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
   }
@@ -1106,7 +1064,7 @@ int32_t Thread::AllocateFfiCallbackId() {
 }
 
 void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
-  Zone* Z = isolate()->current_zone();
+  Zone* Z = Thread::Current()->zone();
 
   /// In AOT the callback ID might have been allocated during compilation but
   /// 'ffi_callback_code_' is initialized to empty again when the program
@@ -1120,8 +1078,12 @@ void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
   const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
 
   if (callback_id >= array.Length()) {
-    if (callback_id >= array.Capacity()) {
-      array.Grow(callback_id + 1);
+    const int32_t capacity = array.Capacity();
+    if (callback_id >= capacity) {
+      // Ensure both that we grow enough and an exponential growth strategy.
+      const int32_t new_capacity =
+          Utils::Maximum(callback_id + 1, capacity * 2);
+      array.Grow(new_capacity);
     }
     array.SetLength(callback_id + 1);
   }

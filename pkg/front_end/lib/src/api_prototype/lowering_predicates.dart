@@ -28,8 +28,8 @@ import '../fasta/kernel/late_lowering.dart';
 bool isLateLoweredField(Field node) {
   return node.isInternalImplementation &&
       node.name != null &&
-      node.name.name.startsWith(lateFieldPrefix) &&
-      !node.name.name.endsWith(lateIsSetSuffix);
+      node.name.text.startsWith(lateFieldPrefix) &&
+      !node.name.text.endsWith(lateIsSetSuffix);
 }
 
 /// Returns `true` if [node] is the field holding the marker for whether a
@@ -55,8 +55,8 @@ bool isLateLoweredField(Field node) {
 bool isLateLoweredIsSetField(Field node) {
   return node.isInternalImplementation &&
       node.name != null &&
-      node.name.name.startsWith(lateFieldPrefix) &&
-      node.name.name.endsWith(lateIsSetSuffix);
+      node.name.text.startsWith(lateFieldPrefix) &&
+      node.name.text.endsWith(lateIsSetSuffix);
 }
 
 /// Returns `true` if [node] is the getter for reading the value of a lowered
@@ -84,11 +84,11 @@ bool isLateLoweredFieldGetter(Procedure node) {
     if (parent is Class) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     } else if (parent is Library) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     }
   }
   return false;
@@ -119,12 +119,169 @@ bool isLateLoweredFieldSetter(Procedure node) {
     if (parent is Class) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     } else if (parent is Library) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     }
   }
   return false;
+}
+
+/// Returns `true` if [node] is the local variable holding the value of a
+/// lowered late variable.
+///
+/// For instance
+///
+///    late int local;
+///
+/// is lowered to (simplified):
+///
+///    int? #local = null;
+///    int #local#get() => #local != null ? #local : throw 'Uninitialized';
+///    void #local#set(int value) {
+///      #local = value;
+///    }
+///
+/// where '#local' is the local variable holding that value.
+///
+/// The default value of this variable is `null`.
+// TODO(johnniwinther): Enable these if the name of late locals is changed
+//  to  '${lateLocalPrefix}${name}'. See
+// backends can benefit from identifying late locals.
+/*bool isLateLoweredLocal(VariableDeclaration node) {
+  return node.name != null && isLateLoweredLocalName(node.name);
+}
+
+/// Returns `true` if [name] is the name of a local variable holding the value
+/// of a lowered late variable.
+bool isLateLoweredLocalName(String name) {
+  return name.startsWith(lateLocalPrefix) &&
+      !(name.endsWith(lateIsSetSuffix) ||
+          name.endsWith(lateLocalGetterSuffix) ||
+          name.endsWith(lateLocalSetterSuffix));
+}
+
+/// Returns the name of the original late local variable from the [name] of the
+/// local variable holding the value of the lowered late variable.
+///
+/// This method assumes that `isLateLoweredLocalName(name)` is `true`.
+String extractLateLoweredLocalNameFrom(String name) {
+  return name.substring(lateLocalPrefix.length);
+}*/
+
+/// Returns `true` if [node] is the local variable holding the marker for
+/// whether a lowered late local variable has been set or not.
+///
+/// For instance
+///
+///    late int? local;
+///
+/// is lowered to (simplified):
+///
+///    bool #local#isSet = false;
+///    int? #local = null;
+///    int #local#get() => _#field#isSet ? #local : throw 'Uninitialized';
+///    void #local#set(int value) {
+///      #local = value;
+///      #local#isSet = true;
+///    }
+///
+/// where '#local#isSet' is the local variable holding the marker.
+///
+/// The default value of this variable is `false`.
+bool isLateLoweredIsSetLocal(VariableDeclaration node) {
+  return node.name != null && isLateLoweredIsSetName(node.name);
+}
+
+/// Returns `true` if [name] is the name of a local variable holding the marker
+/// for whether a lowered late local variable has been set or not.
+bool isLateLoweredIsSetName(String name) {
+  return name.startsWith(lateLocalPrefix) && name.endsWith(lateIsSetSuffix);
+}
+
+/// Returns the name of the original late local variable from the [name] of the
+/// local variable holding the marker for whether the lowered late local
+/// variable has been set or not.
+///
+/// This method assumes that `isLateLoweredIsSetName(name)` is `true`.
+String extractLocalNameFromLateLoweredIsSet(String name) {
+  return name.substring(
+      lateLocalPrefix.length, name.length - lateIsSetSuffix.length);
+}
+
+/// Returns `true` if [node] is the local variable for the local function for
+/// reading the value of a lowered late variable.
+///
+/// For instance
+///
+///    late int local;
+///
+/// is lowered to (simplified):
+///
+///    int? #local = null;
+///    int #local#get() => #local != null ? #local : throw 'Uninitialized';
+///    void #local#set(int value) {
+///      #local = value;
+///    }
+///
+/// where '#local#get' is the local function for reading the variable.
+bool isLateLoweredLocalGetter(VariableDeclaration node) {
+  return node.name != null && isLateLoweredGetterName(node.name);
+}
+
+/// Returns `true` if [name] is the name of the local variable for the local
+/// function for reading the value of a lowered late variable.
+bool isLateLoweredGetterName(String name) {
+  return name.startsWith(lateLocalPrefix) &&
+      name.endsWith(lateLocalGetterSuffix);
+}
+
+/// Returns the name of the original late local variable from the [name] of the
+/// local variable for the local function for reading the value of the lowered
+/// late variable.
+///
+/// This method assumes that `isLateLoweredGetterName(name)` is `true`.
+String extractLocalNameFromLateLoweredGetter(String name) {
+  return name.substring(
+      lateLocalPrefix.length, name.length - lateLocalGetterSuffix.length);
+}
+
+/// Returns `true` if [node] is the local variable for the local function for
+/// setting the value of a lowered late variable.
+///
+/// For instance
+///
+///    late int local;
+///
+/// is lowered to (simplified):
+///
+///    int? #local = null;
+///    int #local#get() => #local != null ? #local : throw 'Uninitialized';
+///    void #local#set(int value) {
+///      #local = value;
+///    }
+///
+/// where '#local#set' is the local function for setting the value of the
+/// variable.
+bool isLateLoweredLocalSetter(VariableDeclaration node) {
+  return node.name != null && isLateLoweredSetterName(node.name);
+}
+
+/// Returns `true` if [name] is the name of the local variable for the local
+/// function for setting the value of a lowered late variable.
+bool isLateLoweredSetterName(String name) {
+  return name.startsWith(lateLocalPrefix) &&
+      name.endsWith(lateLocalSetterSuffix);
+}
+
+/// Returns the name of the original late local variable from the [name] of the
+/// local variable for the local function for setting the value of the lowered
+/// late variable.
+///
+/// This method assumes that `isLateLoweredSetterName(name)` is `true`.
+String extractLocalNameFromLateLoweredSetter(String name) {
+  return name.substring(
+      lateLocalPrefix.length, name.length - lateLocalSetterSuffix.length);
 }

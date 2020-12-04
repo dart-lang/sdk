@@ -69,15 +69,6 @@ class CompilerState : public ThreadStackResource {
 
   // Create a dummy list of local variables representing a context object
   // with the given number of captured variables and given ID.
-  //
-  // Used during bytecode to IL translation because AllocateContext and
-  // CloneContext IL instructions need a list of local varaibles and bytecode
-  // does not record this information.
-  //
-  // TODO(vegorov): create context classes for distinct context IDs and
-  // populate them with slots without creating variables.
-  // Beware that context_id is satured at 8-bits, so multiple contexts may
-  // share id 255.
   const ZoneGrowableArray<const Slot*>& GetDummyContextSlots(
       intptr_t context_id,
       intptr_t num_context_slots);
@@ -85,16 +76,8 @@ class CompilerState : public ThreadStackResource {
   // Create a dummy LocalVariable that represents a captured local variable
   // at the given index in the context with given ID.
   //
-  // Used during bytecode to IL translation because StoreInstanceField and
-  // LoadField IL instructions need Slot, which can only be created from a
-  // LocalVariable.
-  //
   // This function returns the same variable when it is called with the
   // same index.
-  //
-  // TODO(vegorov): disambiguate slots for different context IDs.
-  // Beware that context_id is saturated at 8-bits, so multiple contexts may
-  // share id 255.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
   bool is_aot() const { return is_aot_; }
@@ -115,8 +98,7 @@ class CompilerState : public ThreadStackResource {
   // Cache for Slot objects created during compilation (see slot.h).
   SlotCache* slot_cache_ = nullptr;
 
-  // Caches for dummy LocalVariables and context Slots created during bytecode
-  // to IL translation.
+  // Caches for dummy LocalVariables and context Slots.
   ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
 

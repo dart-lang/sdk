@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ImplicitThisReferenceInInitializerTest extends DriverResolutionTest {
+class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest {
   test_class_field_commentReference_prefixedIdentifier() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -37,6 +36,43 @@ class A {
 ''');
   }
 
+  test_constructorInitializer_assert_superClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get f => 0;
+}
+
+class B extends A {
+  B() : assert(f != 0);
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 66, 1),
+    ]);
+  }
+
+  test_constructorInitializer_assert_thisClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  A() : assert(f != 0);
+  int get f => 0;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 25, 1),
+    ]);
+  }
+
+  test_constructorInitializer_field() async {
+    await assertErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f;
+  var f;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
+    ]);
+  }
+
   test_constructorName() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -47,18 +83,6 @@ class B {
   B() : v = new A.named();
 }
 ''');
-  }
-
-  test_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f;
-  var f;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
-    ]);
   }
 
   test_field2() async {

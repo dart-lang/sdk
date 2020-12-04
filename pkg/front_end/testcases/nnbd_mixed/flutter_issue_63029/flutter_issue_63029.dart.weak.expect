@@ -1,0 +1,76 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "flutter_issue_63029_lib1.dart" as flu;
+import "flutter_issue_63029_lib2.dart" as flu2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///flutter_issue_63029_lib1.dart";
+import "org-dartlang-testcase:///flutter_issue_63029_lib2.dart";
+
+class E extends flu::A {
+  synthetic constructor •() → self::E
+    : super flu::A::•()
+    ;
+}
+abstract class _F&B&D = flu::B<self::E> with flu2::D<self::E> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_F&B&D
+    : super flu::B::•()
+    ;
+  abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
+}
+class F extends self::_F&B&D {
+  synthetic constructor •() → self::F
+    : super self::_F&B&D::•()
+    ;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as flu;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → flu::A
+    : super core::Object::•()
+    ;
+}
+abstract class B<T extends flu::A = flu::A> extends core::Object {
+  synthetic constructor •() → flu::B<flu::B::T>
+    : super core::Object::•()
+    ;
+}
+
+library;
+import self as flu2;
+import "dart:core" as core;
+import "flutter_issue_63029_lib1.dart" as flu;
+
+import "org-dartlang-testcase:///flutter_issue_63029_lib1.dart";
+
+class C extends core::Object {
+  synthetic constructor •() → flu2::C*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class D<T extends flu::A* = flu::A*> extends flu::B<flu2::D::T*> implements flu2::C /*isMixinDeclaration*/  {
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

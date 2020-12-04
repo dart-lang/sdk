@@ -71,12 +71,6 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
 }
 
 ObjectPtr Invoke(const Library& lib, const char* name) {
-  // These tests rely on running unoptimized code to collect type feedback. The
-  // interpreter does not collect type feedback for interface calls, so set
-  // compilation threshold to 0 in order to compile invoked function
-  // immediately and execute compiled code.
-  SetFlagScope<int> sfs(&FLAG_compilation_counter_threshold, 0);
-
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
   Dart_Handle result;
@@ -307,6 +301,13 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
     }
   }
 
+  if (opcode == kMoveDebugStepChecks) {
+    while (cursor != nullptr && cursor->IsDebugStepCheck()) {
+      cursor = cursor->next();
+    }
+    return cursor;
+  }
+
   if (opcode == kMatchAndMoveGoto) {
     if (auto goto_instr = cursor->AsGoto()) {
       return goto_instr->successor();
@@ -361,6 +362,9 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   }
   if (opcode == kMoveGlob) {
     return "kMoveGlob";
+  }
+  if (opcode == kMoveDebugStepChecks) {
+    return "kMoveDebugStepChecks";
   }
 
   switch (opcode) {

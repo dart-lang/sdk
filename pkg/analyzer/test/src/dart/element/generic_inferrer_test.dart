@@ -192,6 +192,48 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
+  /// https://github.com/dart-lang/language/issues/1182#issuecomment-702272641
+  void test_demoteType() {
+    // <T>(T x) -> void
+    var T = typeParameter('T');
+    var rawType = functionTypeNone(
+      typeFormals: [T],
+      parameters: [
+        requiredParameter(type: typeParameterTypeNone(T)),
+      ],
+      returnType: voidNone,
+    );
+
+    var S = typeParameter('S');
+    var S_and_int = typeParameterTypeNone(S, promotedBound: intNone);
+
+    var inferredTypes = _inferCall(rawType, [S_and_int]);
+    var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
+    expect(inferredType.element, S);
+    expect(inferredType.promotedBound, isNull);
+  }
+
+  void test_fromLegacy_nonNullableBound() {
+    typeSystem = analysisContext.typeSystemLegacy;
+
+    // void Function<T extends Object>(T)
+    var T = typeParameter('T', bound: objectNone);
+    var rawType = functionTypeNone(
+      typeFormals: [T],
+      parameters: [
+        requiredParameter(
+          type: typeParameterTypeNone(T),
+        ),
+      ],
+      returnType: voidNone,
+    );
+
+    _assertTypes(
+      _inferCall(rawType, [dynamicNone]),
+      [dynamicNone],
+    );
+  }
+
   void test_genericCastFunction() {
     // <TFrom, TTo>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');

@@ -223,22 +223,28 @@ main() {
   check({symConst: "#foo", symLibConst: "#dart:core::bar"}, 0);
 
   Constant fooConst = new InstanceConstant(
-      fooClass.reference, [], {booField.reference: trueConst});
+      fooClass.reference, [], {booField.getterReference: trueConst});
   check({fooConst: "Foo {boo: true}"}, 1);
 
-  Constant foo2Const = new InstanceConstant(foo2Class.reference, [],
-      {nextField.reference: nullConst, valueField.reference: intConst});
+  Constant foo2Const = new InstanceConstant(foo2Class.reference, [], {
+    nextField.getterReference: nullConst,
+    valueField.getterReference: intConst
+  });
   check({foo2Const: "Foo {value: 2, next: null}"}, 1);
 
   Constant foo2nConst = new InstanceConstant(foo2Class.reference, [], {
-    valueField.reference: intConst,
-    nextField.reference: new InstanceConstant(foo2Class.reference, [],
-        {valueField.reference: intConst, nextField.reference: nullConst}),
+    valueField.getterReference: intConst,
+    nextField.getterReference: new InstanceConstant(foo2Class.reference, [], {
+      valueField.getterReference: intConst,
+      nextField.getterReference: nullConst
+    }),
   });
   check({foo2nConst: "Foo {value: 2, next: Foo {value: 2, next: null}}"}, 1);
 
-  Constant bazFooFoo2Const = new InstanceConstant(bazClass.reference,
-      [foo, foo2], {xField.reference: fooConst, yField.reference: foo2Const});
+  Constant bazFooFoo2Const = new InstanceConstant(
+      bazClass.reference,
+      [foo, foo2],
+      {xField.getterReference: fooConst, yField.getterReference: foo2Const});
   check({
     bazFooFoo2Const: "Baz<Foo/*1*/, Foo/*2*/> "
         "{x: Foo/*1*/ {boo: true}, y: Foo/*2*/ {value: 2, next: null}}"

@@ -28,9 +28,8 @@ class ObjectPointerVisitor;
   V(AsFunctionInternal, "_asFunctionInternal")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
-  V(AsyncCompleter, ":async_completer")                                        \
+  V(AsyncFuture, ":async_future")                                              \
   V(AsyncOperation, ":async_op")                                               \
-  V(AsyncStackTraceVar, ":async_stack_trace")                                  \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
@@ -40,14 +39,12 @@ class ObjectPointerVisitor;
   V(ByteData, "ByteData")                                                      \
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
-  V(Bytecode, "Bytecode")                                                      \
   V(Call, "call")                                                              \
   V(Cancel, "cancel")                                                          \
   V(CastError, "_CastError")                                                   \
   V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
-  V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
   V(ClosureData, "ClosureData")                                                \
   V(ClosureParameter, ":closure")                                              \
   V(Code, "Code")                                                              \
@@ -67,19 +64,14 @@ class ObjectPointerVisitor;
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
-  V(LateInitializationError, "_LateInitializationError")                       \
   V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
-  V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(DartDeveloperTimeline, "dart.developer.timeline")                          \
   V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartFfi, "dart:ffi")                                                       \
   V(DartFfiLibName, "ffi")                                                     \
-  V(DartWasm, "dart:wasm")                                                     \
-  V(DartWasmLibName, "wasm")                                                   \
-  V(DartLibraryWasm, "dart.library.wasm")                                      \
   V(DartIOLibName, "dart.io")                                                  \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsVM, "dart.isVM")                                                     \
@@ -101,6 +93,8 @@ class ObjectPointerVisitor;
   V(Default, "Default")                                                        \
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
+  V(DotFieldNI, ".fieldNI")                                                    \
+  V(DotFieldADI, ".fieldADI")                                                  \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
@@ -108,6 +102,10 @@ class ObjectPointerVisitor;
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
+  V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
+  V(DynamicCallCurrentFunctionVar, ":dyn_call_current_function")               \
+  V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
+  V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
@@ -199,6 +197,7 @@ class ObjectPointerVisitor;
   V(IteratorParameter, ":iterator")                                            \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(LanguageError, "LanguageError")                                            \
+  V(LateError, "LateError")                                                    \
   V(LeftShiftOperator, "<<")                                                   \
   V(Length, "length")                                                          \
   V(LessEqualOperator, "<=")                                                   \
@@ -233,7 +232,6 @@ class ObjectPointerVisitor;
   V(Other, "other")                                                            \
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(PackageScheme, "package:")                                                 \
-  V(ParameterTypeCheck, "ParameterTypeCheck")                                  \
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
@@ -242,14 +240,12 @@ class ObjectPointerVisitor;
   V(QuoteIsNotASubtypeOf, "' is not a subtype of ")                            \
   V(RParenArrow, ") => ")                                                      \
   V(RangeError, "RangeError")                                                  \
-  V(RedirectionData, "RedirectionData")                                        \
   V(RegExp, "RegExp")                                                          \
   V(RightShiftOperator, ">>")                                                  \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(Script, "Script")                                                          \
   V(SecondArg, "y")                                                            \
   V(Set, "set")                                                                \
-  V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(SetterPrefix, "set:")                                                      \
   V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
@@ -260,7 +256,6 @@ class ObjectPointerVisitor;
   V(SpaceWhereNewLine, " where\n")                                             \
   V(StackOverflowError, "StackOverflowError")                                  \
   V(StackTraceParameter, ":stack_trace")                                       \
-  V(StackTraceVar, ":stack_trace_var")                                         \
   V(Stream, "stream")                                                          \
   V(StreamController, "StreamController")                                      \
   V(StreamIterator, "StreamIterator")                                          \
@@ -300,17 +295,8 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
-  V(WasmInt32, "Int32")                                                        \
-  V(WasmInt64, "Int64")                                                        \
-  V(WasmFloat, "Float")                                                        \
-  V(WasmDouble, "Double")                                                      \
-  V(WasmVoid, "Void")                                                          \
   V(YieldKw, "yield")                                                          \
-  V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
-  V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
-  V(_AsyncAwaitCompleterStart, "_AsyncAwaitCompleter.start")                   \
   V(_AsyncAwaitStart, "start")                                                 \
-  V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
   V(_AsyncStreamController, "_AsyncStreamController")                          \
@@ -327,6 +313,7 @@ class ObjectPointerVisitor;
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
+  V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -446,6 +433,7 @@ class ObjectPointerVisitor;
   V(_handleMessage, "_handleMessage")                                          \
   V(_instanceOf, "_instanceOf")                                                \
   V(_lookupHandler, "_lookupHandler")                                          \
+  V(_lookupOpenPorts, "_lookupOpenPorts")                                      \
   V(_name, "_name")                                                            \
   V(_onData, "_onData")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
@@ -472,10 +460,13 @@ class ObjectPointerVisitor;
   V(controller, "controller")                                                  \
   V(current_character, ":current_character")                                   \
   V(current_position, ":current_position")                                     \
+  V(dynamic_assert_assignable_stc_check,                                       \
+    ":dynamic_assert_assignable_stc_check")                                    \
   V(getID, "getID")                                                            \
   V(hashCode, "get:hashCode")                                                  \
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
+  V(is_sync, ":is_sync")                                                       \
   V(isPaused, "isPaused")                                                      \
   V(isSync, "isSync")                                                          \
   V(last, "last")                                                              \
@@ -487,13 +478,14 @@ class ObjectPointerVisitor;
   V(position_registers, ":position_registers")                                 \
   V(print, "print")                                                            \
   V(removeLast, "removeLast")                                                  \
-  V(result, ":result")                                                         \
+  V(c_result, ":result")                                                       \
+  V(result, "result")                                                          \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
   V(start_index_param, ":start_index_param")                                   \
+  V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
-  V(timeout, "timeout")                                                        \
   V(toString, "toString")                                                      \
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \
@@ -501,8 +493,10 @@ class ObjectPointerVisitor;
   V(vm_inferred_type_metadata, "vm.inferred-type.metadata")                    \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
+  V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
-  V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")
+  V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")      \
+  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
@@ -652,9 +646,6 @@ class Symbols : public AllStatic {
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
 
-  // Treat the symbol table as weak and collect garbage.
-  static void Compact();
-
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
@@ -676,11 +667,6 @@ class Symbols : public AllStatic {
   // Creates a new Symbol from an array of UTF-16 encoded characters.
   static StringPtr FromUTF16(Thread* thread,
                              const uint16_t* utf16_array,
-                             intptr_t len);
-
-  // Creates a new Symbol from an array of UTF-32 encoded characters.
-  static StringPtr FromUTF32(Thread* thread,
-                             const int32_t* utf32_array,
                              intptr_t len);
 
   static StringPtr New(Thread* thread, const String& str);
@@ -710,7 +696,7 @@ class Symbols : public AllStatic {
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 
-  static StringPtr FromCharCode(Thread* thread, int32_t char_code);
+  static StringPtr FromCharCode(Thread* thread, uint16_t char_code);
 
   static StringPtr* PredefinedAddress() {
     return reinterpret_cast<StringPtr*>(&predefined_);

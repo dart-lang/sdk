@@ -5,8 +5,6 @@
 /// API needed by `utils/front_end/summary_worker.dart`, a tool used to compute
 /// summaries in build systems like bazel, pub-build, and package-build.
 
-import 'dart:async' show Future;
-
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
@@ -24,6 +22,8 @@ import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../api_prototype/front_end.dart' show CompilerResult;
+
+import '../base/nnbd_mode.dart' show NnbdMode;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -50,6 +50,8 @@ export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
+export '../base/nnbd_mode.dart' show NnbdMode;
+
 export '../fasta/kernel/utils.dart' show serializeComponent;
 
 export 'compiler_state.dart' show InitializedCompilerState;
@@ -72,7 +74,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool outlineOnly,
     Map<String, String> environmentDefines,
     {bool trackNeededDillLibraries: false,
-    bool verbose: false}) async {
+    bool verbose: false,
+    NnbdMode nnbdMode: NnbdMode.Weak}) async {
   List<Component> outputLoadedAdditionalDills =
       new List<Component>(additionalDills.length);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
@@ -89,12 +92,13 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       workerInputDigests,
       target,
       fileSystem: fileSystem,
-      experimentalFlags: experimentalFlags,
+      explicitExperimentalFlags: experimentalFlags,
       outlineOnly: outlineOnly,
       omitPlatform: true,
       trackNeededDillLibraries: trackNeededDillLibraries,
       environmentDefines: environmentDefines,
-      verbose: verbose);
+      verbose: verbose,
+      nnbdMode: nnbdMode);
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -108,6 +112,7 @@ Future<InitializedCompilerState> initializeCompiler(
   Iterable<String> experiments,
   Map<String, String> environmentDefines, {
   bool verbose: false,
+  NnbdMode nnbdMode: NnbdMode.Weak,
 }) async {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
@@ -122,10 +127,11 @@ Future<InitializedCompilerState> initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem
     ..environmentDefines = environmentDefines
-    ..experimentalFlags = parseExperimentalFlags(
+    ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e)
-    ..verbose = verbose;
+    ..verbose = verbose
+    ..nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

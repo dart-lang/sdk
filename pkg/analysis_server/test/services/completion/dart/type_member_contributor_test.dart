@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -15,7 +13,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
-    defineReflectiveTests(TypeMemberContributorWithNewRelevanceTest);
   });
 }
 
@@ -80,7 +77,7 @@ void main() {new A().a^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_optional_positional() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -95,7 +92,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_required_named() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -1077,7 +1074,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    addPackageFile('aaa', 'a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('main() { ^ }');
 
     await computeSuggestions();
@@ -3053,10 +3050,8 @@ void main() {new C().^}''');
     expect(replacementLength, 0);
     assertSuggestGetter('f', 'X');
     assertSuggestGetter('_g', null);
-    assertSuggestField(r'$p', 'dynamic',
-        relevance: useNewRelevance ? null : DART_RELEVANCE_LOW);
-    assertSuggestMethod(r'$q', 'I', 'void',
-        relevance: useNewRelevance ? null : DART_RELEVANCE_LOW);
+    assertSuggestField(r'$p', 'dynamic');
+    assertSuggestMethod(r'$q', 'I', 'void');
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -3829,8 +3824,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('fs2');
     assertSuggestMethod('mi2', 'C2', null);
     assertNotSuggested('ms2');
-    assertSuggestMethod('m', 'C2', null,
-        relevance: useNewRelevance ? null : DART_RELEVANCE_HIGH);
+    assertSuggestMethod('m', 'C2', null);
     assertNotSuggested('fi3');
     assertNotSuggested('fs3');
     assertNotSuggested('mi3');
@@ -4269,11 +4263,4 @@ class C with M {
     assertNotSuggested('x');
     assertNotSuggested('e');
   }
-}
-
-@reflectiveTest
-class TypeMemberContributorWithNewRelevanceTest
-    extends TypeMemberContributorTest {
-  @override
-  bool get useNewRelevance => true;
 }

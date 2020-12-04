@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -29,7 +28,7 @@ void f<T extends Map<int, String>?>(T a) {
 }
 
 @reflectiveTest
-class NotMapSpreadTest extends DriverResolutionTest {
+class NotMapSpreadTest extends PubPackageResolutionTest {
   test_map() async {
     await assertNoErrorsInCode('''
 var a = {0: 0};

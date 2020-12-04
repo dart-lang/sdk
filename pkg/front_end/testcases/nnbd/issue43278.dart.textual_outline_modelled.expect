@@ -1,0 +1,9 @@
+bar<T extends A?>(A? a, T t, dynamic d, int x) {}
+
+class A {
+  A(this.bar);
+  A bar;
+  int? foo;
+}
+
+main() {}

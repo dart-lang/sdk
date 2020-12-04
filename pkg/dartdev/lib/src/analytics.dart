@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:telemetry/telemetry.dart' as telemetry show isRunningOnBot;
 import 'package:usage/src/usage_impl.dart';
@@ -13,51 +15,62 @@ import 'package:usage/usage_io.dart';
 const String analyticsNoticeOnFirstRunMessage = '''
   ╔════════════════════════════════════════════════════════════════════════════╗
   ║ The Dart tool uses Google Analytics to anonymously report feature usage    ║
-  ║ statistics, and crash reporting to send basic crash reports. This data is  ║
-  ║ used to help improve the Dart platform and tools over time.                ║
+  ║ statistics and to send basic crash reports. This data is used to help      ║
+  ║ improve the Dart platform and tools over time.                             ║
   ║                                                                            ║
-  ║ To disable reporting of anonymous tool usage statistics in general, run    ║
-  ║ the command: `dart --disable-analytics`.                                   ║
+  ║ To disable reporting of anonymous analytics, run:                          ║
+  ║                                                                            ║
+  ║   dart --disable-analytics                                                 ║
+  ║                                                                            ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 ''';
 const String analyticsDisabledNoticeMessage = '''
   ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ Anonymous analytics disabled. To enable again, run the command:            ║
-  ║ `dart --enable-analytics`                                                  ║
+  ║ Anonymous analytics reporting disabled. In order to enable it, run:        ║
+  ║                                                                            ║
+  ║   dart --enable-analytics                                                  ║
+  ║                                                                            ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 ''';
-const String _unknownCommand = '<unknown>';
 const String _appName = 'dartdev';
 const String _dartDirectoryName = '.dart';
 const String _settingsFileName = 'dartdev.json';
 const String _trackingId = 'UA-26406144-37';
+const String _readmeFileName = 'README.txt';
+const String _readmeFileContents = '''
+This directory contains user-level settings for the Dart programming language
+(https://dart.dev).
+''';
 
 const String eventCategory = 'dartdev';
 const String exitCodeParam = 'exitCode';
-const String flagsParam = 'flags';
 
-Analytics instance;
+/// Disabled [Analytics], exposed for testing only
+@visibleForTesting
+Analytics get disabledAnalytics => DisabledAnalytics(_trackingId, _appName);
 
-/// Create and return an [Analytics] instance, this value is cached and returned
-/// on subsequent calls.
+/// Create and return an [Analytics] instance.
 Analytics createAnalyticsInstance(bool disableAnalytics) {
-  if (instance != null) {
-    return instance;
+  if (Platform.environment['_DARTDEV_LOG_ANALYTICS'] != null) {
+    // Used for testing what analytics messages are sent.
+    return _LoggingAnalytics();
   }
 
-  // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
-  // handled here
   if (disableAnalytics) {
-    instance = DisabledAnalytics(_trackingId, _appName);
-    return instance;
+    // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
+    // handled here.
+    //
+    // Also, stdout.hasTerminal is checked; if there is no terminal we infer
+    // that a machine is running dartdev so we return that analytics shouldn't
+    // be set enabled.
+    return DisabledAnalytics(_trackingId, _appName);
   }
 
-  var settingsDir = getDartStorageDirectory();
+  final settingsDir = getDartStorageDirectory();
   if (settingsDir == null) {
     // Some systems don't support user home directories; for those, fail
     // gracefully by returning a disabled analytics object.
-    instance = DisabledAnalytics(_trackingId, _appName);
-    return instance;
+    return DisabledAnalytics(_trackingId, _appName);
   }
 
   if (!settingsDir.existsSync()) {
@@ -66,47 +79,19 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
     } catch (e) {
       // If we can't create the directory for the analytics settings, fail
       // gracefully by returning a disabled analytics object.
-      instance = DisabledAnalytics(_trackingId, _appName);
-      return instance;
+      return DisabledAnalytics(_trackingId, _appName);
     }
   }
 
-  var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
-  instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
-  return instance;
-}
+  final readmeFile =
+      File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
+  if (!readmeFile.existsSync()) {
+    readmeFile.createSync();
+    readmeFile.writeAsStringSync(_readmeFileContents);
+  }
 
-/// Return the first member from [args] that occurs in [allCommands], otherwise
-/// '<unknown>' is returned.
-///
-/// 'help' is special cased to have 'dart analyze help', 'dart help analyze',
-/// and 'dart analyze --help' all be recorded as a call to 'help' instead of
-/// 'help' and 'analyze'.
-String getCommandStr(List<String> args, List<String> allCommands) {
-  if (args.contains('help') || args.contains('-h') || args.contains('--help')) {
-    return 'help';
-  }
-  return args.firstWhere((arg) => allCommands.contains(arg),
-      orElse: () => _unknownCommand);
-}
-
-/// Given some set of arguments and parameters, this returns a proper subset
-/// of the arguments that start with '-', joined by a space character.
-String getFlags(List<String> args) {
-  if (args == null || args.isEmpty) {
-    return '';
-  }
-  var argSubset = <String>[];
-  for (var arg in args) {
-    if (arg.startsWith('-')) {
-      if (arg.contains('=')) {
-        argSubset.add(arg.substring(0, arg.indexOf('=') + 1));
-      } else {
-        argSubset.add(arg);
-      }
-    }
-  }
-  return argSubset.join(' ');
+  final settingsFile = File(path.join(settingsDir.path, _settingsFileName));
+  return DartdevAnalytics(_trackingId, settingsFile, _appName);
 }
 
 /// The directory used to store the analytics settings file.
@@ -124,6 +109,10 @@ Directory getDartStorageDirectory() {
   return Directory(path.join(homeDir.path, _dartDirectoryName));
 }
 
+/// The method used by dartdev to determine if this machine is a bot such as a
+/// CI machine.
+bool isBot() => telemetry.isRunningOnBot();
+
 class DartdevAnalytics extends AnalyticsImpl {
   DartdevAnalytics(String trackingId, File settingsFile, String appName)
       : super(
@@ -136,15 +125,25 @@ class DartdevAnalytics extends AnalyticsImpl {
 
   @override
   bool get enabled {
-    if (telemetry.isRunningOnBot()) {
+    // Don't enable if the user hasn't been shown the disclosure or if this
+    // machine is bot.
+    if (!disclosureShownOnTerminal || isBot()) {
       return false;
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.
     return (properties['enabled'] as bool) ?? false;
   }
+
+  bool get disclosureShownOnTerminal =>
+      (properties['disclosureShown'] as bool) ?? false;
+
+  set disclosureShownOnTerminal(bool value) {
+    properties['disclosureShown'] = value;
+  }
 }
 
+@visibleForTesting
 class DisabledAnalytics extends AnalyticsMock {
   @override
   final String trackingId;
@@ -158,4 +157,52 @@ class DisabledAnalytics extends AnalyticsMock {
 
   @override
   bool get firstRun => false;
+}
+
+class _LoggingAnalytics extends AnalyticsMock {
+  _LoggingAnalytics() {
+    onSend.listen((event) {
+      stderr.writeln('[analytics]${json.encode(event)}');
+    });
+  }
+
+  @override
+  bool get firstRun => false;
+
+  @override
+  Future sendScreenView(String viewName, {Map<String, String> parameters}) {
+    parameters ??= <String, String>{};
+    parameters['viewName'] = viewName;
+    return _log('screenView', parameters);
+  }
+
+  @override
+  Future sendEvent(String category, String action,
+      {String label, int value, Map<String, String> parameters}) {
+    parameters ??= <String, String>{};
+    return _log(
+        'event',
+        {'category': category, 'action': action, 'label': label, 'value': value}
+          ..addAll(parameters));
+  }
+
+  @override
+  Future sendSocial(String network, String action, String target) =>
+      _log('social', {'network': network, 'action': action, 'target': target});
+
+  @override
+  Future sendTiming(String variableName, int time,
+      {String category, String label}) {
+    return _log('timing', {
+      'variableName': variableName,
+      'time': time,
+      'category': category,
+      'label': label
+    });
+  }
+
+  Future<void> _log(String hitType, Map message) async {
+    final encoded = json.encode({'hitType': hitType, 'message': message});
+    stderr.writeln('[analytics]: $encoded');
+  }
 }

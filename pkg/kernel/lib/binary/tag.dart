@@ -29,9 +29,6 @@ class Tag {
   // Expressions
   static const int CheckLibraryIsLoaded = 13;
   static const int LoadLibrary = 14;
-  static const int DirectPropertyGet = 15;
-  static const int DirectPropertySet = 16;
-  static const int DirectMethodInvocation = 17;
   static const int ConstStaticInvocation = 18;
   static const int InvalidExpression = 19;
   static const int VariableGet = 20;
@@ -149,7 +146,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 44;
+  static const int BinaryFormatVersion = 51;
 }
 
 abstract class ConstantTag {
@@ -180,7 +177,7 @@ const String sdkHashNull = '0000000000';
 // If null, local development setting (e.g. run gen_kernel.dart from source),
 // we put 0x00..00 into when producing, do not validate when consuming.
 String get expectedSdkHash {
-  final sdkHash =
+  final String sdkHash =
       const String.fromEnvironment('sdk_hash', defaultValue: sdkHashNull);
   if (sdkHash.length != sdkHashLength) {
     throw '-Dsdk_hash=<hash> must be a ${sdkHashLength} byte string!';

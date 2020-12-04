@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ResourceUriResolverTest with ResourceProviderMixin {
-  ResourceUriResolver resolver;
+  /*late*/ ResourceUriResolver resolver;
 
   void setUp() {
     resolver = ResourceUriResolver(resourceProvider);

@@ -21,15 +21,15 @@ main() {
 
 @reflectiveTest
 class AnalysisSessionImplTest with ResourceProviderMixin {
-  AnalysisContextCollection contextCollection;
-  AnalysisContext context;
-  AnalysisSessionImpl session;
+  /*late final*/ AnalysisContextCollection contextCollection;
+  /*late final*/ AnalysisContext context;
+  /*late final*/ AnalysisSessionImpl session;
 
-  String testContextPath;
-  String aaaContextPath;
-  String bbbContextPath;
+  /*late final*/ String testContextPath;
+  /*late final*/ String aaaContextPath;
+  /*late final*/ String bbbContextPath;
 
-  String testPath;
+  /*late final*/ String testPath;
 
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
@@ -124,7 +124,7 @@ class B {}
     var typeProvider = resolvedUnit.typeProvider;
     var intClass = typeProvider.intType.element;
 
-    var parsedLibrary = await session.getParsedLibrary(testPath);
+    var parsedLibrary = session.getParsedLibrary(testPath);
 
     expect(() {
       parsedLibrary.getElementDeclaration(intClass);
@@ -492,21 +492,5 @@ class B {}
 
   test_resourceProvider() async {
     expect(session.resourceProvider, resourceProvider);
-  }
-
-  @deprecated
-  test_typeProvider() async {
-    var typeProvider = await session.typeProvider;
-    expect(typeProvider.intType.element.name, 'int');
-  }
-
-  @deprecated
-  test_typeSystem() async {
-    var typeSystem = await session.typeSystem;
-    var typeProvider = typeSystem.typeProvider;
-    expect(
-      typeSystem.isSubtypeOf(typeProvider.intType, typeProvider.numType),
-      isTrue,
-    );
   }
 }

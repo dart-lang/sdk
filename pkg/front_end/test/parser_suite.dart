@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File;
@@ -14,6 +12,8 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 
 import 'package:front_end/src/fasta/messages.dart' show Message;
+
+import 'package:front_end/src/fasta/util/direct_parser_ast.dart' show getAST;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
@@ -29,6 +29,9 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 
+import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart'
+    show DirectParserASTContent;
+
 import 'package:kernel/ast.dart';
 
 import 'package:testing/testing.dart'
@@ -41,11 +44,14 @@ import 'package:testing/testing.dart'
         TestDescription,
         runMe;
 
+import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
 import 'utils/kernel_chain.dart' show MatchContext;
 
 import 'parser_test_listener.dart' show ParserTestListener;
 
 import 'parser_test_parser.dart' show TestParser;
+
+import 'testing_utils.dart' show checkEnvironment;
 
 const String EXPECTATIONS = '''
 [
@@ -65,8 +71,18 @@ main([List<String> arguments = const []]) =>
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context(suite.name, environment["updateExpectations"] == "true",
-      environment["trace"] == "true", environment["annotateLines"] == "true");
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "trace",
+    "annotateLines"
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
+  bool updateExpectations = environment["updateExpectations"] == "true";
+  bool trace = environment["trace"] == "true";
+  bool annotateLines = environment["annotateLines"] == "true";
+
+  return new Context(suite.name, updateExpectations, trace, annotateLines);
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
@@ -81,6 +97,10 @@ ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
 
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
+
+  @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
   final bool addTrace;
   final bool annotateLines;
   final String suiteName;
@@ -91,16 +111,61 @@ class Context extends ChainContext with MatchContext {
   final List<Step> steps = const <Step>[
     const TokenStep(true, ".scanner.expect"),
     const TokenStep(false, ".parser.expect"),
-    const ListenerStep(),
+    const ListenerStep(true),
     const IntertwinedStep(),
   ];
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+  // Override special handling of negative tests.
+  @override
+  Result processTestResult(
+      TestDescription description, Result result, bool last) {
+    return result;
+  }
+}
+
+class ContextChecksOnly extends Context {
+  ContextChecksOnly(String suiteName) : super(suiteName, false, false, false);
+
+  final List<Step> steps = const <Step>[
+    const ListenerStep(false),
+    const DirectParserASTStep(),
+  ];
+
+  final ExpectationSet expectationSet =
+      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+  // Override special handling of negative tests.
+  @override
+  Result processTestResult(
+      TestDescription description, Result result, bool last) {
+    return result;
+  }
+}
+
+class DirectParserASTStep
+    extends Step<TestDescription, TestDescription, Context> {
+  const DirectParserASTStep();
+  String get name => "DirectParserAST";
+  Future<Result<TestDescription>> run(
+      TestDescription description, Context context) {
+    Uri uri = description.uri;
+    File f = new File.fromUri(uri);
+    List<int> rawBytes = f.readAsBytesSync();
+    DirectParserASTContent ast = getAST(rawBytes);
+    if (ast.what != "CompilationUnit") {
+      throw "Expected a single element for 'CompilationUnit' "
+          "but got ${ast.what}";
+    }
+    return new Future.value(new Result<TestDescription>.pass(description));
+  }
 }
 
 class ListenerStep extends Step<TestDescription, TestDescription, Context> {
-  const ListenerStep();
+  final bool doExpects;
+  const ListenerStep(this.doExpects);
 
   String get name => "listener";
 
@@ -134,8 +199,12 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
           "${parserTestListener.errors.join("\n\n")}\n\n";
     }
 
-    return context.match<TestDescription>(".expect",
-        "${errors}${parserTestListener.sb}", description.uri, description);
+    if (doExpects) {
+      return context.match<TestDescription>(".expect",
+          "${errors}${parserTestListener.sb}", description.uri, description);
+    } else {
+      return new Future.value(new Result<TestDescription>.pass(description));
+    }
   }
 }
 
@@ -349,6 +418,24 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   ParserTestListenerWithMessageFormatting(
       bool trace, this.annotateLines, this.source, this.shortName)
       : super(trace);
+
+  void doPrint(String s) {
+    super.doPrint(s);
+    if (!annotateLines) {
+      if (s.startsWith("beginCompilationUnit(") ||
+          s.startsWith("endCompilationUnit(")) {
+        if (indent != 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
+      } else {
+        if (indent <= 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
+      }
+    }
+  }
 
   void seen(Token token) {
     if (!annotateLines) return;

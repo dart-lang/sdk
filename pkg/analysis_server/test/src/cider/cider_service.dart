@@ -43,7 +43,6 @@ class CiderServiceTest with ResourceProviderMixin {
       (String path) => _getDigest(path),
       null,
       workspace: workspace,
-      libraryContextResetTimeout: null,
     );
     fileResolver.testView = FileResolverTestView();
   }
@@ -54,7 +53,8 @@ class CiderServiceTest with ResourceProviderMixin {
     logger = PerformanceLog(logBuffer);
     sdk = MockSdk(resourceProvider: resourceProvider);
 
-    newFile('/workspace/WORKSPACE', content: '');
+    newFile('/workspace/WORKSPACE');
+    newFile('/workspace/dart/test/BUILD');
     createFileResolver();
   }
 

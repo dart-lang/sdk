@@ -7,6 +7,8 @@
 // Only tests a single field because the FfiMemory benchmark already tests loads
 // and stores of different field sizes.
 
+// @dart=2.9
+
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';

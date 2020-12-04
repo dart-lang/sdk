@@ -258,7 +258,7 @@ doTest(String allocation,
 
   K(TypeMask other) => simplify(keyType.union(other, commonMasks), commonMasks);
   V(TypeMask other) =>
-      simplify(valueType.union(other, commonMasks), commonMasks).nullable();
+      simplify(valueType.union(other, commonMasks).nullable(), commonMasks);
 
   checkType('mapInField', K(aKeyType), V(commonMasks.numType));
   checkType('mapPassedToMethod', K(aKeyType), V(commonMasks.numType));

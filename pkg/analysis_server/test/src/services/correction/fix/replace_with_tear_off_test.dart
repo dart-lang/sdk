@@ -24,7 +24,7 @@ class ReplaceWithTearOffTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unnecessary_lambdas;
 
   Future<void> test_function_oneParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Function f() => (name) {
   print(name);
 };
@@ -35,7 +35,7 @@ Function f() => print;
   }
 
   Future<void> test_function_zeroParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo(){}
 Function finalVar() {
   return () {
@@ -52,7 +52,7 @@ Function finalVar() {
   }
 
   Future<void> test_lambda_asArgument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo() {
   bool isPair(int a) => a % 2 == 0;
   final finalList = <int>[];
@@ -70,7 +70,7 @@ void foo() {
   }
 
   Future<void> test_method_oneParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 final l = <int>[];
 var a = (x) => l.indexOf(x);
 ''');
@@ -81,7 +81,7 @@ var a = l.indexOf;
   }
 
   Future<void> test_method_zeroParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 final Object a = '';
 Function finalVar() {
   return () {

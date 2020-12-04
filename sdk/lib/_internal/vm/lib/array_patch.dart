@@ -12,6 +12,7 @@ class List<E> {
   }
 
   @patch
+  @pragma("vm:recognized", "other")
   factory List([int? length]) native "List_new";
 
   @patch
@@ -29,43 +30,60 @@ class List<E> {
 
   @patch
   factory List.from(Iterable elements, {bool growable: true}) {
-    if (elements is EfficientLengthIterable<E>) {
-      int length = elements.length;
-      var list = growable ? new _GrowableList<E>(length) : new _List<E>(length);
-      if (length > 0) {
-        // Avoid creating iterator unless necessary.
-        int i = 0;
-        for (var element in elements) {
-          list[i++] = element;
-        }
-      }
-      return list;
-    }
     // If elements is an Iterable<E>, we won't need a type-test for each
-    // element. In the "common case" that elements is an Iterable<E>, this
-    // replaces a type-test on every element with a single type-test before
-    // starting the loop.
+    // element.
     if (elements is Iterable<E>) {
-      List<E> list = new _GrowableList<E>(0);
-      for (E e in elements) {
-        list.add(e);
-      }
-      if (growable) return list;
-      return makeListFixedLength(list);
-    } else {
-      List<E> list = new _GrowableList<E>(0);
-      for (E e in elements) {
-        list.add(e);
-      }
-      if (growable) return list;
-      return makeListFixedLength(list);
+      return List.of(elements, growable: growable);
     }
+
+    List<E> list = new _GrowableList<E>(0);
+    for (E e in elements) {
+      list.add(e);
+    }
+    if (growable) return list;
+    return makeListFixedLength(list);
   }
 
   @patch
   factory List.of(Iterable<E> elements, {bool growable: true}) {
-    // TODO(32937): Specialize to benefit from known element type.
-    return List.from(elements, growable: growable);
+    final cid = ClassID.getID(elements);
+    final isVMList = (cid == ClassID.cidArray) ||
+        (cid == ClassID.cidGrowableObjectArray) ||
+        (cid == ClassID.cidImmutableArray);
+
+    if (isVMList) {
+      final ListBase<E> elementsAsList = elements as ListBase<E>;
+      final int length = elementsAsList.length;
+      final list =
+          growable ? new _GrowableList<E>(length) : new _List<E>(length);
+      if (length > 0) {
+        for (int i = 0; i < length; i++) {
+          list[i] = elementsAsList[i];
+        }
+      }
+      return list;
+    }
+
+    if (elements is EfficientLengthIterable) {
+      final int length = elements.length;
+      final list =
+          growable ? new _GrowableList<E>(length) : new _List<E>(length);
+      if (length > 0) {
+        int i = 0;
+        for (var element in elements) {
+          list[i++] = element;
+        }
+        if (i != length) throw ConcurrentModificationError(elements);
+      }
+      return list;
+    }
+
+    final list = <E>[];
+    for (var elements in elements) {
+      list.add(elements);
+    }
+    if (growable) return list;
+    return makeListFixedLength(list);
   }
 
   @patch

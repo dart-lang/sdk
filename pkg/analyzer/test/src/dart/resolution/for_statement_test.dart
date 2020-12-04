@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 
 /// TODO(scheglov) Move other for-in tests here.
 @reflectiveTest
-class ForEachStatementResolutionTest extends DriverResolutionTest {
+class ForEachStatementResolutionTest extends PubPackageResolutionTest {
   test_iterable_missing() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -79,7 +79,7 @@ void f(List<int> a) {
 }
 
 @reflectiveTest
-class ForLoopStatementResolutionTest extends DriverResolutionTest {
+class ForLoopStatementResolutionTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
 main(bool Function() b) {

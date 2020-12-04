@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,39 +14,39 @@ main() {
 }
 
 @reflectiveTest
-class AmbiguousExportTest extends DriverResolutionTest {
+class AmbiguousExportTest extends PubPackageResolutionTest {
   test_class() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class N {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class N {}
 ''');
     await assertErrorsInCode(r'''
 export 'lib1.dart';
 export 'lib2.dart';
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 20, 19),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11),
     ]);
   }
 
   test_extensions_bothExported() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 extension E on String {}
 ''');
     await assertErrorsInCode(r'''
 export 'lib1.dart';
 export 'lib2.dart';
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 20, 19),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11),
     ]);
   }
 
   test_extensions_localAndExported() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {}
 ''');
     await assertNoErrorsInCode(r'''

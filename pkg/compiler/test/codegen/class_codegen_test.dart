@@ -26,6 +26,8 @@ class B extends A { }
 main() {
   new A();
   new B();
+  String c = '';
+  print(c);
 }
 """;
 
@@ -34,6 +36,8 @@ class B extends A { }
 class A { }
 
 main() {
+  String c = '';
+  print(c);
   new B();
   new A();
 }

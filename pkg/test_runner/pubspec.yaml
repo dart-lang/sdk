@@ -8,20 +8,28 @@ publish_to: none
 environment:
   sdk: "^2.3.0"
 dependencies:
-  expect:
-    path: ../expect
-  glob:
-    path: ../../third_party/pkg/glob
+  args: any
+  dart2js_tools:
+    path: ../dart2js_tools
   package_config:
     path: ../../third_party/pkg_tested/package_config
+  path: any
+  pool: any
   smith:
     path: ../smith
   status_file:
     path: ../status_file
-  dart2js_tools:
-    path: ../dart2js_tools
+dev_dependencies:
+  expect:
+    path: ../expect
+  file: any
+  glob: any
 dependency_overrides:
   # Other packages in the dependency graph have normal hosted dependencies on
   # this, so just override it to force the local one.
   args:
     path: ../../third_party/pkg/args
+  file:
+    path: ../../third_party/pkg/file/packages/file
+  glob:
+    path: ../../third_party/pkg/glob

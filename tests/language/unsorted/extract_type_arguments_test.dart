@@ -39,7 +39,7 @@ testExtractIterableTypeArgument() {
   Expect.isTrue(called);
 
   // Returns result of function.
-  Object result = extractIterableTypeArgument(object, <T>() => new Set<T>());
+  Object? result = extractIterableTypeArgument(object, <T>() => new Set<T>());
   Expect.isTrue(result is Set<int>);
   Expect.isFalse(result is Set<bool>);
 
@@ -63,7 +63,7 @@ testExtractMapTypeArguments() {
   Expect.isTrue(called);
 
   // Returns result of function.
-  Object result = extractMapTypeArguments(object, <K, V>() => new Two<K, V>());
+  Object? result = extractMapTypeArguments(object, <K, V>() => new Two<K, V>());
   Expect.isTrue(result is Two<String, int>);
   Expect.isFalse(result is Two<int, String>);
 

@@ -19,7 +19,7 @@ class RemoveUnnecessaryConstTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_const;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C { const C(); }
 class D { const D(C c); }
 const c = const C();

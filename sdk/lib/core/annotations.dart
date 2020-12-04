@@ -86,31 +86,32 @@ class _Override {
   const _Override();
 }
 
-/**
- * The annotation `@override` marks an instance member as overriding a
- * superclass member with the same name.
- *
- * The annotation applies to instance methods, getters and setters, and to
- * instance fields, where it means that the implicit getter and setter of the
- * field is marked as overriding, but the field itself is not.
- *
- * The intent of the `@override` notation is to catch situations where a
- * superclass renames a member, and an independent subclass which used to
- * override the member, could silently continue working using the
- * superclass implementation.
- *
- * The editor, or a similar tool aimed at the programmer, may report if no
- * declaration of an annotated member is inherited by the class from either a
- * superclass or an interface.
- *
- * Use the `@override` annotation judiciously and only for methods where
- * the superclass is not under the programmer's control, the superclass is in a
- * different library or package, and it is not considered stable.
- * In any case, the use of `@override` is optional.
- *
- * For example, the annotation is intentionally not used in the Dart platform
- * libraries, since they only depend on themselves.
- */
+/// Annotation on an instance members which override an interface member.
+///
+/// Annotations have no effect on the meaning of a Dart program.
+/// This annotation is recognized by the Dart analyzer, and it allows the
+/// analyzer to provide hints or warnings for some potential problems of an
+/// otherwise valid program.
+/// As such, the meaning of this annotation is defined by the Dart analyzer.
+///
+/// The `@override` annotation expresses the intent
+/// that a declaration *should* override an interface method,
+/// something which is not visible from the declaration itself.
+/// This extra information allows the analyzer to provide a warning
+/// when that intent is not satisfied,
+/// where a member is intended to override a superclass member or
+/// implement an interface member, but fails to do so.
+/// Such a situation can arise if a member name is mistyped,
+/// or if the superclass renames the member.
+///
+/// The `@override` annotation applies to instance methods, instance getters,
+/// instance setters and instance variables (fields).
+/// When applied to an instance variable,
+/// it means that the variable's implicit getter and setter (if any)
+/// are marked as overriding. It has no effect on the variable itself.
+///
+/// Further [lints](https://dart-lang.github.io/linter/lints/)
+/// can be used to enable more warnings based on `@override` annotations.
 const Object override = _Override();
 
 /**
@@ -127,64 +128,16 @@ class Provisional {
 /**
  * An annotation that was used during development of Dart 2.
  *
- * Should not be used any more.
+ * The annotation has no effect, and will be removed.
  */
 @deprecated
 const Null provisional = null;
 
-class _Proxy {
-  const _Proxy();
-}
-
-/**
- * This annotation is deprecated and will be removed in Dart 2.
- *
- * Dart 2 has a more restrictive type system than Dart 1, and it requires
- * method access to be either through a known interface or by using
- * dynamic invocations. The original intent of `@proxy` (to implement a class
- * that isn't known statically, as documented at the end of this text),
- * is not supported by Dart 2.
- * To continue to perform dynamic invocations on an object,
- * it should be accessed through a reference of type `dynamic`.
- *
- * The annotation `@proxy` marks a class as implementing members dynamically
- * through `noSuchMethod`.
- *
- * The annotation applies to any class. It is inherited by subclasses from both
- * superclass and interfaces.
- *
- * If a class is annotated with `@proxy`, or it implements any class that is
- * annotated, then all member accesses are allowed on an object of that type.
- * As such, it is not a static type warning to access any member of the object
- * which is not implemented by the class, or to call a method with a different
- * number of parameters than it is declared with.
- *
- * The annotation does not change which classes the annotated class implements,
- * and does not prevent static warnings for assigning an object to a variable
- * with a static type not implemented by the object.
- *
- * The suppression of warnings only affect static type warnings about
- * member access.
- * The runtime type of the object is unaffected.
- * It is not considered to implement any special interfaces,
- * so assigning it to a typed variable may fail in checked mode,
- * and testing it with the `is` operator
- * will only return true for types it actually implements or extends.
- * Accessing a member which isn't implemented by the class
- * will cause the `noSuchMethod` method to be called normally,
- * the `@proxy` annotation merely states the intent to handle (some of) those
- * `noSuchMethod` calls gracefully.
- *
- * A class that marked as `@proxy` should override the `noSuchMethod`
- * declared on [Object].
- *
- * The intent of the `@proxy` notation is to create objects that implement a
- * type (or multiple types) that are not known at compile time. If the types
- * are known at compile time, a class can be written that implements these
- * types.
- */
+/// This annotation was used in Dart prior to version 2.
+///
+/// The annotation has no effect, and will be removed.
 @deprecated
-const Object proxy = _Proxy();
+const Null proxy = null;
 
 /**
  * A hint to tools.
@@ -203,7 +156,8 @@ const Object proxy = _Proxy();
  * A tool may recognize unprefixed names as well, if they would recognize that
  * name with their own prefix in front.
  *
- * If the hint can be parameterized, an extra [options] object can be added as well.
+ * If the hint can be parameterized,
+ * an extra [options] object can be added as well.
  *
  * For example:
  *
@@ -215,9 +169,9 @@ const Object proxy = _Proxy();
  * void foo() { }
  * ```
  *
- * Here class Foo is annotated with a Tool specific pragma 'pragma-name' and
- * function foo is annotated with a pragma 'other-pragma' specific to OtherTool.
- *
+ * Here class `Foo` is annotated with a Tool specific pragma 'pragma-name' and
+ * function `foo` is annotated with a pragma 'other-pragma'
+ * specific to OtherTool.
  */
 @pragma('vm:entry-point')
 class pragma {

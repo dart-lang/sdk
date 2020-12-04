@@ -20,7 +20,7 @@ class ConvertToNormalParameterTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_NORMAL_PARAMETER;
 
   Future<void> test_dynamic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   var test;
   A(this.test) {
@@ -37,7 +37,7 @@ class A {
   }
 
   Future<void> test_firstInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int test;
   A(this.test) {
@@ -54,7 +54,7 @@ class A {
   }
 
   Future<void> test_secondInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   double aaa;
   int bbb;

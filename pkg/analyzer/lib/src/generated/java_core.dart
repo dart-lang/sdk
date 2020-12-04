@@ -161,17 +161,17 @@ class PrintStringWriter extends PrintWriter {
 
 abstract class PrintWriter {
   void newLine() {
-    this.print('\n');
+    print('\n');
   }
 
   void print(Object x);
 
   void printf(String fmt, List args) {
-    this.print(_printf(fmt, args));
+    print(_printf(fmt, args));
   }
 
   void println(String s) {
-    this.print(s);
-    this.newLine();
+    print(s);
+    newLine();
   }
 }

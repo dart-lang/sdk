@@ -11,20 +11,20 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class SubtypeTestCacheRefElement extends CustomElement implements Renderable {
-  RenderingScheduler<SubtypeTestCacheRefElement> _r;
+  late RenderingScheduler<SubtypeTestCacheRefElement> _r;
 
   Stream<RenderedEvent<SubtypeTestCacheRefElement>> get onRendered =>
       _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.SubtypeTestCacheRef _subtypeTestCache;
+  late M.IsolateRef _isolate;
+  late M.SubtypeTestCacheRef _subtypeTestCache;
 
   M.IsolateRef get isolate => _isolate;
   M.SubtypeTestCacheRef get subtypeTestCache => _subtypeTestCache;
 
   factory SubtypeTestCacheRefElement(
       M.IsolateRef isolate, M.SubtypeTestCacheRef subtypeTestCache,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(subtypeTestCache != null);
     SubtypeTestCacheRefElement e = new SubtypeTestCacheRefElement.created();

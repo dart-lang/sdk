@@ -1,0 +1,250 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+import "dart:_internal" as _in;
+
+abstract class TestMixin<R extends core::Object* = dynamic, T extends core::Object* = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  method test(generic-covariant-impl asy::Future<self::TestMixin::R*>* fetch) → asy::Future<self::TestMixin::T*>* /* originally async */ {
+    final asy::_Future<self::TestMixin::T*>* :async_future = new asy::_Future::•<self::TestMixin::T*>();
+    core::bool* :is_sync = false;
+    FutureOr<self::TestMixin::T*>* :return_value;
+    (dynamic) →* dynamic :async_op_then;
+    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L1:
+        {
+          [yield] let dynamic #t1 = asy::_awaitHelper(fetch, :async_op_then, :async_op_error, :async_op) in null;
+          final self::TestMixin::R* response = _in::unsafeCast<self::TestMixin::R*>(:result);
+          self::TestMixin::T* result;
+          if(response is self::Response<dynamic>*) {
+            result = response{self::TestMixin::R* & self::Response<dynamic>* /* '*' & '*' = '*' */}.{self::Response::data} as{TypeError,ForDynamic} self::TestMixin::T*;
+          }
+          else
+            if(response is self::PagingResponse<dynamic>*) {
+              result = response{self::TestMixin::R* & self::PagingResponse<dynamic>* /* '*' & '*' = '*' */}.{self::PagingResponse::data}.{self::PagingResponseData::data} as self::TestMixin::T*;
+            }
+            else
+              if(response is self::TestMixin::T*) {
+                result = response{self::TestMixin::R* & self::TestMixin::T* /* '*' & '*' = '*' */};
+              }
+              else {
+                throw core::Exception::•("Invalid response type");
+              }
+          :return_value = result;
+          break #L1;
+        }
+        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+        asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+      }
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_op.call();
+    :is_sync = true;
+    return :async_future;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class PagingResponse<T extends core::Object* = dynamic> extends core::Object {
+  final field self::PagingResponseData<self::PagingResponse::T*>* data;
+  constructor •(self::PagingResponseData<self::PagingResponse::T*>* data) → self::PagingResponse<self::PagingResponse::T*>*
+    : self::PagingResponse::data = data, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class PagingResponseData<T extends core::Object* = dynamic> extends core::Object {
+  final field core::List<self::PagingResponseData::T*>* data;
+  constructor •(core::List<self::PagingResponseData::T*>* data) → self::PagingResponseData<self::PagingResponseData::T*>*
+    : self::PagingResponseData::data = data, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Response<T extends core::Object* = dynamic> extends core::Object {
+  final field self::Response::T* data;
+  constructor •(self::Response::T* data) → self::Response<self::Response::T*>*
+    : self::Response::data = data, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _Class1&Object&TestMixin extends core::Object implements self::TestMixin<self::Response<core::String*>*, core::String*> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class1&Object&TestMixin*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  method test(generic-covariant-impl asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>* /* originally async */ {
+    final asy::_Future<core::String*>* :async_future = new asy::_Future::•<core::String*>();
+    core::bool* :is_sync = false;
+    FutureOr<core::String*>* :return_value;
+    (dynamic) →* dynamic :async_op_then;
+    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L2:
+        {
+          [yield] let dynamic #t2 = asy::_awaitHelper(fetch, :async_op_then, :async_op_error, :async_op) in null;
+          final self::Response<core::String*>* response = _in::unsafeCast<self::Response<core::String*>*>(:result);
+          core::String* result;
+          if(response is self::Response<dynamic>*) {
+            result = response{self::Response<core::String*>*}.{self::Response::data};
+          }
+          else
+            if(response is self::PagingResponse<dynamic>*) {
+              result = response{self::Response<core::String*>*}.{self::PagingResponse::data}.{self::PagingResponseData::data} as core::String*;
+            }
+            else
+              if(response is core::String*) {
+                result = response{self::Response<core::String*>*};
+              }
+              else {
+                throw core::Exception::•("Invalid response type");
+              }
+          :return_value = result;
+          break #L2;
+        }
+        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+        asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+      }
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_op.call();
+    :is_sync = true;
+    return :async_future;
+  }
+}
+class Class1 extends self::_Class1&Object&TestMixin {
+  synthetic constructor •() → self::Class1*
+    : super self::_Class1&Object&TestMixin::•()
+    ;
+  method _test() → dynamic {
+    final self::Response<core::String*>* response = new self::Response::•<core::String*>("test");
+    this.{self::TestMixin::test}(asy::Future::value<self::Response<core::String*>*>(response));
+  }
+}
+abstract class _Class2&Object&TestMixin extends core::Object implements self::TestMixin<self::PagingResponse<core::String*>*, core::String*> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class2&Object&TestMixin*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>* /* originally async */ {
+    final asy::_Future<core::String*>* :async_future = new asy::_Future::•<core::String*>();
+    core::bool* :is_sync = false;
+    FutureOr<core::String*>* :return_value;
+    (dynamic) →* dynamic :async_op_then;
+    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L3:
+        {
+          [yield] let dynamic #t3 = asy::_awaitHelper(fetch, :async_op_then, :async_op_error, :async_op) in null;
+          final self::PagingResponse<core::String*>* response = _in::unsafeCast<self::PagingResponse<core::String*>*>(:result);
+          core::String* result;
+          if(response is self::Response<dynamic>*) {
+            result = response{self::PagingResponse<core::String*>*}.{self::Response::data} as{TypeError,ForDynamic} core::String*;
+          }
+          else
+            if(response is self::PagingResponse<dynamic>*) {
+              result = response{self::PagingResponse<core::String*>*}.{self::PagingResponse::data}.{self::PagingResponseData::data} as core::String*;
+            }
+            else
+              if(response is core::String*) {
+                result = response{self::PagingResponse<core::String*>*};
+              }
+              else {
+                throw core::Exception::•("Invalid response type");
+              }
+          :return_value = result;
+          break #L3;
+        }
+        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+        asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
+      }
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_op.call();
+    :is_sync = true;
+    return :async_future;
+  }
+}
+class Class2 extends self::_Class2&Object&TestMixin {
+  synthetic constructor •() → self::Class2*
+    : super self::_Class2&Object&TestMixin::•()
+    ;
+  method _test() → dynamic {
+    final self::PagingResponse<core::String*>* response = new self::PagingResponse::•<core::String*>(new self::PagingResponseData::•<core::String*>(<core::String*>["test"]));
+    this.{self::TestMixin::test}(asy::Future::value<self::PagingResponse<core::String*>*>(response));
+  }
+}
+static method main() → dynamic {}

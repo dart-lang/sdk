@@ -9,7 +9,7 @@
 /*class: global#LinkedHashMap:*/
 /*class: global#JsLinkedHashMap:checks=[],instance*/
 
-/*spec.class: global#double:checkedInstance,checks=[],instance,typeArgument*/
+/*spec.class: global#double:checkedInstance,instance,typeArgument*/
 
 /*class: global#JSDouble:checks=[],instance*/
 

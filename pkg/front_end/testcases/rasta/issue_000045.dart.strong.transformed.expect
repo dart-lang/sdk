@@ -17,3 +17,9 @@ import self as self;
 static method main() → dynamic
   return "${1}
 \"\"\"";
+
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///issue_000045.dart:6:1 -> StringConstant("1
+\"\"\"")
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -139,12 +139,12 @@ static method propertyAccess(self::Class1? n1) → void {
   let final self::Class1? #t13 = n1 in #t13.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t14 = self::Extension1|get#nullable1(#t13{self::Class1}) in #t14.{core::Object::==}(null) ?{self::Class1?} null : self::Extension1|set#nullable1(#t14{self::Class1}, new self::Class1::•());
   let final self::Class1? #t15 = n1 in #t15.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t16 = self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(#t15{self::Class1})) in #t16.{core::Object::==}(null) ?{self::Class1?} null : self::Extension1|set#nullable1(#t16{self::Class1}, new self::Class1::•());
   let final self::Class1? #t17 = let final self::Class1? #t18 = n1 in #t18.{core::Object::==}(null) ?{self::Class1?} null : self::Extension1|get#nullable1(#t18{self::Class1}) in #t17.{core::Object::==}(null) ?{self::Class1?} null : self::Extension1|get#nullable1(#t17{self::Class1});
-  self::throws(() → self::Class1? => let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:93:47: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:93:47: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_extension.dart'.
 Try accessing using ?. instead.
   throws(() => (n1?.nullable1 = new Class1()).nullable1);
                                               ^^^^^^^^^" in self::Extension1|get#nullable1(let final self::Class1? #t20 = n1 in #t20.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t21 = new self::Class1::•() in let final void #t22 = self::Extension1|set#nullable1(#t20{self::Class1}, #t21) in #t21));
-  self::throws(() → self::Class1? => let final<BottomType> #t23 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:94:43: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t23 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:94:43: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_extension.dart'.
 Try accessing using ?. instead.
   throws(() => (n1?.nonNullable1Method()).nullable1);
@@ -261,11 +261,11 @@ static method indexAccess(self::Class1? n1, self::Class2? n2, self::Class3? n3) 
 }
 static method operatorAccess(self::Class1? n1, self::Class2? n2) → void {
   self::Class2? nullable2 = n2;
-  self::throws(() → self::Class1? => let final<BottomType> #t327 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:226:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t327 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:226:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_extension.dart'.
   throws(() => n1?.nonNullable1 + 0);
                                 ^" in self::Extension1|+(let final self::Class1? #t328 = n1 in #t328.{core::Object::==}(null) ?{self::Class1?} null : self::Extension1|get#nonNullable1(#t328{self::Class1}), 0));
-  self::throws(() → self::Class1? => let final<BottomType> #t329 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:227:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t329 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_extension.dart:227:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_extension.dart'.
   throws(() => -n1?.nonNullable1);
                ^" in self::Extension1|unary-(let final self::Class1? #t330 = n1 in #t330.{core::Object::==}(null) ?{self::Class1?} null : self::Extension1|get#nonNullable1(#t330{self::Class1})));
@@ -282,8 +282,8 @@ static method ifNull(self::Class1? n1) → void {
   self::Class1? nullable1 = n1;
   let final self::Class1? #t351 = n1 in #t351.{core::Object::==}(null) ?{self::Class1?} null : self::Extension1|get#nullable1(#t351).{core::Object::==}(null) ?{self::Class1} self::Extension1|set#nullable1(#t351, n1{self::Class1}) : null;
   n1 = let final self::Class1? #t352 = n1 in #t352.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t353 = self::Extension1|get#nullable1(#t352) in #t353.{core::Object::==}(null) ?{self::Class1} let final self::Class1 #t354 = n1{self::Class1} in let final void #t355 = self::Extension1|set#nullable1(#t352, #t354) in #t354 : #t353{self::Class1};
-  let final self::Class1? #t356 = n1 in #t356.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t357 = self::Extension1|get#nonNullable1(#t356{self::Class1}) in self::Extension1|get#nullable1(#t357{self::Class1}).{core::Object::==}(null) ?{self::Class1} self::Extension1|set#nullable1(#t357{self::Class1}, n1{self::Class1}) : null;
-  n1 = let final self::Class1? #t358 = n1 in #t358.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t359 = self::Extension1|get#nonNullable1(#t358{self::Class1}) in let final self::Class1? #t360 = self::Extension1|get#nullable1(#t359{self::Class1}) in #t360.{core::Object::==}(null) ?{self::Class1} let final self::Class1 #t361 = n1{self::Class1} in let final void #t362 = self::Extension1|set#nullable1(#t359{self::Class1}, #t361) in #t361 : #t360{self::Class1};
+  let final self::Class1? #t356 = n1 in #t356.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t357 = self::Extension1|get#nonNullable1(#t356{self::Class1}) in self::Extension1|get#nullable1(#t357).{core::Object::==}(null) ?{self::Class1} self::Extension1|set#nullable1(#t357, n1{self::Class1}) : null;
+  n1 = let final self::Class1? #t358 = n1 in #t358.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t359 = self::Extension1|get#nonNullable1(#t358{self::Class1}) in let final self::Class1? #t360 = self::Extension1|get#nullable1(#t359) in #t360.{core::Object::==}(null) ?{self::Class1} let final self::Class1 #t361 = n1{self::Class1} in let final void #t362 = self::Extension1|set#nullable1(#t359, #t361) in #t361 : #t360{self::Class1};
   let final self::Class1? #t363 = n1 in #t363.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t364 = self::Extension1|get#nonNullable1(#t363{self::Class1}) in let final self::Class1 #t365 = n1{self::Class1} in self::Extension1|[](#t364, #t365).{core::Object::==}(null) ?{self::Class1} self::Extension1|[]=(#t364, #t365, n1{self::Class1}) : null;
   n1 = let final self::Class1? #t366 = n1 in #t366.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t367 = self::Extension1|get#nonNullable1(#t366{self::Class1}) in let final self::Class1 #t368 = n1{self::Class1} in let final self::Class1? #t369 = self::Extension1|[](#t367, #t368) in #t369.{core::Object::==}(null) ?{self::Class1} let final self::Class1 #t370 = n1{self::Class1} in let final void #t371 = self::Extension1|[]=(#t367, #t368, #t370) in #t370 : #t369{self::Class1};
 }

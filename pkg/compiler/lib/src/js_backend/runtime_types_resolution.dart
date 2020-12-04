@@ -1201,18 +1201,23 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       type = type.withoutNullability;
       if (type is InterfaceType) {
         return [type.element];
-      } else if (type is DynamicType) {
-        return [commonElements.objectClass];
+      } else if (type is NeverType ||
+          type is DynamicType ||
+          type is VoidType ||
+          type is AnyType ||
+          type is ErasedType) {
+        // No classes implied.
+        return const [];
       } else if (type is FunctionType) {
         // TODO(johnniwinther): Include only potential function type subtypes.
         return [commonElements.functionClass];
-      } else if (type is VoidType) {
-        // No classes implied.
       } else if (type is FunctionTypeVariable) {
         return impliedClasses(type.bound);
       } else if (type is FutureOrType) {
-        return [commonElements.futureClass]
-          ..addAll(impliedClasses(type.typeArgument));
+        return [
+          commonElements.futureClass,
+          ...impliedClasses(type.typeArgument),
+        ];
       } else if (type is TypeVariableType) {
         // TODO(johnniwinther): Can we do better?
         return impliedClasses(

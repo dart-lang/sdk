@@ -223,6 +223,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isBoolean(AbstractValue value) => AbstractBool.Maybe;
 
   @override
+  AbstractBool isTruthy(AbstractValue value) => AbstractBool.Maybe;
+
+  @override
   AbstractBool isDoubleOrNull(AbstractValue value) => AbstractBool.Maybe;
 
   @override
@@ -397,6 +400,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue get growableListType => const TrivialAbstractValue();
+
+  @override
+  AbstractValue get mutableArrayType => const TrivialAbstractValue();
 
   @override
   AbstractValue get nullType => const TrivialAbstractValue();

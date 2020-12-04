@@ -171,17 +171,18 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
-
+        _ensureNativeTypeValid(nativeType, node, allowStructs: false);
+        _ensureNativeTypeToDartType(nativeType, dartType, node,
+            allowStructs: false);
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final DartType dartType = node.arguments.types[1];
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
 
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureNativeTypeValid(nativeType, node, allowStructs: false);
+        _ensureNativeTypeToDartType(nativeType, dartType, node,
+            allowStructs: false);
 
         final DartType nativeSignature =
             (nativeType as InterfaceType).typeArguments[0];
@@ -198,20 +199,22 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureIsStaticFunction(func);
 
-        // TODO(36730): Allow passing/returning structs by value.
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureNativeTypeValid(nativeType, node, allowStructs: false);
+        _ensureNativeTypeToDartType(nativeType, dartType, node,
+            allowStructs: false);
 
         // Check `exceptionalReturn`'s type.
         final FunctionType funcType = dartType;
-        final NativeType expectedReturn = getType(
+        final Class expectedReturnClass =
             ((node.arguments.types[0] as FunctionType).returnType
                     as InterfaceType)
-                .classNode);
+                .classNode;
+        final NativeType expectedReturn = getType(expectedReturnClass);
 
         if (expectedReturn == NativeType.kVoid ||
             expectedReturn == NativeType.kPointer ||
-            expectedReturn == NativeType.kHandle) {
+            expectedReturn == NativeType.kHandle ||
+            expectedReturnClass.superclass == structClass) {
           if (node.arguments.positional.length > 1) {
             diagnosticReporter.report(
                 templateFfiExpectedNoExceptionalReturn.withArguments(
@@ -329,6 +332,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final nativeFunctionType = InterfaceType(
         nativeFunctionClass, Nullability.legacy, node.arguments.types);
     var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
+    var lookupField = currentLibraryIndex?.lookupField(name.text);
     final Field field = Field(name,
         type: InterfaceType(
             pointerClass, Nullability.legacy, [nativeFunctionType]),
@@ -342,9 +346,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         isStatic: true,
         isFinal: true,
         fileUri: currentLibrary.fileUri,
-        reference: currentLibraryIndex?.lookupField(name.name)?.reference)
+        getterReference: lookupField?.getterReference,
+        setterReference: lookupField?.setterReference)
       ..fileOffset = node.fileOffset;
-    currentLibrary.addMember(field);
+    currentLibrary.addField(field);
     return StaticGet(field);
   }
 
@@ -434,7 +439,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       return;
     }
     diagnosticReporter.report(
-        templateFfiNotStatic.withArguments(fromFunctionMethod.name.name),
+        templateFfiNotStatic.withArguments(fromFunctionMethod.name.text),
         node.fileOffset,
         1,
         node.location.file);

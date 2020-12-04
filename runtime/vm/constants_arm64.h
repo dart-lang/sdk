@@ -142,6 +142,11 @@ const Register kWriteBarrierSlotReg = R25;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = R1;
 
+// Common ABI for shared slow path stubs.
+struct SharedSlowPathStubABI {
+  static const Register kResultReg = R0;
+};
+
 // ABI for instantiation stubs.
 struct InstantiationABI {
   static const Register kUninstantiatedTypeArgumentsReg = R3;
@@ -158,14 +163,40 @@ struct TypeTestABI {
   static const Register kInstantiatorTypeArgumentsReg = R2;
   static const Register kFunctionTypeArgumentsReg = R1;
   static const Register kSubtypeTestCacheReg = R3;
+  static const Register kScratchReg = R4;
+
+  // For calls to InstanceOfStub.
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For calls to SubtypeNTestCacheStub. Must not overlap with any other
+  // registers above, for it is also used internally as kNullReg in those stubs.
+  static const Register kSubtypeTestCacheResultReg = R7;
+
+  // Registers that need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
+      1 << kSubtypeTestCacheReg;
 
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg);
+      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg) |
+      (1 << kSubtypeTestCacheResultReg);
+};
 
-  // For call to InstanceOfStub.
-  static const Register kResultReg = R0;
+// Calling convention when calling AssertSubtypeStub.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = R0;
+  static const Register kSuperTypeReg = R8;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kDstNameReg = R3;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kDstNameReg);
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
 };
 
 // Registers used inside the implementation of type testing stubs.
@@ -197,6 +228,11 @@ struct InitLateInstanceFieldInternalRegs {
   static const Register kScratchReg = R4;
 };
 
+// ABI for LateInitializationError stubs.
+struct LateInitializationErrorABI {
+  static const Register kFieldReg = R9;
+};
+
 // ABI for ThrowStub.
 struct ThrowABI {
   static const Register kExceptionReg = R0;
@@ -225,6 +261,12 @@ struct AllocateMintABI {
   static const Register kTempReg = R1;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = R4;
+  static const Register kResultReg = R0;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 
@@ -241,21 +283,22 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 // See "Procedure Call Standard for the ARM 64-bit Architecture", document
 // number "ARM IHI 0055B", May 22 2013.
 
+#define R(REG) (1 << REG)
+
 // C++ ABI call registers.
-const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
-                                    (1 << R3) | (1 << R4) | (1 << R5) |
-                                    (1 << R6) | (1 << R7);
+const RegList kAbiArgumentCpuRegs =
+    R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
 #if defined(TARGET_OS_FUCHSIA)
-const RegList kAbiPreservedCpuRegs =
-    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
-    (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) | (1 << R28);
+const RegList kAbiPreservedCpuRegs = R(R18) | R(R19) | R(R20) | R(R21) |
+                                     R(R22) | R(R23) | R(R24) | R(R25) |
+                                     R(R26) | R(R27) | R(R28);
 const Register kAbiFirstPreservedCpuReg = R18;
 const Register kAbiLastPreservedCpuReg = R28;
 const int kAbiPreservedCpuRegCount = 11;
 #else
-const RegList kAbiPreservedCpuRegs =
-    (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
-    (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) | (1 << R28);
+const RegList kAbiPreservedCpuRegs = R(R19) | R(R20) | R(R21) | R(R22) |
+                                     R(R23) | R(R24) | R(R25) | R(R26) |
+                                     R(R27) | R(R28);
 const Register kAbiFirstPreservedCpuReg = R19;
 const Register kAbiLastPreservedCpuReg = R28;
 const int kAbiPreservedCpuRegCount = 10;
@@ -264,11 +307,11 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
-const intptr_t kReservedCpuRegisters =
-    (1 << SPREG) |  // Dart SP
-    (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
-    (1 << LR) | (1 << BARRIER_MASK) | (1 << NULL_REG) | (1 << R31) |  // C++ SP
-    (1 << R18) | (1 << DISPATCH_TABLE_REG);
+const intptr_t kReservedCpuRegisters = R(SPREG) |  // Dart SP
+                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
+                                       R(THR) | R(LR) | R(BARRIER_MASK) |
+                                       R(NULL_REG) | R(R31) |  // C++ SP
+                                       R(R18) | R(DISPATCH_TABLE_REG);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 12;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
@@ -283,15 +326,28 @@ const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
-constexpr int kStoreBufferWrapperSize = 32;
+// Two callee save scratch registers used by leaf runtime call sequence.
+const Register kCallLeafRuntimeCalleeSaveScratch1 = R23;
+const Register kCallLeafRuntimeCalleeSaveScratch2 = R25;
+static_assert((R(kCallLeafRuntimeCalleeSaveScratch1) & kAbiPreservedCpuRegs) !=
+                  0,
+              "Need callee save scratch register for leaf runtime calls.");
+static_assert((R(kCallLeafRuntimeCalleeSaveScratch2) & kAbiPreservedCpuRegs) !=
+                  0,
+              "Need callee save scratch register for leaf runtime calls.");
 
-#define R(REG) (1 << REG)
+constexpr int kStoreBufferWrapperSize = 32;
 
 class CallingConventions {
  public:
   static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 8;
+  // The native ABI uses R8 to pass the pointer to the memory preallocated for
+  // struct return values. Arm64 is the only ABI in which this pointer is _not_
+  // in ArgumentRegisters[0] or on the stack.
+  static const Register kPointerToReturnStructRegisterCall = R8;
+  static const Register kPointerToReturnStructRegisterReturn = R8;
 
   static const FpuRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters =
@@ -308,6 +364,9 @@ class CallingConventions {
 
   // How stack arguments are aligned.
 #if defined(TARGET_OS_MACOS_IOS)
+  // > Function arguments may consume slots on the stack that are not multiples
+  // > of 8 bytes.
+  // https://developer.apple.com/documentation/xcode/writing_arm64_code_for_apple_platforms
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToValueSize;
 #else
@@ -334,9 +393,13 @@ class CallingConventions {
   static constexpr FpuRegister kReturnFpuReg = V0;
 
   static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
-  static constexpr Register kFirstNonArgumentRegister = R8;
-  static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kFirstNonArgumentRegister = R9;
+  static constexpr Register kSecondNonArgumentRegister = R10;
   static constexpr Register kStackPointerRegister = SPREG;
+
+  COMPILE_ASSERT(
+      ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
 #undef R
@@ -435,64 +498,6 @@ enum Bits {
   B30 = (1 << 30),
   B31 = (1 << 31),
 };
-
-enum OperandSize {
-  kByte,
-  kUnsignedByte,
-  kHalfword,
-  kUnsignedHalfword,
-  kWord,
-  kUnsignedWord,
-  kDoubleWord,
-  kSWord,
-  kDWord,
-  kQWord,
-};
-
-static inline int Log2OperandSizeBytes(OperandSize os) {
-  switch (os) {
-    case kByte:
-    case kUnsignedByte:
-      return 0;
-    case kHalfword:
-    case kUnsignedHalfword:
-      return 1;
-    case kWord:
-    case kUnsignedWord:
-    case kSWord:
-      return 2;
-    case kDoubleWord:
-    case kDWord:
-      return 3;
-    case kQWord:
-      return 4;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return -1;
-}
-
-static inline bool IsSignedOperand(OperandSize os) {
-  switch (os) {
-    case kByte:
-    case kHalfword:
-    case kWord:
-      return true;
-    case kUnsignedByte:
-    case kUnsignedHalfword:
-    case kUnsignedWord:
-    case kDoubleWord:
-    case kSWord:
-    case kDWord:
-    case kQWord:
-      return false;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return false;
-}
 
 // Opcodes from C3
 // C3.1.
@@ -1044,6 +1049,24 @@ static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
   return result;
 }
 
+enum ScaleFactor {
+  TIMES_1 = 0,
+  TIMES_2 = 1,
+  TIMES_4 = 2,
+  TIMES_8 = 3,
+  TIMES_16 = 4,
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt64SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt64SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
+};
+
 // The class Instr enables access to individual fields defined in the ARM
 // architecture instruction set encoding as described in figure A3-1.
 //
@@ -1058,6 +1081,8 @@ static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
 class Instr {
  public:
   enum { kInstrSize = 4, kInstrSizeLog2 = 2, kPCReadOffset = 8 };
+
+  enum class WideSize { k32Bits, k64Bits };
 
   static const int32_t kNopInstruction = HINT;  // hint #0 === nop.
 
@@ -1102,10 +1127,9 @@ class Instr {
                               Register rd,
                               uint16_t imm,
                               int hw,
-                              OperandSize sz) {
+                              WideSize sz) {
     ASSERT((hw >= 0) && (hw <= 3));
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
-    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t size = (sz == WideSize::k64Bits) ? B31 : 0;
     SetInstructionBits(op | size | (static_cast<int32_t>(rd) << kRdShift) |
                        (static_cast<int32_t>(hw) << kHWShift) |
                        (static_cast<int32_t>(imm) << kImm16Shift));
@@ -1345,7 +1369,7 @@ class Instr {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
-const uword kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+const uint64_t kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
 
 }  // namespace dart
 

@@ -5,23 +5,24 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 /// Build summary for SDK at the given [sdkPath].
@@ -37,14 +38,17 @@ Uint8List buildSdkSummary({
     resourceProvider,
     resourceProvider.getFolder(sdkPath),
   );
-  sdk.analysisOptions = AnalysisOptionsImpl();
 
   // Append libraries from the embedder.
   if (embedderYamlPath != null) {
     var file = resourceProvider.getFile(embedderYamlPath);
     var content = file.readAsStringSync();
     var map = loadYaml(content) as YamlMap;
-    var embedderSdk = EmbedderSdk(resourceProvider, {file.parent: map});
+    var embedderSdk = EmbedderSdk(
+      resourceProvider,
+      {file.parent: map},
+      languageVersion: sdk.languageVersion,
+    );
     for (var library in embedderSdk.sdkLibraries) {
       var uriStr = library.shortName;
       if (sdk.libraryMap.getLibrary(uriStr) == null) {
@@ -57,15 +61,21 @@ Uint8List buildSdkSummary({
     return sdk.mapDartUri(e.shortName);
   }).toList();
 
+  var analysisContext = AnalysisContextImpl(
+    SynchronousSession(AnalysisOptionsImpl(), DeclaredVariables()),
+    SourceFactory([DartUriResolver(sdk)]),
+  );
+
   return _Builder(
-    sdk.context,
+    analysisContext,
     sdk.allowedExperimentsJson,
+    sdk.languageVersion,
     librarySources,
   ).build();
 }
 
 class _Builder {
-  final AnalysisContext context;
+  final AnalysisContextImpl context;
   final String allowedExperimentsJson;
   final Iterable<Source> librarySources;
 
@@ -73,11 +83,12 @@ class _Builder {
   final List<LinkInputLibrary> inputLibraries = [];
 
   AllowedExperiments allowedExperiments;
-  final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
+  Version languageVersion;
 
   _Builder(
     this.context,
     this.allowedExperimentsJson,
+    this.languageVersion,
     this.librarySources,
   ) {
     allowedExperiments = _parseAllowedExperiments(allowedExperimentsJson);
@@ -93,17 +104,24 @@ class _Builder {
       Reference.root(),
     );
 
-    var linkResult = link(elementFactory, inputLibraries);
-    bundleAssembler.setBundle2(linkResult.bundle);
+    var linkResult = link(elementFactory, inputLibraries, false);
 
-    var buffer = PackageBundleBuilder(
-      bundle2: linkResult.bundle,
-      sdk: PackageBundleSdkBuilder(
+    var bundleBuilder = PackageBundleBuilder();
+    for (var library in inputLibraries) {
+      bundleBuilder.addLibrary(
+        library.uriStr,
+        library.units.map((e) => e.uriStr).toList(),
+      );
+    }
+    return bundleBuilder.finish(
+      astBytes: linkResult.astBytes,
+      resolutionBytes: linkResult.resolutionBytes,
+      sdk: PackageBundleSdk(
+        languageVersionMajor: languageVersion.major,
+        languageVersionMinor: languageVersion.minor,
         allowedExperimentsJson: allowedExperimentsJson,
       ),
-    ).toBuffer();
-
-    return buffer is Uint8List ? buffer : Uint8List.fromList(buffer);
+    );
   }
 
   void _addLibrary(Source source) {
@@ -146,15 +164,43 @@ class _Builder {
       if (pathSegments.isNotEmpty) {
         var libraryName = pathSegments.first;
         var experiments = allowedExperiments.forSdkLibrary(libraryName);
-        return FeatureSet.fromEnableFlags(experiments);
+        return FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: languageVersion,
+          flags: experiments,
+        );
       }
     }
     throw StateError('Expected a valid dart: URI: $uri');
   }
 
+  String _getContent(Source source) {
+    var uriStr = '${source.uri}';
+    var content = source.contents.data;
+
+    // https://github.com/google/json_serializable.dart/issues/692
+    // SDK 2.9 was released with the syntax that we later decided to remove.
+    // But the current analyzer still says that it supports SDK 2.9, so we
+    // have to be able to handle this code. We do this by rewriting it into
+    // the syntax that we support now.
+    if (uriStr == 'dart:core/uri.dart') {
+      return content.replaceAll(
+        'String? charsetName = parameters?.["charset"];',
+        'String? charsetName = parameters? ["charset"];',
+      );
+    }
+    if (uriStr == 'dart:_http/http_headers.dart') {
+      return content.replaceAll(
+        'return _originalHeaderNames?.[name] ?? name;',
+        'return _originalHeaderNames? [name] ?? name;',
+      );
+    }
+
+    return content;
+  }
+
   CompilationUnit _parse(Source source) {
     var result = parseString(
-      content: source.contents.data,
+      content: _getContent(source),
       featureSet: _featureSet(source.uri),
       throwIfDiagnostics: false,
     );
@@ -171,7 +217,7 @@ class _Builder {
 
     var unit = result.unit as CompilationUnitImpl;
     unit.languageVersion = LibraryLanguageVersion(
-      package: ExperimentStatus.currentVersion,
+      package: languageVersion,
       override: null,
     );
 

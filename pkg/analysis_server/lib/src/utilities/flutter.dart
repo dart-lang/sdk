@@ -16,6 +16,7 @@ class Flutter {
   static const _nameCenter = 'Center';
   static const _nameContainer = 'Container';
   static const _namePadding = 'Padding';
+  static const _nameSizedBox = 'SizedBox';
   static const _nameState = 'State';
   static const _nameStatefulWidget = 'StatefulWidget';
   static const _nameStatelessWidget = 'StatelessWidget';
@@ -94,7 +95,8 @@ class Flutter {
       if (newlineLoc == childArgSrc.length) {
         newlineLoc -= 1;
       }
-      String indentOld = getLinePrefix(childArg.offset + 1 + newlineLoc);
+      String indentOld =
+          getLinePrefix(childArg.offset + eol.length + newlineLoc);
       var indentNew = '$indentOld${getIndent(1)}';
       // The separator includes 'child:' but that has no newlines.
       String separator =
@@ -135,7 +137,8 @@ class Flutter {
       if (newlineLoc == childArgSrc.length) {
         newlineLoc -= 1;
       }
-      String indentOld = getLinePrefix(childArg.offset + 1 + newlineLoc);
+      String indentOld =
+          getLinePrefix(childArg.offset + eol.length + newlineLoc);
       var indentNew = '$indentOld${getIndent(1)}';
       // The separator includes 'child:' but that has no newlines.
       String separator =
@@ -448,6 +451,12 @@ class Flutter {
   bool isExactWidgetTypePadding(DartType type) {
     return type is InterfaceType &&
         _isExactWidget(type.element, _namePadding, _uriBasic);
+  }
+
+  /// Return `true` if the given [type] is the Flutter class `SizedBox`.
+  bool isExactWidgetTypeSizedBox(DartType type) {
+    return type is InterfaceType &&
+        _isExactWidget(type.element, _nameSizedBox, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `StreamBuilder`.

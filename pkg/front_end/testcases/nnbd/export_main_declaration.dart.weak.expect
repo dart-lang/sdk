@@ -1,0 +1,416 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_declaration.dart" as mai;
+additionalExports = (mai::main)
+
+import "org-dartlang-testcase:///export_main_declaration_class_lib.dart" as class_lib;
+import "org-dartlang-testcase:///export_main_declaration_extension_lib.dart" as extension_lib;
+import "org-dartlang-testcase:///export_main_declaration_field_lib.dart" as field_lib;
+import "org-dartlang-testcase:///export_main_declaration_getter_lib.dart" as getter_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_extra_optional_parameters_lib.dart" as method_extra_optional_parameters_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_named_parameters_lib.dart" as method_named_parameters_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_one_optional_parameter_lib.dart" as method_one_optional_parameter_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_one_parameter_lib.dart" as method_one_parameter_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_one_required_optional_lib.dart" as method_one_required_optional_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_required_named_parameters_lib.dart" as method_required_named_parameters_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_too_many_parameters_lib.dart" as method_too_many_parameters_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_two_optional_parameters_lib.dart" as method_two_optional_parameters_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_two_parameters_lib.dart" as method_two_parameters_lib;
+import "org-dartlang-testcase:///export_main_declaration_method_wrong_parameter_type_lib.dart" as method_wrong_parameter_type_lib;
+import "org-dartlang-testcase:///export_main_declaration_setter_lib.dart" as setter_lib;
+import "org-dartlang-testcase:///export_main_declaration_typedef_lib.dart" as typedef_lib;
+export "org-dartlang-testcase:///main_declaration.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_class_lib.dart: Error: The exported 'main' declaration must be a function declaration.
+// pkg/front_end/testcases/nnbd/main_declaration_class_lib.dart:5:7: Context: This is exported 'main' declaration.
+// class main /* error */ {}
+//       ^
+//
+import self as self2;
+import "main_declaration_class_lib.dart" as mai2;
+additionalExports = (mai2::main)
+
+export "org-dartlang-testcase:///main_declaration_class_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_extension_lib.dart: Error: The exported 'main' declaration must be a function declaration.
+// pkg/front_end/testcases/nnbd/main_declaration_extension_lib.dart:5:11: Context: This is exported 'main' declaration.
+// extension main /* error */ on Object {}
+//           ^
+//
+import self as self3;
+import "main_declaration_extension_lib.dart" as mai3;
+additionalExports = (mai3::main)
+
+export "org-dartlang-testcase:///main_declaration_extension_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_field_lib.dart: Error: The exported 'main' declaration must be a function declaration.
+// pkg/front_end/testcases/nnbd/main_declaration_field_lib.dart:5:17: Context: This is exported 'main' declaration.
+// void Function() main /* error */ = () {};
+//                 ^^^^
+//
+import self as self4;
+import "main_declaration_field_lib.dart" as mai4;
+additionalExports = (mai4::main,
+  mai4::main)
+
+export "org-dartlang-testcase:///main_declaration_field_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_getter_lib.dart: Error: The exported 'main' declaration must be a function declaration.
+// pkg/front_end/testcases/nnbd/main_declaration_getter_lib.dart:5:21: Context: This is exported 'main' declaration.
+// void Function() get main /* error */ => () {};
+//                     ^^^^
+//
+import self as self5;
+import "main_declaration_getter_lib.dart" as mai5;
+additionalExports = (mai5::main)
+
+export "org-dartlang-testcase:///main_declaration_getter_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as self6;
+import "main_declaration_method_extra_optional_parameters_lib.dart" as mai6;
+additionalExports = (mai6::main)
+
+export "org-dartlang-testcase:///main_declaration_method_extra_optional_parameters_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as self7;
+import "main_declaration_method_named_parameters_lib.dart" as mai7;
+additionalExports = (mai7::main)
+
+export "org-dartlang-testcase:///main_declaration_method_named_parameters_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as self8;
+import "main_declaration_method_one_optional_parameter_lib.dart" as mai8;
+additionalExports = (mai8::main)
+
+export "org-dartlang-testcase:///main_declaration_method_one_optional_parameter_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as self9;
+import "main_declaration_method_one_parameter_lib.dart" as mai9;
+additionalExports = (mai9::main)
+
+export "org-dartlang-testcase:///main_declaration_method_one_parameter_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as self10;
+import "main_declaration_method_one_required_optional_lib.dart" as mai10;
+additionalExports = (mai10::main)
+
+export "org-dartlang-testcase:///main_declaration_method_one_required_optional_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_method_required_named_parameters_lib.dart: Error: The exported 'main' method cannot have required named parameters.
+// pkg/front_end/testcases/nnbd/main_declaration_method_required_named_parameters_lib.dart:5:6: Context: This is exported 'main' declaration.
+// void main({required List<String> args}) /* error */ {}
+//      ^^^^
+//
+import self as self11;
+import "main_declaration_method_required_named_parameters_lib.dart" as mai11;
+additionalExports = (mai11::main)
+
+export "org-dartlang-testcase:///main_declaration_method_required_named_parameters_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_method_too_many_parameters_lib.dart: Error: The exported 'main' method must have at most 2 required parameters.
+// pkg/front_end/testcases/nnbd/main_declaration_method_too_many_parameters_lib.dart:5:6: Context: This is exported 'main' declaration.
+// void main(List<String> args, a, b) /* error */ {}
+//      ^^^^
+//
+import self as self12;
+import "main_declaration_method_too_many_parameters_lib.dart" as mai12;
+additionalExports = (mai12::main)
+
+export "org-dartlang-testcase:///main_declaration_method_too_many_parameters_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as self13;
+import "main_declaration_method_two_optional_parameters_lib.dart" as mai13;
+additionalExports = (mai13::main)
+
+export "org-dartlang-testcase:///main_declaration_method_two_optional_parameters_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as self14;
+import "main_declaration_method_two_parameters_lib.dart" as mai14;
+additionalExports = (mai14::main)
+
+export "org-dartlang-testcase:///main_declaration_method_two_parameters_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_method_wrong_parameter_type_lib.dart: Error: The type 'Set<String>' of the first parameter of the exported 'main' method is not a supertype of 'List<String>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// pkg/front_end/testcases/nnbd/main_declaration_method_wrong_parameter_type_lib.dart:5:6: Context: This is exported 'main' declaration.
+// void main(Set<String> args) /* error */ {}
+//      ^^^^
+//
+import self as self15;
+import "main_declaration_method_wrong_parameter_type_lib.dart" as mai15;
+additionalExports = (mai15::main)
+
+export "org-dartlang-testcase:///main_declaration_method_wrong_parameter_type_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_setter_lib.dart: Error: The exported 'main' declaration must be a function declaration.
+// pkg/front_end/testcases/nnbd/main_declaration_setter_lib.dart:5:10: Context: This is exported 'main' declaration.
+// void set main(void Function() f) /* error */ {}
+//          ^^^^
+//
+import self as self16;
+import "main_declaration_setter_lib.dart" as mai16;
+additionalExports = (mai16::main)
+
+export "org-dartlang-testcase:///main_declaration_setter_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/export_main_declaration_typedef_lib.dart: Error: The exported 'main' declaration must be a function declaration.
+// pkg/front_end/testcases/nnbd/main_declaration_typedef_lib.dart:5:9: Context: This is exported 'main' declaration.
+// typedef main /* error */ = void Function();
+//         ^
+//
+import self as self17;
+import "main_declaration_typedef_lib.dart" as mai17;
+additionalExports = (mai17::main)
+
+export "org-dartlang-testcase:///main_declaration_typedef_lib.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+
+import "org-dartlang-testcase:///main_declaration_class_lib.dart" as class_lib;
+import "org-dartlang-testcase:///main_declaration_extension_lib.dart" as extension_lib;
+import "org-dartlang-testcase:///main_declaration_field_lib.dart" as field_lib;
+import "org-dartlang-testcase:///main_declaration_getter_lib.dart" as getter_lib;
+import "org-dartlang-testcase:///main_declaration_method_extra_optional_parameters_lib.dart" as method_extra_optional_parameters_lib;
+import "org-dartlang-testcase:///main_declaration_method_named_parameters_lib.dart" as method_named_parameters_lib;
+import "org-dartlang-testcase:///main_declaration_method_one_optional_parameter_lib.dart" as method_one_optional_parameter_lib;
+import "org-dartlang-testcase:///main_declaration_method_one_parameter_lib.dart" as method_one_parameter_lib;
+import "org-dartlang-testcase:///main_declaration_method_one_required_optional_lib.dart" as method_one_required_optional_lib;
+import "org-dartlang-testcase:///main_declaration_method_required_named_parameters_lib.dart" as method_required_named_parameters_lib;
+import "org-dartlang-testcase:///main_declaration_method_too_many_parameters_lib.dart" as method_too_many_parameters_lib;
+import "org-dartlang-testcase:///main_declaration_method_two_optional_parameters_lib.dart" as method_two_optional_parameters_lib;
+import "org-dartlang-testcase:///main_declaration_method_two_parameters_lib.dart" as method_two_parameters_lib;
+import "org-dartlang-testcase:///main_declaration_method_wrong_parameter_type_lib.dart" as method_wrong_parameter_type_lib;
+import "org-dartlang-testcase:///main_declaration_setter_lib.dart" as setter_lib;
+import "org-dartlang-testcase:///main_declaration_typedef_lib.dart" as typedef_lib;
+
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_class_lib.dart:5:7: Error: The 'main' declaration must be a function declaration.
+// class main /* error */ {}
+//       ^
+//
+import self as mai2;
+import "dart:core" as core;
+
+class main extends core::Object {
+  synthetic constructor •() → mai2::main
+    : super core::Object::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_extension_lib.dart:5:11: Error: The 'main' declaration must be a function declaration.
+// extension main /* error */ on Object {}
+//           ^
+//
+import self as mai3;
+import "dart:core" as core;
+
+extension main on core::Object {
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_field_lib.dart:5:17: Error: The 'main' declaration must be a function declaration.
+// void Function() main /* error */ = () {};
+//                 ^^^^
+//
+import self as mai4;
+
+static field () → void main = () → void {};
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_getter_lib.dart:5:21: Error: The 'main' declaration must be a function declaration.
+// void Function() get main /* error */ => () {};
+//                     ^^^^
+//
+import self as mai5;
+
+static get main() → () → void
+  return () → void {};
+
+library /*isNonNullableByDefault*/;
+import self as mai6;
+import "dart:core" as core;
+
+static method main(core::List<core::String> args, dynamic other, [dynamic extra = #C1]) → void {}
+
+library /*isNonNullableByDefault*/;
+import self as mai7;
+import "dart:core" as core;
+
+static method main({core::List<core::String> args = #C2}) → void {}
+
+library /*isNonNullableByDefault*/;
+import self as mai8;
+import "dart:core" as core;
+
+static method main([core::List<core::String>? args = #C1]) → void {}
+
+library /*isNonNullableByDefault*/;
+import self as mai9;
+import "dart:core" as core;
+
+static method main(core::List<core::String> args) → void {}
+
+library /*isNonNullableByDefault*/;
+import self as mai10;
+import "dart:core" as core;
+
+static method main(core::List<core::String> args, [dynamic other = #C1]) → void {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_method_required_named_parameters_lib.dart:5:6: Error: The 'main' method cannot have required named parameters.
+// void main({required List<String> args}) /* error */ {}
+//      ^^^^
+//
+import self as mai11;
+import "dart:core" as core;
+
+static method main({required core::List<core::String> args = #C1}) → void {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_method_too_many_parameters_lib.dart:5:6: Error: The 'main' method must have at most 2 required parameters.
+// void main(List<String> args, a, b) /* error */ {}
+//      ^^^^
+//
+import self as mai12;
+import "dart:core" as core;
+
+static method main(core::List<core::String> args, dynamic a, dynamic b) → void {}
+
+library /*isNonNullableByDefault*/;
+import self as mai13;
+import "dart:core" as core;
+
+static method main([core::List<core::String> args = #C2, dynamic other = #C1]) → void {}
+
+library /*isNonNullableByDefault*/;
+import self as mai14;
+import "dart:core" as core;
+
+static method main(core::List<core::String> args, dynamic other) → void {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_method_wrong_parameter_type_lib.dart:5:6: Error: The type 'Set<String>' of the first parameter of the 'main' method is not a supertype of 'List<String>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// void main(Set<String> args) /* error */ {}
+//      ^^^^
+//
+import self as mai15;
+import "dart:core" as core;
+
+static method main(core::Set<core::String> args) → void {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_setter_lib.dart:5:10: Error: The 'main' declaration must be a function declaration.
+// void set main(void Function() f) /* error */ {}
+//          ^^^^
+//
+import self as mai16;
+
+static set main(() → void f) → void {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/main_declaration_typedef_lib.dart:5:9: Error: The 'main' declaration must be a function declaration.
+// typedef main /* error */ = void Function();
+//         ^
+//
+import self as mai17;
+
+typedef main = () → void;
+
+constants  {
+  #C1 = null
+  #C2 = <core::String*>[]
+}

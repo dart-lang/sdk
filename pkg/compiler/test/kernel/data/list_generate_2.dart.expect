@@ -1,0 +1,21 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_interceptors" as _in;
+
+static method main() → void {
+  core::print( block {
+    final _in::JSArray<core::List<core::int*>*> _list = _in::JSArray::allocateGrowable<core::List<core::int*>*>(10);
+    for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+      core::int* i = i;
+      _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, block {
+        final core::int _length = i;
+        final _in::JSArray<core::int*> _list = _in::JSArray::allocateGrowable<core::int*>(_length);
+        for (core::int i = 0; i.{core::num::<}(_length); i = i.{core::num::+}(1)) {
+          core::int* i = i;
+          _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i.{core::num::+}(1));
+        }
+      } =>_list);
+    }
+  } =>_list);
+}

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,11 +28,23 @@ class B extends A {
     standardAnalysisSetup();
   }
 
-  @failingTest
   Future<void> test_bulk_fix_override() async {
-    setupTarget();
+    writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE), '''
+linter:
+  rules:
+    - annotate_overrides
+''');
+    writeFile(sourcePath('test.dart'), '''
+class A {
+  void f() {}
+}
+class B extends A {
+  void f() { }
+}
+''');
+    standardAnalysisSetup();
 
     var result = await sendEditBulkFixes([sourceDirectory.path]);
-    expect(result.edits.length, 1);
+    expect(result.edits, hasLength(1));
   }
 }

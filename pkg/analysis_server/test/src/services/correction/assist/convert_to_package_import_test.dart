@@ -23,7 +23,7 @@ class ConvertToPackageImportTest extends AssistProcessorTest {
   Future<void> test_fileName_onImport() async {
     addSource('/home/test/lib/foo.dart', '');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'foo.dart';
 ''');
     // Validate assist is on import keyword too.
@@ -35,7 +35,7 @@ import 'package:test/foo.dart';
   Future<void> test_fileName_onUri() async {
     addSource('/home/test/lib/foo.dart', '');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'foo.dart';
 ''');
     await assertHasAssistAt('foo.dart', '''
@@ -45,7 +45,7 @@ import 'package:test/foo.dart';
 
   Future<void> test_invalidUri() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import ':[invalidUri]';
 ''');
     await assertNoAssistAt('invalid');
@@ -54,7 +54,7 @@ import ':[invalidUri]';
   Future<void> test_nonPackage_Uri() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/src/test.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:core';
 ''');
 
@@ -65,7 +65,7 @@ import 'dart:core';
   Future<void> test_packageUri() async {
     addSource('/home/test/lib/foo.dart', '');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/foo.dart';
 ''');
     await assertNoAssistAt('foo.dart');
@@ -77,7 +77,7 @@ import 'package:test/foo.dart';
 
     testFile = convertPath('/home/test/lib/src/test.dart');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '../foo/bar.dart';
 ''');
     await assertHasAssistAt('bar.dart', '''
@@ -90,7 +90,7 @@ import 'package:test/foo/bar.dart';
     verifyNoTestUnitErrors = false;
     addSource('/home/test/lib/foo.dart', '');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '../lib/foo.dart';
 ''');
     await assertNoAssist();

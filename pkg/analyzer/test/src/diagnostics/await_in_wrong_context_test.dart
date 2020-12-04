@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AwaitInWrongContextTest extends DriverResolutionTest {
+class AwaitInWrongContextTest extends PubPackageResolutionTest {
   @failingTest
   test_sync() async {
     // This test requires better error recovery than we currently have. In

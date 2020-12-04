@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,13 +17,13 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNullValueTest extends DriverResolutionTest
+class InvalidUseOfNullValueTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_as() async {
     await assertNoErrorsInCode(r'''
 m() {
   Null x;
-  x as int; // ignore: unnecessary_cast
+  x as int;
 }
 ''');
   }
@@ -125,7 +124,7 @@ m(bool cond) {
 
 @reflectiveTest
 class UncheckedUseOfNullableValueInsideExtensionTest
-    extends DriverResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_indexExpression_nonNullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -330,7 +329,7 @@ extension E on A? {
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends DriverResolutionTest
+class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
@@ -400,12 +399,33 @@ m(B b) {
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 100, 3),
     ]);
-    var assignment1 = findNode.assignment('b.a?.x = 1');
-    var assignment2 = findNode.assignment('b.a.x = 2');
-    assertType(assignment1.leftHandSide, 'int');
-    assertType(assignment2.leftHandSide, 'int');
-    assertType(assignment1, 'int?');
-    assertType(assignment2, 'int');
+
+    assertAssignment(
+      findNode.assignment('x = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int?',
+    );
+
+    assertAssignment(
+      findNode.assignment('x = 2'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      var assignment1 = findNode.assignment('b.a?.x = 1');
+      var assignment2 = findNode.assignment('b.a.x = 2');
+      assertType(assignment1.leftHandSide, 'int');
+      assertType(assignment2.leftHandSide, 'int');
+    }
   }
 
   test_assignment_eq_simpleIdentifier() async {
@@ -415,12 +435,33 @@ m(int x, int? y) {
   y = 0;
 }
 ''');
-    var assignment1 = findNode.assignment('x =');
-    var assignment2 = findNode.assignment('y =');
-    assertType(assignment1.leftHandSide, 'int');
-    assertType(assignment2.leftHandSide, 'int?');
-    assertType(assignment1, 'int');
-    assertType(assignment2, 'int');
+
+    assertAssignment(
+      findNode.assignment('x ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.parameter('x'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertAssignment(
+      findNode.assignment('y ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.parameter('y'),
+      writeType: 'int?',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      var assignment1 = findNode.assignment('x =');
+      var assignment2 = findNode.assignment('y =');
+      assertType(assignment1.leftHandSide, 'int');
+      assertType(assignment2.leftHandSide, 'int?');
+    }
   }
 
   test_assignment_plusEq_propertyAccess3() async {
@@ -443,12 +484,39 @@ m(B b) {
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 109, 5),
     ]);
-    var assignment1 = findNode.assignment('b.a.x +=');
-    var assignment2 = findNode.assignment('b.a.y +=');
-    assertType(assignment1.leftHandSide, 'int');
-    assertType(assignment2.leftHandSide, 'int?');
-    assertType(assignment1, 'int');
-    assertType(assignment2, 'int');
+
+    assertAssignment(
+      findNode.assignment('x +='),
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    assertAssignment(
+      findNode.assignment('y +='),
+      readElement: findElement.getter('y'),
+      readType: 'int?',
+      writeElement: findElement.setter('y'),
+      writeType: 'int?',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      var assignment1 = findNode.assignment('b.a.x +=');
+      var assignment2 = findNode.assignment('b.a.y +=');
+      assertType(assignment1.leftHandSide, 'int');
+      assertType(assignment2.leftHandSide, 'int?');
+    }
   }
 
   test_assignment_plusEq_propertyAccess3_short1() async {
@@ -470,12 +538,39 @@ m(B b) {
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
     ]);
-    var assignment1 = findNode.assignment('b.a?.x += 1');
-    var assignment2 = findNode.assignment('b.a.x += 2');
-    assertType(assignment1.leftHandSide, 'int');
-    assertType(assignment2.leftHandSide, 'int');
-    assertType(assignment1, 'int?');
-    assertType(assignment2, 'int');
+
+    assertAssignment(
+      findNode.assignment('x += 1'),
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int?',
+    );
+
+    assertAssignment(
+      findNode.assignment('x += 2'),
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      var assignment1 = findNode.assignment('b.a?.x += 1');
+      var assignment2 = findNode.assignment('b.a.x += 2');
+      assertType(assignment1.leftHandSide, 'int');
+      assertType(assignment2.leftHandSide, 'int');
+    }
   }
 
   test_assignment_plusEq_simpleIdentifier() async {
@@ -489,10 +584,37 @@ m(int x, int? y) {
     ]);
     var assignment1 = findNode.assignment('x +=');
     var assignment2 = findNode.assignment('y +=');
-    assertType(assignment1.leftHandSide, 'int');
-    assertType(assignment2.leftHandSide, 'int?');
-    assertType(assignment1, 'int');
-    assertType(assignment2, 'int');
+
+    assertAssignment(
+      findNode.assignment('x +='),
+      readElement: findElement.parameter('x'),
+      readType: 'int',
+      writeElement: findElement.parameter('x'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    assertAssignment(
+      findNode.assignment('y +='),
+      readElement: findElement.parameter('y'),
+      readType: 'int?',
+      writeElement: findElement.parameter('y'),
+      writeType: 'int?',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      assertType(assignment1.leftHandSide, 'int');
+      assertType(assignment2.leftHandSide, 'int?');
+    }
   }
 
   test_await_nonNullable() async {
@@ -625,7 +747,6 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 58, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3),
     ]);
   }
 
@@ -765,7 +886,8 @@ m() {
     ]);
     assertSimpleIdentifier(
       findNode.simple('isEven'),
-      element: intElement.getGetter('isEven'),
+      readElement: intElement.getGetter('isEven'),
+      writeElement: null,
       type: 'bool',
     );
   }
@@ -876,7 +998,6 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 54, 1),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 56, 3),
     ]);
   }
 

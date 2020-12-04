@@ -4,7 +4,6 @@
 # found in the LICENSE file.
 
 import argparse
-import multiprocessing
 import os
 import shutil
 import subprocess
@@ -169,8 +168,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     if gn_args['target_os'] in ['linux', 'win']:
         gn_args['dart_use_fallback_root_certificates'] = True
 
-    gn_args['dart_platform_bytecode'] = args.bytecode
-
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
                                     sanitizer == 'none')
@@ -240,16 +237,33 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             gn_args['toolchain_prefix'] = ParseStringMap(arch, toolchain)
 
     goma_dir = os.environ.get('GOMA_DIR')
+    # Search for goma in depot_tools in path
+    goma_depot_tools_dir = None
+    for path in os.environ.get('PATH', '').split(os.pathsep):
+        if os.path.basename(path) == 'depot_tools':
+            cipd_bin = os.path.join(path, '.cipd_bin')
+            if os.path.isfile(os.path.join(cipd_bin, 'gomacc')):
+                goma_depot_tools_dir = cipd_bin
+                break
+    # Otherwise use goma from home directory.
+    # TODO(whesse): Remove support for goma installed in home directory.
+    # Goma will only be distributed through depot_tools.
     goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
     if args.goma and goma_dir:
         gn_args['use_goma'] = True
         gn_args['goma_dir'] = goma_dir
+    elif args.goma and goma_depot_tools_dir:
+        gn_args['use_goma'] = True
+        gn_args['goma_dir'] = goma_depot_tools_dir
     elif args.goma and os.path.exists(goma_home_dir):
         gn_args['use_goma'] = True
         gn_args['goma_dir'] = goma_home_dir
     else:
         gn_args['use_goma'] = False
         gn_args['goma_dir'] = None
+
+    if gn_args['target_os'] == 'mac' and gn_args['use_goma']:
+        gn_args['mac_use_goma_rbe'] = True
 
     # Code coverage requires -O0 to be set.
     if enable_code_coverage:
@@ -368,17 +382,6 @@ def AddCommonGnOptionArgs(parser):
                         action='store_false')
     parser.set_defaults(verify_sdk_hash=True)
 
-    parser.add_argument('--bytecode',
-                        '-b',
-                        help='Use bytecode in Dart VM',
-                        dest='bytecode',
-                        action="store_true")
-    parser.add_argument('--no-bytecode',
-                        help='Disable bytecode in Dart VM',
-                        dest='bytecode',
-                        action="store_false")
-    parser.set_defaults(bytecode=False)
-
     parser.add_argument('--clang', help='Use Clang', action='store_true')
     parser.add_argument('--no-clang',
                         help='Disable Clang',
@@ -467,12 +470,6 @@ def AddCommonConfigurationArgs(parser):
 
 def AddOtherArgs(parser):
     """Adds miscellaneous arguments to the parser."""
-    parser.add_argument('--workers',
-                        '-w',
-                        type=int,
-                        help='Number of simultaneous GN invocations',
-                        dest='workers',
-                        default=multiprocessing.cpu_count())
     parser.add_argument("-v",
                         "--verbose",
                         help='Verbose output.',
@@ -500,18 +497,6 @@ def parse_args(args):
         parser.print_help()
         return None
     return options
-
-
-# Run the command, if it succeeds returns 0, if it fails, returns the commands
-# output as a string.
-def RunCommand(command):
-    try:
-        subprocess.check_output(
-            command, cwd=DART_ROOT, stderr=subprocess.STDOUT)
-        return 0
-    except subprocess.CalledProcessError as e:
-        return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
-                e.output)
 
 
 def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
@@ -547,24 +532,43 @@ def RunGnOnConfiguredConfigurations(args):
                     if args.verbose:
                         print("gn gen --check in %s" % out_dir)
 
-    pool = multiprocessing.Pool(args.workers)
-    results = pool.map(RunCommand, commands, chunksize=1)
-    for r in results:
-        if r != 0:
-            print(r.strip())
+    active_commands = []
+
+    def cleanup(command):
+        print("Command failed: " + ' '.join(command))
+        for (_, process) in active_commands:
+            process.terminate()
+
+    for command in commands:
+        try:
+            process = subprocess.Popen(command, cwd=DART_ROOT)
+            active_commands.append([command, process])
+        except Exception as e:
+            print('Error: %s' % e)
+            cleanup(command)
             return 1
+    while active_commands:
+        time.sleep(0.1)
+        for active_command in active_commands:
+            (command, process) = active_command
+            if process.poll() is not None:
+                active_commands.remove(active_command)
+                if process.returncode != 0:
+                    cleanup(command)
+                    return 1
+    return 0
 
 
 def Main(argv):
     starttime = time.time()
     args = parse_args(argv)
 
-    RunGnOnConfiguredConfigurations(args)
+    result = RunGnOnConfiguredConfigurations(args)
 
     endtime = time.time()
     if args.verbose:
         print("GN Time: %.3f seconds" % (endtime - starttime))
-    return 0
+    return result
 
 
 if __name__ == '__main__':

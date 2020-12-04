@@ -7,6 +7,8 @@ library front_end.compiler_options;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
+import 'package:kernel/ast.dart' show Version;
+
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
 
@@ -21,6 +23,12 @@ import 'experimental_flags.dart'
         ExperimentalFlag,
         expiredExperimentalFlags,
         parseExperimentalFlag;
+
+import 'experimental_flags.dart' as flags
+    show
+        getExperimentEnabledVersionInLibrary,
+        isExperimentEnabled,
+        isExperimentEnabledInLibrary;
 
 import 'file_system.dart' show FileSystem;
 
@@ -128,9 +136,13 @@ class CompilerOptions {
   /// Enable or disable experimental features. Features mapping to `true` are
   /// explicitly enabled. Features mapping to `false` are explicitly disabled.
   /// Features not mentioned in the map will have their default value.
-  Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
+  Map<ExperimentalFlag, bool> explicitExperimentalFlags =
+      <ExperimentalFlag, bool>{};
 
-  AllowedExperimentalFlags allowedExperimentalFlags;
+  Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting;
+  AllowedExperimentalFlags allowedExperimentalFlagsForTesting;
+  Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting;
+  Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
@@ -176,6 +188,9 @@ class CompilerOptions {
   /// Errors are reported via the [onDiagnostic] callback.
   bool verify = false;
 
+  /// Whether to - if verifying - skip the platform.
+  bool verifySkipPlatform = false;
+
   /// Whether to dump generated components in a text format (also mainly for
   /// debugging).
   ///
@@ -219,15 +234,16 @@ class CompilerOptions {
   /// diagnostic, but do not stop the compilation.
   int skipForDebugging = 0;
 
-  /// Whether to generate bytecode.
-  bool bytecode = false;
-
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
 
   /// Whether nnbd weak, strong or agnostic mode is used if experiment
   /// 'non-nullable' is enabled.
   NnbdMode nnbdMode = NnbdMode.Weak;
+
+  /// Whether to emit a warning when a ReachabilityError is thrown to ensure
+  /// soundness in mixed mode.
+  bool warnOnReachabilityCheck = false;
 
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
@@ -239,6 +255,36 @@ class CompilerOptions {
   /// If `true`, a '.d' file with input dependencies is generated when
   /// compiling the platform dill.
   bool emitDeps = true;
+
+  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
+    return flags.isExperimentEnabled(flag,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
+  }
+
+  /// Returns
+  bool isExperimentEnabled(ExperimentalFlag flag) {
+    return flags.isExperimentEnabled(flag,
+        explicitExperimentalFlags: explicitExperimentalFlags,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
+  }
+
+  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
+    return flags.isExperimentEnabledInLibrary(flag, importUri,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+        explicitExperimentalFlags: explicitExperimentalFlags,
+        allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
+  }
+
+  Version getExperimentEnabledVersionInLibrary(
+      ExperimentalFlag flag, Uri importUri) {
+    return flags.getExperimentEnabledVersionInLibrary(
+        flag, importUri, explicitExperimentalFlags,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+        allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
+        experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+        experimentReleasedVersionForTesting:
+            experimentReleasedVersionForTesting);
+  }
 
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic: true,
@@ -260,7 +306,10 @@ class CompilerOptions {
     if (compileSdk != compileSdk) return false;
     // chaseDependencies aren't used anywhere, so ignored here.
     // targetPatches aren't used anywhere, so ignored here.
-    if (!equalMaps(experimentalFlags, other.experimentalFlags)) return false;
+    if (!equalMaps(
+        explicitExperimentalFlags, other.explicitExperimentalFlags)) {
+      return false;
+    }
     if (!equalMaps(environmentDefines, other.environmentDefines)) return false;
     if (errorOnUnevaluatedConstant != other.errorOnUnevaluatedConstant) {
       return false;
@@ -276,6 +325,7 @@ class CompilerOptions {
     }
     if (!ignoreVerify) {
       if (verify != other.verify) return false;
+      if (verifySkipPlatform != other.verifySkipPlatform) return false;
     }
     if (!ignoreDebugDump) {
       if (debugDump != other.debugDump) return false;
@@ -290,7 +340,6 @@ class CompilerOptions {
       return false;
     }
     if (skipForDebugging != other.skipForDebugging) return false;
-    if (bytecode != other.bytecode) return false;
     if (writeFileOnCrashReport != other.writeFileOnCrashReport) return false;
     if (nnbdMode != other.nnbdMode) return false;
     if (currentSdkVersion != other.currentSdkVersion) return false;
@@ -319,9 +368,7 @@ Map<String, bool> parseExperimentalArguments(List<String> arguments) {
 }
 
 /// Parse a map of experimental flags to values that can be passed to
-/// [CompilerOptions.experimentalFlags].
-/// The returned map is normalized to contain default values for unmentioned
-/// flags.
+/// [CompilerOptions.explicitExperimentalFlags].
 ///
 /// If an unknown flag is mentioned, or a flag is mentioned more than once,
 /// the supplied error handler is called with an error message.
@@ -381,11 +428,6 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
         }
       }
     }
-  }
-  for (ExperimentalFlag flag in ExperimentalFlag.values) {
-    assert(defaultExperimentalFlags.containsKey(flag),
-        "No default value for $flag.");
-    flags[flag] ??= defaultExperimentalFlags[flag];
   }
   return flags;
 }

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -75,8 +76,9 @@ class FileSystemStateTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: Packages.empty,
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
     fileSystemState = FileSystemState(
       logger,

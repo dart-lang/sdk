@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AmbiguousExtensionMemberAccessTest extends DriverResolutionTest {
+class AmbiguousExtensionMemberAccessTest extends PubPackageResolutionTest {
   test_call() async {
     await assertErrorsInCode('''
 class A {}
@@ -30,8 +30,7 @@ extension E2 on A {
 int f(A a) => a();
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 110, 1),
-      error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
     ]);
   }
 
@@ -145,7 +144,6 @@ f(SubTarget<num> t) {
   }
 
   test_operator_binary() async {
-    // There is no error reported.
     await assertErrorsInCode('''
 class A {}
 
@@ -160,6 +158,26 @@ extension E2 on A {
 A f(A a) => a + a;
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 122, 5),
+    ]);
+  }
+
+  test_operator_binary_compoundAssignment() async {
+    await assertErrorsInCode('''
+class A {}
+
+extension E1 on A {
+  A operator +(_) => this;
+}
+
+extension E2 on A {
+  A operator +(_) => this;
+}
+
+void f(A a) {
+  a += 0;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 130, 2),
     ]);
   }
 
@@ -235,6 +253,8 @@ f() {
     ]);
     var access = findNode.propertyAccess('0.a');
     assertElementNull(access);
-    assertTypeDynamic(access);
+    if (hasAssignmentLeftResolution) {
+      assertTypeDynamic(access);
+    }
   }
 }

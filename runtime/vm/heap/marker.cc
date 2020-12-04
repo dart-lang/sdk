@@ -240,7 +240,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // change in the value.
     // Doing this before checking for an Instructions object avoids
     // unnecessary queueing of pre-marked objects.
-    if (raw_obj->ptr()->IsMarked()) {
+    // Race: The concurrent marker may observe a pointer into a heap page that
+    // was allocated after the concurrent marker started. It can read either a
+    // zero or the header of an object allocated black, both of which appear
+    // marked.
+    if (raw_obj->ptr()->IsMarkedIgnoreRace()) {
       return;
     }
 
@@ -312,20 +316,6 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
-
-#ifndef DART_PRECOMPILED_RUNTIME
-  isolate_group_->ForEachIsolate(
-      [&](Isolate* isolate) {
-        Thread* mutator_thread = isolate->mutator_thread();
-        if (mutator_thread != NULL) {
-          Interpreter* interpreter = mutator_thread->interpreter();
-          if (interpreter != NULL) {
-            interpreter->ClearLookupCache();
-          }
-        }
-      },
-      /*at_safepoint=*/true);
-#endif
 }
 
 void GCMarker::Epilogue() {}
@@ -436,8 +426,7 @@ void GCMarker::ProcessWeakTables(Thread* thread) {
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
         ObjectPtr raw_obj = table->ObjectAtExclusive(i);
-        ASSERT(raw_obj->IsHeapObject());
-        if (!raw_obj->ptr()->IsMarked()) {
+        if (raw_obj->IsHeapObject() && !raw_obj->ptr()->IsMarked()) {
           table->InvalidateAtExclusive(i);
         }
       }

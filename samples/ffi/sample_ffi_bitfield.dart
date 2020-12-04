@@ -18,7 +18,7 @@ import 'package:expect/expect.dart';
 /// } ScreenCellAttrs;
 class ScreenCellAttrs extends Struct {
   @Int16()
-  int bits;
+  external int bits;
 
   int get bold => getBits(kBoldFieldOffset, kBoldFieldLength);
   void set bold(int value) =>

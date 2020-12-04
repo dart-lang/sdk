@@ -45,8 +45,6 @@ void GenerateInvokeTTSStub(compiler::Assembler* assembler) {
 
   const intptr_t sub_type_cache_index = __ object_pool_builder().AddObject(
       Object::null_object(), compiler::ObjectPoolBuilderEntry::kPatchable);
-  const intptr_t sub_type_cache_offset =
-      ObjectPool::element_offset(sub_type_cache_index) - kHeapObjectTag;
   const intptr_t dst_name_index = __ object_pool_builder().AddObject(
       Symbols::OptimizedOut(), compiler::ObjectPoolBuilderEntry::kPatchable);
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
@@ -56,8 +54,8 @@ void GenerateInvokeTTSStub(compiler::Assembler* assembler) {
   __ ldr(R9, compiler::FieldAddress(
                  TypeTestABI::kDstTypeReg,
                  AbstractType::type_test_stub_entry_point_offset()));
-  __ ldr(TypeTestABI::kSubtypeTestCacheReg,
-         compiler::Address(PP, sub_type_cache_offset));
+  __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
+                           sub_type_cache_index);
   __ blx(R9);
 
   // We have the guarantee that TTS preserve all registers except for one

@@ -10,7 +10,7 @@ class A<out T> {
   final T _x;
   A(T x):_x = x;
   T get x => _x;
-  void set x(Object value) {}
+  void set x(Object? value) {}
 }
 
 class B<in T> {
@@ -22,7 +22,7 @@ class C<out T, S> {
   final T _x;
   C(T x, S y):_x = x;
   T get x => _x;
-  void set x(Object value) {}
+  void set x(Object? value) {}
   void set y(S _value) {}
 }
 

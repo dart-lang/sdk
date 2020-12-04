@@ -1218,11 +1218,6 @@ class ProfileBuilder : public ValueObject {
                     (*inlined_token_positions)[i].ToCString());
         }
       }
-    } else if (profile_code->code().IsBytecode()) {
-      // No inlining in bytecode.
-      const Bytecode& bc = Bytecode::CheckedHandle(Thread::Current()->zone(),
-                                                   profile_code->code().raw());
-      token_position = bc.GetTokenIndexOfPC(pc);
     }
 
     if (code.IsNull() || (inlined_functions == NULL) ||
@@ -1676,11 +1671,6 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
                   (*inlined_token_positions)[i].ToCString());
       }
     }
-  } else if (profile_code->code().IsBytecode()) {
-    // No inlining in bytecode.
-    const Bytecode& bc = Bytecode::CheckedHandle(Thread::Current()->zone(),
-                                                 profile_code->code().raw());
-    token_position = bc.GetTokenIndexOfPC(pc);
   }
 
   if (code.IsNull() || (inlined_functions == NULL) ||

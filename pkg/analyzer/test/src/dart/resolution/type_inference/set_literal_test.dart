@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class SetLiteralTest extends DriverResolutionTest {
+class SetLiteralTest extends PubPackageResolutionTest {
   AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_expression_conflict() async {
@@ -36,11 +35,29 @@ Set<int> a = {1};
     assertType(setLiteral('{'), 'Set<int>');
   }
 
-  test_context_noTypeArgs_noElements() async {
+  test_context_noTypeArgs_noElements_fromParameterType() async {
+    await assertNoErrorsInCode('''
+void f() {
+  useSet({});
+}
+void useSet(Set<int> _) {}
+''');
+    assertType(setLiteral('{});'), 'Set<int>');
+  }
+
+  test_context_noTypeArgs_noElements_fromVariableType() async {
     await assertNoErrorsInCode('''
 Set<String> a = {};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
+  }
+
+  test_context_noTypeArgs_noElements_fromVariableType_nested() async {
+    await assertNoErrorsInCode('''
+Set<Set<String>> a = {{}};
+''');
+    assertType(setLiteral('{}'), 'Set<String>');
+    assertType(setLiteral('{{}}'), 'Set<Set<String>>');
   }
 
   test_context_noTypeArgs_noElements_futureOr() async {

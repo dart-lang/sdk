@@ -105,6 +105,19 @@ void f() {
     assertNoSuggestions();
   }
 
+  Future<void> test_extension_onDynamic() async {
+    addTestSource('''
+extension E on dynamic {
+  void e() {}
+}
+void f(String s) {
+  s.^;
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('e', null, 'void');
+  }
+
   Future<void> test_extensionOverride_doesNotMatch() async {
     addTestSource('''
 extension E on int {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -143,117 +144,10 @@ class MemberSorter {
 
   /// Sorts all [Directive]s.
   void _sortUnitDirectives() {
-    var hasLibraryDirective = false;
-    var directives = <_DirectiveInfo>[];
-    for (var directive in unit.directives) {
-      if (directive is LibraryDirective) {
-        hasLibraryDirective = true;
-      }
-      if (directive is! UriBasedDirective) {
-        continue;
-      }
-      var uriDirective = directive as UriBasedDirective;
-      var uriContent = uriDirective.uri.stringValue;
-      _DirectivePriority kind;
-      if (directive is ImportDirective) {
-        if (uriContent.startsWith('dart:')) {
-          kind = _DirectivePriority.IMPORT_SDK;
-        } else if (uriContent.startsWith('package:')) {
-          kind = _DirectivePriority.IMPORT_PKG;
-        } else if (uriContent.contains('://')) {
-          kind = _DirectivePriority.IMPORT_OTHER;
-        } else {
-          kind = _DirectivePriority.IMPORT_REL;
-        }
-      }
-      if (directive is ExportDirective) {
-        if (uriContent.startsWith('dart:')) {
-          kind = _DirectivePriority.EXPORT_SDK;
-        } else if (uriContent.startsWith('package:')) {
-          kind = _DirectivePriority.EXPORT_PKG;
-        } else if (uriContent.contains('://')) {
-          kind = _DirectivePriority.EXPORT_OTHER;
-        } else {
-          kind = _DirectivePriority.EXPORT_REL;
-        }
-      }
-      if (directive is PartDirective) {
-        kind = _DirectivePriority.PART;
-      }
-      if (kind != null) {
-        String documentationText;
-        if (directive.documentationComment != null) {
-          documentationText = code.substring(
-              directive.documentationComment.offset,
-              directive.documentationComment.end);
-        }
-        String annotationText;
-        if (directive.metadata.beginToken != null) {
-          annotationText = code.substring(directive.metadata.beginToken.offset,
-              directive.metadata.endToken.end);
-        }
-        var offset = directive.firstTokenAfterCommentAndMetadata.offset;
-        var length = directive.end - offset;
-        var text = code.substring(offset, offset + length);
-        directives.add(_DirectiveInfo(directive, kind, uriContent,
-            documentationText, annotationText, text));
-      }
-    }
-    // nothing to do
-    if (directives.isEmpty) {
-      return;
-    }
-    var firstDirectiveOffset = directives[0].directive.offset;
-    var lastDirectiveEnd = directives[directives.length - 1].directive.end;
-    // Without a library directive, the library comment is the comment of the
-    // first directive.
-    _DirectiveInfo libraryDocumentationDirective;
-    if (!hasLibraryDirective && directives.isNotEmpty) {
-      libraryDocumentationDirective = directives.first;
-    }
-    // do sort
-    directives.sort();
-    // append directives with grouping
-    String directivesCode;
-    {
-      var sb = StringBuffer();
-      var endOfLine = this.endOfLine;
-      _DirectivePriority currentPriority;
-      var firstOutputDirective = true;
-      for (var directive in directives) {
-        if (currentPriority != directive.priority) {
-          if (sb.length != 0) {
-            sb.write(endOfLine);
-          }
-          currentPriority = directive.priority;
-        }
-        if (directive != libraryDocumentationDirective &&
-            directive.documentationText != null) {
-          sb.write(directive.documentationText);
-          sb.write(endOfLine);
-        }
-        if (firstOutputDirective) {
-          firstOutputDirective = false;
-          if (libraryDocumentationDirective != null &&
-              libraryDocumentationDirective.documentationText != null) {
-            sb.write(libraryDocumentationDirective.documentationText);
-            sb.write(endOfLine);
-          }
-        }
-        if (directive.annotationText != null) {
-          sb.write(directive.annotationText);
-          sb.write(endOfLine);
-        }
-        sb.write(directive.text);
-        sb.write(endOfLine);
-      }
-      directivesCode = sb.toString();
-      directivesCode = directivesCode.trimRight();
-    }
-    // prepare code
-    var beforeDirectives = code.substring(0, firstDirectiveOffset);
-    var afterDirectives = code.substring(lastDirectiveEnd);
-    code = beforeDirectives + directivesCode + afterDirectives;
+    final importOrganizer =
+        ImportOrganizer(code, unit, [], removeUnused: false);
+    importOrganizer.organize();
+    code = importOrganizer.code;
   }
 
   /// Sorts all [CompilationUnitMember]s.
@@ -360,68 +254,6 @@ class MemberSorter {
   }
 }
 
-class _DirectiveInfo implements Comparable<_DirectiveInfo> {
-  final Directive directive;
-  final _DirectivePriority priority;
-  final String uri;
-  final String documentationText;
-  final String annotationText;
-  final String text;
-
-  _DirectiveInfo(this.directive, this.priority, this.uri,
-      this.documentationText, this.annotationText, this.text);
-
-  @override
-  int compareTo(_DirectiveInfo other) {
-    if (priority == other.priority) {
-      return _compareUri(uri, other.uri);
-    }
-    return priority.ordinal - other.priority.ordinal;
-  }
-
-  @override
-  String toString() => '(priority=$priority; text=$text)';
-
-  static int _compareUri(String a, String b) {
-    var aList = _splitUri(a);
-    var bList = _splitUri(b);
-    int result;
-    if ((result = aList[0].compareTo(bList[0])) != 0) return result;
-    if ((result = aList[1].compareTo(bList[1])) != 0) return result;
-    return 0;
-  }
-
-  /// Split the given [uri] like `package:some.name/and/path.dart` into a list
-  /// like `[package:some.name, and/path.dart]`.
-  static List<String> _splitUri(String uri) {
-    var index = uri.indexOf('/');
-    if (index == -1) {
-      return <String>[uri, ''];
-    }
-    return <String>[uri.substring(0, index), uri.substring(index + 1)];
-  }
-}
-
-class _DirectivePriority {
-  static const IMPORT_SDK = _DirectivePriority('IMPORT_SDK', 0);
-  static const IMPORT_PKG = _DirectivePriority('IMPORT_PKG', 1);
-  static const IMPORT_OTHER = _DirectivePriority('IMPORT_OTHER', 2);
-  static const IMPORT_REL = _DirectivePriority('IMPORT_REL', 3);
-  static const EXPORT_SDK = _DirectivePriority('EXPORT_SDK', 4);
-  static const EXPORT_PKG = _DirectivePriority('EXPORT_PKG', 5);
-  static const EXPORT_OTHER = _DirectivePriority('EXPORT_OTHER', 6);
-  static const EXPORT_REL = _DirectivePriority('EXPORT_REL', 7);
-  static const PART = _DirectivePriority('PART', 8);
-
-  final String name;
-  final int ordinal;
-
-  const _DirectivePriority(this.name, this.ordinal);
-
-  @override
-  String toString() => name;
-}
-
 class _MemberInfo {
   final _PriorityItem item;
   final String name;
@@ -430,10 +262,8 @@ class _MemberInfo {
   final int end;
   final String text;
 
-  _MemberInfo(this.item, this.name, int offset, int length, this.text)
-      : offset = offset,
-        length = length,
-        end = offset + length;
+  _MemberInfo(this.item, this.name, this.offset, this.length, this.text)
+      : end = offset + length;
 
   @override
   String toString() {

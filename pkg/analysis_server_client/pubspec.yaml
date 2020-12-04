@@ -11,4 +11,10 @@ dependencies:
   path: ^1.7.0
   pub_semver: ^1.4.4
 dev_dependencies:
+  analyzer:
+    path: ../analyzer
+  analysis_server:
+    path: ../analysis_server
+  analyzer_utilities:
+    path: ../analyzer_utilities
   test: ^1.14.2

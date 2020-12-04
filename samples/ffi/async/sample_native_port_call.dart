@@ -35,8 +35,8 @@ main() async {
   print("C T2 = Some C thread executing C.");
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
-  Expect.isTrue(NativeApi.majorVersion == 1);
-  Expect.isTrue(NativeApi.minorVersion >= 1);
+  Expect.isTrue(NativeApi.majorVersion == 2);
+  Expect.isTrue(NativeApi.minorVersion >= 0);
   final initializeApi = dl.lookupFunction<IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
@@ -77,8 +77,8 @@ void myCallback2(int a) {
 }
 
 class CppRequest {
-  final SendPort replyPort;
-  final int pendingCall;
+  final SendPort? replyPort;
+  final int? pendingCall;
   final String method;
   final Uint8List data;
 
@@ -112,9 +112,9 @@ void handleCppRequests(dynamic message) {
     final int argument = cppRequest.data[0];
     final int result = myCallback1(argument);
     final cppResponse =
-        CppResponse(cppRequest.pendingCall, Uint8List.fromList([result]));
+        CppResponse(cppRequest.pendingCall!, Uint8List.fromList([result]));
     print('Dart:   Responding: $cppResponse');
-    cppRequest.replyPort.send(cppResponse.toCppMessage());
+    cppRequest.replyPort!.send(cppResponse.toCppMessage());
   } else if (cppRequest.method == 'myCallback2') {
     final int argument = cppRequest.data[0];
     myCallback2(argument);

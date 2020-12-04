@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -56,39 +54,6 @@ ParseStringResult parseFile(
       throwIfDiagnostics: throwIfDiagnostics);
 }
 
-/// Return the result of parsing the file at the given [path].
-///
-/// If a [resourceProvider] is given, it will be used to access the file system.
-///
-/// [featureSet] determines what set of features will be assumed by the parser.
-/// This parameter is required because the analyzer does not yet have a
-/// performant way of computing the correct feature set for a single file to be
-/// parsed.  Callers that need the feature set to be strictly correct must
-/// create an [AnalysisContextCollection], query it to get an [AnalysisContext],
-/// query it to get an [AnalysisSession], and then call `getParsedUnit`.
-///
-/// Callers that don't need the feature set to be strictly correct can pass in
-/// `FeatureSet.fromEnableFlags([])` to enable the default set of features; this
-/// is much more performant than using an analysis session, because it doesn't
-/// require the analyzer to process the SDK.
-///
-/// If [throwIfDiagnostics] is `true` (the default), then if any diagnostics are
-/// produced because of syntactic errors in the [content] an `ArgumentError`
-/// will be thrown. If the parameter is `false`, then the caller can check the
-/// result to see whether there are any errors.
-@Deprecated('Use parseFile')
-ParseStringResult parseFile2(
-    {@required String path,
-    ResourceProvider resourceProvider,
-    @required FeatureSet featureSet,
-    bool throwIfDiagnostics = true}) {
-  return parseFile(
-      path: path,
-      resourceProvider: resourceProvider,
-      featureSet: featureSet,
-      throwIfDiagnostics: throwIfDiagnostics);
-}
-
 /// Returns the result of parsing the given [content] as a compilation unit.
 ///
 /// If a [featureSet] is provided, it will be the default set of features that
@@ -111,7 +76,7 @@ ParseStringResult parseString(
     FeatureSet featureSet,
     String path,
     bool throwIfDiagnostics = true}) {
-  featureSet ??= FeatureSet.fromEnableFlags([]);
+  featureSet ??= FeatureSet.latestLanguageVersion();
   var source = StringSource(content, path);
   var reader = CharSequenceReader(content);
   var errorCollector = RecordingErrorListener();

@@ -35,14 +35,13 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
         PcDescriptorsLayout::KindAndMetadata::Encode(kind, try_index,
                                                      yield_index);
 
-    PcDescriptors::EncodeInteger(&encoded_data_, kind_and_metadata);
-    PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
+    encoded_data_.WriteSLEB128(kind_and_metadata);
+    encoded_data_.WriteSLEB128(pc_offset - prev_pc_offset);
     prev_pc_offset = pc_offset;
 
     if (!FLAG_precompiled_mode) {
-      PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
-      PcDescriptors::EncodeInteger(&encoded_data_,
-                                   token_pos.value() - prev_token_pos);
+      encoded_data_.WriteSLEB128(deopt_id - prev_deopt_id);
+      encoded_data_.WriteSLEB128(token_pos.value() - prev_token_pos);
       prev_deopt_id = deopt_id;
       prev_token_pos = token_pos.value();
     }
@@ -50,22 +49,11 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
 }
 
 PcDescriptorsPtr DescriptorList::FinalizePcDescriptors(uword entry_point) {
-  if (encoded_data_.length() == 0) {
+  if (encoded_data_.bytes_written() == 0) {
     return Object::empty_descriptors().raw();
   }
-  return PcDescriptors::New(&encoded_data_);
-}
-
-// Encode unsigned integer |value| in LEB128 format and store into |data|.
-void CompressedStackMapsBuilder::EncodeLEB128(GrowableArray<uint8_t>* data,
-                                              uintptr_t value) {
-  while (true) {
-    uint8_t part = value & 0x7f;
-    value >>= 7;
-    if (value != 0) part |= 0x80;
-    data->Add(part);
-    if (value == 0) break;
-  }
+  return PcDescriptors::New(encoded_data_.buffer(),
+                            encoded_data_.bytes_written());
 }
 
 void CompressedStackMapsBuilder::AddEntry(intptr_t pc_offset,
@@ -74,179 +62,22 @@ void CompressedStackMapsBuilder::AddEntry(intptr_t pc_offset,
   ASSERT(bitmap != nullptr);
   ASSERT(pc_offset > last_pc_offset_);
   ASSERT(spill_slot_bit_count >= 0 && spill_slot_bit_count <= bitmap->Length());
-  auto const pc_delta = pc_offset - last_pc_offset_;
-  auto const non_spill_slot_bit_count = bitmap->Length() - spill_slot_bit_count;
-  EncodeLEB128(&encoded_bytes_, pc_delta);
-  EncodeLEB128(&encoded_bytes_, spill_slot_bit_count);
-  EncodeLEB128(&encoded_bytes_, non_spill_slot_bit_count);
+  const uword pc_delta = pc_offset - last_pc_offset_;
+  const uword non_spill_slot_bit_count =
+      bitmap->Length() - spill_slot_bit_count;
+  encoded_bytes_.WriteLEB128(pc_delta);
+  encoded_bytes_.WriteLEB128(spill_slot_bit_count);
+  encoded_bytes_.WriteLEB128(non_spill_slot_bit_count);
   bitmap->AppendAsBytesTo(&encoded_bytes_);
   last_pc_offset_ = pc_offset;
 }
 
 CompressedStackMapsPtr CompressedStackMapsBuilder::Finalize() const {
-  if (encoded_bytes_.length() == 0) return CompressedStackMaps::null();
-  return CompressedStackMaps::NewInlined(encoded_bytes_);
-}
-
-CompressedStackMapsIterator::CompressedStackMapsIterator(
-    const CompressedStackMaps& maps,
-    const CompressedStackMaps& global_table)
-    : maps_(maps),
-      bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
-  ASSERT(!maps_.IsGlobalTable());
-  ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
-}
-
-CompressedStackMapsIterator::CompressedStackMapsIterator(
-    const CompressedStackMaps& maps)
-    : CompressedStackMapsIterator(
-          maps,
-          // Only look up the global table if the map will end up using it.
-          maps.UsesGlobalTable() ? CompressedStackMaps::Handle(
-                                       Thread::Current()
-                                           ->isolate()
-                                           ->object_store()
-                                           ->canonicalized_stack_map_entries())
-                                 : Object::null_compressed_stack_maps()) {}
-
-CompressedStackMapsIterator::CompressedStackMapsIterator(
-    const CompressedStackMapsIterator& it)
-    : maps_(it.maps_),
-      bits_container_(it.bits_container_),
-      next_offset_(it.next_offset_),
-      current_pc_offset_(it.current_pc_offset_),
-      current_global_table_offset_(it.current_global_table_offset_),
-      current_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
-      current_non_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
-      current_bits_offset_(it.current_bits_offset_) {}
-
-// Decode unsigned integer in LEB128 format from the payload of |maps| and
-// update |byte_index|.
-uintptr_t CompressedStackMapsIterator::DecodeLEB128(
-    const CompressedStackMaps& maps,
-    uintptr_t* byte_index) {
-  uword shift = 0;
-  uintptr_t value = 0;
-  uint8_t part = 0;
-  do {
-    ASSERT(*byte_index < maps.payload_size());
-    part = maps.PayloadByte((*byte_index)++);
-    value |= static_cast<uintptr_t>(part & 0x7f) << shift;
-    shift += 7;
-  } while ((part & 0x80) != 0);
-
-  return value;
-}
-
-bool CompressedStackMapsIterator::MoveNext() {
-  // Empty CompressedStackMaps are represented as null values.
-  if (maps_.IsNull() || next_offset_ >= maps_.payload_size()) return false;
-  uintptr_t offset = next_offset_;
-
-  auto const pc_delta = DecodeLEB128(maps_, &offset);
-  ASSERT(pc_delta <= (kMaxUint32 - current_pc_offset_));
-  current_pc_offset_ += pc_delta;
-
-  // Table-using CSMs have a table offset after the PC offset delta, whereas
-  // the post-delta part of inlined entries has the same information as
-  // global table entries.
-  if (maps_.UsesGlobalTable()) {
-    current_global_table_offset_ = DecodeLEB128(maps_, &offset);
-    ASSERT(current_global_table_offset_ < bits_container_.payload_size());
-
-    // Since generally we only use entries in the GC and the GC only needs
-    // the rest of the entry information if the PC offset matches, we lazily
-    // load and cache the information stored in the global object when it is
-    // actually requested.
-    current_spill_slot_bit_count_ = -1;
-    current_non_spill_slot_bit_count_ = -1;
-    current_bits_offset_ = -1;
-  } else {
-    current_spill_slot_bit_count_ = DecodeLEB128(maps_, &offset);
-    ASSERT(current_spill_slot_bit_count_ >= 0);
-
-    current_non_spill_slot_bit_count_ = DecodeLEB128(maps_, &offset);
-    ASSERT(current_non_spill_slot_bit_count_ >= 0);
-
-    const auto stackmap_bits =
-        current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
-    const uintptr_t stackmap_size =
-        Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
-    ASSERT(stackmap_size <= (maps_.payload_size() - offset));
-
-    current_bits_offset_ = offset;
-    offset += stackmap_size;
+  if (encoded_bytes_.bytes_written() == 0) {
+    return Object::empty_compressed_stackmaps().raw();
   }
-
-  next_offset_ = offset;
-  return true;
-}
-
-intptr_t CompressedStackMapsIterator::Length() {
-  EnsureFullyLoadedEntry();
-  return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
-}
-intptr_t CompressedStackMapsIterator::SpillSlotBitCount() {
-  EnsureFullyLoadedEntry();
-  return current_spill_slot_bit_count_;
-}
-
-bool CompressedStackMapsIterator::IsObject(intptr_t bit_index) {
-  EnsureFullyLoadedEntry();
-  ASSERT(!bits_container_.IsNull());
-  ASSERT(bit_index >= 0 && bit_index < Length());
-  const intptr_t byte_index = bit_index >> kBitsPerByteLog2;
-  const intptr_t bit_remainder = bit_index & (kBitsPerByte - 1);
-  uint8_t byte_mask = 1U << bit_remainder;
-  const intptr_t byte_offset = current_bits_offset_ + byte_index;
-  return (bits_container_.PayloadByte(byte_offset) & byte_mask) != 0;
-}
-
-void CompressedStackMapsIterator::LazyLoadGlobalTableEntry() {
-  ASSERT(maps_.UsesGlobalTable() && bits_container_.IsGlobalTable());
-  ASSERT(HasLoadedEntry());
-  ASSERT(current_global_table_offset_ < bits_container_.payload_size());
-
-  uintptr_t offset = current_global_table_offset_;
-  current_spill_slot_bit_count_ = DecodeLEB128(bits_container_, &offset);
-  ASSERT(current_spill_slot_bit_count_ >= 0);
-
-  current_non_spill_slot_bit_count_ = DecodeLEB128(bits_container_, &offset);
-  ASSERT(current_non_spill_slot_bit_count_ >= 0);
-
-  const auto stackmap_bits = Length();
-  const uintptr_t stackmap_size =
-      Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
-  ASSERT(stackmap_size <= (bits_container_.payload_size() - offset));
-
-  current_bits_offset_ = offset;
-}
-
-const char* CompressedStackMapsIterator::ToCString(Zone* zone) const {
-  ZoneTextBuffer b(zone, 100);
-  CompressedStackMapsIterator it(*this);
-  // If we haven't loaded an entry yet, do so (but don't skip the current
-  // one if we have!)
-  if (!it.HasLoadedEntry()) {
-    if (!it.MoveNext()) return b.buffer();
-  }
-  bool first_entry = true;
-  do {
-    if (first_entry) {
-      first_entry = false;
-    } else {
-      b.AddString("\n");
-    }
-    b.Printf("0x%08x: ", it.pc_offset());
-    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
-      b.AddString(it.IsObject(i) ? "1" : "0");
-    }
-  } while (it.MoveNext());
-  return b.buffer();
-}
-
-const char* CompressedStackMapsIterator::ToCString() const {
-  return ToCString(Thread::Current()->zone());
+  return CompressedStackMaps::NewInlined(encoded_bytes_.buffer(),
+                                         encoded_bytes_.bytes_written());
 }
 
 ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
@@ -271,7 +102,7 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
                               list_[i].is_generated);
       handlers.SetHandledTypes(i, Array::empty_array());
     } else {
-      const bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
+      const bool has_catch_all = ContainsCatchAllType(*list_[i].handler_types);
       handlers.SetHandlerInfo(i, list_[i].outer_try_index, list_[i].pc_offset,
                               list_[i].needs_stacktrace, has_catch_all,
                               list_[i].is_generated);
@@ -279,13 +110,6 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
     }
   }
   return handlers.raw();
-}
-
-static uint8_t* ZoneAllocator(uint8_t* ptr,
-                              intptr_t old_size,
-                              intptr_t new_size) {
-  Zone* zone = Thread::Current()->zone();
-  return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -319,8 +143,7 @@ CatchEntryMovesMapBuilder::CatchEntryMovesMapBuilder()
     : zone_(Thread::Current()->zone()),
       root_(new TrieNode()),
       current_pc_offset_(0),
-      buffer_(NULL),
-      stream_(&buffer_, ZoneAllocator, 64) {}
+      stream_(zone_, 64) {}
 
 void CatchEntryMovesMapBuilder::Append(const CatchEntryMove& move) {
   moves_.Add(move);
@@ -344,7 +167,7 @@ void CatchEntryMovesMapBuilder::EndMapping() {
   intptr_t length = moves_.length() - suffix_length;
   intptr_t current_offset = stream_.bytes_written();
 
-  typedef WriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
+  typedef ZoneWriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
   Writer::Write(&stream_, current_pc_offset_);
   Writer::Write(&stream_, length);
   Writer::Write(&stream_, suffix_length);
@@ -378,6 +201,7 @@ const TokenPosition CodeSourceMapBuilder::kInitialPosition =
     TokenPosition(TokenPosition::kDartCodeProloguePos);
 
 CodeSourceMapBuilder::CodeSourceMapBuilder(
+    Zone* zone,
     bool stack_traces_only,
     const GrowableArray<intptr_t>& caller_inline_id,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
@@ -393,8 +217,7 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
       inline_id_to_function_(inline_id_to_function),
       inlined_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld))),
-      buffer_(NULL),
-      stream_(&buffer_, ZoneAllocator, 64),
+      stream_(zone, 64),
       stack_traces_only_(stack_traces_only) {
   buffered_inline_id_stack_.Add(0);
   buffered_token_pos_stack_.Add(kInitialPosition);
@@ -567,7 +390,7 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
   intptr_t length = stream_.bytes_written();
   const CodeSourceMap& map = CodeSourceMap::Handle(CodeSourceMap::New(length));
   NoSafepointScope no_safepoint;
-  memmove(map.Data(), buffer_, length);
+  memmove(map.Data(), stream_.buffer(), length);
   return map.raw();
 }
 

@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,10 +16,10 @@ main() {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest extends DriverResolutionTest {
+class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest {
   test_ambiguousClassName() async {
     // See dartbug.com/19624
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile('$testPackageLibPath/lib2.dart', content: '''
 class _A {}
 g(h(_A a)) {}''');
     await assertErrorsInCode('''
@@ -113,10 +112,7 @@ class A {
 main() {
   const A(42);
 }''', [
-      error(
-          CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          52,
-          2),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
     ]);
   }
@@ -198,8 +194,12 @@ class A {
 }
 f(A a) {
   a['0'] += 0;
+  ++a['0'];
+  a['0']++;
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
     ]);
   }
 
@@ -223,8 +223,12 @@ class A {
 }
 f(A a) {
   a['0'] += 0;
+  ++a['0'];
+  a['0']++;
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
     ]);
   }
 
@@ -444,15 +448,15 @@ class A {
   bool operator==(covariant A other) => false;
 }
 
-main(A a, A? aq) {
+void f(A a, A? aq) {
   a == 0;
   aq == 1;
   aq == aq;
   aq == null;
 }
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 97, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
     ]);
   }
 

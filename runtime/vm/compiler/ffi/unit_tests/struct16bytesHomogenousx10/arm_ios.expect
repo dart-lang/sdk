@@ -1,0 +1,15 @@
+M(s0 float, s1 float, s2 float, s3 float) Compound(size: 16)
+s4 float
+M(s5 float, s6 float, s7 float, s8 float) Compound(size: 16)
+M(s9 float, s10 float, s11 float, s12 float) Compound(size: 16)
+S+0 Compound(size: 16)
+S+16 Compound(size: 16)
+S+32 Compound(size: 16)
+S+48 Compound(size: 16)
+S+64 Compound(size: 16)
+S+80 Compound(size: 16)
+S+96 float
+r0 int32[int8]
+S+100 Compound(size: 16)
+=>
+M(s0 float, s1 float, s2 float, s3 float) Compound(size: 16)

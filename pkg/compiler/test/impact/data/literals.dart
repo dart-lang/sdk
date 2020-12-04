@@ -82,10 +82,7 @@ testDouble() => 37.5;
 /*member: testString:type=[inst:JSString]*/
 testString() => 'foo';
 
-/*member: testStringInterpolation:
- dynamic=[toString(0)],
- static=[S(1)],type=[inst:JSBool,inst:JSString]
-*/
+/*member: testStringInterpolation:type=[inst:JSString]*/
 testStringInterpolation() => '${true}';
 
 /*member: testStringInterpolationConst:type=[inst:JSString]*/
@@ -94,11 +91,7 @@ testStringInterpolationConst() {
   return b;
 }
 
-/*member: testStringJuxtaposition:
- dynamic=[toString(0)],
- static=[S(1)],
- type=[inst:JSString]
-*/
+/*member: testStringJuxtaposition:type=[inst:JSString]*/
 testStringJuxtaposition() => 'a' 'b';
 
 /*member: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/

@@ -68,6 +68,24 @@ void main() async {
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['link-platform'], equals(true));
     });
+
+    test('compile from command line with widget cache', () async {
+      final List<String> args = <String>[
+        'server.dart',
+        '--sdk-root',
+        'sdkroot',
+        '--flutter-widget-cache',
+      ];
+      await starter(args, compiler: compiler);
+      final List<dynamic> capturedArgs = verify(compiler.compile(
+        argThat(equals('server.dart')),
+        captureAny,
+        generator: anyNamed('generator'),
+      )).captured;
+      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
+      expect(capturedArgs.single['link-platform'], equals(true));
+      expect(capturedArgs.single['flutter-widget-cache'], equals(true));
+    });
   });
 
   group('interactive compile with mocked compiler', () {
@@ -223,6 +241,34 @@ void main() async {
       verifyInOrder(<void>[
         compiler.invalidate(Uri.base.resolve('file1.dart')),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
+        await compiler.recompileDelta(entryPoint: null),
+      ]);
+      inputStreamController.add('quit\n'.codeUnits);
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
+    test('recompile one file with widget cache does not fail', () async {
+      // The component will not contain the flutter framework sources so
+      // this should no-op.
+      final StreamController<List<int>> inputStreamController =
+          StreamController<List<int>>();
+      final ReceivePort recompileCalled = ReceivePort();
+
+      when(compiler.recompileDelta(entryPoint: null))
+          .thenAnswer((Invocation invocation) async {
+        recompileCalled.sendPort.send(true);
+      });
+      Future<int> result = starter(
+        <String>[...args, '--flutter-widget-cache'],
+        compiler: compiler,
+        input: inputStreamController.stream,
+      );
+      inputStreamController.add('recompile abc\nfile1.dart\nabc\n'.codeUnits);
+      await recompileCalled.first;
+
+      verifyInOrder(<void>[
+        compiler.invalidate(Uri.base.resolve('file1.dart')),
         await compiler.recompileDelta(entryPoint: null),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
@@ -435,6 +481,8 @@ void main() async {
     final platformKernel =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
     final ddcPlatformKernel =
+        computePlatformBinariesLocation().resolve('ddc_outline_sound.dill');
+    final ddcPlatformKernelWeak =
         computePlatformBinariesLocation().resolve('ddc_sdk.dill');
     final sdkRoot = computePlatformBinariesLocation();
 
@@ -450,14 +498,32 @@ void main() async {
 
     test('compile expression', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {}\n");
+      file.writeAsStringSync("main() {\n}\n");
       var dillFile = File('${tempDir.path}/app.dill');
+
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
         '--platform=${platformKernel.path}',
-        '--output-dill=${dillFile.path}'
+        '--output-dill=${dillFile.path}',
+        '--packages=${package_config.path}',
       ];
 
       final StreamController<List<int>> streamController =
@@ -836,7 +902,7 @@ true
 
           file.writeAsStringSync("import 'lib.dart'; main() => foo();\n");
           inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.path}\n'
+                  '${file.uri}\n'
                   'abc\n'
               .codeUnits);
 
@@ -906,7 +972,7 @@ true
           var file2 = File('${tempDir.path}/bar.dart')..createSync();
           file2.writeAsStringSync("main() {}\n");
           inputStreamController.add('recompile ${file2.path} abc\n'
-                  '${file2.path}\n'
+                  '${file2.uri}\n'
                   'abc\n'
               .codeUnits);
         } else {
@@ -923,6 +989,217 @@ true
       inputStreamController.close();
     });
 
+    test(
+        'recompile request with flutter widget cache outputs change in class name',
+        () async {
+      var frameworkDirectory = Directory('${tempDir.path}/flutter');
+      var flutterFramework =
+          File('${frameworkDirectory.path}/lib/src/widgets/framework.dart')
+            ..createSync(recursive: true);
+      flutterFramework.writeAsStringSync('''
+abstract class Widget {}
+class StatelessWidget extends Widget {}
+class StatefulWidget extends Widget {}
+class State<T extends StatefulWidget> {}
+''');
+
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {}
+
+class FizzWidget extends StatefulWidget {}
+
+class BarState extends State<FizzWidget> {}
+""");
+      var config = File('${tempDir.path}/package_config.json')..createSync();
+      config.writeAsStringSync('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flutter",
+      "rootUri": "${frameworkDirectory.uri}",
+      "packageUri": "lib/"
+    }
+  ]
+}
+''');
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--flutter-widget-cache',
+        '--packages=${config.path}',
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        if (count == 0) {
+          // First request is to 'compile', which results in full kernel file.
+          expect(dillFile.existsSync(), equals(true));
+          compiledResult.expectNoErrors(filename: dillFile.path);
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {}
+
+class BarState extends State<FizzWidget> {}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 1) {
+          expect(count, 1);
+          // Second request is to 'recompile', which results in incremental
+          // kernel file and invalidation of StatelessWidget.
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(true));
+          expect(widgetCacheFile.readAsStringSync(), 'FooWidget');
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {
+  // Added.
+}
+
+class BarState extends State<FizzWidget> {}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 2) {
+          // Second request is to 'recompile', which results in incremental
+          // kernel file and invalidation of StatelessWidget.
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(true));
+          expect(widgetCacheFile.readAsStringSync(), 'FizzWidget');
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {
+  // Added.
+}
+
+class BarState extends State<FizzWidget> {
+  // Added.
+}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 3) {
+          // Third request is to 'recompile', which results in incremental
+          // kernel file and invalidation of State class.
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(true));
+          expect(widgetCacheFile.readAsStringSync(), 'FizzWidget');
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+// Added
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {
+  // Added.
+}
+
+class BarState extends State<FizzWidget> {
+  // Added.
+}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 4) {
+          // Fourth request is to 'recompile', which results in incremental
+          // kernel file and no widget cache
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(false));
+          inputStreamController.add('quit\n'.codeUnits);
+        }
+      });
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
     test('unsafe-package-serialization', () async {
       // Package A.
       var file = File('${tempDir.path}/pkgA/a.dart')
@@ -930,9 +1207,6 @@ true
       file.writeAsStringSync("pkgA() {}");
 
       // Package B.
-      file = File('${tempDir.path}/pkgB/.packages')
-        ..createSync(recursive: true);
-      file.writeAsStringSync("pkgA: ../pkgA");
       file = File('${tempDir.path}/pkgB/a.dart')..createSync(recursive: true);
       file.writeAsStringSync("pkgB_a() {}");
       file = File('${tempDir.path}/pkgB/b.dart')..createSync(recursive: true);
@@ -940,10 +1214,25 @@ true
           "pkgB_b() { pkgA(); }");
 
       // Application.
-      file = File('${tempDir.path}/app/.packages')..createSync(recursive: true);
-      file.writeAsStringSync("pkgA:../pkgA\n"
-          "pkgB:../pkgB");
-
+      File('${tempDir.path}/app/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "pkgA",
+        "rootUri": "${tempDir.uri.resolve('pkgA')}",
+        "packageUri": "./"
+      },
+      {
+        "name": "pkgB",
+        "rootUri": "${tempDir.uri.resolve('pkgB')}",
+        "packageUri": "./"
+      }
+    ]
+  }
+''');
       // Entry point A uses both package A and B.
       file = File('${tempDir.path}/app/a.dart')..createSync(recursive: true);
       file.writeAsStringSync("import 'package:pkgB/b.dart';"
@@ -999,7 +1288,7 @@ true
             inputStreamController.add('reset\n'.codeUnits);
 
             inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.path}\n'
+                    '${fileB.uri}\n'
                     'abc\n'
                 .codeUnits);
             break;
@@ -1037,9 +1326,6 @@ true
       file.writeAsStringSync("pkgA() {}");
 
       // Package B.
-      file = File('${tempDir.path}/pkgB/.packages')
-        ..createSync(recursive: true);
-      file.writeAsStringSync("pkgA: ../pkgA");
       file = File('${tempDir.path}/pkgB/a.dart')..createSync(recursive: true);
       file.writeAsStringSync("pkgB_a() {}");
       file = File('${tempDir.path}/pkgB/b.dart')..createSync(recursive: true);
@@ -1047,6 +1333,25 @@ true
           "pkgB_b() { pkgA(); }");
 
       // Application.
+      File('${tempDir.path}/app/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "pkgA",
+        "rootUri": "${tempDir.uri.resolve('pkgA')}",
+        "packageUri": "./"
+      },
+      {
+        "name": "pkgB",
+        "rootUri": "${tempDir.uri.resolve('pkgB')}",
+        "packageUri": "./"
+      }
+    ]
+  }
+''');
       file = File('${tempDir.path}/app/.packages')..createSync(recursive: true);
       file.writeAsStringSync("pkgA:../pkgA\n"
           "pkgB:../pkgB");
@@ -1105,7 +1410,7 @@ true
             inputStreamController.add('reset\n'.codeUnits);
 
             inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.path}\n'
+                    '${fileB.uri}\n'
                     'abc\n'
                 .codeUnits);
             break;
@@ -1370,9 +1675,20 @@ true
         var main = File('${tempDir.path}/foo.dart')..createSync();
         main.writeAsStringSync(
             "import 'package:foo/foo.dart'; main() {print(foo);}\n");
-        File('${tempDir.path}/.packages')
-          ..createSync()
-          ..writeAsStringSync("\nfoo:http://$host:$port/packages/foo");
+        File('${tempDir.path}/.dart_tool/package_config.json')
+          ..createSync(recursive: true)
+          ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "foo",
+        "rootUri": "http://$host:$port/packages/foo",
+        "packageUri": "./"
+      }
+    ]
+  }
+''');
         File('${tempDir.path}/packages/foo/foo.dart')
           ..createSync(recursive: true)
           ..writeAsStringSync("var foo = 'hello';");
@@ -1418,10 +1734,22 @@ true
 
     test('compile to JavaScript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {}\n");
-      var packages = File('${tempDir.path}/.packages')
-        ..createSync()
-        ..writeAsStringSync("\n");
+      file.writeAsStringSync("main() {\n}\n");
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
       var dillFile = File('${tempDir.path}/app.dill');
 
       expect(dillFile.existsSync(), false);
@@ -1431,8 +1759,9 @@ true
         '--incremental',
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
-        '--packages=${packages.path}',
+        '--packages=${package_config.path}',
         '--target=dartdevc',
+        '--enable-experiment=non-nullable',
         file.path,
       ];
 
@@ -1441,8 +1770,8 @@ true
 
     test('compile to JavaScript with package scheme', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {}\n");
-      File('${tempDir.path}/.packages')
+      file.writeAsStringSync("main() {\n}\n");
+      var packages = File('${tempDir.path}/.packages')
         ..createSync()
         ..writeAsStringSync("hello:${tempDir.uri}\n");
       var dillFile = File('${tempDir.path}/app.dill');
@@ -1452,22 +1781,118 @@ true
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--incremental',
-        '--platform=${ddcPlatformKernel.path}',
+        '--platform=${ddcPlatformKernelWeak.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${tempDir.path}/.packages',
+        '--packages=${packages.path}',
         'package:hello/foo.dart'
       ];
 
       expect(await starter(args), 0);
-    });
+    }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
+
+    test('compile to JavaScript weak null safety', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("// @dart = 2.9\nmain() {\n}\n");
+      var packages = File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+      var dillFile = File('${tempDir.path}/app.dill');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernelWeak.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${packages.path}',
+        'package:hello/foo.dart'
+      ];
+
+      expect(await starter(args), 0);
+    }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
+
+    test('compile to JavaScript weak null safety then non-existent file',
+        () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("// @dart = 2.9\nmain() {\n}\n");
+      var packages = File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+      var dillFile = File('${tempDir.path}/app.dill');
+
+      expect(dillFile.existsSync(), false);
+
+      var library = 'package:hello/foo.dart';
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernelWeak.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${packages.path}',
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      var count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        count++;
+        if (count == 1) {
+          // First request is to 'compile', which results in full JavaScript
+          expect(result.errorsCount, equals(0));
+          expect(result.filename, dillFile.path);
+          streamController.add('accept\n'.codeUnits);
+          streamController.add('compile foo.bar\n'.codeUnits);
+        } else {
+          expect(count, 2);
+          // Second request is to 'compile' non-existent file, that should fail.
+          expect(result.errorsCount, greaterThan(0));
+          streamController.add('quit\n'.codeUnits);
+        }
+      });
+
+      expect(await result, 0);
+      expect(count, 2);
+    }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
 
     test('compile to JavaScript with no metadata', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");
-      File('${tempDir.path}/.packages')
-        ..createSync()
-        ..writeAsStringSync("hello:${tempDir.uri}\n");
+
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
 
       var library = 'package:hello/foo.dart';
 
@@ -1489,7 +1914,8 @@ true
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${tempDir.path}/.packages',
+        '--packages=${package_config.path}',
+        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -1531,9 +1957,21 @@ true
     test('compile to JavaScript with metadata', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");
-      File('${tempDir.path}/.packages')
-        ..createSync()
-        ..writeAsStringSync("hello:${tempDir.uri}\n");
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
 
       var library = 'package:hello/foo.dart';
 
@@ -1555,8 +1993,9 @@ true
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${tempDir.path}/.packages',
-        '--experimental-emit-debug-metadata'
+        '--packages=${package_config.path}',
+        '--experimental-emit-debug-metadata',
+        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -1597,10 +2036,22 @@ true
 
     test('compile expression to Javascript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {\n\n}\n");
-      File('${tempDir.path}/.packages')
-        ..createSync()
-        ..writeAsStringSync("hello:${tempDir.uri}\n");
+      file.writeAsStringSync("main() {\n}\n");
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
 
       var library = 'package:hello/foo.dart';
       var module = 'packages/hello/foo.dart';
@@ -1618,7 +2069,8 @@ true
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${tempDir.path}/.packages',
+        '--packages=${package_config.path}',
+        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -1663,7 +2115,7 @@ true
           // expression
           outputParser.expectSources = false;
           streamController.add('compile-expression-to-js abc\n'
-                  '$library\n1\n1\nabc\nabc\n$module\n\n'
+                  '$library\n2\n1\nabc\nabc\n$module\n\n'
               .codeUnits);
           count += 1;
         } else if (count == 1) {
@@ -1676,7 +2128,7 @@ true
 
           outputParser.expectSources = false;
           streamController.add('compile-expression-to-js abc\n'
-                  '$library\n1\n1\nabc\nabc\n$module\n2+2\n'
+                  '$library\n2\n1\nabc\nabc\n$module\n2+2\n'
               .codeUnits);
           count += 1;
         } else if (count == 2) {
@@ -1705,10 +2157,21 @@ true
     test('mixed compile expression commands with web target', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");
-      File('${tempDir.path}/.packages')
-        ..createSync()
-        ..writeAsStringSync("hello:${tempDir.uri}\n");
-
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
       var library = 'package:hello/foo.dart';
       var module = 'packages/hello/foo.dart';
 
@@ -1725,7 +2188,8 @@ true
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${tempDir.path}/.packages',
+        '--packages=${package_config.path}',
+        '--enable-experiment=non-nullable'
       ];
 
       final StreamController<List<int>> streamController =
@@ -1770,7 +2234,7 @@ true
           // expression
           outputParser.expectSources = false;
           streamController.add('compile-expression-to-js abc\n'
-                  '$library\n1\n1\nabc\nabc\n$module\n2+2\n'
+                  '$library\n2\n1\nabc\nabc\n$module\n2+2\n'
               .codeUnits);
           count += 1;
         } else if (count == 1) {
@@ -1807,7 +2271,7 @@ true
 
           outputParser.expectSources = false;
           streamController.add('compile-expression-to-js abc\n'
-                  '$library\n1\n1\nabc\nabc\n$module\n2+2\n'
+                  '$library\n2\n1\nabc\nabc\n$module\n2+2\n'
               .codeUnits);
           count += 1;
         } else if (count == 3) {
@@ -1824,52 +2288,6 @@ true
 
       expect(await result, 0);
       expect(count, 3);
-    });
-
-    test('compile with bytecode', () async {
-      var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {}\n");
-      var dillFile = File('${tempDir.path}/app.dill');
-      expect(dillFile.existsSync(), equals(false));
-      final List<String> args = <String>[
-        '--sdk-root=${sdkRoot.toFilePath()}',
-        '--incremental',
-        '--platform=${platformKernel.path}',
-        '--output-dill=${dillFile.path}',
-        '--gen-bytecode',
-        '--drop-ast',
-        file.path,
-      ];
-      expect(await starter(args), 0);
-    });
-
-    test('compile with bytecode and produce deps file', () async {
-      var sourceFoo = File('${tempDir.path}/foo.dart')..createSync();
-      sourceFoo.writeAsStringSync("import 'bar.dart'; main() { barfunc(); }\n");
-      var sourceBar = File('${tempDir.path}/bar.dart')..createSync();
-      sourceBar.writeAsStringSync("barfunc() {}\n");
-      var dillFile = File('${tempDir.path}/app.dill');
-      expect(dillFile.existsSync(), equals(false));
-      var depFile = File('${tempDir.path}/app.dill.d');
-      expect(depFile.existsSync(), equals(false));
-      final List<String> args = <String>[
-        '--sdk-root=${sdkRoot.toFilePath()}',
-        '--incremental',
-        '--platform=${platformKernel.path}',
-        '--output-dill=${dillFile.path}',
-        '--depfile=${depFile.path}',
-        '--gen-bytecode',
-        '--drop-ast',
-        sourceFoo.path,
-      ];
-      expect(await starter(args), 0);
-      expect(depFile.existsSync(), true);
-      var depContents = depFile.readAsStringSync();
-      print(depContents);
-      var depContentsParsed = depContents.split(': ');
-      expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
-      expect(depContentsParsed[1], contains(path.basename(sourceFoo.path)));
-      expect(depContentsParsed[1], contains(path.basename(sourceBar.path)));
     });
 
     test('compile "package:"-file', () async {

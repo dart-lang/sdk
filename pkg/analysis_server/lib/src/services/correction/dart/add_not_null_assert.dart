@@ -22,7 +22,7 @@ class AddNotNullAssert extends CorrectionProducer {
       if (identifier.parent is FormalParameter) {
         final exp = identifier.parent.thisOrAncestorMatching(
             (node) => node is FunctionExpression || node is MethodDeclaration);
-        var body;
+        FunctionBody body;
         if (exp is FunctionExpression) {
           body = exp.body;
         } else if (exp is MethodDeclaration) {

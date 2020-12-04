@@ -3,18 +3,26 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
+Version languageVersionFromSdkVersion(String sdkVersionStr) {
+  var sdkVersionParts = sdkVersionStr.split('.');
+  var sdkVersionMajor = int.parse(sdkVersionParts[0]);
+  var sdkVersionMinor = int.parse(sdkVersionParts[1]);
+  return Version(sdkVersionMajor, sdkVersionMinor, 0);
+}
 
 /// An abstract implementation of a Dart SDK in which the available libraries
 /// are stored in a library map. Subclasses are responsible for populating the
@@ -26,36 +34,8 @@ abstract class AbstractDartSdk implements DartSdk {
   /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
-  /// The [AnalysisOptions] to use to create the [context].
-  AnalysisOptions _analysisOptions;
-
-  /// The [AnalysisContext] which is used for all of the sources in this SDK.
-  SdkAnalysisContext _analysisContext;
-
   /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
-
-  /// Return the analysis options for this SDK analysis context.
-  AnalysisOptions get analysisOptions => _analysisOptions;
-
-  /// Set the [options] for this SDK analysis context.  Throw [StateError] if
-  /// the context has been already created.
-  set analysisOptions(AnalysisOptions options) {
-    if (_analysisContext != null) {
-      throw StateError(
-          'Analysis options cannot be changed after context creation.');
-    }
-    _analysisOptions = options;
-  }
-
-  @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      var factory = SourceFactory([DartUriResolver(this)]);
-      _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
-    }
-    return _analysisContext;
-  }
 
   @override
   List<SdkLibrary> get sdkLibraries => libraryMap.sdkLibraries;
@@ -197,11 +177,21 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _DART_COLON_PREFIX = 'dart:';
 
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
+
+  Version _languageVersion;
+
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
+  /// TODO(scheglov) Make [languageVersion] required.
+  /// https://github.com/dart-lang/sdk/issues/42890
   EmbedderSdk(
-      ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
+    ResourceProvider resourceProvider,
+    Map<Folder, YamlMap> embedderYamls, {
+    Version languageVersion,
+  }) {
     this.resourceProvider = resourceProvider;
+    _languageVersion =
+        languageVersion ?? languageVersionFromSdkVersion(io.Platform.version);
     embedderYamls?.forEach(_processEmbedderYaml);
   }
 
@@ -220,6 +210,9 @@ class EmbedderSdk extends AbstractDartSdk {
     }
     return null;
   }
+
+  @override
+  Version get languageVersion => _languageVersion;
 
   @override
   // TODO(danrubel) Determine SDK version
@@ -364,6 +357,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// discovered.
   String _sdkVersion;
 
+  /// The cached language version of this SDK.
+  Version _languageVersion;
+
   /// The file containing the pub executable.
   File _pubExecutable;
 
@@ -394,6 +390,18 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Return the directory containing documentation for the SDK.
   Folder get docDirectory =>
       _sdkDirectory.getChildAssumingFolder(_DOCS_DIRECTORY_NAME);
+
+  @override
+  Version get languageVersion {
+    if (_languageVersion == null) {
+      var sdkVersionStr = _sdkDirectory
+          .getChildAssumingFile(_VERSION_FILE_NAME)
+          .readAsStringSync();
+      _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
+    }
+
+    return _languageVersion;
+  }
 
   /// Return the directory within the SDK directory that contains the libraries.
   Folder get libraryDirectory {
@@ -554,7 +562,7 @@ class SdkLibrariesReader {
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     // TODO(paulberry): initialize the feature set appropriately based on the
     // version of the SDK we are reading, and enable flags.
-    var featureSet = FeatureSet.fromEnableFlags([]);
+    var featureSet = FeatureSet.latestLanguageVersion();
 
     var parseResult = parseString(
       content: libraryFileContents,

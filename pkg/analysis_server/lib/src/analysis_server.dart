@@ -16,7 +16,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
-import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -51,11 +50,9 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
@@ -234,34 +231,32 @@ class AnalysisServer extends AbstractAnalysisServer {
   void handleRequest(Request request) {
     performance.logRequestTiming(request.clientRequestTime);
     runZonedGuarded(() {
-      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
-        var count = handlers.length;
-        for (var i = 0; i < count; i++) {
-          try {
-            var response = handlers[i].handleRequest(request);
-            if (response == Response.DELAYED_RESPONSE) {
-              return;
-            }
-            if (response != null) {
-              channel.sendResponse(response);
-              return;
-            }
-          } on RequestFailure catch (exception) {
-            channel.sendResponse(exception.response);
+      var count = handlers.length;
+      for (var i = 0; i < count; i++) {
+        try {
+          var response = handlers[i].handleRequest(request);
+          if (response == Response.DELAYED_RESPONSE) {
             return;
-          } catch (exception, stackTrace) {
-            var error = RequestError(
-                RequestErrorCode.SERVER_ERROR, exception.toString());
-            if (stackTrace != null) {
-              error.stackTrace = stackTrace.toString();
-            }
-            var response = Response(request.id, error: error);
+          }
+          if (response != null) {
             channel.sendResponse(response);
             return;
           }
+        } on RequestFailure catch (exception) {
+          channel.sendResponse(exception.response);
+          return;
+        } catch (exception, stackTrace) {
+          var error =
+              RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+          if (stackTrace != null) {
+            error.stackTrace = stackTrace.toString();
+          }
+          var response = Response(request.id, error: error);
+          channel.sendResponse(response);
+          return;
         }
-        channel.sendResponse(Response.unknownRequest(request));
-      });
+      }
+      channel.sendResponse(Response.unknownRequest(request));
     }, (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
         FatalException(
@@ -297,14 +292,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   @override
   void notifyFlutterWidgetDescriptions(String path) {
     flutterWidgetDescriptions.flush();
-  }
-
-  /// Read all files, resolve all URIs, and perform required analysis in
-  /// all current analysis drivers.
-  void reanalyze() {
-    for (var driver in driverMap.values) {
-      driver.resetUriResolution();
-    }
   }
 
   /// Send the given [notification] to the client.
@@ -613,9 +600,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 
 /// Various IDE options.
 class AnalysisServerOptions {
-  bool useAnalysisHighlight2 = false;
-
-  String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;
@@ -638,24 +622,8 @@ class AnalysisServerOptions {
   /// generally used in specific SDKs (like the internal google3 one).
   SdkConfiguration configurationOverrides;
 
-  /// The list of the names of the experiments that should be enabled by
-  /// default, unless the analysis options file of a context overrides it.
-  List<String> enabledExperiments = const <String>[];
-
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
-
-  /// Base path to locate trained completion language model files.
-  ///
-  /// ML completion is enabled if this is non-null.
-  String completionModelFolder;
-
-  /// Whether to enable parsing via the Fasta parser.
-  bool useFastaParser = true;
-
-  /// Return `true` if the new relevance computations should be used when
-  /// computing code completion suggestions.
-  bool useNewRelevance = false;
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
@@ -674,9 +642,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.notificationManager;
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    var builder = createContextBuilder(folder, options);
+  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
+    var builder = createContextBuilder(folder);
     var analysisDriver = builder.buildDriver(contextRoot);
     analysisDriver.results.listen((result) {
       var notificationManager = analysisServer.notificationManager;
@@ -829,9 +796,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+  ContextBuilder createContextBuilder(Folder folder) {
     var builderOptions = ContextBuilderOptions();
-    builderOptions.defaultOptions = options;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
@@ -850,11 +816,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
-    if (analysisServer.options.useAnalysisHighlight2) {
-      return DartUnitHighlightsComputer2(unit).compute();
-    } else {
-      return DartUnitHighlightsComputer(unit).compute();
-    }
+    return DartUnitHighlightsComputer(unit).compute();
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(
@@ -938,24 +900,4 @@ class ServerPerformance {
       }
     }
   }
-}
-
-/// Container with global [AnalysisServer] performance statistics.
-class ServerPerformanceStatistics {
-  /// The [PerformanceTag] for `package:analysis_server`.
-  static final PerformanceTag server = PerformanceTag('server');
-
-  /// The [PerformanceTag] for time spent between calls to
-  /// AnalysisServer.performOperation when the server is idle.
-  static final PerformanceTag idle = PerformanceTag('idle');
-
-  /// The [PerformanceTag] for time spent in
-  /// PerformAnalysisOperation._sendNotices.
-  static final PerformanceTag notices = server.createChild('notices');
-
-  /// The [PerformanceTag] for time spent in server communication channels.
-  static final PerformanceTag serverChannel = server.createChild('channel');
-
-  /// The [PerformanceTag] for time spent in server request handlers.
-  static final PerformanceTag serverRequests = server.createChild('requests');
 }

@@ -4,7 +4,6 @@
 
 library front_end.memory_file_system;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 

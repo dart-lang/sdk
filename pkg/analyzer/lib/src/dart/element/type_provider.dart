@@ -6,24 +6,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:meta/meta.dart';
 
 /// Provide common functionality shared by the various TypeProvider
 /// implementations.
 abstract class TypeProviderBase implements TypeProvider {
-  @override
-  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        boolType,
-        doubleType,
-        intType,
-        nullType,
-        numType,
-        stringType
-      ];
-
   @override
   bool isObjectGetter(String id) {
     PropertyAccessorElement element = objectType.element.getGetter(id);
@@ -69,27 +57,22 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
   InterfaceType _doubleType;
+  InterfaceType _doubleTypeQuestion;
   InterfaceType _functionType;
   InterfaceType _futureDynamicType;
   InterfaceType _futureNullType;
   InterfaceType _futureOrNullType;
-  InterfaceType _futureOrType;
-  InterfaceType _futureType;
   InterfaceType _intType;
+  InterfaceType _intTypeQuestion;
   InterfaceType _iterableDynamicType;
   InterfaceType _iterableObjectType;
-  InterfaceType _iterableType;
-  InterfaceType _listType;
-  InterfaceType _mapType;
   InterfaceType _mapObjectObjectType;
-  DartObjectImpl _nullObject;
   InterfaceType _nullType;
   InterfaceType _numType;
+  InterfaceType _numTypeQuestion;
   InterfaceType _objectType;
-  InterfaceType _setType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
-  InterfaceType _streamType;
   InterfaceType _stringType;
   InterfaceType _symbolType;
   InterfaceType _typeType;
@@ -168,6 +151,10 @@ class TypeProviderImpl extends TypeProviderBase {
     return _doubleType;
   }
 
+  InterfaceType get doubleTypeQuestion =>
+      _doubleTypeQuestion ??= (doubleType as InterfaceTypeImpl)
+          .withNullability(NullabilitySuffix.question);
+
   @override
   DartType get dynamicType => DynamicTypeImpl.instance;
 
@@ -218,18 +205,6 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  InterfaceType get futureOrType {
-    _futureOrType ??= _getType(_asyncLibrary, "FutureOr");
-    return _futureOrType;
-  }
-
-  @override
-  InterfaceType get futureType {
-    _futureType ??= _getType(_asyncLibrary, "Future");
-    return _futureType;
-  }
-
-  @override
   ClassElement get intElement {
     return _intElement ??= _getClassElement(_coreLibrary, "int");
   }
@@ -239,6 +214,10 @@ class TypeProviderImpl extends TypeProviderBase {
     _intType ??= _getType(_coreLibrary, "int");
     return _intType;
   }
+
+  InterfaceType get intTypeQuestion =>
+      _intTypeQuestion ??= (intType as InterfaceTypeImpl)
+          .withNullability(NullabilitySuffix.question);
 
   @override
   InterfaceType get iterableDynamicType {
@@ -266,20 +245,8 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  InterfaceType get iterableType {
-    _iterableType ??= _getType(_coreLibrary, "Iterable");
-    return _iterableType;
-  }
-
-  @override
   ClassElement get listElement {
     return _listElement ??= _getClassElement(_coreLibrary, 'List');
-  }
-
-  @override
-  InterfaceType get listType {
-    _listType ??= _getType(_coreLibrary, "List");
-    return _listType;
   }
 
   @override
@@ -295,12 +262,6 @@ class TypeProviderImpl extends TypeProviderBase {
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _mapObjectObjectType;
-  }
-
-  @override
-  InterfaceType get mapType {
-    _mapType ??= _getType(_coreLibrary, "Map");
-    return _mapType;
   }
 
   @override
@@ -322,21 +283,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get nullElement {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
-  }
-
-  @deprecated
-  @override
-  DartObjectImpl get nullObject {
-    return _nullObject ??= DartObjectImpl(
-      TypeSystemImpl(
-        implicitCasts: false,
-        isNonNullableByDefault: false,
-        strictInference: false,
-        typeProvider: this,
-      ),
-      nullType,
-      NullState.NULL_STATE,
-    );
   }
 
   InterfaceTypeImpl get nullStar {
@@ -363,6 +309,10 @@ class TypeProviderImpl extends TypeProviderBase {
     return _numType;
   }
 
+  InterfaceType get numTypeQuestion =>
+      _numTypeQuestion ??= (numType as InterfaceTypeImpl)
+          .withNullability(NullabilitySuffix.question);
+
   ClassElement get objectElement {
     return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
   }
@@ -376,11 +326,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get setElement {
     return _setElement ??= _getClassElement(_coreLibrary, 'Set');
-  }
-
-  @override
-  InterfaceType get setType {
-    return _setType ??= _getType(_coreLibrary, "Set");
   }
 
   @override
@@ -402,12 +347,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get streamElement {
     return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
-  }
-
-  @override
-  InterfaceType get streamType {
-    _streamType ??= _getType(_asyncLibrary, "Stream");
-    return _streamType;
   }
 
   @override

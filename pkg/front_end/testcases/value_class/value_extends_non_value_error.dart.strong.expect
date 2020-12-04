@@ -1,0 +1,83 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/value_extends_non_value_error.dart:8:7: Error: Field 'numberOfLegs' should be initialized because its type 'int' doesn't allow null.
+//   int numberOfLegs;
+//       ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/value_class/value_extends_non_value_error.dart:15:13: Error: Final field 'numberOfLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  field core::int numberOfLegs = null;
+  synthetic constructor •() → self::Animal
+    : super core::Object::•()
+    ;
+}
+class Cat extends self::Animal {
+  synthetic constructor •() → self::Cat
+    : super self::Animal::•()
+    ;
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
+    return other is self::Cat;
+  get /*isLegacy*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat".{core::String::hashCode});
+  method /*isLegacy*/ toString() → core::String
+    return "Cat()";
+  method /*isLegacy*/ copyWith() → dynamic
+    return new self::Cat::•();
+}
+class Animal2 extends core::Object {
+  final field core::int numberOfLegs = null;
+  synthetic constructor •() → self::Animal2
+    : super core::Object::•()
+    ;
+}
+class Cat2 extends self::Animal2 {
+  synthetic constructor •() → self::Cat2
+    : super self::Animal2::•()
+    ;
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
+    return other is self::Cat2;
+  get /*isLegacy*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat2".{core::String::hashCode});
+  method /*isLegacy*/ toString() → core::String
+    return "Cat2()";
+  method /*isLegacy*/ copyWith() → dynamic
+    return new self::Cat2::•();
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    : super core::Object::•()
+    ;
+  static method combine(core::int hash, core::int value) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
+  }
+  static method finish(core::int hash) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+  }
+}
+static const field core::String valueClass = #C1;
+
+constants  {
+  #C1 = "valueClass"
+}

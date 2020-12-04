@@ -1,4 +1,7 @@
 /// An abstraction of the JS types
+
+// @dart = 2.9
+
 abstract class JSType {
   const JSType();
 

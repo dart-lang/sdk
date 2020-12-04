@@ -1,0 +1,8 @@
+class A<T extends num> {}
+
+typedef FArgument<X extends num> = Function(X);
+typedef FReturn<X extends num> = X Function();
+typedef FBoth<X extends num> = X Function(X);
+typedef FNowhere<X extends num> = Function();
+foo() {}
+main() {}

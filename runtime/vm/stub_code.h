@@ -46,7 +46,7 @@ class StubCode : public AllStatic {
 
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
-  static bool InInvocationStub(uword pc, bool is_interpreted_frame);
+  static bool InInvocationStub(uword pc);
 
   // Check if the specified pc is in the jump to frame stub.
   static bool InJumpToFrameStub(uword pc);
@@ -62,6 +62,7 @@ class StubCode : public AllStatic {
 #undef STUB_CODE_ACCESSOR
 
   static CodePtr GetAllocationStubForClass(const Class& cls);
+  static CodePtr GetAllocationStubForTypedData(classid_t class_id);
 
 #if !defined(TARGET_ARCH_IA32)
   static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool);

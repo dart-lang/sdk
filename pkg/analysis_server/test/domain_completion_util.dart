@@ -8,7 +8,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
@@ -41,12 +40,11 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      {int relevance = DART_RELEVANCE_DEFAULT,
-      bool isDeprecated = false,
+      {bool isDeprecated = false,
       bool isPotential = false,
       int selectionOffset,
       ElementKind elementKind}) {
-    var cs;
+    CompletionSuggestion cs;
     suggestions.forEach((s) {
       if (elementKind != null && s.element?.kind != elementKind) {
         return;
@@ -70,7 +68,6 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       fail('expected $expectationText, but found\n $completions');
     }
     expect(cs.kind, equals(kind));
-    expect(cs.relevance, equals(relevance));
     expect(cs.selectionOffset, selectionOffset ?? completion.length);
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));

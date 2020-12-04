@@ -15,6 +15,8 @@ import '../sdk.dart';
 
 /// A command to create a new project from a set of templates.
 class CreateCommand extends DartdevCommand {
+  static const String cmdName = 'create';
+
   static String defaultTemplateId = 'console-simple';
 
   static List<String> legalTemplateIds = [
@@ -31,7 +33,7 @@ class CreateCommand extends DartdevCommand {
       stagehand.getGenerator(templateId);
 
   CreateCommand({bool verbose = false})
-      : super('create', 'Create a new project.') {
+      : super(cmdName, 'Create a new project.') {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds,
@@ -96,14 +98,14 @@ class CreateCommand extends DartdevCommand {
     );
 
     if (argResults['pub']) {
-      if (!Sdk.checkSnapshotExists(sdk.pub)) {
+      if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
         return 255;
       }
       log.stdout('');
       var progress = log.progress('Running pub get');
-      var process = await startProcess(
-        sdk.pub,
-        ['get', '--no-precompile'],
+      var process = await startDartProcess(
+        sdk,
+        [sdk.pubSnapshot, 'get', '--no-precompile'],
         cwd: dir,
       );
 

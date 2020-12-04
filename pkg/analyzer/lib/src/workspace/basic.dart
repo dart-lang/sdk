@@ -76,4 +76,16 @@ class BasicWorkspacePackage extends WorkspacePackage {
     // is in the package as well.
     return workspace.provider.pathContext.isWithin(root, filePath);
   }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      workspace.packageMap;
+
+  @override
+  bool sourceIsInPublicApi(Source source) {
+    // Since every source file in a BasicPackage is in the same directory, they
+    // are all in the public API of the package. A file in a subdirectory
+    // is in a separate package.
+    return true;
+  }
 }

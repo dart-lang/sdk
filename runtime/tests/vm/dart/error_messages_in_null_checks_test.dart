@@ -89,7 +89,7 @@ main(List<String> args) {
 
   Expect.throws(
       () => 9.81 - doubleNull,
-      (e) => isWeakMode
+      (e) => hasUnsoundNullSafety
           ? (e is NoSuchMethodError &&
               // If '-' is specialized.
               (e.toString().startsWith(

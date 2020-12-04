@@ -60,9 +60,6 @@ abstract class AnnotationProcessor {
   void extractNativeAnnotations(LibraryEntity library);
 
   void extractJsInteropAnnotations(LibraryEntity library);
-
-  void processJsInteropAnnotations(
-      NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder);
 }
 
 /// Class that deletes the contents of an [WorldImpact] cache.

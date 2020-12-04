@@ -1,0 +1,99 @@
+main = <No Member>;
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  abstract class Bar extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → fra::Bar
+      : super dart.core::Object::•()
+      ;
+  }
+  abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
+    final field wid::_Location? _location /*isLegacy, from null */;
+    const constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
+      : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+}
+library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
+
+  abstract class _HasCreationLocation extends dart.core::Object {
+    synthetic constructor •() → wid::_HasCreationLocation
+      : super dart.core::Object::•()
+      ;
+    abstract get _location() → wid::_Location;
+  }
+  class _Location extends dart.core::Object /*hasConstConstructor*/  {
+    final field dart.core::String file;
+    final field dart.core::int line;
+    final field dart.core::int column;
+    final field dart.core::String name;
+    final field dart.core::List<wid::_Location> parameterLocations;
+    const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+      : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///foo.dart" as foo {
+
+  import "package:flutter/src/widgets/framework.dart";
+  import "package:flutter/src/widgets/widget_inspector.dart";
+
+  class Foo extends fra::Widget /*hasConstConstructor*/  {
+    const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
+      return #C7;
+  }
+  class Bar extends fra::Widget /*hasConstConstructor*/  {
+    static field dynamic _redirecting# = <dynamic>[foo::Bar::•]/*isLegacy*/;
+    const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
+      let dynamic #redirecting_factory = foo::Bar::_ in invalid-expression;
+  }
+  class Baz extends fra::Widget /*hasConstConstructor*/  {
+    static field dynamic _redirecting# = <dynamic>[foo::Baz::_]/*isLegacy*/;
+    const constructor __({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
+      return #C10;
+    static factory _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
+      let dynamic #redirecting_factory = foo::Baz::__ in invalid-expression;
+  }
+  class Boz extends fra::Widget /*hasConstConstructor*/  {
+    const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static factory •({required dart.core::bool createNew = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz {
+      if(createNew) {
+        return new foo::Boz::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
+      }
+      else {
+        return #C14;
+      }
+    }
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///foo.dart";
+
+}
+constants  {
+  #C1 = null
+  #C2 = "org-dartlang-test:///foo.dart"
+  #C3 = 2.0
+  #C4 = 51.0
+  #C5 = <wid::_Location*>[]
+  #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C1, parameterLocations:#C5}
+  #C7 = foo::Foo {_location:#C6}
+  #C8 = 6.0
+  #C9 = wid::_Location {file:#C2, line:#C8, column:#C4, name:#C1, parameterLocations:#C5}
+  #C10 = foo::Baz {_location:#C9}
+  #C11 = 9.0
+  #C12 = 128.0
+  #C13 = wid::_Location {file:#C2, line:#C11, column:#C12, name:#C1, parameterLocations:#C5}
+  #C14 = foo::Boz {_location:#C13}
+}

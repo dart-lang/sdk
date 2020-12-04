@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $runtime == vm ]
+isolate/*: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+
 [ $runtime != vm ]
 isolate/native_wrapper_message_test: Skip # A VM specific test.
 
@@ -17,7 +20,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip # Verification not yet i
 [ $arch == simarm64 && $runtime == vm ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $runtime == vm ]
+[ $compiler != app_jitk && $compiler != dartk && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
@@ -34,7 +37,7 @@ mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: RuntimeError
 mirrors/redirecting_factory_test/none: RuntimeError
 
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $runtime == vm && !$checked ]
+[ $compiler != app_jitk && $compiler != dartk && $runtime == vm && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
 
 [ $runtime == vm && $system == fuchsia ]

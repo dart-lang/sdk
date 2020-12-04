@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
+import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
 /// Specifies the granularity at which snapshot nodes are represented when
@@ -131,8 +132,15 @@ void _treemapFromInfo(Map<String, dynamic> root, ProgramInfo info,
       return;
     }
 
-    path = path != '' ? '$path/${node.name}' : node.name;
-    _addSymbol(root, path, '<self>', node.size);
+    // Don't add package node names to the path because nested library nodes
+    // already contain package name.
+    if (node.type == NodeType.packageNode) {
+      _addSymbol(root, node.name, '<self>', node.size);
+    } else {
+      path = path != '' ? '$path/${node.name}' : node.name;
+      _addSymbol(root, path, '<self>', node.size);
+    }
+
     for (var child in node.children.values) {
       recurse(child, path, root, format);
     }
@@ -188,7 +196,7 @@ bool _isExecutableCode(v8_profile.Node node) =>
 /// given [v8_profile.Node].
 final Map<TreemapFormat, String Function(v8_profile.Node)> _nameFormatters = {
   TreemapFormat.dataAndCode: (n) => _isExecutableCode(n) ? '<code>' : '<data>',
-  TreemapFormat.objectType: (n) => n.type,
+  TreemapFormat.objectType: (n) => '<${n.type}>',
 };
 
 /// Returns a /-separated path to the given symbol within the treemap.
@@ -227,7 +235,8 @@ void _addSymbol(Map<String, dynamic> root, String path, String name, int size,
   var node = root;
   var depth = 0;
   if (path != '') {
-    for (var part in path.split('/')) {
+    final parts = partsForPath(path);
+    for (var part in parts) {
       node = _addChild(node, kindPath, part);
       depth++;
     }

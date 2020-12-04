@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -36,13 +34,13 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    newFile(io.Platform.resolvedExecutable); // create folders
     var folder = newFolder('/home/test');
     contextBuilder = ContextBuilderImpl(resourceProvider: resourceProvider);
     contextRoot = ContextRootImpl(resourceProvider, folder);
   }
 
   test_createContext_declaredVariables() {
+    MockSdk(resourceProvider: resourceProvider);
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'foo': 'true'});
     DriverBasedAnalysisContext context = contextBuilder.createContext(
@@ -71,6 +69,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   test_createContext_defaults() {
+    MockSdk(resourceProvider: resourceProvider);
     AnalysisContext context = contextBuilder.createContext(
       contextRoot: contextRoot,
       sdkPath: resourceProvider.convertPath(sdkRoot),

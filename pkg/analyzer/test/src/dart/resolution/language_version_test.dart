@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -37,14 +33,14 @@ class NullSafetyExperimentGlobalTest extends _FeaturesTest
     },
     {
       "name": "aaa",
-      "rootUri": "${toUriStr('/aaa')}",
+      "rootUri": "${toUriStr('$workspaceRootPath/aaa')}",
       "packageUri": "lib/"
     }
   ]
 }
 ''');
 
-    newFile('/aaa/lib/a.dart', content: r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 int a = 0;
 ''');
 
@@ -73,7 +69,7 @@ var z = pi;
     },
     {
       "name": "aaa",
-      "rootUri": "${toUriStr('/aaa')}",
+      "rootUri": "${toUriStr('$workspaceRootPath/aaa')}",
       "packageUri": "lib/",
       "languageVersion": "2.7"
     }
@@ -81,18 +77,20 @@ var z = pi;
 }
 ''');
 
-    newFile('/aaa/lib/a.dart', content: r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 int a = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:math';
 import 'package:aaa/a.dart';
 
 var x = 0;
 var y = a;
 var z = pi;
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 27, 20),
+    ]);
     assertType(findElement.topVar('x').type, 'int');
     assertType(findElement.topVar('y').type, 'int');
     assertType(findElement.topVar('z').type, 'double');
@@ -124,16 +122,17 @@ class NullSafetyUsingAllowedExperimentsTest extends _FeaturesTest {
 }
 ''');
 
-    var path = convertPath('/test/bin/a.dart');
-    await _resolveFile(path, r'''
+    var path = '$testPackageRootPath/bin/a.dart';
+
+    await resolveFileCode(path, r'''
 var x = 0;
 ''');
-    assertErrorsInList(result.errors, []);
+    assertErrorsInResult([]);
     assertType(findElement.topVar('x').type, 'int*');
 
-    // Upgrade the language version to `2.10`, so enabled Null Safety.
-    driver.changeFile(path);
-    await _resolveFile(path, r'''
+    // Upgrade the language version to `2.10`, so enable Null Safety.
+    _changeFile(path);
+    await resolveFileCode(path, r'''
 // @dart = 2.10
 var x = 0;
 ''');
@@ -157,13 +156,16 @@ var x = 0;
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    var path = testFilePath;
+
+    await resolveFileCode(path, '''
 var x = 0;
 ''');
+    assertErrorsInResult([]);
     assertType(findElement.topVar('x').type, 'int*');
 
-    // Upgrade the language version to `2.10`, so enabled Null Safety.
-    _changeTestFile();
+    // Upgrade the language version to `2.10`, so enable Null Safety.
+    _changeFile(path);
     await assertNoErrorsInCode('''
 // @dart = 2.10
 var x = 0;
@@ -187,16 +189,17 @@ var x = 0;
 }
 ''');
 
-    var path = convertPath('/test/bin/a.dart');
-    await _resolveFile(path, r'''
+    var path = '$testPackageRootPath/bin/a.dart';
+
+    await resolveFileCode(path, r'''
 var x = 0;
 ''');
     assertErrorsInList(result.errors, []);
     assertType(findElement.topVar('x').type, 'int');
 
     // Downgrade the version to `2.8`, so disable Null Safety.
-    driver.changeFile(path);
-    await _resolveFile(path, r'''
+    _changeFile(path);
+    await resolveFileCode(path, r'''
 // @dart = 2.8
 var x = 0;
 ''');
@@ -219,23 +222,21 @@ var x = 0;
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    var path = testFilePath;
+
+    await resolveFileCode(path, '''
 var x = 0;
 ''');
+    assertErrorsInResult([]);
     assertType(findElement.topVar('x').type, 'int');
 
     // Downgrade the version to `2.8`, so disable Null Safety.
-    _changeTestFile();
+    _changeFile(path);
     await assertNoErrorsInCode('''
 // @dart = 2.8
 var x = 0;
 ''');
     assertType(findElement.topVar('x').type, 'int*');
-  }
-
-  void _changeTestFile() {
-    var path = convertPath('/test/lib/test.dart');
-    driver.changeFile(path);
   }
 
   void _configureAllowedExperimentsTestNullSafety() {
@@ -264,14 +265,6 @@ var x = 0;
       '$sdkRoot/lib/_internal/allowed_experiments.json',
       content: content,
     );
-  }
-
-  Future<void> _resolveFile(String path, String content) async {
-    newFile(path, content: content);
-    result = await resolveFile(path);
-
-    findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
   }
 }
 
@@ -324,15 +317,20 @@ extension E on int {}
   }
 }
 
-class _FeaturesTest extends DriverResolutionTest {
-  void _configureTestWithJsonConfig(String content) {
-    newFile('/test/.dart_tool/package_config.json', content: content);
+class _FeaturesTest extends PubPackageResolutionTest {
+  /// Do necessary work to ensure that the file with the [path] is considered
+  /// changed for the purpose of following analysis.
+  ///
+  /// Currently we just dispose the whole analysis context collection, so when
+  /// we ask to analyze anything again, we will pick up the new file content.
+  void _changeFile(String path) {
+    disposeAnalysisContextCollection();
+  }
 
-    driver.configure(
-      packages: findPackagesFrom(
-        resourceProvider,
-        getFolder('/test'),
-      ),
+  void _configureTestWithJsonConfig(String content) {
+    newFile(
+      '$testPackageRootPath/.dart_tool/package_config.json',
+      content: content,
     );
   }
 }

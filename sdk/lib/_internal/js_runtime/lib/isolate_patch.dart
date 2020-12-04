@@ -41,7 +41,8 @@ class Isolate {
       {bool paused = false,
       bool errorsAreFatal = true,
       SendPort? onExit,
-      SendPort? onError}) {
+      SendPort? onError,
+      String? debugName}) {
     throw new UnsupportedError("Isolate.spawn");
   }
 
@@ -110,7 +111,7 @@ class Isolate {
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() = _ReceivePortImpl;
+  factory ReceivePort([String debugName]) = _ReceivePortImpl;
 
   @patch
   factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
@@ -119,6 +120,8 @@ class ReceivePort {
 }
 
 class _ReceivePortImpl extends Stream implements ReceivePort {
+  _ReceivePortImpl([String debugName = '']);
+
   StreamSubscription listen(void Function(dynamic)? onData,
       {Function? onError,
       void Function()? onDone,
@@ -134,7 +137,7 @@ class _ReceivePortImpl extends Stream implements ReceivePort {
 @patch
 class RawReceivePort {
   @patch
-  factory RawReceivePort([Function? handler]) {
+  factory RawReceivePort([Function? handler, String debugName = '']) {
     throw new UnsupportedError('new RawReceivePort');
   }
 }

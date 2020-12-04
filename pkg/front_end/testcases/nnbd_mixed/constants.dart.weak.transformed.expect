@@ -57,16 +57,16 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
   const constructor •(con::Class::T* field) → con::Class<con::Class::T*>*
     : con::Class::field = field, super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static const field (core::Object*, core::Object*) →* core::bool* c2 = #C14;
 static const field (core::int*) →* core::int* partialInstantiation = #C2;
@@ -88,7 +88,7 @@ constants  {
   #C5 = <core::int*>[#C3]
   #C6 = null
   #C7 = <dynamic>[#C3, #C6]
-  #C8 = core::_ImmutableMap<core::int*, core::Null?> {_kvPairs:#C7}
+  #C8 = core::_ImmutableMap<core::int*, Null> {_kvPairs:#C7}
   #C9 = col::_UnmodifiableSet<core::int*> {_map:#C8}
   #C10 = "foo"
   #C11 = <dynamic>[#C3, #C10]

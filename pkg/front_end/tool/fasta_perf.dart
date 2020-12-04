@@ -5,7 +5,6 @@
 /// An entrypoint used to run portions of fasta and measure its performance.
 library front_end.tool.fasta_perf;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
@@ -75,16 +74,7 @@ main(List<String> args) async {
   }
 }
 
-Uri sdkRoot = _computeRoot();
-Uri _computeRoot() {
-  // TODO(sigmund): delete this when our performance bots include runtime/lib/
-  if (new Directory('runtime/lib/').existsSync()) {
-    return Uri.base.resolve("sdk/");
-  }
-  return Uri.base
-      .resolveUri(new Uri.file(Platform.resolvedExecutable))
-      .resolve('patched_sdk/');
-}
+Uri sdkRoot = Uri.base.resolve("sdk/");
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
 UriTranslator uriResolver;
@@ -218,7 +208,7 @@ parseFull(Uri uri, List<int> source) {
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri)
-      : super(null, null, true, FeatureSet.fromEnableFlags([]), uri);
+      : super(null, null, true, FeatureSet.latestLanguageVersion(), uri);
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

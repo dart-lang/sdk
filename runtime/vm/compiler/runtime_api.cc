@@ -252,12 +252,12 @@ const Code& StubCodeAllocateArray() {
   return dart::StubCode::AllocateArray();
 }
 
-const Code& StubCodeSubtype2TestCache() {
-  return dart::StubCode::Subtype2TestCache();
+const Code& StubCodeSubtype3TestCache() {
+  return dart::StubCode::Subtype3TestCache();
 }
 
-const Code& StubCodeSubtype6TestCache() {
-  return dart::StubCode::Subtype6TestCache();
+const Code& StubCodeSubtype7TestCache() {
+  return dart::StubCode::Subtype7TestCache();
 }
 
 #define DEFINE_ALIAS(name)                                                     \
@@ -278,6 +278,10 @@ word RuntimeEntry::OffsetFromThread() const {
   return target::Thread::OffsetFromThread(runtime_entry_);
 }
 
+bool RuntimeEntry::is_leaf() const {
+  return runtime_entry_->is_leaf();
+}
+
 namespace target {
 
 const word kOldPageSize = dart::kOldPageSize;
@@ -294,7 +298,7 @@ bool SizeFitsInSizeTag(uword instance_size) {
       TranslateOffsetInWordsToHost(instance_size));
 }
 
-uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
+uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::ObjectLayout::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::ObjectLayout::ClassIdTag::encode(cid) |
@@ -321,6 +325,10 @@ const word ObjectLayout::kSizeTagSize = dart::ObjectLayout::kSizeTagSize;
 const word ObjectLayout::kClassIdTagPos = dart::ObjectLayout::kClassIdTagPos;
 
 const word ObjectLayout::kClassIdTagSize = dart::ObjectLayout::kClassIdTagSize;
+
+const word ObjectLayout::kHashTagPos = dart::ObjectLayout::kHashTagPos;
+
+const word ObjectLayout::kHashTagSize = dart::ObjectLayout::kHashTagSize;
 
 const word ObjectLayout::kSizeTagMaxSizeTag =
     dart::ObjectLayout::SizeTag::kMaxSizeTagInUnitsOfAlignment *
@@ -440,6 +448,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::data_offset();
+    case kTypeArgumentsCid:
+      return TypeArguments::types_offset();
     case kOneByteStringCid:
       return OneByteString::data_offset();
     case kTwoByteStringCid:
@@ -458,6 +468,7 @@ word Instance::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kTypeArgumentsCid:
       return kWordSize;
     case kOneByteStringCid:
       return dart::OneByteString::kBytesPerElement;
@@ -508,7 +519,20 @@ word Context::variable_offset(word n) {
   return TranslateOffsetInWords(dart::Context::variable_offset(n));
 }
 
+// Currently we have two different axes for offset generation:
+//
+//  * Target architecture
+//  * DART_PRECOMPILED_RUNTIME (i.e, AOT vs. JIT)
+//
+// TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
+
 #define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+
+#define DEFINE_PAYLOAD_SIZEOF(clazz, name, header)                             \
+  word clazz::name() { return 0; }                                             \
+  word clazz::name(word payload_size) {                                        \
+    return RoundedAllocationSize(clazz::header() + payload_size);              \
+  }
 
 #if defined(TARGET_ARCH_IA32)
 
@@ -532,12 +556,14 @@ word Context::variable_offset(word n) {
 JIT_OFFSETS_LIST(DEFINE_FIELD,
                  DEFINE_ARRAY,
                  DEFINE_SIZEOF,
+                 DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_RANGE,
                  DEFINE_CONSTANT)
 
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
 
@@ -582,6 +608,7 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
                  DEFINE_JIT_ARRAY,
                  DEFINE_JIT_SIZEOF,
+                 DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_JIT_RANGE,
                  DEFINE_CONSTANT)
 
@@ -624,6 +651,7 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
 
@@ -633,19 +661,44 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #undef DEFINE_ARRAY
 #undef DEFINE_SIZEOF
 #undef DEFINE_RANGE
+#undef DEFINE_PAYLOAD_SIZEOF
 #undef DEFINE_CONSTANT
 
 const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 
 const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
 
+// For InstructionsSections and Instructions, we define these by hand, because
+// they depend on flags or #defines.
+
+// Used for InstructionsSection and Instructions methods, since we don't
+// serialize Instructions objects in bare instructions mode, just payloads.
+DART_FORCE_INLINE static bool BareInstructionsPayloads() {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions;
+}
+
 word InstructionsSection::HeaderSize() {
+  // We only create InstructionsSections in precompiled mode.
+  ASSERT(FLAG_precompiled_mode);
   return Utils::RoundUp(InstructionsSection::UnalignedHeaderSize(),
-                        target::kWordSize);
+                        Instructions::kBarePayloadAlignment);
 }
 
 word Instructions::HeaderSize() {
-  return Utils::RoundUp(Instructions::UnalignedHeaderSize(), target::kWordSize);
+  return BareInstructionsPayloads()
+             ? 0
+             : Utils::RoundUp(UnalignedHeaderSize(), kNonBarePayloadAlignment);
+}
+
+word Instructions::InstanceSize() {
+  return 0;
+}
+
+word Instructions::InstanceSize(word payload_size) {
+  const intptr_t alignment = BareInstructionsPayloads()
+                                 ? kBarePayloadAlignment
+                                 : ObjectAlignment::kObjectAlignment;
+  return Utils::RoundUp(Instructions::HeaderSize() + payload_size, alignment);
 }
 
 word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
@@ -678,8 +731,8 @@ uword Thread::vm_execution_state() {
   return dart::Thread::ExecutionState::kThreadInVM;
 }
 
-uword Thread::vm_tag_compiled_id() {
-  return dart::VMTag::kDartCompiledTagId;
+uword Thread::vm_tag_dart_id() {
+  return dart::VMTag::kDartTagId;
 }
 
 uword Thread::exit_through_runtime_call() {
@@ -836,6 +889,11 @@ word Array::NextFieldOffset() {
   return -kWordSize;
 }
 
+intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
+  return dart::Array::index_at_offset(
+      TranslateOffsetInWordsToHost(offset_in_bytes));
+}
+
 word GrowableObjectArray::NextFieldOffset() {
   return -kWordSize;
 }
@@ -880,6 +938,10 @@ word String::NextFieldOffset() {
   return -kWordSize;
 }
 
+word String::InstanceSize(word payload_size) {
+  return RoundedAllocationSize(String::InstanceSize() + payload_size);
+}
+
 word OneByteString::NextFieldOffset() {
   return -kWordSize;
 }
@@ -920,10 +982,6 @@ word SignatureData::NextFieldOffset() {
   return -kWordSize;
 }
 
-word RedirectionData::NextFieldOffset() {
-  return -kWordSize;
-}
-
 word FfiTrampolineData::NextFieldOffset() {
   return -kWordSize;
 }
@@ -941,10 +999,6 @@ word Namespace::NextFieldOffset() {
 }
 
 word KernelProgramInfo::NextFieldOffset() {
-  return -kWordSize;
-}
-
-word Bytecode::NextFieldOffset() {
   return -kWordSize;
 }
 
@@ -969,10 +1023,6 @@ word ExceptionHandlers::NextFieldOffset() {
 }
 
 word ContextScope::NextFieldOffset() {
-  return -kWordSize;
-}
-
-word ParameterTypeCheck::NextFieldOffset() {
   return -kWordSize;
 }
 

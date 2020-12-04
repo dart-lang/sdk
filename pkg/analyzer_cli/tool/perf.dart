@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An entrypoint used to run portions of analyzer and measure its performance.
-import 'dart:async';
 import 'dart:io' show exit;
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -86,7 +85,7 @@ CompilationUnit parseDirectives(Source source) {
   var parser = Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
-    featureSet: FeatureSet.fromEnableFlags([]),
+    featureSet: FeatureSet.latestLanguageVersion(),
   );
   return parser.parseDirectives(token);
 }
@@ -120,7 +119,7 @@ CompilationUnit parseFull(Source source) {
   var parser = Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
-    featureSet: FeatureSet.fromEnableFlags([]),
+    featureSet: FeatureSet.latestLanguageVersion(),
   );
   return parser.parseCompilationUnit(token);
 }
@@ -215,7 +214,7 @@ Token tokenize(Source source) {
   var contents = source.contents.data;
   scanTotalChars += contents.length;
   // TODO(paulberry): figure out the appropriate featureSet to use here
-  var featureSet = FeatureSet.fromEnableFlags([]);
+  var featureSet = FeatureSet.latestLanguageVersion();
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
   var scanner = Scanner(

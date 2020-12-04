@@ -14,6 +14,51 @@ import 'package:pool/pool.dart';
 /// The path to the gsutil script.
 String gsutilPy;
 
+// TODO(karlklose):  Update this class with all fields that
+// are used in pkg/test_runner and the tools/bots scripts and include
+// validation (in particular for fields from extend_results.dart, that are
+// optional but expected in some contexts and should always be all or nothing).
+class Result {
+  final String configuration;
+  final String expectation;
+  final bool matches;
+  final String name;
+  final String outcome;
+  final bool changed;
+  final String commitHash;
+  final bool flaked; // From optional flakiness_data argument to constructor.
+  final bool isFlaky; // From results.json after it is extended.
+  final String previousOutcome;
+
+  Result(
+      this.configuration,
+      this.name,
+      this.outcome,
+      this.expectation,
+      this.matches,
+      this.changed,
+      this.commitHash,
+      this.isFlaky,
+      this.previousOutcome,
+      [this.flaked = false]);
+
+  Result.fromMap(Map<String, dynamic> map, [Map<String, dynamic> flakinessData])
+      : configuration = map["configuration"] as String,
+        name = map["name"] as String,
+        outcome = map["result"] as String,
+        expectation = map["expected"] as String,
+        matches = map["matches"] as bool,
+        changed = map["changed"] as bool,
+        commitHash = map["commit_hash"] as String,
+        isFlaky = map["flaky"] as bool,
+        previousOutcome = map["previous_result"] as String,
+        flaked = flakinessData != null &&
+            (flakinessData["active"] ?? true) == true &&
+            (flakinessData["outcomes"] as List).contains(map["result"]);
+
+  String get key => "$configuration:$name";
+}
+
 /// Cloud storage location containing results.
 const testResultsStoragePath = "gs://dart-test-results/builders";
 

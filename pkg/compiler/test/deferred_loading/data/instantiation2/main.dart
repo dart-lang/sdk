@@ -7,13 +7,13 @@
 // Test instantiations with the same type argument count used only in two
 // deferred libraries.
 
-/*class: global#Instantiation:OutputUnit(1, {b, c})*/
-/*class: global#Instantiation1:OutputUnit(1, {b, c})*/
+/*class: global#Instantiation:class_unit=1{b, c},type_unit=1{b, c}*/
+/*class: global#Instantiation1:class_unit=1{b, c},type_unit=1{b, c}*/
 
 import 'lib1.dart' deferred as b;
 import 'lib2.dart' deferred as c;
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() async {
   await b.loadLibrary();
   await c.loadLibrary();

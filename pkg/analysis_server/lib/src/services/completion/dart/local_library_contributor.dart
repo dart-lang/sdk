@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -112,9 +110,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (opType.includeReturnValueSuggestions) {
-      if (element.enclosingElement is ClassElement) {
-        // TODO(brianwilkerson) Verify that we cannot reach this point and
-        //  remove the dead code.
+      var parent = element.enclosingElement;
+      if (parent is ClassElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: -1.0);
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);

@@ -5,18 +5,22 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(UndefinedSetterWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedSetterTest extends DriverResolutionTest {
+class UndefinedSetterTest extends PubPackageResolutionTest
+    with UndefinedSetterTestCases {}
+
+mixin UndefinedSetterTestCases on PubPackageResolutionTest {
   test_importWithPrefix_defined() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 set y(int value) {}''');
     await assertNoErrorsInCode(r'''
@@ -133,5 +137,42 @@ f(C c) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 46, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class UndefinedSetterWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, UndefinedSetterTestCases {
+  test_set_abstract_field_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''');
+  }
+
+  test_set_external_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''');
+  }
+
+  test_set_external_static_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static int x;
+}
+void f(int x) {
+  A.x = x;
+}
+''');
   }
 }

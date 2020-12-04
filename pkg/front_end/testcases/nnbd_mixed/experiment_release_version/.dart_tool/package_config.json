@@ -1,0 +1,18 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "allowed_package",
+      "rootUri": "../allowed_package/",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "not_allowed_package",
+      "rootUri": "../not_allowed_package/",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    }
+
+  ]
+}

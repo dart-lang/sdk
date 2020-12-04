@@ -36,6 +36,7 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 [ $csp ]
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
 
 [ $compiler != dart2js && $compiler != dartdevk ]
@@ -60,7 +61,7 @@ isolate/vm_rehash_test: SkipByDesign
 [ $arch == simarm || $arch == simarmv6 ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
-[ $arch != x64 || $compiler == dartkb || $runtime != vm ]
+[ $arch != x64 || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
 
 [ $mode == product || $runtime != vm ]

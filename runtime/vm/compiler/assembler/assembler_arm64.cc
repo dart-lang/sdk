@@ -344,12 +344,14 @@ void Assembler::LoadPoolPointer(Register pp) {
   set_constant_pool_allowed(pp == PP);
 }
 
-void Assembler::LoadWordFromPoolOffset(Register dst,
-                                       uint32_t offset,
-                                       Register pp) {
+void Assembler::LoadWordFromPoolIndex(Register dst,
+                                      intptr_t index,
+                                      Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   ASSERT(dst != pp);
   Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
   const uint32_t upper20 = offset & 0xfffff000;
   if (Address::CanHoldOffset(offset)) {
     ldr(dst, Address(pp, offset));
@@ -370,10 +372,12 @@ void Assembler::LoadWordFromPoolOffset(Register dst,
   }
 }
 
-void Assembler::LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset) {
+void Assembler::LoadWordFromPoolIndexFixed(Register dst, intptr_t index) {
   ASSERT(constant_pool_allowed());
   ASSERT(dst != PP);
   Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   const Operand::OperandType ot =
@@ -384,16 +388,18 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset) {
   ldr(dst, Address(dst, lower12));
 }
 
-void Assembler::LoadDoubleWordFromPoolOffset(Register lower,
-                                             Register upper,
-                                             uint32_t offset) {
+void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
+                                            Register upper,
+                                            intptr_t index) {
   // This implementation needs to be kept in sync with
   // [InstructionPattern::DecodeLoadDoubleWordFromPool].
   ASSERT(constant_pool_allowed());
   ASSERT(lower != PP && upper != PP);
-  ASSERT(offset < (1 << 24));
 
   Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  ASSERT(offset < (1 << 24));
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   if (Address::CanHoldOffset(offset, Address::PairOffset)) {
@@ -450,9 +456,9 @@ void Assembler::LoadNativeEntry(
     Register dst,
     const ExternalLabel* label,
     ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindNativeFunction(label, patchable));
-  LoadWordFromPoolOffset(dst, offset);
+  const intptr_t index =
+      object_pool_builder().FindNativeFunction(label, patchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::LoadIsolate(Register dst) {
@@ -485,10 +491,9 @@ void Assembler::LoadObjectHelper(Register dst,
     }
   }
   if (CanLoadFromObjectPool(object)) {
-    const int32_t offset = target::ObjectPool::element_offset(
-        is_unique ? object_pool_builder().AddObject(object)
-                  : object_pool_builder().FindObject(object));
-    LoadWordFromPoolOffset(dst, offset);
+    const intptr_t index = is_unique ? object_pool_builder().AddObject(object)
+                                     : object_pool_builder().FindObject(object);
+    LoadWordFromPoolIndex(dst, index);
     return;
   }
   ASSERT(target::IsSmi(object));
@@ -501,6 +506,21 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 void Assembler::LoadUniqueObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, true);
+}
+
+void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  ASSERT(depth >= 0);
+  LoadFromOffset(dst, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::StoreToStack(Register src, intptr_t depth) {
+  ASSERT(depth >= 0);
+  StoreToOffset(src, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::CompareToStack(Register src, intptr_t depth) {
+  LoadFromStack(TMP, depth);
+  CompareRegisters(src, TMP);
 }
 
 void Assembler::CompareObject(Register reg, const Object& object) {
@@ -570,9 +590,8 @@ void Assembler::LoadImmediate(Register reg, int64_t imm) {
 
   // Use constant pool if allowed, unless we can load imm with 2 instructions.
   if ((w1 != 0) && constant_pool_allowed()) {
-    const int32_t offset =
-        target::ObjectPool::element_offset(FindImmediate(imm));
-    LoadWordFromPoolOffset(reg, offset);
+    const intptr_t index = FindImmediate(imm);
+    LoadWordFromPoolIndex(reg, index);
     return;
   }
 
@@ -617,9 +636,9 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 void Assembler::Branch(const Code& target,
                        Register pp,
                        ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset, pp);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index, pp);
   ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   br(TMP);
 }
@@ -627,9 +646,9 @@ void Assembler::Branch(const Code& target,
 void Assembler::BranchLink(const Code& target,
                            ObjectPoolBuilderEntry::Patchability patchable,
                            CodeEntryKind entry_kind) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index);
   ldr(TMP,
       FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
@@ -643,9 +662,9 @@ void Assembler::BranchLinkToRuntime() {
 void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           CodeEntryKind entry_kind) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), equivalence));
-  LoadWordFromPoolOffset(CODE_REG, offset);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), equivalence);
+  LoadWordFromPoolIndex(CODE_REG, index);
   ldr(TMP,
       FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
@@ -676,11 +695,11 @@ void Assembler::AddImmediateSetFlags(Register dest,
                                      Register rn,
                                      int64_t imm,
                                      OperandSize sz) {
-  ASSERT(sz == kDoubleWord || sz == kWord);
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, op);
     } else {
       addsw(dest, rn, op);
@@ -688,7 +707,7 @@ void Assembler::AddImmediateSetFlags(Register dest,
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, op);
     } else {
       subsw(dest, rn, op);
@@ -697,7 +716,7 @@ void Assembler::AddImmediateSetFlags(Register dest,
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, Operand(TMP2));
     } else {
       addsw(dest, rn, Operand(TMP2));
@@ -710,10 +729,10 @@ void Assembler::SubImmediateSetFlags(Register dest,
                                      int64_t imm,
                                      OperandSize sz) {
   Operand op;
-  ASSERT(sz == kDoubleWord || sz == kWord);
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, op);
     } else {
       subsw(dest, rn, op);
@@ -721,7 +740,7 @@ void Assembler::SubImmediateSetFlags(Register dest,
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, op);
     } else {
       addsw(dest, rn, op);
@@ -730,7 +749,7 @@ void Assembler::SubImmediateSetFlags(Register dest,
     // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, Operand(TMP2));
     } else {
       subsw(dest, rn, Operand(TMP2));
@@ -987,8 +1006,10 @@ void Assembler::StoreIntoObject(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
@@ -1049,8 +1070,10 @@ void Assembler::StoreIntoArray(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
@@ -1077,7 +1100,8 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
   tsti(TMP, Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   b(&done, ZERO);
 
@@ -1132,7 +1156,7 @@ void Assembler::StoreInternalPointer(Register object,
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kWord);
+  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kFourBytes);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
@@ -1150,7 +1174,7 @@ void Assembler::LoadClassId(Register result, Register object) {
       target::Object::tags_offset() +
       target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
-                 kUnsignedHalfword);
+                 kUnsignedTwoBytes);
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
@@ -1167,7 +1191,6 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
                                Register scratch) {
-  ASSERT(scratch == kNoRegister);
   LoadClassId(TMP, object);
   CompareImmediate(TMP, class_id);
 }
@@ -1474,7 +1497,7 @@ void Assembler::TransitionNativeToGenerated(Register state,
   }
 
   // Mark that the thread is executing Dart code.
-  LoadImmediate(state, target::Thread::vm_tag_compiled_id());
+  LoadImmediate(state, target::Thread::vm_tag_dart_id());
   StoreToOffset(state, THR, target::Thread::vm_tag_offset());
   LoadImmediate(state, target::Thread::generated_execution_state());
   StoreToOffset(state, THR, target::Thread::execution_state_offset());
@@ -1485,7 +1508,7 @@ void Assembler::TransitionNativeToGenerated(Register state,
   StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
 }
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
   Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
@@ -1510,19 +1533,30 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
     Push(reg);
   }
 
-  ReserveAlignedFrameSpace(frame_size);
+  if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
+    ReserveAlignedFrameSpace(frame_size);
+  } else {
+    PushPair(kCallLeafRuntimeCalleeSaveScratch1,
+             kCallLeafRuntimeCalleeSaveScratch2);
+  }
 }
 
-void Assembler::LeaveCallRuntimeFrame() {
+void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
+  const intptr_t fixed_frame_words_without_pc_and_fp =
+      target::frame_layout.dart_fixed_frame_size - 2;
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * target::kWordSize +
-      kDartVolatileFpuRegCount * target::kWordSize +
-      (target::frame_layout.dart_fixed_frame_size - 2) *
-          target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
+      kDartVolatileFpuRegCount * sizeof(double) +
+      (kDartVolatileCpuRegCount + (is_leaf ? 2 : 0) +
+       fixed_frame_words_without_pc_and_fp) *
+          target::kWordSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
+  if (is_leaf) {
+    PopPair(kCallLeafRuntimeCalleeSaveScratch1,
+            kCallLeafRuntimeCalleeSaveScratch2);
+  }
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
     Pop(reg);
@@ -1545,6 +1579,37 @@ void Assembler::LeaveCallRuntimeFrame() {
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);
+}
+
+void Assembler::CallRuntimeScope::Call(intptr_t argument_count) {
+  assembler_->CallRuntime(entry_, argument_count);
+}
+
+Assembler::CallRuntimeScope::~CallRuntimeScope() {
+  if (preserve_registers_) {
+    assembler_->LeaveCallRuntimeFrame(entry_.is_leaf());
+    if (restore_code_reg_) {
+      assembler_->Pop(CODE_REG);
+    }
+  }
+}
+
+Assembler::CallRuntimeScope::CallRuntimeScope(Assembler* assembler,
+                                              const RuntimeEntry& entry,
+                                              intptr_t frame_size,
+                                              bool preserve_registers,
+                                              const Address* caller)
+    : assembler_(assembler),
+      entry_(entry),
+      preserve_registers_(preserve_registers),
+      restore_code_reg_(caller != nullptr) {
+  if (preserve_registers_) {
+    if (caller != nullptr) {
+      assembler_->Push(CODE_REG);
+      assembler_->ldr(CODE_REG, *caller);
+    }
+    assembler_->EnterCallRuntimeFrame(frame_size, entry.is_leaf());
+  }
 }
 
 void Assembler::EnterStubFrame() {
@@ -1693,10 +1758,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(top_reg, Address(THR, target::Thread::top_offset()));
 
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(TMP, tags);
     StoreToOffset(TMP, instance_reg, target::Object::tags_offset());
 
@@ -1741,10 +1803,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp2, tags);
     str(temp2, FieldAddress(instance, target::Object::tags_offset()));
   } else {
@@ -1982,7 +2041,7 @@ bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
 
 void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
   constexpr int32_t bit_no = 63;
-  constexpr OperandSize sz = kDoubleWord;
+  constexpr OperandSize sz = kEightBytes;
   ASSERT(rn != CSP);
   switch (cond) {
     case EQ:  // equal

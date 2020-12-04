@@ -11,6 +11,18 @@ class _ExpressionEvaluator {
   _ExpressionEvaluator(this.dds);
 
   Future<Map<String, dynamic>> execute(json_rpc.Parameters parameters) async {
+    _DartDevelopmentServiceClient externalClient =
+        dds.clientManager.findFirstClientThatHandlesService(
+      'compileExpression',
+    );
+    // If no compilation service is registered, just forward to the VM service.
+    if (externalClient == null) {
+      return await dds._vmServiceClient.sendRequest(
+        parameters.method,
+        parameters.value,
+      );
+    }
+
     final isolateId = parameters['isolateId'].asString;
     final expression = parameters['expression'].asString;
     Map<String, dynamic> buildScopeResponse;
@@ -56,6 +68,11 @@ class _ExpressionEvaluator {
         dds.clientManager.findFirstClientThatHandlesService(
       'compileExpression',
     );
+    if (externalClient == null) {
+      throw _RpcErrorCodes.buildRpcException(
+          _RpcErrorCodes.kExpressionCompilationError,
+          data: 'compileExpression service disappeared.');
+    }
 
     final compileParams = <String, dynamic>{
       'isolateId': isolateId,
@@ -70,20 +87,11 @@ class _ExpressionEvaluator {
     if (klass != null) {
       compileParams['klass'] = klass;
     }
-    // TODO(bkonyi): handle service disappeared case?
     try {
-      if (externalClient != null) {
-        return (await externalClient.sendRequest(
-          'compileExpression',
-          compileParams,
-        ))['kernelBytes'];
-      } else {
-        // Fallback to compiling using the kernel service.
-        return (await dds._vmServiceClient.sendRequest(
-          '_compileExpression',
-          compileParams,
-        ))['kernelBytes'];
-      }
+      return (await externalClient.sendRequest(
+        'compileExpression',
+        compileParams,
+      ))['kernelBytes'];
     } on json_rpc.RpcException catch (e) {
       throw _RpcErrorCodes.buildRpcException(
         _RpcErrorCodes.kExpressionCompilationError,

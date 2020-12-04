@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ExtraPositionalArgumentsCouldBeNamedTest extends DriverResolutionTest {
+class ExtraPositionalArgumentsCouldBeNamedTest
+    extends PubPackageResolutionTest {
   test_constConstructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -69,7 +70,7 @@ main() {
 }
 
 @reflectiveTest
-class ExtraPositionalArgumentsTest extends DriverResolutionTest {
+class ExtraPositionalArgumentsTest extends PubPackageResolutionTest {
   test_constConstructor() async {
     await assertErrorsInCode(r'''
 class A {

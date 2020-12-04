@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
-import '../src/dart/resolution/with_null_safety_mixin.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,7 +19,7 @@ main() {
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeTest extends DriverResolutionTest {
+class InvalidCodeTest extends PubPackageResolutionTest {
   /// This code results in a method with the empty name, and the default
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.
@@ -199,11 +196,11 @@ class A<T extends F> {}
 ''');
   }
 
-  @failingTest
   test_fuzz_12() async {
     // This code crashed with summary2 because usually AST reader is lazy,
     // so we did not read metadata `@b` for `c`. But default values must be
     // read fully.
+    // Fixed 2020-11-12.
     await _assertCanBeAnalyzed(r'''
 void f({a = [for (@b c = 0;;)]}) {}
 ''');
@@ -329,6 +326,23 @@ class C {
 ''');
   }
 
+  test_localFunction_defaultFieldFormalParameter_metadata() async {
+    await _assertCanBeAnalyzed(r'''
+const my = 0;
+
+void foo() {
+  // ignore:unused_element
+  void bar({@my this.x}) {}
+}
+''');
+  }
+
+  test_syntheticImportPrefix() async {
+    await _assertCanBeAnalyzed('''
+import 'dart:math' as;
+''');
+  }
+
   test_typeBeforeAnnotation() async {
     await _assertCanBeAnalyzed('''
 class A {
@@ -347,7 +361,7 @@ class B {
 }
 
 @reflectiveTest
-class InvalidCodeWithNullSafetyTest extends DriverResolutionTest
+class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''

@@ -11,6 +11,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -22,7 +23,7 @@ DEFINE_NATIVE_ENTRY(DartAsync_fatal, 0, 1) {
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
   OS::PrintErr("Fatal error in dart:async: %s\n", msg);
-  FATAL(msg);
+  FATAL("%s", msg);
   return Object::null();
 }
 
@@ -254,7 +255,7 @@ DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
-  return Object::null();
+  UNREACHABLE();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
@@ -366,7 +367,8 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
         type_arg = interface_type_args.TypeAt(offset + i);
         extracted_type_args.SetTypeAt(i, type_arg);
       }
-      extracted_type_args = extracted_type_args.Canonicalize();  // Can be null.
+      extracted_type_args =
+          extracted_type_args.Canonicalize(thread, nullptr);  // Can be null.
     }
   }
   // Call the closure 'extract'.
@@ -383,7 +385,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
     args.SetAt(1, extract);
   }
   const Object& result =
-      Object::Handle(zone, DartEntry::InvokeClosure(args, args_desc));
+      Object::Handle(zone, DartEntry::InvokeClosure(thread, args, args_desc));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
@@ -495,9 +497,14 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   InvocationMirror::Kind kind;
   InvocationMirror::DecodeType(invocation_type.Value(), &level, &kind);
 
-  Function& function = Function::Handle();
+  Function& function = Function::Handle(zone);
   if (receiver.IsType()) {
-    Class& cls = Class::Handle(Type::Cast(receiver).type_class());
+    const auto& cls = Class::Handle(zone, Type::Cast(receiver).type_class());
+    const auto& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+      UNREACHABLE();
+    }
     if (level == InvocationMirror::kConstructor) {
       function = cls.LookupConstructor(method_name);
       if (function.IsNull()) {
@@ -509,15 +516,12 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   } else if (receiver.IsClosure()) {
     function = Closure::Cast(receiver).function();
   } else {
-    Class& cls = Class::Handle(receiver.clazz());
-    if (level != InvocationMirror::kSuper) {
-      function = cls.LookupDynamicFunction(method_name);
-    }
-    while (function.IsNull()) {
+    auto& cls = Class::Handle(zone, receiver.clazz());
+    if (level == InvocationMirror::kSuper) {
       cls = cls.SuperClass();
-      if (cls.IsNull()) break;
-      function = cls.LookupDynamicFunction(method_name);
     }
+    function = Resolver::ResolveDynamicAnyArgs(zone, cls, method_name,
+                                               /*allow_add=*/false);
   }
   if (!function.IsNull()) {
     return function.UserVisibleSignature();

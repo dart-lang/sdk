@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ForEachElementTest extends DriverResolutionTest {
+class ForEachElementTest extends PubPackageResolutionTest {
   test_withDeclaration_scope() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -53,7 +52,7 @@ main() {
 class ForEachElementWithNullSafetyTest extends ForEachElementTest
     with WithNullSafetyMixin {
   test_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A implements Iterable<int> {
   Iterator<int> iterator => throw 0;
 }
@@ -73,7 +72,7 @@ main(A a) {
 }
 
 @reflectiveTest
-class ForLoopElementTest extends DriverResolutionTest {
+class ForLoopElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
 main(bool Function() b) {

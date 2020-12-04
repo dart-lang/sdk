@@ -69,6 +69,7 @@ Dart_FileReadCallback Dart::file_read_callback_ = NULL;
 Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
+Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -105,6 +106,9 @@ static void CheckOffsets() {
                  static_cast<intptr_t>(offset));                               \
     ok = false;                                                                \
   }
+
+// No consistency checks needed for this construct.
+#define CHECK_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FIELD(Class, Name)                                               \
@@ -143,11 +147,12 @@ static void CheckOffsets() {
 #define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE,
-                      CHECK_CONSTANT)
+  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT)
 
-  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
-      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+  NOT_IN_PRECOMPILED_RUNTIME(
+      JIT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                       CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(
@@ -161,6 +166,7 @@ static void CheckOffsets() {
 #undef CHECK_RANGE
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
+#undef CHECK_PAYLOAD_SIZEOF
 #endif  // !defined(IS_SIMARM_X64)
 }
 
@@ -186,11 +192,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     return Utils::StrDup("VM already initialized or flags not initialized.");
   }
 
-  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
-    return Utils::StrDup(
-        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
-  }
-
   const Snapshot* snapshot = nullptr;
   if (vm_isolate_snapshot != nullptr) {
     snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
@@ -209,6 +210,14 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     if (error != nullptr) {
       return error;
     }
+  }
+  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
+    return Utils::StrDup(
+        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
+  }
+  // TODO(cskau): Remove once flag deprecation has been completed.
+  if (FLAG_causal_async_stacks) {
+    return Utils::StrDup("--causal-async-stacks is deprecated!");
   }
 
   FrameLayout::Init();
@@ -259,13 +268,14 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
+    api_flags.is_system_isolate = true;
 
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(
-        new IsolateGroupSource(nullptr, kVmIsolateName, vm_isolate_snapshot,
-                               instructions_snapshot, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
+        kVmIsolateName, kVmIsolateName, vm_isolate_snapshot,
+        instructions_snapshot, nullptr, -1, api_flags));
     // ObjectStore should be created later, after null objects are initialized.
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr,
                                   /*object_store=*/nullptr);
@@ -334,8 +344,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         // Must copy before leaving the zone.
         return Utils::StrDup(error.ToErrorCString());
       }
-
-      ReversePcLookupCache::BuildAndAttachToIsolateGroup(vm_isolate_->group());
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
@@ -434,7 +442,7 @@ static void DumpAliveIsolates(intptr_t num_attempts,
                               bool only_aplication_isolates) {
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {
-      if (!only_aplication_isolates || !Isolate::IsVMInternalIsolate(isolate)) {
+      if (!only_aplication_isolates || !Isolate::IsSystemIsolate(isolate)) {
         OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
                      num_attempts, isolate->name());
       }
@@ -689,8 +697,8 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
   }
   I->isolate_object_store()->Init();
   I->isolate_object_store()->PreallocateObjects();
-  I->set_field_table(
-      T, source_isolate_group->saved_initial_field_table()->Clone());
+  I->set_field_table(T, source_isolate_group->initial_field_table()->Clone(
+                            /*is_isolate_field_table=*/true));
 
   return true;
 }
@@ -735,9 +743,8 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
-    I->group()->set_saved_initial_field_table(
-        std::shared_ptr<FieldTable>(I->field_table()->Clone()));
+    I->set_field_table(T, I->group()->initial_field_table()->Clone(
+                              /*is_isolate_field_table=*/true));
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {
@@ -779,12 +786,12 @@ bool Dart::DetectNullSafety(const char* script_uri,
   //   when generating the snapshot.
   ASSERT(FLAG_sound_null_safety == kNullSafetyOptionUnspecified);
 
-  // If snapshot is an appJIT/AOT snapshot we will figure out the mode by
+  // If snapshot is not a core snapshot we will figure out the mode by
   // sniffing the feature string in the snapshot.
   if (snapshot_data != nullptr) {
     // Read the snapshot and check for null safety option.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (Snapshot::IncludesCode(snapshot->kind())) {
+    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
       return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
     }
   }
@@ -803,7 +810,7 @@ bool Dart::DetectNullSafety(const char* script_uri,
   }
 
   // If we are loading from source, figure out the mode from the source.
-  if (KernelIsolate::GetExperimentalFlag("non-nullable")) {
+  if (KernelIsolate::GetExperimentalFlag(ExperimentalFeature::non_nullable)) {
     return KernelIsolate::DetectNullSafety(script_uri, package_config,
                                            original_working_directory);
   }
@@ -855,7 +862,7 @@ static void PrintLLVMConstantPool(Thread* T, Isolate* I) {
     }
     b.AddString("End of function pool.\n\n");
   }
-  THR_Print("%s", b.buf());
+  THR_Print("%s", b.buffer());
 }
 #endif
 
@@ -1031,7 +1038,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
+  }
 
+  if (!Snapshot::IsAgnosticToNullSafety(kind)) {
     if (isolate != NULL) {
       if (isolate->null_safety()) {
         buffer.AddString(" null-safety");
@@ -1063,7 +1072,7 @@ void Dart::RunShutdownCallback() {
   Isolate* isolate = thread->isolate();
   void* isolate_group_data = isolate->group()->embedder_data();
   void* isolate_data = isolate->init_callback_data();
-  Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
+  Dart_IsolateShutdownCallback callback = isolate->on_shutdown_callback();
   if (callback != NULL) {
     TransitionVMToNative transition(thread);
     (callback)(isolate_group_data, isolate_data);

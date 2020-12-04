@@ -30,16 +30,16 @@ class Class extends core::Object {
     return #C6;
   get getter7() → ({a: core::int*, b: core::int*}) →* core::int*
     return #C7;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Subclass extends self::Class {
   synthetic constructor •() → self::Subclass*
@@ -185,3 +185,23 @@ constants  {
   #C7 = tearoff self::method7
   #C8 = 0
 }
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:7:45 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:130:10 -> IntConstant(-42)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:131:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:133:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:136:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:138:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:141:10 -> IntConstant(-23)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:142:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:143:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:149:10 -> IntConstant(-42)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:150:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:152:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:155:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:157:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:160:10 -> IntConstant(-23)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:161:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:162:10 -> IntConstant(-11)
+Extra constant evaluation: evaluated: 354, effectively constant: 17

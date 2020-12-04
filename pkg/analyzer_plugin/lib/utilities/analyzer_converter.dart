@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
-import 'package:analyzer/dart/element/type.dart' as analyzer;
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
@@ -11,10 +10,7 @@ import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
-import 'package:analyzer/src/generated/utilities_dart.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /// An object used to convert between objects defined by the 'analyzer' package
 /// and those defined by the plugin protocol.
@@ -186,12 +182,13 @@ class AnalyzerConverter {
       plugin.AnalysisErrorType(type.name);
 
   /// Create a location based on an the given [element].
-  plugin.Location locationFromElement(analyzer.Element element) {
+  plugin.Location locationFromElement(analyzer.Element element,
+      {int offset, int length}) {
     if (element == null || element.source == null) {
       return null;
     }
-    var offset = element.nameOffset;
-    var length = element.nameLength;
+    offset ??= element.nameOffset;
+    length ??= element.nameLength;
     if (element is analyzer.CompilationUnitElement ||
         (element is analyzer.LibraryElement && offset < 0)) {
       offset = 0;

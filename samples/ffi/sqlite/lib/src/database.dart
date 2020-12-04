@@ -21,7 +21,7 @@ import "collections/closable_iterator.dart";
 ///
 /// This database interacts with SQLite synchonously.
 class Database {
-  Pointer<types.Database> _database;
+  late Pointer<types.Database> _database;
   bool _open = false;
 
   /// Open a database located at the file [path].
@@ -106,11 +106,8 @@ class Database {
     return Result._(this, statement, columnIndices);
   }
 
-  SQLiteException _loadError([int errorCode]) {
+  SQLiteException _loadError(int errorCode) {
     String errorMessage = bindings.sqlite3_errmsg(_database).ref.toString();
-    if (errorCode == null) {
-      return SQLiteException(errorMessage);
-    }
     String errorCodeExplanation =
         bindings.sqlite3_errstr(errorCode).ref.toString();
     return SQLiteException(
@@ -124,18 +121,13 @@ class Database {
 /// Please note that this iterator should be [close]d manually if not all [Row]s
 /// are consumed.
 class Result extends IterableBase<Row> implements ClosableIterable<Row> {
-  final Database _database;
   final ClosableIterator<Row> _iterator;
-  final Pointer<Statement> _statement;
-  final Map<String, int> _columnIndices;
-
-  Row _currentRow = null;
 
   Result._(
-    this._database,
-    this._statement,
-    this._columnIndices,
-  ) : _iterator = _ResultIterator(_statement, _columnIndices) {}
+    Database database,
+    Pointer<Statement> statement,
+    Map<String, int> columnIndices,
+  ) : _iterator = _ResultIterator(statement, columnIndices) {}
 
   void close() => _iterator.close();
 
@@ -146,7 +138,7 @@ class _ResultIterator implements ClosableIterator<Row> {
   final Pointer<Statement> _statement;
   final Map<String, int> _columnIndices;
 
-  Row _currentRow = null;
+  Row? _currentRow;
   bool _closed = false;
 
   _ResultIterator(this._statement, this._columnIndices) {}
@@ -170,7 +162,7 @@ class _ResultIterator implements ClosableIterator<Row> {
     if (_closed) {
       throw SQLiteException("The result has already been closed.");
     }
-    return _currentRow;
+    return _currentRow!;
   }
 
   void close() {
@@ -195,7 +187,7 @@ class Row {
   /// for the column by the query compiler.
   dynamic readColumn(String columnName,
       {Convert convert = Convert.DynamicType}) {
-    return readColumnByIndex(_columnIndices[columnName], convert: convert);
+    return readColumnByIndex(_columnIndices[columnName]!, convert: convert);
   }
 
   /// Reads column [columnName].
@@ -225,7 +217,6 @@ class Row {
         return readColumnByIndexAsText(columnIndex);
       case Type.Null:
         return null;
-        break;
       default:
     }
   }
@@ -233,7 +224,7 @@ class Row {
   /// Reads column [columnName] and converts to [Type.Integer] if not an
   /// integer.
   int readColumnAsInt(String columnName) {
-    return readColumnByIndexAsInt(_columnIndices[columnName]);
+    return readColumnByIndexAsInt(_columnIndices[columnName]!);
   }
 
   /// Reads column [columnIndex] and converts to [Type.Integer] if not an
@@ -245,7 +236,7 @@ class Row {
 
   /// Reads column [columnName] and converts to [Type.Text] if not text.
   String readColumnAsText(String columnName) {
-    return readColumnByIndexAsText(_columnIndices[columnName]);
+    return readColumnByIndexAsText(_columnIndices[columnName]!);
   }
 
   /// Reads column [columnIndex] and converts to [Type.Text] if not text.
@@ -296,7 +287,6 @@ Type _typeFromText(String textRepresentation) {
     case "null":
       return Type.Null;
   }
-  if (textRepresentation == null) return Type.Null;
   throw Exception("Unknown type [$textRepresentation]");
 }
 

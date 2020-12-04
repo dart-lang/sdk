@@ -6,6 +6,7 @@
 #define RUNTIME_VM_LOCKERS_H_
 
 #include "platform/assert.h"
+#include "platform/growable_array.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
@@ -225,9 +226,11 @@ class MonitorLeaveScope : public ValueObject {
  *      ...
  *    }
  */
-class SafepointMutexLocker : public ValueObject {
+class SafepointMutexLocker : public StackResource {
  public:
-  explicit SafepointMutexLocker(Mutex* mutex);
+  explicit SafepointMutexLocker(Mutex* mutex)
+      : SafepointMutexLocker(ThreadState::Current(), mutex) {}
+  SafepointMutexLocker(ThreadState* thread, Mutex* mutex);
   virtual ~SafepointMutexLocker() { mutex_->Unlock(); }
 
  private:
@@ -319,20 +322,68 @@ class SafepointRwLock {
   SafepointRwLock() {}
   ~SafepointRwLock() {}
 
+#if defined(DEBUG)
+  bool IsCurrentThreadReader() {
+    ThreadId id = OSThread::GetCurrentThreadId();
+    if (IsCurrentThreadWriter()) {
+      return true;
+    }
+    MutexLocker ml(&reader_ids_mutex_);
+    for (intptr_t i = readers_ids_.length() - 1; i >= 0; i--) {
+      if (readers_ids_.At(i) == id) {
+        return true;
+      }
+    }
+    return false;
+  }
+#endif  // defined(DEBUG)
+
+  bool IsCurrentThreadWriter() {
+    return writer_id_ == OSThread::GetCurrentThreadId();
+  }
+
  private:
   friend class SafepointReadRwLocker;
   friend class SafepointWriteRwLocker;
 
-  void EnterRead() {
+  // returns [true] if read lock was acuired,
+  // returns [false] if the thread didn't have to acquire read lock due
+  // to the thread already holding write lock
+  bool EnterRead() {
     SafepointMonitorLocker ml(&monitor_);
-    while (state_ == -1) {
+    if (IsCurrentThreadWriter()) {
+      return false;
+    }
+    while (state_ < 0) {
       ml.Wait();
     }
+#if defined(DEBUG)
+    {
+      MutexLocker ml(&reader_ids_mutex_);
+      readers_ids_.Add(OSThread::GetCurrentThreadId());
+    }
+#endif
     ++state_;
+    return true;
   }
   void LeaveRead() {
     SafepointMonitorLocker ml(&monitor_);
     ASSERT(state_ > 0);
+#if defined(DEBUG)
+    {
+      MutexLocker ml(&reader_ids_mutex_);
+      intptr_t i = readers_ids_.length() - 1;
+      ThreadId id = OSThread::GetCurrentThreadId();
+      while (i >= 0) {
+        if (readers_ids_.At(i) == id) {
+          readers_ids_.RemoveAt(i);
+          break;
+        }
+        i--;
+      }
+      ASSERT(i >= 0);
+    }
+#endif
     if (--state_ == 0) {
       ml.NotifyAll();
     }
@@ -340,23 +391,38 @@ class SafepointRwLock {
 
   void EnterWrite() {
     SafepointMonitorLocker ml(&monitor_);
+    if (IsCurrentThreadWriter()) {
+      state_--;
+      return;
+    }
     while (state_ != 0) {
       ml.Wait();
     }
+    writer_id_ = OSThread::GetCurrentThreadId();
     state_ = -1;
   }
   void LeaveWrite() {
     SafepointMonitorLocker ml(&monitor_);
-    ASSERT(state_ == -1);
-    state_ = 0;
+    ASSERT(state_ < 0);
+    state_++;
+    if (state_ < 0) {
+      return;
+    }
+    writer_id_ = OSThread::kInvalidThreadId;
     ml.NotifyAll();
   }
 
   Monitor monitor_;
   // [state_] > 0  : The lock is held by multiple readers.
   // [state_] == 0 : The lock is free (no readers/writers).
-  // [state_] == -1: The lock is held by a single writer.
+  // [state_] < 0  : The lock is held by a single writer (possibly nested).
   intptr_t state_ = 0;
+
+#if defined(DEBUG)
+  Mutex reader_ids_mutex_;
+  MallocGrowableArray<ThreadId> readers_ids_;
+#endif
+  ThreadId writer_id_ = OSThread::kInvalidThreadId;
 };
 
 /*
@@ -390,9 +456,17 @@ class SafepointReadRwLocker : public StackResource {
  public:
   SafepointReadRwLocker(ThreadState* thread_state, SafepointRwLock* rw_lock)
       : StackResource(thread_state), rw_lock_(rw_lock) {
-    rw_lock_->EnterRead();
+    ASSERT(rw_lock_ != nullptr);
+    if (!rw_lock_->EnterRead()) {
+      // if lock didn't have to be acquired, it doesn't have to be released.
+      rw_lock_ = nullptr;
+    }
   }
-  ~SafepointReadRwLocker() { rw_lock_->LeaveRead(); }
+  ~SafepointReadRwLocker() {
+    if (rw_lock_ != nullptr) {
+      rw_lock_->LeaveRead();
+    }
+  }
 
  private:
   SafepointRwLock* rw_lock_;

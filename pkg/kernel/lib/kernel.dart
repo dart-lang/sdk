@@ -16,7 +16,6 @@ library kernel;
 import 'ast.dart';
 import 'binary/ast_to_binary.dart';
 import 'binary/ast_from_binary.dart';
-import 'dart:async';
 import 'dart:io';
 import 'text/ast_to_text.dart';
 
@@ -40,14 +39,14 @@ Component loadComponentSourceFromBytes(List<int> bytes, [Component component]) {
 }
 
 Future writeComponentToBinary(Component component, String path) {
-  var sink;
+  IOSink sink;
   if (path == 'null' || path == 'stdout') {
     sink = stdout.nonBlocking;
   } else {
     sink = new File(path).openWrite();
   }
 
-  var future;
+  Future future;
   try {
     new BinaryPrinter(sink).writeComponentFile(component);
   } finally {

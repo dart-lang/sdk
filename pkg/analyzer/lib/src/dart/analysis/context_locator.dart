@@ -4,29 +4,14 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/src/context/builder.dart'
-    show ContextBuilder, ContextBuilderOptions;
-import 'package:analyzer/src/context/context_root.dart' as old;
-import 'package:analyzer/src/dart/analysis/byte_store.dart'
-    show MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler;
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart'
-    show FileContentOverlay;
-import 'package:analyzer/src/dart/analysis/performance_logger.dart'
-    show PerformanceLog;
-import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
-import 'package:cli_util/cli_util.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -37,8 +22,14 @@ class ContextLocatorImpl implements ContextLocator {
   /// The name of the analysis options file.
   static const String ANALYSIS_OPTIONS_NAME = 'analysis_options.yaml';
 
+  /// The name of the `.dart_tool` directory.
+  static const String DOT_DART_TOOL_NAME = '.dart_tool';
+
   /// The name of the packages file.
-  static const String PACKAGES_FILE_NAME = '.packages';
+  static const String PACKAGE_CONFIG_JSON_NAME = 'package_config.json';
+
+  /// The name of the packages file.
+  static const String DOT_PACKAGES_NAME = '.packages';
 
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
@@ -47,55 +38,8 @@ class ContextLocatorImpl implements ContextLocator {
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
   ContextLocatorImpl({ResourceProvider resourceProvider})
-      : this.resourceProvider =
+      : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
-
-  @deprecated
-  @override
-  List<AnalysisContext> locateContexts(
-      {@required List<String> includedPaths,
-      List<String> excludedPaths = const <String>[],
-      String optionsFile,
-      String packagesFile,
-      String sdkPath}) {
-    // TODO(scheglov) Remove this, and make `sdkPath` required.
-    sdkPath ??= getSdkPath();
-    ArgumentError.checkNotNull(sdkPath, 'sdkPath');
-
-    List<ContextRoot> roots = locateRoots(
-        includedPaths: includedPaths,
-        excludedPaths: excludedPaths,
-        optionsFile: optionsFile,
-        packagesFile: packagesFile);
-    if (roots.isEmpty) {
-      return const <AnalysisContext>[];
-    }
-    PerformanceLog performanceLog = PerformanceLog(StringBuffer());
-    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(performanceLog);
-    DartSdkManager sdkManager = DartSdkManager(sdkPath);
-    scheduler.start();
-    ContextBuilderOptions options = ContextBuilderOptions();
-    ContextBuilder builder =
-        ContextBuilder(resourceProvider, sdkManager, null, options: options);
-    if (packagesFile != null) {
-      options.defaultPackageFilePath = packagesFile;
-    }
-    builder.analysisDriverScheduler = scheduler;
-    builder.byteStore = MemoryByteStore();
-    builder.fileContentOverlay = FileContentOverlay();
-    builder.performanceLog = performanceLog;
-    List<AnalysisContext> contextList = <AnalysisContext>[];
-    for (ContextRoot root in roots) {
-      old.ContextRoot contextRoot = old.ContextRoot(
-          root.root.path, root.excludedPaths.toList(),
-          pathContext: resourceProvider.pathContext);
-      AnalysisDriver driver = builder.buildDriver(contextRoot);
-      DriverBasedAnalysisContext context =
-          DriverBasedAnalysisContext(resourceProvider, root, driver);
-      contextList.add(context);
-    }
-    return contextList;
-  }
 
   @override
   List<ContextRoot> locateRoots(
@@ -157,9 +101,10 @@ class ContextLocatorImpl implements ContextLocator {
       root.packagesFile = defaultPackagesFile ?? _findPackagesFile(folder);
       root.optionsFile = defaultOptionsFile ?? _findOptionsFile(folder);
       root.included.add(folder);
+      root.excludedGlobs = _getExcludedGlobs(root);
       roots.add(root);
       _createContextRootsIn(roots, folder, excludedFolders, root,
-          _getExcludedFiles(root), defaultOptionsFile, defaultPackagesFile);
+          root.excludedGlobs, defaultOptionsFile, defaultPackagesFile);
     }
     Map<Folder, ContextRoot> rootMap = <Folder, ContextRoot>{};
     for (File file in includedFiles) {
@@ -191,14 +136,14 @@ class ContextLocatorImpl implements ContextLocator {
   /// file will be used even if there is a local version of the file.
   ///
   /// For each directory within the given [folder] that is neither in the list
-  /// of [excludedFolders] nor excluded by the [excludedFilePatterns],
-  /// recursively search for nested context roots.
+  /// of [excludedFolders] nor excluded by the [excludedGlobs], recursively
+  /// search for nested context roots.
   void _createContextRoots(
       List<ContextRoot> roots,
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedFilePatterns,
+      List<Glob> excludedGlobs,
       File optionsFile,
       File packagesFile) {
     //
@@ -231,16 +176,16 @@ class ContextLocatorImpl implements ContextLocator {
       containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
-      excludedFilePatterns = _getExcludedFiles(root);
+      excludedGlobs = _getExcludedGlobs(root);
+      root.excludedGlobs = excludedGlobs;
     }
     _createContextRootsIn(roots, folder, excludedFolders, containingRoot,
-        excludedFilePatterns, optionsFile, packagesFile);
+        excludedGlobs, optionsFile, packagesFile);
   }
 
   /// For each directory within the given [folder] that is neither in the list
-  /// of [excludedFolders] nor excluded by the [excludedFilePatterns],
-  /// recursively search for nested context roots and add them to the list of
-  /// [roots].
+  /// of [excludedFolders] nor excluded by the [excludedGlobs], recursively
+  /// search for nested context roots and add them to the list of [roots].
   ///
   /// If either the [optionsFile] or [packagesFile] is non-`null` then the given
   /// file will be used even if there is a local version of the file.
@@ -249,7 +194,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedFilePatterns,
+      List<Glob> excludedGlobs,
       File optionsFile,
       File packagesFile) {
     bool isExcluded(Folder folder) {
@@ -257,7 +202,7 @@ class ContextLocatorImpl implements ContextLocator {
           folder.shortName.startsWith('.')) {
         return true;
       }
-      for (Glob pattern in excludedFilePatterns) {
+      for (Glob pattern in excludedGlobs) {
         if (pattern.matches(folder.path)) {
           return true;
         }
@@ -276,7 +221,7 @@ class ContextLocatorImpl implements ContextLocator {
             containingRoot.excluded.add(child);
           } else {
             _createContextRoots(roots, child, excludedFolders, containingRoot,
-                excludedFilePatterns, optionsFile, packagesFile);
+                excludedGlobs, optionsFile, packagesFile);
           }
         }
       }
@@ -291,9 +236,9 @@ class ContextLocatorImpl implements ContextLocator {
   /// folder or any parent folder.
   File _findOptionsFile(Folder folder) {
     while (folder != null) {
-      File packagesFile = _getOptionsFile(folder);
-      if (packagesFile != null) {
-        return packagesFile;
+      File optionsFile = _getOptionsFile(folder);
+      if (optionsFile != null) {
+        return optionsFile;
       }
       folder = folder.parent;
     }
@@ -319,7 +264,7 @@ class ContextLocatorImpl implements ContextLocator {
   /// file associated with the context root. The list will be empty if there are
   /// no exclusion patterns in the options file, or if there is no options file
   /// associated with the context root.
-  List<Glob> _getExcludedFiles(ContextRootImpl root) {
+  List<Glob> _getExcludedGlobs(ContextRootImpl root) {
     List<Glob> patterns = [];
     File optionsFile = root.optionsFile;
     if (optionsFile != null) {
@@ -337,8 +282,10 @@ class ContextLocatorImpl implements ContextLocator {
                 for (String excludedPath in excludeList) {
                   Context context = resourceProvider.pathContext;
                   if (context.isRelative(excludedPath)) {
-                    excludedPath =
-                        context.join(optionsFile.parent.path, excludedPath);
+                    excludedPath = posix.joinAll([
+                      ...context.split(optionsFile.parent.path),
+                      ...posix.split(excludedPath),
+                    ]);
                   }
                   patterns.add(Glob(excludedPath, context: context));
                 }
@@ -371,7 +318,16 @@ class ContextLocatorImpl implements ContextLocator {
 
   /// Return the packages file in the given [folder], or `null` if the folder
   /// does not contain a packages file.
-  File _getPackagesFile(Folder folder) => _getFile(folder, PACKAGES_FILE_NAME);
+  File _getPackagesFile(Folder folder) {
+    var file = folder
+        .getChildAssumingFolder(DOT_DART_TOOL_NAME)
+        .getChildAssumingFile(PACKAGE_CONFIG_JSON_NAME);
+    if (file.exists) {
+      return file;
+    }
+
+    return _getFile(folder, DOT_PACKAGES_NAME);
+  }
 
   /// Add to the given lists of [folders] and [files] all of the resources in
   /// the given list of [paths] that exist and are not contained within one of

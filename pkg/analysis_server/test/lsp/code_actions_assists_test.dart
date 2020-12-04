@@ -29,7 +29,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -70,7 +70,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -97,7 +97,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_nonDartFile() async {
-    await newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),

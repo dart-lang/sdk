@@ -9,11 +9,11 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 class NodesToBuildType {
@@ -89,7 +89,8 @@ class TypesBuilder {
           returnType = _dynamicType;
         }
       }
-      LazyAst.setReturnType(node, returnType);
+      var element = node.declaredElement as ExecutableElementImpl;
+      element.returnType = returnType;
     } else if (node is FunctionTypeAlias) {
       _functionTypeAlias(node);
     } else if (node is FunctionTypedFormalParameter) {
@@ -107,16 +108,18 @@ class TypesBuilder {
           returnType = _dynamicType;
         }
       }
-      LazyAst.setReturnType(node, returnType);
+      var element = node.declaredElement as ExecutableElementImpl;
+      element.returnType = returnType;
     } else if (node is MixinDeclaration) {
       // TODO(scheglov) ???
     } else if (node is SimpleFormalParameter) {
-      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+      var element = node.declaredElement as ParameterElementImpl;
+      element.type = node.type?.type ?? _dynamicType;
     } else if (node is VariableDeclarationList) {
       var type = node.type?.type;
       if (type != null) {
         for (var variable in node.variables) {
-          LazyAst.setType(variable, type);
+          (variable.declaredElement as VariableElementImpl).type = type;
         }
       }
     } else {
@@ -135,25 +138,24 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
-      LazyAst.setType(node, type);
+      var element = node.declaredElement as ParameterElementImpl;
+      element.type = type;
     } else {
-      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+      var element = node.declaredElement as ParameterElementImpl;
+      element.type = node.type?.type ?? _dynamicType;
     }
   }
 
-  List<ParameterElementImpl> _formalParameters(FormalParameterList node) {
+  List<ParameterElement> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
-      return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
-        _getType(parameter),
-        parameter.kind,
-      );
+      return parameter.declaredElement;
     }).toList();
   }
 
   void _functionTypeAlias(FunctionTypeAlias node) {
     var returnTypeNode = node.returnType;
-    LazyAst.setReturnType(node, returnTypeNode?.type ?? _dynamicType);
+    var element = node.declaredElement as FunctionTypeAliasElementImpl;
+    element.function.returnType = returnTypeNode?.type ?? _dynamicType;
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
@@ -163,7 +165,8 @@ class TypesBuilder {
       node.parameters,
       _nullability(node, node.question != null),
     );
-    LazyAst.setType(node, type);
+    var element = node.declaredElement as ParameterElementImpl;
+    element.type = type;
   }
 
   bool _isNonNullableByDefault(AstNode node) {
@@ -192,13 +195,6 @@ class TypesBuilder {
         .map<TypeParameterElement>((p) => p.declaredElement)
         .toList();
   }
-
-  static DartType _getType(FormalParameter node) {
-    if (node is DefaultFormalParameter) {
-      return _getType(node.parameter);
-    }
-    return LazyAst.getType(node);
-  }
 }
 
 /// Performs mixins inference in a [ClassDeclaration].
@@ -208,12 +204,14 @@ class _MixinInference {
   final FeatureSet featureSet;
   final InterfaceType classType;
 
-  List<InterfaceType> mixinTypes = [];
-  List<InterfaceType> supertypesForMixinInference;
+  InterfacesMerger interfacesMerger;
 
   _MixinInference(this.element, this.featureSet)
       : typeSystem = element.library.typeSystem,
-        classType = element.thisType;
+        classType = element.thisType {
+    interfacesMerger = InterfacesMerger(typeSystem);
+    interfacesMerger.addWithSupertypes(element.supertype);
+  }
 
   NullabilitySuffix get _noneOrStarSuffix {
     return _nonNullableEnabled
@@ -228,19 +226,7 @@ class _MixinInference {
 
     for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode);
-      mixinTypes.add(mixinType);
-
-      _addSupertypes(mixinType);
-    }
-  }
-
-  void _addSupertypes(InterfaceType type) {
-    if (supertypesForMixinInference != null) {
-      ClassElementImpl.collectAllSupertypes(
-        supertypesForMixinInference,
-        type,
-        classType,
-      );
+      interfacesMerger.addWithSupertypes(mixinType);
     }
   }
 
@@ -293,17 +279,9 @@ class _MixinInference {
       return mixinType;
     }
 
-    if (supertypesForMixinInference == null) {
-      supertypesForMixinInference = <InterfaceType>[];
-      _addSupertypes(classType.superclass);
-      for (var previousMixinType in mixinTypes) {
-        _addSupertypes(previousMixinType);
-      }
-    }
-
     var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
       mixinSupertypeConstraints,
-      supertypesForMixinInference,
+      interfacesMerger.typeList,
     );
 
     // Note: if matchingInterfaceType is null, that's an error.  Also,

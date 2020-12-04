@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:core';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -15,13 +14,6 @@ import 'package:path/path.dart' show posix;
 /// A contributor that produces suggestions based on the content of the file
 /// system to complete within URIs in import, export and part directives.
 class UriContributor extends DartCompletionContributor {
-  /// A flag indicating whether file: and package: URI suggestions should
-  /// be included in the list of completion suggestions.
-  // TODO(danrubel): remove this flag and related functionality
-  // once the UriContributor limits file: and package: URI suggestions
-  // to only those paths within context roots.
-  static bool suggestFilePaths = true;
-
   @override
   Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
@@ -94,17 +86,13 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
       var partialUri = _extractPartialUri(node);
       if (partialUri != null) {
         _addDartSuggestions();
-        if (UriContributor.suggestFilePaths) {
-          _addPackageSuggestions(partialUri);
-          _addFileSuggestions(partialUri);
-        }
+        _addPackageSuggestions(partialUri);
+        _addFileSuggestions(partialUri);
       }
     } else if (parent is PartDirective && parent.uri == node) {
       var partialUri = _extractPartialUri(node);
       if (partialUri != null) {
-        if (UriContributor.suggestFilePaths) {
-          _addFileSuggestions(partialUri);
-        }
+        _addFileSuggestions(partialUri);
       }
     }
   }

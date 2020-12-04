@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -24,10 +25,18 @@ class TypePropertyResolver {
   final ExtensionMemberResolver _extensionResolver;
 
   Expression _receiver;
+  SyntacticEntity _nameErrorEntity;
   String _name;
-  AstNode _nameErrorNode;
 
-  ResolutionResult _result = ResolutionResult.none;
+  bool _needsGetterError;
+  bool _reportedGetterError;
+  ExecutableElement _getterRequested;
+  ExecutableElement _getterRecovery;
+
+  bool _needsSetterError;
+  bool _reportedSetterError;
+  ExecutableElement _setterRequested;
+  ExecutableElement _setterRecovery;
 
   TypePropertyResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
@@ -36,6 +45,10 @@ class TypePropertyResolver {
         _typeProvider = _resolver.typeProvider,
         _extensionResolver = _resolver.extensionResolver;
 
+  bool get _hasGetterOrSetter {
+    return _getterRequested != null || _setterRequested != null;
+  }
+
   /// Look up the property with the given [name] in the [receiverType].
   ///
   /// The [receiver] might be `null`, used to identify `super`.
@@ -43,118 +56,186 @@ class TypePropertyResolver {
   /// The [receiverErrorNode] is the node to report nullable dereference,
   /// if the [receiverType] is potentially nullable.
   ///
-  /// The [nameErrorNode] is used to report the ambiguous extension issue.
+  /// The [nameErrorEntity] is used to report the ambiguous extension issue.
   ResolutionResult resolve({
     @required Expression receiver,
     @required DartType receiverType,
     @required String name,
     @required AstNode receiverErrorNode,
-    @required Expression nameErrorNode,
+    @required SyntacticEntity nameErrorEntity,
   }) {
+    assert(receiverType != null);
     _receiver = receiver;
     _name = name;
-    _nameErrorNode = nameErrorNode;
-    _result = ResolutionResult.none;
+    _nameErrorEntity = nameErrorEntity;
+    _resetResult();
 
-    receiverType = _resolveTypeParameter(receiverType);
+    receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
+
+    if (_typeSystem.isDynamicBounded(receiverType)) {
+      _lookupInterfaceType(_typeProvider.objectType);
+      _needsGetterError = false;
+      _needsSetterError = false;
+      return _toResult();
+    }
 
     if (_isNonNullableByDefault &&
         _typeSystem.isPotentiallyNullable(receiverType)) {
+      _lookupInterfaceType(_typeProvider.objectType);
+      if (_hasGetterOrSetter) {
+        return _toResult();
+      }
+
       _lookupExtension(receiverType);
-
-      if (_result.isNone) {
-        _lookupInterfaceType(_typeProvider.objectType);
+      if (_hasGetterOrSetter) {
+        return _toResult();
       }
 
-      if (_result.isNone && !receiverType.isDynamic) {
-        _resolver.nullableDereferenceVerifier.report(
-          receiverErrorNode,
-          receiverType,
-        );
-        // Recovery, get some resolution.
-        _lookupType(receiverType);
+      _resolver.nullableDereferenceVerifier.report(
+        receiverErrorNode,
+        receiverType,
+      );
+      _reportedGetterError = true;
+      _reportedSetterError = true;
+
+      // Recovery, get some resolution.
+      receiverType = _resolveTypeParameter(receiverType, ifNullSafe: true);
+      if (receiverType is InterfaceType) {
+        _lookupInterfaceType(receiverType);
       }
 
-      _toLegacy();
-      return _result;
+      return _toResult();
     } else {
-      _lookupType(receiverType);
+      var receiverTypeResolved =
+          _resolveTypeParameter(receiverType, ifNullSafe: true);
 
-      if (_result.isNone) {
-        _lookupExtension(receiverType);
+      if (receiverTypeResolved is InterfaceType) {
+        _lookupInterfaceType(receiverTypeResolved);
+        if (_hasGetterOrSetter) {
+          return _toResult();
+        }
+        if (receiverTypeResolved.isDartCoreFunction && _name == 'call') {
+          _needsGetterError = false;
+          _needsSetterError = false;
+          return _toResult();
+        }
       }
 
-      if (_result.isNone) {
+      if (receiverTypeResolved is FunctionType && _name == 'call') {
+        return _toResult();
+      }
+
+      if (receiverTypeResolved is NeverType) {
         _lookupInterfaceType(_typeProvider.objectType);
+        _needsGetterError = false;
+        _needsSetterError = false;
+        return _toResult();
       }
 
-      _toLegacy();
-      return _result;
+      _lookupExtension(receiverType);
+      if (_hasGetterOrSetter) {
+        return _toResult();
+      }
+
+      _lookupInterfaceType(_typeProvider.objectType);
+
+      return _toResult();
     }
   }
 
   void _lookupExtension(DartType type) {
-    _result = _extensionResolver.findExtension(type, _name, _nameErrorNode);
+    var result =
+        _extensionResolver.findExtension(type, _nameErrorEntity, _name);
+    _reportedGetterError = result.isAmbiguous;
+    _reportedSetterError = result.isAmbiguous;
+
+    if (result.getter != null) {
+      _needsGetterError = false;
+      _getterRequested = result.getter;
+    }
+
+    if (result.setter != null) {
+      _needsSetterError = false;
+      _setterRequested = result.setter;
+    }
   }
 
   void _lookupInterfaceType(InterfaceType type) {
     var isSuper = _receiver is SuperExpression;
 
-    ExecutableElement typeGetter;
-    ExecutableElement typeSetter;
+    var getterName = Name(_definingLibrary.source.uri, _name);
+    _getterRequested =
+        _resolver.inheritance.getMember(type, getterName, forSuper: isSuper);
+    _needsGetterError = _getterRequested == null;
 
-    if (_name == '[]') {
-      typeGetter = type.lookUpMethod2(
-        '[]',
-        _definingLibrary,
-        concrete: isSuper,
-        inherited: isSuper,
-      );
-
-      typeSetter = type.lookUpMethod2(
-        '[]=',
-        _definingLibrary,
-        concrete: isSuper,
-        inherited: isSuper,
-      );
-    } else {
+    if (_getterRequested == null) {
       var classElement = type.element as AbstractClassElementImpl;
-      var getterName = Name(_definingLibrary.source.uri, _name);
-      var setterName = Name(_definingLibrary.source.uri, '$_name=');
-      typeGetter = _resolver.inheritance
-              .getMember(type, getterName, forSuper: isSuper) ??
+      _getterRecovery ??=
           classElement.lookupStaticGetter(_name, _definingLibrary) ??
-          classElement.lookupStaticMethod(_name, _definingLibrary);
-      typeSetter = _resolver.inheritance
-              .getMember(type, setterName, forSuper: isSuper) ??
-          classElement.lookupStaticSetter(_name, _definingLibrary);
+              classElement.lookupStaticMethod(_name, _definingLibrary);
+      _needsGetterError = _getterRecovery == null;
     }
 
-    if (typeGetter != null || typeSetter != null) {
-      _result = ResolutionResult(getter: typeGetter, setter: typeSetter);
+    var setterName = Name(_definingLibrary.source.uri, '$_name=');
+    _setterRequested =
+        _resolver.inheritance.getMember(type, setterName, forSuper: isSuper);
+    _needsSetterError = _setterRequested == null;
+
+    if (_setterRequested == null) {
+      var classElement = type.element as AbstractClassElementImpl;
+      _setterRecovery ??=
+          classElement.lookupStaticSetter(_name, _definingLibrary);
+      _needsSetterError = _setterRecovery == null;
     }
   }
 
-  void _lookupType(DartType type) {
-    if (type is InterfaceType) {
-      _lookupInterfaceType(type);
-    } else if (type is FunctionType) {
-      _lookupInterfaceType(_typeProvider.functionType);
-    }
+  void _resetResult() {
+    _needsGetterError = false;
+    _reportedGetterError = false;
+    _getterRequested = null;
+    _getterRecovery = null;
+
+    _needsSetterError = false;
+    _reportedSetterError = false;
+    _setterRequested = null;
+    _setterRecovery = null;
   }
 
   /// If the given [type] is a type parameter, replace it with its bound.
   /// Otherwise, return the original type.
-  DartType _resolveTypeParameter(DartType type) {
-    return type?.resolveToBound(_typeProvider.objectType);
+  ///
+  /// See https://github.com/dart-lang/language/issues/1182
+  /// There was a bug in the analyzer (and CFE) - we were always resolving
+  /// types to bounds before searching for a property.  But  extensions should
+  /// be applied to original types.  Fixing this would be a breaking change,
+  /// so we fix it together with null safety.
+  DartType _resolveTypeParameter(
+    DartType type, {
+    bool ifLegacy = false,
+    bool ifNullSafe = false,
+  }) {
+    if (_typeSystem.isNonNullableByDefault ? ifNullSafe : ifLegacy) {
+      return type?.resolveToBound(_typeProvider.objectType);
+    } else {
+      return type;
+    }
   }
 
-  void _toLegacy() {
-    if (_result.isSingle) {
-      _result = ResolutionResult(
-        getter: _resolver.toLegacyElement(_result.getter),
-        setter: _resolver.toLegacyElement(_result.setter),
-      );
-    }
+  ResolutionResult _toResult() {
+    _getterRequested = _resolver.toLegacyElement(_getterRequested);
+    _getterRecovery = _resolver.toLegacyElement(_getterRecovery);
+
+    _setterRequested = _resolver.toLegacyElement(_setterRequested);
+    _setterRecovery = _resolver.toLegacyElement(_setterRecovery);
+
+    var getter = _getterRequested ?? _getterRecovery;
+    var setter = _setterRequested ?? _setterRecovery;
+
+    return ResolutionResult(
+      getter: getter,
+      needsGetterError: _needsGetterError && !_reportedGetterError,
+      setter: setter,
+      needsSetterError: _needsSetterError && !_reportedSetterError,
+    );
   }
 }

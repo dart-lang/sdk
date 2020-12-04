@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static field core::int? _#nullableTopLevelField = _in::createSentinel<core::int?>();
+static field core::int? _#nonNullableTopLevelField = _in::createSentinel<core::int>();
+static field core::int? _#nullableTopLevelFieldWithInitializer = _in::createSentinel<core::int?>();
+static field core::int? _#nonNullableTopLevelFieldWithInitializer = _in::createSentinel<core::int>();
+static field core::int? _#nullableFinalTopLevelField = _in::createSentinel<core::int?>();
+static field core::int? _#nonNullableFinalTopLevelField = _in::createSentinel<core::int>();
+static field core::int? _#nullableFinalTopLevelFieldWithInitializer = _in::createSentinel<core::int?>();
+static field core::int? _#nonNullableFinalTopLevelFieldWithInitializer = _in::createSentinel<core::int>();
+static field Never? _#neverTopLevelField = _in::createSentinel<Never>();
+static get nullableTopLevelField() → core::int?
+  return let final core::int? #t1 = self::_#nullableTopLevelField in _in::isSentinel(#t1) ?{core::int?} throw new _in::LateError::fieldNI("nullableTopLevelField") : #t1{core::int?};
+static set nullableTopLevelField(core::int? #t2) → void
+  self::_#nullableTopLevelField = #t2;
+static get nonNullableTopLevelField() → core::int
+  return let final core::int? #t3 = self::_#nonNullableTopLevelField in _in::isSentinel(#t3) ?{core::int} throw new _in::LateError::fieldNI("nonNullableTopLevelField") : #t3{core::int};
+static set nonNullableTopLevelField(core::int #t4) → void
+  self::_#nonNullableTopLevelField = #t4;
+static get nullableTopLevelFieldWithInitializer() → core::int?
+  return let final core::int? #t5 = self::_#nullableTopLevelFieldWithInitializer in _in::isSentinel(#t5) ?{core::int?} self::_#nullableTopLevelFieldWithInitializer = null : #t5{core::int?};
+static set nullableTopLevelFieldWithInitializer(core::int? #t6) → void
+  self::_#nullableTopLevelFieldWithInitializer = #t6;
+static get nonNullableTopLevelFieldWithInitializer() → core::int
+  return let final core::int? #t7 = self::_#nonNullableTopLevelFieldWithInitializer in _in::isSentinel(#t7) ?{core::int} self::_#nonNullableTopLevelFieldWithInitializer = 0 : #t7{core::int};
+static set nonNullableTopLevelFieldWithInitializer(core::int #t8) → void
+  self::_#nonNullableTopLevelFieldWithInitializer = #t8;
+static get nullableFinalTopLevelField() → core::int?
+  return let final core::int? #t9 = self::_#nullableFinalTopLevelField in _in::isSentinel(#t9) ?{core::int?} throw new _in::LateError::fieldNI("nullableFinalTopLevelField") : #t9{core::int?};
+static set nullableFinalTopLevelField(core::int? #t10) → void
+  if(_in::isSentinel(self::_#nullableFinalTopLevelField))
+    self::_#nullableFinalTopLevelField = #t10;
+  else
+    throw new _in::LateError::fieldAI("nullableFinalTopLevelField");
+static get nonNullableFinalTopLevelField() → core::int
+  return let final core::int? #t11 = self::_#nonNullableFinalTopLevelField in _in::isSentinel(#t11) ?{core::int} throw new _in::LateError::fieldNI("nonNullableFinalTopLevelField") : #t11{core::int};
+static set nonNullableFinalTopLevelField(core::int #t12) → void
+  if(_in::isSentinel(self::_#nonNullableFinalTopLevelField))
+    self::_#nonNullableFinalTopLevelField = #t12;
+  else
+    throw new _in::LateError::fieldAI("nonNullableFinalTopLevelField");
+static get nullableFinalTopLevelFieldWithInitializer() → core::int?
+  return let final core::int? #t13 = self::_#nullableFinalTopLevelFieldWithInitializer in _in::isSentinel(#t13) ?{core::int?} let final core::int? #t14 = null in _in::isSentinel(self::_#nullableFinalTopLevelFieldWithInitializer) ?{core::int?} self::_#nullableFinalTopLevelFieldWithInitializer = #t14 : throw new _in::LateError::fieldADI("nullableFinalTopLevelFieldWithInitializer") : #t13;
+static get nonNullableFinalTopLevelFieldWithInitializer() → core::int
+  return let final core::int #t15 = self::_#nonNullableFinalTopLevelFieldWithInitializer in _in::isSentinel(#t15) ?{core::int} let final core::int #t16 = 0 in _in::isSentinel(self::_#nonNullableFinalTopLevelFieldWithInitializer) ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer = #t16 : throw new _in::LateError::fieldADI("nonNullableFinalTopLevelFieldWithInitializer") : #t15;
+static get neverTopLevelField() → Never
+  return let final Never? #t17 = self::_#neverTopLevelField in _in::isSentinel(#t17) ?{Never} throw new _in::LateError::fieldNI("neverTopLevelField") : #t17{Never};
+static set neverTopLevelField(Never #t18) → void
+  self::_#neverTopLevelField = #t18;
+static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:11:17 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:12:16 -> IntConstant(0)
+Extra constant evaluation: evaluated: 113, effectively constant: 2

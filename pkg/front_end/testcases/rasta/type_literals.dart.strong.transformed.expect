@@ -439,28 +439,28 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Can't assign to a type literal.
     use(--Func);
           ^^^^");
-    self::C<dynamic>*.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
+    self::C<dynamic>*.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
     C ??= 42;
     ^" : null;
-    self::use(let final core::Type* #t1 = self::C<dynamic>* in #t1.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t1 = self::C<dynamic>* in #t1.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
     use(C ??= 42);
         ^" : #t1);
-    dynamic.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
+    dynamic.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
     dynamic ??= 42;
     ^^^^^^^" : null;
-    self::use(let final core::Type* #t2 = dynamic in #t2.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t2 = dynamic in #t2.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
     use(dynamic ??= 42);
         ^^^^^^^" : #t2);
-    self::C::T*.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
+    self::C::T*.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
     T ??= 42;
     ^" : null;
-    self::use(let final core::Type* #t3 = self::C::T* in #t3.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t3 = self::C::T* in #t3.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
     use(T ??= 42);
         ^" : #t3);
-    () →* void.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
+    () →* void.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
     Func ??= 42;
     ^^^^" : null;
-    self::use(let final core::Type* #t4 = () →* void in #t4.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t4 = () →* void in #t4.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
     use(Func ??= 42);
         ^^^^" : #t4);
     invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Can't assign to a type literal.
@@ -512,16 +512,16 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     use(Func -= 42);
         ^^^^");
   }
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method use(dynamic x) → dynamic {
   if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
@@ -530,3 +530,19 @@ static method use(dynamic x) → dynamic {
 static method main() → dynamic {
   new self::C::•<dynamic>().{self::C::test}();
 }
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:11:5 -> TypeLiteralConstant(C<dynamic>*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:12:9 -> TypeLiteralConstant(C<dynamic>*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:13:5 -> TypeLiteralConstant(dynamic)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:14:9 -> TypeLiteralConstant(dynamic)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:17:5 -> TypeLiteralConstant(void Function()*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:18:9 -> TypeLiteralConstant(void Function()*)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:74:7 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:75:11 -> TypeLiteralConstant(C<dynamic>*)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:76:13 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:77:17 -> TypeLiteralConstant(dynamic)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:80:10 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:81:14 -> TypeLiteralConstant(void Function()*)
+Extra constant evaluation: evaluated: 72, effectively constant: 12

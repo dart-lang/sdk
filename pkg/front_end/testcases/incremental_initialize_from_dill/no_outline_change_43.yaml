@@ -1,0 +1,58 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# A field has 2 references. Both should be passed when creating a new field
+# for references to both set and get to work. And both should be put in the
+# `buildersCreatedWithReferences` map so - when lazy-loading a dill library
+# with additional exports to a library that we're currently recompiling
+# those will get setup correctly too.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      main.dart: |
+        import 'libExporter.dart';
+        void foo() {
+          int value = libField;
+          libField = value+1;
+        }
+      libExporter.dart: |
+        export "lib.dart";
+        String fromLibExporter = "hello";
+      lib.dart: |
+        import "libExporter.dart";
+        int libField = 42;
+        void requireStuffFromLibExporter() {
+          print(fromLibExporter);
+        }
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - libExporter.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true

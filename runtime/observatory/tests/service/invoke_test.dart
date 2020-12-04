@@ -51,13 +51,13 @@ var tests = <IsolateTest>[
     Field field =
         lib.variables.singleWhere((field) => field.name == "instance");
     await field.load();
-    Instance instance = field.staticValue;
+    Instance instance = field.staticValue as Instance;
     field = lib.variables.singleWhere((field) => field.name == "apple");
     await field.load();
-    Instance apple = field.staticValue;
+    Instance apple = field.staticValue as Instance;
     field = lib.variables.singleWhere((field) => field.name == "banana");
     await field.load();
-    Instance banana = field.staticValue;
+    Instance banana = field.staticValue as Instance;
 
     dynamic result = await isolate.invokeRpc("invoke",
         {"targetId": lib.id, "selector": "libraryFunction", "argumentIds": []});

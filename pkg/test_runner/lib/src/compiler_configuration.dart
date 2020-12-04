@@ -25,12 +25,28 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
 /// list allows the result of calling this to be spread into another list.
 List<String> _experimentsArgument(
     TestConfiguration configuration, TestFile testFile) {
-  if (configuration.experiments.isEmpty && testFile.experiments.isEmpty) {
+  var experiments = {
+    ...configuration.experiments,
+    ...testFile.experiments,
+  };
+  if (experiments.isEmpty) {
     return const [];
   }
 
-  var experiments = {...configuration.experiments, ...testFile.experiments};
-  return ["--enable-experiment=${experiments.join(',')}"];
+  return ['--enable-experiment=${experiments.join(',')}'];
+}
+
+List<String> _nnbdModeArgument(TestConfiguration configuration) {
+  switch (configuration.nnbdMode) {
+    case NnbdMode.legacy:
+      return [];
+    case NnbdMode.strong:
+      return ['--sound-null-safety'];
+    case NnbdMode.weak:
+      return ['--no-sound-null-safety'];
+  }
+
+  throw 'unreachable';
 }
 
 /// Grouping of a command with its expected result.
@@ -82,7 +98,6 @@ abstract class CompilerConfiguration {
         return AppJitCompilerConfiguration(configuration);
 
       case Compiler.dartk:
-      case Compiler.dartkb:
         if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
@@ -175,6 +190,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -221,6 +237,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
@@ -245,6 +262,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -307,14 +325,16 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   CommandArtifact computeCompilationArtifact(String tempDir,
-      List<String> globalArguments, Map<String, String> environmentOverrides) {
+      List<String> arguments, Map<String, String> environmentOverrides) {
     var allCommands = <Command>[];
 
     // The first compilation command is as usual.
-    var arguments = pipelineCommands[0].extractArguments(globalArguments, null);
+    var compileArguments =
+        pipelineCommands[0].extractArguments(arguments, null);
     var artifact = pipelineCommands[0]
         .compilerConfiguration
-        .computeCompilationArtifact(tempDir, arguments, environmentOverrides);
+        .computeCompilationArtifact(
+            tempDir, compileArguments, environmentOverrides);
     allCommands.addAll(artifact.commands);
 
     // The following compilation commands are based on the output of the
@@ -322,9 +342,9 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
     for (var i = 1; i < pipelineCommands.length; i++) {
       var command = pipelineCommands[i];
 
-      arguments = command.extractArguments(globalArguments, artifact.filename);
-      artifact = command.compilerConfiguration
-          .computeCompilationArtifact(tempDir, arguments, environmentOverrides);
+      compileArguments = command.extractArguments(arguments, artifact.filename);
+      artifact = command.compilerConfiguration.computeCompilationArtifact(
+          tempDir, compileArguments, environmentOverrides);
 
       allCommands.addAll(artifact.commands);
     }
@@ -419,22 +439,23 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
-    // TODO(#42403) Handle this option if dart2js supports non-nullable asserts
-    // on non-nullable method arguments.
-    var options = testFile.sharedOptions.toList();
-    options.remove('--null-assertions');
     return [
-      ...options,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
+      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    var compilerArguments = [...arguments, ..._configuration.dart2jsOptions];
+    var compilerArguments = [
+      ...arguments,
+      ..._configuration.dart2jsOptions,
+      ..._nnbdModeArgument(_configuration),
+    ];
 
     // TODO(athom): input filename extraction is copied from DDC. Maybe this
     // should be passed to computeCompilationArtifact, instead?
@@ -568,8 +589,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         workingDirectory: inputDir);
   }
 
-  CommandArtifact computeCompilationArtifact(
-      String tempDir, List<String> arguments, Map<String, String> environment) {
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
     // The list of arguments comes from a call to our own
     // computeCompilerArguments(). It contains the shared options followed by
     // the input file path.
@@ -580,10 +601,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var inputFilename = Uri.file(inputFile).pathSegments.last;
     var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
-    return CommandArtifact(
-        [_createCommand(inputFile, outputFile, sharedOptions, environment)],
-        outputFile,
-        "application/javascript");
+    return CommandArtifact([
+      _createCommand(inputFile, outputFile, sharedOptions, environmentOverrides)
+    ], outputFile, "application/javascript");
   }
 }
 
@@ -709,18 +729,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (_configuration.useElf) ...[
         "--snapshot-kind=app-aot-elf",
         "--elf=$tempDir/out.aotsnapshot",
+        // Only splitting with a ELF to avoid having to setup compilation of
+        // multiple assembly files in the test harness.
+        "--loading-unit-manifest=$tempDir/ignored.json",
       ] else ...[
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S",
-      ],
-      // Only splitting with a ELF to avoid having to setup compilation of
-      // multiple assembly files in the test harness. Only splitting tests of
-      // deferred imports because splitting currently requires disable bare
-      // instructions mode, and we want to continue testing bare instructions
-      // mode.
-      if (_configuration.useElf && arguments.last.contains("deferred")) ...[
-        "--loading-unit-manifest=$tempDir/ignored.json",
-        "--use-bare-instructions=false",
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',
@@ -738,9 +752,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   static const String ndkPath = "third_party/android_tools/ndk";
   String get abiTriple => _isArm || _isArmX64
       ? "arm-linux-androideabi"
-      : _isArm64 ? "aarch64-linux-android" : null;
-  String get host =>
-      Platform.isLinux ? "linux" : Platform.isMacOS ? "darwin" : null;
+      : _isArm64
+          ? "aarch64-linux-android"
+          : null;
+  String get host => Platform.isLinux
+      ? "linux"
+      : Platform.isMacOS
+          ? "darwin"
+          : null;
 
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
@@ -862,6 +881,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -909,6 +929,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -926,6 +947,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -967,7 +989,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       "ffi_2",
       "language_2",
       "lib_2",
-      "service",
+      "service_2",
       "standalone_2"
     };
 
@@ -1063,9 +1085,6 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  static final noCausalAsyncStacksRegExp =
-      RegExp('--no[_-]causal[_-]async[_-]stacks');
-
   TestConfiguration get _configuration;
 
   bool get _useSdk;
@@ -1084,15 +1103,8 @@ abstract class VMKernelCompilerMixin {
     var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
     var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
-    var useAbiVersion = arguments.firstWhere(
-        (arg) => arg.startsWith('--use-abi-version='),
-        orElse: () => null);
-
     var kernelBinariesFolder = '${_configuration.buildDirectory}';
-    if (useAbiVersion != null) {
-      var version = useAbiVersion.split('=')[1];
-      kernelBinariesFolder += '/dart-sdk/lib/_internal/abiversions/$version';
-    } else if (_useSdk) {
+    if (_useSdk) {
       kernelBinariesFolder += '/dart-sdk/lib/_internal';
     }
 
@@ -1101,8 +1113,6 @@ abstract class VMKernelCompilerMixin {
     var dillFile = tempKernelFile(tempDir);
 
     var isProductMode = _configuration.configuration.mode == Mode.product;
-
-    var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
 
     var args = [
       _isAot ? '--aot' : '--no-aot',
@@ -1115,18 +1125,16 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.vm.product=$isProductMode',
-      '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
+      ..._nnbdModeArgument(_configuration),
       ..._configuration.genKernelOptions,
     ];
 
-    var batchArgs = [if (useAbiVersion != null) useAbiVersion];
-
     return VMKernelCompilationCommand(dillFile, bootstrapDependencies(),
-        genKernel, args, environmentOverrides, batchArgs,
+        genKernel, args, environmentOverrides,
         alwaysCompile: true);
   }
 }
@@ -1175,6 +1183,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
     var compilerArguments = [
       '--verify',
+      '--verify-skip-platform',
       "-o",
       outputFileName,
       "--platform",

@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int foo = #C1;
+static const field core::String bar = #C6;
+static const field core::bool baz = #C7;
+static const field core::Symbol blaSymbol = #C8;
+static method main() → dynamic {
+  self::_x();
+  #C10;
+  core::print(#C6);
+}
+static method _x() → void {
+  core::print(#C1);
+  core::print(#C6);
+}
+
+constants  {
+  #C1 = 1764
+  #C2 = "hello "
+  #C3 = "baz"
+  #C4 = "world"
+  #C5 = "!"
+  #C6 = eval "${#C2}${const core::String::fromEnvironment(#C3, defaultValue: #C4)}${#C5}"
+  #C7 = true
+  #C8 = #org-dartlang-testcase:///rudimentary_test_01.dart::_x
+  #C9 = "foo"
+  #C10 = eval const core::bool::fromEnvironment(#C9)
+}

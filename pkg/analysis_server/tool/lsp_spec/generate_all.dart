@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/src/utilities/strings.dart';
@@ -74,7 +73,7 @@ final Uri specUri = Uri.parse(
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on
 /// the end that we don't want to parse.
-final _resultsInlineTypesPattern = RegExp(r'''\* result:[^\.]*({.*})''');
+final _resultsInlineTypesPattern = RegExp(r'''\* result:[^\.{}]*({[^\.`]*})''');
 
 Future<void> downloadSpec() async {
   final specResp = await http.get(specUri);
@@ -183,8 +182,14 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 ''';
 
 List<AstNode> getCustomClasses() {
-  Interface interface(String name, List<Member> fields) {
-    return Interface(null, Token.identifier(name), [], [], fields);
+  Interface interface(String name, List<Member> fields, {String baseType}) {
+    return Interface(
+      null,
+      Token.identifier(name),
+      [],
+      [if (baseType != null) Type.identifier(baseType)],
+      fields,
+    );
   }
 
   Field field(String name,
@@ -251,11 +256,17 @@ List<AstNode> getCustomClasses() {
       [
         field('file', type: 'string'),
         field('offset', type: 'number'),
+      ],
+    ),
+    interface(
+      'DartCompletionItemResolutionInfo',
+      [
         field('libId', type: 'number'),
         field('displayUri', type: 'string'),
         field('rOffset', type: 'number'),
-        field('rLength', type: 'number')
+        field('rLength', type: 'number'),
       ],
+      baseType: 'CompletionItemResolutionInfo',
     ),
   ];
   return customTypes;
@@ -287,14 +298,30 @@ Future<String> readSpec() => File(localSpecPath).readAsString();
 
 /// Returns whether a script block should be parsed or not.
 bool shouldIncludeScriptBlock(String input) {
-  // We can't parse literal arrays, but this script block is just an example
-  // and not actually referenced anywhere.
-  if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];") {
+  // Skip over some typescript blocks that are known sample code and not part
+  // of the LSP spec.
+  if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];" ||
+      input.startsWith('textDocument.codeAction.resolveSupport =')) {
     return false;
   }
 
   // There are some code blocks that just have example JSON in them.
   if (input.startsWith('{') && input.endsWith('}')) {
+    return false;
+  }
+
+  // There are some example blocks that just contain arrays with no definitions.
+  // They're most easily noted by ending with `]` which no valid TypeScript blocks
+  // do.
+  if (input.trim().endsWith(']')) {
+    return false;
+  }
+
+  // There's a chunk of typescript that is just a partial snippet from a real
+  // interface declared elsewhere that we can only detect by the leading comment.
+  if (input
+      .replaceAll('\r', '')
+      .startsWith('/**\n\t * Window specific client capabilities.')) {
     return false;
   }
 

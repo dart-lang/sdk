@@ -41,7 +41,8 @@ class Service {
   /// Uri to access the service).
   static Future<ServiceProtocolInfo> getInfo() async {
     // Port to receive response from service isolate.
-    final RawReceivePort receivePort = new RawReceivePort();
+    final RawReceivePort receivePort =
+        new RawReceivePort(null, 'Service.getInfo');
     final Completer<Uri?> uriCompleter = new Completer<Uri?>();
     receivePort.handler = (Uri? uri) => uriCompleter.complete(uri);
     // Request the information from the service isolate.
@@ -54,18 +55,20 @@ class Service {
   }
 
   /// Control the web server that the service protocol is accessed through.
-  /// The [enable] argument must be a boolean and is used as a toggle to
-  /// enable (true) or disable (false) the web server servicing requests.
+  /// [enable] is used as a toggle to enable or disable the web server
+  /// servicing requests. If [silenceOutput] is provided and is true,
+  /// the server will not output information to the console.
   static Future<ServiceProtocolInfo> controlWebServer(
-      {bool enable: false}) async {
+      {bool enable = false, bool? silenceOutput}) async {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
-    final RawReceivePort receivePort = new RawReceivePort();
+    final RawReceivePort receivePort =
+        new RawReceivePort(null, 'Service.controlWebServer');
     final Completer<Uri> uriCompleter = new Completer<Uri>();
     receivePort.handler = (Uri uri) => uriCompleter.complete(uri);
     // Request the information from the service isolate.
-    _webServerControl(receivePort.sendPort, enable);
+    _webServerControl(receivePort.sendPort, enable, silenceOutput);
     // Await the response from the service isolate.
     Uri uri = await uriCompleter.future;
     // Close the port.
@@ -88,7 +91,8 @@ class Service {
 external void _getServerInfo(SendPort sendPort);
 
 /// [sendPort] will receive a Uri or null.
-external void _webServerControl(SendPort sendPort, bool enable);
+external void _webServerControl(
+    SendPort sendPort, bool enable, bool? silenceOutput);
 
 /// Returns the major version of the service protocol.
 external int _getServiceMajorVersion();

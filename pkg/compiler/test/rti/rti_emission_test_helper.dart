@@ -37,6 +37,8 @@ class Tags {
   static const String isChecks = 'checks';
   static const String indirectInstance = 'indirectInstance';
   static const String directInstance = 'instance';
+  static const String onlyForRti = 'onlyForRti';
+  static const String onlyForConstructor = 'onlyForConstructor';
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
@@ -64,6 +66,12 @@ abstract class ComputeValueMixin {
       }
       if (cls.functionTypeIndex != null) {
         features.add(Tags.functionType);
+      }
+      if (cls.onlyForRti) {
+        features.add(Tags.onlyForRti);
+      }
+      if (cls.onlyForConstructor) {
+        features.add(Tags.onlyForConstructor);
       }
     }
     ClassUse classUse = checksBuilder.classUseMapForTesting[element];

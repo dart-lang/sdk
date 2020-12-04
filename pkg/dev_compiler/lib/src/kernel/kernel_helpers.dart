@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 
 Constructor unnamedConstructor(Class c) =>
-    c.constructors.firstWhere((c) => c.name.name == '', orElse: () => null);
+    c.constructors.firstWhere((c) => c.name.text == '', orElse: () => null);
 
 /// Returns the enclosing library for reference [node].
 Library getLibrary(NamedNode node) {
@@ -47,10 +49,10 @@ String getLocalClassName(Class node) => escapeIdentifier(node.name);
 String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
 
 String getTopLevelName(NamedNode n) {
-  if (n is Procedure) return n.name.name;
+  if (n is Procedure) return n.name.text;
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
-  if (n is Field) return n.name.name;
+  if (n is Field) return n.name.text;
   return n.canonicalName?.name;
 }
 
@@ -152,7 +154,7 @@ bool isOperatorMethodName(String name) {
 bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
   var target = node.target;
   return node.isConst &&
-      target.name.name == 'fromEnvironment' &&
+      target.name.text == 'fromEnvironment' &&
       target.enclosingLibrary == coreTypes.coreLibrary;
 }
 
@@ -189,13 +191,11 @@ List<Class> getImmediateSuperclasses(Class c) {
 }
 
 Expression getInvocationReceiver(InvocationExpression node) =>
-    node is MethodInvocation
-        ? node.receiver
-        : node is DirectMethodInvocation ? node.receiver : null;
+    node is MethodInvocation ? node.receiver : null;
 
 bool isInlineJS(Member e) =>
     e is Procedure &&
-    e.name.name == 'JS' &&
+    e.name.text == 'JS' &&
     e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
 
 /// Whether the parameter [p] is covariant (either explicitly `covariant` or
@@ -336,6 +336,7 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is InterfaceType ||
       t is InvalidType ||
       t is NeverType ||
+      t is NullType ||
       t is TypeParameterType ||
       t is TypedefType ||
       t is VoidType;

@@ -5,6 +5,7 @@
 library service_html;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'dart:typed_data';
 
@@ -14,29 +15,48 @@ import 'package:observatory/service_common.dart';
 export 'package:observatory/service_common.dart';
 
 class _HtmlWebSocket implements CommonWebSocket {
-  WebSocket _webSocket;
+  WebSocket? _webSocket;
 
-  void connect(String address, void onOpen(), void onMessage(dynamic data),
-      void onError(), void onClose()) {
+  Future<void> connect(WebSocketVMTarget target, void onOpen(),
+      void onMessage(dynamic data), void onError(), void onClose()) async {
     // The VM service will attempt to redirect our websocket connection request
-    // to DDS, but the dart:html WebSocket doesn't follow redirects. If the
-    // 'implicit-redirect' protocol is provided, the VM service will manually
-    // forward traffic to DDS.
-    _webSocket = new WebSocket(address, ['implicit-redirect']);
-    _webSocket.onClose.listen((CloseEvent) => onClose());
-    _webSocket.onError.listen((Event) => onError());
-    _webSocket.onOpen.listen((Event) => onOpen());
-    _webSocket.onMessage.listen((MessageEvent event) => onMessage(event.data));
+    // to DDS, but the dart:html WebSocket doesn't follow redirects. Instead of
+    // relying on a redirect, we'll request the websocket URI from the service.
+
+    // TODO(bkonyi): re-enable when DDS is enabled. Currently causing Observatory
+    // failures when running with Flutter (see
+    // https://github.com/flutter/flutter/issues/64333)
+    /*Uri getWebSocketUriRequest = Uri.parse(target.networkAddress);
+    getWebSocketUriRequest =
+        getWebSocketUriRequest.replace(scheme: 'http', pathSegments: [
+      ...getWebSocketUriRequest.pathSegments.where((e) => e != 'ws'),
+      'getWebSocketTarget',
+    ]);
+    final response = json.decode(await HttpRequest.getString(
+      getWebSocketUriRequest.toString(),
+    ));
+    if (!response.containsKey('result') ||
+        !response['result'].containsKey('uri')) {
+      onError();
+      return;
+    }
+    target.networkAddress = response['result']['uri'];
+    */
+    _webSocket = new WebSocket(target.networkAddress);
+    _webSocket!.onClose.listen((CloseEvent) => onClose());
+    _webSocket!.onError.listen((Event) => onError());
+    _webSocket!.onOpen.listen((Event) => onOpen());
+    _webSocket!.onMessage.listen((MessageEvent event) => onMessage(event.data));
   }
 
-  bool get isOpen => _webSocket.readyState == WebSocket.OPEN;
+  bool get isOpen => _webSocket!.readyState == WebSocket.OPEN;
 
   void send(dynamic data) {
-    _webSocket.send(data);
+    _webSocket!.send(data);
   }
 
   void close() {
-    _webSocket.close();
+    _webSocket!.close();
   }
 
   Future<ByteData> nonStringToByteData(dynamic data) {

@@ -6,7 +6,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       : super #lib1::Object::•()
       ;
     method bMethod() → void {}
-    abstract member-signature operator ==(dynamic dynamic) → #lib1::bool*;
+    abstract member-signature operator ==(dynamic dynamic) → #lib1::bool*; -> #lib1::Object::==
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
@@ -20,7 +20,7 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 
-And 18 platform libraries:
+And 17 platform libraries:
  - dart:_builtin
  - dart:_internal
  - dart:_vmservice
@@ -38,4 +38,3 @@ And 18 platform libraries:
  - dart:nativewrappers
  - dart:typed_data
  - dart:vmservice_io
- - dart:wasm

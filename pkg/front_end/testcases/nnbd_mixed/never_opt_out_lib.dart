@@ -6,7 +6,7 @@ import 'never_opt_out.dart';
 
 Never throwing() => throw 'Never!';
 
-Never optInNever = optOutNever;
+late Never optInNever;
 
 class A {
   Never neverField = throw "Should not reach here";
@@ -16,6 +16,12 @@ class A {
 
   Null nullField = null;
   Null nullMethod(Null value) => value;
-  Null get nullProperty => Null;
+  Null get nullProperty => null;
   void set nullProperty(Null value) {}
 }
+
+class BoundedGenericClass<T extends Never> {}
+
+T boundedGenericMethod1<T extends Never>() => throw "Should never return";
+
+List<T> boundedGenericMethod2<T extends Never>() => <T>[];

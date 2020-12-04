@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -25,7 +23,7 @@ class HierarchyTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    searchEngine = SearchEngineImpl([driver]);
+    searchEngine = SearchEngineImpl([driverFor(testFile)]);
   }
 
   Future<void> test_getClassMembers() async {
@@ -481,6 +479,6 @@ mixin M5 on A, C {}
   }
 
   Future<void> _indexTestUnit(String code) async {
-    await resolveTestUnit(code);
+    await resolveTestCode(code);
   }
 }

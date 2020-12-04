@@ -43,31 +43,49 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
       Name name = descriptor.name;
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:
-          _methods[name] = descriptor;
+          if (descriptor.isStatic) {
+            Procedure procedure = descriptor.member.asProcedure;
+            scopeBuilder.addMember(
+                name.text,
+                new DillExtensionStaticMethodBuilder(
+                    procedure, descriptor, this));
+          } else {
+            _methods[name] = descriptor;
+          }
           break;
         case ExtensionMemberKind.TearOff:
           _tearOffs[name] = descriptor.member.asMember;
           break;
         case ExtensionMemberKind.Getter:
-        case ExtensionMemberKind.Operator:
+          Procedure procedure = descriptor.member.asProcedure;
+          scopeBuilder.addMember(name.text,
+              new DillExtensionGetterBuilder(procedure, descriptor, this));
+          break;
         case ExtensionMemberKind.Field:
-          Member member = descriptor.member.asMember;
-          scopeBuilder.addMember(name.name,
-              new DillExtensionMemberBuilder(member, descriptor, this));
+          Field field = descriptor.member.asField;
+          scopeBuilder.addMember(name.text,
+              new DillExtensionFieldBuilder(field, descriptor, this));
           break;
         case ExtensionMemberKind.Setter:
-          Member member = descriptor.member.asMember;
-          scopeBuilder.addSetter(name.name,
-              new DillExtensionMemberBuilder(member, descriptor, this));
+          Procedure procedure = descriptor.member.asProcedure;
+          scopeBuilder.addSetter(name.text,
+              new DillExtensionSetterBuilder(procedure, descriptor, this));
+          break;
+        case ExtensionMemberKind.Operator:
+          Procedure procedure = descriptor.member.asProcedure;
+          scopeBuilder.addMember(name.text,
+              new DillExtensionOperatorBuilder(procedure, descriptor, this));
           break;
       }
     }
     _methods.forEach((Name name, ExtensionMemberDescriptor descriptor) {
-      Member member = descriptor.member.asMember;
+      Procedure procedure = descriptor.member.asProcedure;
+      assert(_tearOffs.containsKey(name),
+          "No tear found for ${descriptor} in ${_tearOffs}");
       scopeBuilder.addMember(
-          name.name,
-          new DillExtensionMemberBuilder(
-              member, descriptor, this, _tearOffs[name]));
+          name.text,
+          new DillExtensionInstanceMethodBuilder(
+              procedure, descriptor, this, _tearOffs[name]));
     });
   }
 

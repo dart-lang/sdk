@@ -7,31 +7,31 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class GenericClass<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 extension Extension on self::Class* {
   get simpleSetter = self::Extension|get#simpleSetter;
@@ -206,11 +206,11 @@ static method main() → dynamic {
   self::expect(1, let final self::Class* #t106 = c in let final core::int* #t107 = self::Extension|get#simpleSetter(#t106) in #t107.{core::num::==}(null) ?{core::int*} let final core::int* #t108 = 2 in let final void #t109 = self::Extension|set#simpleSetter(#t106, #t108) in #t108 : #t107);
   c.{self::Class::field} = null;
   self::expect(2, let final self::Class* #t110 = c in let final core::int* #t111 = self::Extension|get#simpleSetter(#t110) in #t111.{core::num::==}(null) ?{core::int*} let final core::int* #t112 = 2 in let final void #t113 = self::Extension|set#simpleSetter(#t110, #t112) in #t112 : #t111);
-  let final self::Class* #t114 = c in #t114.{self::Class::==}(null) ?{core::Null?} null : #t114.{self::Class::field} = null;
+  let final self::Class* #t114 = c in #t114.{self::Class::==}(null) ?{Null} null : #t114.{self::Class::field} = null;
   let final self::Class* #t115 = c in #t115.{self::Class::==}(null) ?{core::int*} null : self::Extension|get#simpleSetter(#t115).{core::num::==}(null) ?{core::int*} self::Extension|set#simpleSetter(#t115, 1) : null;
   self::expect(1, let final self::Class* #t116 = c in #t116.{self::Class::==}(null) ?{core::int*} null : #t116.{self::Class::field});
   self::expect(1, let final self::Class* #t117 = c in #t117.{self::Class::==}(null) ?{core::int*} null : let final core::int* #t118 = self::Extension|get#simpleSetter(#t117) in #t118.{core::num::==}(null) ?{core::int*} let final core::int* #t119 = 2 in let final void #t120 = self::Extension|set#simpleSetter(#t117, #t119) in #t119 : #t118);
-  let final self::Class* #t121 = c in #t121.{self::Class::==}(null) ?{core::Null?} null : #t121.{self::Class::field} = null;
+  let final self::Class* #t121 = c in #t121.{self::Class::==}(null) ?{Null} null : #t121.{self::Class::field} = null;
   self::expect(2, let final self::Class* #t122 = c in #t122.{self::Class::==}(null) ?{core::int*} null : let final core::int* #t123 = self::Extension|get#simpleSetter(#t122) in #t123.{core::num::==}(null) ?{core::int*} let final core::int* #t124 = 2 in let final void #t125 = self::Extension|set#simpleSetter(#t122, #t124) in #t124 : #t123);
   self::Extension|testInternal(new self::Class::•());
   self::GenericClass<core::int*>* genericClass = new self::GenericClass::•<core::int*>();

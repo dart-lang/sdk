@@ -1,2 +1,2 @@
-extension C (){ }
-void main() { }
+extension C (){}
+void main() {}

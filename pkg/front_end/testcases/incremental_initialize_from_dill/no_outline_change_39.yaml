@@ -1,0 +1,86 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Re-ordering things is OK.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class A {
+          int a() {
+            return 42;
+          }
+          int b() {
+            return 2;
+          }
+        }
+      lib.dart: |
+        class B {
+          int a() {
+            return 42;
+          }
+          int b() {
+            return 2;
+          }
+        }
+        class C {
+          int a() {
+            return 42;
+          }
+          int b() {
+            return 2;
+          }
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class A {
+          int b() {
+            return 42;
+          }
+          int a() {
+            return 2;
+          }
+        }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib.dart
+    sources:
+      lib.dart: |
+        class C {
+          int b() {
+            return 1;
+          }
+          int a() {
+            return 2;
+          }
+        }
+        class B {
+          int b() {
+            return 3;
+          }
+          int a() {
+            return 4;
+          }
+        }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true

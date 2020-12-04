@@ -21,8 +21,8 @@ void main() {
   try {
     // Running from Source.
     testNullSafetyMode(sourcePath, 'Strong Mode');
-    // Without the enable experiment option it will be in weak mode.
-    testNullSafetyMode1(sourcePath, 'Weak Mode');
+    // Without the enable experiment option it will be in strong mode.
+    testNullSafetyMode1(sourcePath, 'Strong Mode');
 
     // Running from Kernel File.
     testNullSafetyMode(dillPath, 'Strong Mode');

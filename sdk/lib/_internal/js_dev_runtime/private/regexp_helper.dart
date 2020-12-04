@@ -116,8 +116,9 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   RegExpMatch? firstMatch(@nullCheck String string) {
-    List<String>? m =
-        JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp, string);
+    // This isn't reified List<String?>?, but it's safe to use as long as we use
+    // it locally and don't expose it to user code.
+    var m = JS<List<String?>?>('', r'#.exec(#)', _nativeRegExp, string);
     if (m == null) return null;
     return _MatchImplementation(this, m);
   }
@@ -144,8 +145,9 @@ class JSSyntaxRegExp implements RegExp {
   RegExpMatch? _execGlobal(String string, int start) {
     Object regexp = _nativeGlobalVersion;
     JS("void", "#.lastIndex = #", regexp, start);
-    List<String>? match =
-        JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
+    // This isn't reified List<String?>?, but it's safe to use as long as we use
+    // it locally and don't expose it to user code.
+    var match = JS<List<String?>?>("", "#.exec(#)", regexp, string);
     if (match == null) return null;
     return _MatchImplementation(this, match);
   }
@@ -153,8 +155,9 @@ class JSSyntaxRegExp implements RegExp {
   RegExpMatch? _execAnchored(String string, int start) {
     Object regexp = _nativeAnchoredVersion;
     JS("void", "#.lastIndex = #", regexp, start);
-    List<String>? match =
-        JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
+    // This isn't reified List<String?>?, but it's safe to use as long as we use
+    // it locally and don't expose it to user code.
+    var match = JS<List<String?>?>("", "#.exec(#)", regexp, string);
     if (match == null) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.
@@ -178,9 +181,12 @@ class JSSyntaxRegExp implements RegExp {
 
 class _MatchImplementation implements RegExpMatch {
   final Pattern pattern;
-  // Contains a JS RegExp match object.
-  // It is an Array of String values with extra "index" and "input" properties.
-  final List<String> _match;
+  // Contains a JS RegExp match object that is an Array with extra "index" and
+  // "input" properties. The array contains Strings but the values at indices
+  // related to capture groups can be undefined.
+  // This isn't reified List<String?>, but it's safe to use as long as we use
+  // it locally and don't expose it to user code.
+  final List<String?> _match;
 
   _MatchImplementation(this.pattern, this._match) {
     assert(JS("var", "#.input", _match) is String);
@@ -189,7 +195,7 @@ class _MatchImplementation implements RegExpMatch {
 
   String get input => JS("String", "#.input", _match);
   int get start => JS("int", "#.index", _match);
-  int get end => start + _match[0].length;
+  int get end => start + _match[0]!.length;
 
   String? group(int index) => _match[index];
   String? operator [](int index) => group(index);

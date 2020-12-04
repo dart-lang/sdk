@@ -451,6 +451,57 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Regress43534) {
+  const char* kScript =
+      R"(
+      import 'dart:typed_data';
+
+      @pragma('vm:never-inline')
+      void callWith<T>(void Function(T arg) fun, T arg) {
+        fun(arg);
+      }
+
+      void test() {
+        callWith<Uint8List>((Uint8List list) {
+          if (list[0] != 0) throw 'a';
+        }, Uint8List(10));
+      }
+      )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "test");
+  const auto& test_function =
+      Function::Handle(GetFunction(root_library, "test"));
+  const auto& closures = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->closure_functions());
+  auto& function = Function::Handle();
+  for (intptr_t i = closures.Length() - 1; 0 <= i; ++i) {
+    function ^= closures.At(i);
+    if (function.parent_function() == test_function.raw()) {
+      break;
+    }
+    function = Function::null();
+  }
+  RELEASE_ASSERT(!function.IsNull());
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true);
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          kMatchAndMoveLoadField,
+          kMatchAndMoveGenericCheckBound,
+          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadIndexed,
+          kMatchAndMoveBranchFalse,
+          kMoveGlob,
+          kMatchReturn,
+      },
+      kMoveGlob));
+}
+
 #endif  // defined(DART_PRECOMPILER)
 
 }  // namespace dart

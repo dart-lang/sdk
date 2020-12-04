@@ -191,8 +191,8 @@ Try accessing using ?. instead.
                                ^" in #t34.{self::Class::nullableField}.{core::num::+}(2)) as{TypeError,ForNonNullableByDefault} core::int?;
   let final self::Class? #t37 = nullableClass in #t37.{core::Object::==}(null) ?{core::int?} null : #t37.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t37.{self::Class::nonNullableField} = 0 : null;
   let final self::Class? #t38 = nullableClass in #t38.{core::Object::==}(null) ?{core::int?} null : #t38.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t38.{self::Class::nullableField} = 0 : null;
-  let final self::Class? #t39 = nullableClass in #t39.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t40 = #t39{self::Class}.{self::Class::nonNullableClass} in #t40{self::Class}.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t40{self::Class}.{self::Class::nonNullableField} = 0 : null;
-  let final self::Class? #t41 = nullableClass in #t41.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t42 = #t41{self::Class}.{self::Class::nonNullableClass} in #t42{self::Class}.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t42{self::Class}.{self::Class::nullableField} = 0 : null;
+  let final self::Class? #t39 = nullableClass in #t39.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t40 = #t39{self::Class}.{self::Class::nonNullableClass} in #t40.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t40.{self::Class::nonNullableField} = 0 : null;
+  let final self::Class? #t41 = nullableClass in #t41.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t42 = #t41{self::Class}.{self::Class::nonNullableClass} in #t42.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t42.{self::Class::nullableField} = 0 : null;
   let final<BottomType> #t43 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:57:16: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
 Try calling using ?.call instead.

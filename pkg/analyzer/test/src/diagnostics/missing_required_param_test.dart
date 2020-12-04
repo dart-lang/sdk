@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,11 +16,11 @@ main() {
 }
 
 @reflectiveTest
-class MissingRequiredParamTest extends DriverResolutionTest with PackageMixin {
+class MissingRequiredParamTest extends PubPackageResolutionTest {
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
   }
 
   test_constructor_argumentGiven() async {
@@ -190,23 +188,22 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile('/a_lib.dart', content: r'''
-library a_lib;
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   void m({@Required('must specify an `a`') int a}) {}
 }
 ''');
-    newFile('/test.dart', content: r'''
-import "a_lib.dart";
+    newFile('$testPackageLibPath/test.dart', content: r'''
+import 'a.dart';
 f() {
   new A().m();
 }
 ''');
 
-    await _resolveFile('/a_lib.dart');
-    await _resolveFile('/test.dart', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 37, 1),
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/test.dart', [
+      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 33, 1),
     ]);
   }
 
@@ -245,9 +242,43 @@ class C {
 }
 
 @reflectiveTest
-class MissingRequiredParamWithNullSafetyTest extends DriverResolutionTest
+class MissingRequiredParamWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
-  test_constructor_argumentGiven() async {
+  test_constructor_legacy_argumentGiven() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  A({required int a});
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import "a.dart";
+
+void f() {
+  A(a: 0);
+}
+''');
+  }
+
+  test_constructor_legacy_missingArgument() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  A({required int a});
+}
+''');
+    await assertErrorsInCode(r'''
+// @dart = 2.7
+import "a.dart";
+
+void f() {
+  A();
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM, 46, 1),
+    ]);
+  }
+
+  test_constructor_nullSafe_argumentGiven() async {
     await assertNoErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -259,7 +290,7 @@ main() {
 ''');
   }
 
-  test_constructor_missingArgument() async {
+  test_constructor_nullSafe_missingArgument() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -272,7 +303,7 @@ main() {
     ]);
   }
 
-  test_constructor_redirectingConstructorCall() async {
+  test_constructor_nullSafe_redirectingConstructorCall() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int x});
@@ -283,7 +314,7 @@ class C {
     ]);
   }
 
-  test_constructor_superCall() async {
+  test_constructor_nullSafe_superCall() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -306,6 +337,48 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 40, 1),
+    ]);
+  }
+
+  test_function_call() async {
+    await assertErrorsInCode(r'''
+void f({required int a}) {}
+
+main() {
+  f.call();
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 46, 2),
+    ]);
+  }
+
+  test_function_legacy_argumentGiven() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void foo({required int a}) {}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import "a.dart";
+
+void f() {
+  foo(a: 0);
+}
+''');
+  }
+
+  test_function_legacy_missingArgument() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void foo({required int a}) {}
+''');
+    await assertErrorsInCode(r'''
+// @dart = 2.7
+import "a.dart";
+
+void f() {
+  foo();
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM, 46, 3),
     ]);
   }
 
@@ -334,7 +407,7 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile('/test/lib/a_lib.dart', content: r'''
+    newFile('$testPackageLibPath/a_lib.dart', content: r'''
 class A {
   void m({required int a}) {}
 }
@@ -349,8 +422,8 @@ f() {
     ]);
   }
 
-  test_method_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+  test_method_legacy_argumentGiven() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void foo({required int a}) {}
 }
@@ -359,10 +432,28 @@ class A {
 // @dart = 2.7
 import "a.dart";
 
-f() {
-  A().foo();
+void f(A a) {
+  a.foo(a: 0);
 }
 ''');
+  }
+
+  test_method_legacy_missingArgument() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  void foo({required int a}) {}
+}
+''');
+    await assertErrorsInCode(r'''
+// @dart = 2.7
+import "a.dart";
+
+void f(A a) {
+  a.foo();
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM, 51, 3),
+    ]);
   }
 
   test_typedef_function() async {

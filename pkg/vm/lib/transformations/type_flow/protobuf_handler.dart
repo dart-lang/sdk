@@ -81,15 +81,15 @@ class ProtobufHandler {
       return;
     }
     final messageClass = (_messageClasses[cls] ??= _MessageClass());
-    if (member is Field && member.name.name == metadataFieldName) {
+    if (member is Field && member.name.text == metadataFieldName) {
       // Update contents of static field initializer of metadata field (_i).
       // according to the used tag numbers.
-      assertx(member.isStatic);
+      assert(member.isStatic);
       if (messageClass._metadataField == null) {
         messageClass._metadataField = member;
         ++Statistics.protobufMessagesUsed;
       } else {
-        assertx(messageClass._metadataField == member);
+        assert(messageClass._metadataField == member);
       }
       _updateMetadataField(messageClass);
       return;
@@ -103,9 +103,9 @@ class ProtobufHandler {
         final constant = (annotation as ConstantExpression).constant;
         if (constant is InstanceConstant &&
             constant.classReference == _tagNumberClass.reference) {
-          if (messageClass._usedTags.add(
-              (constant.fieldValues[_tagNumberField.reference] as IntConstant)
-                  .value)) {
+          if (messageClass._usedTags.add((constant
+                  .fieldValues[_tagNumberField.getterReference] as IntConstant)
+              .value)) {
             _invalidatedClasses.add(messageClass);
           }
         }
@@ -146,7 +146,7 @@ class ProtobufHandler {
   bool _isUnusedMetadata(_MessageClass cls, MethodInvocation node) {
     if (node.interfaceTarget != null &&
         node.interfaceTarget.enclosingClass == _builderInfoClass &&
-        fieldAddingMethods.contains(node.name.name)) {
+        fieldAddingMethods.contains(node.name.text)) {
       final tagNumber = (node.arguments.positional[0] as IntLiteral).value;
       return !cls._usedTags.contains(tagNumber);
     }
@@ -192,7 +192,7 @@ class _MetadataTransformer extends Transformer {
             NullLiteral(), // valueOf
             NullLiteral(), // enumValues
           ],
-          types: <DartType>[ph.coreTypes.nullType],
+          types: <DartType>[const NullType()],
         ),
         ph._builderInfoAddMethod)
       ..fileOffset = node.fileOffset;

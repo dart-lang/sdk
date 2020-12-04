@@ -175,6 +175,7 @@ final Matcher isCompletionSuggestion =
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 final Matcher isCompletionSuggestionKind =
     MatchesEnum('CompletionSuggestionKind', [
@@ -186,7 +187,8 @@ final Matcher isCompletionSuggestionKind =
   'NAMED_ARGUMENT',
   'OPTIONAL_ARGUMENT',
   'OVERRIDE',
-  'PARAMETER'
+  'PARAMETER',
+  'PACKAGE_NAME'
 ]);
 
 /// ContextRoot
@@ -604,6 +606,8 @@ final Matcher isNavigationRegion = LazyMatcher(() => MatchesJsonObject(
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "codeOffset": optional int
+///   "codeLength": optional int
 /// }
 final Matcher isNavigationTarget =
     LazyMatcher(() => MatchesJsonObject('NavigationTarget', {
@@ -613,6 +617,9 @@ final Matcher isNavigationTarget =
           'length': isInt,
           'startLine': isInt,
           'startColumn': isInt
+        }, optionalFields: {
+          'codeOffset': isInt,
+          'codeLength': isInt
         }));
 
 /// Occurrences
@@ -661,12 +668,17 @@ final Matcher isParameterInfo = LazyMatcher(() => MatchesJsonObject(
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
-final Matcher isParameterKind =
-    MatchesEnum('ParameterKind', ['NAMED', 'OPTIONAL', 'REQUIRED']);
+final Matcher isParameterKind = MatchesEnum('ParameterKind', [
+  'OPTIONAL_NAMED',
+  'OPTIONAL_POSITIONAL',
+  'REQUIRED_NAMED',
+  'REQUIRED_POSITIONAL'
+]);
 
 /// Position
 ///

@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/null_safety_invalid_experiment_and_language_version.dart:7:4: Error: This requires the null safety language feature, which requires language version of 2.12 or higher.
+// int? i;
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i;
+static method main() → dynamic
+  ;

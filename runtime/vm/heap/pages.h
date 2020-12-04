@@ -228,6 +228,7 @@ class PageSpaceController {
                                  int64_t start,
                                  int64_t end);
   void EvaluateAfterLoading(SpaceUsage after);
+  void HintFreed(intptr_t size);
 
   void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
@@ -306,6 +307,11 @@ class PageSpace {
                                is_protected, is_locked);
   }
 
+  void TryReleaseReservation();
+  bool MarkReservation();
+  void TryReserveForOOM();
+  void VisitRoots(ObjectPointerVisitor* visitor);
+
   bool ReachedHardThreshold() const {
     return page_space_controller_.ReachedHardThreshold(usage_);
   }
@@ -318,6 +324,7 @@ class PageSpace {
   void EvaluateAfterLoading() {
     page_space_controller_.EvaluateAfterLoading(usage_);
   }
+  void HintFreed(intptr_t size) { page_space_controller_.HintFreed(size); }
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
   int64_t CapacityInWords() const {
@@ -536,10 +543,10 @@ class PageSpace {
   void FreeLargePage(OldPage* page, OldPage* previous_page);
   void FreePages(OldPage* pages);
 
-  void CollectGarbageAtSafepoint(bool compact,
-                                 bool finalize,
-                                 int64_t pre_wait_for_sweepers,
-                                 int64_t pre_safe_point);
+  void CollectGarbageHelper(bool compact,
+                            bool finalize,
+                            int64_t pre_wait_for_sweepers,
+                            int64_t pre_safe_point);
   void SweepLarge();
   void Sweep();
   void ConcurrentSweep(IsolateGroup* isolate_group);
@@ -567,6 +574,8 @@ class PageSpace {
   // page freelists without locking.
   const intptr_t num_freelists_;
   FreeList* freelists_;
+  static constexpr intptr_t kOOMReservationSize = 32 * KB;
+  FreeListElement* oom_reservation_ = nullptr;
 
   // Use ExclusivePageIterator for safe access to these.
   mutable Mutex pages_lock_;

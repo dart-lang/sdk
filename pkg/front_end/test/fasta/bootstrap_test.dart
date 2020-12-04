@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
-
 import 'dart:io' show Directory, File, Platform;
 
 import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
@@ -59,7 +57,7 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
       ],
       suppressOutput: false);
   if (result.exitCode != 0) {
-    throw "Compilation failed.";
+    throw "Compilation failed:\n${result.output}";
   }
 }
 

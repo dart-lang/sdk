@@ -1,0 +1,111 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::String> original = const <core::String>["lots", "of", "strings", const core::String::fromEnvironment("original"), "that", "are", "already", "constants"];
+static const field core::List<core::String> copy1 = self::original;
+static const field core::List<core::String> copy2 = self::copy1;
+static const field core::List<core::String> copy3 = self::copy2;
+static const field core::List<core::String> copy4 = self::copy3;
+static const field core::List<core::String> copy5 = self::copy4;
+static const field core::List<core::String> copy6 = self::copy5;
+static const field core::List<core::String> copy7 = self::copy6;
+static const field core::List<core::String> copy8 = self::copy7;
+static const field core::List<core::String> copy9 = self::copy8;
+static const field core::List<core::String> copy10 = self::copy9;
+static const field core::List<core::String> copy11 = self::copy10;
+static const field core::List<core::String> copy12 = self::copy11;
+static const field core::List<core::String> copy13 = self::copy12;
+static const field core::List<core::String> copy14 = self::copy13;
+static const field core::List<core::String> copy15 = self::copy14;
+static const field core::List<core::String> copy16 = self::copy15;
+static const field core::List<core::String> copy17 = self::copy16;
+static const field core::List<core::String> copy18 = self::copy17;
+static const field core::List<core::String> copy19 = self::copy18;
+static const field core::List<core::String> copy20 = self::copy19;
+static const field core::List<core::String> copy21 = self::copy20;
+static const field core::List<core::String> copy22 = self::copy21;
+static const field core::List<core::String> copy23 = self::copy22;
+static const field core::List<core::String> copy24 = self::copy23;
+static const field core::List<core::String> copy25 = self::copy24;
+static const field core::List<core::String> copy26 = self::copy25;
+static const field core::List<core::String> copy27 = self::copy26;
+static const field core::List<core::String> copy28 = self::copy27;
+static const field core::List<core::String> copy29 = self::copy28;
+static const field core::List<core::String> copy30 = self::copy29;
+static const field core::List<core::String> copy31 = self::copy30;
+static const field core::List<core::String> copy32 = self::copy31;
+static const field core::List<core::String> copy33 = self::copy32;
+static const field core::List<core::String> copy34 = self::copy33;
+static const field core::List<core::String> copy35 = self::copy34;
+static const field core::List<core::String> copy36 = self::copy35;
+static const field core::List<core::String> copy37 = self::copy36;
+static const field core::List<core::String> copy38 = self::copy37;
+static const field core::List<core::String> copy39 = self::copy38;
+static const field core::List<core::String> copy40 = self::copy39;
+static const field core::List<core::String> copy41 = self::copy40;
+static const field core::List<core::String> copy42 = self::copy41;
+static const field core::List<core::String> copy43 = self::copy42;
+static const field core::List<core::String> copy44 = self::copy43;
+static const field core::List<core::String> copy45 = self::copy44;
+static const field core::List<core::String> copy46 = self::copy45;
+static const field core::List<core::String> copy47 = self::copy46;
+static const field core::List<core::String> copy48 = self::copy47;
+static const field core::List<core::String> copy49 = self::copy48;
+static const field core::List<core::String> copy50 = self::copy49;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: ListLiteral @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:1:18 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:5:10 -> StringConstant("")
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:11:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:12:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:13:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:14:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:15:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:16:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:17:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:18:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:19:15 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:20:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:21:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:22:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:23:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:24:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:25:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:26:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:27:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:28:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:29:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:30:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:31:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:32:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:33:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:34:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:35:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:36:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:37:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:38:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:39:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:40:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:41:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:42:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:43:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:44:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:45:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:46:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:47:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:48:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:49:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:50:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:51:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:52:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:53:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:54:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:55:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:56:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:57:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:58:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:59:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:60:16 -> ListConstant(const <String>["lots", "of", "strings", "", "that", "are", "already", "constants"])
+Extra constant evaluation: evaluated: 52, effectively constant: 52

@@ -11,7 +11,7 @@ class Foo {
 }
 
 main() {
-  var list = new List<Foo>.filled(10, null);
+  var list = new List<dynamic>.filled(10, null);
   list[5] = new Foo(42.toString(), new Foo(87.toString(), 17.toString()));
   while (true) {}
 }

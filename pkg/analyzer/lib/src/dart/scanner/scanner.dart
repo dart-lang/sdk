@@ -10,8 +10,10 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -49,7 +51,7 @@ class Scanner {
 
   final List<int> lineStarts = <int>[];
 
-  Token firstToken;
+  /*late final*/ Token firstToken;
 
   /// A flag indicating whether the scanner should recognize the `>>>` operator
   /// and the `>>>=` operator.
@@ -63,7 +65,7 @@ class Scanner {
   /// Use [configureFeatures] rather than this field.
   bool enableNonNullable = false;
 
-  fasta.LanguageVersionToken _languageVersion;
+  Version _overrideVersion;
 
   FeatureSet _featureSet;
 
@@ -99,10 +101,10 @@ class Scanner {
 
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.
-  fasta.LanguageVersionToken get languageVersion => _languageVersion;
+  Version get overrideVersion => _overrideVersion;
 
   set preserveComments(bool preserveComments) {
-    this._preserveComments = preserveComments;
+    _preserveComments = preserveComments;
   }
 
   /// Configures the scanner appropriately for the given [featureSet].
@@ -114,8 +116,8 @@ class Scanner {
     @required FeatureSet featureSetForOverriding,
     @required FeatureSet featureSet,
   }) {
-    this._featureSetForOverriding = featureSetForOverriding;
-    this._featureSet = featureSet;
+    _featureSetForOverriding = featureSetForOverriding;
+    _featureSet = featureSet;
     enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
     enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
   }
@@ -186,12 +188,30 @@ class Scanner {
   }
 
   void _languageVersionChanged(
-      fasta.Scanner scanner, fasta.LanguageVersionToken languageVersion) {
-    if (languageVersion.major >= 0 && languageVersion.minor >= 0) {
-      _languageVersion = languageVersion;
+      fasta.Scanner scanner, fasta.LanguageVersionToken versionToken) {
+    var overrideMajor = versionToken.major;
+    var overrideMinor = versionToken.minor;
+    if (overrideMajor < 0 || overrideMinor < 0) {
+      return;
+    }
+    _overrideVersion = Version(overrideMajor, overrideMinor, 0);
+
+    var latestVersion = ExperimentStatus.currentVersion;
+    if (overrideVersion > latestVersion) {
+      _errorListener.onError(
+        AnalysisError(
+          source,
+          versionToken.offset,
+          versionToken.length,
+          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+          [latestVersion.major, latestVersion.minor],
+        ),
+      );
+      _overrideVersion = null;
+    } else {
       if (_featureSet != null) {
         _featureSet = _featureSetForOverriding.restrictToVersion(
-          Version(languageVersion.major, languageVersion.minor, 0),
+          _overrideVersion,
         );
         scanner.configuration = buildConfig(_featureSet);
       }

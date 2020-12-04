@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -11,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 class FormattingHandler
     extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
@@ -28,9 +27,13 @@ class FormattingHandler
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
 
-    final unformattedSource = file.readAsStringSync();
-    return success(generateEditsForFormatting(
-        unformattedSource, server.clientConfiguration.lineLength));
+    final result = server.getParsedUnit(path);
+    if (result.state != ResultState.VALID || result.errors.isNotEmpty) {
+      return success();
+    }
+
+    return generateEditsForFormatting(
+        result, server.clientConfiguration.lineLength);
   }
 
   @override

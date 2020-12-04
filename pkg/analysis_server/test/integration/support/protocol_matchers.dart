@@ -192,6 +192,24 @@ final Matcher isAvailableSuggestionSet = LazyMatcher(() => MatchesJsonObject(
     'AvailableSuggestionSet',
     {'id': isInt, 'uri': isString, 'items': isListOf(isAvailableSuggestion)}));
 
+/// BulkFix
+///
+/// {
+///   "path": FilePath
+///   "fixes": List<BulkFixDetail>
+/// }
+final Matcher isBulkFix = LazyMatcher(() => MatchesJsonObject(
+    'BulkFix', {'path': isFilePath, 'fixes': isListOf(isBulkFixDetail)}));
+
+/// BulkFixDetail
+///
+/// {
+///   "code": String
+///   "occurrences": int
+/// }
+final Matcher isBulkFixDetail = LazyMatcher(() => MatchesJsonObject(
+    'BulkFixDetail', {'code': isString, 'occurrences': isInt}));
+
 /// ChangeContentOverlay
 ///
 /// {
@@ -288,6 +306,7 @@ final Matcher isCompletionSuggestion =
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 final Matcher isCompletionSuggestionKind =
     MatchesEnum('CompletionSuggestionKind', [
@@ -299,7 +318,8 @@ final Matcher isCompletionSuggestionKind =
   'NAMED_ARGUMENT',
   'OPTIONAL_ARGUMENT',
   'OVERRIDE',
-  'PARAMETER'
+  'PARAMETER',
+  'PACKAGE_NAME'
 ]);
 
 /// ContextData
@@ -1119,6 +1139,8 @@ final Matcher isNavigationRegion = LazyMatcher(() => MatchesJsonObject(
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "codeOffset": optional int
+///   "codeLength": optional int
 /// }
 final Matcher isNavigationTarget =
     LazyMatcher(() => MatchesJsonObject('NavigationTarget', {
@@ -1128,6 +1150,9 @@ final Matcher isNavigationTarget =
           'length': isInt,
           'startLine': isInt,
           'startColumn': isInt
+        }, optionalFields: {
+          'codeOffset': isInt,
+          'codeLength': isInt
         }));
 
 /// Occurrences
@@ -1201,12 +1226,17 @@ final Matcher isParameterInfo = LazyMatcher(() => MatchesJsonObject(
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
-final Matcher isParameterKind =
-    MatchesEnum('ParameterKind', ['NAMED', 'OPTIONAL', 'REQUIRED']);
+final Matcher isParameterKind = MatchesEnum('ParameterKind', [
+  'OPTIONAL_NAMED',
+  'OPTIONAL_POSITIONAL',
+  'REQUIRED_NAMED',
+  'REQUIRED_POSITIONAL'
+]);
 
 /// Position
 ///
@@ -1360,6 +1390,7 @@ final Matcher isRequestError = LazyMatcher(() => MatchesJsonObject(
 ///   FORMAT_INVALID_FILE
 ///   FORMAT_WITH_ERRORS
 ///   GET_ERRORS_INVALID_FILE
+///   GET_FIXES_INVALID_FILE
 ///   GET_IMPORTED_ELEMENTS_INVALID_FILE
 ///   GET_KYTHE_ENTRIES_INVALID_FILE
 ///   GET_NAVIGATION_INVALID_FILE
@@ -1396,6 +1427,7 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'FORMAT_INVALID_FILE',
   'FORMAT_WITH_ERRORS',
   'GET_ERRORS_INVALID_FILE',
+  'GET_FIXES_INVALID_FILE',
   'GET_IMPORTED_ELEMENTS_INVALID_FILE',
   'GET_KYTHE_ENTRIES_INVALID_FILE',
   'GET_NAVIGATION_INVALID_FILE',
@@ -2217,9 +2249,11 @@ final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
 ///
 /// {
 ///   "edits": List<SourceFileEdit>
+///   "details": List<BulkFix>
 /// }
 final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes result', {'edits': isListOf(isSourceFileEdit)}));
+    'edit.bulkFixes result',
+    {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
 
 /// edit.dartfix params
 ///

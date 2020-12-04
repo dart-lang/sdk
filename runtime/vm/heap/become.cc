@@ -23,7 +23,7 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
 
   ForwardingCorpse* result = reinterpret_cast<ForwardingCorpse*>(addr);
 
-  uint32_t tags = 0;
+  uword tags = result->tags_;  // Carry-over any identity hash.
   tags = ObjectLayout::SizeTag::update(size, tags);
   tags = ObjectLayout::ClassIdTag::update(kForwardingCorpse, tags);
   bool is_old = (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
@@ -86,23 +86,35 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
   virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* p = first; p <= last; p++) {
       ObjectPtr old_target = *p;
+      ObjectPtr new_target;
       if (IsForwardingObject(old_target)) {
-        ObjectPtr new_target = GetForwardedObject(old_target);
-        if (visiting_object_ == nullptr) {
-          *p = new_target;
-        } else {
-          visiting_object_->ptr()->StorePointer(p, new_target);
-        }
+        new_target = GetForwardedObject(old_target);
+      } else {
+        // Though we do not need to update the slot's value when it is not
+        // forwarded, we do need to recheck the generational barrier. In
+        // particular, the remembered bit may be incorrectly false if this
+        // become was the result of aborting a scavenge while visiting the
+        // remembered set.
+        new_target = old_target;
+      }
+      if (visiting_object_ == nullptr) {
+        *p = new_target;
+      } else if (visiting_object_->ptr()->IsCardRemembered()) {
+        visiting_object_->ptr()->StoreArrayPointer(p, new_target, thread_);
+      } else {
+        visiting_object_->ptr()->StorePointer(p, new_target, thread_);
       }
     }
   }
 
   void VisitingObject(ObjectPtr obj) {
     visiting_object_ = obj;
+    // The incoming remembered bit may be unreliable. Clear it so we can
+    // consistently reapply the barrier to all slots.
     if ((obj != nullptr) && obj->IsOldObject() && obj->ptr()->IsRemembered()) {
       ASSERT(!obj->IsForwardingCorpse());
       ASSERT(!obj->IsFreeListElement());
-      thread_->StoreBufferAddObjectGC(obj);
+      obj->ptr()->ClearRememberedBit();
     }
   }
 

@@ -238,9 +238,6 @@ class Assembler : public AssemblerBase {
   }
   ~Assembler() {}
 
-  static const bool kNearJump = true;
-  static const bool kFarJump = false;
-
   /*
    * Emit Machine Instructions.
    */
@@ -556,12 +553,12 @@ class Assembler : public AssemblerBase {
   void int3();
   void hlt();
 
-  void j(Condition condition, Label* label, bool near = kFarJump);
+  void j(Condition condition, Label* label, JumpDistance distance = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
   void jmp(const Address& address);
-  void jmp(Label* label, bool near = kFarJump);
+  void jmp(Label* label, JumpDistance distance = kFarJump);
   void jmp(const ExternalLabel* label);
 
   void lock();
@@ -575,9 +572,39 @@ class Assembler : public AssemblerBase {
 
   void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
-  void BranchIf(Condition condition, Label* label) { j(condition, label); }
+  void BranchIf(Condition condition,
+                Label* label,
+                JumpDistance distance = kFarJump) {
+    j(condition, label, distance);
+  }
+  void BranchIfZero(Register src,
+                    Label* label,
+                    JumpDistance distance = kFarJump) {
+    cmpl(src, Immediate(0));
+    j(ZERO, label, distance);
+  }
 
+  void LoadFromOffset(Register reg,
+                      Register base,
+                      int32_t offset,
+                      OperandSize type = kFourBytes);
   void LoadField(Register dst, FieldAddress address) { movl(dst, address); }
+  void LoadFieldFromOffset(Register reg,
+                           Register base,
+                           int32_t offset,
+                           OperandSize type = kFourBytes) {
+    LoadFromOffset(reg, base, offset - kHeapObjectTag, type);
+  }
+  void LoadIndexedFieldFromOffset(Register reg,
+                                  Register base,
+                                  int32_t offset,
+                                  Register index,
+                                  ScaleFactor scale) {
+    LoadField(reg, FieldAddress(base, index, scale, offset));
+  }
+  void LoadFromStack(Register dst, intptr_t depth);
+  void StoreToStack(Register src, intptr_t depth);
+  void CompareToStack(Register src, intptr_t depth);
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movl(dst, Address(base, offset));
   }
@@ -610,6 +637,9 @@ class Assembler : public AssemblerBase {
   }
 
   void AddImmediate(Register reg, const Immediate& imm);
+  void AddImmediate(Register reg, int32_t value) {
+    AddImmediate(reg, Immediate(value));
+  }
   void SubImmediate(Register reg, const Immediate& imm);
 
   void CompareImmediate(Register reg, int32_t immediate) {
@@ -690,6 +720,11 @@ class Assembler : public AssemblerBase {
   void LockCmpxchgl(const Address& address, Register reg) {
     lock();
     cmpxchgl(address, reg);
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
+         Immediate(value));
   }
 
   void EnterFrame(intptr_t frame_space);
@@ -792,19 +827,25 @@ class Assembler : public AssemblerBase {
 
   void SmiUntag(Register reg) { sarl(reg, Immediate(kSmiTagSize)); }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
+  void BranchIfNotSmi(Register reg,
+                      Label* label,
+                      JumpDistance distance = kFarJump) {
     testl(reg, Immediate(kSmiTagMask));
-    j(NOT_ZERO, label);
+    j(NOT_ZERO, label, distance);
   }
 
-  void BranchIfSmi(Register reg, Label* label) {
+  void BranchIfSmi(Register reg,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
     testl(reg, Immediate(kSmiTagMask));
-    j(ZERO, label);
+    j(ZERO, label, distance);
   }
 
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
-  void Jump(Label* label) { jmp(label); }
+  void Jump(Label* label, JumpDistance distance = kFarJump) {
+    jmp(label, distance);
+  }
 
   // Moves one word from the memory at [from] to the memory at [to].
   // Needs a temporary register.
@@ -875,7 +916,7 @@ class Assembler : public AssemblerBase {
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
                             Label* trace,
-                            bool near_jump);
+                            JumpDistance distance);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -883,14 +924,14 @@ class Assembler : public AssemblerBase {
   // Only the tags field of the object is initialized.
   void TryAllocate(const Class& cls,
                    Label* failure,
-                   bool near_jump,
+                   JumpDistance distance,
                    Register instance_reg,
                    Register temp_reg);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
                         Label* failure,
-                        bool near_jump,
+                        JumpDistance distance,
                         Register instance,
                         Register end_address,
                         Register temp);

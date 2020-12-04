@@ -4,4 +4,4 @@ class A {
   A.foo(this.x);
   A.bar();
 }
-main() { }
+main() {}

@@ -624,7 +624,9 @@ abstract class SendPort implements Capability {
    * In the special circumstances when two isolates share the same code and are
    * running in the same process (e.g. isolates created via [Isolate.spawn]), it
    * is also possible to send object instances (which would be copied in the
-   * process). This is currently only supported by the dart vm.
+   * process). This is currently only supported by the
+   * [Dart Native](https://dart.dev/platforms#dart-native-vm-jit-and-aot)
+   * platform.
    *
    * The send happens immediately and doesn't block.  The corresponding receive
    * port can receive the message as soon as its isolate's event loop is ready
@@ -669,9 +671,12 @@ abstract class ReceivePort implements Stream<dynamic> {
    * receive messages. See [Stream.asBroadcastStream] for transforming the port
    * to a broadcast stream.
    *
+   * The optional `debugName` parameter can be set to associate a name with
+   * this port that can be displayed in tooling.
+   *
    * A receive port is closed by canceling its subscription.
    */
-  external factory ReceivePort();
+  external factory ReceivePort([String debugName = '']);
 
   /**
    * Creates a [ReceivePort] from a [RawReceivePort].
@@ -716,8 +721,12 @@ abstract class RawReceivePort {
    * A [RawReceivePort] is low level and does not work with [Zone]s. It
    * can not be paused. The data-handler must be set before the first
    * event is received.
+   *
+   * The optional `debugName` parameter can be set to associate a name with
+   * this port that can be displayed in tooling.
+   *
    */
-  external factory RawReceivePort([Function? handler]);
+  external factory RawReceivePort([Function? handler, String debugName = '']);
 
   /**
    * Sets the handler that is invoked for every incoming message.

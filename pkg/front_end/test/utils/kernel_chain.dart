@@ -4,8 +4,6 @@
 
 library fasta.testing.kernel_chain;
 
-import 'dart:async' show Future;
-
 import 'dart:io' show Directory, File, IOSink, Platform;
 
 import 'dart:typed_data' show Uint8List;
@@ -25,10 +23,13 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show templateUnspecified;
+import 'package:front_end/src/fasta/kernel/constant_evaluator.dart'
+    show ConstantCoverage;
+
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
-
-import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
 import 'package:front_end/src/fasta/messages.dart'
     show DiagnosticMessageFromJson, LocatedMessage;
@@ -65,6 +66,8 @@ final Uri platformBinariesLocation = computePlatformBinariesLocation();
 abstract class MatchContext implements ChainContext {
   bool get updateExpectations;
 
+  String get updateExpectationsOption;
+
   ExpectationSet get expectationSet;
 
   Expectation get expectationFileMismatch =>
@@ -91,8 +94,11 @@ abstract class MatchContext implements ChainContext {
         }
         String diff = await runDiff(expectedFile.uri, actual);
         onMismatch ??= expectationFileMismatch;
-        return new Result<O>(output, onMismatch,
-            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
+        return new Result<O>(
+            output, onMismatch, "$uri doesn't match ${expectedFile.uri}\n$diff",
+            autoFixCommand: onMismatch == expectationFileMismatch
+                ? updateExpectationsOption
+                : null);
       } else {
         return new Result<O>.pass(output);
       }
@@ -107,7 +113,7 @@ abstract class MatchContext implements ChainContext {
           """
 Please create file ${expectedFile.path} with this content:
 $actual""",
-          null);
+          autoFixCommand: updateExpectationsOption);
     }
   }
 
@@ -152,41 +158,6 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
   }
 }
 
-class Verify extends Step<ComponentResult, ComponentResult, ChainContext> {
-  final bool fullCompile;
-
-  const Verify(this.fullCompile);
-
-  String get name => "verify";
-
-  Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) async {
-    Component component = result.component;
-    StringBuffer messages = new StringBuffer();
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (messages.isNotEmpty) {
-              messages.write("\n");
-            }
-            messages.writeAll(message.plainTextFormatted, "\n");
-          });
-    return await CompilerContext.runWithOptions(options,
-        (compilerContext) async {
-      compilerContext.uriToSource.addAll(component.uriToSource);
-      List<LocatedMessage> verificationErrors = verifyComponent(component,
-          isOutline: !fullCompile, skipPlatform: true);
-      assert(verificationErrors.isEmpty || messages.isNotEmpty);
-      if (messages.isEmpty) {
-        return pass(result);
-      } else {
-        return new Result<ComponentResult>(null,
-            context.expectationSet["VerificationError"], "$messages", null);
-      }
-    }, errorOnMissingInput: false);
-  }
-}
-
 class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
   const TypeCheck();
 
@@ -207,8 +178,7 @@ class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
       return new Result<ComponentResult>(
           null,
           context.expectationSet["TypeCheckError"],
-          '${errorFormatter.numberOfFailures} type errors',
-          null);
+          '${errorFormatter.numberOfFailures} type errors');
     }
   }
 }
@@ -241,7 +211,8 @@ class MatchExpectation
 
       ByteSink sink = new ByteSink();
       Component writeMe = new Component(
-          libraries: component.libraries.where(result.isUserLibrary).toList());
+          libraries: component.libraries.where(result.isUserLibrary).toList())
+        ..setMainMethodAndMode(null, false, component.mode);
       writeMe.uriToSource.addAll(component.uriToSource);
       if (component.problemsAsJson != null) {
         writeMe.problemsAsJson =
@@ -316,6 +287,33 @@ class MatchExpectation
       printer.endLine();
     });
     printer.writeConstantTable(componentToText);
+
+    if (result.extraConstantStrings.isNotEmpty) {
+      buffer.writeln("");
+      buffer.writeln("Extra constant evaluation status:");
+      for (String extraConstantString in result.extraConstantStrings) {
+        buffer.writeln(extraConstantString);
+      }
+    }
+    // TODO(jensj): Don't comment this out. Will be done in a follow-up-CL.
+    // if (result.constantCoverage != null) {
+    //   ConstantCoverage constantCoverage = result.constantCoverage;
+    //   if (constantCoverage.constructorCoverage.isNotEmpty) {
+    //     buffer.writeln("");
+    //     buffer.writeln("");
+    //     buffer.writeln("Constructor coverage from constants:");
+    //     for (MapEntry<Uri, Set<Reference>> entry
+    //         in constantCoverage.constructorCoverage.entries) {
+    //       buffer.writeln("${entry.key}:");
+    //       for (Reference reference in entry.value) {
+    //         buffer.writeln(
+    //             "- ${reference.node} (from ${reference.node.location})");
+    //       }
+    //       buffer.writeln("");
+    //     }
+    //   }
+    // }
+
     String actual = "$buffer";
     String binariesPath =
         relativizeUri(Uri.base, platformBinariesLocation, isWindows);
@@ -396,11 +394,8 @@ class KernelTextSerialization
       }
 
       if (failures.isNotEmpty) {
-        return new Result<ComponentResult>(
-            null,
-            context.expectationSet["TextSerializationFailure"],
-            "$messages",
-            null);
+        return new Result<ComponentResult>(null,
+            context.expectationSet["TextSerializationFailure"], "$messages");
       }
       return pass(result);
     });
@@ -419,7 +414,13 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
     result = new ComponentResult(
-        result.description, result.component, result.userLibraries, uri);
+        result.description,
+        result.component,
+        result.userLibraries,
+        result.options,
+        result.sourceTarget,
+        result.constantCoverage,
+        uri);
     try {
       new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
@@ -515,8 +516,13 @@ class ComponentResult {
   final Component component;
   final Set<Uri> userLibraries;
   final Uri outputUri;
+  final ProcessedOptions options;
+  final KernelTarget sourceTarget;
+  final List<String> extraConstantStrings = [];
+  final ConstantCoverage constantCoverage;
 
   ComponentResult(this.description, this.component, this.userLibraries,
+      this.options, this.sourceTarget, this.constantCoverage,
       [this.outputUri]);
 
   bool isUserLibrary(Library library) {

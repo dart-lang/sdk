@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 1.0
+# Dart Development Service Protocol 1.1
 
-This document describes _version 1.0_ of the Dart Development Service Protocol.
+This document describes _version 1.1_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -46,6 +46,22 @@ See the corresponding section in the VM Service protocol [here][service-protocol
 ## IDs and Names
 
 See the corresponding section in the VM Service protocol [here][service-protocol-ids-and-names].
+
+## Streams
+
+For a list of core VM service streams, see [streamListen][service-protocol-streams].
+
+DDS will keep a history of events on certain streams and send historical events
+when a client first subscribes to a stream with history. These streams currently
+consist of the following:
+
+- `Logging`
+- `Stdout`
+- `Stderr`
+- `Extension`
+
+In addition, subscribing to the `Service` stream will result in a `ServiceRegistered`
+event being sent to the subscribing client for each existing service extension.
 
 ## Public RPCs
 
@@ -187,6 +203,7 @@ version | comments
 [service-protocol]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md
 [service-protocol-rpcs-requests-and-responses]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#rpcs-requests-and-responses
 [service-protocol-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#events
+[service-protocol-streams]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#streamlisten
 [service-protocol-binary-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#binary-events
 [service-protocol-types]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#types
 [service-protocol-ids-and-names]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#ids-and-names

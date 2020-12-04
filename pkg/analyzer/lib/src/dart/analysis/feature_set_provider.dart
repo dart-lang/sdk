@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/uri.dart';
@@ -18,23 +17,40 @@ class FeatureSetProvider {
   /// so that the only SDK is the Null Safe SDK.
   static const isNullSafetySdk = true;
 
+  final Version _sdkLanguageVersion;
   final AllowedExperiments _allowedExperiments;
   final ResourceProvider _resourceProvider;
   final Packages _packages;
   final FeatureSet _packageDefaultFeatureSet;
+  final Version _nonPackageDefaultLanguageVersion;
   final FeatureSet _nonPackageDefaultFeatureSet;
 
   FeatureSetProvider._({
+    @required Version sdkLanguageVersion,
     @required AllowedExperiments allowedExperiments,
     @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
+    @required Version nonPackageDefaultLanguageVersion,
     @required FeatureSet nonPackageDefaultFeatureSet,
-  })  : _allowedExperiments = allowedExperiments,
+  })  : _sdkLanguageVersion = sdkLanguageVersion,
+        _allowedExperiments = allowedExperiments,
         _resourceProvider = resourceProvider,
         _packages = packages,
         _packageDefaultFeatureSet = packageDefaultFeatureSet,
+        _nonPackageDefaultLanguageVersion = nonPackageDefaultLanguageVersion,
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
+
+  FeatureSet featureSetForExperiments(List<String> experiments) {
+    if (experiments == null) {
+      return null;
+    }
+
+    return FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: _sdkLanguageVersion,
+      flags: experiments,
+    );
+  }
 
   /// Return the [FeatureSet] for the package that contains the file.
   FeatureSet getFeatureSet(String path, Uri uri) {
@@ -43,9 +59,9 @@ class FeatureSetProvider {
       if (pathSegments.isNotEmpty) {
         var libraryName = pathSegments.first;
         var experiments = _allowedExperiments.forSdkLibrary(libraryName);
-        return FeatureSet.fromEnableFlags(experiments);
+        return featureSetForExperiments(experiments);
       } else {
-        return FeatureSet.fromEnableFlags([]);
+        return featureSetForExperiments([]);
       }
     }
 
@@ -53,7 +69,7 @@ class FeatureSetProvider {
     if (package != null) {
       var experiments = _allowedExperiments.forPackage(package.name);
       if (experiments != null) {
-        return FeatureSet.fromEnableFlags(experiments);
+        return featureSetForExperiments(experiments);
       }
 
       return _packageDefaultFeatureSet;
@@ -68,7 +84,7 @@ class FeatureSetProvider {
   /// be either lower, or higher than the package language version.
   Version getLanguageVersion(String path, Uri uri) {
     if (uri.isScheme('dart')) {
-      return ExperimentStatus.currentVersion;
+      return _sdkLanguageVersion;
     }
     var package = _findPackage(uri, path);
     if (package != null) {
@@ -76,14 +92,23 @@ class FeatureSetProvider {
       if (languageVersion != null) {
         return languageVersion;
       }
+      return _sdkLanguageVersion;
     }
 
-    return ExperimentStatus.currentVersion;
+    return _nonPackageDefaultLanguageVersion;
   }
 
   /// Return the package corresponding to the [uri] or [path], `null` if none.
+  ///
+  /// For `package` and `asset` schemes the package name is retrieved from the
+  /// first path segment of [uri].
+  ///
+  /// For `file` schemes this tries to look up by the normalized [uri] path.
+  ///
+  /// If unable to find a package through other mechanisms mechanisms, or it is
+  /// an unrecognized uri scheme, then the package is looked up by [path].
   Package _findPackage(Uri uri, String path) {
-    if (uri.isScheme('package')) {
+    if (uri.isScheme('package') || uri.isScheme('asset')) {
       var pathSegments = uri.pathSegments;
       if (pathSegments.isNotEmpty) {
         var packageName = pathSegments.first;
@@ -108,14 +133,18 @@ class FeatureSetProvider {
     @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
+    @required Version nonPackageDefaultLanguageVersion,
     @required FeatureSet nonPackageDefaultFeatureSet,
   }) {
-    var allowedExperiments = _experimentsForSdk(sourceFactory.dartSdk);
+    var sdk = sourceFactory.dartSdk;
+    var allowedExperiments = _experimentsForSdk(sdk);
     return FeatureSetProvider._(
+      sdkLanguageVersion: sdk.languageVersion,
       allowedExperiments: allowedExperiments,
       resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: packageDefaultFeatureSet,
+      nonPackageDefaultLanguageVersion: nonPackageDefaultLanguageVersion,
       nonPackageDefaultFeatureSet: nonPackageDefaultFeatureSet,
     );
   }

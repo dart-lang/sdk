@@ -4,6 +4,7 @@
 
 #include "bin/gzip.h"
 
+#include "platform/allocation.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "zlib/zlib.h"

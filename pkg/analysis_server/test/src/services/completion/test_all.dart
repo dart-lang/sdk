@@ -6,10 +6,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'dart/test_all.dart' as dart;
 import 'filtering/test_all.dart' as filtering;
+import 'yaml/test_all.dart' as yaml;
 
 void main() {
   defineReflectiveSuite(() {
     dart.main();
     filtering.main();
+    yaml.main();
   }, name: 'completion');
 }

@@ -8,12 +8,17 @@
 set -e
 
 prepareOnly=false
+leakTest=false
 
 REMAINING_ARGS=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     --prepareOnly|--prepare-only|--prepare_only)
       prepareOnly=true
+      shift
+      ;;
+    --leakTest|--leak-test|--leak_test)
+      leakTest=true
       shift
       ;;
     *)
@@ -27,6 +32,8 @@ set -- "${REMAINING_ARGS[@]}"
 
 if $prepareOnly; then
   echo "Will prepare only!"
+elif $leakTest; then
+  echo "Will run leak test"
 fi
 
 checkout=$(pwd)
@@ -56,11 +63,11 @@ bin/flutter update-packages
 popd  # flutter
 
 # Directly in temp directory again.
-mkdir src
+git clone --single-branch --depth=1 -vv \
+    https://dart.googlesource.com/external/github.com/flutter/buildroot src
 pushd src
 git clone --single-branch --depth=1 -vv \
     https://dart.googlesource.com/external/github.com/flutter/engine flutter
-mkdir third_party
 pushd third_party
 ln -s $checkout dart
 popd  # third_party
@@ -75,7 +82,6 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     dart:core \
     -Ddart.vm.product=false \
-    -Ddart.developer.causal_async_stacks=true \
     -Ddart.isVM=true \
     --enable-experiment=non-nullable \
     --nnbd-agnostic \
@@ -90,7 +96,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.packages \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     --enable-experiment=non-nullable \
-    --nnbd-weak \
+    --nnbd-agnostic \
     --target=flutter \
     dart:core \
     --single-root-scheme=org-dartlang-sdk \
@@ -106,6 +112,11 @@ if $prepareOnly; then
   echo "Preparations complete!"
   echo "Flutter is now in $tmpdir/flutter and the patched sdk in $tmpdir/flutter_patched_sdk"
   echo "You can run the test with $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk"
+elif $leakTest; then
+  $dart \
+      --enable-asserts \
+      pkg/front_end/test/flutter_gallery_leak_tester.dart \
+      --path=$tmpdir
 else
   $dart \
       --enable-asserts \

@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/mutual_subtype_norm.dart:21:16: Error: Can't return a value from a void function.
+//     return new Future<Null>.value(null); // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/mutual_subtype_norm.dart:25:16: Error: Can't return a value from a void function.
+//     return new Future<Null>.value(null); // error
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method method1() → void {}
+  method method2() → FutureOr<void> {}
+  method method3() → FutureOr<void> {}
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method method1() → void {}
+  method method2() → void {}
+  method method3() → FutureOr<void> {}
+}
+class C extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method method1() → void {
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/mutual_subtype_norm.dart:21:16: Error: Can't return a value from a void function.
+    return new Future<Null>.value(null); // error
+               ^" in asy::Future::value<Null>(null);
+  }
+  method method2() → void {
+    return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/mutual_subtype_norm.dart:25:16: Error: Can't return a value from a void function.
+    return new Future<Null>.value(null); // error
+               ^" in asy::Future::value<Null>(null);
+  }
+  method method3() → FutureOr<void> {
+    return asy::Future::value<Null>(null);
+  }
+}
+static method main() → dynamic {}

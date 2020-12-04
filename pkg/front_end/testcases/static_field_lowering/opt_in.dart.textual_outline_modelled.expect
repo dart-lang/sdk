@@ -1,0 +1,47 @@
+T init<T>(T value) {}
+
+class Class {
+  int? nullableInstanceFieldWithInitializer = init(17);
+  int nonNullableInstanceFieldWithInitializer = init(55);
+  static const int staticConstField = 123;
+  static final int? nullableStaticFinalFieldWithInitializer1 = init(19);
+  static final int? nullableStaticFinalFieldWithInitializer2 =
+      nullableStaticFinalFieldWithInitializer2Init++ == 0
+          ? nullableStaticFinalFieldWithInitializer2! + 1
+          : 32;
+  static final int nonNullableStaticFinalFieldWithInitializer1 = init(73);
+  static final int nonNullableStaticFinalFieldWithInitializer2 =
+      nonNullableStaticFinalFieldWithInitializer2Init++ == 0
+          ? nonNullableStaticFinalFieldWithInitializer2 + 1
+          : 87;
+  static int? nullableStaticFieldWithInitializer1 = init(17);
+  static int? nullableStaticFieldWithInitializer2 = init(17);
+  static int? staticFieldWithoutInitializer;
+  static int nonNullableStaticFieldWithInitializer1 = init(55);
+  static int nonNullableStaticFieldWithInitializer2 = init(55);
+  static int nonNullableStaticFinalFieldWithInitializer2Init = 0;
+  static int nullableStaticFinalFieldWithInitializer2Init = 0;
+}
+
+const int constTopLevelField = 324;
+dynamic lastInit;
+expect(expected, actual) {}
+final int? nullableFinalTopLevelFieldWithInitializer1 = init(32);
+final int? nullableFinalTopLevelFieldWithInitializer2 =
+    nullableFinalTopLevelFieldWithInitializer2Init++ == 0
+        ? nullableFinalTopLevelFieldWithInitializer2! + 1
+        : 32;
+final int nonNullableFinalTopLevelFieldWithInitializer1 = init(87);
+final int nonNullableFinalTopLevelFieldWithInitializer2 =
+    nonNullableFinalTopLevelFieldWithInitializer2Init++ == 0
+        ? nonNullableFinalTopLevelFieldWithInitializer2 + 1
+        : 87;
+int? nullableTopLevelFieldWithInitializer = init(123);
+int? nullableTopLevelFieldWithInitializer2 = init(123);
+int? topLevelFieldWithoutInitializer;
+int nonNullableFinalTopLevelFieldWithInitializer2Init = 0;
+int nonNullableTopLevelFieldWithInitializer1 = init(42);
+int nonNullableTopLevelFieldWithInitializer2 = init(42);
+int nullableFinalTopLevelFieldWithInitializer2Init = 0;
+main() {}
+throws(f(), String message) {}

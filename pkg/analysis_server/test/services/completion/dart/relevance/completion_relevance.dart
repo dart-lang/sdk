@@ -2,20 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import '../../../../client/completion_driver_test.dart';
 
 class CompletionRelevanceTest extends AbstractCompletionDriverTest {
-  List<String> get enabledExperiments => [];
-
-  @override
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
-    ..enabledExperiments = enabledExperiments
-    ..useNewRelevance = true;
-
   @override
   bool get supportsAvailableSuggestions => true;
 

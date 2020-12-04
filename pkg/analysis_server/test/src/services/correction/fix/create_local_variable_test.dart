@@ -20,8 +20,15 @@ class CreateLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_LOCAL_VARIABLE;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_functionType_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef MY_FUNCTION(int p);
 foo(MY_FUNCTION f) {}
 main() {
@@ -39,7 +46,7 @@ main() {
   }
 
   Future<void> test_functionType_named_generic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef MY_FUNCTION<T>(T p);
 foo(MY_FUNCTION<int> f) {}
 main() {
@@ -57,7 +64,7 @@ main() {
   }
 
   Future<void> test_functionType_synthetic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(f(int p)) {}
 main() {
   foo(bar);
@@ -73,7 +80,7 @@ main() {
   }
 
   Future<void> test_read_typeAssignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int a = test;
   print(a);
@@ -89,7 +96,7 @@ main() {
   }
 
   Future<void> test_read_typeCondition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (!test) {
     print(42);
@@ -107,7 +114,7 @@ main() {
   }
 
   Future<void> test_read_typeInvocationArgument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   f(test);
 }
@@ -125,7 +132,7 @@ f(String p) {}
   }
 
   Future<void> test_read_typeInvocationTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   test.add('hello');
 }
@@ -140,13 +147,13 @@ main() {
   }
 
   Future<void> test_withImport() async {
-    addPackageFile('pkg', 'a/a.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/a/a.dart', content: '''
 class A {}
 ''');
-    addPackageFile('pkg', 'b/b.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/b/b.dart', content: '''
 class B {}
 ''');
-    addPackageFile('pkg', 'c/c.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/c/c.dart', content: '''
 import 'package:pkg/a/a.dart';
 import 'package:pkg/b/b.dart';
 
@@ -155,7 +162,12 @@ class C {
 }
 ''');
 
-    await resolveTestUnit('''
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+    );
+
+    await resolveTestCode('''
 import 'package:pkg/a/a.dart';
 import 'package:pkg/c/c.dart';
 
@@ -189,7 +201,7 @@ main() {
   }
 
   Future<void> test_write_assignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   test = 42;
 }
@@ -202,7 +214,7 @@ main() {
   }
 
   Future<void> test_write_assignment_compound() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   test += 42;
 }

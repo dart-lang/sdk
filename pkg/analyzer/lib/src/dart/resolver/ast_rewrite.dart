@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// Helper for [MethodInvocation]s into [InstanceCreationExpression] to support
@@ -33,7 +32,7 @@ class AstRewriter {
         // This isn't a constructor invocation because it's in a cascade.
         return node;
       }
-      Element element = nameScope.lookupIdentifier(methodName);
+      Element element = nameScope.lookup(methodName.name).getter;
       if (element is ClassElement) {
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         ConstructorName constructorName =
@@ -57,7 +56,7 @@ class AstRewriter {
         // This isn't a constructor invocation because a null aware operator is
         // being used.
       }
-      Element element = nameScope.lookupIdentifier(target);
+      Element element = nameScope.lookup(target.name).getter;
       if (element is ClassElement) {
         // Possible case: C.n()
         var constructorElement = element.getNamedConstructor(methodName.name);
@@ -65,8 +64,7 @@ class AstRewriter {
           var typeArguments = node.typeArguments;
           if (typeArguments != null) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+                CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
                 typeArguments,
                 [element.name, constructorElement.name]);
           }
@@ -83,11 +81,7 @@ class AstRewriter {
         }
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
-        Identifier identifier = astFactory.prefixedIdentifier(
-            astFactory.simpleIdentifier(target.token),
-            null,
-            astFactory.simpleIdentifier(methodName.token));
-        Element prefixedElement = nameScope.lookupIdentifier(identifier);
+        Element prefixedElement = element.scope.lookup(methodName.name).getter;
         if (prefixedElement is ClassElement) {
           TypeName typeName = astFactory.typeName(
               astFactory.prefixedIdentifier(target, node.operator, methodName),
@@ -112,10 +106,11 @@ class AstRewriter {
       }
     } else if (target is PrefixedIdentifier) {
       // Possible case: p.C.n()
-      Element prefixElement = nameScope.lookupIdentifier(target.prefix);
+      Element prefixElement = nameScope.lookup(target.prefix.name).getter;
       target.prefix.staticElement = prefixElement;
       if (prefixElement is PrefixElement) {
-        Element element = nameScope.lookupIdentifier(target);
+        Element element =
+            prefixElement.scope.lookup(target.identifier.name).getter;
         if (element is ClassElement) {
           var constructorElement = element.getNamedConstructor(methodName.name);
           if (constructorElement != null) {

@@ -24,7 +24,7 @@ class ReplaceColonWithEqualsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_equal_for_default_values;
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({int a: 1}) => null;
 ''');
     await assertHasFix('''

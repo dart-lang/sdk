@@ -249,6 +249,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
   for (intptr_t i = 0; i < num_freelists_; i++) {
     freelists_[i].Reset();
   }
+
+  TryReserveForOOM();
 }
 
 PageSpace::~PageSpace() {
@@ -366,7 +368,7 @@ OldPage* PageSpace::AllocatePage(OldPage::PageType type, bool link) {
 
   page->set_object_end(page->memory_->end());
   if ((type != OldPage::kExecutable) && (heap_ != nullptr) &&
-      (heap_->isolate_group() != Dart::vm_isolate()->group())) {
+      (!heap_->is_vm_isolate())) {
     page->AllocateForwardingPage();
   }
   return page;
@@ -452,6 +454,7 @@ void PageSpace::FreePages(OldPage* pages) {
 
 void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
   if (growth_policy != kForceGrowth) {
+    ASSERT(GrowthControlState());
     if (heap_ != NULL) {  // Some unit tests.
       Thread* thread = Thread::Current();
       if (thread->CanCollectGarbage()) {
@@ -1019,7 +1022,50 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   return estimated_mark_compact_completion <= deadline;
 }
 
+void PageSpace::TryReleaseReservation() {
+  if (oom_reservation_ == nullptr) return;
+  uword addr = reinterpret_cast<uword>(oom_reservation_);
+  intptr_t size = oom_reservation_->HeapSize();
+  oom_reservation_ = nullptr;
+  freelists_[OldPage::kData].Free(addr, size);
+}
+
+bool PageSpace::MarkReservation() {
+  if (oom_reservation_ == nullptr) {
+    return false;
+  }
+  ObjectLayout* ptr = reinterpret_cast<ObjectLayout*>(oom_reservation_);
+  if (!ptr->IsMarked()) {
+    ptr->SetMarkBit();
+  }
+  return true;
+}
+
+void PageSpace::TryReserveForOOM() {
+  if (oom_reservation_ == nullptr) {
+    uword addr = TryAllocate(kOOMReservationSize, OldPage::kData,
+                             kForceGrowth /* Don't re-enter GC */);
+    if (addr != 0) {
+      oom_reservation_ = FreeListElement::AsElement(addr, kOOMReservationSize);
+    }
+  }
+}
+
+void PageSpace::VisitRoots(ObjectPointerVisitor* visitor) {
+  if (oom_reservation_ != nullptr) {
+    // FreeListElements are generally held untagged, but ObjectPointerVisitors
+    // expect tagged pointers.
+    ObjectPtr ptr =
+        ObjectLayout::FromAddr(reinterpret_cast<uword>(oom_reservation_));
+    visitor->VisitPointer(&ptr);
+    oom_reservation_ =
+        reinterpret_cast<FreeListElement*>(ObjectLayout::ToAddr(ptr));
+  }
+}
+
 void PageSpace::CollectGarbage(bool compact, bool finalize) {
+  ASSERT(GrowthControlState());
+
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.
@@ -1030,9 +1076,10 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 
   Thread* thread = Thread::Current();
+  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+  SafepointOperationScope safepoint_scope(thread);
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
-
   // Wait for pending tasks to complete and then account for the driver task.
   Phase waited_for;
   {
@@ -1045,15 +1092,15 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
     }
 
     while (tasks() > 0) {
-      locker.WaitWithSafepointCheck(thread);
+      locker.Wait();
     }
     ASSERT(phase() == kAwaitingFinalization || phase() == kDone);
     set_tasks(1);
   }
 
-  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
   if (FLAG_verbose_gc) {
-    const int64_t wait = pre_safe_point - pre_wait_for_sweepers;
+    const int64_t wait =
+        OS::GetCurrentMonotonicMicros() - pre_wait_for_sweepers;
     if (waited_for == kMarking) {
       THR_Print("Waited %" Pd64 " us for concurrent marking to finish.\n",
                 wait);
@@ -1068,9 +1115,8 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   // to ensure that if two threads are racing to collect at the same time the
   // loser skips collection and goes straight to allocation.
   {
-    SafepointOperationScope safepoint_scope(thread);
-    CollectGarbageAtSafepoint(compact, finalize, pre_wait_for_sweepers,
-                              pre_safe_point);
+    CollectGarbageHelper(compact, finalize, pre_wait_for_sweepers,
+                         pre_safe_point);
   }
 
   // Done, reset the task count.
@@ -1081,10 +1127,10 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 }
 
-void PageSpace::CollectGarbageAtSafepoint(bool compact,
-                                          bool finalize,
-                                          int64_t pre_wait_for_sweepers,
-                                          int64_t pre_safe_point) {
+void PageSpace::CollectGarbageHelper(bool compact,
+                                     bool finalize,
+                                     int64_t pre_wait_for_sweepers,
+                                     int64_t pre_safe_point) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsAtSafepoint());
   auto isolate_group = heap_->isolate_group();
@@ -1183,17 +1229,21 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
     mid3 = OS::GetCurrentMonotonicMicros();
   }
 
+  bool has_reservation = MarkReservation();
+
   if (compact) {
     SweepLarge();
     Compact(thread);
     set_phase(kDone);
-  } else if (FLAG_concurrent_sweep) {
+  } else if (FLAG_concurrent_sweep && has_reservation) {
     ConcurrentSweep(isolate_group);
   } else {
     SweepLarge();
     Sweep();
     set_phase(kDone);
   }
+
+  TryReserveForOOM();
 
   // Make code pages read-only.
   if (finalize) WriteProtectCode(true);
@@ -1548,9 +1598,10 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       before.CombinedUsedInWords() - last_usage_.CombinedUsedInWords();
   intptr_t grow_heap;
   if (allocated_since_previous_gc > 0) {
-    const intptr_t garbage =
+    intptr_t garbage =
         before.CombinedUsedInWords() - after.CombinedUsedInWords();
-    ASSERT(garbage >= 0);
+    // Garbage may be negative if when the OOM reservation is refilled.
+    garbage = Utils::Maximum(static_cast<intptr_t>(0), garbage);
     // It makes no sense to expect that each kb allocated will cause more than
     // one kb of garbage, so we clamp k at 1.0.
     const double k = Utils::Minimum(
@@ -1613,6 +1664,26 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   }
   heap_->RecordData(PageSpace::kPageGrowth, grow_heap);
   last_usage_ = after;
+
+  intptr_t max_capacity_in_words = heap_->old_space()->max_capacity_in_words_;
+  if (max_capacity_in_words != 0) {
+    ASSERT(grow_heap >= 0);
+    // Fraction of asymptote used.
+    double f = static_cast<double>(after.CombinedUsedInWords() +
+                                   (kOldPageSizeInWords * grow_heap)) /
+               static_cast<double>(max_capacity_in_words);
+    ASSERT(f >= 0.0);
+    // Increase weight at the high end.
+    f = f * f;
+    // Fraction of asymptote available.
+    f = 1.0 - f;
+    ASSERT(f <= 1.0);
+    // Discount growth more the closer we get to the desired asymptote.
+    grow_heap = static_cast<intptr_t>(grow_heap * f);
+    // Minimum growth step after reaching the asymptote.
+    intptr_t min_step = (2 * MB) / kOldPageSize;
+    grow_heap = Utils::Maximum(min_step, grow_heap);
+  }
 
   RecordUpdate(before, after, grow_heap, "gc");
 }
@@ -1687,6 +1758,17 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
               hard_gc_threshold_in_words_ / KBInWords,
               idle_gc_threshold_in_words_ / KBInWords, reason);
   }
+}
+
+void PageSpaceController::HintFreed(intptr_t size) {
+  intptr_t size_in_words = size << kWordSizeLog2;
+  if (size_in_words > idle_gc_threshold_in_words_) {
+    idle_gc_threshold_in_words_ = 0;
+  } else {
+    idle_gc_threshold_in_words_ -= size_in_words;
+  }
+
+  // TODO(rmacnak): Hasten the soft threshold at some discount?
 }
 
 void PageSpaceController::MergeFrom(PageSpaceController* donor) {

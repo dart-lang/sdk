@@ -205,6 +205,26 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         exists: true);
   }
 
+  void test_resolveAbsolute_null_doubleDot() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
+    var uri = Uri.parse('package:foo..bar/baz.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_null_doubleSlash() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
+    var uri = Uri.parse('package:foo//bar/baz.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
   void test_resolveAbsolute_null_noSlash() {
     _addResources([
       '/workspace/WORKSPACE',
@@ -696,6 +716,13 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     expect(package.workspace, equals(workspace));
   }
 
+  void test_packagesAvailableTo() {
+    _setUpPackage();
+    var packageMap =
+        package.packagesAvailableTo(convertPath('/ws/some/code/lib/code.dart'));
+    expect(packageMap, isEmpty);
+  }
+
   /// Create new files and directories from [paths].
   void _addResources(List<String> paths) {
     for (String path in paths) {
@@ -749,7 +776,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   void test_find_hasBlazeBinFolderInOutFolder() {
     _addResources([
       '/workspace/blaze-out/host/bin/',
-      '/workspace/my/module/',
+      '/workspace/my/module/BUILD',
     ]);
     BazelWorkspace workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'));
@@ -758,6 +785,12 @@ class BazelWorkspaceTest with ResourceProviderMixin {
     expect(workspace.binPaths.single,
         convertPath('/workspace/blaze-out/host/bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
+    expect(
+        workspace
+            .findPackageFor(convertPath(
+                '/workspace/blaze-out/host/bin/my/module/lib/foo.dart'))
+            .root,
+        convertPath('/workspace/my/module'));
   }
 
   void test_find_hasBlazeOutFolder_missingBinFolder() {

@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42844_1.dart:6:9: Error: Field 'n' should be initialized because its type 'Never' doesn't allow null.
+//   Never n; // Error.
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field Never n = null;
+  static field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
+  static factory •(Never n) → self::C
+    let<BottomType> #redirecting_factory = self::D::• in invalid-expression;
+}
+class D extends core::Object implements self::C {
+  field Never n;
+  constructor •(Never n) → self::D
+    : self::D::n = n, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

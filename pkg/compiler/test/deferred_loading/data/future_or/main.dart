@@ -9,8 +9,8 @@ import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib2;
 
 /*member: main:
- OutputUnit(main, {}),
- constants=[ConstructedConstant(A())=OutputUnit(1, {lib1})]
+ constants=[ConstructedConstant(A())=1{lib1}],
+ member_unit=main{}
 */
 main() async {
   await lib1.loadLibrary();

@@ -27,15 +27,19 @@ class FunctionTypeBuilder extends TypeBuilder {
   final List<TypeVariableBuilder> typeVariables;
   final List<FormalParameterBuilder> formals;
   final NullabilityBuilder nullabilityBuilder;
+  final Uri fileUri;
+  final int charOffset;
 
   FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
-      this.nullabilityBuilder);
+      this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
   String get name => null;
 
   @override
   String get debugName => "Function";
+
+  bool get isVoidType => false;
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
@@ -55,13 +59,13 @@ class FunctionTypeBuilder extends TypeBuilder {
     buffer.write("(");
     if (formals != null) {
       bool isFirst = true;
-      for (dynamic t in formals) {
+      for (FormalParameterBuilder t in formals) {
         if (!isFirst) {
           buffer.write(", ");
         } else {
           isFirst = false;
         }
-        buffer.write(t?.fullNameForErrors);
+        buffer.write(t.fullNameForErrors);
       }
     }
     buffer.write(") ->");
@@ -143,14 +147,16 @@ class FunctionTypeBuilder extends TypeBuilder {
         returnType?.clone(newTypes),
         clonedTypeVariables,
         clonedFormals,
-        nullabilityBuilder);
+        nullabilityBuilder,
+        fileUri,
+        charOffset);
     newTypes.add(newType);
     return newType;
   }
 
   FunctionTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
-    return new FunctionTypeBuilder(
-        returnType, typeVariables, formals, nullabilityBuilder);
+    return new FunctionTypeBuilder(returnType, typeVariables, formals,
+        nullabilityBuilder, fileUri, charOffset);
   }
 }

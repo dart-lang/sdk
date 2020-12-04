@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/testing/mock_sdk_component.dart';
+import 'package:kernel/testing/type_parser_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,354 +20,365 @@ main() {
 
 @reflectiveTest
 class TypeConstraintGathererTest {
-  static const UnknownType unknownType = const UnknownType();
+  Env env;
 
-  static const DynamicType dynamicType = const DynamicType();
+  final Map<String, DartType Function()> additionalTypes = {
+    'UNKNOWN': () => new UnknownType()
+  };
 
-  static const VoidType voidType = const VoidType();
+  Library _coreLibrary;
 
-  final testLib =
-      new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib')
-        ..isNonNullableByDefault = true;
+  Library _testLibrary;
 
-  Component component;
+  TypeConstraintGathererTest();
 
-  CoreTypes coreTypes;
+  Component get component => env.component;
 
-  TypeParameterType T1;
-  TypeParameterType T2;
-  TypeParameterType S1;
-  TypeParameterType S2;
-  TypeParameterType R1;
-  TypeParameterType R2;
+  CoreTypes get coreTypes => env.coreTypes;
 
-  Class classP;
+  Library get coreLibrary => _coreLibrary;
 
-  Class classQ;
+  Library get testLibrary => _testLibrary;
 
-  TypeConstraintGathererTest() {
-    component = createMockSdkComponent();
-    component.libraries.add(testLib..parent = component);
-    coreTypes = new CoreTypes(component);
-    T1 = new TypeParameterType(
-        new TypeParameter('T1', coreTypes.objectLegacyRawType),
-        Nullability.legacy);
-    T2 = new TypeParameterType(
-        new TypeParameter('T2', coreTypes.objectLegacyRawType),
-        Nullability.legacy);
-    S1 = new TypeParameterType(
-        new TypeParameter('S1', coreTypes.objectNullableRawType),
-        Nullability.undetermined);
-    S2 = new TypeParameterType(
-        new TypeParameter('S2', coreTypes.objectNullableRawType),
-        Nullability.undetermined);
-    R1 = new TypeParameterType(
-        new TypeParameter('R1', coreTypes.objectNonNullableRawType),
-        Nullability.nonNullable);
-    R2 = new TypeParameterType(
-        new TypeParameter('R2', coreTypes.objectNonNullableRawType),
-        Nullability.nonNullable);
-    classP = _addClass(_class('P'));
-    classQ = _addClass(_class('Q'));
+  void parseTestLibrary(String testLibraryText) {
+    env = new Env(testLibraryText, isNonNullableByDefault: true);
+    assert(
+        env.component.libraries.length == 2,
+        "The tests are supposed to have exactly two libraries: "
+        "the core library and the test library.");
+    Library firstLibrary = env.component.libraries.first;
+    Library secondLibrary = env.component.libraries.last;
+    if (firstLibrary.importUri.scheme == "dart" &&
+        firstLibrary.importUri.path == "core") {
+      _coreLibrary = firstLibrary;
+      _testLibrary = secondLibrary;
+    } else {
+      assert(
+          secondLibrary.importUri.scheme == "dart" &&
+              secondLibrary.importUri.path == "core",
+          "One of the libraries is expected to be 'dart:core'.");
+      _coreLibrary == secondLibrary;
+      _testLibrary = firstLibrary;
+    }
   }
 
-  Class get functionClass => coreTypes.functionClass;
-
-  InterfaceType get functionType => coreTypes.functionLegacyRawType;
-
-  Class get iterableClass => coreTypes.iterableClass;
-
-  Class get listClass => coreTypes.listClass;
-
-  Class get mapClass => coreTypes.mapClass;
-
-  InterfaceType get nullType => coreTypes.nullType;
-
-  Class get objectClass => coreTypes.objectClass;
-
-  InterfaceType get P => coreTypes.legacyRawType(classP);
-
-  InterfaceType get Q => coreTypes.legacyRawType(classQ);
-
   void test_any_subtype_parameter() {
-    DartType nullableQ = Q.withDeclaredNullability(Nullability.nullable);
-    DartType nonNullableQ = Q.withDeclaredNullability(Nullability.nonNullable);
+    parseTestLibrary('class P; class Q;');
 
-    _checkConstraintsLower(T1, nullableQ, testLib, ['lib::Q? <: T1']);
-    _checkConstraintsLower(T1, nonNullableQ, testLib, ['lib::Q <: T1']);
-    _checkConstraintsUpper(T1, nullableQ, testLib, ['T1 <: lib::Q?']);
-    _checkConstraintsUpper(T1, nonNullableQ, testLib, ['T1 <: lib::Q']);
+    checkConstraintsLower('T1*', 'Q?', ['lib::Q? <: T1'],
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsLower('T1*', 'Q', ['lib::Q <: T1'],
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsUpper('T1*', 'Q?', ['T1 <: lib::Q?'],
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsUpper('T1*', 'Q', ['T1 <: lib::Q'],
+        typeParameters: 'T1 extends Object*');
 
-    DartType nullableS1 = S1.withDeclaredNullability(Nullability.nullable);
-    _checkConstraintsLower(S1, nonNullableQ, testLib, ['lib::Q <: S1']);
-    _checkConstraintsLower(S1, nullableQ, testLib, ['lib::Q? <: S1']);
-    _checkConstraintsLower(nullableS1, nonNullableQ, testLib, ['lib::Q <: S1']);
-    _checkConstraintsLower(nullableS1, nullableQ, testLib, ['lib::Q <: S1']);
-    _checkConstraintsUpper(S1, nonNullableQ, testLib, ['S1 <: lib::Q']);
-    _checkConstraintsUpper(S1, nullableQ, testLib, ['S1 <: lib::Q?']);
-    _checkConstraintsUpper(nullableS1, nonNullableQ, testLib, null);
-    _checkConstraintsUpper(nullableS1, nullableQ, testLib, ['S1 <: lib::Q']);
+    checkConstraintsLower('S1', 'Q', ['lib::Q <: S1'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsLower('S1', 'Q?', ['lib::Q? <: S1'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsLower('S1?', 'Q', ['lib::Q <: S1'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsLower('S1?', 'Q?', ['lib::Q <: S1'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('S1', 'Q', ['S1 <: lib::Q'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('S1', 'Q?', ['S1 <: lib::Q?'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('S1?', 'Q', null,
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('S1?', 'Q?', ['S1 <: lib::Q'],
+        typeParameters: 'S1 extends Object?');
   }
 
   void test_any_subtype_top() {
-    _checkConstraintsUpper(P, dynamicType, testLib, []);
-    _checkConstraintsUpper(P, coreTypes.objectLegacyRawType, testLib, []);
-    _checkConstraintsUpper(P, voidType, testLib, []);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsUpper('P*', 'dynamic', []);
+    checkConstraintsUpper('P*', 'Object*', []);
+    checkConstraintsUpper('P*', 'void', []);
   }
 
   void test_any_subtype_unknown() {
-    _checkConstraintsUpper(P, unknownType, testLib, []);
-    _checkConstraintsUpper(T1, unknownType, testLib, []);
-    _checkConstraintsUpper(S1, unknownType, testLib, []);
-    _checkConstraintsUpper(R1, unknownType, testLib, []);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsUpper('P*', 'UNKNOWN', []);
+    checkConstraintsUpper('T1*', 'UNKNOWN', [],
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsUpper('S1', 'UNKNOWN', [],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('R1', 'UNKNOWN', [],
+        typeParameters: 'R1 extends Object');
   }
 
   void test_different_classes() {
-    _checkConstraintsUpper(_list(T1), _iterable(Q), testLib, ['T1 <: lib::Q*']);
-    _checkConstraintsUpper(_iterable(T1), _list(Q), testLib, null);
-    _checkConstraintsUpper(_list(S1), _iterable(Q), testLib, ['S1 <: lib::Q*']);
-    _checkConstraintsUpper(_iterable(S1), _list(Q), testLib, null);
-    _checkConstraintsUpper(_list(R1), _iterable(Q), testLib, ['R1 <: lib::Q*']);
-    _checkConstraintsUpper(_iterable(R1), _list(Q), testLib, null);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsUpper('List<T1*>*', 'Iterable<Q*>*', ['T1 <: lib::Q*'],
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsUpper('Iterable<T1*>*', 'List<Q*>*', null,
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsUpper('List<S1>*', 'Iterable<Q*>*', ['S1 <: lib::Q*'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('Iterable<S1>*', 'List<Q*>*', null,
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('List<R1>*', 'Iterable<Q*>*', ['R1 <: lib::Q*'],
+        typeParameters: 'R1 extends Object');
+    checkConstraintsUpper('Iterable<R1>*', 'List<Q*>*', null,
+        typeParameters: 'R1 extends Object');
   }
 
   void test_equal_types() {
-    _checkConstraintsUpper(P, P, testLib, []);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsUpper('P*', 'P*', []);
   }
 
   void test_function_generic() {
-    var T = new TypeParameterType(
-        new TypeParameter('T', coreTypes.objectLegacyRawType),
-        Nullability.legacy);
-    var U = new TypeParameterType(
-        new TypeParameter('U', coreTypes.objectLegacyRawType),
-        Nullability.legacy);
+    parseTestLibrary('');
+
     // <T>() -> dynamic <: () -> dynamic, never
-    _checkConstraintsUpper(
-        new FunctionType([], dynamicType, Nullability.legacy,
-            typeParameters: [T.parameter]),
-        new FunctionType([], dynamicType, Nullability.legacy),
-        testLib,
-        null);
+    checkConstraintsUpper(
+        '<T extends Object*>() ->* dynamic', '() ->* dynamic', null);
     // () -> dynamic <: <T>() -> dynamic, never
-    _checkConstraintsUpper(
-        new FunctionType([], dynamicType, Nullability.legacy),
-        new FunctionType([], dynamicType, Nullability.legacy,
-            typeParameters: [T.parameter]),
-        testLib,
-        null);
+    checkConstraintsUpper(
+        '() ->* dynamic', '<T extends Object*>() ->* dynamic', null);
     // <T>(T) -> T <: <U>(U) -> U, always
-    _checkConstraintsUpper(
-        new FunctionType([T], T, Nullability.legacy,
-            typeParameters: [T.parameter]),
-        new FunctionType([U], U, Nullability.legacy,
-            typeParameters: [U.parameter]),
-        testLib,
-        []);
+    checkConstraintsUpper(
+        '<T extends Object*>(T*) ->* T*', '<U extends Object*>(U*) ->* U*', []);
   }
 
   void test_function_parameter_mismatch() {
+    parseTestLibrary('class P; class Q;');
+
     // (P) -> dynamic <: () -> dynamic, never
-    _checkConstraintsUpper(
-        new FunctionType([P], dynamicType, Nullability.legacy),
-        new FunctionType([], dynamicType, Nullability.legacy),
-        testLib,
-        null);
+    checkConstraintsUpper('(P*) ->* dynamic', '() ->* dynamic', null);
     // () -> dynamic <: (P) -> dynamic, never
-    _checkConstraintsUpper(
-        new FunctionType([], dynamicType, Nullability.legacy),
-        new FunctionType([P], dynamicType, Nullability.legacy),
-        testLib,
-        null);
+    checkConstraintsUpper('() ->* dynamic', '(P*) ->* dynamic', null);
     // ([P]) -> dynamic <: () -> dynamic, always
-    _checkConstraintsUpper(
-        new FunctionType([P], dynamicType, Nullability.legacy,
-            requiredParameterCount: 0),
-        new FunctionType([], dynamicType, Nullability.legacy),
-        testLib,
-        []);
+    checkConstraintsUpper('([P*]) ->* dynamic', '() ->* dynamic', []);
     // () -> dynamic <: ([P]) -> dynamic, never
-    _checkConstraintsUpper(
-        new FunctionType([], dynamicType, Nullability.legacy),
-        new FunctionType([P], dynamicType, Nullability.legacy,
-            requiredParameterCount: 0),
-        testLib,
-        null);
+    checkConstraintsUpper('() ->* dynamic', '([P*]) ->* dynamic', null);
     // ({x: P}) -> dynamic <: () -> dynamic, always
-    _checkConstraintsUpper(
-        new FunctionType([], dynamicType, Nullability.legacy,
-            namedParameters: [new NamedType('x', P)]),
-        new FunctionType([], dynamicType, Nullability.legacy),
-        testLib,
-        []);
+    checkConstraintsUpper('({P* x}) ->* dynamic', '() ->* dynamic', []);
     // () -> dynamic !<: ({x: P}) -> dynamic, never
-    _checkConstraintsUpper(
-        new FunctionType([], dynamicType, Nullability.legacy),
-        new FunctionType([], dynamicType, Nullability.legacy,
-            namedParameters: [new NamedType('x', P)]),
-        testLib,
-        null);
+    checkConstraintsUpper('() ->* dynamic', '({P* x}) ->* dynamic', null);
   }
 
   void test_function_parameter_types() {
+    parseTestLibrary('class P; class Q;');
+
     // (T1) -> dynamic <: (Q) -> dynamic, under constraint Q <: T1
-    _checkConstraintsUpper(
-        new FunctionType([T1], dynamicType, Nullability.legacy),
-        new FunctionType([Q], dynamicType, Nullability.legacy),
-        testLib,
-        ['lib::Q* <: T1']);
+    checkConstraintsUpper(
+        '(T1*) ->* dynamic', '(Q*) ->* dynamic', ['lib::Q* <: T1'],
+        typeParameters: 'T1 extends Object*');
     // ({x: T1}) -> dynamic <: ({x: Q}) -> dynamic, under constraint Q <: T1
-    _checkConstraintsUpper(
-        new FunctionType([], dynamicType, Nullability.legacy,
-            namedParameters: [new NamedType('x', T1)]),
-        new FunctionType([], dynamicType, Nullability.legacy,
-            namedParameters: [new NamedType('x', Q)]),
-        testLib,
-        ['lib::Q* <: T1']);
+    checkConstraintsUpper(
+        '({T1* x}) ->* dynamic', '({Q* x}) ->* dynamic', ['lib::Q* <: T1'],
+        typeParameters: 'T1 extends Object*');
     // (S1) -> S1? <: (P) -> P?
-    _checkConstraintsUpper(
-        new FunctionType([S1], S1.withDeclaredNullability(Nullability.nullable),
-            Nullability.nonNullable),
-        new FunctionType(
-            [P.withDeclaredNullability(Nullability.nonNullable)],
-            P.withDeclaredNullability(Nullability.nullable),
-            Nullability.nonNullable),
-        testLib,
-        ['lib::P <: S1 <: lib::P']);
+    checkConstraintsUpper(
+        '(S1) -> S1?', '(P) -> P?', ['lib::P <: S1 <: lib::P'],
+        typeParameters: 'S1 extends Object?');
     // (S1, List<S1?>) -> void <: (P, List<P?>) -> void
-    _checkConstraintsUpper(
-        new FunctionType(
-            [S1, _list(S1.withDeclaredNullability(Nullability.nullable))],
-            voidType,
-            Nullability.nonNullable),
-        new FunctionType([
-          P.withDeclaredNullability(Nullability.nonNullable),
-          _list(P.withDeclaredNullability(Nullability.nullable))
-        ], voidType, Nullability.nonNullable),
-        testLib,
-        ['lib::P <: S1']);
+    checkConstraintsUpper(
+        '(S1, List<S1?>*) -> void', '(P, List<P?>*) -> void', ['lib::P <: S1'],
+        typeParameters: 'S1 extends Object?');
   }
 
   void test_function_return_type() {
+    parseTestLibrary('class P; class Q;');
+
     // () -> T1 <: () -> Q, under constraint T1 <: Q
-    _checkConstraintsUpper(
-        new FunctionType([], T1, Nullability.legacy),
-        new FunctionType([], Q, Nullability.legacy),
-        testLib,
-        ['T1 <: lib::Q*']);
+    checkConstraintsUpper('() ->* T1', '() ->* Q*', ['T1 <: lib::Q*'],
+        typeParameters: 'T1 extends Object*');
     // () -> P <: () -> void, always
-    _checkConstraintsUpper(new FunctionType([], P, Nullability.legacy),
-        new FunctionType([], voidType, Nullability.legacy), testLib, []);
+    checkConstraintsUpper('() ->* P*', '() ->* void', []);
     // () -> void <: () -> P, never
-    _checkConstraintsUpper(new FunctionType([], voidType, Nullability.legacy),
-        new FunctionType([], P, Nullability.legacy), testLib, null);
+    checkConstraintsUpper('() ->* void', '() ->* P*', null);
   }
 
   void test_function_trivial_cases() {
-    var F = new FunctionType([], dynamicType, Nullability.legacy);
+    parseTestLibrary('');
+
     // () -> dynamic <: dynamic, always
-    _checkConstraintsUpper(F, dynamicType, testLib, []);
+    checkConstraintsUpper('() ->* dynamic', 'dynamic', []);
     // () -> dynamic <: Function, always
-    _checkConstraintsUpper(F, functionType, testLib, []);
+    checkConstraintsUpper('() ->* dynamic', 'Function*', []);
     // () -> dynamic <: Object, always
-    _checkConstraintsUpper(F, coreTypes.objectLegacyRawType, testLib, []);
+    checkConstraintsUpper('() ->* dynamic', 'Object*', []);
   }
 
   void test_nonInferredParameter_subtype_any() {
-    var U = new TypeParameterType(
-        new TypeParameter('U', _list(P)), Nullability.legacy);
-    _checkConstraintsLower(_list(T1), U, testLib, ['lib::P* <: T1']);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsLower('List<T1*>*', 'U*', ['lib::P* <: T1'],
+        typeParameters: 'T1 extends Object*, U extends List<P*>*',
+        typeParametersToConstrain: 'T1');
   }
 
   void test_null_subtype_any() {
-    _checkConstraintsLower(T1, nullType, testLib, ['dart.core::Null? <: T1']);
-    _checkConstraintsUpper(nullType, Q, testLib, []);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsLower('T1*', 'Null', ['Null <: T1'],
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsUpper('Null', 'Q*', []);
   }
 
   void test_parameter_subtype_any() {
-    _checkConstraintsUpper(T1, Q, testLib, ['T1 <: lib::Q*']);
-    _checkConstraintsLower(T1, Q, testLib, ['lib::Q* <: T1']);
+    parseTestLibrary('class P; class Q;');
 
-    _checkConstraintsUpper(S1, Q, testLib, ['S1 <: lib::Q*']);
-    _checkConstraintsLower(S1, Q, testLib, ['lib::Q* <: S1']);
-    _checkConstraintsUpper(S1.withDeclaredNullability(Nullability.legacy), Q,
-        testLib, ['S1 <: lib::Q*']);
-    _checkConstraintsLower(S1.withDeclaredNullability(Nullability.legacy), Q,
-        testLib, ['lib::Q <: S1']);
+    checkConstraintsUpper('T1*', 'Q*', ['T1 <: lib::Q*'],
+        typeParameters: 'T1 extends Object*');
+    checkConstraintsLower('T1*', 'Q*', ['lib::Q* <: T1'],
+        typeParameters: 'T1 extends Object*');
 
-    _checkConstraintsUpper(R1, Q, testLib, ['R1 <: lib::Q*']);
-    _checkConstraintsLower(R1, Q, testLib, ['lib::Q* <: R1']);
-    _checkConstraintsUpper(R1.withDeclaredNullability(Nullability.legacy), Q,
-        testLib, ['R1 <: lib::Q*']);
-    _checkConstraintsLower(R1.withDeclaredNullability(Nullability.legacy), Q,
-        testLib, ['lib::Q <: R1']);
+    checkConstraintsUpper('S1', 'Q*', ['S1 <: lib::Q*'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsLower('S1', 'Q*', ['lib::Q* <: S1'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsUpper('S1*', 'Q*', ['S1 <: lib::Q*'],
+        typeParameters: 'S1 extends Object?');
+    checkConstraintsLower('S1*', 'Q*', ['lib::Q <: S1'],
+        typeParameters: 'S1 extends Object?');
+
+    checkConstraintsUpper('R1', 'Q*', ['R1 <: lib::Q*'],
+        typeParameters: 'R1 extends Object');
+    checkConstraintsLower('R1', 'Q*', ['lib::Q* <: R1'],
+        typeParameters: 'R1 extends Object');
+    checkConstraintsUpper('R1*', 'Q*', ['R1 <: lib::Q*'],
+        typeParameters: 'R1 extends Object');
+    checkConstraintsLower('R1*', 'Q*', ['lib::Q <: R1'],
+        typeParameters: 'R1 extends Object');
   }
 
   void test_same_classes() {
-    _checkConstraintsUpper(_list(T1), _list(Q), testLib, ['T1 <: lib::Q*']);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsUpper('List<T1*>*', 'List<Q*>*', ['T1 <: lib::Q*'],
+        typeParameters: 'T1 extends Object*');
   }
 
   void test_typeParameters() {
-    _checkConstraintsUpper(
-        _map(T1, T2), _map(P, Q), testLib, ['T1 <: lib::P*', 'T2 <: lib::Q*']);
-    _checkConstraintsLower(
-        _map(T1, T2), _map(P, Q), testLib, ['lib::P* <: T1', 'lib::Q* <: T2']);
+    parseTestLibrary('class P; class Q; class Map<X, Y>;');
 
-    _checkConstraintsUpper(
-        _map(S1, S2), _map(P, Q), testLib, ['S1 <: lib::P*', 'S2 <: lib::Q*']);
-    _checkConstraintsLower(
-        _map(S1, S2), _map(P, Q), testLib, ['lib::P* <: S1', 'lib::Q* <: S2']);
-    _checkConstraintsUpper(
-        _map(S1.withDeclaredNullability(Nullability.legacy),
-            S2.withDeclaredNullability(Nullability.legacy)),
-        _map(P, Q),
-        testLib,
-        ['S1 <: lib::P*', 'S2 <: lib::Q*']);
-    _checkConstraintsLower(
-        _map(S1.withDeclaredNullability(Nullability.legacy),
-            S2.withDeclaredNullability(Nullability.legacy)),
-        _map(P, Q),
-        testLib,
-        ['lib::P <: S1', 'lib::Q <: S2']);
+    checkConstraintsUpper(
+        'Map<T1*, T2*>*', 'Map<P*, Q*>*', ['T1 <: lib::P*', 'T2 <: lib::Q*'],
+        typeParameters: 'T1 extends Object*, T2 extends Object*');
+    checkConstraintsLower(
+        'Map<T1*, T2*>*', 'Map<P*, Q*>*', ['lib::P* <: T1', 'lib::Q* <: T2'],
+        typeParameters: 'T1 extends Object*, T2 extends Object*');
 
-    _checkConstraintsUpper(
-        _map(R1, R2), _map(P, Q), testLib, ['R1 <: lib::P*', 'R2 <: lib::Q*']);
-    _checkConstraintsLower(
-        _map(R1, R2), _map(P, Q), testLib, ['lib::P* <: R1', 'lib::Q* <: R2']);
-    _checkConstraintsUpper(
-        _map(R1.withDeclaredNullability(Nullability.legacy),
-            R2.withDeclaredNullability(Nullability.legacy)),
-        _map(P, Q),
-        testLib,
-        ['R1 <: lib::P*', 'R2 <: lib::Q*']);
-    _checkConstraintsLower(
-        _map(R1.withDeclaredNullability(Nullability.legacy),
-            R2.withDeclaredNullability(Nullability.legacy)),
-        _map(P, Q),
-        testLib,
-        ['lib::P <: R1', 'lib::Q <: R2']);
+    checkConstraintsUpper(
+        'Map<S1, S2>*', 'Map<P*, Q*>*', ['S1 <: lib::P*', 'S2 <: lib::Q*'],
+        typeParameters: 'S1 extends Object?, S2 extends Object?');
+    checkConstraintsLower(
+        'Map<S1, S2>*', 'Map<P*, Q*>*', ['lib::P* <: S1', 'lib::Q* <: S2'],
+        typeParameters: 'S1 extends Object?, S2 extends Object?');
+    checkConstraintsUpper(
+        'Map<S1*, S2*>*', 'Map<P*, Q*>*', ['S1 <: lib::P*', 'S2 <: lib::Q*'],
+        typeParameters: 'S1 extends Object?, S2 extends Object?');
+    checkConstraintsLower(
+        'Map<S1*, S2*>*', 'Map<P*, Q*>*', ['lib::P <: S1', 'lib::Q <: S2'],
+        typeParameters: 'S1 extends Object?, S2 extends Object?');
+
+    checkConstraintsUpper(
+        'Map<R1, R2>*', 'Map<P*, Q*>*', ['R1 <: lib::P*', 'R2 <: lib::Q*'],
+        typeParameters: 'R1 extends Object, R2 extends Object');
+    checkConstraintsLower(
+        'Map<R1, R2>*', 'Map<P*, Q*>*', ['lib::P* <: R1', 'lib::Q* <: R2'],
+        typeParameters: 'R1 extends Object, R2 extends Object');
+    checkConstraintsUpper(
+        'Map<R1*, R2*>*', 'Map<P*, Q*>*', ['R1 <: lib::P*', 'R2 <: lib::Q*'],
+        typeParameters: 'R1 extends Object, R2 extends Object');
+    checkConstraintsLower(
+        'Map<R1*, R2*>*', 'Map<P*, Q*>*', ['lib::P <: R1', 'lib::Q <: R2'],
+        typeParameters: 'R1 extends Object, R2 extends Object');
   }
 
   void test_unknown_subtype_any() {
-    _checkConstraintsLower(Q, unknownType, testLib, []);
-    _checkConstraintsLower(T1, unknownType, testLib, []);
+    parseTestLibrary('class P; class Q;');
+
+    checkConstraintsLower('Q*', 'UNKNOWN', []);
+    checkConstraintsLower('T1*', 'UNKNOWN', [],
+        typeParameters: 'T1 extends Object*');
   }
 
-  Class _addClass(Class c) {
-    testLib.addClass(c);
-    return c;
+  void checkConstraintsLower(String type, String bound, List<String> expected,
+      {String typeParameters, String typeParametersToConstrain}) {
+    env.withTypeParameters(typeParameters ?? '',
+        (List<TypeParameter> typeParameterNodes) {
+      List<TypeParameter> typeParameterNodesToConstrain;
+      if (typeParametersToConstrain != null) {
+        Set<String> namesToConstrain =
+            typeParametersToConstrain.split(",").map((s) => s.trim()).toSet();
+        typeParameterNodesToConstrain = typeParameterNodes
+            .where((p) => namesToConstrain.contains(p.name))
+            .toList();
+      } else {
+        typeParameterNodesToConstrain = typeParameterNodes;
+      }
+      _checkConstraintsLowerTypes(
+          env.parseType(type, additionalTypes: additionalTypes),
+          env.parseType(bound, additionalTypes: additionalTypes),
+          testLibrary,
+          expected,
+          typeParameterNodesToConstrain);
+    });
   }
 
-  void _checkConstraintsLower(DartType type, DartType bound,
-      Library clientLibrary, List<String> expectedConstraints) {
-    _checkConstraintsHelper(type, bound, clientLibrary, expectedConstraints,
-        (gatherer, type, bound) => gatherer.tryConstrainLower(type, bound));
+  void _checkConstraintsLowerTypes(
+      DartType type,
+      DartType bound,
+      Library clientLibrary,
+      List<String> expectedConstraints,
+      List<TypeParameter> typeParameterNodesToConstrain) {
+    _checkConstraintsHelper(
+        type,
+        bound,
+        clientLibrary,
+        expectedConstraints,
+        (gatherer, type, bound) => gatherer.tryConstrainLower(type, bound),
+        typeParameterNodesToConstrain);
   }
 
-  void _checkConstraintsUpper(DartType type, DartType bound,
-      Library clientLibrary, List<String> expectedConstraints) {
-    _checkConstraintsHelper(type, bound, clientLibrary, expectedConstraints,
-        (gatherer, type, bound) => gatherer.tryConstrainUpper(type, bound));
+  void checkConstraintsUpper(String type, String bound, List<String> expected,
+      {String typeParameters, String typeParametersToConstrain}) {
+    env.withTypeParameters(typeParameters ?? '',
+        (List<TypeParameter> typeParameterNodes) {
+      List<TypeParameter> typeParameterNodesToConstrain;
+      if (typeParametersToConstrain != null) {
+        Set<String> namesToConstrain =
+            typeParametersToConstrain.split(",").map((s) => s.trim()).toSet();
+        typeParameterNodesToConstrain = typeParameterNodes
+            .where((p) => namesToConstrain.contains(p.name))
+            .toList();
+      } else {
+        typeParameterNodesToConstrain = typeParameterNodes;
+      }
+      _checkConstraintsUpperTypes(
+          env.parseType(type, additionalTypes: additionalTypes),
+          env.parseType(bound, additionalTypes: additionalTypes),
+          testLibrary,
+          expected,
+          typeParameterNodesToConstrain);
+    });
+  }
+
+  void _checkConstraintsUpperTypes(
+      DartType type,
+      DartType bound,
+      Library clientLibrary,
+      List<String> expectedConstraints,
+      List<TypeParameter> typeParameterNodesToConstrain) {
+    _checkConstraintsHelper(
+        type,
+        bound,
+        clientLibrary,
+        expectedConstraints,
+        (gatherer, type, bound) => gatherer.tryConstrainUpper(type, bound),
+        typeParameterNodesToConstrain);
   }
 
   void _checkConstraintsHelper(
@@ -375,20 +386,12 @@ class TypeConstraintGathererTest {
       DartType b,
       Library clientLibrary,
       List<String> expectedConstraints,
-      bool Function(TypeConstraintGatherer, DartType, DartType) tryConstrain) {
+      bool Function(TypeConstraintGatherer, DartType, DartType) tryConstrain,
+      List<TypeParameter> typeParameterNodesToConstrain) {
     var typeSchemaEnvironment = new TypeSchemaEnvironment(
         coreTypes, new ClassHierarchy(component, coreTypes));
     var typeConstraintGatherer = new TypeConstraintGatherer(
-        typeSchemaEnvironment,
-        [
-          T1.parameter,
-          T2.parameter,
-          S1.parameter,
-          S2.parameter,
-          R1.parameter,
-          R2.parameter
-        ],
-        testLib);
+        typeSchemaEnvironment, typeParameterNodesToConstrain, testLibrary);
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
         ? typeConstraintGatherer.computeConstraints(clientLibrary)
         : null;
@@ -413,24 +416,4 @@ class TypeConstraintGathererTest {
     });
     expect(constraintStrings, unorderedEquals(expectedConstraints));
   }
-
-  Class _class(String name,
-      {Supertype supertype,
-      List<TypeParameter> typeParameters,
-      List<Supertype> implementedTypes}) {
-    return new Class(
-        name: name,
-        supertype: supertype ?? objectClass.asThisSupertype,
-        typeParameters: typeParameters,
-        implementedTypes: implementedTypes);
-  }
-
-  DartType _iterable(DartType element) =>
-      new InterfaceType(iterableClass, Nullability.legacy, [element]);
-
-  DartType _list(DartType element) =>
-      new InterfaceType(listClass, Nullability.legacy, [element]);
-
-  DartType _map(DartType key, DartType value) =>
-      new InterfaceType(mapClass, Nullability.legacy, [key, value]);
 }

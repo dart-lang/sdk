@@ -48,7 +48,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     ..target = target
     ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = environmentDefines
-    ..experimentalFlags =
+    ..explicitExperimentalFlags =
         parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
             onError: (String message) {
       throw message;

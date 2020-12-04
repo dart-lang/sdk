@@ -17,9 +17,13 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 class DartUnitSignatureComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final AstNode _node;
+  ArgumentList _argumentList;
   DartUnitSignatureComputer(
       this._dartdocInfo, CompilationUnit _unit, int _offset)
       : _node = NodeLocator(_offset).searchWithin(_unit);
+
+  /// The [ArgumentList] node located by [compute].
+  ArgumentList get argumentList => _argumentList;
 
   bool get offsetIsValid => _node != null;
 
@@ -64,6 +68,8 @@ class DartUnitSignatureComputer {
       return null;
     }
 
+    _argumentList = args;
+
     final parameters =
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
@@ -74,9 +80,13 @@ class DartUnitSignatureComputer {
 
   ParameterInfo _convertParam(ParameterElement param) {
     return ParameterInfo(
-        param.isOptionalPositional
-            ? ParameterKind.OPTIONAL
-            : param.isPositional ? ParameterKind.REQUIRED : ParameterKind.NAMED,
+        param.isOptionalNamed
+            ? ParameterKind.OPTIONAL_NAMED
+            : param.isOptionalPositional
+                ? ParameterKind.OPTIONAL_POSITIONAL
+                : param.isRequiredNamed
+                    ? ParameterKind.REQUIRED_NAMED
+                    : ParameterKind.REQUIRED_POSITIONAL,
         param.displayName,
         param.type.getDisplayString(withNullability: false),
         defaultValue: param.defaultValueCode);

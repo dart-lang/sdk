@@ -36,7 +36,7 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ movl(compiler::Assembler::VMTagAddress(), EAX);
     __ call(EAX);
     __ movl(compiler::Assembler::VMTagAddress(),
-            compiler::Immediate(VMTag::kDartCompiledTagId));
+            compiler::Immediate(VMTag::kDartTagId));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

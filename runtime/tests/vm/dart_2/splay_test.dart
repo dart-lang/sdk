@@ -9,6 +9,10 @@
 // used for old nodes. Because of the way splay trees work, the engine
 // also has to deal with a lot of changes to the large tree object
 // graph.
+//
+// This file is copied into another directory and the default opt out scheme of
+// CFE using the pattern 'vm/dart_2' doesn't work, so opt it out explicitly.
+// @dart=2.9
 
 // VMOptions=
 // VMOptions=--no_concurrent_mark --no_concurrent_sweep
@@ -28,6 +32,7 @@
 // VMOptions=--verify_before_gc --verify_after_gc
 // VMOptions=--verify_store_buffer
 // VMOptions=--stress_write_barrier_elimination
+// VMOptions=--old_gen_heap_size=100
 
 import "dart:math";
 import 'package:benchmark_harness/benchmark_harness.dart';

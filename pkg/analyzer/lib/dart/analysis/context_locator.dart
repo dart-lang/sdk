@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
@@ -19,29 +18,6 @@ abstract class ContextLocator {
   /// resource provider will be used.
   factory ContextLocator({ResourceProvider resourceProvider}) =
       ContextLocatorImpl;
-
-  /// Return a list of the analysis contexts that should be used to analyze the
-  /// files that are included by the list of [includedPaths] and not excluded by
-  /// the list of [excludedPaths].
-  ///
-  /// If an [optionsFile] is specified, then it is assumed to be the path to the
-  /// `analysis_options.yaml` (or `.analysis_options`) file that should be used
-  /// in place of the ones that would be found by looking in the directories
-  /// containing the context roots.
-  ///
-  /// If a [packagesFile] is specified, then it is assumed to be the path to the
-  /// `.packages` file that should be used in place of the one that would be
-  /// found by looking in the directories containing the context roots.
-  ///
-  /// If the [sdkPath] is specified, then it is used as the path to the root of
-  /// the SDK that should be used during analysis.
-  @deprecated
-  List<AnalysisContext> locateContexts(
-      {@required List<String> includedPaths,
-      List<String> excludedPaths = const <String>[],
-      String optionsFile,
-      String packagesFile,
-      String sdkPath});
 
   /// Return a list of the context roots that should be used to analyze the
   /// files that are included by the list of [includedPaths] and not excluded by

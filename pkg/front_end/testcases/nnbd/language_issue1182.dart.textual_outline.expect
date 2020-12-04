@@ -1,0 +1,6 @@
+extension Test<T> (){}
+on T (){}
+class Foo<S extends num> {
+  void test1(S x) {}
+}
+void main() {}

@@ -1,0 +1,14 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue_43084_lib.dart";
+
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+
+typedef F = () →* dynamic;

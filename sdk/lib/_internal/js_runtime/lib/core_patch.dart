@@ -8,6 +8,8 @@ import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
 import 'dart:_js_helper'
     show
+        assertUnreachable,
+        boolConversionCheck,
         checkInt,
         Closure,
         ConstantMap,
@@ -24,7 +26,7 @@ import 'dart:_js_helper'
         getTraceFromException,
         RuntimeError;
 
-import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
+import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
 import 'dart:_rti' show getRuntimeType;
 
@@ -448,8 +450,33 @@ class List<E> {
 
   @patch
   factory List.of(Iterable<E> elements, {bool growable: true}) {
-    // TODO(32937): Specialize to benefit from known element type.
-    return List.from(elements, growable: growable);
+    if (growable == true) return List._of(elements);
+    if (growable == false) return List._fixedOf(elements);
+
+    // [growable] may be `null` in legacy mode. Fail with the same error as if
+    // [growable] was used in a condition position in spec mode.
+    boolConversionCheck(growable);
+    assertUnreachable();
+  }
+
+  factory List._ofArray(Iterable<E> elements) {
+    return JSArray<E>.markGrowable(
+        JS('effects:none;depends:no-static', '#.slice(0)', elements));
+  }
+
+  factory List._of(Iterable<E> elements) {
+    if (elements is JSArray) return List._ofArray(elements);
+    // This is essentially `<E>[]..addAll(elements)`, but without a check for
+    // modifiability or ConcurrentModificationError on the receiver.
+    List<E> list = <E>[];
+    for (final e in elements) {
+      list.add(e);
+    }
+    return list;
+  }
+
+  factory List._fixedOf(Iterable<E> elements) {
+    return makeListFixedLength(List._of(elements));
   }
 
   @patch

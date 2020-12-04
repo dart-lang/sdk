@@ -171,16 +171,16 @@ class Foo extends core::Object {
   static get staticGetter() → dynamic
     return null;
   static set staticSetter(dynamic _) → void {}
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method use(dynamic x) → dynamic {
   if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
@@ -337,3 +337,12 @@ constants  {
   #C1 = 42
   #C2 = tearoff self::Foo::staticFunction
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///static.dart:32:13 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///static.dart:36:13 -> TearOffConstant(Foo.staticFunction)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///static.dart:75:24 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///static.dart:76:28 -> IntConstant(42)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///static.dart:79:24 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///static.dart:80:28 -> TearOffConstant(Foo.staticFunction)
+Extra constant evaluation: evaluated: 122, effectively constant: 6

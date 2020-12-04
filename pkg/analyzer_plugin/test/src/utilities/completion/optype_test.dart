@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -50,7 +48,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
     //
     // Compute the OpType.
     //
-    var resolvedUnit = await driver.getResult(testPath);
+    var resolvedUnit = await resolveFile(testPath);
     var completionTarget =
         CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
     var opType = OpType.forCompletion(completionTarget, completionOffset);
@@ -104,7 +102,7 @@ Actual OpType does not match expected. Actual matches
   @override
   void setUp() {
     super.setUp();
-    testPath = convertPath('/completionTest.dart');
+    testPath = convertPath('$testPackageRootPath/completionTest.dart');
   }
 }
 
@@ -1688,7 +1686,8 @@ main() {
     await assertOpType(
         completionLocation: 'InterpolationExpression_expression',
         constructors: true,
-        returnValue: true);
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_interpolationExpression_block() async {
@@ -2156,9 +2155,35 @@ void f(int a, {int b}) {}
         voidReturn: true);
   }
 
-  Future<void> test_returnStatement_empty() async {
-    // ReturnStatement  Block
-    addTestSource('f() { var vvv = 42; return ^ }');
+  Future<void> test_returnStatement_empty_noSemicolon() async {
+    addTestSource('f() { return ^ }');
+    await assertOpType(
+        completionLocation: 'ReturnStatement_expression',
+        constructors: true,
+        returnValue: true,
+        typeNames: true);
+  }
+
+  Future<void> test_returnStatement_empty_semicolon() async {
+    addTestSource('f() { return ^; }');
+    await assertOpType(
+        completionLocation: 'ReturnStatement_expression',
+        constructors: true,
+        returnValue: true,
+        typeNames: true);
+  }
+
+  Future<void> test_returnStatement_nonEmpty_noSemicolon() async {
+    addTestSource('f() { return a^ }');
+    await assertOpType(
+        completionLocation: 'ReturnStatement_expression',
+        constructors: true,
+        returnValue: true,
+        typeNames: true);
+  }
+
+  Future<void> test_returnStatement_nonEmpty_semicolon() async {
+    addTestSource('f() { return a^; }');
     await assertOpType(
         completionLocation: 'ReturnStatement_expression',
         constructors: true,

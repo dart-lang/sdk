@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -56,7 +54,7 @@ class AnalysisSignatureTest extends AbstractAnalysisTest {
 class MyClass {
   /// MyClass constructor doc
   MyClass(String name, {int length}) {}
-} 
+}
 main() {
   var a = new MyClass("Danny", /*^*/);
 }
@@ -65,10 +63,12 @@ main() {
     expect(result.name, equals('MyClass'));
     expect(result.dartdoc, equals('MyClass constructor doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'length', 'int')));
   }
 
   Future<void> test_constructor_factory() async {
@@ -81,7 +81,7 @@ class MyClass {
   factory MyClass(String name, {int length}) {
     return new MyClass._();
   }
-} 
+}
 main() {
   var a = new MyClass("Danny", /*^*/);
 }
@@ -90,10 +90,12 @@ main() {
     expect(result.name, equals('MyClass'));
     expect(result.dartdoc, equals('MyClass factory constructor doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'length', 'int')));
   }
 
   Future<void> test_constructor_named() async {
@@ -102,7 +104,7 @@ main() {
 class MyClass {
   /// MyClass.foo constructor doc
   MyClass.foo(String name, {int length}) {}
-} 
+}
 main() {
   var a = new MyClass.foo("Danny", /*^*/);
 }
@@ -111,10 +113,12 @@ main() {
     expect(result.name, equals('MyClass.foo'));
     expect(result.dartdoc, equals('MyClass.foo constructor doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'length', 'int')));
   }
 
   Future<void> test_does_not_walk_up_over_closure() async {
@@ -172,8 +176,10 @@ main() {
     expect(result.name, equals('f'));
     expect(result.dartdoc, equals('f doc'));
     expect(result.parameters, hasLength(1));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 's', 'String')));
+    expect(
+        result.parameters[0],
+        equals(
+            ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 's', 'String')));
   }
 
   Future<void> test_function_from_other_file() async {
@@ -194,10 +200,14 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
-    expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
+    expect(
+        result.parameters[1],
+        equals(
+            ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 'length', 'int')));
   }
 
   Future<void> test_function_irrelevant_parens() async {
@@ -212,10 +222,14 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
-    expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
+    expect(
+        result.parameters[1],
+        equals(
+            ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 'length', 'int')));
   }
 
   Future<void> test_function_named() async {
@@ -230,10 +244,12 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'length', 'int')));
   }
 
   Future<void> test_function_named_with_default_int() async {
@@ -248,11 +264,13 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int',
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'length', 'int',
             defaultValue: '1')));
   }
 
@@ -268,11 +286,13 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'email', 'String',
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'email', 'String',
             defaultValue: '"a@b.c"')));
   }
 
@@ -291,8 +311,10 @@ main() {
     expect(result.name, equals('two'));
     expect(result.dartdoc, equals('two doc'));
     expect(result.parameters, hasLength(1));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'two', 'String')));
+    expect(
+        result.parameters[0],
+        equals(
+            ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 'two', 'String')));
   }
 
   Future<void> test_function_nested_call_outer() async {
@@ -310,8 +332,10 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(1));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'one', 'String')));
+    expect(
+        result.parameters[0],
+        equals(
+            ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 'one', 'String')));
   }
 
   Future<void> test_function_no_dart_doc() async {
@@ -325,10 +349,14 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, isNull);
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
-    expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
+    expect(
+        result.parameters[1],
+        equals(
+            ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 'length', 'int')));
   }
 
   Future<void> test_function_optional() async {
@@ -343,10 +371,14 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
-    expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.OPTIONAL, 'length', 'int')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
+    expect(
+        result.parameters[1],
+        equals(
+            ParameterInfo(ParameterKind.OPTIONAL_POSITIONAL, 'length', 'int')));
   }
 
   Future<void> test_function_optional_with_default() async {
@@ -361,11 +393,13 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(ParameterInfo(ParameterKind.OPTIONAL, 'length', 'int',
+        equals(ParameterInfo(ParameterKind.OPTIONAL_POSITIONAL, 'length', 'int',
             defaultValue: '11')));
   }
 
@@ -381,10 +415,14 @@ main() {
     expect(result.name, equals('one'));
     expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
-    expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
+    expect(
+        result.parameters[1],
+        equals(
+            ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 'length', 'int')));
   }
 
   Future<void> test_function_zero_arguments() async {
@@ -429,7 +467,7 @@ class MyClass {
   MyClass(String name, {int length}) {}
   /// MyClass instance method
   myMethod(String name, {int length}) {}
-} 
+}
 main() {
   var a = new MyClass("Danny");
   a.myMethod("Danny", /*^*/);
@@ -439,10 +477,12 @@ main() {
     expect(result.name, equals('myMethod'));
     expect(result.dartdoc, equals('MyClass instance method'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'length', 'int')));
   }
 
   Future<void> test_method_static() async {
@@ -453,7 +493,7 @@ class MyClass {
   MyClass(String name, {int length}) {}
   /// MyClass static method
   static void myStaticMethod(String name, {int length}) {}
-} 
+}
 main() {
   MyClass.myStaticMethod("Danny", /*^*/);
 }
@@ -462,9 +502,11 @@ main() {
     expect(result.name, equals('myStaticMethod'));
     expect(result.dartdoc, equals('MyClass static method'));
     expect(result.parameters, hasLength(2));
-    expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
+    expect(
+        result.parameters[0],
+        equals(ParameterInfo(
+            ParameterKind.REQUIRED_POSITIONAL, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
+        equals(ParameterInfo(ParameterKind.OPTIONAL_NAMED, 'length', 'int')));
   }
 }

@@ -23,11 +23,14 @@
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/simulator.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+#define Z (thread->zone())
 
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
@@ -49,7 +52,7 @@ ISOLATE_UNIT_TEST_CASE(Class) {
 
   // Class has no fields and no functions yet.
   EXPECT_EQ(Array::Handle(cls.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(cls.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(cls.current_functions()).Length(), 0);
 
   // Setup the interfaces in the class.
   // Normally the class finalizer is resolving super types and interfaces
@@ -118,13 +121,16 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   // The class can now be finalized.
   cls.Finalize();
 
   function_name = String::New("Foo");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(function.IsNull());
   function = cls.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
@@ -132,7 +138,7 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT_EQ(cls.raw(), function.Owner());
   EXPECT(function.is_static());
   function_name = String::New("baz");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT(function_name.Equals(String::Handle(function.name())));
   EXPECT_EQ(cls.raw(), function.Owner());
@@ -141,13 +147,13 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT(function.IsNull());
 
   function_name = String::New("foo");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(0, function.num_fixed_parameters());
   EXPECT(!function.HasOptionalParameters());
 
   function_name = String::New("bar");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(kNumFixedParameters, function.num_fixed_parameters());
   EXPECT_EQ(kNumOptionalParameters, function.NumOptionalParameters());
@@ -197,8 +203,12 @@ ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
     }
 
     cls.set_interfaces(Array::empty_array());
-    cls.SetFunctions(Array::empty_array());
-    cls.SetFields(fields);
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      cls.SetFunctions(Array::empty_array());
+      cls.SetFields(fields);
+    }
     cls.Finalize();
 
     instance = Instance::New(cls);
@@ -251,8 +261,8 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   OS::PrintErr("2: %s\n", type_arguments2.ToCString());
   EXPECT(type_arguments1.Equals(type_arguments2));
   TypeArguments& type_arguments3 = TypeArguments::Handle();
-  type_arguments1.Canonicalize();
-  type_arguments3 ^= type_arguments2.Canonicalize();
+  type_arguments1.Canonicalize(thread, nullptr);
+  type_arguments3 ^= type_arguments2.Canonicalize(thread, nullptr);
   EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
 }
 
@@ -296,7 +306,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
 
   // EmptyClass has no fields and no functions.
   EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.current_functions()).Length(), 0);
 
   ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
@@ -311,7 +321,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
 
   // No fields, functions, or super type for the OneFieldClass.
   EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.current_functions()).Length(), 0);
   EXPECT_EQ(empty_class.super_type(), AbstractType::null());
   ClassFinalizer::FinalizeTypesInClass(one_field_class);
 
@@ -322,7 +332,10 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
                  Object::dynamic_type(), TokenPosition::kMinSource,
                  TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
-  one_field_class.SetFields(one_fields);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    one_field_class.SetFields(one_fields);
+  }
   one_field_class.Finalize();
   intptr_t header_size = sizeof(ObjectLayout);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
@@ -1338,7 +1351,7 @@ ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
   const String& clef = String::Handle(String::FromUTF16(clef_utf16, 2));
   int32_t clef_utf32[] = {0x1D11E};
   EXPECT(clef.Equals(clef_utf32, 1));
-  intptr_t hash32 = String::Hash(clef_utf32, 1);
+  intptr_t hash32 = String::Hash(String::FromUTF32(clef_utf32, 1));
   EXPECT_EQ(hash32, clef.Hash());
   EXPECT_EQ(hash32, String::HashConcat(
                         String::Handle(String::FromUTF16(clef_utf16, 1)),
@@ -1611,9 +1624,7 @@ ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   EXPECT(!th_str.Equals(chars, 3));
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = {0xF6, 0xF1, 0xE9};
@@ -1817,7 +1828,8 @@ ISOLATE_UNIT_TEST_CASE(Symbol) {
   uint16_t char16[] = {'E', 'l', 'f'};
   String& elf1 = String::Handle(Symbols::FromUTF16(thread, char16, 3));
   int32_t char32[] = {'E', 'l', 'f'};
-  String& elf2 = String::Handle(Symbols::FromUTF32(thread, char32, 3));
+  String& elf2 = String::Handle(
+      Symbols::New(thread, String::Handle(String::FromUTF32(char32, 3))));
   EXPECT(elf1.IsSymbol());
   EXPECT(elf2.IsSymbol());
   EXPECT_EQ(elf1.raw(), Symbols::New(thread, "Elf"));
@@ -1832,13 +1844,14 @@ ISOLATE_UNIT_TEST_CASE(SymbolUnicode) {
   EXPECT_EQ(monkey.raw(), Symbols::New(thread, monkey_utf8));
 
   int32_t kMonkeyFace = 0x1f435;
-  String& monkey2 = String::Handle(Symbols::FromCharCode(thread, kMonkeyFace));
+  String& monkey2 = String::Handle(
+      Symbols::New(thread, String::Handle(String::FromUTF32(&kMonkeyFace, 1))));
   EXPECT_EQ(monkey.raw(), monkey2.raw());
 
   // Unicode cat face with tears of joy.
   int32_t kCatFaceWithTearsOfJoy = 0x1f639;
-  String& cat =
-      String::Handle(Symbols::FromCharCode(thread, kCatFaceWithTearsOfJoy));
+  String& cat = String::Handle(Symbols::New(
+      thread, String::Handle(String::FromUTF32(&kCatFaceWithTearsOfJoy, 1))));
 
   uint16_t cat_utf16[] = {0xd83d, 0xde39};
   String& cat2 = String::Handle(Symbols::FromUTF16(thread, cat_utf16, 2));
@@ -2341,24 +2354,133 @@ ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   }
 }
 
-ISOLATE_UNIT_TEST_CASE(Script) {
-  const char* url_chars = "builtin:test-case";
-  const char* source_chars = "This will not compile.";
-  const String& url = String::Handle(String::New(url_chars));
-  const String& source = String::Handle(String::New(source_chars));
-  const Script& script = Script::Handle(Script::New(url, source));
+static void CheckLinesWithOffset(Zone* zone, const intptr_t offset) {
+  const char* url_chars = "";
+  // Nine lines, mix of \n, \r, \r\n line terminators, lines 3, 4, 7, and 8
+  // are non-empty. Ends with a \r as a double-check that the \r followed by
+  // \n check doesn't go out of bounds.
+  //
+  // Line starts:             1 2 3    4      5 6   7    8    9
+  const char* source_chars = "\n\nxyz\nabc\r\n\n\r\ndef\rghi\r";
+  const String& url = String::Handle(zone, String::New(url_chars));
+  const String& source = String::Handle(zone, String::New(source_chars));
+  const Script& script = Script::Handle(zone, Script::New(url, source));
   EXPECT(!script.IsNull());
   EXPECT(script.IsScript());
-  String& str = String::Handle(script.url());
-  EXPECT_EQ(17, str.Length());
-  EXPECT_EQ('b', str.CharAt(0));
-  EXPECT_EQ(':', str.CharAt(7));
-  EXPECT_EQ('e', str.CharAt(16));
-  str = script.Source();
-  EXPECT_EQ(22, str.Length());
-  EXPECT_EQ('T', str.CharAt(0));
-  EXPECT_EQ('n', str.CharAt(10));
-  EXPECT_EQ('.', str.CharAt(21));
+  script.SetLocationOffset(offset, 10);
+  auto& str = String::Handle(zone);
+  str = script.GetLine(offset + 1);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 2);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 3);
+  EXPECT_STREQ("xyz", str.ToCString());
+  str = script.GetLine(offset + 4);
+  EXPECT_STREQ("abc", str.ToCString());
+  str = script.GetLine(offset + 5);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 6);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 7);
+  EXPECT_STREQ("def", str.ToCString());
+  str = script.GetLine(offset + 8);
+  EXPECT_STREQ("ghi", str.ToCString());
+  str = script.GetLine(offset + 9);
+  EXPECT_STREQ("", str.ToCString());
+  // Using "column" of \r at end of line for to_column.
+  str = script.GetSnippet(offset + 3, 1, offset + 7, 4);
+  EXPECT_STREQ("xyz\nabc\r\n\n\r\ndef", str.ToCString());
+  // Lines not in the range of (1-based) line indices in the source should
+  // return the empty string.
+  str = script.GetLine(-500);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(0);
+  EXPECT_STREQ("", str.ToCString());
+  if (offset > 0) {
+    str = script.GetLine(1);  // Absolute, not relative to offset.
+    EXPECT_STREQ("", str.ToCString());
+  }
+  if (offset > 2) {
+    str = script.GetLine(3);  // Absolute, not relative to offset.
+    EXPECT_STREQ("", str.ToCString());
+  }
+  str = script.GetLine(offset - 500);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 10);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 10000);
+  EXPECT_STREQ("", str.ToCString());
+  // Snippets not contained within the source should be the null string.
+  str = script.GetSnippet(-1, 1, 2, 2);
+  EXPECT(str.IsNull());
+  str = script.GetSnippet(offset - 1, 1, offset + 2, 2);
+  EXPECT(str.IsNull());
+  str = script.GetSnippet(offset + 5, 15, offset + 6, 2);
+  EXPECT(str.IsNull());
+  str = script.GetSnippet(offset + 20, 1, offset + 30, 1);
+  EXPECT(str.IsNull());
+}
+
+ISOLATE_UNIT_TEST_CASE(Script) {
+  {
+    const char* url_chars = "builtin:test-case";
+    const char* source_chars = "This will not compile.";
+    const String& url = String::Handle(String::New(url_chars));
+    const String& source = String::Handle(String::New(source_chars));
+    const Script& script = Script::Handle(Script::New(url, source));
+    EXPECT(!script.IsNull());
+    EXPECT(script.IsScript());
+    String& str = String::Handle(script.url());
+    EXPECT_EQ(17, str.Length());
+    EXPECT_EQ('b', str.CharAt(0));
+    EXPECT_EQ(':', str.CharAt(7));
+    EXPECT_EQ('e', str.CharAt(16));
+    str = script.Source();
+    EXPECT_EQ(22, str.Length());
+    EXPECT_EQ('T', str.CharAt(0));
+    EXPECT_EQ('n', str.CharAt(10));
+    EXPECT_EQ('.', str.CharAt(21));
+  }
+
+  CheckLinesWithOffset(Z, 0);
+  CheckLinesWithOffset(Z, 500);
+  CheckLinesWithOffset(Z, 10000);
+
+  {
+    const char* url_chars = "";
+    // Single line, no terminators.
+    const char* source_chars = "abc";
+    const String& url = String::Handle(String::New(url_chars));
+    const String& source = String::Handle(String::New(source_chars));
+    const Script& script = Script::Handle(Script::New(url, source));
+    EXPECT(!script.IsNull());
+    EXPECT(script.IsScript());
+    auto& str = String::Handle(Z);
+    str = script.GetLine(1);
+    EXPECT_STREQ("abc", str.ToCString());
+    str = script.GetSnippet(1, 1, 1, 2);
+    EXPECT_STREQ("a", str.ToCString());
+    str = script.GetSnippet(1, 2, 1, 4);
+    EXPECT_STREQ("bc", str.ToCString());
+    // Lines not in the source should return the empty string.
+    str = script.GetLine(-500);
+    EXPECT_STREQ("", str.ToCString());
+    str = script.GetLine(0);
+    EXPECT_STREQ("", str.ToCString());
+    str = script.GetLine(2);
+    EXPECT_STREQ("", str.ToCString());
+    str = script.GetLine(10000);
+    EXPECT_STREQ("", str.ToCString());
+    // Snippets not contained within the source should be the null string.
+    str = script.GetSnippet(-1, 1, 1, 2);
+    EXPECT(str.IsNull());
+    str = script.GetSnippet(2, 1, 2, 2);
+    EXPECT(str.IsNull());
+    str = script.GetSnippet(1, 1, 1, 5);
+    EXPECT(str.IsNull());
+  }
 
   TransitionVMToNative transition(thread);
   const char* kScript = "main() {}";
@@ -2511,7 +2633,10 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
@@ -2786,7 +2911,7 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
 }
 
 ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
-  DescriptorList* builder = new DescriptorList(0);
+  DescriptorList* builder = new DescriptorList(thread->zone());
 
   // kind, pc_offset, deopt_id, token_pos, try_index, yield_index
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 1, TokenPosition(20),
@@ -2856,7 +2981,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 }
 
 ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
-  DescriptorList* builder = new DescriptorList(0);
+  DescriptorList* builder = new DescriptorList(thread->zone());
 
   // kind, pc_offset, deopt_id, token_pos, try_index
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 1,
@@ -2934,12 +3059,13 @@ static ClassPtr CreateTestClass(const char* name) {
 }
 
 static FieldPtr CreateTestField(const char* name) {
+  auto thread = Thread::Current();
   const Class& cls = Class::Handle(CreateTestClass("global:"));
-  const String& field_name =
-      String::Handle(Symbols::New(Thread::Current(), name));
+  const String& field_name = String::Handle(Symbols::New(thread, name));
   const Field& field = Field::Handle(Field::New(
       field_name, true, false, false, true, false, cls, Object::dynamic_type(),
       TokenPosition::kMinSource, TokenPosition::kMinSource));
+  thread->isolate_group()->RegisterStaticField(field, Instance::sentinel());
   return field.raw();
 }
 
@@ -3049,46 +3175,106 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
-  const ICData& scall_icdata =
-      ICData::Handle(ICData::New(function, target_name, args_descriptor, 57,
-                                 kNumArgsChecked, ICData::kInstance));
-  scall_icdata.AddTarget(target1);
+  const ICData& scall_icdata = ICData::Handle(
+      ICData::NewForStaticCall(function, target1, args_descriptor, 57,
+                               kNumArgsChecked, ICData::kInstance));
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }
 
 ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   SafepointMutexLocker ml(thread->isolate_group()->subtype_test_cache_mutex());
 
-  String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
+  String& class1_name = String::Handle(Symbols::New(thread, "EmptyClass1"));
   Script& script = Script::Handle();
-  const Class& empty_class =
-      Class::Handle(CreateDummyClass(class_name, script));
+  const Class& empty_class1 =
+      Class::Handle(CreateDummyClass(class1_name, script));
+  String& class2_name = String::Handle(Symbols::New(thread, "EmptyClass2"));
+  const Class& empty_class2 =
+      Class::Handle(CreateDummyClass(class2_name, script));
   SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
   EXPECT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());
-  const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class.id()));
+  const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class1.id()));
+  const AbstractType& dest_type =
+      AbstractType::Handle(Type::NewNonParameterizedType(empty_class2));
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
   const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
   const TypeArguments& targ_3 = TypeArguments::Handle(TypeArguments::New(5));
   const TypeArguments& targ_4 = TypeArguments::Handle(TypeArguments::New(6));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, targ_3, targ_4,
-                 Bool::True());
+  cache.AddCheck(class_id_or_fun, dest_type, targ_0, targ_1, targ_2, targ_3,
+                 targ_4, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
+  AbstractType& test_dest_type = AbstractType::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   TypeArguments& test_targ_2 = TypeArguments::Handle();
   TypeArguments& test_targ_3 = TypeArguments::Handle();
   TypeArguments& test_targ_4 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
-  cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_targ_2, &test_targ_3, &test_targ_4, &test_result);
+  cache.GetCheck(0, &test_class_id_or_fun, &test_dest_type, &test_targ_0,
+                 &test_targ_1, &test_targ_2, &test_targ_3, &test_targ_4,
+                 &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
+  EXPECT_EQ(dest_type.raw(), test_dest_type.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
   EXPECT_EQ(targ_2.raw(), test_targ_2.raw());
+  EXPECT_EQ(targ_3.raw(), test_targ_3.raw());
+  EXPECT_EQ(targ_4.raw(), test_targ_4.raw());
   EXPECT_EQ(Bool::True().raw(), test_result.raw());
+}
+
+ISOLATE_UNIT_TEST_CASE(MegamorphicCache) {
+  const auto& name = String::Handle(String::New("name"));
+  const auto& args_descriptor =
+      Array::Handle(ArgumentsDescriptor::NewBoxed(1, 1, Object::null_array()));
+
+  const auto& cidA = Smi::Handle(Smi::New(1));
+  const auto& cidB = Smi::Handle(Smi::New(2));
+
+  const auto& valueA = Smi::Handle(Smi::New(42));
+  const auto& valueB = Smi::Handle(Smi::New(43));
+
+  // Test normal insert/lookup methods.
+  {
+    const auto& cache =
+        MegamorphicCache::Handle(MegamorphicCache::New(name, args_descriptor));
+
+    EXPECT(cache.Lookup(cidA) == Object::null());
+    cache.EnsureContains(cidA, valueA);
+    EXPECT(cache.Lookup(cidA) == valueA.raw());
+
+    EXPECT(cache.Lookup(cidB) == Object::null());
+    cache.EnsureContains(cidB, valueB);
+    EXPECT(cache.Lookup(cidB) == valueB.raw());
+  }
+
+  // Try to insert many keys to hit collisions & growth.
+  {
+    const auto& cache =
+        MegamorphicCache::Handle(MegamorphicCache::New(name, args_descriptor));
+
+    auto& cid = Smi::Handle();
+    auto& value = Object::Handle();
+    for (intptr_t i = 0; i < 100; ++i) {
+      cid = Smi::New(100 * i);
+      if (cid.Value() == kIllegalCid) continue;
+
+      value = Smi::New(i);
+      cache.EnsureContains(cid, value);
+    }
+    auto& expected = Object::Handle();
+    for (intptr_t i = 0; i < 100; ++i) {
+      cid = Smi::New(100 * i);
+      if (cid.Value() == kIllegalCid) continue;
+
+      expected = Smi::New(i);
+      value = cache.Lookup(cid);
+      EXPECT(Smi::Cast(value).Equals(Smi::Cast(expected)));
+    }
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(FieldTests) {
@@ -3206,6 +3392,12 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   // Named double-private constructor match.  Yes, this happens.
   mangled_name = OneByteString::New("foo@12345.named@12345");
   bare_name = OneByteString::New("foo.named");
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
+  // Named double-private constructor match where the caller knows the private
+  // key.  Yes, this also happens.
+  mangled_name = OneByteString::New("foo@12345.named@12345");
+  bare_name = OneByteString::New("foo@12345.named");
   EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named double-private constructor mismatch.
@@ -3709,13 +3901,18 @@ ISOLATE_UNIT_TEST_CASE(MirrorReference) {
 }
 
 static FunctionPtr GetFunction(const Class& cls, const char* name) {
-  const Function& result = Function::Handle(
-      cls.LookupDynamicFunction(String::Handle(String::New(name))));
+  Thread* thread = Thread::Current();
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
+  const Function& result = Function::Handle(Resolver::ResolveDynamicFunction(
+      Z, cls, String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
 
 static FunctionPtr GetStaticFunction(const Class& cls, const char* name) {
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  EXPECT(error == Error::null());
   const Function& result = Function::Handle(
       cls.LookupStaticFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
@@ -3750,7 +3947,10 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
@@ -3786,7 +3986,10 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
   cls.Finalize();
 
   // Add invocation dispatcher.
@@ -4051,7 +4254,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 
@@ -4059,7 +4262,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 
@@ -4067,7 +4270,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 }
@@ -4161,10 +4364,12 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   }
   // Function reference
   {
+    Thread* thread = Thread::Current();
     JSONStream js;
     Class& cls = Class::Handle(isolate->object_store()->bool_class());
     const String& func_name = String::Handle(String::New("toString"));
-    Function& func = Function::Handle(cls.LookupFunction(func_name));
+    Function& func =
+        Function::Handle(Resolver::ResolveFunction(Z, cls, func_name));
     ASSERT(!func.IsNull());
     func.PrintJSON(&js, true);
     ElideJSONSubstring("classes", js.ToCString(), buffer);

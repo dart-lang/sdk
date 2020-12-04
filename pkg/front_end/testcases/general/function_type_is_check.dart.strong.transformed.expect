@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
 
-import "package:expect/expect.dart";
+import "package:expect/expect.dart" show Expect;
 
 static method test(dynamic f) → dynamic {
   if(f is (core::Object*, core::StackTrace*) →* void)
@@ -14,5 +14,5 @@ static method test(dynamic f) → dynamic {
     return 100;
 }
 static method main() → dynamic {
-  exp::Expect::equals(111, self::test(() → core::Null? => null).+(self::test((core::Object* o) → core::Null? => null)).+(self::test((core::Object* o, core::StackTrace* t) → core::Null? => null)));
+  exp::Expect::equals(111, self::test(() → Null => null).+(self::test((core::Object* o) → Null => null)).+(self::test((core::Object* o, core::StackTrace* t) → Null => null)));
 }

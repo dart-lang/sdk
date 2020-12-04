@@ -6,8 +6,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class MissingDefaultValueForParameterTest extends DriverResolutionTest
+class MissingDefaultValueForParameterTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_constructor_externalFactory_nonNullable_named_optional_noDefault() async {
     await assertNoErrorsInCode('''
@@ -162,6 +161,86 @@ class A {
   A(void this.f([int a, int? b]));
 }
 ''');
+  }
+
+  test_function_external_nonNullable_named_optional_default() async {
+    await assertNoErrorsInCode('''
+external void f({int a = 0});
+''');
+  }
+
+  test_function_external_nonNullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f({int a});
+''');
+  }
+
+  test_function_external_nonNullable_named_required_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f({required int a});
+''');
+  }
+
+  test_function_external_nonNullable_positional_optional_default() async {
+    await assertNoErrorsInCode('''
+external void f([int a = 0]);
+''');
+  }
+
+  test_function_external_nonNullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f([int a]);
+''');
+  }
+
+  test_function_external_nonNullable_positional_required_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f(int a);
+''');
+  }
+
+  test_function_external_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f({int? a});
+''');
+  }
+
+  test_function_external_nullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f([int? a]);
+''');
+  }
+
+  test_function_native_nonNullable_named_optional_default() async {
+    await assertErrorsInCode('''
+void f({int a = 0}) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7),
+    ]);
+  }
+
+  test_function_native_nonNullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+void f({int a}) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7),
+    ]);
+  }
+
+  test_function_native_nonNullable_positional_optional_default() async {
+    await assertErrorsInCode('''
+void f([int a = 0]) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7),
+    ]);
+  }
+
+  test_function_native_nonNullable_positional_optional_noDefault() async {
+    await assertErrorsInCode('''
+void f([int a]) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7),
+    ]);
   }
 
   test_function_nonNullable_named_optional_default() async {

@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +18,7 @@ main() {
 
 @reflectiveTest
 class NotInitializedPotentiallyNonNullableLocalVariableTest
-    extends DriverResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_assignment_leftExpression() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -119,7 +118,9 @@ void f() {
   (v = 0) ?? 0;
   v;
 }
-''', [error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1)]);
+''', [
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
+    ]);
   }
 
   test_binaryExpression_ifNull_right() async {
@@ -137,7 +138,7 @@ void f(int a) {
 
   test_binaryExpression_logicalAnd_left() async {
     await assertNoErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   ((v = 0) >= 0) && c;
   v;
@@ -147,19 +148,19 @@ main(bool c) {
 
   test_binaryExpression_logicalAnd_right() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   c && ((v = 0) >= 0);
   v;
 }
 ''', [
-      _notAssignedError(49, 1),
+      _notAssignedError(51, 1),
     ]);
   }
 
   test_binaryExpression_logicalOr_left() async {
     await assertNoErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   ((v = 0) >= 0) || c;
   v;
@@ -169,13 +170,13 @@ main(bool c) {
 
   test_binaryExpression_logicalOr_right() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   c || ((v = 0) >= 0);
   v;
 }
 ''', [
-      _notAssignedError(49, 1),
+      _notAssignedError(51, 1),
     ]);
   }
 
@@ -833,7 +834,7 @@ void f() {
 
   test_if_then() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     v = 0;
@@ -841,13 +842,13 @@ main(bool c) {
   v;
 }
 ''', [
-      _notAssignedError(52, 1),
+      _notAssignedError(54, 1),
     ]);
   }
 
   test_if_thenElse_all() async {
     await assertNoErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     v = 0;
@@ -863,7 +864,7 @@ main(bool c) {
 
   test_if_thenElse_else() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     // not assigned
@@ -873,13 +874,13 @@ main(bool c) {
   v;
 }
 ''', [
-      _notAssignedError(83, 1),
+      _notAssignedError(85, 1),
     ]);
   }
 
   test_if_thenElse_then() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     v = 0;
@@ -889,7 +890,7 @@ main(bool c) {
   v;
 }
 ''', [
-      _notAssignedError(83, 1),
+      _notAssignedError(85, 1),
     ]);
   }
 
@@ -1030,7 +1031,6 @@ void f(int e) {
       break;
     case 2:
       continue L;
-      break;
     default:
       v = 0;
   }

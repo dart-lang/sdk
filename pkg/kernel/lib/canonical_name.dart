@@ -105,7 +105,7 @@ class CanonicalName {
   }
 
   CanonicalName getChild(String name) {
-    var map = _children ??= <String, CanonicalName>{};
+    Map<String, CanonicalName> map = _children ??= <String, CanonicalName>{};
     return map[name] ??= new CanonicalName._(this, name);
   }
 
@@ -118,17 +118,40 @@ class CanonicalName {
 
   CanonicalName getChildFromQualifiedName(Name name) {
     return name.isPrivate
-        ? getChildFromUri(name.library.importUri).getChild(name.name)
-        : getChild(name.name);
+        ? getChildFromUri(name.library.importUri).getChild(name.text)
+        : getChild(name.text);
   }
 
-  CanonicalName getChildFromMember(Member member) {
-    return getChild(getMemberQualifier(member))
-        .getChildFromQualifiedName(member.name);
+  CanonicalName getChildFromProcedure(Procedure procedure) {
+    return getChild(getProcedureQualifier(procedure))
+        .getChildFromQualifiedName(procedure.name);
+  }
+
+  CanonicalName getChildFromField(Field field) {
+    return getChild('@fields').getChildFromQualifiedName(field.name);
+  }
+
+  CanonicalName getChildFromFieldSetter(Field field) {
+    return getChild('@=fields').getChildFromQualifiedName(field.name);
+  }
+
+  CanonicalName getChildFromConstructor(Constructor constructor) {
+    return getChild('@constructors')
+        .getChildFromQualifiedName(constructor.name);
+  }
+
+  CanonicalName getChildFromRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor redirectingFactoryConstructor) {
+    return getChild('@factories')
+        .getChildFromQualifiedName(redirectingFactoryConstructor.name);
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
     return getChild('@fields').getChildFromQualifiedName(name);
+  }
+
+  CanonicalName getChildFromFieldSetterWithName(Name name) {
+    return getChild('@=fields').getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {
@@ -210,22 +233,10 @@ class CanonicalName {
     return reference ??= (new Reference()..canonicalName = this);
   }
 
-  static String getMemberQualifier(Member member) {
-    if (member is Procedure) {
-      if (member.isGetter) return '@getters';
-      if (member.isSetter) return '@setters';
-      if (member.isFactory) return '@factories';
-      return '@methods';
-    }
-    if (member is Field) {
-      return '@fields';
-    }
-    if (member is Constructor) {
-      return '@constructors';
-    }
-    if (member is RedirectingFactoryConstructor) {
-      return '@factories';
-    }
-    throw 'Unexpected member: $member';
+  static String getProcedureQualifier(Procedure procedure) {
+    if (procedure.isGetter) return '@getters';
+    if (procedure.isSetter) return '@setters';
+    if (procedure.isFactory) return '@factories';
+    return '@methods';
   }
 }

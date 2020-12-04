@@ -131,8 +131,8 @@ abstract class ForwardingTypeMask implements TypeMask {
   }
 
   @override
-  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
-    return forwardTo.locateSingleMember(selector, closedWorld);
+  MemberEntity locateSingleMember(Selector selector, CommonMasks domain) {
+    return forwardTo.locateSingleMember(selector, domain);
   }
 
   bool equalsDisregardNull(other) {

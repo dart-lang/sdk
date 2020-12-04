@@ -1700,7 +1700,7 @@ class _Utf8Decoder {
     return size;
   }
 
-  // This method is recognized by the VM and compiled into specialized code.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   int _scan(Uint8List bytes, int start, int end, String scanTable) {
     int size = 0;

@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 /// Finds an [Element] with the given [name].
@@ -61,6 +63,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   String testProject;
+  String testProject2;
   String testFile;
   String testCode;
 
@@ -79,7 +82,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       {Map<String, List<Folder>> packageMap,
       SummaryDataStore externalSummaries}) {
     packageMap ??= <String, List<Folder>>{
-      'test': [getFolder(testProject)],
+      'test': [getFolder('$testProject/lib')],
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
@@ -97,14 +100,36 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
           ResourceUriResolver(resourceProvider)
         ]),
         createAnalysisOptions(),
-        packages: Packages.empty,
+        packages: Packages({
+          'test': Package(
+            name: 'test',
+            rootFolder: getFolder(testProject),
+            libFolder: getFolder('$testProject/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+          'aaa': Package(
+            name: 'aaa',
+            rootFolder: getFolder('/aaa'),
+            libFolder: getFolder('/aaa/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+          'bbb': Package(
+            name: 'bbb',
+            rootFolder: getFolder('/bbb'),
+            libFolder: getFolder('/bbb/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+        }),
         enableIndex: true,
         externalSummaries: externalSummaries);
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..useFastaParser = analyzer.Parser.useFasta
-    ..contextFeatures = FeatureSet.fromEnableFlags(enabledExperiments);
+    ..contextFeatures = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+      flags: enabledExperiments,
+    );
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
@@ -137,7 +162,8 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   void setUp() {
     sdk = MockSdk(resourceProvider: resourceProvider);
-    testProject = convertPath('/test/lib');
+    testProject = convertPath('/test');
+    testProject2 = convertPath('/test/lib');
     testFile = convertPath('/test/lib/test.dart');
     logger = PerformanceLog(logBuffer);
     scheduler = AnalysisDriverScheduler(logger);

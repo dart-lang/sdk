@@ -7,6 +7,17 @@
 
 namespace dart {
 
+#define VM_TYPE_TESTING_STUB_CODE_LIST(V)                                      \
+  V(DefaultTypeTest)                                                           \
+  V(DefaultNullableTypeTest)                                                   \
+  V(TopTypeTypeTest)                                                           \
+  V(UnreachableTypeTest)                                                       \
+  V(TypeParameterTypeTest)                                                     \
+  V(NullableTypeParameterTypeTest)                                             \
+  V(SlowTypeTest)                                                              \
+  V(LazySpecializeTypeTest)                                                    \
+  V(LazySpecializeNullableTypeTest)
+
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -18,6 +29,20 @@ namespace dart {
   V(WriteBarrierWrappers)                                                      \
   V(ArrayWriteBarrier)                                                         \
   V(AllocateArray)                                                             \
+  V(AllocateInt8Array)                                                         \
+  V(AllocateUint8Array)                                                        \
+  V(AllocateUint8ClampedArray)                                                 \
+  V(AllocateInt16Array)                                                        \
+  V(AllocateUint16Array)                                                       \
+  V(AllocateInt32Array)                                                        \
+  V(AllocateUint32Array)                                                       \
+  V(AllocateInt64Array)                                                        \
+  V(AllocateUint64Array)                                                       \
+  V(AllocateFloat32Array)                                                      \
+  V(AllocateFloat64Array)                                                      \
+  V(AllocateFloat32x4Array)                                                    \
+  V(AllocateInt32x4Array)                                                      \
+  V(AllocateFloat64x2Array)                                                    \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
   V(AllocateContext)                                                           \
@@ -28,7 +53,6 @@ namespace dart {
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
-  V(InterpretCall)                                                             \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \
@@ -36,7 +60,6 @@ namespace dart {
   V(CallStaticFunction)                                                        \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
-  V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
   V(SwitchableCallMiss)                                                        \
   V(MonomorphicSmiableCheck)                                                   \
@@ -62,22 +85,23 @@ namespace dart {
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
+  V(AssertSubtype)                                                             \
+  V(TypeIsTopTypeForSubtyping)                                                 \
+  V(TypeIsTopTypeForSubtypingNullSafe)                                         \
+  V(NullIsAssignableToType)                                                    \
+  V(NullIsAssignableToTypeNullSafe)                                            \
   V(Subtype1TestCache)                                                         \
-  V(Subtype2TestCache)                                                         \
-  V(Subtype4TestCache)                                                         \
-  V(Subtype6TestCache)                                                         \
-  V(DefaultTypeTest)                                                           \
-  V(DefaultNullableTypeTest)                                                   \
-  V(TopTypeTypeTest)                                                           \
-  V(UnreachableTypeTest)                                                       \
-  V(SlowTypeTest)                                                              \
-  V(LazySpecializeTypeTest)                                                    \
-  V(LazySpecializeNullableTypeTest)                                            \
+  V(Subtype3TestCache)                                                         \
+  V(Subtype5TestCache)                                                         \
+  V(Subtype7TestCache)                                                         \
+  VM_TYPE_TESTING_STUB_CODE_LIST(V)                                            \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \
   V(NotLoaded)                                                                 \
   V(DispatchTableNullError)                                                    \
+  V(LateInitializationErrorSharedWithFPURegs)                                  \
+  V(LateInitializationErrorSharedWithoutFPURegs)                               \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \

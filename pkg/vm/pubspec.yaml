@@ -7,10 +7,26 @@ environment:
   sdk: "^2.7.0"
 
 dependencies:
+  args: ^1.4.4
   build_integration:
     path: ../build_integration
-  front_end: ^0.1.6
-  kernel: ^0.3.6
+  crypto: any
+  front_end:
+    path: ../front_end
+  kernel:
+    path: ../kernel
+  meta:
+    path: ../meta
+  package_config: any
 
 dev_dependencies:
-  args: ^1.4.4
+  expect:
+    path: ../expect
+  json_rpc_2: any
+  path: any
+  test: any
+  web_socket_channel: any
+
+dependency_overrides:
+  front_end:
+    path: ../front_end

@@ -27,11 +27,13 @@ class TestConfiguration {
       {this.configuration,
       this.progress,
       this.selectors,
+      this.build,
       this.testList,
       this.repeat,
       this.batch,
       this.batchDart2JS,
       this.copyCoreDumps,
+      this.rr,
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
@@ -81,7 +83,9 @@ class TestConfiguration {
 
   final bool batch;
   final bool batchDart2JS;
+  final bool build;
   final bool copyCoreDumps;
+  final bool rr;
   final bool fastTestsOnly;
   final bool isVerbose;
   final bool listTests;
@@ -198,7 +202,6 @@ class TestConfiguration {
       Compiler.appJitk,
       Compiler.dartdevk,
       Compiler.dartk,
-      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.fasta,
       Compiler.dart2js,

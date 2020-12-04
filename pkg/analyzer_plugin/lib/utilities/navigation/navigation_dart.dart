@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -19,7 +20,7 @@ NavigationCollector computeDartNavigation(
     CompilationUnit unit,
     int offset,
     int length) {
-  var dartCollector = _DartNavigationCollector(collector);
+  var dartCollector = _DartNavigationCollector(collector, offset, length);
   var visitor = _DartNavigationComputerVisitor(resourceProvider, dartCollector);
   if (offset == null || length == null) {
     unit.accept(visitor);
@@ -43,8 +44,11 @@ AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
 /// A Dart specific wrapper around [NavigationCollector].
 class _DartNavigationCollector {
   final NavigationCollector collector;
+  final int requestedOffset;
+  final int requestedLength;
 
-  _DartNavigationCollector(this.collector);
+  _DartNavigationCollector(
+      this.collector, this.requestedOffset, this.requestedLength);
 
   void _addRegion(int offset, int length, Element element) {
     if (element is FieldFormalParameterElement) {
@@ -56,13 +60,25 @@ class _DartNavigationCollector {
     if (element.location == null) {
       return;
     }
+    // Discard elements that don't span the offset/range given (if provided).
+    if (requestedOffset != null &&
+        (offset > requestedOffset + (requestedLength ?? 0) ||
+            offset + length < requestedOffset)) {
+      return;
+    }
     var converter = AnalyzerConverter();
     var kind = converter.convertElementKind(element.kind);
     var location = converter.locationFromElement(element);
     if (location == null) {
       return;
     }
-    collector.addRegion(offset, length, kind, location);
+
+    var codeLocation = collector.collectCodeLocations
+        ? _getCodeLocation(element, location, converter)
+        : null;
+
+    collector.addRegion(offset, length, kind, location,
+        targetCodeLocation: codeLocation);
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
@@ -84,6 +100,59 @@ class _DartNavigationCollector {
     var offset = token.offset;
     var length = token.length;
     _addRegion(offset, length, element);
+  }
+
+  /// Get the location of the code (excluding leading doc comments) for this element.
+  protocol.Location _getCodeLocation(Element element,
+      protocol.Location location, AnalyzerConverter converter) {
+    var codeElement = element;
+    // For synthetic getters created for fields, we need to access the associated
+    // variable to get the codeOffset/codeLength.
+    if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
+      final variable = (codeElement as PropertyAccessorElementImpl).variable;
+      if (variable is ElementImpl) {
+        codeElement = variable as ElementImpl;
+      }
+    }
+
+    // Read the main codeOffset from the element. This may include doc comments
+    // but will give the correct end position.
+    int codeOffset, codeLength;
+    if (codeElement is ElementImpl) {
+      codeOffset = codeElement.codeOffset;
+      codeLength = codeElement.codeLength;
+    }
+
+    if (codeOffset == null || codeLength == null) {
+      return null;
+    }
+
+    // Read the declaration so we can get the offset after the doc comments.
+    // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
+    // a better solution.
+    final declaration = !codeElement.session.getFile(location.file).isPart
+        ? codeElement.session
+            .getParsedLibrary(location.file)
+            .getElementDeclaration(codeElement)
+        : null;
+    var node = declaration?.node;
+    if (node is VariableDeclaration) {
+      node = node.parent;
+    }
+    if (node is AnnotatedNode) {
+      var offsetAfterDocs = node.firstTokenAfterCommentAndMetadata.offset;
+
+      // Reduce the length by the difference between the end of docs and the start.
+      codeLength -= (offsetAfterDocs - codeOffset);
+      codeOffset = offsetAfterDocs;
+    }
+
+    if (codeOffset == null || codeLength == null) {
+      return null;
+    }
+
+    return converter.locationFromElement(element,
+        offset: codeOffset, length: codeLength);
   }
 }
 
@@ -208,7 +277,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element as ExportElement;
+    var exportElement = node.element;
     if (exportElement != null) {
       Element libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -218,7 +287,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element as ImportElement;
+    var importElement = node.element;
     if (importElement != null) {
       Element libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -229,7 +298,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     computer._addRegionForToken(node.leftBracket, element);
     computer._addRegionForToken(node.rightBracket, element);
   }
@@ -282,7 +351,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is ConstructorDeclaration) {
       return;
     }
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     computer._addRegionForNode(node, element);
   }
 

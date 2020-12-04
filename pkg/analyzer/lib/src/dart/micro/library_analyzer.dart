@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -26,8 +27,8 @@ import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/error/dart2js_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
@@ -84,7 +85,7 @@ class LibraryAnalyzer {
 
   final Set<ConstantEvaluationTarget> _constants = {};
 
-  final String Function(String path) getFileContent;
+  final String Function(FileState file) getFileContent;
 
   LibraryAnalyzer(
     this._analysisOptions,
@@ -125,7 +126,7 @@ class LibraryAnalyzer {
     });
 
     // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library].featureSet;
+    FeatureSet featureSet = units.values.first.featureSet;
 
     performance.run('resolveUriDirectives', (performance) {
       units.forEach((file, unit) {
@@ -139,7 +140,7 @@ class LibraryAnalyzer {
     });
 
     performance.run('resolveDirectives', (performance) {
-      _resolveDirectives(units, forCompletion);
+      _resolveDirectives(units, completionPath);
     });
 
     performance.run('resolveFiles', (performance) {
@@ -237,13 +238,23 @@ class LibraryAnalyzer {
     if (_analysisOptions.lint) {
       performance.run('computeLints', (performance) {
         var allUnits = _library.libraryFiles.map((file) {
-          var content = _getFileContent(file.path);
+          var content = getFileContent(file);
           return LinterContextUnit(content, units[file]);
         }).toList();
         for (int i = 0; i < allUnits.length; i++) {
           _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
         }
       });
+    }
+
+    // This must happen after all other diagnostics have been computed but
+    // before the list of diagnostics has been filtered.
+    for (var file in _library.libraryFiles) {
+      if (file.source != null) {
+        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
+                _fileToIgnoreInfo[file], _fileToLineInfo[file])
+            .reportErrors();
+      }
     }
   }
 
@@ -266,12 +277,7 @@ class LibraryAnalyzer {
 
     unit.accept(DeadCodeVerifier(errorReporter));
 
-    // Dart2js analysis.
-    if (_analysisOptions.dart2jsHint) {
-      unit.accept(Dart2JSVerifier(errorReporter));
-    }
-
-    var content = _getFileContent(file.path);
+    var content = getFileContent(file);
     unit.accept(
       BestPracticesVerifier(
         errorReporter,
@@ -283,7 +289,7 @@ class LibraryAnalyzer {
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         analysisOptions: _context.analysisOptions,
-        workspacePackage: null, // TODO(scheglov) implement it
+        workspacePackage: _library.workspacePackage,
       ),
     );
 
@@ -453,15 +459,6 @@ class LibraryAnalyzer {
     });
   }
 
-  /// Catch all exceptions from the `getFileContent` function.
-  String _getFileContent(String path) {
-    try {
-      return getFileContent(path);
-    } catch (_) {
-      return '';
-    }
-  }
-
   WorkspacePackage _getPackage(CompilationUnit unit) {
     final libraryPath = _library.source.fullName;
     Workspace workspace =
@@ -521,7 +518,7 @@ class LibraryAnalyzer {
     @required FileState file,
     @required OperationPerformanceImpl performance,
   }) {
-    String content = _getFileContent(file.path);
+    String content = getFileContent(file);
 
     performance.getDataInt('count').increment();
     performance.getDataInt('length').add(content.length);
@@ -538,14 +535,16 @@ class LibraryAnalyzer {
 
   void _resolveDirectives(
     Map<FileState, CompilationUnit> units,
-    bool forCompletion,
+    String completionPath,
   ) {
-    CompilationUnit definingCompilationUnit = units[_library];
-    definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
-
-    if (forCompletion) {
+    if (completionPath != null) {
+      var completionUnit = units.values.first;
+      completionUnit.element = _unitElementWithPath(completionPath);
       return;
     }
+
+    CompilationUnit definingCompilationUnit = units[_library];
+    definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
       return node.keyword.offset == element.nameOffset;
@@ -720,7 +719,15 @@ class LibraryAnalyzer {
       var enclosingExecutable = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration || e.parent is CompilationUnit;
       });
-      enclosingExecutable?.accept(resolverVisitor);
+
+      if (enclosingExecutable != null) {
+        var enclosingClass = enclosingExecutable.parent;
+        if (enclosingClass is ClassDeclaration) {
+          resolverVisitor.enclosingClass = enclosingClass.declaredElement;
+        }
+
+        enclosingExecutable?.accept(resolverVisitor);
+      }
     } else {
       unit.accept(resolverVisitor);
     }
@@ -766,6 +773,15 @@ class LibraryAnalyzer {
     }
   }
 
+  CompilationUnitElement _unitElementWithPath(String path) {
+    for (var unitElement in _libraryElement.units) {
+      if (unitElement.source.fullName == path) {
+        return unitElement;
+      }
+    }
+    return null;
+  }
+
   /// Validate that the feature set associated with the compilation [unit] is
   /// the same as the [expectedSet] of features supported by the library.
   void _validateFeatureSet(CompilationUnit unit, FeatureSet expectedSet) {
@@ -793,7 +809,7 @@ class LibraryAnalyzer {
     }
     StringLiteral uriLiteral = directive.uri;
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-    if (_isGenerated(source)) {
+    if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
     _getErrorReporter(file)
@@ -808,30 +824,6 @@ class LibraryAnalyzer {
         _validateUriBasedDirective(file, directive);
       }
     }
-  }
-
-  /// Return `true` if the given [source] refers to a file that is assumed to be
-  /// generated.
-  static bool _isGenerated(Source source) {
-    if (source == null) {
-      return false;
-    }
-    // TODO(brianwilkerson) Generalize this mechanism.
-    const List<String> suffixes = <String>[
-      '.g.dart',
-      '.pb.dart',
-      '.pbenum.dart',
-      '.pbserver.dart',
-      '.pbjson.dart',
-      '.template.dart'
-    ];
-    String fullName = source.fullName;
-    for (String suffix in suffixes) {
-      if (fullName.endsWith(suffix)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

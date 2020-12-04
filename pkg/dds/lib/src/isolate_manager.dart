@@ -31,7 +31,7 @@ enum _IsolateState {
 }
 
 class _RunningIsolate {
-  _RunningIsolate(this.isolateManager, this.portId, this.name);
+  _RunningIsolate(this.isolateManager, this.id, this.name);
 
   // State setters.
   void pausedOnExit() => _state = _IsolateState.pauseExit;
@@ -52,7 +52,7 @@ class _RunningIsolate {
     if (shouldResume()) {
       clearResumeApprovals();
       await isolateManager.dds._vmServiceClient.sendRequest('resume', {
-        'isolateId': 'isolates/$portId',
+        'isolateId': id,
       });
     }
   }
@@ -104,7 +104,7 @@ class _RunningIsolate {
 
   final _IsolateManager isolateManager;
   final String name;
-  final String portId;
+  final String id;
   final Set<String> _resumeApprovalsByName = {};
   _IsolateState _state;
 }
@@ -124,7 +124,7 @@ class _IsolateManager {
     }
 
     final isolateData = event['isolate'];
-    final id = isolateData['number'].asString;
+    final id = isolateData['id'].asString;
     final name = isolateData['name'].asString;
     _updateIsolateState(id, name, eventKind);
   }
@@ -160,37 +160,41 @@ class _IsolateManager {
 
   /// Initializes the set of running isolates.
   Future<void> initialize() async {
+    if (_initialized) {
+      return;
+    }
     final vm = await dds._vmServiceClient.sendRequest('getVM');
     final List<Map> isolateRefs = vm['isolates'].cast<Map<String, dynamic>>();
     // Check the pause event for each isolate to determine whether or not the
     // isolate is already paused.
     for (final isolateRef in isolateRefs) {
+      final id = isolateRef['id'];
       final isolate = await dds._vmServiceClient.sendRequest('getIsolate', {
-        'isolateId': isolateRef['id'],
+        'isolateId': id,
       });
-      final portId = isolate['number'];
       final name = isolate['name'];
       if (isolate.containsKey('pauseEvent')) {
-        isolates[portId] = _RunningIsolate(this, portId, name);
+        isolates[id] = _RunningIsolate(this, id, name);
         final eventKind = isolate['pauseEvent']['kind'];
-        _updateIsolateState(portId, name, eventKind);
+        _updateIsolateState(id, name, eventKind);
       } else {
         // If the isolate doesn't have a pauseEvent, assume it's running.
-        isolateStarted(portId, name);
+        isolateStarted(id, name);
       }
     }
+    _initialized = true;
   }
 
   /// Initializes state for a newly started isolate.
-  void isolateStarted(String portId, String name) {
-    final isolate = _RunningIsolate(this, portId, name);
+  void isolateStarted(String id, String name) {
+    final isolate = _RunningIsolate(this, id, name);
     isolate.running();
-    isolates[portId] = isolate;
+    isolates[id] = isolate;
   }
 
   /// Cleans up state for an isolate that has exited.
-  void isolateExited(String portId) {
-    isolates.remove(portId);
+  void isolateExited(String id) {
+    isolates.remove(id);
   }
 
   /// Handles `resume` RPC requests. If the client requires that approval be
@@ -206,8 +210,7 @@ class _IsolateManager {
     json_rpc.Parameters parameters,
   ) async {
     final isolateId = parameters['isolateId'].asString;
-    final portId = _isolateIdToPortId(isolateId);
-    final isolate = isolates[portId];
+    final isolate = isolates[isolateId];
     if (isolate == null) {
       return _RPCResponses.collectedSentinel;
     }
@@ -233,9 +236,7 @@ class _IsolateManager {
     return resumeResult;
   }
 
-  static String _isolateIdToPortId(String isolateId) =>
-      isolateId.substring('isolates/'.length);
-
+  bool _initialized = false;
   final _DartDevelopmentService dds;
   final Map<String, _RunningIsolate> isolates = {};
 }

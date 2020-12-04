@@ -1,0 +1,6 @@
+bar<X extends List<int>?, Y extends Set<int>?, Z extends Iterable<int>?,
+        W extends Map<int, int>?>(
+    bool condition, Iterable<dynamic> iterable, X x, Y y, Z z, W w) {}
+foo(bool condition, Iterable<dynamic> iterable, List<int>? a, Set<int>? b,
+    Iterable<int>? c, Map<int, int>? d) {}
+main() {}

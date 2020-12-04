@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 //
 // Compiles code with DDC and runs the resulting code with either node or
 // chrome.
@@ -16,6 +18,8 @@ import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser;
 import 'package:path/path.dart' as p;
+import 'package:dev_compiler/src/compiler/module_builder.dart'
+    as module_builder;
 
 enum NullSafety { strict, weak, disabled }
 
@@ -45,13 +49,18 @@ void main(List<String> args) async {
     ..addFlag('sound-null-safety',
         help: 'Compile for sound null safety at runtime. Passed through to the '
             'DDC binary. Defaults to false.',
-        defaultsTo: false,
-        negatable: true)
+        defaultsTo: false)
     ..addFlag('null-assertions',
         help: 'Run with assertions that values passed to non-nullable method '
             'parameters are not null.',
-        defaultsTo: false,
+        defaultsTo: false)
+    ..addFlag('native-null-assertions',
+        help: 'Run with assertions on non-nullable values returned from native '
+            'APIs.',
+        defaultsTo: true,
         negatable: true)
+    ..addFlag('weak-null-safety-errors',
+        help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
     ..addFlag('observe',
         help:
             'Run the compiler in the Dart VM with --observe. Implies --debug.',
@@ -77,7 +86,6 @@ void main(List<String> args) async {
         abbr: 'v',
         help: 'Echos the commands, arguments, and environment this script is '
             'running.',
-        negatable: false,
         defaultsTo: false)
     ..addOption('vm-service-port',
         help: 'Specify the observatory port. Implied --observe.');
@@ -106,24 +114,16 @@ void main(List<String> args) async {
   var compile = mode == 'compile' || mode == 'all';
   var run = mode == 'run' || mode == 'all';
   var verbose = options['verbose'] as bool;
-  var nonNullAsserts = options['null-assertions'] as bool;
-
   var soundNullSafety = options['sound-null-safety'] as bool;
-  // Enable null safety either by passing the `non-nullable` experiment flag or
-  // `sound-null-safety`.
-  var nnbd = experiments.contains('non-nullable') || soundNullSafety;
-
-  // Ensure non-nullable is passed as a flag.
-  if (soundNullSafety && !experiments.contains('non-nullable')) {
-    experiments.add('non-nullable');
-  }
-
+  var nonNullAsserts = options['null-assertions'] as bool;
+  var nativeNonNullAsserts = options['null-assertions'] as bool;
+  var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var entry = p.canonicalize(options.rest.first);
   var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
   var basename = p.basenameWithoutExtension(entry);
-  var libname = p.relative(p.withoutExtension(entry)).replaceAll('/', '__');
-  libname = libname.replaceAll('-', '_');
+  var libname =
+      module_builder.pathToJSIdentifier(p.relative(p.withoutExtension(entry)));
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
@@ -199,7 +199,7 @@ void main(List<String> args) async {
       break;
     case 'd8':
       d8 = true;
-      mod = 'es6';
+      mod = 'legacy';
       break;
     case 'chrome':
       chrome = true;
@@ -207,24 +207,14 @@ void main(List<String> args) async {
       break;
   }
 
-  String ddcSdk;
-  String sdkJsPath;
-  String requirePath;
+  var sdkRoot = p.dirname(p.dirname(ddcPath));
+  var buildDir =
+      p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
+  var requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
+  var sdkOutlineDill = p.join(buildDir,
+      soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
   var suffix = soundNullSafety ? p.join('sound', mod) : p.join('kernel', mod);
-  if (debug) {
-    var sdkRoot = p.dirname(p.dirname(ddcPath));
-    var buildDir =
-        p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
-    dartSdk = p.join(buildDir, 'dart-sdk');
-    ddcSdk = p.join(buildDir,
-        soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
-    sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
-    requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
-  } else {
-    ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
-    sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
-    requirePath = sdkJsPath;
-  }
+  var sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
 
   // Print an initial empty line to separate the invocation from the output.
   if (verbose) {
@@ -235,7 +225,7 @@ void main(List<String> args) async {
     var ddcArgs = [
       if (summarizeText) '--summarize-text',
       '--modules=$mod',
-      '--dart-sdk-summary=$ddcSdk',
+      '--dart-sdk-summary=$sdkOutlineDill',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
       if (soundNullSafety) '--sound-null-safety',
@@ -275,12 +265,14 @@ void main(List<String> args) async {
   require(['dart_sdk', '$basename'],
         function(sdk, app) {
     'use strict';
-    if ($nnbd) {
-      sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
-      sdk.dart.nonNullAsserts($nonNullAsserts);
-    }
+
+    sdk.dart.weakNullSafetyWarnings(
+        !($weakNullSafetyErrors || $soundNullSafety));
+    sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+    sdk.dart.nonNullAsserts($nonNullAsserts);
+    sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
     sdk._debugger.registerDevtoolsFormatter();
-    app.$libname.main();
+    app.$libname.main([]);
   });
 </script>
 ''';
@@ -306,12 +298,15 @@ try {
 } catch(e) {
 }
 let sdk = require(\"dart_sdk\");
+// Create a self reference for JS interop tests that set fields on self.
+sdk.dart.global.self = sdk.dart.global;
 let main = require(\"./$basename\").$libname.main;
 try {
-  if ($nnbd) {
-    sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
-    sdk.dart.nonNullAsserts($nonNullAsserts);
-  }
+  sdk.dart.weakNullSafetyWarnings(
+      !($weakNullSafetyErrors || $soundNullSafety));
+  sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+  sdk.dart.nonNullAsserts($nonNullAsserts);
+  sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
   if (!source_maps) {
@@ -338,19 +333,19 @@ try {
       jsFile.writeAsStringSync(jsContents);
 
       var runjs = '''
-import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
-import { $libname } from '$basename.js';
-let main = $libname.main;
-try {
-  if ($nnbd) {
-    dart.weakNullSafetyWarnings(!$soundNullSafety);
-    dart.nonNullAsserts($nonNullAsserts);
-  }
-  _isolate_helper.startRootIsolate(() => {}, []);
-  main();
-} catch(e) {
-  console.error(e);
-}
+load("$ddcPath/lib/js/legacy/dart_library.js");
+load("$sdkJsPath/dart_sdk.js");
+load("$out");
+
+let sdk = dart_library.import('dart_sdk');
+// Create a self reference for JS interop tests that set fields on self.
+sdk.dart.global.self = sdk.dart.global;
+sdk.dart.weakNullSafetyWarnings(
+    !($weakNullSafetyErrors || $soundNullSafety));
+sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+sdk.dart.nonNullAsserts($nonNullAsserts);
+sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+dart_library.start('$basename', '$libname');
 ''';
       var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);

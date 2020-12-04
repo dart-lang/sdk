@@ -51,7 +51,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
     return changes;
   }
 
-  void createPlanner({bool removeViaComments: false}) {
+  void createPlanner({bool removeViaComments = false}) {
     _planner = EditPlanner(testUnit.lineInfo, code,
         removeViaComments: removeViaComments);
   }
@@ -332,11 +332,11 @@ class C {
   }
 
   Future<void> test_addUnaryPostfix_outer_precedence() async {
-    await analyze('f(x) => x!;');
+    await analyze('f(x) => x/*!*/;');
     checkPlan(
-        planner.addUnaryPostfix(
-            planner.passThrough(findNode.simple('x!')), TokenType.PLUS_PLUS),
-        'f(x) => x++!;');
+        planner.addUnaryPostfix(planner.passThrough(findNode.simple('x/*!*/')),
+            TokenType.PLUS_PLUS),
+        'f(x) => x++/*!*/;');
   }
 
   Future<void> test_addUnaryPrefix_inner_precedence_add_parens() async {

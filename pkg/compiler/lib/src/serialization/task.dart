@@ -24,7 +24,7 @@ import '../util/sink_adapter.dart';
 import '../world.dart';
 import 'serialization.dart';
 
-void serializeGlobalTypeInferenceResults(
+void serializeGlobalTypeInferenceResultsToSink(
     GlobalTypeInferenceResults results, DataSink sink) {
   JsClosedWorld closedWorld = results.closedWorld;
   InferredData inferredData = results.inferredData;
@@ -34,7 +34,7 @@ void serializeGlobalTypeInferenceResults(
   sink.close();
 }
 
-GlobalTypeInferenceResults deserializeGlobalTypeInferenceResults(
+GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
     CompilerOptions options,
     DiagnosticReporter reporter,
     Environment environment,
@@ -47,6 +47,22 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResults(
       new InferredData.readFromDataSource(source, newClosedWorld);
   return new GlobalTypeInferenceResults.readFromDataSource(
       source, newClosedWorld.elementMap, newClosedWorld, newInferredData);
+}
+
+void serializeClosedWorldToSink(JsClosedWorld closedWorld, DataSink sink) {
+  closedWorld.writeToDataSink(sink);
+  sink.close();
+}
+
+JsClosedWorld deserializeClosedWorldFromSource(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    Environment environment,
+    AbstractValueStrategy abstractValueStrategy,
+    ir.Component component,
+    DataSource source) {
+  return new JsClosedWorld.readFromDataSource(
+      options, reporter, environment, abstractValueStrategy, component, source);
 }
 
 class SerializationTask extends CompilerTask {
@@ -62,7 +78,7 @@ class SerializationTask extends CompilerTask {
   @override
   String get name => 'Serialization';
 
-  void serializeGlobalTypeInference(GlobalTypeInferenceResults results) {
+  void serializeComponent(ir.Component component) {
     measureSubtask('serialize dill', () {
       // TODO(sigmund): remove entirely: we will do this immediately as soon as
       // we get the component in the kernel/loader.dart task once we refactor
@@ -70,28 +86,15 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing dill to ${_options.outputUri}');
       api.BinaryOutputSink dillOutput =
           _outputProvider.createBinarySink(_options.outputUri);
-      JsClosedWorld closedWorld = results.closedWorld;
-      ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
       BinaryOutputSinkAdapter irSink = new BinaryOutputSinkAdapter(dillOutput);
       ir.BinaryPrinter printer = new ir.BinaryPrinter(irSink);
       printer.writeComponentFile(component);
       irSink.close();
     });
-
-    measureSubtask('serialize data', () {
-      _reporter.log('Writing data to ${_options.writeDataUri}');
-      api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeDataUri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
-      serializeGlobalTypeInferenceResults(results, sink);
-    });
   }
 
-  Future<GlobalTypeInferenceResults> deserializeGlobalTypeInference(
-      Environment environment,
-      AbstractValueStrategy abstractValueStrategy) async {
-    ir.Component component =
-        await measureIoSubtask('deserialize dill', () async {
+  Future<ir.Component> deserializeComponent() async {
+    return measureIoSubtask('deserialize dill', () async {
       _reporter.log('Reading dill from ${_options.entryPoint}');
       api.Input<List<int>> dillInput = await _provider
           .readFromUri(_options.entryPoint, inputKind: api.InputKind.binary);
@@ -99,7 +102,9 @@ class SerializationTask extends CompilerTask {
       new ir.BinaryBuilder(dillInput.data).readComponent(component);
       return component;
     });
+  }
 
+  void updateOptionsFromComponent(ir.Component component) {
     var isStrongDill =
         component.mode == ir.NonNullableByDefaultCompiledMode.Strong;
     var incompatibleNullSafetyMode =
@@ -112,25 +117,71 @@ class SerializationTask extends CompilerTask {
           "null safety and is incompatible with the '$option' option");
     }
 
-    if (component.libraries.any((lib) =>
-        lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
-      _options.useNullSafety = true;
-    }
-
     if (component.mode == ir.NonNullableByDefaultCompiledMode.Strong) {
+      assert(_options.enableNonNullable);
       _options.nullSafetyMode = NullSafetyMode.sound;
-      assert(_options.useNullSafety);
     } else {
       _options.nullSafetyMode = NullSafetyMode.unsound;
     }
+  }
+
+  Future<ir.Component> deserializeComponentAndUpdateOptions() async {
+    ir.Component component = await deserializeComponent();
+    updateOptionsFromComponent(component);
+    return component;
+  }
+
+  void serializeClosedWorld(JsClosedWorld closedWorld) {
+    measureSubtask('serialize closed world', () {
+      _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
+      api.BinaryOutputSink dataOutput =
+          _outputProvider.createBinarySink(_options.writeClosedWorldUri);
+      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      serializeClosedWorldToSink(closedWorld, sink);
+    });
+  }
+
+  Future<JsClosedWorld> deserializeClosedWorld(
+      Environment environment,
+      AbstractValueStrategy abstractValueStrategy,
+      ir.Component component) async {
+    return await measureIoSubtask('deserialize closed world', () async {
+      _reporter.log('Reading data from ${_options.readClosedWorldUri}');
+      api.Input<List<int>> dataInput = await _provider.readFromUri(
+          _options.readClosedWorldUri,
+          inputKind: api.InputKind.binary);
+      DataSource source = new BinarySourceImpl(dataInput.data);
+      return deserializeClosedWorldFromSource(_options, _reporter, environment,
+          abstractValueStrategy, component, source);
+    });
+  }
+
+  void serializeGlobalTypeInference(GlobalTypeInferenceResults results) {
+    JsClosedWorld closedWorld = results.closedWorld;
+    ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
+    serializeComponent(component);
+
+    measureSubtask('serialize data', () {
+      _reporter.log('Writing data to ${_options.writeDataUri}');
+      api.BinaryOutputSink dataOutput =
+          _outputProvider.createBinarySink(_options.writeDataUri);
+      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      serializeGlobalTypeInferenceResultsToSink(results, sink);
+    });
+  }
+
+  Future<GlobalTypeInferenceResults> deserializeGlobalTypeInference(
+      Environment environment,
+      AbstractValueStrategy abstractValueStrategy) async {
+    ir.Component component = await deserializeComponentAndUpdateOptions();
 
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
       DataSource source = new BinarySourceImpl(dataInput.data);
-      return deserializeGlobalTypeInferenceResults(_options, _reporter,
-          environment, abstractValueStrategy, component, source);
+      return deserializeGlobalTypeInferenceResultsFromSource(_options,
+          _reporter, environment, abstractValueStrategy, component, source);
     });
   }
 

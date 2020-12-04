@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.core_types;
 
+import 'package:kernel/type_algebra.dart';
+
 import 'ast.dart';
 import 'library_index.dart';
 
@@ -29,6 +31,7 @@ class CoreTypes {
     ],
     'dart:_internal': [
       'LateInitializationErrorImpl',
+      'ReachabilityError',
       'Symbol',
     ],
     'dart:async': [
@@ -41,7 +44,7 @@ class CoreTypes {
 
   Library _coreLibrary;
   Class _objectClass;
-  Class _nullClass;
+  Class _deprecatedNullClass;
   Class _boolClass;
   Class _intClass;
   Class _numClass;
@@ -69,6 +72,8 @@ class CoreTypes {
   Procedure _iterableGetIterator;
   Procedure _iteratorMoveNext;
   Procedure _iteratorGetCurrent;
+  Procedure _isSentinelMethod;
+  Procedure _createSentinelMethod;
 
   Class _internalSymbolClass;
 
@@ -77,22 +82,25 @@ class CoreTypes {
   Class _deprecatedFutureOrClass;
   Class _stackTraceClass;
   Class _streamClass;
-  Class _asyncAwaitCompleterClass;
-  Constructor _asyncAwaitCompleterConstructor;
-  Procedure _asyncAwaitCompleterStartProcedure;
+  Class _futureImplClass;
+  Constructor _futureImplConstructor;
+  Procedure _completeOnAsyncErrorProcedure;
   Procedure _completeOnAsyncReturnProcedure;
-  Procedure _completerCompleteError;
   Constructor _syncIterableDefaultConstructor;
   Constructor _streamIteratorDefaultConstructor;
   Constructor _asyncStarStreamControllerDefaultConstructor;
-  Procedure _asyncStarListenHelperProcedure;
   Procedure _asyncStarMoveNextHelperProcedure;
-  Procedure _asyncStackTraceHelperProcedure;
   Procedure _asyncThenWrapperHelperProcedure;
   Procedure _asyncErrorWrapperHelperProcedure;
   Procedure _awaitHelperProcedure;
   Procedure _boolFromEnvironment;
-  Constructor _lateInitializationErrorConstructor;
+  Constructor _lateInitializationFieldAssignedDuringInitializationConstructor;
+  Constructor _lateInitializationLocalAssignedDuringInitializationConstructor;
+  Constructor _lateInitializationFieldNotInitializedConstructor;
+  Constructor _lateInitializationLocalNotInitializedConstructor;
+  Constructor _lateInitializationFieldAlreadyInitializedConstructor;
+  Constructor _lateInitializationLocalAlreadyInitializedConstructor;
+  Constructor _reachabilityErrorConstructor;
 
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   Library _mirrorsLibrary;
@@ -105,7 +113,7 @@ class CoreTypes {
   InterfaceType _objectLegacyRawType;
   InterfaceType _objectNullableRawType;
   InterfaceType _objectNonNullableRawType;
-  InterfaceType _nullType;
+  InterfaceType _deprecatedNullType;
   InterfaceType _boolLegacyRawType;
   InterfaceType _boolNullableRawType;
   InterfaceType _boolNonNullableRawType;
@@ -220,19 +228,9 @@ class CoreTypes {
         'dart:async', '_AsyncStarStreamController', 'get:stream');
   }
 
-  Procedure get asyncStarListenHelper {
-    return _asyncStarListenHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_asyncStarListenHelper');
-  }
-
   Procedure get asyncStarMoveNextHelper {
     return _asyncStarMoveNextHelperProcedure ??=
         index.getTopLevelMember('dart:async', '_asyncStarMoveNextHelper');
-  }
-
-  Procedure get asyncStackTraceHelperProcedure {
-    return _asyncStackTraceHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_asyncStackTraceHelper');
   }
 
   Procedure get asyncThenWrapperHelperProcedure {
@@ -249,19 +247,13 @@ class CoreTypes {
     return _boolClass ??= index.getClass('dart:core', 'bool');
   }
 
-  Class get asyncAwaitCompleterClass {
-    return _asyncAwaitCompleterClass ??=
-        index.getClass('dart:async', '_AsyncAwaitCompleter');
+  Class get futureImplClass {
+    return _futureImplClass ??= index.getClass('dart:async', '_Future');
   }
 
-  Constructor get asyncAwaitCompleterConstructor {
-    return _asyncAwaitCompleterConstructor ??=
-        index.getMember('dart:async', '_AsyncAwaitCompleter', '');
-  }
-
-  Procedure get asyncAwaitCompleterStartProcedure {
-    return _asyncAwaitCompleterStartProcedure ??=
-        index.getMember('dart:async', '_AsyncAwaitCompleter', 'start');
+  Constructor get futureImplConstructor {
+    return _futureImplConstructor ??=
+        index.getMember('dart:async', '_Future', '');
   }
 
   Member get completeOnAsyncReturn {
@@ -269,13 +261,9 @@ class CoreTypes {
         index.getTopLevelMember('dart:async', '_completeOnAsyncReturn');
   }
 
-  Procedure get completerCompleteError {
-    return _completerCompleteError ??=
-        index.getMember('dart:async', 'Completer', 'completeError');
-  }
-
-  Member get completerFuture {
-    return index.getMember('dart:async', 'Completer', 'get:future');
+  Member get completeOnAsyncError {
+    return _completeOnAsyncErrorProcedure ??=
+        index.getTopLevelMember('dart:async', '_completeOnAsyncError');
   }
 
   Library get coreLibrary {
@@ -391,8 +379,8 @@ class CoreTypes {
         index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation');
   }
 
-  Class get nullClass {
-    return _nullClass ??= index.getClass('dart:core', 'Null');
+  Class get deprecatedNullClass {
+    return _deprecatedNullClass ??= index.getClass('dart:core', 'Null');
   }
 
   Class get numClass {
@@ -495,6 +483,16 @@ class CoreTypes {
         index.getMember('dart:core', 'bool', 'fromEnvironment');
   }
 
+  Procedure get createSentinelMethod {
+    return _createSentinelMethod ??=
+        index.getTopLevelMember('dart:_internal', 'createSentinel');
+  }
+
+  Procedure get isSentinelMethod {
+    return _isSentinelMethod ??=
+        index.getTopLevelMember('dart:_internal', 'isSentinel');
+  }
+
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
         new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);
@@ -528,9 +526,10 @@ class CoreTypes {
   }
 
   /// Null is always nullable, so there's only one raw type for that class.
-  InterfaceType get nullType {
-    return _nullType ??= _nullableRawTypes[nullClass] ??=
-        new InterfaceType(nullClass, Nullability.nullable, const <DartType>[]);
+  InterfaceType get deprecatedNullType {
+    return _deprecatedNullType ??= _nullableRawTypes[deprecatedNullClass] ??=
+        new InterfaceType(
+            deprecatedNullClass, Nullability.nullable, const <DartType>[]);
   }
 
   InterfaceType get boolLegacyRawType {
@@ -1216,9 +1215,41 @@ class CoreTypes {
     return result;
   }
 
-  Constructor get lateInitializationErrorConstructor {
-    return _lateInitializationErrorConstructor ??=
-        index.getMember('dart:_internal', 'LateInitializationErrorImpl', '');
+  Constructor
+      get lateInitializationFieldAssignedDuringInitializationConstructor {
+    return _lateInitializationFieldAssignedDuringInitializationConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'fieldADI');
+  }
+
+  Constructor
+      get lateInitializationLocalAssignedDuringInitializationConstructor {
+    return _lateInitializationLocalAssignedDuringInitializationConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'localADI');
+  }
+
+  Constructor get lateInitializationFieldNotInitializedConstructor {
+    return _lateInitializationFieldNotInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'fieldNI');
+  }
+
+  Constructor get lateInitializationLocalNotInitializedConstructor {
+    return _lateInitializationLocalNotInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'localNI');
+  }
+
+  Constructor get lateInitializationFieldAlreadyInitializedConstructor {
+    return _lateInitializationFieldAlreadyInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'fieldAI');
+  }
+
+  Constructor get lateInitializationLocalAlreadyInitializedConstructor {
+    return _lateInitializationLocalAlreadyInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'localAI');
+  }
+
+  Constructor get reachabilityErrorConstructor {
+    return _reachabilityErrorConstructor ??=
+        index.getMember('dart:_internal', 'ReachabilityError', '');
   }
 
   InterfaceType bottomInterfaceType(Class klass, Nullability nullability) {
@@ -1254,13 +1285,10 @@ class CoreTypes {
     // TOP(T*) is true iff TOP(T) or OBJECT(T).
     if (type.declaredNullability == Nullability.nullable ||
         type.declaredNullability == Nullability.legacy) {
-      DartType nonNullableType =
-          type.withDeclaredNullability(Nullability.nonNullable);
-      assert(
-          !identical(type, nonNullableType),
-          "Setting the declared nullability of type '${type}' "
-          "to non-nullable was supposed to change the type, but it remained the same.");
-      return isTop(nonNullableType) || isObject(nonNullableType);
+      DartType nonNullableType = unwrapNullabilityConstructor(type, this);
+      if (!identical(type, nonNullableType)) {
+        return isTop(nonNullableType) || isObject(nonNullableType);
+      }
     }
 
     // TOP(FutureOr<T>) is TOP(T).
@@ -1331,7 +1359,7 @@ class CoreTypes {
     if (type is InvalidType) return false;
 
     // NULL(Null) is true.
-    if (type == nullType) return true;
+    if (type is NullType) return true;
 
     // NULL(T?) is true iff NULL(T) or BOTTOM(T).
     // NULL(T*) is true iff NULL(T) or BOTTOM(T).

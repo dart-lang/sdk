@@ -785,7 +785,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _close();
   }
 
-  void _closeHandler() {
+  void _closeHandler() async {
     if (_status == connectedStatus) {
       if (_closedRead) return;
       _socketClosedRead = true;
@@ -796,7 +796,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           _close();
         }
       } else {
-        _scheduleFilter();
+        await _scheduleFilter();
       }
     } else if (_status == handshakeStatus) {
       _socketClosedRead = true;
@@ -805,18 +805,23 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
             new HandshakeException('Connection terminated during handshake'),
             null);
       } else {
-        _secureHandshake();
+        await _secureHandshake();
       }
     }
   }
 
-  void _secureHandshake() {
+  Future<void> _secureHandshake() async {
     try {
-      _secureFilter!.handshake();
-      _filterStatus.writeEmpty = false;
-      _readSocket();
-      _writeSocket();
-      _scheduleFilter();
+      bool needRetryHandshake = await _secureFilter!.handshake();
+      if (needRetryHandshake) {
+        // Some certificates have been evaluated, need to retry handshake.
+        await _secureHandshake();
+      } else {
+        _filterStatus.writeEmpty = false;
+        _readSocket();
+        _writeSocket();
+        await _scheduleFilter();
+      }
     } catch (e, stackTrace) {
       _reportError(e, stackTrace);
     }
@@ -877,67 +882,71 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  void _scheduleFilter() {
+  Future<void> _scheduleFilter() async {
     _filterPending = true;
-    _tryFilter();
+    return _tryFilter();
   }
 
-  void _tryFilter() {
+  Future<void> _tryFilter() async {
     if (_status == closedStatus) {
       return;
     }
-    if (_filterPending && !_filterActive) {
-      _filterActive = true;
-      _filterPending = false;
-      _pushAllFilterStages().then((status) {
-        _filterStatus = status;
-        _filterActive = false;
-        if (_status == closedStatus) {
-          _secureFilter!.destroy();
-          _secureFilter = null;
-          return;
-        }
-        _socket.readEventsEnabled = true;
-        if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
-          // Checks for and handles all cases of partially closed sockets.
-          shutdown(SocketDirection.send);
-          if (_status == closedStatus) {
-            return;
-          }
-        }
-        if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
-          if (_status == handshakeStatus) {
-            _secureFilter!.handshake();
-            if (_status == handshakeStatus) {
-              throw new HandshakeException(
-                  'Connection terminated during handshake');
-            }
-          }
-          _closeHandler();
-        }
+    if (!_filterPending || _filterActive) {
+      return;
+    }
+    _filterActive = true;
+    _filterPending = false;
+
+    try {
+      _filterStatus = await _pushAllFilterStages();
+      _filterActive = false;
+      if (_status == closedStatus) {
+        _secureFilter!.destroy();
+        _secureFilter = null;
+        return;
+      }
+      _socket.readEventsEnabled = true;
+      if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
+        // Checks for and handles all cases of partially closed sockets.
+        shutdown(SocketDirection.send);
         if (_status == closedStatus) {
           return;
         }
-        if (_filterStatus.progress) {
-          _filterPending = true;
-          if (_filterStatus.writeEncryptedNoLongerEmpty) {
-            _writeSocket();
-          }
-          if (_filterStatus.writePlaintextNoLongerFull) {
-            _sendWriteEvent();
-          }
-          if (_filterStatus.readEncryptedNoLongerFull) {
-            _readSocket();
-          }
-          if (_filterStatus.readPlaintextNoLongerEmpty) {
-            _scheduleReadEvent();
-          }
+      }
+      if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
+        if (_status == handshakeStatus) {
+          _secureFilter!.handshake();
           if (_status == handshakeStatus) {
-            _secureHandshake();
+            throw new HandshakeException(
+                'Connection terminated during handshake');
           }
         }
-        _tryFilter();
-      }).catchError(_reportError);
+        _closeHandler();
+      }
+      if (_status == closedStatus) {
+        return;
+      }
+      if (_filterStatus.progress) {
+        _filterPending = true;
+        if (_filterStatus.writeEncryptedNoLongerEmpty) {
+          _writeSocket();
+        }
+        if (_filterStatus.writePlaintextNoLongerFull) {
+          _sendWriteEvent();
+        }
+        if (_filterStatus.readEncryptedNoLongerFull) {
+          _readSocket();
+        }
+        if (_filterStatus.readPlaintextNoLongerEmpty) {
+          _scheduleReadEvent();
+        }
+        if (_status == handshakeStatus) {
+          await _secureHandshake();
+        }
+      }
+      return _tryFilter();
+    } catch (e, st) {
+      _reportError(e, st);
     }
   }
 
@@ -1016,7 +1025,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  Future<_FilterStatus> _pushAllFilterStages() {
+  Future<_FilterStatus> _pushAllFilterStages() async {
     bool wasInHandshake = _status != connectedStatus;
     List args = new List<dynamic>.filled(2 + bufferCount * 2, null);
     args[0] = _secureFilter!._pointer();
@@ -1027,75 +1036,74 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       args[2 * i + 3] = bufs[i].end;
     }
 
-    return _IOService._dispatch(_IOService.sslProcessFilter, args)
-        .then((response) {
-      if (response.length == 2) {
-        if (wasInHandshake) {
-          // If we're in handshake, throw a handshake error.
-          _reportError(
-              new HandshakeException('${response[1]} error ${response[0]}'),
-              null);
-        } else {
-          // If we're connected, throw a TLS error.
-          _reportError(
-              new TlsException('${response[1]} error ${response[0]}'), null);
-        }
+    var response =
+        await _IOService._dispatch(_IOService.sslProcessFilter, args);
+    if (response.length == 2) {
+      if (wasInHandshake) {
+        // If we're in handshake, throw a handshake error.
+        _reportError(
+            new HandshakeException('${response[1]} error ${response[0]}'),
+            null);
+      } else {
+        // If we're connected, throw a TLS error.
+        _reportError(
+            new TlsException('${response[1]} error ${response[0]}'), null);
       }
-      int start(int index) => response[2 * index];
-      int end(int index) => response[2 * index + 1];
+    }
+    int start(int index) => response[2 * index];
+    int end(int index) => response[2 * index + 1];
 
-      _FilterStatus status = new _FilterStatus();
-      // Compute writeEmpty as "write plaintext buffer and write encrypted
-      // buffer were empty when we started and are empty now".
-      status.writeEmpty = bufs[writePlaintextId].isEmpty &&
-          start(writeEncryptedId) == end(writeEncryptedId);
-      // If we were in handshake when this started, _writeEmpty may be false
-      // because the handshake wrote data after we checked.
-      if (wasInHandshake) status.writeEmpty = false;
+    _FilterStatus status = new _FilterStatus();
+    // Compute writeEmpty as "write plaintext buffer and write encrypted
+    // buffer were empty when we started and are empty now".
+    status.writeEmpty = bufs[writePlaintextId].isEmpty &&
+        start(writeEncryptedId) == end(writeEncryptedId);
+    // If we were in handshake when this started, _writeEmpty may be false
+    // because the handshake wrote data after we checked.
+    if (wasInHandshake) status.writeEmpty = false;
 
-      // Compute readEmpty as "both read buffers were empty when we started
-      // and are empty now".
-      status.readEmpty = bufs[readEncryptedId].isEmpty &&
-          start(readPlaintextId) == end(readPlaintextId);
+    // Compute readEmpty as "both read buffers were empty when we started
+    // and are empty now".
+    status.readEmpty = bufs[readEncryptedId].isEmpty &&
+        start(readPlaintextId) == end(readPlaintextId);
 
-      _ExternalBuffer buffer = bufs[writePlaintextId];
-      int new_start = start(writePlaintextId);
-      if (new_start != buffer.start) {
-        status.progress = true;
-        if (buffer.free == 0) {
-          status.writePlaintextNoLongerFull = true;
-        }
-        buffer.start = new_start;
+    _ExternalBuffer buffer = bufs[writePlaintextId];
+    int new_start = start(writePlaintextId);
+    if (new_start != buffer.start) {
+      status.progress = true;
+      if (buffer.free == 0) {
+        status.writePlaintextNoLongerFull = true;
       }
-      buffer = bufs[readEncryptedId];
-      new_start = start(readEncryptedId);
-      if (new_start != buffer.start) {
-        status.progress = true;
-        if (buffer.free == 0) {
-          status.readEncryptedNoLongerFull = true;
-        }
-        buffer.start = new_start;
+      buffer.start = new_start;
+    }
+    buffer = bufs[readEncryptedId];
+    new_start = start(readEncryptedId);
+    if (new_start != buffer.start) {
+      status.progress = true;
+      if (buffer.free == 0) {
+        status.readEncryptedNoLongerFull = true;
       }
-      buffer = bufs[writeEncryptedId];
-      int new_end = end(writeEncryptedId);
-      if (new_end != buffer.end) {
-        status.progress = true;
-        if (buffer.length == 0) {
-          status.writeEncryptedNoLongerEmpty = true;
-        }
-        buffer.end = new_end;
+      buffer.start = new_start;
+    }
+    buffer = bufs[writeEncryptedId];
+    int new_end = end(writeEncryptedId);
+    if (new_end != buffer.end) {
+      status.progress = true;
+      if (buffer.length == 0) {
+        status.writeEncryptedNoLongerEmpty = true;
       }
-      buffer = bufs[readPlaintextId];
-      new_end = end(readPlaintextId);
-      if (new_end != buffer.end) {
-        status.progress = true;
-        if (buffer.length == 0) {
-          status.readPlaintextNoLongerEmpty = true;
-        }
-        buffer.end = new_end;
+      buffer.end = new_end;
+    }
+    buffer = bufs[readPlaintextId];
+    new_end = end(readPlaintextId);
+    if (new_end != buffer.end) {
+      status.progress = true;
+      if (buffer.length == 0) {
+        status.readPlaintextNoLongerEmpty = true;
       }
-      return status;
-    });
+      buffer.end = new_end;
+    }
+    return status;
   }
 }
 
@@ -1235,7 +1243,7 @@ abstract class _SecureFilter {
       bool requireClientCertificate,
       Uint8List protocols);
   void destroy();
-  void handshake();
+  Future<bool> handshake();
   String? selectedProtocol();
   void rehandshake();
   void renegotiate(bool useSessionCache, bool requestClientCertificate,

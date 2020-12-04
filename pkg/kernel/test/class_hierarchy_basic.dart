@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 /// A simple implementation of the class hierarchy interface using
 /// hash tables for everything.
 class BasicClassHierarchy implements ClassHierarchy {
+  final Set<Library> knownLibraries;
   final Map<Class, Set<Class>> superclasses = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> superMixtures = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> supertypes = <Class, Set<Class>>{};
@@ -26,8 +27,9 @@ class BasicClassHierarchy implements ClassHierarchy {
   final List<Class> classes = <Class>[];
   final Map<Class, int> classIndex = <Class, int>{};
 
-  BasicClassHierarchy(Component component) {
-    for (var library in component.libraries) {
+  BasicClassHierarchy(Component component)
+      : knownLibraries = component.libraries.toSet() {
+    for (var library in knownLibraries) {
       for (var classNode in library.classes) {
         buildSuperTypeSets(classNode);
         buildSuperTypeInstantiations(classNode);

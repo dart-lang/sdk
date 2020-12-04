@@ -38,7 +38,7 @@ abstract class Iterator<E> {
    * Advances the iterator to the next element of the iteration.
    *
    * Should be called before reading [current].
-   * It the call to `moveNext` returns `true`,
+   * If the call to `moveNext` returns `true`,
    * then [current] will contain the next element of the iteration
    * until `moveNext` is called again.
    * If the call returns `false`, there are no further elements

@@ -1587,6 +1587,11 @@ abstract class IntegrationTestMixin {
   /// edits: List<SourceFileEdit>
   ///
   ///   A list of source edits to apply the recommended changes.
+  ///
+  /// details: List<BulkFix>
+  ///
+  ///   Details that summarize the fixes associated with the recommended
+  ///   changes.
   Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included) async {
     var params = EditBulkFixesParams(included).toJson();
     var result = await server.send('edit.bulkFixes', params);
@@ -1707,6 +1712,11 @@ abstract class IntegrationTestMixin {
 
   /// Return the set of fixes that are available for the errors at a given
   /// offset in a given file.
+  ///
+  /// If a request is made for a file which does not exist, or which is not
+  /// currently subject to analysis (e.g. because it is not associated with any
+  /// analysis root specified to analysis.setAnalysisRoots), an error of type
+  /// GET_FIXES_INVALID_FILE will be generated.
   ///
   /// Parameters
   ///

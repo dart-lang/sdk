@@ -107,7 +107,11 @@ final mixinOn = JS('', 'Symbol("mixinOn")');
 @JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 
-List? Function() getImplements(clazz) => JS(
+/// Either `null` if `clazz` doesn't directly implement any interfaces or a
+/// list of type objects if it does.  Note, indirectly (e.g., via superclass)
+/// implemented interfaces aren't included here.
+/// See compiler.dart for when/how it is emitted.
+List Function()? getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,
@@ -164,6 +168,29 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
     // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
     JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
     JS('!', '#(#)', addTypeCaches, genericType);
+    // Add FutureOr specific is and as methods.
+    is_FutureOr(obj) =>
+        JS<bool>('!', '#.is(#)', typeArg, obj) ||
+        JS<bool>('!', '#(#).is(#)', getGenericClass(Future), typeArg, obj);
+    JS('!', '#.is = #', genericType, is_FutureOr);
+
+    as_FutureOr(obj) {
+      // Special test to handle case for mixed mode non-nullable FutureOr of a
+      // legacy type. This allows casts like `null as FutureOr<int*>` to work
+      // in weak and sound mode.
+      if (obj == null && _jsInstanceOf(typeArg, LegacyType)) {
+        return obj;
+      }
+
+      if (JS<bool>('!', '#.is(#)', typeArg, obj) ||
+          JS<bool>('!', '#(#).is(#)', getGenericClass(Future), typeArg, obj)) {
+        return obj;
+      }
+      return cast(obj, JS('!', '#(#)', getGenericClass(FutureOr), typeArg));
+    }
+
+    JS('!', '#.as = #', genericType, as_FutureOr);
+
     return genericType;
   }
 
@@ -228,7 +255,7 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 // TODO(markzipan): Make this non-nullable if we can ensure this returns
 // an empty list or if null and the empty list are semantically the same.
 List? getGenericArgs(type) =>
-    JS<List>('', '#', safeGetOwnProperty(type, _typeArguments));
+    JS<List?>('', '#', safeGetOwnProperty(type, _typeArguments));
 
 List? getGenericArgVariances(type) =>
     JS<List?>('', '#', safeGetOwnProperty(type, _variances));
@@ -268,9 +295,16 @@ getStaticSetters(value) => _getMembers(value, _staticSetterSig);
 
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
-/// Get the type of a method from an object using the stored signature
-getType(obj) =>
-    JS('', '# == null ? # : #.__proto__.constructor', obj, Object, obj);
+/// Get the type of an object.
+getType(obj) {
+  if (obj == null) return JS('!', '#', Object);
+
+  // Object.create(null) produces a js object without a prototype.
+  // In that case use the native Object constructor.
+  var constructor = JS('!', '#.constructor', obj);
+  return JS('!', '# ? # : #.Object.prototype.constructor', constructor,
+      constructor, global_);
+}
 
 getLibraryUri(value) => JS('', '#[#]', value, _libraryUri);
 setLibraryUri(f, uri) => JS('', '#[#] = #', f, _libraryUri, uri);
@@ -423,6 +457,13 @@ void _applyExtension(jsType, dartExtType) {
 
   if (JS('!', '# === #', dartExtType, Object)) {
     _installPropertiesForGlobalObject(jsProto);
+    return;
+  }
+
+  if (JS('!', '# === #.Object', jsType, global_)) {
+    var extName = JS<String>('!', '#.name', dartExtType);
+    _warn(
+        "Attempting to install properties from non-Object type '$extName' onto the native JS Object.");
     return;
   }
 

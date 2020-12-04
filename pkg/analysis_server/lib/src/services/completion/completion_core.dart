@@ -16,9 +16,6 @@ class CompletionRequestImpl implements CompletionRequest {
   @override
   final int offset;
 
-  @override
-  bool useNewRelevance;
-
   /// The offset of the start of the text to be replaced.
   /// This will be different than the [offset] used to request the completion
   /// suggestions if there was a portion of an identifier before the original
@@ -39,10 +36,8 @@ class CompletionRequestImpl implements CompletionRequest {
 
   /// Initialize a newly created completion request based on the given
   /// arguments.
-  CompletionRequestImpl(
-      this.result, int offset, this.useNewRelevance, this.performance)
-      : offset = offset,
-        replacementOffset = offset,
+  CompletionRequestImpl(this.result, this.offset, this.performance)
+      : replacementOffset = offset,
         replacementLength = 0;
 
   @override

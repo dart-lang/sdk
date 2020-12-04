@@ -71,7 +71,7 @@ class TypeNameResolver {
     if (typeIdentifier is PrefixedIdentifier) {
       var prefix = typeIdentifier.prefix;
       var prefixName = prefix.name;
-      var prefixElement = nameScope.lookup2(prefixName).getter;
+      var prefixElement = nameScope.lookup(prefixName).getter;
       prefix.staticElement = prefixElement;
 
       if (prefixElement == null) {
@@ -88,7 +88,7 @@ class TypeNameResolver {
         var nameNode = typeIdentifier.identifier;
         var name = nameNode.name;
 
-        var element = prefixElement.scope.lookup2(name).getter;
+        var element = prefixElement.scope.lookup(name).getter;
         nameNode.staticElement = element;
         _resolveToElement(node, element);
         return;
@@ -109,7 +109,7 @@ class TypeNameResolver {
         return;
       }
 
-      var element = nameScope.lookup2(name).getter;
+      var element = nameScope.lookup(name).getter;
       nameNode.staticElement = element;
       _resolveToElement(node, element);
     }
@@ -354,8 +354,10 @@ class TypeNameResolver {
     }
 
     if (_isInstanceCreation(node)) {
+      node.type = dynamicType;
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
     } else {
+      node.type = dynamicType;
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NOT_A_TYPE,
         typeIdentifier,

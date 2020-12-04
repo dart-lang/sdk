@@ -4,7 +4,7 @@
 
 import "dart:io" show Platform;
 
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 
 import 'generate.dart';

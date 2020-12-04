@@ -25,7 +25,7 @@ class InlineInvocationTest extends FixProcessorLintTest {
 
   /// More coverage in the `inline_invocation_test.dart` assist test.
   Future<void> test_add_emptyTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = []..add('a')..add('b');
 ''');
     await assertHasFix('''

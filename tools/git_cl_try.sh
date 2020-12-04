@@ -6,13 +6,6 @@ function git-cl-try-vm-jit-app {
      -b app-kernel-linux-product-x64-try                     \
      -b app-kernel-linux-release-x64-try
 }
-function git-cl-try-vm-jit-dartkb {
-  echo "git-cl-try-vm-jit-dartkb"
-  git cl try -B dart/try                                     \
-     -b vm-dartkb-linux-release-simarm64-try                 \
-     -b vm-dartkb-linux-release-x64-abi-try                  \
-     -b vm-dartkb-linux-release-x64-try
-}
 function git-cl-try-vm-jit-reload {
   echo "git-cl-try-vm-jit-reload"
   git cl try -B dart/try                                     \
@@ -85,7 +78,6 @@ function git-cl-try-vm-san {
 function git-cl-try-vm-all {
   echo "git-cl-try-vm-all"
   git-cl-try-vm-jit-app
-  git-cl-try-vm-jit-dartkb
   git-cl-try-vm-jit-reload
   git-cl-try-vm-jit-rest
   git-cl-try-vm-ffi

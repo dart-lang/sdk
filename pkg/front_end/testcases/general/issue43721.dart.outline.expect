@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method ok<T extends FutureOr<core::num*>* = FutureOr<core::num*>*>(self::ok::T* t) → dynamic
+  ;
+static method error<T extends FutureOr<core::int*>* = FutureOr<core::int*>*>(self::error::T* t) → dynamic
+  ;
+static method bar(core::bool* condition) → dynamic
+  ;
+static method main() → dynamic
+  ;

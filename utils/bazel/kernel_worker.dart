@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.8
+
 /// A tool that invokes the CFE to compute kernel summary files.
 ///
 /// This script can be used as a command-line command or a persistent server.
@@ -144,7 +146,8 @@ final summaryArgsParser = new ArgParser()
   ..addMultiOption('enable-experiment',
       help: 'Enable a language experiment when invoking the CFE.')
   ..addMultiOption('define', abbr: 'D')
-  ..addFlag('verbose', defaultsTo: false);
+  ..addFlag('verbose', defaultsTo: false)
+  ..addFlag('sound-null-safety', defaultsTo: false);
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -187,6 +190,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   var sources = (parsedArgs['source'] as List<String>).map(_toUri).toList();
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
+  var nnbdMode = parsedArgs['sound-null-safety'] as bool
+      ? fe.NnbdMode.Strong
+      : fe.NnbdMode.Weak;
   var summaryOnly = parsedArgs['summary-only'] as bool;
   var trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
 
@@ -194,7 +200,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // compatible while we migrate existing clients of this tool.
   var targetName =
       (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
-  var targetFlags = new TargetFlags(trackWidgetCreation: trackWidgetCreation);
+  var targetFlags = new TargetFlags(
+      trackWidgetCreation: trackWidgetCreation,
+      enableNullSafety: nnbdMode == fe.NnbdMode.Strong);
   Target target;
   switch (targetName) {
     case 'vm':
@@ -294,7 +302,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         summaryOnly,
         environmentDefines,
         trackNeededDillLibraries: recordUsedInputs,
-        verbose: verbose);
+        verbose: verbose,
+        nnbdMode: nnbdMode);
   } else {
     state = await fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
@@ -307,7 +316,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         fileSystem,
         parsedArgs['enable-experiment'] as List<String>,
         environmentDefines,
-        verbose: verbose);
+        verbose: verbose,
+        nnbdMode: nnbdMode);
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {

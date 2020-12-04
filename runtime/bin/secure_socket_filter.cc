@@ -32,6 +32,7 @@ bool SSLFilter::library_initialized_ = false;
 // To protect library initialization.
 Mutex* SSLFilter::mutex_ = nullptr;
 int SSLFilter::filter_ssl_index;
+int SSLFilter::ssl_cert_context_index;
 
 void SSLFilter::Init() {
   ASSERT(SSLFilter::mutex_ == nullptr);
@@ -143,7 +144,26 @@ void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
-  GetFilter(args)->Handshake();
+  Dart_Handle port = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  ASSERT(!Dart_IsNull(port));
+
+  Dart_Port port_id;
+  ThrowIfError(Dart_SendPortGetId(port, &port_id));
+  int result = GetFilter(args)->Handshake(port_id);
+  Dart_SetReturnValue(args, Dart_NewInteger(result));
+}
+
+void FUNCTION_NAME(SecureSocket_MarkAsTrusted)(Dart_NativeArguments args) {
+  GetFilter(args)->MarkAsTrusted(args);
+}
+
+void FUNCTION_NAME(SecureSocket_NewX509CertificateWrapper)(
+    Dart_NativeArguments args) {
+  intptr_t x509_pointer = DartUtils::GetNativeIntptrArgument(args, 0);
+  ASSERT(x509_pointer != 0);
+  X509* x509 = reinterpret_cast<X509*>(x509_pointer);
+  X509_up_ref(x509);
+  Dart_SetReturnValue(args, X509Helper::WrappedX509Certificate(x509));
 }
 
 void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
@@ -245,7 +265,8 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     SecureSocketUtils::FetchErrorString(filter->ssl_, &error_string);
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
-    result->SetAt(1, new CObjectString(CObject::NewString(error_string.buf())));
+    result->SetAt(1,
+                  new CObjectString(CObject::NewString(error_string.buffer())));
     return result;
   }
 }
@@ -446,6 +467,8 @@ void SSLFilter::InitializeLibrary() {
     SSL_library_init();
     filter_ssl_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
     ASSERT(filter_ssl_index >= 0);
+    ssl_cert_context_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
+    ASSERT(ssl_cert_context_index >= 0);
     library_initialized_ = true;
   }
 }
@@ -476,7 +499,15 @@ void SSLFilter::Connect(const char* hostname,
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
   SSL_set_ex_data(ssl_, filter_ssl_index, this);
   context->RegisterCallbacks(ssl_);
+  SSL_set_ex_data(ssl_, ssl_cert_context_index, context);
 
+  TrustEvaluateHandlerFunc trust_evaluate_handler =
+      context->GetTrustEvaluateHandler();
+  if (trust_evaluate_handler != nullptr) {
+    trust_evaluate_reply_port_ = Dart_NewNativePort(
+        "SSLCertContextTrustEvaluate", trust_evaluate_handler,
+        /*handle_concurrently=*/false);
+  }
   if (is_server_) {
     int certificate_mode =
         request_client_certificate ? SSL_VERIFY_PEER : SSL_VERIFY_NONE;
@@ -528,13 +559,37 @@ void SSLFilter::Connect(const char* hostname,
       }
     }
   }
-  Handshake();
+  // We don't expect certificate evaluation on first attempt,
+  // we expect requests for more bytes, therefore we could get away
+  // with passing illegal port.
+  Handshake(ILLEGAL_PORT);
 }
 
-void SSLFilter::Handshake() {
+void SSLFilter::MarkAsTrusted(Dart_NativeArguments args) {
+  intptr_t certificate_pointer = DartUtils::GetNativeIntptrArgument(args, 1);
+  ASSERT(certificate_pointer != 0);
+  certificate_trust_state_.reset(
+      new X509TrustState(reinterpret_cast<X509*>(certificate_pointer),
+                         DartUtils::GetNativeBooleanArgument(args, 2)));
+  if (SSL_LOG_STATUS) {
+    Syslog::Print("Mark %p as %strusted certificate\n",
+                  certificate_trust_state_.get()->x509(),
+                  certificate_trust_state_.get()->is_trusted() ? "" : "not ");
+  }
+}
+
+int SSLFilter::Handshake(Dart_Port reply_port) {
+  // Set reply port to be used by CertificateVerificationCallback
+  // invoked by SSL_do_handshake: this is where results of
+  // certificate evaluation will be communicated to.
+  reply_port_ = reply_port;
+
   // Try and push handshake along.
-  int status;
-  status = SSL_do_handshake(ssl_);
+  int status = SSL_do_handshake(ssl_);
+  int error = SSL_get_error(ssl_, status);
+  if (error == SSL_ERROR_WANT_CERTIFICATE_VERIFY) {
+    return SSL_ERROR_WANT_CERTIFICATE_VERIFY;
+  }
   if (callback_error != NULL) {
     // The SSL_do_handshake will try performing a handshake and might call
     // a CertificateCallback. If the certificate validation
@@ -544,7 +599,7 @@ void SSLFilter::Handshake() {
   }
   if (SSL_want_write(ssl_) || SSL_want_read(ssl_)) {
     in_handshake_ = true;
-    return;
+    return error;
   }
   SecureSocketUtils::CheckStatusSSL(
       status, "HandshakeException",
@@ -571,6 +626,8 @@ void SSLFilter::Handshake() {
         Dart_HandleFromPersistent(handshake_complete_), 0, NULL));
     in_handshake_ = false;
   }
+
+  return error;
 }
 
 void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
@@ -642,6 +699,10 @@ void SSLFilter::Destroy() {
   if (bad_certificate_callback_ != NULL) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
     bad_certificate_callback_ = NULL;
+  }
+  if (trust_evaluate_reply_port_ != ILLEGAL_PORT) {
+    Dart_CloseNativePort(trust_evaluate_reply_port_);
+    trust_evaluate_reply_port_ = ILLEGAL_PORT;
   }
   FreeResources();
 }

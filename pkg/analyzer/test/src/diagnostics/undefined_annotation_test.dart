@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,17 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedAnnotationTest extends DriverResolutionTest {
+class UndefinedAnnotationTest extends PubPackageResolutionTest {
+  test_identifier1_localVariable_const() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  const a = 0;
+  g(@a x) {}
+  g(0);
+}
+''');
+  }
+
   test_unresolved_identifier() async {
     await assertErrorsInCode(r'''
 @unresolved
@@ -42,6 +52,7 @@ import 'dart:math' as p;
 main() {
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 25, 13),
     ]);
   }

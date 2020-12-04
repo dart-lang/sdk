@@ -1,0 +1,97 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "initializer_rewrite_from_opt_out_lib.dart" as ini;
+import "dart:_internal" as _in;
+
+import "org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart";
+
+class Class extends core::Object {
+  static field core::int nonNullableStaticFieldReads = 0;
+  static field core::int? _#nonNullableStaticField = null;
+  static field core::int nullableStaticFieldReads = 0;
+  static field core::int? _#nullableStaticField = null;
+  static field core::bool _#nullableStaticField#isSet = false;
+  field core::int nonNullableInstanceFieldReads = 0;
+  field core::int? _#Class#nonNullableInstanceField = null;
+  field core::int nullableInstanceFieldReads = 0;
+  field core::int? _#Class#nullableInstanceField = null;
+  field core::bool _#Class#nullableInstanceField#isSet = false;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  static get nonNullableStaticField() → core::int
+    return let final core::int? #t1 = self::Class::_#nonNullableStaticField in #t1.==(null) ?{core::int} let final core::int #t2 = (let final core::int #t3 = self::Class::nonNullableStaticFieldReads in let final core::int #t4 = self::Class::nonNullableStaticFieldReads = #t3.{core::num::+}(1) in #t3).{core::num::==}(0) ?{core::int*} self::Class::nonNullableStaticField : ini::computeInitialValue() in self::Class::_#nonNullableStaticField.==(null) ?{core::int} self::Class::_#nonNullableStaticField = #t2 : throw new _in::LateError::fieldADI("nonNullableStaticField") : #t1{core::int};
+  static get nullableStaticField() → core::int? {
+    if(!self::Class::_#nullableStaticField#isSet) {
+      final core::int? #t5 = (let final core::int #t6 = self::Class::nullableStaticFieldReads in let final core::int #t7 = self::Class::nullableStaticFieldReads = #t6.{core::num::+}(1) in #t6).{core::num::==}(0) ?{core::int?} self::Class::nullableStaticField : ini::computeInitialValue();
+      if(self::Class::_#nullableStaticField#isSet)
+        throw new _in::LateError::fieldADI("nullableStaticField");
+      self::Class::_#nullableStaticField = #t5;
+      self::Class::_#nullableStaticField#isSet = true;
+    }
+    return self::Class::_#nullableStaticField;
+  }
+  get nonNullableInstanceField() → core::int
+    return let final core::int? #t8 = this.{self::Class::_#Class#nonNullableInstanceField} in #t8.==(null) ?{core::int} let final core::int #t9 = (let final core::int #t10 = this.{self::Class::nonNullableInstanceFieldReads} in let final core::int #t11 = this.{self::Class::nonNullableInstanceFieldReads} = #t10.{core::num::+}(1) in #t10).{core::num::==}(0) ?{core::int*} this.{self::Class::nonNullableInstanceField} : ini::computeInitialValue() in this.{self::Class::_#Class#nonNullableInstanceField}.==(null) ?{core::int} this.{self::Class::_#Class#nonNullableInstanceField} = #t9 : throw new _in::LateError::fieldADI("nonNullableInstanceField") : #t8{core::int};
+  get nullableInstanceField() → core::int? {
+    if(!this.{self::Class::_#Class#nullableInstanceField#isSet}) {
+      final core::int? #t12 = (let final core::int #t13 = this.{self::Class::nullableInstanceFieldReads} in let final core::int #t14 = this.{self::Class::nullableInstanceFieldReads} = #t13.{core::num::+}(1) in #t13).{core::num::==}(0) ?{core::int?} this.{self::Class::nullableInstanceField} : ini::computeInitialValue();
+      if(this.{self::Class::_#Class#nullableInstanceField#isSet})
+        throw new _in::LateError::fieldADI("nullableInstanceField");
+      this.{self::Class::_#Class#nullableInstanceField} = #t12;
+      this.{self::Class::_#Class#nullableInstanceField#isSet} = true;
+    }
+    return this.{self::Class::_#Class#nullableInstanceField};
+  }
+}
+static field core::int nonNullableTopLevelFieldReads = 0;
+static field core::int? _#nonNullableTopLevelField = null;
+static field core::int nullableTopLevelFieldReads = 0;
+static field core::int? _#nullableTopLevelField = null;
+static field core::bool _#nullableTopLevelField#isSet = false;
+static get nonNullableTopLevelField() → core::int
+  return let final core::int? #t15 = self::_#nonNullableTopLevelField in #t15.==(null) ?{core::int} let final core::int #t16 = (let final core::int #t17 = self::nonNullableTopLevelFieldReads in let final core::int #t18 = self::nonNullableTopLevelFieldReads = #t17.{core::num::+}(1) in #t17).{core::num::==}(0) ?{core::int*} self::nonNullableTopLevelField : ini::computeInitialValue() in self::_#nonNullableTopLevelField.==(null) ?{core::int} self::_#nonNullableTopLevelField = #t16 : throw new _in::LateError::fieldADI("nonNullableTopLevelField") : #t15{core::int};
+static get nullableTopLevelField() → core::int? {
+  if(!self::_#nullableTopLevelField#isSet) {
+    final core::int? #t19 = (let final core::int #t20 = self::nullableTopLevelFieldReads in let final core::int #t21 = self::nullableTopLevelFieldReads = #t20.{core::num::+}(1) in #t20).{core::num::==}(0) ?{core::int?} self::nullableTopLevelField : ini::computeInitialValue();
+    if(self::_#nullableTopLevelField#isSet)
+      throw new _in::LateError::fieldADI("nullableTopLevelField");
+    self::_#nullableTopLevelField = #t19;
+    self::_#nullableTopLevelField#isSet = true;
+  }
+  return self::_#nullableTopLevelField;
+}
+static method main() → void {
+  self::throws(() → core::int => self::nonNullableTopLevelField, "Read nonNullableTopLevelField");
+  self::throws(() → core::int? => self::nullableTopLevelField, "Read nullableTopLevelField");
+  self::throws(() → core::int => self::Class::nonNullableStaticField, "Read nonNullableStaticField");
+  self::throws(() → core::int? => self::Class::nullableStaticField, "Read nullableStaticField");
+  self::throws(() → core::int => new self::Class::•().{self::Class::nonNullableInstanceField}, "Read nonNullableInstanceField");
+  self::throws(() → core::int? => new self::Class::•().{self::Class::nullableInstanceField}, "Read nullableInstanceField");
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/initializer_rewrite_from_opt_out_lib.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart=2.8
+// ^^^^^^^^^^^^
+//
+import self as ini;
+import "dart:core" as core;
+
+static method computeInitialValue() → core::int*
+  return null;

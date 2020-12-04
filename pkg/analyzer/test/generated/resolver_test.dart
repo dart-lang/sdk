@@ -15,8 +15,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
-import 'resolver_test_case.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -28,7 +27,7 @@ main() {
 }
 
 @reflectiveTest
-class ErrorResolverTest extends DriverResolutionTest {
+class ErrorResolverTest extends PubPackageResolutionTest {
   test_breakLabelOnSwitchMember() async {
     await assertErrorsInCode(r'''
 class A {
@@ -78,36 +77,8 @@ class C {
   }
 }
 
-/// Tests for generic method and function resolution that do not use strong
-/// mode.
 @reflectiveTest
-class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
-  test_genericMethod_propagatedType_promotion() async {
-    // Regression test for:
-    // https://github.com/dart-lang/sdk/issues/25340
-    //
-    // Note, after https://github.com/dart-lang/sdk/issues/25486 the original
-    // strong mode example won't work, as we now compute a static type and
-    // therefore discard the propagated type.
-    //
-    // So this test does not use strong mode.
-    await assertNoErrorsInCode(r'''
-abstract class Iter {
-  List<S> map<S>(S f(x));
-}
-class C {}
-C toSpan(dynamic element) {
-  if (element is Iter) {
-    var y = element.map(toSpan);
-  }
-  return null;
-}''');
-    expectIdentifierType('y = ', 'dynamic');
-  }
-}
-
-@reflectiveTest
-class PrefixedNamespaceTest extends DriverResolutionTest {
+class PrefixedNamespaceTest extends PubPackageResolutionTest {
   void test_lookup_missing() {
     ClassElement element = ElementFactory.classElement2('A');
     PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
@@ -307,7 +278,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
 /// The class `StrictModeTest` contains tests to ensure that the correct errors
 /// and warnings are reported when the analysis engine is run in strict mode.
 @reflectiveTest
-class StrictModeTest extends DriverResolutionTest {
+class StrictModeTest extends PubPackageResolutionTest {
   test_assert_is() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -447,7 +418,7 @@ int f() {
 }
 
 @reflectiveTest
-class TypePropagationTest extends DriverResolutionTest {
+class TypePropagationTest extends PubPackageResolutionTest {
   test_assignment_null() async {
     String code = r'''
 main() {
@@ -458,7 +429,6 @@ main() {
     await resolveTestCode(code);
     assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v; // declare'));
-    assertType(findNode.simple('v = null;'), 'int');
     assertType(findNode.simple('v; // return'), 'int');
   }
 
@@ -496,7 +466,7 @@ main() {
   }
 
   test_invocation_target_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int max(int x, int y) => 0;
 ''');
     await resolveTestCode('''
@@ -558,7 +528,7 @@ void g() {
   }
 
   test_objectAccessInference_disabled_for_library_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 dynamic get hashCode => 42;
 ''');
     await assertNoErrorsInCode('''
@@ -579,7 +549,7 @@ main() {
   }
 
   test_objectMethodInference_disabled_for_library_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 dynamic toString = (int x) => x + 42;
 ''');
     await assertNoErrorsInCode('''

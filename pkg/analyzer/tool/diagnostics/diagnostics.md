@@ -15,7 +15,17 @@ For more information about the analyzer, see
 
 ## Glossary
 
-This page uses the following terms.
+This page uses the following terms:
+
+* [constant context][]
+* [definite assignment][]
+* [override inference][]
+* [potentially non-nullable][]
+
+[constant context]: #constant-context
+[definite assignment]: #definite-assignment
+[override inference]: #override-inference
+[potentially non-nullable]: #potentially-non-nullable
 
 ### Constant context
 
@@ -57,6 +67,151 @@ contexts:
   }
   ```
 
+### Definite assignment
+
+Definite assignment analysis is the process of determining, for each local
+variable at each point in the code, which of the following is true:
+- The variable has definitely been assigned a value (_definitely assigned_).
+- The variable has definitely not been assigned a value (_definitely
+  unassigned_).
+- The variable might or might not have been assigned a value, depending on the
+  execution path taken to arrive at that point.
+
+Definite assignment analysis helps find problems in code, such as places where a
+variable that might not have been assigned a value is being referenced, or
+places where a variable that can only be assigned a value one time is being
+assigned after it might already have been assigned a value.
+
+For example, in the following code the variable `s` is definitely unassigned
+when it’s passed as an argument to `print`:
+
+```dart
+void f() {
+  String s;
+  print(s);
+}
+```
+
+But in the following code, the variable `s` is definitely assigned:
+
+```dart
+void f(String name) {
+  String s = 'Hello $name!';
+  print(s);
+}
+```
+
+Definite assignment analysis can even tell whether a variable is definitely
+assigned (or unassigned) when there are multiple possible execution paths. In
+the following code the `print` function is called if execution goes through
+either the true or the false branch of the `if` statement, but because `s` is
+assigned no matter which branch is taken, it’s definitely assigned before it’s
+passed to `print`:
+
+```dart
+void f(String name, bool casual) {
+  String s;
+  if (casual) {
+    s = 'Hi $name!';
+  } else {
+    s = 'Hello $name!';
+  }
+  print(s);
+}
+```
+
+In flow analysis, the end of the `if` statement is referred to as a _join_—a
+place where two or more execution paths merge back together. Where there's a
+join, the analysis says that a variable is definitely assigned if it’s
+definitely assigned along all of the paths that are merging, and definitely
+unassigned if it’s definitely unassigned along all of the paths.
+
+Sometimes a variable is assigned a value on one path but not on another, in
+which case the variable might or might not have been assigned a value. In the
+following example, the true branch of the `if` statement might or might not be
+executed, so the variable might or might be assigned a value:
+
+```dart
+void f(String name, bool casual) {
+  String s;
+  if (casual) {
+    s = 'Hi $name!';
+  }
+  print(s);
+}
+```
+
+The same is true if there is a false branch that doesn’t assign a value to `s`.
+
+The analysis of loops is a little more complicated, but it follows the same
+basic reasoning. For example, the condition in a `while` loop is always
+executed, but the body might or might not be. So just like an `if` statement,
+there's a join at the end of the `while` statement between the path in which the
+condition is `true` and the path in which the condition is `false`.
+
+For additional details, see the
+[specification of definite assignment][definiteAssignmentSpec].
+
+[definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
+
+### Override inference
+
+Override inference is the process by which any missing types in a method
+declaration are inferred based on the corresponding types from the method or
+methods that it overrides.
+
+If a candidate method (the method that's missing type information) overrides a
+single inherited method, then the corresponding types from the overridden method
+are inferred. For example, consider the following code:
+
+```dart
+class A {
+  int m(String s) => 0;
+}
+
+class B extends A {
+  @override
+  m(s) => 1;
+}
+```
+
+The declaration of `m` in `B` is a candidate because it's missing both the
+return type and the parameter type. Because it overrides a single method (the
+method `m` in `A`), the types from the overridden method will be used to infer
+the missing types and it will be as if the method in `B` had been declared as
+`int m(String s) => 1;`.
+
+If a candidate method overrides multiple methods, and the function type one of
+those overridden methods, M<sub>s</sub>, is a supertype of the function types of
+all of the other overridden methods, then M<sub>s</sub> is used to infer the
+missing types. For example, consider the following code:
+
+```dart
+class A {
+  int m(num n) => 0;
+}
+
+class B {
+  num m(int i) => 0;
+}
+
+class C implements A, B {
+  @override
+  m(n) => 1;
+}
+```
+
+The declaration of `m` in `C` is a candidate for override inference because it's
+missing both the return type and the parameter type. It overrides both `m` in
+`A` and `m` in `B`, so we need to choose one of them from which the missing
+types can be inferred. But because the function type of `m` in `A`
+(`int Function(num)`) is a supertype of the function type of `m` in `B`
+(`num Function(int)`), the function in `A` is used to infer the missing types.
+The result is the same as declaring the method in `C` as `int m(num n) => 1;`.
+
+It is an error if none of the overridden methods has a function type that is a
+supertype of all the other overridden methods.
+
 ### Potentially non-nullable
 
 A type is _potentially non-nullable_ if it's either explicitly non-nullable or
@@ -78,6 +233,55 @@ non-nullable type argument as in `C<int>`.
 The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
+
+### abstract_field_initializer
+
+_Abstract fields can't have initializers._
+
+#### Description
+
+The analyzer produces this diagnostic when a field that has the `abstract`
+modifier also has an initializer.
+
+#### Example
+
+The following code produces this diagnostic because `f` is marked as
+`abstract` and has an initializer:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  abstract int [!f!] = 0;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `f` is marked as
+`abstract` and there's an initializer in the constructor:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  abstract int f;
+
+  C() : [!f!] = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field must be abstract, then remove the initializer:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  abstract int f;
+}
+{% endprettify %}
+
+If the field isn't required to be abstract, then remove the keyword:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  int f = 0;
+}
+{% endprettify %}
 
 ### abstract_super_member_reference
 
@@ -107,6 +311,54 @@ class B extends A {
 
 Remove the invocation of the abstract member, possibly replacing it with an
 invocation of a concrete member.
+
+### ambiguous_export
+
+_The name '{0}' is defined in the libraries '{1}' and '{2}'._
+
+#### Description
+
+The analyzer produces this diagnostic when two or more export directives
+cause the same name to be exported from multiple libraries.
+
+#### Example
+
+Given a file named `a.dart` containing
+
+{% prettify dart tag=pre+code %}
+class C {}
+{% endprettify %}
+
+And a file named `b.dart` containing
+
+{% prettify dart tag=pre+code %}
+class C {}
+{% endprettify %}
+
+The following code produces this diagnostic because the name `C` is being
+exported from both `a.dart` and `b.dart`:
+
+{% prettify dart tag=pre+code %}
+export 'a.dart';
+export [!'b.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+If none of the names in one of the libraries needs to be exported, then
+remove the unnecessary export directives:
+
+{% prettify dart tag=pre+code %}
+export 'a.dart';
+{% endprettify %}
+
+If all of the export directives are needed, then hide the name in all
+except one of the directives:
+
+{% prettify dart tag=pre+code %}
+export 'a.dart';
+export 'b.dart' hide C;
+{% endprettify %}
 
 ### ambiguous_extension_member_access
 
@@ -415,6 +667,103 @@ String f(String x) => x;
 String g(num y) => f(y as String);
 {% endprettify %}
 
+### assert_in_redirecting_constructor
+
+_A redirecting constructor can't have an 'assert' initializer._
+
+#### Description
+
+The analyzer produces this diagnostic when a redirecting constructor (a
+constructor that redirects to another constructor in the same class) has an
+assert in the initializer list.
+
+#### Example
+
+The following code produces this diagnostic because the unnamed constructor
+is a redirecting constructor and also has an assert in the initializer
+list:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C(int x) : [!assert(x > 0)!], this.name();
+  C.name() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the assert isn't needed, then remove it:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C(int x) : this.name();
+  C.name() {}
+}
+{% endprettify %}
+
+If the assert is needed, then convert the constructor into a factory
+constructor:
+
+{% prettify dart tag=pre+code %}
+class C {
+  factory C(int x) {
+    assert(x > 0);
+    return C.name();
+  }
+  C.name() {}
+}
+{% endprettify %}
+
+### assignment_to_const
+
+_Constant variables can't be assigned a value._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds an assignment to a
+top-level variable, a static field, or a local variable that has the
+`const` modifier. The value of a compile-time constant can't be changed at
+runtime.
+
+#### Example
+
+The following code produces this diagnostic because `c` is being assigned a
+value even though it has the `const` modifier:
+
+{% prettify dart tag=pre+code %}
+const c = 0;
+
+void f() {
+  [!c!] = 1;
+  print(c);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the variable must be assignable, then remove the `const` modifier:
+
+{% prettify dart tag=pre+code %}
+var c = 0;
+
+void f() {
+  c = 1;
+  print(c);
+}
+{% endprettify %}
+
+If the constant shouldn't be changed, then either remove the assignment or
+use a local variable in place of references to the constant:
+
+{% prettify dart tag=pre+code %}
+const c = 0;
+
+void f() {
+  var v = 1;
+  print(v);
+}
+{% endprettify %}
+
 ### assignment_to_final
 
 _'{0}' can't be used as a setter because it's final._
@@ -573,6 +922,47 @@ class C {
 
 Rewrite the code so that there isn't an assignment to a method.
 
+### await_in_late_local_variable_initializer
+
+_The 'await' expression can't be used in a 'late' local variable's initializer._
+
+#### Description
+
+The analyzer produces this diagnostic when a local variable that has the
+`late` modifier uses an `await` expression in the initializer.
+
+#### Example
+
+The following code produces this diagnostic because an `await` expression
+is used in the initializer for `v`, a local variable that is marked `late`:
+
+{% prettify dart tag=pre+code %}
+Future<int> f() async {
+  late var v = [!await!] 42;
+  return v;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the initializer can be rewritten to not use `await`, then rewrite it:
+
+{% prettify dart tag=pre+code %}
+Future<int> f() async {
+  late var v = 42;
+  return v;
+}
+{% endprettify %}
+
+If the initializer can't be rewritten, then remove the `late` modifier:
+
+{% prettify dart tag=pre+code %}
+Future<int> f() async {
+  var v = await 42;
+  return v;
+}
+{% endprettify %}
+
 ### body_might_complete_normally
 
 _The body might complete normally, causing 'null' to be returned, but the return
@@ -581,9 +971,8 @@ type is a potentially non-nullable type._
 #### Description
 
 The analyzer produces this diagnostic when a method or function has a
-return type that's <a href=”#potentially-non-nullable”>potentially
-non-nullable</a> but would implicitly return `null` if control reached the
-end of the function.
+return type that's [potentially non-nullable][] but would implicitly return
+`null` if control reached the end of the function.
 
 #### Example
 
@@ -862,7 +1251,8 @@ abstract class C {
 
 ### const_constructor_param_type_mismatch
 
-_A value of type '{0}' can't be assigned to a parameter of type '{1}'._
+_A value of type '{0}' can't be assigned to a parameter of type '{1}' in a const
+constructor._
 
 #### Description
 
@@ -904,6 +1294,50 @@ const dynamic i = 0;
 
 void f() {
   const C('$i');
+}
+{% endprettify %}
+
+### const_constructor_with_field_initialized_by_non_const
+
+_Can't define the 'const' constructor because the field '{0}' is initialized
+with a non-constant value._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor has the keyword
+`const`, but a field in the class is initialized to a non-constant value.
+
+#### Example
+
+The following code produces this diagnostic because the field `s` is
+initialized to a non-constant value:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final String s = 3.toString();
+  [!const!] C();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field can be initialized to a constant value, then change the
+initializer to a constant expression:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final String s = '3';
+  const C();
+}
+{% endprettify %}
+
+If the field can't be initialized to a constant value, then remove the
+keyword `const` from the constructor:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final String s = 3.toString();
+  C();
 }
 {% endprettify %}
 
@@ -961,7 +1395,7 @@ _Const variables must be initialized with a constant value._
 
 The analyzer produces this diagnostic when a value that isn't statically
 known to be a constant is assigned to a variable that's declared to be a
-'const' variable.
+`const` variable.
 
 #### Examples
 
@@ -1191,6 +1625,100 @@ class C {
   const C(this.i);
 }
 C f(int i) => C(i);
+{% endprettify %}
+
+### const_with_type_parameters
+
+_A constant creation can't use a type parameter as a type argument._
+
+#### Description
+
+The analyzer produces this diagnostic when a type parameter is used as a
+type argument in a `const` invocation of a constructor. This isn't allowed
+because the value of the type parameter (the actual type that will be used
+at runtime) can't be known at compile time.
+
+#### Example
+
+The following code produces this diagnostic because the type parameter `T`
+is being used as a type argument when creating a constant:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  const C();
+}
+
+C<T> newC<T>() => const C<[!T!]>();
+{% endprettify %}
+
+#### Common fixes
+
+If the type that will be used for the type parameter can be known at
+compile time, then remove the use of the type parameter:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  const C();
+}
+
+C<int> newC() => const C<int>();
+{% endprettify %}
+
+If the type that will be used for the type parameter can't be known until
+runtime, then remove the keyword `const`:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  const C();
+}
+
+C<T> newC<T>() => C<T>();
+{% endprettify %}
+
+### creation_with_non_type
+
+_The name '{0}' isn't a class._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance creation using
+either `new` or `const` specifies a name that isn't defined as a class.
+
+#### Example
+
+The following code produces this diagnostic because `f` is a function
+rather than a class:
+
+{% prettify dart tag=pre+code %}
+int f() => 0;
+
+void g() {
+  new [!f!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If a class should be created, then replace the invalid name with the name
+of a valid class:
+
+{% prettify dart tag=pre+code %}
+int f() => 0;
+
+void g() {
+  new Object();
+}
+{% endprettify %}
+
+If the name is the name of a function and you want that function to be
+invoked, then remove the `new` or `const` keyword:
+
+{% prettify dart tag=pre+code %}
+int f() => 0;
+
+void g() {
+  f();
+}
 {% endprettify %}
 
 ### dead_code
@@ -1465,16 +1993,45 @@ computed, then use `List.generate`:
 var l = List.generate(3, (i) => i);
 {% endprettify %}
 
+### default_value_in_function_type
+
+_Parameters in a function type can't have default values._
+
+#### Description
+
+The analyzer produces this diagnostic when a function type associated with
+a parameter includes optional parameters that have a default value. This
+isn't allowed because the default values of parameters aren't part of the
+function's type, and therefore including them doesn't provide any value.
+
+#### Example
+
+The following code produces this diagnostic because the parameter `p` has a
+default value even though it's part of the type of the parameter `g`:
+
+{% prettify dart tag=pre+code %}
+void f(void Function([int p [!=!] 0]) g) {
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the default value from the function-type's parameter:
+
+{% prettify dart tag=pre+code %}
+void f(void Function([int p]) g) {
+}
+{% endprettify %}
+
 ### definitely_unassigned_late_local_variable
 
 _The late local variable '{0}' is definitely unassigned at this point._
 
 #### Description
 
-The analyzer produces this diagnostic when
-[definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
-analysis shows that a local variable that's marked as `late` is read before
-being assigned.
+The analyzer produces this diagnostic when [definite assignment][] analysis
+shows that a local variable that's marked as `late` is read before being
+assigned.
 
 #### Example
 
@@ -1660,6 +2217,54 @@ int x = 0;
 int y = 1;
 {% endprettify %}
 
+### duplicate_ignore
+
+_The diagnostic '{0}' doesn't need to be ignored here because it's already being
+ignored._
+
+#### Description
+
+The analyzer produces this diagnostic when a diagnostic name appears in an
+`ignore` comment, but the diagnostic is already being ignored, either
+because it's already included in the same `ignore` comment or because it
+appears in an `ignore-in-file` comment.
+
+#### Example
+
+The following code produces this diagnostic because the diagnostic named
+`unused_local_variable` is already being ignored for the whole file so it
+doesn't need to be ignored on a specific line:
+
+{% prettify dart tag=pre+code %}
+// ignore_for_file: unused_local_variable
+void f() {
+  // ignore: [!unused_local_variable!]
+  var x = 0;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the diagnostic named
+`unused_local_variable` is being ignored twice on the same line:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  // ignore: unused_local_variable, [!unused_local_variable!]
+  var x = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the ignore comment, or remove the unnecessary diagnostic name if the
+ignore comment is ignoring more than one diagnostic:
+
+{% prettify dart tag=pre+code %}
+// ignore_for_file: unused_local_variable
+void f() {
+  var x = 0;
+}
+{% endprettify %}
+
 ### duplicate_import
 
 _Duplicate import._
@@ -1739,6 +2344,43 @@ void f(C c) {
 class C {
   void m({int a, int b}) {}
 }
+{% endprettify %}
+
+### duplicate_part
+
+_The library already contains a part with the URI '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a single file is referenced in
+multiple part directives.
+
+#### Example
+
+Given a file named `part.dart` containing
+
+{% prettify dart tag=pre+code %}
+part of lib;
+{% endprettify %}
+
+The following code produces this diagnostic because the file `part.dart` is
+included multiple times:
+
+{% prettify dart tag=pre+code %}
+library lib;
+
+part 'part.dart';
+part [!'part.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+Remove all except the first of the duplicated part directives:
+
+{% prettify dart tag=pre+code %}
+library lib;
+
+part 'part.dart';
 {% endprettify %}
 
 ### equal_elements_in_const_set
@@ -1901,10 +2543,88 @@ Note that literal maps preserve the order of their entries, so the choice
 of which entry to remove might affect the order in which the keys and
 values are returned by an iterator.
 
+### expected_one_list_type_arguments
+
+_List literals require one type argument or none, but {0} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a list literal has more than one
+type argument.
+
+#### Example
+
+The following code produces this diagnostic because the list literal has
+two type arguments when it can have at most one:
+
+{% prettify dart tag=pre+code %}
+var l = [!<int, int>!][];
+{% endprettify %}
+
+#### Common fixes
+
+Remove all except one of the type arguments:
+
+{% prettify dart tag=pre+code %}
+var l = <int>[];
+{% endprettify %}
+
+### expected_one_set_type_arguments
+
+_Set literals require one type argument or none, but {0} were found._
+
+#### Description
+
+The analyzer produces this diagnostic when a set literal has more than one
+type argument.
+
+#### Example
+
+The following code produces this diagnostic because the set literal has
+three type arguments when it can have at most one:
+
+{% prettify dart tag=pre+code %}
+var s = [!<int, String, int>!]{0, 'a', 1};
+{% endprettify %}
+
+#### Common fixes
+
+Remove all except one of the type arguments:
+
+{% prettify dart tag=pre+code %}
+var s = <int>{0, 1};
+{% endprettify %}
+
+### expected_two_map_type_arguments
+
+_Map literals require two type arguments or none, but {0} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a map literal has either one or
+more than two type arguments.
+
+#### Example
+
+The following code produces this diagnostic because the map literal has
+three type arguments when it can have either two or zero:
+
+{% prettify dart tag=pre+code %}
+var m = [!<int, String, int>!]{};
+{% endprettify %}
+
+#### Common fixes
+
+Remove all except two of the type arguments:
+
+{% prettify dart tag=pre+code %}
+var m = <int, String>{};
+{% endprettify %}
+
 ### export_legacy_symbol
 
 _The symbol '{0}' is defined in a legacy library, and can't be re-exported from
-a non-nullable by default library._
+a library with null safety enabled._
 
 #### Description
 
@@ -1950,6 +2670,37 @@ opted-in library, then it's valid for your library to indirectly export the
 symbols from the opted-in library. You can do so by adding a hide
 combinator to the export directive in your library that hides all of the
 names declared in the opted-out library.
+
+### export_of_non_library
+
+_The exported library '{0}' can't have a part-of directive._
+
+#### Description
+
+The analyzer produces this diagnostic when an export directive references a
+part rather than a library.
+
+#### Example
+
+Given a file named `part.dart` containing
+
+{% prettify dart tag=pre+code %}
+part of lib;
+{% endprettify %}
+
+The following code produces this diagnostic because the file `part.dart` is
+a part, and only libraries can be exported:
+
+{% prettify dart tag=pre+code %}
+library lib;
+
+export [!'part.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+Either remove the export directive, or change the URI to be the URI of the
+library containing the part.
 
 ### expression_in_map
 
@@ -2211,7 +2962,7 @@ extension._
 #### Description
 
 The analyzer produces this diagnostic when an extension override is the
-target of the invocation of a static member. Similar to static members in
+receiver of the invocation of a static member. Similar to static members in
 classes, the static members of an extension should be accessed using the
 name of the extension, not an extension override.
 
@@ -2283,8 +3034,8 @@ void f() {
 {% endprettify %}
 
 If there's a different extension that's valid for the type of the argument,
-then either replace the name of the extension or unwrap the target so that
-the correct extension is found.
+then either replace the name of the extension or unwrap the argument so
+that the correct extension is found.
 
 ### extension_override_without_access
 
@@ -2327,7 +3078,7 @@ void f(int i) {
 }
 {% endprettify %}
 
-If you don't want to invoke a member, then unwrap the target:
+If you don't want to invoke a member, then unwrap the argument:
 
 {% prettify dart tag=pre+code %}
 extension E on int {
@@ -2341,14 +3092,14 @@ void f(int i) {
 
 ### extension_override_with_cascade
 
-_Extension overrides have no value so they can't be used as the target of a
+_Extension overrides have no value so they can't be used as the receiver of a
 cascade expression._
 
 #### Description
 
 The analyzer produces this diagnostic when an extension override is used as
-the target of a cascade expression. The value of a cascade expression
-`e..m` is the value of the target `e`, but extension overrides aren't
+the receiver of a cascade expression. The value of a cascade expression
+`e..m` is the value of the receiver `e`, but extension overrides aren't
 expressions and don't have a value.
 
 #### Examples
@@ -2361,13 +3112,13 @@ extension E on int {
   void m() {}
 }
 f() {
-  E(3)[!..!]m();
+  [!E!](3)..m();
 }
 {% endprettify %}
 
 #### Common fixes
 
-Use '.' rather than '..':
+Use `.` rather than `..`:
 
 {% prettify dart tag=pre+code %}
 extension E on int {
@@ -2506,6 +3257,9 @@ class C {
 {% endprettify %}
 
 ### field_initializer_not_assignable
+
+_The initializer type '{0}' can't be assigned to the field type '{1}' in a const
+constructor._
 
 _The initializer type '{0}' can't be assigned to the field type '{1}'._
 
@@ -2724,6 +3478,92 @@ void f(Map<String, String> m) {
 }
 {% endprettify %}
 
+### getter_not_subtype_setter_types
+
+_The return type of getter '{0}' is '{1}' which isn't a subtype of the type
+'{2}' of its setter '{3}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the return type of a getter
+isn't a subtype of the type of the parameter of a setter with the same
+name.
+
+The subtype relationship is a requirement whether the getter and setter are
+in the same class or whether one of them is in a superclass of the other.
+
+#### Example
+
+The following code produces this diagnostic because the return type of the
+getter `x` is `num`, the parameter type of the setter `x` is `int`, and
+`num` isn't a subtype of `int`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  num get [!x!] => 0;
+
+  set x(int y) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the getter is correct, then change the type of the setter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  num get x => 0;
+
+  set x(num y) {}
+}
+{% endprettify %}
+
+If the type of the setter is correct, then change the type of the getter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int get x => 0;
+
+  set x(int y) {}
+}
+{% endprettify %}
+
+### illegal_async_generator_return_type
+
+_Functions marked 'async*' must have a return type that is a supertype of
+'Stream<T>' for some type 'T'._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of a function has the
+`async*` modifier even though the return type of the function isn't either
+`Stream` or a supertype of `Stream`.
+
+#### Example
+
+The following code produces this diagnostic because the body of the
+function `f` has the 'async*' modifier even though the return type `int`
+isn't a supertype of `Stream`:
+
+{% prettify dart tag=pre+code %}
+[!int!] f() async* {}
+{% endprettify %}
+
+#### Common fixes
+
+If the function should be asynchronous, then change the return type to be
+either `Stream` or a supertype of `Stream`:
+
+{% prettify dart tag=pre+code %}
+Stream<int> f() async* {}
+{% endprettify %}
+
+If the function should be synchronous, then remove the `async*` modifier:
+
+{% prettify dart tag=pre+code %}
+int f() => 0;
+{% endprettify %}
+
 ### illegal_async_return_type
 
 _Functions marked 'async' must have a return type assignable to 'Future'._
@@ -2760,9 +3600,44 @@ Future<int> f() async {
 If the function should be synchronous, then remove the `async` modifier:
 
 {% prettify dart tag=pre+code %}
-int f() {
-  return 0;
-}
+int f() => 0;
+{% endprettify %}
+
+### illegal_sync_generator_return_type
+
+_Functions marked 'sync*' must have a return type that is a supertype of
+'Iterable<T>' for some type 'T'._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of a function has the
+`sync*` modifier even though the return type of the function isn't either
+`Iterable` or a supertype of `Iterable`.
+
+#### Example
+
+The following code produces this diagnostic because the body of the
+function `f` has the 'sync*' modifier even though the return type `int`
+isn't a supertype of `Iterable`:
+
+{% prettify dart tag=pre+code %}
+[!int!] f() sync* {}
+{% endprettify %}
+
+#### Common fixes
+
+If the function should return an iterable, then change the return type to
+be either `Iterable` or a supertype of `Iterable`:
+
+{% prettify dart tag=pre+code %}
+Iterable<int> f() sync* {}
+{% endprettify %}
+
+If the function should return a single value, then remove the `sync*`
+modifier:
+
+{% prettify dart tag=pre+code %}
+int f() => 0;
 {% endprettify %}
 
 ### implements_non_class
@@ -2824,6 +3699,46 @@ Remove all except one occurrence of the class name:
 
 {% prettify dart tag=pre+code %}
 class A {}
+class B implements A {}
+{% endprettify %}
+
+### implements_super_class
+
+_'{0}' can't be used in both the 'extends' and 'implements' clauses._
+
+#### Description
+
+The analyzer produces this diagnostic when one class is listed in both the
+`extends` and `implements` clauses of another class.
+
+#### Example
+
+The following code produces this diagnostic because the class `A` is used
+in both the `extends` and `implements` clauses for the class `B`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A implements [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If you want to inherit the implementation from the class, then remove the
+class from the `implements` clause:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A {}
+{% endprettify %}
+
+If you don't want to inherit the implementation from the class, then remove
+the `extends` clause:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
 class B implements A {}
 {% endprettify %}
 
@@ -3226,6 +4141,108 @@ var c = new [!C!]();
 If there's a concrete subclass of the abstract class that can be used, then
 create an instance of the concrete subclass.
 
+### integer_literal_out_of_range
+
+_The integer literal {0} can't be represented in 64 bits._
+
+#### Description
+
+The analyzer produces this diagnostic when an integer literal has a value
+that is too large (positive) or too small (negative) to be represented in a
+64-bit word.
+
+#### Example
+
+The following code produces this diagnostic because the value can't be
+represented in 64 bits:
+
+{% prettify dart tag=pre+code %}
+var x = [!9223372036854775810!];
+{% endprettify %}
+
+#### Common fixes
+
+If you need to represent the current value, then wrap it in an instance of
+the class `BigInt`:
+
+{% prettify dart tag=pre+code %}
+var x = BigInt.parse('9223372036854775810');
+{% endprettify %}
+
+### invalid_annotation
+
+_Annotation must be either a const variable reference or const constructor
+invocation._
+
+_Getters can't be used as annotations._
+
+#### Description
+
+The analyzer produces this diagnostic when an annotation is found that is
+using something that is neither a variable marked as `const` or the
+invocation of a `const` constructor.
+
+Getters can't be used as annotations.
+
+#### Example
+
+The following code produces this diagnostic because the variable `v` isn't
+a `const` variable:
+
+{% prettify dart tag=pre+code %}
+var v = 0;
+
+[!@v!]
+void f() {
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `f` isn't a variable:
+
+{% prettify dart tag=pre+code %}
+[!@f!]
+void f() {
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `f` isn't a
+constructor:
+
+{% prettify dart tag=pre+code %}
+[!@f()!]
+void f() {
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `g` is a getter:
+
+{% prettify dart tag=pre+code %}
+[!@g!]
+int get g => 0;
+{% endprettify %}
+
+#### Common fixes
+
+If the annotation is referencing a variable that isn't a `const`
+constructor, add the keyword `const` to the variable's declaration:
+
+{% prettify dart tag=pre+code %}
+const v = 0;
+
+@v
+void f() {
+}
+{% endprettify %}
+
+If the annotation isn't referencing a variable, then remove it:
+
+{% prettify dart tag=pre+code %}
+int v = 0;
+
+void f() {
+}
+{% endprettify %}
+
 ### invalid_assignment
 
 _A value of type '{0}' can't be assigned to a variable of type '{1}'._
@@ -3439,11 +4456,10 @@ var x;
 
 ### invalid_null_aware_operator
 
-_The target expression can't be null because of short-circuiting, so the
-null-aware operator '{0}' can't be used._
+_The receiver can't be null because of short-circuiting, so the null-aware
+operator '{0}' can't be used._
 
-_The target expression can't be null, so the null-aware operator '{0}' can't be
-used._
+_The receiver can't be null, so the null-aware operator '{0}' is unnecessary._
 
 #### Description
 
@@ -3467,6 +4483,24 @@ The following code produces this diagnostic because `a` can't be `null`:
 var a = [];
 var b = [[!...?!]a];
 {% endprettify %}
+
+The following code produces this diagnostic because `s?.length` can't
+return `null`:
+
+{% prettify dart tag=pre+code %}
+void f(String? s) {
+  s?.length[!?.!]isEven;
+}
+{% endprettify %}
+
+The reason `s?.length` can't return `null` is because the null-aware
+operator following `s` short-circuits the evaluation of both `length` and
+`isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
+`length` nor `isEven` will be invoked, and if `s` is non-`null`, then
+`length` can't return a `null` value. Either way, `isEven` can't be invoked
+on a `null` value, so the null-aware operator is not necessary. See
+[Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
+for more details.
 
 #### Common fixes
 
@@ -3576,6 +4610,103 @@ C f(C c) => c;
 class C {}
 {% endprettify %}
 
+### invalid_super_invocation
+
+_The superclass call must be last in an initializer list: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the initializer list of a
+constructor contains an invocation of a constructor in the superclass, but
+the invocation isn't the last item in the initializer list.
+
+#### Example
+
+The following code produces this diagnostic because the invocation of the
+superclass' constructor isn't the last item in the initializer list:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B(int x) : [!super!](x), assert(x >= 0);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Move the invocation of the superclass' constructor to the end of the
+initializer list:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B(int x) : assert(x >= 0), super(x);
+}
+{% endprettify %}
+
+### invalid_type_argument_in_const_literal
+
+_Constant list literals can't include a type parameter as a type argument, such
+as '{0}'._
+
+_Constant map literals can't include a type parameter as a type argument, such
+as '{0}'._
+
+_Constant set literals can't include a type parameter as a type argument, such
+as '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a type parameter is used as a
+type argument in a list, map, or set literal that is prefixed by `const`.
+This isn't allowed because the value of the type parameter (the actual type
+that will be used at runtime) can't be known at compile time.
+
+#### Example
+
+The following code produces this diagnostic because the type parameter `T`
+is being used as a type argument when creating a constant list:
+
+{% prettify dart tag=pre+code %}
+List<T> newList<T>() => const <[!T!]>[];
+{% endprettify %}
+
+The following code produces this diagnostic because the type parameter `T`
+is being used as a type argument when creating a constant map:
+
+{% prettify dart tag=pre+code %}
+Map<String, T> newSet<T>() => const <String, [!T!]>{};
+{% endprettify %}
+
+The following code produces this diagnostic because the type parameter `T`
+is being used as a type argument when creating a constant set:
+
+{% prettify dart tag=pre+code %}
+Set<T> newSet<T>() => const <[!T!]>{};
+{% endprettify %}
+
+#### Common fixes
+
+If the type that will be used for the type parameter can be known at
+compile time, then remove the type parameter:
+
+{% prettify dart tag=pre+code %}
+List<int> newList() => const <int>[];
+{% endprettify %}
+
+If the type that will be used for the type parameter can't be known until
+runtime, then remove the keyword `const`:
+
+{% prettify dart tag=pre+code %}
+List<T> newList<T>() => <T>[];
+{% endprettify %}
+
 ### invalid_uri
 
 _Invalid URI syntax: '{0}'._
@@ -3622,7 +4753,7 @@ extension E on String {
 
 #### Common fixes
 
-Remove the 'covariant' keyword:
+Remove the `covariant` keyword:
 
 {% prettify dart tag=pre+code %}
 extension E on String {
@@ -3823,6 +4954,167 @@ int f() => x;
 var y = f();
 {% endprettify %}
 
+### label_in_outer_scope
+
+_Can't reference label '{0}' declared in an outer method._
+
+#### Description
+
+The analyzer produces this diagnostic when a `break` or `continue`
+statement references a label that is declared in a method or function
+containing the function in which the `break` or `continue` statement
+appears. The `break` and `continue` statements can't be used to transfer
+control outside the function that contains them.
+
+#### Example
+
+The following code produces this diagnostic because the label `loop` is
+declared outside the local function `g`:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  loop:
+  while (true) {
+    void g() {
+      break [!loop!];
+    }
+
+    g();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Try rewriting the code so that it isn't necessary to transfer control
+outside the local function, possibly by inlining the local function:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  loop:
+  while (true) {
+    break loop;
+  }
+}
+{% endprettify %}
+
+If that isn't possible, then try rewriting the local function so that a
+value returned by the function can be used to determine whether control is
+transferred:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  loop:
+  while (true) {
+    bool g() {
+      return true;
+    }
+
+    if (g()) {
+      break loop;
+    }
+  }
+}
+{% endprettify %}
+
+### late_final_field_with_const_constructor
+
+_Can't have a late final field in a class with a const constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that has at least one
+`const` constructor also has a field marked both `late` and `final`.
+
+#### Example
+
+The following code produces this diagnostic because the class `A` has a
+`const` constructor and the `final` field `f` is marked as `late`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  [!late!] final int f;
+
+  const A();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field doesn't need to be marked `late`, then remove the `late`
+modifier from the field:
+
+{% prettify dart tag=pre+code %}
+class A {
+  final int f = 0;
+
+  const A();
+}
+{% endprettify %}
+
+If the field must be marked `late`, then remove the `const` modifier from
+the constructors:
+
+{% prettify dart tag=pre+code %}
+class A {
+  late final int f;
+
+  A();
+}
+{% endprettify %}
+
+### late_final_local_already_assigned
+
+_The late final local variable is already assigned._
+
+#### Description
+
+The analyzer produces this diagnostic when the analyzer can prove that a
+local variable marked as both `late` and `final` was already assigned a
+value at the point where another assignment occurs.
+
+Because `final` variables can only be assigned once, subsequent assignments
+are guaranteed to fail, so they're flagged.
+
+#### Example
+
+The following code produces this diagnostic because the `final` variable
+`v` is assigned a value in two places:
+
+{% prettify dart tag=pre+code %}
+int f() {
+  late final int v;
+  v = 0;
+  [!v!] += 1;
+  return v;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to be able to reassign the variable, then remove the `final`
+keyword:
+
+{% prettify dart tag=pre+code %}
+int f() {
+  late int v;
+  v = 0;
+  v += 1;
+  return v;
+}
+{% endprettify %}
+
+If you don't need to reassign the variable, then remove all except the
+first of the assignments:
+
+{% prettify dart tag=pre+code %}
+int f() {
+  late final int v;
+  v = 0;
+  return v;
+}
+{% endprettify %}
+
 ### list_element_type_not_assignable
 
 _The element type '{0}' can't be assigned to the list type '{1}'._
@@ -3861,6 +5153,32 @@ list to allow all of the different types of objects it needs to contain:
 
 {% prettify dart tag=pre+code %}
 List<num> x = [1, 2.5, 3];
+{% endprettify %}
+
+### main_is_not_function
+
+_The declaration named 'main' must be a function._
+
+#### Description
+
+The analyzer produces this diagnostic when a library contains a declaration
+of the name `main` that isn't the declaration of a top-level function.
+
+#### Example
+
+The following code produces this diagnostic because the name `main` is
+being used to declare a top-level variable:
+
+{% prettify dart tag=pre+code %}
+var [!main!] = 3;
+{% endprettify %}
+
+#### Common fixes
+
+Use a different name for the declaration:
+
+{% prettify dart tag=pre+code %}
+var mainIndex = 3;
 {% endprettify %}
 
 ### map_entry_not_in_map
@@ -3971,17 +5289,17 @@ var m = <String, int>{'a' : 2};
 
 ### missing_default_value_for_parameter
 
-_The parameter '{0}' can't have a value of 'null' because of its type, and no
-non-null default value is provided._
+_The parameter '{0}' can't have a value of 'null' because of its type, but the
+implicit default value is 'null'._
 
 #### Description
 
 The analyzer produces this diagnostic when an optional parameter, whether
-positional or named, has a <a href=”#potentially-non-nullable”>potentially
-non-nullable</a> type and doesn't specify a default value. Optional
-parameters that have no explicit default value have an implicit default
-value of `null`. If the type of the parameter doesn't allow the parameter
-to have a value of `null`, then the implicit default value isn't valid.
+positional or named, has a [potentially non-nullable][] type and doesn't
+specify a default value. Optional parameters that have no explicit default
+value have an implicit default value of `null`. If the type of the
+parameter doesn't allow the parameter to have a value of `null`, then the
+implicit default value isn't valid.
 
 #### Example
 
@@ -4231,7 +5549,7 @@ as a superclass constraint.
 
 #### Examples
 
-If the package 'p' defines a sealed class:
+If the package `p` defines a sealed class:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
@@ -4240,7 +5558,7 @@ import 'package:meta/meta.dart';
 class C {}
 {% endprettify %}
 
-Then, the following code, when in a package other than 'p', produces this
+Then, the following code, when in a package other than `p`, produces this
 diagnostic:
 
 {% prettify dart tag=pre+code %}
@@ -4327,6 +5645,8 @@ class C {
 {% endprettify %}
 
 If the instances of the class should be mutable, then remove the
+annotation, or choose a different superclass if the annotation is
+inherited:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4754,7 +6074,7 @@ _The values in a const list literal must be constants._
 The analyzer produces this diagnostic when an element in a constant list
 literal isn't a constant value. The list literal can be constant either
 explicitly (because it's prefixed by the `const` keyword) or implicitly
-(because it appears in a [constant context](#constant-context)).
+(because it appears in a [constant context][]).
 
 #### Examples
 
@@ -4945,9 +6265,6 @@ var s = {i};
 _This instance creation must be 'const', because the {0} constructor is marked
 as '@literal'._
 
-_This instance creation must be 'const', because the {0} constructor is marked
-as '@literal'._
-
 #### Description
 
 The analyzer produces this diagnostic when a constructor that has the
@@ -5060,13 +6377,11 @@ _The non-nullable local variable '{0}' must be assigned before it can be used._
 
 The analyzer produces this diagnostic when a local variable is referenced
 and has all these characteristics:
-- Has a type that's <a href=”#potentially-non-nullable”>potentially
-  non-nullable</a>.
+- Has a type that's [potentially non-nullable][].
 - Doesn't have an initializer.
 - Isn't marked as `late`.
 - The analyzer can't prove that the local variable will be assigned before
-  the reference based on the specification of
-  [definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md).
+  the reference based on the specification of [definite assignment.][]
 
 #### Example
 
@@ -5227,14 +6542,11 @@ void g() {
 
 _Non-nullable instance field '{0}' must be initialized._
 
-_Non-nullable instance field '{0}' must be initialized._
-
 #### Description
 
 The analyzer produces this diagnostic when a field is declared and has all
 these characteristics:
-- Has a type that's <a href=”#potentially-non-nullable”>potentially
-  non-nullable</a>
+- Has a type that's [potentially non-nullable][]
 - Doesn't have an initializer
 - Isn't marked as `late`
 
@@ -5450,6 +6762,62 @@ class C {
 
 @C()
 var x;
+{% endprettify %}
+
+### no_combined_super_signature
+
+_Can't infer missing types in '{0}' from overridden methods: {1}._
+
+#### Description
+
+The analyzer produces this diagnostic when there is a method declaration
+for which one or more types needs to be inferred, and those types can't be
+inferred because none of the overridden methods has a function type that is
+a supertype of all the other overridden methods, as specified by
+[override inference][].
+
+#### Example
+
+The following code produces this diagnostic because the method `m` declared
+in the class `C` is missing both the return type and the type of the
+parameter `a`, and neither of the missing types can be inferred for it:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  A m(String a);
+}
+
+abstract class B {
+  B m(int a);
+}
+
+abstract class C implements A, B {
+  [!m!](a);
+}
+{% endprettify %}
+
+In this example, override inference can't be performed because the
+overridden methods are incompatible in these ways:
+- Neither parameter type (`String` and `int`) is a supertype of the other.
+- Neither return type is a subtype of the other.
+
+#### Common fixes
+
+If possible, add types to the method in the subclass that are consistent
+with the types from all the overridden methods:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  A m(String a);
+}
+
+abstract class B {
+  B m(int a);
+}
+
+abstract class C implements A, B {
+  C m(Object a);
+}
 {% endprettify %}
 
 ### nullable_type_in_catch_clause
@@ -5755,6 +7123,47 @@ directive with an import directive:
 
 {% prettify dart tag=pre+code %}
 import 'a.dart';
+{% endprettify %}
+
+### prefix_collides_with_top_level_member
+
+_The name '{0}' is already used as an import prefix and can't be used to name a
+top-level element._
+
+#### Description
+
+The analyzer produces this diagnostic when a name is used as both an import
+prefix and the name of a top-level declaration in the same library.
+
+#### Example
+
+The following code produces this diagnostic because `f` is used as both an
+import prefix and the name of a function:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' as f;
+
+int [!f!]() => f.min(0, 1);
+{% endprettify %}
+
+#### Common fixes
+
+If you want to use the name for the import prefix, then rename the
+top-level declaration:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' as f;
+
+int g() => f.min(0, 1);
+{% endprettify %}
+
+If you want to use the name for the top-level declaration, then rename the
+import prefix:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' as math;
+
+int f() => math.min(0, 1);
 {% endprettify %}
 
 ### prefix_identifier_not_followed_by_dot
@@ -6220,11 +7629,10 @@ version 2.3.2, but this code is required to be able to run on earlier versions._
 #### Description
 
 The analyzer produces this diagnostic when an `as` expression inside a
-[constant context](#constant-context) is found in code that has an SDK
-constraint whose lower bound is less than 2.3.2. Using an `as` expression
-in a [constant context](#constant-context) wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
+[constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.3.2. Using an `as` expression in a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6256,7 +7664,7 @@ environment:
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use an `as` expression, or change the code so that the `as`
-expression isn't in a [constant context](#constant-context):
+expression isn't in a [constant context][]:
 
 {% prettify dart tag=pre+code %}
 num x = 3;
@@ -6271,11 +7679,11 @@ supported until version 2.3.2, but this code is required to be able to run on ea
 #### Description
 
 The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
-operators on the class `bool` inside a
-[constant context](#constant-context) is found in code that has an SDK
-constraint whose lower bound is less than 2.3.2. Using these operators in a
-[constant context](#constant-context) wasn't supported in earlier versions,
-so this code won't be able to run against earlier versions of the SDK.
+operators on the class `bool` inside a [constant context][] is found in
+code that has an SDK constraint whose lower bound is less than 2.3.2. Using
+these operators in a [constant context][] wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
 
 #### Examples
 
@@ -6308,7 +7716,7 @@ environment:
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use these operators, or change the code so that the expression
-isn't in a [constant context](#constant-context):
+isn't in a [constant context][]:
 
 {% prettify dart tag=pre+code %}
 const bool a = true;
@@ -6324,11 +7732,10 @@ _Using the operator '==' for non-primitive types wasn't supported until version
 #### Description
 
 The analyzer produces this diagnostic when the operator `==` is used on a
-non-primitive type inside a [constant context](#constant-context) is found
-in code that has an SDK constraint whose lower bound is less than 2.3.2.
-Using this operator in a [constant context](#constant-context) wasn't
-supported in earlier versions, so this code won't be able to run against
-earlier versions of the SDK.
+non-primitive type inside a [constant context][] is found in code that has
+an SDK constraint whose lower bound is less than 2.3.2. Using this operator
+in a [constant context][] wasn't supported in earlier versions, so this
+code won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6362,7 +7769,7 @@ environment:
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `==` operator, or change the code so that the
-expression isn't in a [constant context](#constant-context):
+expression isn't in a [constant context][]:
 
 {% prettify dart tag=pre+code %}
 class C {}
@@ -6434,11 +7841,10 @@ version 2.3.2, but this code is required to be able to run on earlier versions._
 #### Description
 
 The analyzer produces this diagnostic when an `is` expression inside a
-[constant context](#constant-context) is found in code that has an SDK
-constraint whose lower bound is less than 2.3.2. Using an `is` expression
-in a [constant context](#constant-context) wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
+[constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.3.2. Using an `is` expression in a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6471,11 +7877,57 @@ environment:
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `is` operator, or, if that isn't possible, change the
 code so that the `is` expression isn't in a
-[constant context](#constant-context):
+[constant context][]:
 
 {% prettify dart tag=pre+code %}
 const x = 4;
 var y = x is int ? 0 : 1;
+{% endprettify %}
+
+### sdk_version_never
+
+_The type 'Never' wasn't supported until version 2.X.0, but this code is
+required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when a reference to the class `Never`
+is found in code that has an SDK constraint whose lower bound is less than
+2.12.0. This class wasn't defined in earlier versions, so this code won't
+be able to run against earlier versions of the SDK.
+
+#### Examples
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.12.0:
+
+```yaml
+environment:
+  sdk: '>=2.5.0 <2.6.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+[!Never!] n;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the type to be used:
+
+```yaml
+environment:
+  sdk: '>=2.12.0 <2.13.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not reference this class:
+
+{% prettify dart tag=pre+code %}
+dynamic x;
 {% endprettify %}
 
 ### sdk_version_set_literal
@@ -6587,11 +8039,10 @@ version 2.5.0, but this code is required to be able to run on earlier versions._
 #### Description
 
 The analyzer produces this diagnostic when an if or spread element inside
-a [constant context](#constant-context) is found in code that has an
-SDK constraint whose lower bound is less than 2.5.0. Using an if or
-spread element inside a [constant context](#constant-context) wasn't
-supported in earlier versions, so this code won't be able to run against
-earlier versions of the SDK.
+a [constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.5.0. Using an if or spread element inside a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6630,7 +8081,7 @@ const b = [1, 2];
 {% endprettify %}
 
 If that isn't possible, change the code so that the element isn't in a
-[constant context](#constant-context):
+[constant context][]:
 
 {% prettify dart tag=pre+code %}
 const a = [1, 2];
@@ -6688,6 +8139,69 @@ class C {
 }
 
 int f(C c) => c.b;
+{% endprettify %}
+
+### subtype_of_disallowed_type
+
+_''{0}' can't be used as a superclass constraint._
+
+_Classes and mixins can't implement '{0}'._
+
+_Classes can't extend '{0}'._
+
+_Classes can't mixin '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when one of the restricted classes is
+used in either an `extends`, `implements`, `with`, or `on` clause. The
+classes `bool`, `double`, `FutureOr`, `int`, `Null`, `num`, and `String`
+are all restricted in this way, to allow for more efficient
+implementations.
+
+#### Example
+
+The following code produces this diagnostic because `String` is used in an
+`extends` clause:
+
+{% prettify dart tag=pre+code %}
+class A extends [!String!] {}
+{% endprettify %}
+
+The following code produces this diagnostic because `String` is used in an
+`implements` clause:
+
+{% prettify dart tag=pre+code %}
+class B implements [!String!] {}
+{% endprettify %}
+
+The following code produces this diagnostic because `String` is used in a
+`with` clause:
+
+{% prettify dart tag=pre+code %}
+class C with [!String!] {}
+{% endprettify %}
+
+The following code produces this diagnostic because `String` is used in an
+`on` clause:
+
+{% prettify dart tag=pre+code %}
+mixin M on [!String!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If a different type should be specified, then replace the type:
+
+{% prettify dart tag=pre+code %}
+class A extends Object {}
+{% endprettify %}
+
+If there isn't a different type that would be appropriate, then remove the
+type, and possibly the whole clause:
+
+{% prettify dart tag=pre+code %}
+class B {}
 {% endprettify %}
 
 ### super_in_extension
@@ -6900,8 +8414,8 @@ dereferenced._
 #### Description
 
 The analyzer produces this diagnostic when an expression whose type is
-<a href=”#potentially-non-nullable”>potentially non-nullable</a> is
-dereferenced without first verifying that the value isn't `null`.
+[potentially non-nullable][] is dereferenced without first verifying that
+the value isn't `null`.
 
 #### Example
 
@@ -7646,7 +9160,7 @@ void f(C c) {
 {% endprettify %}
 
 If a subclass adds a parameter with the name in question, then cast the
-target to the subclass:
+receiver to the subclass:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -7808,20 +9322,26 @@ import 'dart:math' show min;
 var x = min(0, 1);
 {% endprettify %}
 
-### undefined_super_method
+### undefined_super_member
+
+_The getter '{0}' isn't defined in a superclass of '{1}'._
 
 _The method '{0}' isn't defined in a superclass of '{1}'._
 
+_The operator '{0}' isn't defined in a superclass of '{1}'._
+
+_The setter '{0}' isn't defined in a superclass of '{1}'._
+
 #### Description
 
-The analyzer produces this diagnostic when an inherited method is
-referenced using `super`, but there’s no method with that name in the
-superclass chain.
+The analyzer produces this diagnostic when an inherited member (method,
+getter, setter, or operator) is referenced using `super`, but there’s no
+member with that name in the superclass chain.
 
 #### Examples
 
 The following code produces this diagnostic because `Object` doesn't define
-a member named `n`:
+a method named `n`:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -7831,16 +9351,27 @@ class C {
 }
 {% endprettify %}
 
+The following code produces this diagnostic because `Object` doesn't define
+a getter named `g`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m() {
+    super.[!g!];
+  }
+}
+{% endprettify %}
+
 #### Common fixes
 
-If the inherited method you intend to invoke has a different name, then
-make the name of the invoked method  match the inherited method.
+If the inherited member you intend to invoke has a different name, then
+make the name of the invoked member match the inherited member.
 
-If the method you intend to invoke is defined in the same class, then
+If the member you intend to invoke is defined in the same class, then
 remove the `super.`.
 
-If not, then either add the method to one of the superclasses or remove the
-invocation.
+If the member isn’t defined, then either add the member to one of the
+superclasses or remove the invocation.
 
 ### unnecessary_cast
 
@@ -7878,7 +9409,7 @@ void f(num n) {
 
 ### unnecessary_non_null_assertion
 
-_The '!' will have no effect because the target expression can't be null._
+_The '!' will have no effect because the receiver can't be null._
 
 #### Description
 
@@ -8110,9 +9641,14 @@ _The declaration '{0}' isn't referenced._
 
 #### Description
 
-The analyzer produces this diagnostic when a private class, enum, mixin,
-typedef, top level variable, top level function, or method is declared but
-never referenced.
+The analyzer produces this diagnostic when a private declaration isn't
+referenced in the library that contains the declaration. The following
+kinds of declarations are analyzed:
+- Private top-level declarations, such as classes, enums, mixins, typedefs,
+  top-level variables, and top-level functions
+- Private static and instance methods
+- Optional parameters of private functions for which a value is never
+  passed, even when the parameter doesn't have a private name
 
 #### Examples
 
@@ -8123,11 +9659,30 @@ produces this diagnostic:
 class [!_C!] {}
 {% endprettify %}
 
+Assuming that no code in the library passes a value for `y` in any
+invocation of `_m`, the following code produces this diagnostic:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void _m(int x, [int [!y!]]) {}
+
+  void n() => _m(0);
+}
+{% endprettify %}
+
 #### Common fixes
 
-If the declaration isn't needed, then remove it.
+If the declaration isn't needed, then remove it:
 
-If the declaration was intended to be used, then add the missing code.
+{% prettify dart tag=pre+code %}
+class C {
+  void _m(int x) {}
+
+  void n() => _m(0);
+}
+{% endprettify %}
+
+If the declaration is intended to be used, then add the code to use it.
 
 ### unused_field
 
@@ -8374,7 +9929,7 @@ code so that it doesn't depend on the value.
 
 ### variable_type_mismatch
 
-_A value of type '{0}' can't be assigned to a variable of type '{1}'._
+_A value of type '{0}' can't be assigned to a const variable of type '{1}'._
 
 #### Description
 
@@ -8525,3 +10080,56 @@ class C<E> {}
 
 void f(C<int> x) {}
 {% endprettify %}
+
+### wrong_number_of_type_arguments_method
+
+_The method '{0}' is declared with {1} type parameters, but {2} type arguments
+are given._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function is invoked
+with a different number of type arguments than the number of type
+parameters specified in its declaration. There must either be no type
+arguments or the number of arguments must match the number of parameters.
+
+#### Example
+
+The following code produces this diagnostic because the invocation of the
+method `m` has two type arguments, but the declaration of `m` only has one
+type parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int m<A>(A a) => 0;
+}
+
+int f(C c) => c.m[!<int, int>!](2);
+{% endprettify %}
+
+#### Common fixes
+
+If the type arguments are necessary, then make them match the number of
+type parameters by either adding or removing type arguments:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int m<A>(A a) => 0;
+}
+
+int f(C c) => c.m<int>(2);
+{% endprettify %}
+
+If the type arguments aren't necessary, then remove them:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int m<A>(A a) => 0;
+}
+
+int f(C c) => c.m(2);
+{% endprettify %}
+
+### undefined_super_method
+
+See [undefined_super_member](#undefined_super_member).

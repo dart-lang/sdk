@@ -37,16 +37,28 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   @override
   ErrorReporter get errorReporter => super.errorReporter;
 
+  /// Evaluates [node] to a constant in the given [staticTypeContext].
+  ///
+  /// If [requireConstant] is `true`, an error is reported if [node] is not
+  /// a valid constant. Otherwise, `null` if [node] is not a valid constant.
+  ///
+  /// If [replaceImplicitConstant] is `true`, if [node] is not a constant
+  /// expression but evaluates to a constant, [node] is replaced with an
+  /// [ir.ConstantExpression] holding the constant. Otherwise the [node] is not
+  /// replaced even when it evaluated to a constant.
   @override
   ir.Constant evaluate(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {bool requireConstant: true}) {
+      {ir.TreeNode contextNode,
+      bool requireConstant: true,
+      bool replaceImplicitConstant: true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
       if (constant is ir.UnevaluatedConstant) {
-        ir.Constant result =
-            super.evaluate(staticTypeContext, constant.expression);
+        ir.Constant result = super.evaluate(
+            staticTypeContext, constant.expression,
+            contextNode: contextNode);
         assert(
             result is ir.UnevaluatedConstant ||
                 !result.accept(const UnevaluatedConstantFinder()),
@@ -59,16 +71,21 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       return constant;
     }
     if (requireConstant) {
-      return super.evaluate(staticTypeContext, node);
+      return super.evaluate(staticTypeContext, node, contextNode: contextNode);
     } else {
       try {
-        ir.Constant constant = super.evaluate(staticTypeContext, node);
+        ir.Constant constant =
+            super.evaluate(staticTypeContext, node, contextNode: contextNode);
         if (constant is ir.UnevaluatedConstant &&
             constant.expression is ir.InvalidExpression) {
           return null;
         }
-        // TODO(johnniwinther,sigmund): Replace [node] with an
-        // `ir.ConstantExpression` holding the [constant].
+        if (constant != null && replaceImplicitConstant) {
+          // Note: Using [replaceWith] is slow and should be avoided.
+          node.replaceWith(ir.ConstantExpression(
+              constant, node.getStaticType(staticTypeContext))
+            ..fileOffset = node.fileOffset);
+        }
         return constant;
       } catch (e) {
         return null;

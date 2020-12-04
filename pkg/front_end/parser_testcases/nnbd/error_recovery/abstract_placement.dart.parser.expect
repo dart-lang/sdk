@@ -1,0 +1,37 @@
+NOTICE: Stream was rewritten by parser!
+
+abstract class C {
+final abstract int i1;
+final abstract i2;
+covariant abstract num i3;
+covariant abstract var i4;
+final abstract i5;
+var abstract i6;
+C abstract ;i7;
+}
+
+
+var abstract foo;
+
+abstract class Bar {
+
+covariant required x;
+}
+
+abstract[KeywordToken] class[KeywordToken] C[StringToken] {[BeginToken]
+final[KeywordToken] abstract[KeywordToken] int[StringToken] i1[StringToken];[SimpleToken]
+final[KeywordToken] abstract[KeywordToken] i2[StringToken];[SimpleToken]
+covariant[KeywordToken] abstract[KeywordToken] num[StringToken] i3[StringToken];[SimpleToken]
+covariant[KeywordToken] abstract[KeywordToken] var[KeywordToken] i4[StringToken];[SimpleToken]
+final[KeywordToken] abstract[KeywordToken] i5[StringToken];[SimpleToken]
+var[KeywordToken] abstract[KeywordToken] i6[StringToken];[SimpleToken]
+C[StringToken] abstract[KeywordToken] ;[SyntheticToken]i7[StringToken];[SimpleToken]
+}[SimpleToken]
+
+
+var[KeywordToken] abstract[KeywordToken] foo[StringToken];[SimpleToken]
+
+abstract[KeywordToken] class[KeywordToken] Bar[StringToken] {[BeginToken]
+
+covariant[KeywordToken] required[KeywordToken] x[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

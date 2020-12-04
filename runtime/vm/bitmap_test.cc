@@ -16,8 +16,8 @@ namespace dart {
 static const uint32_t kTestPcOffset = 0x4;
 static const intptr_t kTestSpillSlotBitCount = 0;
 
-static CompressedStackMapsPtr MapsFromBuilder(BitmapBuilder* bmap) {
-  CompressedStackMapsBuilder builder;
+static CompressedStackMapsPtr MapsFromBuilder(Zone* zone, BitmapBuilder* bmap) {
+  CompressedStackMapsBuilder builder(zone);
   builder.AddEntry(kTestPcOffset, bmap, kTestSpillSlotBitCount);
   return builder.Finalize();
 }
@@ -51,8 +51,9 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   }
 
   // Create a CompressedStackMaps object and verify its contents.
-  const auto& maps1 = CompressedStackMaps::Handle(MapsFromBuilder(builder1));
-  CompressedStackMapsIterator it1(maps1);
+  const auto& maps1 = CompressedStackMaps::Handle(
+      thread->zone(), MapsFromBuilder(thread->zone(), builder1));
+  CompressedStackMaps::Iterator it1(thread, maps1);
   EXPECT(it1.MoveNext());
 
   EXPECT_EQ(kTestPcOffset, it1.pc_offset());
@@ -83,8 +84,9 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
     EXPECT(!builder1->Get(i));
   }
 
-  const auto& maps2 = CompressedStackMaps::Handle(MapsFromBuilder(builder1));
-  CompressedStackMapsIterator it2(maps2);
+  const auto& maps2 = CompressedStackMaps::Handle(
+      thread->zone(), MapsFromBuilder(thread->zone(), builder1));
+  CompressedStackMaps::Iterator it2(thread, maps2);
   EXPECT(it2.MoveNext());
 
   EXPECT_EQ(kTestPcOffset, it2.pc_offset());

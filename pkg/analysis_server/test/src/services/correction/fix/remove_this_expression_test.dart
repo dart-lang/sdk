@@ -24,7 +24,7 @@ class RemoveThisExpressionTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unnecessary_this;
 
   Future<void> test_constructorInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int x;
   A(int x) : this.x = x;
@@ -39,7 +39,7 @@ class A {
   }
 
   Future<void> test_methodInvocation_oneCharacterOperator() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void foo() {
     this.foo();
@@ -55,48 +55,12 @@ class A {
 ''');
   }
 
-  Future<void> test_methodInvocation_twoCharactersOperator() async {
-    await resolveTestUnit('''
-class A {
-  void foo() {
-    this?.foo();
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  void foo() {
-    foo();
-  }
-}
-''');
-  }
-
   Future<void> test_propertyAccess_oneCharacterOperator() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int x;
   void foo() {
     this.x = 2;
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  int x;
-  void foo() {
-    x = 2;
-  }
-}
-''');
-  }
-
-  Future<void> test_propertyAccess_twoCharactersOperator() async {
-    await resolveTestUnit('''
-class A {
-  int x;
-  void foo() {
-    this?.x = 2;
   }
 }
 ''');

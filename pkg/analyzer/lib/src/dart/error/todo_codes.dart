@@ -37,7 +37,12 @@ class TodoCode extends ErrorCode {
   /**
    * Initialize a newly created error code to have the given [name].
    */
-  const TodoCode(String name) : super.temporary(name, "{0}");
+  const TodoCode(String name)
+      : super(
+          message: "{0}",
+          name: name,
+          uniqueName: 'TodoCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;

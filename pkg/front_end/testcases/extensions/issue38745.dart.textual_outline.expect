@@ -1,6 +1,5 @@
-class C<T> {
-}
-extension ext<T> ( ){ }
-on C<T> (){ }
-main() { }
-errors() { }
+class C<T> {}
+extension ext<T> (){}
+on C<T> (){}
+main() {}
+errors() {}

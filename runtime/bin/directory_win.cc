@@ -13,6 +13,7 @@
 #include "bin/crypto.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
+#include "bin/file_win.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
@@ -20,8 +21,6 @@
 #include "platform/utils.h"
 
 #undef DeleteFile
-
-#define MAX_LONG_PATH 32767
 
 namespace dart {
 namespace bin {
@@ -278,7 +277,12 @@ static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data, PathBuffer* path) {
 }
 
 static bool DeleteRecursively(PathBuffer* path) {
-  DWORD attributes = GetFileAttributesW(path->AsStringW());
+  PathBuffer prefixed_path;
+  if (!prefixed_path.Add(PrefixLongDirectoryPath(path->AsScopedString()))) {
+    return false;
+  }
+
+  DWORD attributes = GetFileAttributesW(prefixed_path.AsStringW());
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     return false;
   }
@@ -286,33 +290,34 @@ static bool DeleteRecursively(PathBuffer* path) {
   // filesystem that we do not want to recurse into.
   if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     // Just delete the junction itself.
-    return RemoveDirectoryW(path->AsStringW()) != 0;
+    return RemoveDirectoryW(prefixed_path.AsStringW()) != 0;
   }
   // If it's a file, remove it directly.
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
-    return DeleteFile(L"", path);
+    return DeleteFile(L"", &prefixed_path);
   }
 
-  if (!path->AddW(L"\\*")) {
+  if (!prefixed_path.AddW(L"\\*")) {
     return false;
   }
 
   WIN32_FIND_DATAW find_file_data;
-  HANDLE find_handle = FindFirstFileW(path->AsStringW(), &find_file_data);
+  HANDLE find_handle =
+      FindFirstFileW(prefixed_path.AsStringW(), &find_file_data);
 
   if (find_handle == INVALID_HANDLE_VALUE) {
     return false;
   }
 
   // Adjust the path by removing the '*' used for the search.
-  int path_length = path->length() - 1;
-  path->Reset(path_length);
+  int path_length = prefixed_path.length() - 1;
+  prefixed_path.Reset(path_length);
 
   do {
-    if (!DeleteEntry(&find_file_data, path)) {
+    if (!DeleteEntry(&find_file_data, &prefixed_path)) {
       break;
     }
-    path->Reset(path_length);  // DeleteEntry adds to the path.
+    prefixed_path.Reset(path_length);  // DeleteEntry adds to the path.
   } while (FindNextFileW(find_handle, &find_file_data) != 0);
 
   DWORD last_error = GetLastError();
@@ -324,8 +329,9 @@ static bool DeleteRecursively(PathBuffer* path) {
     return false;
   }
   // All content deleted succesfully, try to delete directory.
-  path->Reset(path_length - 1);  // Drop the "\" from the end of the path.
-  return RemoveDirectoryW(path->AsStringW()) != 0;
+  prefixed_path.Reset(path_length -
+                      1);  // Drop the "\" from the end of the path.
+  return RemoveDirectoryW(prefixed_path.AsStringW()) != 0;
 }
 
 static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
@@ -349,7 +355,8 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
 
 Directory::ExistsResult Directory::Exists(Namespace* namespc,
                                           const char* dir_name) {
-  Utf8ToWideScope system_name(dir_name);
+  const char* prefixed_dir_name = PrefixLongDirectoryPath(dir_name);
+  Utf8ToWideScope system_name(prefixed_dir_name);
   return ExistsHelper(system_name.wide());
 }
 
@@ -369,7 +376,8 @@ char* Directory::CurrentNoScope() {
 }
 
 bool Directory::Create(Namespace* namespc, const char* dir_name) {
-  Utf8ToWideScope system_name(dir_name);
+  const char* prefixed_dir_name = PrefixLongDirectoryPath(dir_name);
+  Utf8ToWideScope system_name(prefixed_dir_name);
   int create_status = CreateDirectoryW(system_name.wide(), NULL);
   // If the directory already existed, treat it as a success.
   if ((create_status == 0) && (GetLastError() == ERROR_ALREADY_EXISTS) &&
@@ -475,10 +483,11 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
 bool Directory::Delete(Namespace* namespc,
                        const char* dir_name,
                        bool recursive) {
+  const char* prefixed_dir_name = PrefixLongDirectoryPath(dir_name);
   bool result = false;
-  Utf8ToWideScope system_dir_name(dir_name);
+  Utf8ToWideScope system_dir_name(prefixed_dir_name);
   if (!recursive) {
-    if (File::GetType(namespc, dir_name, true) == File::kIsDirectory) {
+    if (File::GetType(namespc, prefixed_dir_name, true) == File::kIsDirectory) {
       result = (RemoveDirectoryW(system_dir_name.wide()) != 0);
     } else {
       SetLastError(ERROR_FILE_NOT_FOUND);
@@ -495,18 +504,20 @@ bool Directory::Delete(Namespace* namespc,
 bool Directory::Rename(Namespace* namespc,
                        const char* path,
                        const char* new_path) {
-  Utf8ToWideScope system_path(path);
-  Utf8ToWideScope system_new_path(new_path);
+  const char* prefixed_dir = PrefixLongDirectoryPath(path);
+  Utf8ToWideScope system_path(prefixed_dir);
   ExistsResult exists = ExistsHelper(system_path.wide());
   if (exists != EXISTS) {
     return false;
   }
+  const char* prefixed_new_dir = PrefixLongDirectoryPath(new_path);
+  Utf8ToWideScope system_new_path(prefixed_new_dir);
   ExistsResult new_exists = ExistsHelper(system_new_path.wide());
   // MoveFile does not allow replacing existing directories. Therefore,
   // if the new_path is currently a directory we need to delete it
   // first.
   if (new_exists == EXISTS) {
-    bool success = Delete(namespc, new_path, true);
+    bool success = Delete(namespc, prefixed_new_dir, true);
     if (!success) {
       return false;
     }

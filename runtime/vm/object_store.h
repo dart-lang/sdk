@@ -28,8 +28,7 @@ class ObjectPointerVisitor;
   M(Math, math)                                                                \
   M(Mirrors, mirrors)                                                          \
   M(TypedData, typed_data)                                                     \
-  M(VMService, _vmservice)                                                     \
-  M(Wasm, wasm)
+  M(VMService, _vmservice)
 
 // TODO(liama): Once NNBD is enabled, *_type will be deleted and all uses will
 // be replaced with *_type_non_nullable. Later, once we drop support for opted
@@ -82,6 +81,7 @@ class ObjectPointerVisitor;
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
   RW(Type, non_nullable_string_type)                                           \
+  CW(Class, list_class)                    /* maybe be null, lazily built */   \
   CW(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
   CW(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
   FW(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
@@ -150,7 +150,6 @@ class ObjectPointerVisitor;
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \
-  RW(Library, wasm_library)                                                    \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
   RW(Array, loading_units)                                                     \
@@ -159,17 +158,16 @@ class ObjectPointerVisitor;
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
   RW(Function, lookup_port_handler)                                            \
+  RW(Function, lookup_open_ports)                                              \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \
   RW(Function, simple_instance_of_true_function)                               \
   RW(Function, simple_instance_of_false_function)                              \
-  RW(Function, async_clear_thread_stack_trace)                                 \
-  RW(Function, async_set_thread_stack_trace)                                   \
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
+  RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
-  RW(Array, bytecode_attributes)                                               \
   RW(GrowableObjectArray, llvm_constant_pool)                                  \
   RW(GrowableObjectArray, llvm_function_pool)                                  \
   RW(Array, llvm_constant_hash_table)                                          \
@@ -179,6 +177,8 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(Code, build_method_extractor_code)                                        \
   RW(Code, dispatch_table_null_error_stub)                                     \
+  RW(Code, late_initialization_error_stub_with_fpu_regs_stub)                  \
+  RW(Code, late_initialization_error_stub_without_fpu_regs_stub)               \
   RW(Code, null_error_stub_with_fpu_regs_stub)                                 \
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
   RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \
@@ -192,6 +192,20 @@ class ObjectPointerVisitor;
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_int8_array_stub)                                           \
+  RW(Code, allocate_uint8_array_stub)                                          \
+  RW(Code, allocate_uint8_clamped_array_stub)                                  \
+  RW(Code, allocate_int16_array_stub)                                          \
+  RW(Code, allocate_uint16_array_stub)                                         \
+  RW(Code, allocate_int32_array_stub)                                          \
+  RW(Code, allocate_uint32_array_stub)                                         \
+  RW(Code, allocate_int64_array_stub)                                          \
+  RW(Code, allocate_uint64_array_stub)                                         \
+  RW(Code, allocate_float32_array_stub)                                        \
+  RW(Code, allocate_float64_array_stub)                                        \
+  RW(Code, allocate_float32x4_array_stub)                                      \
+  RW(Code, allocate_int32x4_array_stub)                                        \
+  RW(Code, allocate_float64x2_array_stub)                                      \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
@@ -211,11 +225,14 @@ class ObjectPointerVisitor;
   RW(Code, default_tts_stub)                                                   \
   RW(Code, default_nullable_tts_stub)                                          \
   RW(Code, top_type_tts_stub)                                                  \
+  RW(Code, nullable_type_parameter_tts_stub)                                   \
+  RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
   RW(Array, dispatch_table_code_entries)                                       \
-  RW(Array, code_order_table)                                                  \
+  RW(GrowableObjectArray, code_order_tables)                                   \
   RW(Array, obfuscation_map)                                                   \
+  RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
@@ -224,6 +241,10 @@ class ObjectPointerVisitor;
 
 #define OBJECT_STORE_STUB_CODE_LIST(DO)                                        \
   DO(dispatch_table_null_error_stub, DispatchTableNullError)                   \
+  DO(late_initialization_error_stub_with_fpu_regs_stub,                        \
+     LateInitializationErrorSharedWithFPURegs)                                 \
+  DO(late_initialization_error_stub_without_fpu_regs_stub,                     \
+     LateInitializationErrorSharedWithoutFPURegs)                              \
   DO(null_error_stub_with_fpu_regs_stub, NullErrorSharedWithFPURegs)           \
   DO(null_error_stub_without_fpu_regs_stub, NullErrorSharedWithoutFPURegs)     \
   DO(null_arg_error_stub_with_fpu_regs_stub, NullArgErrorSharedWithFPURegs)    \
@@ -240,6 +261,20 @@ class ObjectPointerVisitor;
   DO(stack_overflow_stub_without_fpu_regs_stub,                                \
      StackOverflowSharedWithoutFPURegs)                                        \
   DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_int8_array_stub, AllocateInt8Array)                              \
+  DO(allocate_uint8_array_stub, AllocateUint8Array)                            \
+  DO(allocate_uint8_clamped_array_stub, AllocateUint8ClampedArray)             \
+  DO(allocate_int16_array_stub, AllocateInt16Array)                            \
+  DO(allocate_uint16_array_stub, AllocateUint16Array)                          \
+  DO(allocate_int32_array_stub, AllocateInt32Array)                            \
+  DO(allocate_uint32_array_stub, AllocateUint32Array)                          \
+  DO(allocate_int64_array_stub, AllocateInt64Array)                            \
+  DO(allocate_uint64_array_stub, AllocateUint64Array)                          \
+  DO(allocate_float32_array_stub, AllocateFloat32Array)                        \
+  DO(allocate_float64_array_stub, AllocateFloat64Array)                        \
+  DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
+  DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
+  DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
@@ -249,6 +284,8 @@ class ObjectPointerVisitor;
   DO(default_tts_stub, DefaultTypeTest)                                        \
   DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
   DO(top_type_tts_stub, TopTypeTypeTest)                                       \
+  DO(nullable_type_parameter_tts_stub, NullableTypeParameterTypeTest)          \
+  DO(type_parameter_tts_stub, TypeParameterTypeTest)                           \
   DO(unreachable_tts_stub, UnreachableTypeTest)                                \
   DO(slow_tts_stub, SlowTypeTest)                                              \
   DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
@@ -445,6 +482,7 @@ class ObjectStore {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
         return reinterpret_cast<ObjectPtr*>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
@@ -458,8 +496,8 @@ class ObjectStore {
     return NULL;
   }
 
-  friend class Serializer;
-  friend class Deserializer;
+  friend class ProgramSerializationRoots;
+  friend class ProgramDeserializationRoots;
   friend class ProgramVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(ObjectStore);

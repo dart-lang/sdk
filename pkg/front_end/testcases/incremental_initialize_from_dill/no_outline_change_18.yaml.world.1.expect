@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
 
   static method x() → dynamic {
@@ -24,8 +24,8 @@ library from "org-dartlang-test:///main.dart" as main {
 //                  ^
 //
 
-  export "org-dartlang-test:///lib1.dart";
-  export "org-dartlang-test:///lib2.dart";
+  export "org-dartlang-test:///lib1.dart" show x;
+  export "org-dartlang-test:///lib2.dart" show x;
 
   static const field dynamic _exports# = #C1 /* from null */;
   static method main() → dynamic {

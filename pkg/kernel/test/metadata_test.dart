@@ -25,8 +25,11 @@ class Metadata {
   Member get member => _memberRef?.asMember;
 
   Metadata.forNode(TreeNode n)
-      : this(n.leakingDebugToString(),
-            getMemberReference(getMemberForMetadata(n)), getTypeForMetadata(n));
+      : this(
+            n.leakingDebugToString(),
+            // Refers to the member, not about the function => use getter.
+            getMemberReferenceGetter(getMemberForMetadata(n)),
+            getTypeForMetadata(n));
 
   Metadata(this.string, this._memberRef, this.type);
 }

@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
+  static factory •<T extends core::Object? = dynamic>(self::A::•::T% value) → self::A<self::A::•::T%>
+    let<BottomType> #redirecting_factory = self::_A::• in let self::A::•::T% #typeArg0 = null in invalid-expression;
+}
+class _A<T extends core::Object? = dynamic> extends core::Object implements self::A<self::_A::T%> {
+  constructor •(self::_A::T% value) → self::_A<self::_A::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class B<T extends core::Object? = dynamic> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::B::•]/*isLegacy*/;
+  static factory •<T extends core::Object? = dynamic>(core::int value) → self::B<self::B::•::T%>
+    let<BottomType> #redirecting_factory = self::_B::• in let self::B::•::T% #typeArg0 = null in invalid-expression;
+}
+class _B<T extends core::Object? = dynamic> extends core::Object implements self::B<self::_B::T%> {
+  constructor •(core::int value) → self::_B<self::_B::T%>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

@@ -6,10 +6,13 @@
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/globals.h"
+#include "vm/resolver.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+#define Z (thread->zone())
 
 TEST_CASE(ClassHierarchyAnalysis) {
   const char* kScriptChars =
@@ -38,6 +41,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
   const Class& class_a =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!class_a.IsNull());
+  EXPECT(class_a.EnsureIsFinalized(thread) == Error::null());
 
   const Class& class_b =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
@@ -46,35 +50,37 @@ TEST_CASE(ClassHierarchyAnalysis) {
   const Class& class_c =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "C"))));
   EXPECT(!class_c.IsNull());
+  EXPECT(class_c.EnsureIsFinalized(thread) == Error::null());
 
   const Class& class_d =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "D"))));
   EXPECT(!class_d.IsNull());
+  EXPECT(class_d.EnsureIsFinalized(thread) == Error::null());
 
   const String& function_foo_name = String::Handle(String::New("foo"));
   const String& function_bar_name = String::Handle(String::New("bar"));
 
-  const Function& class_a_foo =
-      Function::Handle(class_a.LookupDynamicFunction(function_foo_name));
+  const Function& class_a_foo = Function::Handle(
+      Resolver::ResolveDynamicFunction(Z, class_a, function_foo_name));
   EXPECT(!class_a_foo.IsNull());
 
-  const Function& class_a_bar =
-      Function::Handle(class_a.LookupDynamicFunction(function_bar_name));
+  const Function& class_a_bar = Function::Handle(
+      Resolver::ResolveDynamicFunction(Z, class_a, function_bar_name));
   EXPECT(!class_a_bar.IsNull());
 
-  const Function& class_c_foo =
-      Function::Handle(class_c.LookupDynamicFunction(function_foo_name));
+  const Function& class_c_foo = Function::Handle(
+      Resolver::ResolveDynamicFunction(Z, class_c, function_foo_name));
   EXPECT(!class_c_foo.IsNull());
 
-  const Function& class_d_foo =
-      Function::Handle(class_d.LookupDynamicFunction(function_foo_name));
+  const Function& class_d_foo = Function::Handle(
+      Resolver::ResolveDynamicFunction(Z, class_d, function_foo_name));
   EXPECT(!class_d_foo.IsNull());
 
-  const Function& class_d_bar =
-      Function::Handle(class_d.LookupDynamicFunction(function_bar_name));
+  const Function& class_d_bar = Function::Handle(
+      Resolver::ResolveDynamicFunction(Z, class_d, function_bar_name));
   EXPECT(!class_d_bar.IsNull());
 
-  CHA cha(Thread::Current());
+  CHA cha(thread);
 
   EXPECT(cha.HasSubclasses(kInstanceCid));
   EXPECT(!cha.HasSubclasses(kSmiCid));

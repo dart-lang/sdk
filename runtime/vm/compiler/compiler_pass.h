@@ -30,6 +30,7 @@ namespace dart {
   V(ComputeSSA)                                                                \
   V(ConstantPropagation)                                                       \
   V(DCE)                                                                       \
+  V(DelayAllocations)                                                          \
   V(DSE)                                                                       \
   V(EliminateDeadPhis)                                                         \
   V(EliminateEnvironments)                                                     \

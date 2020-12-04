@@ -30,7 +30,7 @@ main() {
     var classA = aLib.classes.first;
     expect(classA.name, 'A');
     var fooMethod = classA.procedures.first;
-    expect(fooMethod.name.name, 'foo');
+    expect(fooMethod.name.text, 'foo');
     expect(fooMethod.function.body is EmptyStatement, isTrue);
   });
 

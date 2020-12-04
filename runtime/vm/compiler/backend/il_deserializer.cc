@@ -102,7 +102,7 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
   if (results.serialized != nullptr) {
     TextBuffer buf(1000);
     results.serialized->SerializeTo(zone, &buf, "");
-    js.PrintProperty("serialized", buf.buf());
+    js.PrintProperty("serialized", buf.buffer());
   }
 
   if (results.error_message != nullptr) {
@@ -112,7 +112,7 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
     ASSERT(results.error_sexp != nullptr);
     TextBuffer buf(1000);
     results.error_sexp->SerializeTo(zone, &buf, "");
-    js.PrintProperty("expression", buf.buf());
+    js.PrintProperty("expression", buf.buffer());
 
     auto const sexp_position =
         GetSExpressionPosition(zone, results.serialized, results.error_sexp);
@@ -121,7 +121,7 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
   }
 
   js.CloseObject();
-  THR_Print("Results of round trip serialization: %s\n", js.buffer()->buf());
+  THR_Print("Results of round trip serialization: %s\n", js.buffer()->buffer());
 }
 
 void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
@@ -159,7 +159,7 @@ void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
     if (FLAG_trace_round_trip_serialization && results.serialized != nullptr) {
       TextBuffer buf(1000);
       results.serialized->SerializeTo(zone, &buf, "");
-      THR_Print("Serialized flow graph:\n%s\n", buf.buf());
+      THR_Print("Serialized flow graph:\n%s\n", buf.buffer());
     }
 
     // For the deserializer, use the thread from the compiler pass and zone
@@ -1529,16 +1529,11 @@ bool FlowGraphDeserializer::CanonicalizeInstance(SExpression* sexp,
                                                  Object* out) {
   ASSERT(out != nullptr);
   if (!out->IsInstance()) return true;
-  const char* error_str = nullptr;
-  // CheckAndCanonicalize uses the current zone for the passed in thread,
+  // Instance::Canonicalize uses the current zone for the passed in thread,
   // not an explicitly provided zone. This means we cannot be run in a context
   // where [thread()->zone()] does not match [zone()] (e.g., due to StackZone)
   // until this is addressed.
-  *out = Instance::Cast(*out).CheckAndCanonicalize(thread(), &error_str);
-  if (error_str != nullptr) {
-    StoreError(sexp, "error during canonicalization: %s", error_str);
-    return false;
-  }
+  *out = Instance::Cast(*out).Canonicalize(thread());
   return true;
 }
 
@@ -2194,6 +2189,9 @@ bool FlowGraphDeserializer::ParseSlot(SExpList* list, const Slot** out) {
     case Slot::Kind::kTypeArgumentsIndex:
       *out = &Slot::GetTypeArgumentsIndexSlot(thread(), offset);
       break;
+    case Slot::Kind::kArrayElement:
+      *out = &Slot::GetArrayElementSlot(thread(), offset);
+      break;
     case Slot::Kind::kCapturedVariable:
       StoreError(kind_sexp, "unhandled Slot kind");
       return false;
@@ -2329,7 +2327,7 @@ bool FlowGraphDeserializer::CreateICData(SExpList* list, Instruction* inst) {
   }
 
   ASSERT(parsed_function_ != nullptr);
-  const auto& ic_data = ICData::ZoneHandle(
+  auto& ic_data = ICData::ZoneHandle(
       zone(), ICData::New(parsed_function_->function(), *function_name,
                           arguments_descriptor, inst->deopt_id(),
                           num_args_checked, rebind_rule, *type_ptr));
@@ -2362,7 +2360,9 @@ bool FlowGraphDeserializer::CreateICData(SExpList* list, Instruction* inst) {
         StoreError(entry, "expected a zero count for no checked args");
         return false;
       }
-      ic_data.AddTarget(target);
+      ic_data = ICData::NewForStaticCall(parsed_function_->function(), target,
+                                         arguments_descriptor, inst->deopt_id(),
+                                         num_args_checked, rebind_rule);
       continue;
     }
 
@@ -2388,7 +2388,7 @@ bool FlowGraphDeserializer::CreateICData(SExpList* list, Instruction* inst) {
   }
 
   if (auto const call = inst->AsInstanceCall()) {
-    call->set_ic_data(&ic_data);
+    call->set_ic_data(const_cast<const ICData*>(&ic_data));
   } else if (auto const call = inst->AsStaticCall()) {
     call->set_ic_data(&ic_data);
   }

@@ -42,8 +42,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       return;
     }
 
-    var constructorId;
-    var typeArgs;
+    String constructorId;
+    List<DartType> typeArgs;
     var constructorName = '';
 
     if (type.element is FunctionTypedElement) {
@@ -133,8 +133,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
     if (body is BlockFunctionBody) {
       var functionBody = body;
 
-      var offset;
-      var prefix;
+      int offset;
+      String prefix;
       if (functionBody.block.statements.isEmpty) {
         offset = functionBody.block.leftBracket.offset;
         prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
@@ -144,7 +144,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       }
 
       var parameters = debugFillProperties.parameters.parameters;
-      var propertiesBuilderName;
+      String propertiesBuilderName;
       for (var parameter in parameters) {
         if (parameter is SimpleFormalParameter) {
           final type = parameter.type;

@@ -28,11 +28,10 @@ class FuchsiaEmulator {
   Process _server;
   String _deviceName;
 
-  static Future<void> publishPackage(
-      int emuCpus, String buildDir, String mode) async {
+  static Future<void> publishPackage(String buildDir, String mode) async {
     if (_inst == null) {
       _inst = FuchsiaEmulator();
-      await _inst._start(emuCpus);
+      await _inst._start();
     }
     await _inst._publishPackage(buildDir, mode);
   }
@@ -48,18 +47,11 @@ class FuchsiaEmulator {
             arg.replaceAll(Repository.uri.toFilePath(), '/pkg/data/')));
   }
 
-  Future<void> _start(int emuCpus) async {
+  Future<void> _start() async {
     // Start the emulator.
-    DebugLogger.info('Starting Fuchsia emulator with $emuCpus CPUs');
-    _emu = await Process.start('xvfb-run', [
-      femuTool,
-      '--image',
-      'qemu-x64',
-      '-N',
-      '--headless',
-      '-s',
-      '$emuCpus'
-    ]);
+    DebugLogger.info('Starting Fuchsia emulator');
+    _emu = await Process.start(
+        'xvfb-run', [femuTool, '--image', 'qemu-x64', '-N', '--headless']);
 
     // Wait until the emulator is ready and has a valid device name.
     var deviceNameFuture = Completer<String>();
@@ -155,11 +147,14 @@ class FuchsiaEmulator {
 
   Future<void> _publishPackage(String buildDir, String mode) async {
     var packageFile = '$buildDir/gen/dart_test_$mode/dart_test_$mode.far';
+    if (!File(packageFile).existsSync()) {
+      throw 'File $packageFile does not exist. Please build fuchsia_test_package.';
+    }
     DebugLogger.info('Publishing package: $packageFile');
     var result = await Process.run(fpubTool, [packageFile]);
     if (result.exitCode != 0) {
       _stop();
-      _throwResult('Publishing package', result);
+      throw _formatFailedResult('Publishing package', result);
     }
 
     // Verify that the publication was successful by running hello_test.dart.
@@ -172,7 +167,7 @@ class FuchsiaEmulator {
         _getSshArgs(mode, ['/pkg/data/pkg/testing/test/hello_test.dart']));
     if (result.exitCode != 0 || result.stdout != 'Hello, World!\n') {
       _stop();
-      _throwResult('Verifying publication', result);
+      throw _formatFailedResult('Verifying publication', result);
     }
     DebugLogger.info('Publication successful');
   }
@@ -190,10 +185,12 @@ class FuchsiaEmulator {
           emulatorPidPattern.firstMatch(result.stdout as String)?.group(1) ??
               "");
       if (result.exitCode != 0 || emuPid == null) {
-        _throwResult('Searching for emulator process', result);
+        DebugLogger.info(
+            _formatFailedResult('Searching for emulator process', result));
+      } else {
+        Process.killPid(emuPid);
+        DebugLogger.info('Fuchsia emulator stopped');
       }
-      Process.killPid(emuPid);
-      DebugLogger.info('Fuchsia emulator stopped');
     }
 
     if (_server != null) {
@@ -205,9 +202,11 @@ class FuchsiaEmulator {
       // to manually kill this process, using fserve.sh again.
       var result = Process.runSync(fserveTool, ['--kill']);
       if (result.exitCode != 0) {
-        _throwResult('Killing package manager', result);
+        DebugLogger.info(
+            _formatFailedResult('Killing package manager', result));
+      } else {
+        DebugLogger.info('Fuchsia package server stopped');
       }
-      DebugLogger.info('Fuchsia package server stopped');
     }
   }
 
@@ -218,8 +217,8 @@ class FuchsiaEmulator {
     return output;
   }
 
-  void _throwResult(String name, ProcessResult result) {
-    throw '$name failed with exit code: ${result.exitCode}\n\n' +
+  String _formatFailedResult(String name, ProcessResult result) {
+    return '$name failed with exit code: ${result.exitCode}\n\n' +
         _formatOutputs(result.stdout as String, result.stderr as String);
   }
 }

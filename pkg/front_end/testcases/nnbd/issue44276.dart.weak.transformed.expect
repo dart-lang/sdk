@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Base extends core::Object {
+  field core::int? value1 = null;
+  field core::int? value2 = null;
+  synthetic constructor •() → self::Base
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  self::fun();
+}
+static method fun() → core::int? {
+  self::Base? a;
+  final core::int? b = let final core::int? #t1 = let final self::Base? #t2 = a in #t2.{core::Object::==}(null) ?{core::int?} null : #t2{self::Base}.{self::Base::value1} in #t1.{core::num::==}(null) ?{core::int?} let final self::Base? #t3 = a in #t3.{core::Object::==}(null) ?{core::int?} null : #t3{self::Base}.{self::Base::value2} : #t1{core::int};
+  return b;
+}

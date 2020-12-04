@@ -17,8 +17,6 @@ class KernelDartTypes extends DartTypes {
   KernelDartTypes(this.elementMap, this._options);
 
   @override
-  bool get useNullSafety => _options.useNullSafety;
-  @override
   bool get useLegacySubtyping => _options.useLegacySubtyping;
 
   @override

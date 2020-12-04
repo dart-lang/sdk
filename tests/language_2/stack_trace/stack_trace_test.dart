@@ -88,6 +88,7 @@ class RethrowStacktraceTest {
   var config = 0;
 
   @pragma("vm:entry-point") // Prevent obfuscation
+  @pragma("vm:never-inline") // Prevent inlining
   issue12940() {
     throw "Progy";
   }
@@ -121,7 +122,7 @@ class RethrowStacktraceTest {
       try {
         d();
       } catch (e, s) {
-        Expect.isTrue(s.toString().contains("issue12940"));
+        Expect.contains("issue12940", s.toString());
       }
     }
   }

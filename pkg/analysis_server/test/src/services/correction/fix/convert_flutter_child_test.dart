@@ -19,9 +19,16 @@ class ConvertFlutterChildTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_FLUTTER_CHILD;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_hasList() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return Container(
@@ -50,8 +57,7 @@ build() {
   }
 
   Future<void> test_hasTypedList() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return new Container(
@@ -80,8 +86,7 @@ build() {
   }
 
   Future<void> test_listNotWidget() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return new Container(
@@ -98,8 +103,7 @@ build() {
   }
 
   Future<void> test_multiLine() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
@@ -130,8 +134,7 @@ build() {
   }
 
   Future<void> test_widgetVariable() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   var text = new Text('foo');

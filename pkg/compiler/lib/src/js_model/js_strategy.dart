@@ -125,6 +125,7 @@ class JsBackendStrategy implements BackendStrategy {
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
   String getGeneratedCodeForTesting(MemberEntity element) {
+    if (generatedCode[element] == null) return null;
     return js.prettyPrint(generatedCode[element],
         enableMinification: _compiler.options.enableMinification);
   }
@@ -533,11 +534,6 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
-  AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet node) {
-    return _targetResults.typeOfReceiver(node);
-  }
-
-  @override
   AbstractValue receiverTypeOfSet(
       ir.PropertySet node, AbstractValueDomain abstractValueDomain) {
     return _targetResults.typeOfReceiver(node);
@@ -569,6 +565,8 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   bool isJsIndexableIterator(
       ir.ForInStatement node, AbstractValueDomain abstractValueDomain) {
     AbstractValue mask = typeOfIterator(node);
+    // TODO(sra): Investigate why mask is sometimes null.
+    if (mask == null) return false;
     return abstractValueDomain.isJsIndexableAndIterable(mask).isDefinitelyTrue;
   }
 

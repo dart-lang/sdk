@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../resolution/driver_resolution.dart';
+import '../../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +18,7 @@ main() {
   });
 }
 
-mixin GetElementDeclarationMixin implements DriverResolutionTest {
+mixin GetElementDeclarationMixin implements PubPackageResolutionTest {
   Future<ElementDeclarationResult> getElementDeclaration(Element element);
 
   test_class() async {
@@ -60,7 +60,7 @@ class A {} // 2
   }
 
   test_class_inPart() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -403,7 +403,7 @@ int get foo => 0;
 }
 
 @reflectiveTest
-class GetElementDeclarationParsedTest extends DriverResolutionTest
+class GetElementDeclarationParsedTest extends PubPackageResolutionTest
     with GetElementDeclarationMixin {
   @override
   Future<ElementDeclarationResult> getElementDeclaration(
@@ -414,12 +414,13 @@ class GetElementDeclarationParsedTest extends DriverResolutionTest
   }
 
   ParsedLibraryResultImpl _getParsedLibrary(String path) {
-    return driver.getParsedLibrary(path);
+    var session = contextFor(path).currentSession;
+    return session.getParsedLibrary(path);
   }
 }
 
 @reflectiveTest
-class GetElementDeclarationResolvedTest extends DriverResolutionTest
+class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     with GetElementDeclarationMixin {
   @override
   Future<ElementDeclarationResult> getElementDeclaration(
@@ -430,6 +431,7 @@ class GetElementDeclarationResolvedTest extends DriverResolutionTest
   }
 
   Future<ResolvedLibraryResult> _getResolvedLibrary(String path) {
-    return driver.getResolvedLibrary(path);
+    var session = contextFor(path).currentSession;
+    return session.getResolvedLibrary(path);
   }
 }

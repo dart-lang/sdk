@@ -8,7 +8,7 @@ class MapLiteral2NegativeTest<T> {
   test() {
     var m = const <String, T>{};
     //                     ^
-    // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_MAP
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
     // [cfe] Type variables can't be used as constants.
   }
 }

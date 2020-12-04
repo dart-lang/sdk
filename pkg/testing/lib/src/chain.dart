@@ -354,15 +354,22 @@ class Result<O> {
 
   final List<String> logs = <String>[];
 
-  Result(this.output, this.outcome, this.error, this.trace);
+  /// If set, running the test with '-D$autoFixCommand' will automatically
+  /// update the test to match new expectations.
+  final String autoFixCommand;
 
-  Result.pass(O output) : this(output, Expectation.Pass, null, null);
+  Result(this.output, this.outcome, this.error,
+      {this.trace, this.autoFixCommand});
+
+  Result.pass(O output) : this(output, Expectation.Pass, null);
 
   Result.crash(error, StackTrace trace)
-      : this(null, Expectation.Crash, error, trace);
+      : this(null, Expectation.Crash, error, trace: trace);
 
   Result.fail(O output, [error, StackTrace trace])
-      : this(output, Expectation.Fail, error, trace);
+      : this(output, Expectation.Fail, error, trace: trace);
+
+  bool get isPass => outcome == Expectation.Pass;
 
   String get log => logs.join();
 
@@ -371,7 +378,14 @@ class Result<O> {
   }
 
   Result<O> copyWithOutcome(Expectation outcome) {
-    return new Result<O>(output, outcome, error, trace)..logs.addAll(logs);
+    return new Result<O>(output, outcome, error, trace: trace)
+      ..logs.addAll(logs);
+  }
+
+  Result<O2> copyWithOutput<O2>(O2 output) {
+    return new Result<O2>(output, outcome, error,
+        trace: trace, autoFixCommand: autoFixCommand)
+      ..logs.addAll(logs);
   }
 }
 

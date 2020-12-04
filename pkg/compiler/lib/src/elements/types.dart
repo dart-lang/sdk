@@ -1734,7 +1734,6 @@ abstract class DartTypes {
   /// The types defined in 'dart:core'.
   CommonElements get commonElements;
 
-  bool get useNullSafety;
   bool get useLegacySubtyping;
 
   DartType bottomType() =>
@@ -1844,7 +1843,7 @@ abstract class DartTypes {
     } else if (typeArgument.isNull) {
       DartType futureOfNull =
           commonElements.futureType(commonElements.nullType);
-      result = useNullSafety ? nullableType(futureOfNull) : futureOfNull;
+      result = nullableType(futureOfNull);
     } else {
       result = FutureOrType._(typeArgument);
     }
@@ -2281,14 +2280,10 @@ abstract class DartTypes {
     if (isCovariant) {
       // A covariant parameter has type `Object` in the method signature.
       var objectType = commonElements.objectType;
-      if (useNullSafety) {
-        if (isNonNullableByDefaultLibrary) {
-          return nullableType(objectType);
-        } else {
-          return legacyType(objectType);
-        }
+      if (isNonNullableByDefaultLibrary) {
+        return nullableType(objectType);
       } else {
-        return objectType;
+        return legacyType(objectType);
       }
     }
     return type;
@@ -2302,5 +2297,33 @@ abstract class DartTypes {
         type is TypeVariableType &&
             canAssignGenericFunctionTo(getTypeVariableBound(type.element)) ||
         type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
+  }
+
+  /// Returns `true` if [type] occuring in a program with no sound null safety
+  /// cannot accept `null` under sound rules.
+  bool isNonNullableIfSound(DartType type) {
+    if (type is DynamicType ||
+        type is VoidType ||
+        type is AnyType ||
+        type is ErasedType) {
+      return false;
+    }
+    if (type is NullableType) return false;
+    if (type is LegacyType) {
+      return isNonNullableIfSound(type.baseType);
+    }
+    if (type is InterfaceType) {
+      if (type.isNull) return false;
+      return true;
+    }
+    if (type is FunctionType) return true;
+    if (type is NeverType) return true;
+    if (type is TypeVariableType) {
+      return isNonNullableIfSound(getTypeVariableBound(type.element));
+    }
+    if (type is FutureOrType) {
+      return isNonNullableIfSound(type.typeArgument);
+    }
+    throw UnimplementedError('isNonNullableIfSound $type');
   }
 }

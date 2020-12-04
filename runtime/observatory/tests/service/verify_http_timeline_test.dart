@@ -4,8 +4,10 @@
 // VMOptions=--timeline_streams=Dart
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
@@ -65,6 +67,7 @@ Future<HttpServer> startServer() async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((request) async {
     final response = request.response;
+    response.write(request.method);
     randomlyAddCookie(response);
     if (await randomlyRedirect(server, response)) {
       // Redirect calls close() on the response.
@@ -94,7 +97,11 @@ Future<void> testMain() async {
   for (int i = 0; i < 10; ++i) {
     final future = executeWithRandomDelay(() async {
       final r = await client.deleteUrl(randomlyAddRequestParams(address));
-      await r.close();
+      final string = 'DELETE $address';
+      r.headers.add(HttpHeaders.contentLengthHeader, string.length);
+      r.write(string);
+      final response = await r.close();
+      response.listen((_) {});
     });
     requests.add(future);
   }
@@ -103,11 +110,11 @@ Future<void> testMain() async {
   for (int i = 0; i < 10; ++i) {
     final future = executeWithRandomDelay(() async {
       final r = await client.getUrl(randomlyAddRequestParams(address));
-      await r.close();
+      final response = await r.close();
+      await response.drain();
     });
     requests.add(future);
   }
-
   // HTTP HEAD
   for (int i = 0; i < 10; ++i) {
     final future = executeWithRandomDelay(() async {
@@ -131,7 +138,8 @@ Future<void> testMain() async {
   for (int i = 0; i < 10; ++i) {
     final future = executeWithRandomDelay(() async {
       final r = await client.patchUrl(randomlyAddRequestParams(address));
-      await r.close();
+      final response = await r.close();
+      response.listen(null);
     });
     requests.add(future);
   }
@@ -140,6 +148,7 @@ Future<void> testMain() async {
   for (int i = 0; i < 10; ++i) {
     final future = executeWithRandomDelay(() async {
       final r = await client.postUrl(randomlyAddRequestParams(address));
+      r.add(Uint8List.fromList([0, 1, 2]));
       await r.close();
     });
     requests.add(future);
@@ -170,13 +179,12 @@ bool isFinishEvent(Map event) => (event['ph'] == 'e');
 bool hasCompletedEvents(List traceEvents) {
   final events = <String, int>{};
   for (final event in traceEvents) {
+    final id = event['id'];
+    events.putIfAbsent(id, () => 0);
     if (isStartEvent(event)) {
-      final id = event['id'];
-      events.putIfAbsent(id, () => 0);
-      events[id]++;
+      events[id] = events[id]! + 1;
     } else if (isFinishEvent(event)) {
-      final id = event['id'];
-      events[id]--;
+      events[id] = events[id]! - 1;
     }
   }
   bool valid = true;
@@ -191,6 +199,11 @@ bool hasCompletedEvents(List traceEvents) {
 List filterEventsByName(List traceEvents, String name) =>
     traceEvents.where((e) => e['name'].contains(name)).toList();
 
+List filterEventsByIdAndName(List traceEvents, String id, String name) =>
+    traceEvents
+        .where((e) => e['id'] == id && e['name'].contains(name))
+        .toList();
+
 void hasValidHttpConnections(List traceEvents) {
   final events = filterEventsByName(traceEvents, 'HTTP Connection');
   expect(hasCompletedEvents(events), isTrue);
@@ -201,6 +214,13 @@ void validateHttpStartEvent(Map event, String method) {
   final args = event['args'];
   expect(args.containsKey('method'), isTrue);
   expect(args['method'], method);
+  expect(args['filterKey'], 'HTTP/client');
+  expect(args.containsKey('uri'), isTrue);
+}
+
+void validateHttpFinishEvent(Map event) {
+  expect(event.containsKey('args'), isTrue);
+  final args = event['args'];
   expect(args['filterKey'], 'HTTP/client');
   if (!args.containsKey('error')) {
     expect(args.containsKey('requestHeaders'), isTrue);
@@ -224,32 +244,52 @@ void validateHttpStartEvent(Map event, String method) {
   }
 }
 
-void validateHttpFinishEvent(Map event) {
-  expect(event.containsKey('args'), isTrue);
-  final args = event['args'];
-  expect(args['filterKey'], 'HTTP/client');
-  expect(args.containsKey('compressionState'), isTrue);
-  expect(args.containsKey('connectionInfo'), isTrue);
-  expect(args.containsKey('contentLength'), isTrue);
-  expect(args.containsKey('cookies'), isTrue);
-  expect(args.containsKey('responseHeaders'), isTrue);
-  expect(args.containsKey('isRedirect'), isTrue);
-  expect(args.containsKey('persistentConnection'), isTrue);
-  expect(args.containsKey('reasonPhrase'), isTrue);
-  expect(args.containsKey('redirects'), isTrue);
-  expect(args.containsKey('statusCode'), isTrue);
-}
-
 void hasValidHttpRequests(List traceEvents, String method) {
-  final events = filterEventsByName(traceEvents, 'HTTP Client $method');
-  expect(hasCompletedEvents(events), isTrue);
+  var events = filterEventsByName(traceEvents, 'HTTP CLIENT $method');
   for (final event in events) {
     if (isStartEvent(event)) {
       validateHttpStartEvent(event, method);
+      // Check body of request has been sent and recorded correctly.
+      if (method == 'DELETE' || method == 'POST') {
+        final id = event['id'];
+        final bodyEvent =
+            filterEventsByIdAndName(traceEvents, id, 'Request body');
+        // Due to randomness, it doesn't guarantee to have the timeline events.
+        if (bodyEvent.length == 1) {
+          if (method == 'POST') {
+            // add() was used
+            Expect.listEquals(
+                <int>[0, 1, 2], bodyEvent[0]['args']['encodedData']);
+          } else {
+            // write() was used.
+            Expect.isTrue(
+                bodyEvent[0]['args']['data'].startsWith('$method http'));
+          }
+        }
+      }
     } else if (isFinishEvent(event)) {
       validateHttpFinishEvent(event);
     } else {
       fail('unexpected event type: ${event["ph"]}');
+    }
+  }
+
+  // Check response body matches string stored in the map.
+  events = filterEventsByName(traceEvents, 'HTTP CLIENT response of $method');
+  if (method == 'DELETE') {
+    // It called listen().
+    expect(hasCompletedEvents(events), isTrue);
+  }
+  for (final event in events) {
+    // Each response will be associated with a request.
+    if (isFinishEvent(event)) {
+      continue;
+    }
+    final id = event['id'];
+    final data = filterEventsByIdAndName(traceEvents, id, 'Response body');
+    if (data.length != 0) {
+      Expect.equals(1, data.length);
+      Expect.listEquals(utf8.encode(method), data[0]['args']['data']);
     }
   }
 }

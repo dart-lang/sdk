@@ -147,8 +147,11 @@ abstract class FutureOr<T> {
  */
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
-  static final _Future<Null> _nullFuture =
-      new _Future<Null>.zoneValue(null, _rootZone);
+  ///
+  /// Currently shared with `dart:internal`.
+  /// If that future can be removed, then change this back to
+  /// `_Future<Null>.zoneValue(null, _rootZone);`
+  static final _Future<Null> _nullFuture = nullFuture as _Future<Null>;
 
   /// A `Future<bool>` completed with `false`.
   static final _Future<bool> _falseFuture =
@@ -275,7 +278,7 @@ abstract class Future<T> {
    */
   factory Future.error(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     if (!identical(Zone.current, _rootZone)) {
       AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
@@ -361,7 +364,7 @@ abstract class Future<T> {
    * The call to [cleanUp] should not throw. If it does, the error will be an
    * uncaught asynchronous error.
    */
-  @pragma("vm:entry-point")
+  @pragma("vm:recognized", "other")
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
       {bool eagerError = false, void cleanUp(T successValue)?}) {
     // This is a VM recognised method, and the _future variable is deliberately
@@ -433,7 +436,7 @@ abstract class Future<T> {
         remaining++;
       }
       if (remaining == 0) {
-        return new Future<List<T>>.value(const <Never>[]);
+        return _future.._completeWithValue(<T>[]);
       }
       values = new List<T?>.filled(remaining, null);
     } catch (e, st) {

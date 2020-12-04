@@ -4,42 +4,90 @@
 
 part of dds;
 
+@visibleForTesting
+typedef PeerBuilder = Future<json_rpc.Peer> Function(WebSocketChannel, dynamic);
+
+@visibleForTesting
+typedef WebSocketBuilder = WebSocketChannel Function(Uri);
+
+@visibleForTesting
+PeerBuilder peerBuilder = _defaultPeerBuilder;
+
+@visibleForTesting
+WebSocketBuilder webSocketBuilder = _defaultWebSocketBuilder;
+
+Future<json_rpc.Peer> _defaultPeerBuilder(
+    WebSocketChannel ws, dynamic streamManager) async {
+  return _BinaryCompatiblePeer(ws, streamManager);
+}
+
+WebSocketChannel _defaultWebSocketBuilder(Uri uri) {
+  return WebSocketChannel.connect(uri.replace(scheme: 'ws'));
+}
+
 class _DartDevelopmentService implements DartDevelopmentService {
   _DartDevelopmentService(
-    this._remoteVmServiceUri,
-    this._uri,
-    this._authCodesEnabled,
-  ) {
+      this._remoteVmServiceUri, this._uri, this._authCodesEnabled, this._ipv6) {
     _clientManager = _ClientManager(this);
     _expressionEvaluator = _ExpressionEvaluator(this);
     _isolateManager = _IsolateManager(this);
-    _loggingRepository = _LoggingRepository();
     _streamManager = _StreamManager(this);
     _authCode = _authCodesEnabled ? _makeAuthToken() : '';
   }
 
   Future<void> startService() async {
+    bool started = false;
+    final completer = Completer<void>();
     // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
-    _vmServiceSocket = WebSocketChannel.connect(remoteVmServiceWsUri);
-    _vmServiceClient = _BinaryCompatiblePeer(_vmServiceSocket, _streamManager);
+    _vmServiceSocket = webSocketBuilder(remoteVmServiceWsUri);
+    _vmServiceClient = await peerBuilder(_vmServiceSocket, _streamManager);
     // Setup the JSON RPC client with the VM service.
-    unawaited(_vmServiceClient.listen().then((_) => shutdown()));
+    unawaited(
+      _vmServiceClient.listen().then(
+        (_) {
+          shutdown();
+          if (!started && !completer.isCompleted) {
+            completer.completeError(
+                DartDevelopmentServiceException._failedToStartError());
+          }
+        },
+        onError: (e, st) {
+          shutdown();
+          if (!completer.isCompleted) {
+            completer.completeError(
+              DartDevelopmentServiceException._connectionError(e.toString()),
+              st,
+            );
+          }
+        },
+      ),
+    );
 
-    // Setup stream event handling.
-    await streamManager.listen();
+    try {
+      // Setup stream event handling.
+      await streamManager.listen();
 
-    // Populate initial isolate state.
-    await _isolateManager.initialize();
+      // Populate initial isolate state.
+      await _isolateManager.initialize();
 
-    // Once we have a connection to the VM service, we're ready to spawn the intermediary.
-    await _startDDSServer();
+      // Once we have a connection to the VM service, we're ready to spawn the intermediary.
+      await _startDDSServer();
+      started = true;
+      completer.complete();
+    } on StateError {
+      /* Ignore json-rpc state errors */
+    } catch (e, st) {
+      completer.completeError(e, st);
+    }
+    return completer.future;
   }
 
   Future<void> _startDDSServer() async {
     // No provided address, bind to an available port on localhost.
-    // TODO(bkonyi): handle case where there's no IPv4 loopback.
-    final host = uri?.host ?? InternetAddress.loopbackIPv4.host;
+    final host = uri?.host ??
+        (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
+            .host;
     final port = uri?.port ?? 0;
 
     // Start the DDS server.
@@ -67,7 +115,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
     } on json_rpc.RpcException catch (e) {
       await _server.close(force: true);
       // _yieldControlToDDS fails if DDS is not the only VM service client.
-      throw DartDevelopmentServiceException._(e.data['details']);
+      throw DartDevelopmentServiceException._existingDdsInstanceError(
+        e.data != null ? e.data['details'] : e.toString(),
+      );
     }
 
     _uri = tmpUri;
@@ -87,7 +137,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     await clientManager.shutdown();
 
     // Close connection to VM service.
-    await _vmServiceSocket.sink.close();
+    await _vmServiceSocket?.sink?.close();
 
     _done.complete();
   }
@@ -207,7 +257,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     }
     final pathSegments = _cleanupPathSegments(uri);
     pathSegments.add(_kSseHandlerPath);
-    return uri.replace(pathSegments: pathSegments);
+    return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
   String _getNamespace(_DartDevelopmentServiceClient client) =>
@@ -226,6 +276,8 @@ class _DartDevelopmentService implements DartDevelopmentService {
   Uri get wsUri => _toWebSocket(_uri);
   Uri _uri;
 
+  final bool _ipv6;
+
   bool get isRunning => _uri != null;
 
   Future<void> get done => _done.future;
@@ -240,9 +292,6 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   _IsolateManager get isolateManager => _isolateManager;
   _IsolateManager _isolateManager;
-
-  _LoggingRepository get loggingRepository => _loggingRepository;
-  _LoggingRepository _loggingRepository;
 
   _StreamManager get streamManager => _streamManager;
   _StreamManager _streamManager;

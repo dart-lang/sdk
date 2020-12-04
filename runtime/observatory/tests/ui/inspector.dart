@@ -18,9 +18,8 @@ var node;
 var uninitialized = new Object();
 
 extractPrivateField(obj, name) {
-  return reflect(obj)
-      .getField(MirrorSystem.getSymbol(name, reflect(obj).type.owner))
-      .reflectee;
+  var lib = reflect(obj).type.owner as LibraryMirror;
+  return reflect(obj).getField(MirrorSystem.getSymbol(name, lib)).reflectee;
 }
 
 class A<T> {}
@@ -138,7 +137,7 @@ class Node {
     mixedType = "2";
     mixedType = false;
 
-    array = new List(3);
+    array = new List<dynamic>.filled(3, null);
     array[0] = 1;
     array[1] = 2;
     array[2] = 3;
@@ -156,7 +155,7 @@ class Node {
     float64 = 3.14;
     float64x2 = new Float64x2(0.0, 3.14);
     gauge = new Gauge("GaugeName", "Gauge description", 0.0, 100.0);
-    growableList = new List();
+    growableList = <dynamic>[];
     int32x4 = new Int32x4(0, 1, 10, 11);
     map = {
       "x-key": "x-value",

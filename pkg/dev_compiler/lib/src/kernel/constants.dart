@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -46,7 +48,7 @@ class DevCompilerConstants {
       var constant = node.constant;
       if (constant is InstanceConstant) {
         var value = constant.fieldValues.entries
-            .firstWhere((e) => e.key.asField.name.name == name,
+            .firstWhere((e) => e.key.asField.name.text == name,
                 orElse: () => null)
             ?.value;
         if (value is PrimitiveConstant) return value.value;

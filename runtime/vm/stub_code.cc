@@ -10,7 +10,6 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
-#include "vm/interpreter.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
@@ -25,8 +24,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 DECLARE_FLAG(bool, precompiled_mode);
-
-DECLARE_FLAG(bool, enable_interpreter);
 
 StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -97,24 +94,8 @@ bool StubCode::HasBeenInitialized() {
   return entries_[kAsynchronousGapMarkerIndex].code != nullptr;
 }
 
-bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
+bool StubCode::InInvocationStub(uword pc) {
   ASSERT(HasBeenInitialized());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_enable_interpreter) {
-    if (is_interpreted_frame) {
-      // Recognize special marker set up by interpreter in entry frame.
-      return Interpreter::IsEntryFrameMarker(
-          reinterpret_cast<const KBCInstr*>(pc));
-    }
-    {
-      uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();
-      uword size = StubCode::InvokeDartCodeFromBytecodeSize();
-      if ((pc >= entry) && (pc < (entry + size))) {
-        return true;
-      }
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   uword entry = StubCode::InvokeDartCode().EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -258,6 +239,42 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.raw();
+}
+
+CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
+  auto object_store = Thread::Current()->isolate()->object_store();
+  switch (class_id) {
+    case kTypedDataInt8ArrayCid:
+      return object_store->allocate_int8_array_stub();
+    case kTypedDataUint8ArrayCid:
+      return object_store->allocate_uint8_array_stub();
+    case kTypedDataUint8ClampedArrayCid:
+      return object_store->allocate_uint8_clamped_array_stub();
+    case kTypedDataInt16ArrayCid:
+      return object_store->allocate_int16_array_stub();
+    case kTypedDataUint16ArrayCid:
+      return object_store->allocate_uint16_array_stub();
+    case kTypedDataInt32ArrayCid:
+      return object_store->allocate_int32_array_stub();
+    case kTypedDataUint32ArrayCid:
+      return object_store->allocate_uint32_array_stub();
+    case kTypedDataInt64ArrayCid:
+      return object_store->allocate_int64_array_stub();
+    case kTypedDataUint64ArrayCid:
+      return object_store->allocate_uint64_array_stub();
+    case kTypedDataFloat32ArrayCid:
+      return object_store->allocate_float32_array_stub();
+    case kTypedDataFloat64ArrayCid:
+      return object_store->allocate_float64_array_stub();
+    case kTypedDataFloat32x4ArrayCid:
+      return object_store->allocate_float32x4_array_stub();
+    case kTypedDataInt32x4ArrayCid:
+      return object_store->allocate_int32x4_array_stub();
+    case kTypedDataFloat64x2ArrayCid:
+      return object_store->allocate_float64x2_array_stub();
+  }
+  UNREACHABLE();
+  return Code::null();
 }
 
 #if !defined(TARGET_ARCH_IA32)

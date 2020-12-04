@@ -18,7 +18,7 @@ abstract class _Completer<T> implements Completer<T> {
 
   void completeError(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     if (!future._mayComplete) throw new StateError("Future already completed");
     AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
@@ -74,15 +74,22 @@ class _FutureListener<S, T> {
   static const int maskType =
       maskValue | maskError | maskTestError | maskWhencomplete;
   static const int stateIsAwait = 16;
+
   // Listeners on the same future are linked through this link.
   _FutureListener? _nextListener;
+
   // The future to complete when this listener is activated.
+  @pragma("vm:entry-point")
   final _Future<T> result;
+
   // Which fields means what.
+  @pragma("vm:entry-point")
   final int state;
+
   // Used for then/whenDone callback and error test
   @pragma("vm:entry-point")
   final Function? callback;
+
   // Used for error callbacks.
   final Function? errorCallback;
 
@@ -768,6 +775,7 @@ class _Future<T> implements Future<T> {
     }
   }
 
+  @pragma("vm:recognized", "other")
   @pragma("vm:entry-point")
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
     if (_isComplete) return new _Future.immediate(this);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -75,6 +73,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 /// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
@@ -153,16 +152,16 @@ class AssistProcessor extends BaseProcessor {
     SurroundWith.newInstance,
   ];
 
-  final DartAssistContext context;
+  final DartAssistContext assistContext;
 
   final List<Assist> assists = <Assist>[];
 
-  AssistProcessor(this.context)
+  AssistProcessor(this.assistContext)
       : super(
-          selectionOffset: context.selectionOffset,
-          selectionLength: context.selectionLength,
-          resolvedResult: context.resolveResult,
-          workspace: context.workspace,
+          selectionOffset: assistContext.selectionOffset,
+          selectionLength: assistContext.selectionLength,
+          resolvedResult: assistContext.resolveResult,
+          workspace: assistContext.workspace,
         );
 
   Future<List<Assist>> compute() async {
@@ -194,7 +193,8 @@ class AssistProcessor extends BaseProcessor {
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
 
-      var builder = ChangeBuilder(workspace: context.workspace);
+      var builder = ChangeBuilder(
+          workspace: context.workspace, eol: context.utils.endOfLine);
       await producer.compute(builder);
 
       _addAssistFromBuilder(builder, producer.assistKind,
@@ -242,34 +242,42 @@ class AssistProcessor extends BaseProcessor {
     if (!setupSuccess) {
       return;
     }
+
+    Future<void> compute(CorrectionProducer producer) async {
+      producer.configure(context);
+      var builder = ChangeBuilder(
+          workspace: context.workspace, eol: context.utils.endOfLine);
+      try {
+        await producer.compute(builder);
+        _addAssistFromBuilder(builder, producer.assistKind,
+            args: producer.assistArguments);
+      } on ConflictingEditException catch (exception, stackTrace) {
+        // Handle the exception by (a) not adding an assist based on the
+        // producer and (b) logging the exception.
+        assistContext.instrumentationService
+            .logException(exception, stackTrace);
+      }
+    }
+
     for (var generator in generators) {
       var ruleNames = lintRuleMap[generator] ?? {};
       if (!_containsErrorCode(ruleNames)) {
         var producer = generator();
-        producer.configure(context);
-
-        var builder = ChangeBuilder(workspace: context.workspace);
-        await producer.compute(builder);
-        _addAssistFromBuilder(builder, producer.assistKind,
-            args: producer.assistArguments);
+        await compute(producer);
       }
     }
     for (var multiGenerator in multiGenerators) {
       var multiProducer = multiGenerator();
       multiProducer.configure(context);
       for (var producer in multiProducer.producers) {
-        var builder = ChangeBuilder(workspace: context.workspace);
-        producer.configure(context);
-        await producer.compute(builder);
-        _addAssistFromBuilder(builder, producer.assistKind,
-            args: producer.assistArguments);
+        await compute(producer);
       }
     }
   }
 
   bool _containsErrorCode(Set<String> errorCodes) {
     final fileOffset = node.offset;
-    for (var error in context.resolveResult.errors) {
+    for (var error in assistContext.resolveResult.errors) {
       final errorSource = error.source;
       if (file == errorSource.fullName) {
         if (fileOffset >= error.offset &&

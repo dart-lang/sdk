@@ -206,7 +206,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   TypeInformation run() {
     if (_analyzedMember.isField) {
-      if (_analyzedNode == null || _analyzedNode is ir.NullLiteral) {
+      if (_analyzedNode == null || isNullLiteral(_analyzedNode)) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
         return _types.nullType;
@@ -301,8 +301,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           assert(definition.kind == MemberKind.regular);
           ir.Field node = definition.node;
           if (type == null &&
-              (node.initializer == null ||
-                  node.initializer is ir.NullLiteral)) {
+              (node.initializer == null || isNullLiteral(node.initializer))) {
             _inferrer.recordTypeOfField(member, _types.nullType);
           }
         }
@@ -983,10 +982,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (variable != null) {
       Local local = _localsMap.getLocalVariable(variable);
       if (!_capturedVariables.contains(local)) {
+        // Receiver strengthening to non-null.
         DartType type = _localsMap.getLocalType(_elementMap, local);
         _state.updateLocal(
             _inferrer, _capturedAndBoxed, local, receiverType, node, type,
-            isNullable: selector.appliesToNullWithoutThrow());
+            excludeNull: !selector.appliesToNullWithoutThrow());
       }
     }
 
@@ -1187,7 +1187,34 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return null;
   }
 
-  /// Returns `true` if
+  /// Find the base type for a system List constructor from the value passed to
+  /// the 'growable' argument. [defaultGrowable] is the default value of the
+  /// 'growable' parameter.
+  TypeInformation _listBaseType(ir.Arguments arguments,
+      {bool defaultGrowable}) {
+    TypeInformation finish(bool /*?*/ growable) {
+      if (growable == true) return _types.growableListType;
+      if (growable == false) return _types.fixedListType;
+      return _types.mutableArrayType;
+    }
+
+    for (ir.NamedExpression named in arguments.named) {
+      if (named.name == 'growable') {
+        ir.Expression argument = named.value;
+        if (argument is ir.BoolLiteral) return finish(argument.value);
+        if (argument is ir.ConstantExpression) {
+          ir.Constant constant = argument.constant;
+          if (constant is ir.BoolConstant) return finish(constant.value);
+        }
+        // 'growable' is present, but indeterminate.
+        return finish(null);
+      }
+    }
+    // 'growable' is missing.
+    return finish(defaultGrowable);
+  }
+
+  /// Returns `true` for constructors of typed arrays.
   bool _isConstructorOfTypedArraySubclass(ConstructorEntity constructor) {
     ClassEntity cls = constructor.enclosingClass;
     return cls.library.canonicalUri == Uris.dart__native_typed_data &&
@@ -1207,7 +1234,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       ArgumentsTypes argumentsTypes) {
     TypeInformation returnType =
         handleStaticInvoke(node, selector, constructor, argumentsTypes);
-    if (_elementMap.commonElements.isUnnamedListConstructor(constructor)) {
+
+    // See if we can replace the returned type with one that better describes
+    // the operation. For system List constructors we can treat this as the
+    // allocation point of a new collection. The static invoke above ensures
+    // that the implementation of the constructor sees the arguments.
+
+    var commonElements = _elementMap.commonElements;
+
+    if (commonElements.isUnnamedListConstructor(constructor)) {
       // We have `new List(...)`.
       if (arguments.positional.isEmpty && arguments.named.isEmpty) {
         // We have `new List()`.
@@ -1223,18 +1258,103 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             () => _types.allocateList(_types.fixedListType, node,
                 _analyzedMember, _types.nullType, length));
       }
-    } else if (_elementMap.commonElements
-        .isFilledListConstructor(constructor)) {
-      // We have `new Uint32List(len, fill)`.
+    }
+
+    if (commonElements.isNamedListConstructor('filled', constructor)) {
+      // We have something like `List.filled(len, fill)`.
       int length = _findLength(arguments);
       TypeInformation elementType = argumentsTypes.positional[1];
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: false);
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, length));
+    }
 
+    if (commonElements.isNamedListConstructor('generate', constructor)) {
+      // We have something like `List.generate(len, generator)`.
+      int length = _findLength(arguments);
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: true);
+      TypeInformation closureArgumentInfo = argumentsTypes.positional[1];
+      // If the argument is an immediate closure, the element type is that
+      // returned by the closure.
+      TypeInformation elementType;
+      if (closureArgumentInfo is ClosureTypeInformation) {
+        FunctionEntity closure = closureArgumentInfo.closure;
+        elementType = _types.getInferredTypeOfMember(closure);
+      }
+      elementType ??= _types.dynamicType;
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, length));
+    }
+
+    if (commonElements.isNamedListConstructor('empty', constructor)) {
+      // We have something like `List.empty(growable: true)`.
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: false);
+      TypeInformation elementType = _types.nonNullEmpty(); // No elements!
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, 0));
+    }
+    if (commonElements.isNamedListConstructor('of', constructor) ||
+        commonElements.isNamedListConstructor('from', constructor)) {
+      // We have something like `List.of(elements)`.
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: true);
+      // TODO(sra): Use static type to bound the element type, preferably as a
+      // narrowing of all inputs.
+      TypeInformation elementType = _types.dynamicType;
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType));
+    }
+
+    // `JSArray.fixed` corresponds to `new Array(length)`, which is a list
+    // filled with `null`.
+    if (commonElements.isNamedJSArrayConstructor('fixed', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nullType;
       return _inferrer.concreteTypes.putIfAbsent(
           node,
           () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
               elementType, length));
-    } else if (_isConstructorOfTypedArraySubclass(constructor)) {
-      // We have something like `new List.filled(len, fill)`.
+    }
+
+    // `JSArray.allocateFixed` creates an array with 'no elements'. The contract
+    // is that the caller will assign a value to each member before any element
+    // is accessed. We can start tracking the element type as 'bottom'.
+    if (commonElements.isNamedJSArrayConstructor(
+        'allocateFixed', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nonNullEmpty();
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
+              elementType, length));
+    }
+
+    // `JSArray.allocateGrowable` creates an array with 'no elements'. The
+    // contract is that the caller will assign a value to each member before any
+    // element is accessed. We can start tracking the element type as 'bottom'.
+    if (commonElements.isNamedJSArrayConstructor(
+        'allocateGrowable', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nonNullEmpty();
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.growableListType, node,
+              _analyzedMember, elementType, length));
+    }
+
+    if (_isConstructorOfTypedArraySubclass(constructor)) {
+      // We have something like `Uint32List(len)`.
       int length = _findLength(arguments);
       MemberEntity member = _elementMap.elementEnvironment
           .lookupClassMember(constructor.enclosingClass, '[]');
@@ -1247,9 +1367,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
               _analyzedMember,
               elementType,
               length));
-    } else {
-      return returnType;
     }
+
+    return returnType;
   }
 
   TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
@@ -1385,13 +1505,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    TypeInformation receiverType = thisType;
-    return handlePropertyGet(node, node.receiver, receiverType, node.target,
-        isThis: true);
-  }
-
-  @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
@@ -1432,11 +1545,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return thisType;
   }
 
-  void handleCondition(ir.Node node) {
+  TypeInformation handleCondition(ir.Node node) {
     bool oldAccumulateIsChecks = _accumulateIsChecks;
     _accumulateIsChecks = true;
-    visit(node, conditionContext: true);
+    TypeInformation result = visit(node, conditionContext: true);
     _accumulateIsChecks = oldAccumulateIsChecks;
+    return result;
   }
 
   void _potentiallyAddIsCheck(ir.IsExpression node) {
@@ -1444,11 +1558,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ir.Expression operand = node.operand;
     if (operand is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(operand.variable);
-      DartType type = _elementMap.getDartType(node.type);
+      DartType localType = _elementMap.getDartType(node.type);
       LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
       LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
-      stateAfterCheckWhenTrue.narrowLocal(
-          _inferrer, _capturedAndBoxed, local, type, node);
+
+      // Narrow variable to tested type on true branch.
+      TypeInformation currentTypeInformation = stateAfterCheckWhenTrue
+          .readLocal(_inferrer, _capturedAndBoxed, local);
+      stateAfterCheckWhenTrue.updateLocal(_inferrer, _capturedAndBoxed, local,
+          currentTypeInformation, node, localType,
+          isCast: false);
       _setStateAfter(_state, stateAfterCheckWhenTrue, stateAfterCheckWhenFalse);
     }
   }
@@ -1461,10 +1580,18 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       DartType localType = _localsMap.getLocalType(_elementMap, local);
       LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
       LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
+
+      // Narrow tested variable to 'Null' on true branch.
       stateAfterCheckWhenTrue.updateLocal(_inferrer, _capturedAndBoxed, local,
           _types.nullType, node, localType);
-      stateAfterCheckWhenFalse.narrowLocal(_inferrer, _capturedAndBoxed, local,
-          _closedWorld.commonElements.objectType, node);
+
+      // Narrow tested variable to 'not null' on false branch.
+      TypeInformation currentTypeInformation = stateAfterCheckWhenFalse
+          .readLocal(_inferrer, _capturedAndBoxed, local);
+      stateAfterCheckWhenFalse.updateLocal(_inferrer, _capturedAndBoxed, local,
+          currentTypeInformation, node, _closedWorld.commonElements.objectType,
+          excludeNull: true);
+
       _setStateAfter(_state, stateAfterCheckWhenTrue, stateAfterCheckWhenFalse);
     }
   }
@@ -1500,19 +1627,21 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     LocalState stateAfterOperandWhenFalse = _stateAfterWhenFalse;
     _setStateAfter(
         _state, stateAfterOperandWhenFalse, stateAfterOperandWhenTrue);
+    // TODO(sra): Improve precision on constant and bool-conversion-to-constant
+    // inputs.
     return _types.boolType;
   }
 
   @override
   TypeInformation visitLogicalExpression(ir.LogicalExpression node) {
-    if (node.operator == '&&') {
+    if (node.operatorEnum == ir.LogicalExpressionOperator.AND) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
-      handleCondition(node.left);
+      TypeInformation leftInfo = handleCondition(node.left);
       LocalState stateAfterLeftWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterLeftWhenFalse = _stateAfterWhenFalse;
       _state = new LocalState.childPath(stateAfterLeftWhenTrue);
-      handleCondition(node.right);
+      TypeInformation rightInfo = handleCondition(node.right);
       LocalState stateAfterRightWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterRightWhenFalse = _stateAfterWhenFalse;
       LocalState stateAfterWhenTrue = stateAfterRightWhenTrue;
@@ -1522,15 +1651,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       LocalState after = stateBefore.mergeDiamondFlow(
           _inferrer, stateAfterWhenTrue, stateAfterWhenFalse);
       _setStateAfter(after, stateAfterWhenTrue, stateAfterWhenFalse);
+      // Constant-fold result.
+      if (_types.isLiteralFalse(leftInfo)) return leftInfo;
+      if (_types.isLiteralTrue(leftInfo)) {
+        if (_types.isLiteralFalse(rightInfo)) return rightInfo;
+        if (_types.isLiteralTrue(rightInfo)) return rightInfo;
+      }
+      // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
-    } else if (node.operator == '||') {
+    } else if (node.operatorEnum == ir.LogicalExpressionOperator.OR) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
-      handleCondition(node.left);
+      TypeInformation leftInfo = handleCondition(node.left);
       LocalState stateAfterLeftWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterLeftWhenFalse = _stateAfterWhenFalse;
       _state = new LocalState.childPath(stateAfterLeftWhenFalse);
-      handleCondition(node.right);
+      TypeInformation rightInfo = handleCondition(node.right);
       LocalState stateAfterRightWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterRightWhenFalse = _stateAfterWhenFalse;
       LocalState stateAfterWhenTrue = new LocalState.childPath(stateBefore)
@@ -1540,10 +1676,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       LocalState stateAfter = stateBefore.mergeDiamondFlow(
           _inferrer, stateAfterWhenTrue, stateAfterWhenFalse);
       _setStateAfter(stateAfter, stateAfterWhenTrue, stateAfterWhenFalse);
+      // Constant-fold result.
+      if (_types.isLiteralTrue(leftInfo)) return leftInfo;
+      if (_types.isLiteralFalse(leftInfo)) {
+        if (_types.isLiteralTrue(rightInfo)) return rightInfo;
+        if (_types.isLiteralFalse(rightInfo)) return rightInfo;
+      }
+      // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
     }
     failedAt(CURRENT_ELEMENT_SPANNABLE,
-        "Unexpected logical operator '${node.operator}'.");
+        "Unexpected logical operator '${node.operatorEnum}'.");
     return null;
   }
 
@@ -1603,7 +1746,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       DartType type = _localsMap.getLocalType(_elementMap, local);
       _state.updateLocal(
           _inferrer, _capturedAndBoxed, local, localFunctionType, node, type,
-          isNullable: false);
+          excludeNull: true);
     }
 
     // We don't put the closure in the work queue of the
@@ -1720,7 +1863,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(_inferrer, _capturedAndBoxed, local, mask, node,
           _dartTypes.dynamicType(),
-          isNullable: false /* `throw null` produces a NullThrownError */);
+          excludeNull: true /* `throw null` produces a NullThrownError */);
     }
     ir.VariableDeclaration stackTrace = node.stackTrace;
     if (stackTrace != null) {
@@ -2071,9 +2214,11 @@ class LocalState {
       TypeInformation type,
       ir.Node node,
       DartType staticType,
-      {isNullable: true}) {
+      {isCast: true,
+      excludeNull: false}) {
     assert(type != null);
-    type = inferrer.types.narrowType(type, staticType, isNullable: isNullable);
+    type = inferrer.types
+        .narrowType(type, staticType, isCast: isCast, excludeNull: excludeNull);
 
     FieldEntity field = capturedAndBoxed[local];
     if (field != null) {
@@ -2081,17 +2226,6 @@ class LocalState {
     } else {
       _locals.update(inferrer, local, type, node, staticType, _tryBlock);
     }
-  }
-
-  void narrowLocal(
-      InferrerEngine inferrer,
-      Map<Local, FieldEntity> capturedAndBoxed,
-      Local local,
-      DartType type,
-      ir.Node node) {
-    TypeInformation currentType = readLocal(inferrer, capturedAndBoxed, local);
-    updateLocal(inferrer, capturedAndBoxed, local, currentType, node, type,
-        isNullable: false);
   }
 
   LocalState mergeFlow(InferrerEngine inferrer, LocalState other) {

@@ -23,7 +23,7 @@ main() async {
     Library library = new Library(Uri.parse("org.dartlang.fasta:library"));
     Field field = new Field(new Name("_exports#", library),
         initializer: new StringLiteral('{"main":"Problem with main"}'));
-    library.addMember(field);
+    library.addField(field);
     Component component = new Component(libraries: <Library>[library]);
     await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
       DillTarget target = new DillTarget(c.options.ticker,

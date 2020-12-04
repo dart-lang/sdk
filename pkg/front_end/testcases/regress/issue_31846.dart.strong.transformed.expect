@@ -8,10 +8,14 @@ static method main() → dynamic {
   core::print((<T extends core::num* = core::num*>(T* x) → T* => x).{core::Object::runtimeType});
   core::print((<T extends core::Comparable<T*>* = core::Comparable<dynamic>*>(T* x) → T* => x).{core::Object::runtimeType});
   core::print((<T extends core::Comparable<S*>* = core::Comparable<dynamic>*, S extends core::Object* = dynamic>(T* x) → T* => x).{core::Object::runtimeType});
-  core::print((<T extends (T*) →* dynamic = (core::Null?) →* dynamic>(T* x) → T* => x).{core::Object::runtimeType});
+  core::print((<T extends (T*) →* dynamic = (Null) →* dynamic>(T* x) → T* => x).{core::Object::runtimeType});
   core::print((<T extends core::List<core::List<T*>*>* = core::List<core::List<dynamic>*>*>(T* x) → T* => x).{core::Object::runtimeType});
 }
 
 constants  {
   #C1 = tearoff self::main
 }
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///issue_31846.dart:6:14 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 26, effectively constant: 1

@@ -6,11 +6,13 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateConstructorForFinalFieldsTest);
+    defineReflectiveTests(CreateConstructorForFinalFieldsWithNullSafetyTest);
   });
 }
 
@@ -20,8 +22,8 @@ class CreateConstructorForFinalFieldsTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 
   Future<void> test_flutter() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -46,8 +48,8 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_childLast() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -72,8 +74,8 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_childrenLast() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -98,7 +100,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_inTopLevelMethod() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   final int v;
   print(v);
@@ -108,7 +110,7 @@ main() {
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   final int a;
   final int b = 2;
@@ -129,9 +131,33 @@ class Test {
   }
 
   Future<void> test_topLevelField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 final int v;
 ''');
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class CreateConstructorForFinalFieldsWithNullSafetyTest extends FixProcessorTest
+    with WithNullSafetyMixin {
+  @override
+  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
+
+  Future<void> test_excludesLate() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  late final int b;
+}
+''');
+    await assertHasFix('''
+class Test {
+  final int a;
+  late final int b;
+
+  Test(this.a);
+}
+''');
   }
 }

@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class ImportResolutionTest extends DriverResolutionTest {
+class ImportResolutionTest extends PubPackageResolutionTest {
   test_overrideCoreType_Never() async {
-    newFile('/test/lib/declares_never.dart', content: '''
+    newFile('$testPackageLibPath/declares_never.dart', content: '''
 class Never {}
 ''');
     await assertNoErrorsInCode(r'''

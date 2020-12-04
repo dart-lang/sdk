@@ -30,10 +30,10 @@ class UnionTypeMask implements TypeMask {
 
   /// Deserializes a [UnionTypeMask] object from [source].
   factory UnionTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
-    List<FlatTypeMask> disjointMasks = source
-        .readList(() => new TypeMask.readFromDataSource(source, closedWorld));
+    List<FlatTypeMask> disjointMasks =
+        source.readList(() => new TypeMask.readFromDataSource(source, domain));
     bool isNullable = source.readBool();
     source.end(tag);
     return new UnionTypeMask._internal(disjointMasks, isNullable);
@@ -421,11 +421,11 @@ class UnionTypeMask implements TypeMask {
   }
 
   @override
-  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, CommonMasks domain) {
     MemberEntity candidate;
     for (FlatTypeMask mask in disjointMasks) {
       if (isNullable) mask = mask.nullable();
-      MemberEntity current = mask.locateSingleMember(selector, closedWorld);
+      MemberEntity current = mask.locateSingleMember(selector, domain);
       if (current == null) {
         return null;
       } else if (candidate == null) {

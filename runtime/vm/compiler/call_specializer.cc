@@ -774,18 +774,16 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
       new (Z) Value(receiver), slot, call->token_pos(), calls_initializer,
       calls_initializer ? call->deopt_id() : DeoptId::kNone);
 
-  Environment* load_env = nullptr;
-  if (calls_initializer) {
-    // Drop getter argument from the environment as it is not
-    // pushed on the stack when initializer is called.
-    load_env =
-        call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
+  // Note that this is a case of LoadField -> InstanceCall lazy deopt.
+  // Which means that we don't need to remove arguments from the environment
+  // because normal getter call expects receiver pushed (unlike the case
+  // of LoadField -> LoadField deoptimization handled by
+  // FlowGraph::AttachEnvironment).
+  if (!calls_initializer) {
+    // If we don't call initializer then we don't need an environment.
+    call->RemoveEnvironment();
   }
-  call->RemoveEnvironment();
   ReplaceCall(call, load);
-  if (calls_initializer) {
-    load_env->DeepCopyTo(Z, load);
-  }
 
   if (load->slot().nullable_cid() != kDynamicCid) {
     // Reset value types if we know concrete cid.
@@ -1517,6 +1515,7 @@ void TypedDataSpecializer::EnsureIsInitialized() {
 
   auto& td_class = Class::Handle(Z);
   auto& direct_implementors = GrowableObjectArray::Handle(Z);
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
 
 #define INIT_HANDLE(iface, member_name, type, cid)                             \
   td_class = typed_data.LookupClass(Symbols::iface());                         \
@@ -1573,16 +1572,17 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
 
     const intptr_t receiver_index = call->FirstArgIndex();
 
-    CompileType* receiver_type = call->ArgumentAt(receiver_index + 0)->Type();
+    CompileType* receiver_type =
+        call->ArgumentValueAt(receiver_index + 0)->Type();
 
     CompileType* index_type = nullptr;
     if (is_index_get || is_index_set) {
-      index_type = call->ArgumentAt(receiver_index + 1)->Type();
+      index_type = call->ArgumentValueAt(receiver_index + 1)->Type();
     }
 
     CompileType* value_type = nullptr;
     if (is_index_set) {
-      value_type = call->ArgumentAt(receiver_index + 2)->Type();
+      value_type = call->ArgumentValueAt(receiver_index + 2)->Type();
     }
 
     auto& type_class = Class::Handle(zone_);

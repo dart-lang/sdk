@@ -125,15 +125,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
               _nativeBasicDataBuilder.markAsJsInteropMember(
                   function, memberName);
             }
-
-            if (!function.isExternal &&
-                !function.isAbstract &&
-                !function.isStatic) {
-              reporter.reportErrorMessage(
-                  function,
-                  MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-                  {'cls': cls.name, 'member': member.name});
-            }
           }
         });
         elementEnvironment.forEachConstructor(cls,
@@ -151,25 +142,12 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             _nativeBasicDataBuilder.markAsJsInteropMember(
                 constructor, memberName);
           }
-
-          if (constructor.isFactoryConstructor && isAnonymous) {
-            if (constructor.parameterStructure.positionalParameters > 0) {
-              reporter.reportErrorMessage(
-                  constructor,
-                  MessageKind
-                      .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                  {'cls': cls.name});
-            }
-          }
         });
       } else {
         elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
           String memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(member));
-          if (memberName != null) {
-            reporter.reportErrorMessage(
-                member, MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
-          } else if (member is FunctionEntity) {
+          if (memberName == null && member is FunctionEntity) {
             if (member.isExternal &&
                 !commonElements.isExternalAllowed(member)) {
               reporter.reportErrorMessage(
@@ -181,10 +159,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             (ConstructorEntity constructor) {
           String memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(constructor));
-          if (memberName != null) {
-            reporter.reportErrorMessage(constructor,
-                MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
-          } else {
+          if (memberName == null) {
             if (constructor.isExternal &&
                 !commonElements.isExternalAllowed(constructor)) {
               reporter.reportErrorMessage(
@@ -201,40 +176,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
       libraryName ??= '';
       _nativeBasicDataBuilder.markAsJsInteropLibrary(library,
           name: libraryName);
-    }
-  }
-
-  @override
-  void processJsInteropAnnotations(
-      NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder) {
-    DiagnosticReporter reporter = elementMap.reporter;
-    KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-    KCommonElements commonElements = elementMap.commonElements;
-
-    for (LibraryEntity library in elementEnvironment.libraries) {
-      // Error checking for class inheritance must happen after the first pass
-      // through all the classes because it is possible to declare a subclass
-      // before a superclass that has not yet had "markJsInteropClass" called on
-      // it.
-      elementEnvironment.forEachClass(library, (ClassEntity cls) {
-        ir.Class classNode = elementMap.getClassNode(cls);
-        String className = annotationData.getJsInteropClassName(classNode);
-        if (className != null) {
-          bool implementsJsJavaScriptObjectClass = false;
-          elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
-            if (supertype.element == commonElements.jsJavaScriptObjectClass) {
-              implementsJsJavaScriptObjectClass = true;
-            }
-          });
-          if (!implementsJsJavaScriptObjectClass) {
-            reporter.reportErrorMessage(
-                cls, MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
-              'cls': cls.name,
-              'superclass': elementEnvironment.getSuperClass(cls).name
-            });
-          }
-        }
-      });
     }
   }
 }

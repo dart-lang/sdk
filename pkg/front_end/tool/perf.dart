@@ -15,7 +15,6 @@
 /// outlines).
 library front_end.tool.perf;
 
-import 'dart:async';
 import 'dart:io' show Directory, File, Platform, exit;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -103,7 +102,7 @@ CompilationUnit parseDirectives(Source source) {
   var parser = new Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
-    featureSet: FeatureSet.fromEnableFlags([]),
+    featureSet: FeatureSet.latestLanguageVersion(),
   );
   return parser.parseDirectives(token);
 }
@@ -127,7 +126,7 @@ CompilationUnit parseFull(Source source) {
   var parser = new Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
-    featureSet: FeatureSet.fromEnableFlags([]),
+    featureSet: FeatureSet.latestLanguageVersion(),
   );
   var unit = parser.parseCompilationUnit(token);
   parseTimer.stop();

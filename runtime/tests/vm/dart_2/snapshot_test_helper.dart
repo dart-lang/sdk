@@ -188,22 +188,3 @@ runAppJitTest(Uri testScriptUri,
     expectOutput("OK(Run)", runResult);
   });
 }
-
-Future<void> runAppJitBytecodeTest(Uri testScriptUri) async {
-  await withTempDir((String temp) async {
-    final snapshotPath = p.join(temp, 'app.jit');
-    final testPath = testScriptUri.toFilePath();
-
-    final trainingResult = await runDart('TRAINING RUN', [
-      '--enable_interpreter',
-      '--snapshot=$snapshotPath',
-      '--snapshot-kind=app-jit',
-      testPath,
-      '--train'
-    ]);
-    expectOutput("OK(Trained)", trainingResult);
-    final runResult = await runDart(
-        'RUN FROM SNAPSHOT', ['--enable_interpreter', snapshotPath]);
-    expectOutput("OK(Run)", runResult);
-  });
-}

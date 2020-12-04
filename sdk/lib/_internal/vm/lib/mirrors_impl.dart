@@ -703,11 +703,11 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
       throw new ArgumentError.notNull('other');
     }
     ClassMirror otherDeclaration = other.originalDeclaration as ClassMirror;
-    ClassMirror c = this;
+    ClassMirror? c = this;
     while (c != null) {
       c = c.originalDeclaration as ClassMirror;
       if (c == otherDeclaration) return true;
-      c = c.superclass as ClassMirror;
+      c = c.superclass as ClassMirror?;
     }
     return false;
   }

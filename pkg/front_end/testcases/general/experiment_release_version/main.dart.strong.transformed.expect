@@ -1,0 +1,71 @@
+library;
+import self as self;
+
+import "package:allowed_package/unversioned_lib.dart";
+import "package:allowed_package/versioned_2_8_lib.dart";
+import "package:allowed_package/versioned_2_9_lib.dart";
+import "package:allowed_package/versioned_2_10_lib.dart";
+import "package:not_allowed_package/unversioned_lib.dart";
+import "package:not_allowed_package/versioned_2_8_lib.dart";
+import "package:not_allowed_package/versioned_2_9_lib.dart";
+import "package:not_allowed_package/versioned_2_10_lib.dart";
+import "org-dartlang-testcase:///unversioned_lib.dart";
+import "org-dartlang-testcase:///versioned_2_8_lib.dart";
+import "org-dartlang-testcase:///versioned_2_9_lib.dart";
+import "org-dartlang-testcase:///versioned_2_10_lib.dart";
+
+static method main() → dynamic {}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/experiment_release_version/unversioned_lib.dart:5:4: Error: This requires the 'non-nullable' language feature to be enabled.
+// The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-non-nullable' command line option is passed.
+// int? unversionedLibrary; // error
+//    ^
+//
+import self as self2;
+import "dart:core" as core;
+
+static field core::int? unversionedLibrary;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: This requires the null safety language feature, which requires language version of 2.10 or higher.
+// int? versioned_2_8_Library; // error
+//    ^
+//
+import self as self3;
+import "dart:core" as core;
+
+static field core::int? versioned_2_8_Library;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_9_lib.dart:7:4: Error: This requires the null safety language feature, which requires language version of 2.10 or higher.
+// int? versioned_2_9_Library; // error
+//    ^
+//
+import self as self4;
+import "dart:core" as core;
+
+static field core::int? versioned_2_9_Library;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_10_lib.dart:7:4: Error: This requires the 'non-nullable' language feature to be enabled.
+// The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-non-nullable' command line option is passed.
+// int? versioned_2_10_Library; // error
+//    ^
+//
+import self as self5;
+import "dart:core" as core;
+
+static field core::int? versioned_2_10_Library;

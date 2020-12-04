@@ -1,0 +1,9 @@
+class E {
+  final int x;
+  final int y;
+  E() : this.named(), this.x = 1;
+  this.
+  y = 2;
+  E.named() : this.x = 5, this.y = 6;
+}
+main() {}

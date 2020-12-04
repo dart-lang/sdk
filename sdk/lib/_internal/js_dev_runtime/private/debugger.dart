@@ -264,7 +264,7 @@ class HeritageClause {
   final List types;
 }
 
-Object safeGetProperty(Object protoChain, Object name) {
+Object? safeGetProperty(Object protoChain, Object name) {
   try {
     return JSNative.getProperty(protoChain, name);
   } catch (e) {
@@ -609,7 +609,7 @@ class LibraryModuleFormatter implements Formatter {
     for (var name in getOwnPropertyNames(object)) {
       var value = safeGetProperty(object, name);
       children.add(NameValuePair(
-          name: name, value: Library(name, value), hideName: true));
+          name: name, value: Library(name, value!), hideName: true));
     }
     return children.toList();
   }
@@ -907,10 +907,10 @@ class ClassFormatter implements Formatter {
   bool accept(object, config) => config == JsonMLConfig.asClass;
 
   String preview(type) {
-    var implements = dart.getImplements(type)();
+    var implements = dart.getImplements(type);
     var typeName = getTypeName(type);
     if (implements != null) {
-      var typeNames = implements.map(getTypeName);
+      var typeNames = implements().map(getTypeName);
       return '${typeName} implements ${typeNames.join(", ")}';
     } else {
       return typeName;

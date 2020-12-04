@@ -3,3 +3,5 @@ import self as self;
 
 static method main() → dynamic
   ;
+static method test<X extends Null = Null, Y extends Never? = Never?, Z extends Never = Never>() → dynamic
+  ;

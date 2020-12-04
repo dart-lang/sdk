@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/null_safety_invalid_experiment.dart:5:4: Error: This requires the 'non-nullable' language feature to be enabled.
+// The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-non-nullable' command line option is passed.
+// int? i;
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i;
+static method main() → dynamic
+  ;

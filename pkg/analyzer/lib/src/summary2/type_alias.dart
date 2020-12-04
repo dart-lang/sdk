@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
 class TypeAliasSelfReferenceFinder {
@@ -26,20 +25,16 @@ class TypeAliasSelfReferenceFinder {
           if (node is FunctionTypeAlias) {
             var finder = _Finder(node);
             finder.functionTypeAlias(node);
-            LazyFunctionTypeAlias.setHasSelfReference(
-              node,
-              finder.hasSelfReference,
-            );
+            var element = node.declaredElement as FunctionTypeAliasElementImpl;
+            element.hasSelfReference = finder.hasSelfReference;
           } else if (node is GenericTypeAlias) {
             var finder = _Finder(node);
             finder.genericTypeAlias(node);
-            LazyGenericTypeAlias.setHasSelfReference(
-              node,
-              finder.hasSelfReference,
-            );
             if (finder.hasSelfReference) {
               _sanitizeGenericTypeAlias(node);
             }
+            var element = node.declaredElement as FunctionTypeAliasElementImpl;
+            element.hasSelfReference = finder.hasSelfReference;
           }
         }
       }

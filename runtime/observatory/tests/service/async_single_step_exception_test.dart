@@ -1,8 +1,8 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--async-debugger --verbose-debug --no-causal-async-stacks --lazy-async-stacks
-// VMOptions=--async-debugger --verbose-debug --causal-async-stacks --no-lazy-async-stacks
+//
+// VMOptions=--async-debugger --verbose-debug --lazy-async-stacks
 
 import 'dart:developer';
 import 'service_test_common.dart';
@@ -27,7 +27,7 @@ testMain() async {
   print('mmmmm'); // LINE_C.
   try {
     await helper(); // LINE_D.
-  } catch (e) {
+  } on dynamic catch (e) {
     // arrive here on error.
     print('error: $e'); // LINE_E.
   } finally {
@@ -45,12 +45,6 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D), // await helper
   stepInto,
-
-  ...ifLazyAsyncStacks(<IsolateTest>[
-    hasStoppedAtBreakpoint,
-    stoppedAtLine(19), // helper() async { ... }
-    stepInto,
-  ]),
 
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A), // print helper

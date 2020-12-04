@@ -6,8 +6,6 @@
 /// sdk sources from disk.
 library front_end.src.hybrid_file_system;
 
-import 'dart:async';
-
 import '../api_prototype/file_system.dart';
 import '../api_prototype/memory_file_system.dart';
 import '../api_prototype/standard_file_system.dart';

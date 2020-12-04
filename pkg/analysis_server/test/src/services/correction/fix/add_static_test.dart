@@ -20,7 +20,7 @@ class AddStaticTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_STATIC;
 
   Future<void> test_multipleFields() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   const int x = 0, y = 0;
 }
@@ -33,7 +33,7 @@ class C {
   }
 
   Future<void> test_oneField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   const int x = 0;
 }
@@ -46,7 +46,7 @@ class C {
   }
 
   Future<void> test_withAnnotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   @ann
   const int x = 0;
@@ -63,7 +63,7 @@ const ann = 0;
   }
 
   Future<void> test_withDocComment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   /// Doc comment
   const int x = 0;

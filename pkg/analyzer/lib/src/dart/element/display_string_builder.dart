@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:meta/meta.dart';
 
@@ -125,19 +126,19 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
-    _writeType(element.returnType);
-    _write(' Function');
-    _writeTypeParameters(element.typeParameters);
-    _writeFormalParameters(element.parameters, forElement: true);
-  }
-
-  void writeGenericTypeAliasElement(GenericTypeAliasElementImpl element) {
+  void writeFunctionTypeAliasElement(FunctionTypeAliasElementImpl element) {
     _write('typedef ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
     _write(' = ');
     element.function?.appendTo(this);
+  }
+
+  void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
+    _writeType(element.returnType);
+    _write(' Function');
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(element.parameters, forElement: true);
   }
 
   void writeImportElement(ImportElementImpl element) {
@@ -171,8 +172,9 @@ class ElementDisplayStringBuilder {
 
   void writeTypeParameter(TypeParameterElement element) {
     if (element is TypeParameterElementImpl) {
-      if (!element.isLegacyCovariant) {
-        _write(element.variance.toKeywordString());
+      var variance = element.variance;
+      if (!element.isLegacyCovariant && variance != Variance.unrelated) {
+        _write(variance.toKeywordString());
         _write(' ');
       }
     }
@@ -188,6 +190,11 @@ class ElementDisplayStringBuilder {
   void writeTypeParameterType(TypeParameterTypeImpl type) {
     _write(type.element.displayName);
     _writeNullability(type.nullabilitySuffix);
+
+    if (type.promotedBound != null) {
+      _write(' & ');
+      _writeType(type.promotedBound);
+    }
   }
 
   void writeUnknownInferredType() {

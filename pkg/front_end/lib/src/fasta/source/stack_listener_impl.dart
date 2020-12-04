@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
     show AsyncMarker, Expression, FunctionNode, TreeNode;
@@ -91,7 +92,11 @@ abstract class StackListenerImpl extends StackListener {
     assert(token != null);
     if (libraryBuilder.enableNonNullableInLibrary) {
       if (libraryBuilder.languageVersion.isExplicit) {
-        addProblem(messageNonNullableOptOut, token.charOffset, token.charCount,
+        addProblem(
+            templateNonNullableOptOutExplicit.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.charOffset,
+            token.charCount,
             context: <LocatedMessage>[
               messageNonNullableOptOutComment.withLocation(
                   libraryBuilder.languageVersion.fileUri,
@@ -99,11 +104,42 @@ abstract class StackListenerImpl extends StackListener {
                   libraryBuilder.languageVersion.charCount)
             ]);
       } else {
-        addProblem(messageNonNullableOptOut, token.charOffset, token.charCount);
+        addProblem(
+            templateNonNullableOptOutImplicit.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.charOffset,
+            token.charCount);
+      }
+    } else if (libraryBuilder.loader.target
+        .isExperimentEnabledByDefault(ExperimentalFlag.nonNullable)) {
+      if (libraryBuilder.languageVersion.version <
+          libraryBuilder.enableNonNullableVersionInLibrary) {
+        addProblem(
+            templateExperimentDisabledInvalidLanguageVersion.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.offset,
+            noLength);
+      } else {
+        addProblem(templateExperimentDisabled.withArguments('non-nullable'),
+            token.offset, noLength);
+      }
+    } else if (!libraryBuilder.loader.target
+        .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+      if (libraryBuilder.languageVersion.version <
+          libraryBuilder.enableNonNullableVersionInLibrary) {
+        addProblem(
+            templateExperimentNotEnabledNoFlagInvalidLanguageVersion
+                .withArguments(
+                    libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.offset,
+            noLength);
+      } else {
+        addProblem(messageExperimentNotEnabledNoFlag, token.offset, noLength);
       }
     } else {
       addProblem(
-          templateExperimentNotEnabled.withArguments('non-nullable', '2.9'),
+          templateExperimentNotEnabled.withArguments('non-nullable',
+              libraryBuilder.enableNonNullableVersionInLibrary.toText()),
           token.offset,
           noLength);
     }

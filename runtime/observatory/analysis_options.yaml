@@ -1,7 +1,13 @@
 analyzer:
+  enable-experiment:
+    - non-nullable
+
   errors:
-    dead_code: ignore
-    unused_local_variable: ignore
+    dead_code: info
+    getter_not_subtype_setter_types: info
+    missing_enum_constant_in_switch: info
+    unused_local_variable: info
+
   exclude:
     - tests/service/bad_reload/v2/main.dart
     - tests/service/complex_reload/v2/main.dart
@@ -11,7 +17,7 @@ analyzer:
     - tests/service/get_user_level_retaining_path_rpc_test.dart
     - tests/service/pause_on_unhandled_async_exceptions_test.dart
 
-linter:
-  rules:
-    - prefer_final_fields
-    - prefer_final_locals
+# linter:
+#   rules:
+#     - prefer_final_fields
+#     - prefer_final_locals

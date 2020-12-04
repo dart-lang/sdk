@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/dart/top_level_decla
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -115,6 +116,9 @@ class AnalysisOptionsFixKind {
 /// The implementation of [DartFixContext].
 class DartFixContextImpl implements DartFixContext {
   @override
+  final InstrumentationService instrumentationService;
+
+  @override
   final ChangeWorkspace workspace;
 
   @override
@@ -126,8 +130,8 @@ class DartFixContextImpl implements DartFixContext {
   final List<TopLevelDeclaration> Function(String name)
       getTopLevelDeclarationsFunction;
 
-  DartFixContextImpl(this.workspace, this.resolveResult, this.error,
-      this.getTopLevelDeclarationsFunction);
+  DartFixContextImpl(this.instrumentationService, this.workspace,
+      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction);
 
   @override
   List<TopLevelDeclaration> getTopLevelDeclarations(String name) {
@@ -176,6 +180,8 @@ class DartFixKind {
       "Add required argument '{0}'");
   static const ADD_NE_NULL = FixKind('dart.fix.add.neNull', 50, 'Add != null',
       appliedTogetherMessage: 'Add != null everywhere in file');
+  static const ADD_NULL_CHECK =
+      FixKind('dart.fix.add.nullCheck', 50, 'Add a null check (!)');
   static const ADD_OVERRIDE =
       FixKind('dart.fix.add.override', 50, "Add '@override' annotation");
   static const ADD_REQUIRED =
@@ -313,12 +319,16 @@ class DartFixKind {
   static const MAKE_FIELD_NOT_FINAL =
       FixKind('dart.fix.makeFieldNotFinal', 50, "Make field '{0}' not final");
   static const MAKE_FINAL = FixKind('dart.fix.makeFinal', 50, 'Make final');
+  static const MAKE_RETURN_TYPE_NULLABLE = FixKind(
+      'dart.fix.makeReturnTypeNullable', 50, 'Make the return type nullable');
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
       'dart.fix.moveTypeArgumentsToClass',
       50,
       'Move type arguments to after class name');
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
       'dart.fix.makeVariableNotFinal', 50, "Make variable '{0}' not final");
+  static const MAKE_VARIABLE_NULLABLE =
+      FixKind('dart.fix.makeVariableNullable', 50, "Make '{0}' nullable");
   static const ORGANIZE_IMPORTS =
       FixKind('dart.fix.organize.imports', 50, 'Organize Imports');
   static const QUALIFY_REFERENCE =
@@ -329,6 +339,8 @@ class DartFixKind {
       FixKind('dart.fix.remove.argument', 50, 'Remove argument');
   static const REMOVE_AWAIT =
       FixKind('dart.fix.remove.await', 50, 'Remove await');
+  static const REMOVE_COMPARISON =
+      FixKind('dart.fix.remove.comparison', 50, 'Remove comparison');
   static const REMOVE_CONST =
       FixKind('dart.fix.remove.const', 50, 'Remove const');
   static const REMOVE_DEAD_CODE =
@@ -357,6 +369,8 @@ class DartFixKind {
       'dart.fix.remove.methodDeclaration', 50, 'Remove method declaration');
   static const REMOVE_NAME_FROM_COMBINATOR = FixKind(
       'dart.fix.remove.nameFromCombinator', 50, "Remove name from '{0}'");
+  static const REMOVE_NON_NULL_ASSERTION =
+      FixKind('dart.fix.remove.nonNullAssertion', 50, "Remove the '!'");
   static const REMOVE_OPERATOR =
       FixKind('dart.fix.remove.operator', 50, 'Remove the operator');
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = FixKind(
@@ -444,6 +458,8 @@ class DartFixKind {
       FixKind('dart.fix.replace.withIsEmpty', 50, "Replace with 'isEmpty'");
   static const REPLACE_WITH_IS_NOT_EMPTY = FixKind(
       'dart.fix.replace.withIsNotEmpty', 50, "Replace with 'isNotEmpty'");
+  static const REPLACE_WITH_NOT_NULL_AWARE =
+      FixKind('dart.fix.replace.withNotNullAware', 50, "Replace with '{0}'");
   static const REPLACE_WITH_NULL_AWARE = FixKind(
       'dart.fix.replace.withNullAware',
       50,

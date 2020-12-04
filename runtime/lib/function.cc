@@ -23,7 +23,7 @@ DEFINE_NATIVE_ENTRY(Function_apply, 0, 2) {
       zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, fun_arguments.Length(),
                                           fun_arg_names));
   const Object& result = Object::Handle(
-      zone, DartEntry::InvokeClosure(fun_arguments, fun_args_desc));
+      zone, DartEntry::InvokeClosure(thread, fun_arguments, fun_args_desc));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }
@@ -69,29 +69,6 @@ DEFINE_NATIVE_ENTRY(Closure_computeHash, 0, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(receiver.ComputeHash());
-}
-
-DEFINE_NATIVE_ENTRY(Closure_clone, 0, 1) {
-  const Closure& receiver =
-      Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const TypeArguments& instantiator_type_arguments =
-      TypeArguments::Handle(zone, receiver.instantiator_type_arguments());
-  const TypeArguments& function_type_arguments =
-      TypeArguments::Handle(zone, receiver.function_type_arguments());
-  const Function& function = Function::Handle(zone, receiver.function());
-  const Context& context = Context::Handle(zone, receiver.context());
-  Context& cloned_context = Context::Handle(zone);
-  if (!context.IsNull()) {
-    cloned_context = Context::New(context.num_variables());
-    cloned_context.set_parent(Context::Handle(zone, context.parent()));
-    Object& instance = Object::Handle(zone);
-    for (int i = 0; i < context.num_variables(); i++) {
-      instance = context.At(i);
-      cloned_context.SetAt(i, instance);
-    }
-  }
-  return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      function, cloned_context);
 }
 
 }  // namespace dart

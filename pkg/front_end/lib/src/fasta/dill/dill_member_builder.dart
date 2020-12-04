@@ -13,6 +13,7 @@ import '../builder/library_builder.dart';
 
 import '../kernel/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder, ClassMember;
+import '../kernel/member_covariance.dart';
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
@@ -21,19 +22,20 @@ import '../modifier.dart'
 
 import '../problems.dart' show unhandled;
 
-class DillMemberBuilder extends MemberBuilderImpl {
+abstract class DillMemberBuilder extends MemberBuilderImpl {
   final int modifiers;
-
-  final Member member;
 
   DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
-        member = member,
         super(parent, member.fileOffset);
+
+  Member get member;
+
+  Iterable<Member> get exportedMembers => [member];
 
   String get debugName => "DillMemberBuilder";
 
-  String get name => member.name.name;
+  String get name => member.name.text;
 
   bool get isConstructor => member is Constructor;
 
@@ -62,67 +64,8 @@ class DillMemberBuilder extends MemberBuilderImpl {
     return member is Constructor && member.isSynthetic;
   }
 
-  bool get isField => member is Field;
-
   @override
-  bool get isAssignable => member is Field && member.hasSetter;
-
-  @override
-  Member get readTarget {
-    if (isField) {
-      return member;
-    } else if (isConstructor) {
-      return null;
-    }
-    switch (kind) {
-      case ProcedureKind.Method:
-      case ProcedureKind.Getter:
-        return member;
-      case ProcedureKind.Operator:
-      case ProcedureKind.Setter:
-      case ProcedureKind.Factory:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
-
-  @override
-  Member get writeTarget {
-    if (isField) {
-      return isAssignable ? member : null;
-    } else if (isConstructor) {
-      return null;
-    }
-    switch (kind) {
-      case ProcedureKind.Setter:
-        return member;
-      case ProcedureKind.Method:
-      case ProcedureKind.Getter:
-      case ProcedureKind.Operator:
-      case ProcedureKind.Factory:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
-
-  @override
-  Member get invokeTarget {
-    if (isField) {
-      return member;
-    } else if (isConstructor) {
-      return member;
-    }
-    switch (kind) {
-      case ProcedureKind.Method:
-      case ProcedureKind.Getter:
-      case ProcedureKind.Operator:
-      case ProcedureKind.Factory:
-        return member;
-      case ProcedureKind.Setter:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
+  bool get isAssignable => false;
 
   @override
   void buildMembers(
@@ -130,21 +73,159 @@ class DillMemberBuilder extends MemberBuilderImpl {
     throw new UnsupportedError('DillMemberBuilder.buildMembers');
   }
 
+  List<ClassMember> _localMembers;
+  List<ClassMember> _localSetters;
+
   @override
-  List<ClassMember> get localMembers => isSetter
+  List<ClassMember> get localMembers => _localMembers ??= isSetter
       ? const <ClassMember>[]
       : <ClassMember>[new DillClassMember(this, forSetter: false)];
 
   @override
   List<ClassMember> get localSetters =>
-      isSetter || member is Field && member.hasSetter
+      _localSetters ??= isSetter || member is Field && member.hasSetter
           ? <ClassMember>[new DillClassMember(this, forSetter: true)]
           : const <ClassMember>[];
+}
+
+class DillFieldBuilder extends DillMemberBuilder {
+  final Field field;
+
+  DillFieldBuilder(this.field, Builder parent) : super(field, parent);
+
+  Member get member => field;
+
+  @override
+  Member get readTarget => field;
+  @override
+  Member get writeTarget => isAssignable ? field : null;
+
+  @override
+  Member get invokeTarget => field;
+
+  bool get isField => true;
+
+  @override
+  bool get isAssignable => field.hasSetter;
+}
+
+class DillGetterBuilder extends DillMemberBuilder {
+  final Procedure procedure;
+
+  DillGetterBuilder(this.procedure, Builder parent)
+      : assert(procedure.kind == ProcedureKind.Getter),
+        super(procedure, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => procedure;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
+}
+
+class DillSetterBuilder extends DillMemberBuilder {
+  final Procedure procedure;
+
+  DillSetterBuilder(this.procedure, Builder parent)
+      : assert(procedure.kind == ProcedureKind.Setter),
+        super(procedure, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => procedure;
+
+  @override
+  Member get invokeTarget => null;
+}
+
+class DillMethodBuilder extends DillMemberBuilder {
+  final Procedure procedure;
+
+  DillMethodBuilder(this.procedure, Builder parent)
+      : assert(procedure.kind == ProcedureKind.Method),
+        super(procedure, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => procedure;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
+}
+
+class DillOperatorBuilder extends DillMemberBuilder {
+  final Procedure procedure;
+
+  DillOperatorBuilder(this.procedure, Builder parent)
+      : assert(procedure.kind == ProcedureKind.Operator),
+        super(procedure, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
+}
+
+class DillFactoryBuilder extends DillMemberBuilder {
+  final Procedure procedure;
+
+  DillFactoryBuilder(this.procedure, Builder parent) : super(procedure, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
+}
+
+class DillConstructorBuilder extends DillMemberBuilder {
+  final Constructor constructor;
+
+  DillConstructorBuilder(this.constructor, Builder parent)
+      : super(constructor, parent);
+
+  @override
+  Constructor get member => constructor;
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Constructor get invokeTarget => constructor;
 }
 
 class DillClassMember extends BuilderClassMember {
   @override
   final DillMemberBuilder memberBuilder;
+
+  Covariance _covariance;
 
   @override
   final bool forSetter;
@@ -176,6 +257,15 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
+  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??=
+        new Covariance.fromMember(memberBuilder.member, forSetter: forSetter);
+  }
+
+  @override
   bool get isFunction => !isProperty;
 
   @override
@@ -184,8 +274,13 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     // Do nothing; this is only for source members.
+  }
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    return other is DillClassMember && memberBuilder == other.memberBuilder;
   }
 
   String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';

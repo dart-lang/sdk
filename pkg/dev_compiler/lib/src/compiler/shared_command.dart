@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 
@@ -61,12 +63,13 @@ class SharedCompilerOptions {
   /// runtime can enable synchronous stack trace deobsfuscation.
   final bool inlineSourceMap;
 
-  /// Whether to emit the debug metadata
+  /// Whether to emit the full compiled kernel.
   ///
-  /// Debugger uses this information about to construct mapping between
-  /// modules and libraries that otherwise requires expensive communication with
-  /// the browser.
-  final bool emitDebugMetadata;
+  /// This is used by expression compiler worker, launched from the debugger
+  /// in webdev and google3 scenarios, for expression evaluation features.
+  /// Full kernel for compiled files is needed to be able to compile
+  /// expressions on demand in the current scope of a breakpoint.
+  final bool emitFullCompiledKernel;
 
   /// Whether to emit a summary file containing API signatures.
   ///
@@ -82,9 +85,29 @@ class SharedCompilerOptions {
   /// This should only set `true` by our REPL compiler.
   bool replCompile;
 
+  /// Whether to emit the debug metadata
+  ///
+  /// Debugger uses this information about to construct mapping between
+  /// modules and libraries that otherwise requires expensive communication with
+  /// the browser.
+  final bool emitDebugMetadata;
+
   final Map<String, String> summaryModules;
 
   final List<ModuleFormat> moduleFormats;
+
+  /// The name of the module.
+  ///
+  /// This is used to support file concatenation. The JS module will contain its
+  /// module name inside itself, allowing it to declare the module name
+  /// independently of the file.
+  final String moduleName;
+
+  /// Custom scheme to indicate a multi-root uri.
+  final String multiRootScheme;
+
+  /// Path to set multi-root files relative to when generating source-maps.
+  final String multiRootOutputPath;
 
   /// Experimental language features that are enabled/disabled, see
   /// [the spec](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md)
@@ -93,13 +116,6 @@ class SharedCompilerOptions {
 
   final bool soundNullSafety;
 
-  /// The name of the module.
-  ///
-  /// This used when to support file concatenation. The JS module will contain
-  /// its module name inside itself, allowing it to declare the module name
-  /// independently of the file.
-  String moduleName;
-
   SharedCompilerOptions(
       {this.sourceMap = true,
       this.inlineSourceMap = false,
@@ -107,41 +123,57 @@ class SharedCompilerOptions {
       this.enableAsserts = true,
       this.replCompile = false,
       this.emitDebugMetadata = false,
+      this.emitFullCompiledKernel = false,
       this.summaryModules = const {},
       this.moduleFormats = const [],
-      this.experiments = const {},
       this.moduleName,
+      this.multiRootScheme,
+      this.multiRootOutputPath,
+      this.experiments = const {},
       this.soundNullSafety = false});
 
-  SharedCompilerOptions.fromArguments(ArgResults args,
-      [String moduleRoot, String summaryExtension])
+  SharedCompilerOptions.fromArguments(ArgResults args)
       : this(
             sourceMap: args['source-map'] as bool,
             inlineSourceMap: args['inline-source-map'] as bool,
             summarizeApi: args['summarize'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
+            replCompile: args['repl-compile'] as bool,
+            emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
+            emitFullCompiledKernel:
+                args['experimental-output-compiled-kernel'] as bool,
+            summaryModules:
+                _parseCustomSummaryModules(args['summary'] as List<String>),
+            moduleFormats: parseModuleFormatOption(args),
+            moduleName: _getModuleName(args),
+            multiRootScheme: args['multi-root-scheme'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            summaryModules: _parseCustomSummaryModules(
-                args['summary'] as List<String>, moduleRoot, summaryExtension),
+            soundNullSafety: args['sound-null-safety'] as bool);
+
+  SharedCompilerOptions.fromSdkRequiredArguments(ArgResults args)
+      : this(
+            summarizeApi: false,
             moduleFormats: parseModuleFormatOption(args),
-            moduleName: _getModuleName(args, moduleRoot),
-            replCompile: args['repl-compile'] as bool,
-            soundNullSafety: args['sound-null-safety'] as bool,
-            emitDebugMetadata:
-                args['experimental-emit-debug-metadata'] as bool);
+            // When compiling the SDK use dart_sdk as the default. This is the
+            // assumed name in various places around the build systems.
+            moduleName:
+                args['module-name'] != null ? _getModuleName(args) : 'dart_sdk',
+            multiRootScheme: args['multi-root-scheme'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String,
+            experiments: parseExperimentalArguments(
+                args['enable-experiment'] as List<String>),
+            soundNullSafety: args['sound-null-safety'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
-    addModuleFormatOptions(parser, hide: hide);
+    addSdkRequiredArguments(parser, hide: hide);
 
     parser
-      ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
       ..addMultiOption('summary',
           abbr: 's',
           help: 'API summary file(s) of imported libraries, optionally\n'
               'with module import path: -s path.dill=js/import/path')
-      ..addMultiOption('enable-experiment',
-          help: 'Enable/disable experimental language features.', hide: hide)
       ..addFlag('summarize',
           help: 'Emit an API summary file.', defaultsTo: true, hide: hide)
       ..addFlag('source-map',
@@ -150,19 +182,39 @@ class SharedCompilerOptions {
           help: 'Emit source mapping inline.', defaultsTo: false, hide: hide)
       ..addFlag('enable-asserts',
           help: 'Enable assertions.', defaultsTo: true, hide: hide)
-      ..addOption('module-name',
-          help: 'The output module name, used in some JS module formats.\n'
-              'Defaults to the output file name (without .js).')
       ..addFlag('repl-compile',
           help: 'Compile in a more permissive REPL mode, allowing access'
               ' to private members across library boundaries. This should'
               ' only be used by debugging tools.',
           defaultsTo: false,
           hide: hide)
-      ..addFlag('sound-null-safety',
-          help: 'Compile for sound null safety at runtime.',
-          negatable: true,
-          defaultsTo: false)
+      // TODO(41852) Define a process for breaking changes before graduating from
+      // experimental.
+      ..addFlag('experimental-emit-debug-metadata',
+          help: 'Experimental option for compiler development.\n'
+              'Output a metadata file for debug tools next to the .js output.',
+          defaultsTo: false,
+          hide: true)
+      ..addFlag('experimental-output-compiled-kernel',
+          help: 'Experimental option for compiler development.\n'
+              'Output a full kernel file for currently compiled module next to '
+              'the .js output.',
+          defaultsTo: false,
+          hide: true);
+  }
+
+  /// Adds only the arguments used to compile the SDK from a full dill file.
+  ///
+  /// NOTE: The 'module-name' option will have a special default value of
+  /// 'dart_sdk' when compiling the SDK.
+  /// See [SharedCompilerOptions.fromSdkRequiredArguments].
+  static void addSdkRequiredArguments(ArgParser parser, {bool hide = true}) {
+    addModuleFormatOptions(parser, hide: hide);
+    parser
+      ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
+      ..addOption('module-name',
+          help: 'The output module name, used in some JS module formats.\n'
+              'Defaults to the output file name (without .js).')
       ..addOption('multi-root-scheme',
           help: 'The custom scheme to indicate a multi-root uri.',
           defaultsTo: 'org-dartlang-app')
@@ -170,16 +222,15 @@ class SharedCompilerOptions {
           help: 'Path to set multi-root files relative to when generating'
               ' source-maps.',
           hide: true)
-      // TODO(41852) Define a process for breaking changes before graduating from
-      // experimental.
-      ..addFlag('experimental-emit-debug-metadata',
-          help: 'Experimental option for compiler development.\n'
-              'Output a metadata file for debug tools next to the .js output.',
-          defaultsTo: false,
-          hide: true);
+      ..addMultiOption('enable-experiment',
+          help: 'Enable/disable experimental language features.', hide: hide)
+      ..addFlag('sound-null-safety',
+          help: 'Compile for sound null safety at runtime.',
+          negatable: true,
+          defaultsTo: false);
   }
 
-  static String _getModuleName(ArgResults args, String moduleRoot) {
+  static String _getModuleName(ArgResults args) {
     var moduleName = args['module-name'] as String;
     if (moduleName == null) {
       var outPaths = args['out'];
@@ -191,13 +242,8 @@ class SharedCompilerOptions {
       // TODO(jmesserly): fix the debugger console so it's not passing invalid
       // options.
       if (outPath == null) return null;
-      if (moduleRoot != null) {
-        // TODO(jmesserly): remove this legacy support after a deprecation
-        // period. (Mainly this is to give time for migrating build rules.)
-        moduleName = p.withoutExtension(p.relative(outPath, from: moduleRoot));
-      } else {
-        moduleName = p.basenameWithoutExtension(outPath);
-      }
+
+      moduleName = p.basenameWithoutExtension(outPath);
     }
     // TODO(jmesserly): this should probably use sourcePathToUri.
     //
@@ -463,6 +509,17 @@ class ParsedArguments {
   /// See also [isBatchOrWorker].
   final bool isBatch;
 
+  /// Whether to run in `--experimental-expression-compiler` mode.
+  ///
+  /// This is a special mode that is optimized for only compiling expressions.
+  ///
+  /// All dependencies must come from precompiled dill files, and those must
+  /// be explicitly invalidated as needed between expression compile requests.
+  /// Invalidation of dill is performed using [updateDeps] from the client (i.e.
+  /// debugger) and should be done every time a dill file changes, for example,
+  /// on hot reload or rebuild.
+  final bool isExpressionCompiler;
+
   /// Whether to run in `--bazel_worker` mode, e.g. for Bazel builds.
   ///
   /// Similar to [isBatch] but with a different protocol.
@@ -480,11 +537,14 @@ class ParsedArguments {
   /// Note that this only makes sense when also reusing results.
   final bool useIncrementalCompiler;
 
-  ParsedArguments._(this.rest,
-      {this.isBatch = false,
-      this.isWorker = false,
-      this.reuseResult = false,
-      this.useIncrementalCompiler = false});
+  ParsedArguments._(
+    this.rest, {
+    this.isBatch = false,
+    this.isWorker = false,
+    this.reuseResult = false,
+    this.useIncrementalCompiler = false,
+    this.isExpressionCompiler = false,
+  });
 
   /// Preprocess arguments to determine whether DDK is used in batch mode or as a
   /// persistent worker.
@@ -503,6 +563,7 @@ class ParsedArguments {
     var isBatch = false;
     var reuseResult = false;
     var useIncrementalCompiler = false;
+    var isExpressionCompiler = false;
 
     Iterable<String> argsToParse = args;
 
@@ -521,6 +582,8 @@ class ParsedArguments {
         reuseResult = true;
       } else if (arg == '--use-incremental-compiler') {
         useIncrementalCompiler = true;
+      } else if (arg == '--experimental-expression-compiler') {
+        isExpressionCompiler = true;
       } else {
         newArgs.add(arg);
       }
@@ -529,7 +592,8 @@ class ParsedArguments {
         isWorker: isWorker,
         isBatch: isBatch,
         reuseResult: reuseResult,
-        useIncrementalCompiler: useIncrementalCompiler);
+        useIncrementalCompiler: useIncrementalCompiler,
+        isExpressionCompiler: isExpressionCompiler);
   }
 
   /// Whether the compiler is running in [isBatch] or [isWorker] mode.

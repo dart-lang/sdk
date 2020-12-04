@@ -64,6 +64,27 @@ class AlwaysNullableTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.alwaysNullableType;
 }
 
+/// Edge origin resulting from the presence of a call to
+/// `ArgumentError.checkNotNull`.
+///
+/// For example, in the following code snippet:
+///   void f(int i) {
+///     ArgumentError.checkNotNull(i);
+///   }
+///
+/// this class is used for the edge connecting the type of f's `i` parameter to
+/// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
+class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
+  ArgumentErrorCheckNotNullOrigin(Source source, SimpleIdentifier node)
+      : super(source, node);
+
+  @override
+  String get description => 'value checked to be non-null';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
+}
+
 /// Edge origin resulting from the use of a value on the LHS of a compound
 /// assignment.
 class CompoundAssignmentOrigin extends EdgeOrigin {
@@ -78,6 +99,18 @@ class CompoundAssignmentOrigin extends EdgeOrigin {
 
   @override
   AssignmentExpression get node => super.node as AssignmentExpression;
+}
+
+/// Edge origin resulting from the use of an element which does not affect the
+/// nullability graph in other ways.
+class DummyOrigin extends EdgeOrigin {
+  DummyOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'dummy';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.dummy;
 }
 
 /// An edge origin used for edges that originated because of an assignment
@@ -182,6 +215,18 @@ class ForEachVariableOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.forEachVariable;
+}
+
+/// Edge origin resulting from the relationship between a getter and a setter.
+class GetterSetterCorrespondenceOrigin extends EdgeOrigin {
+  GetterSetterCorrespondenceOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  String get description => 'getter/setter correspondence';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.getterSetterCorrespondence;
 }
 
 /// Edge origin resulting from the use of greatest lower bound.
@@ -326,6 +371,19 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
+/// An edge origin used for the return type of an iterator method that might be
+/// changed into an extension method from package:collection.
+class IteratorMethodReturnOrigin extends EdgeOrigin {
+  IteratorMethodReturnOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description =>
+      'Call to iterator method with orElse that returns null';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.iteratorMethodReturn;
+}
+
 /// An edge origin used for the type argument of a list constructor that
 /// specified an initial length, because that type argument must be nullable.
 class ListLengthConstructorOrigin extends EdgeOrigin {
@@ -337,6 +395,18 @@ class ListLengthConstructorOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.listLengthConstructor;
+}
+
+/// An edge origin used for edges that originated because of a tear-off of
+/// `call` on a function type.
+class CallTearOffOrigin extends EdgeOrigin {
+  CallTearOffOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'tear-off of .call';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.callTearOff;
 }
 
 /// An edge origin used for edges that originated because a literal expression
@@ -430,49 +500,6 @@ class NonNullAssertionOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.nonNullAssertion;
 }
 
-/// Edge origin resulting from the presence of a call to quiver's
-/// `checkNotNull`.
-///
-/// For example, in the following code snippet:
-///   import 'package:quiver/check.dart';
-///   void f(int i) {
-///     checkNotNull(i);
-///   }
-///
-/// this class is used for the edge connecting the type of f's `i` parameter to
-/// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
-class QuiverCheckNotNullOrigin extends EdgeOrigin {
-  QuiverCheckNotNullOrigin(Source source, SimpleIdentifier node)
-      : super(source, node);
-
-  @override
-  String get description => 'value checked to be non-null';
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.quiverCheckNotNull;
-}
-
-/// Edge origin resulting from the presence of a call to
-/// `ArgumentError.checkNotNull`.
-///
-/// For example, in the following code snippet:
-///   void f(int i) {
-///     ArgumentError.checkNotNull(i);
-///   }
-///
-/// this class is used for the edge connecting the type of f's `i` parameter to
-/// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
-class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
-  ArgumentErrorCheckNotNullOrigin(Source source, SimpleIdentifier node)
-      : super(source, node);
-
-  @override
-  String get description => 'value checked to be non-null';
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
-}
-
 /// Edge origin resulting from the presence of an explicit nullability hint
 /// comment.
 ///
@@ -518,18 +545,6 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.optionalFormalParameter;
 }
 
-/// Edge origin resulting from the use of an element which does not affect the
-/// nullability graph in other ways.
-class DummyOrigin extends EdgeOrigin {
-  DummyOrigin(Source source, AstNode node) : super(source, node);
-
-  @override
-  String get description => 'dummy';
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.dummy;
-}
-
 /// Edge origin resulting from an inheritance relationship between two method
 /// parameters.
 class ParameterInheritanceOrigin extends EdgeOrigin {
@@ -540,6 +555,28 @@ class ParameterInheritanceOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.parameterInheritance;
+}
+
+/// Edge origin resulting from the presence of a call to quiver's
+/// `checkNotNull`.
+///
+/// For example, in the following code snippet:
+///   import 'package:quiver/check.dart';
+///   void f(int i) {
+///     checkNotNull(i);
+///   }
+///
+/// this class is used for the edge connecting the type of f's `i` parameter to
+/// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
+class QuiverCheckNotNullOrigin extends EdgeOrigin {
+  QuiverCheckNotNullOrigin(Source source, SimpleIdentifier node)
+      : super(source, node);
+
+  @override
+  String get description => 'value checked to be non-null';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.quiverCheckNotNull;
 }
 
 /// Edge origin resulting from an inheritance relationship between two method

@@ -10,18 +10,18 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ClassRefElement extends CustomElement implements Renderable {
-  RenderingScheduler<ClassRefElement> _r;
+  late RenderingScheduler<ClassRefElement> _r;
 
   Stream<RenderedEvent<ClassRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.ClassRef _class;
+  late M.IsolateRef _isolate;
+  late M.ClassRef _class;
 
   M.IsolateRef get isolate => _isolate;
   M.ClassRef get cls => _class;
 
   factory ClassRefElement(M.IsolateRef isolate, M.ClassRef cls,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(cls != null);
     ClassRefElement e = new ClassRefElement.created();
     e._r = new RenderingScheduler<ClassRefElement>(e, queue: queue);

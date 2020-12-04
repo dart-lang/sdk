@@ -7,6 +7,12 @@ main() {
 Class1? c1;
 c1?.[0];
 c1?.[0] = 1;
+
+c1?[0];
+c1?[0] = 1;
+
+c1 ? [0];
+c1 ? [0] = 1;
 }
 
 
@@ -17,7 +23,13 @@ void[KeywordToken] operator[KeywordToken] []=[SimpleToken]([BeginToken]int[Strin
 
 main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 Class1[StringToken]?[SimpleToken] c1[StringToken];[SimpleToken]
-c1[StringToken]?.[[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
-c1[StringToken]?.[[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+c1[StringToken]?.[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+c1[StringToken]?.[SimpleToken][[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+
+c1[StringToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+c1[StringToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+
+c1[StringToken] ?[SimpleToken] [[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+c1[StringToken] ?[SimpleToken] [[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] 1[StringToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

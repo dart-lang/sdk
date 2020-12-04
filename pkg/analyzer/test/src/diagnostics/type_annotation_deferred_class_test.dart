@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class TypeAnnotationDeferredClassTest extends DriverResolutionTest {
+class TypeAnnotationDeferredClassTest extends PubPackageResolutionTest {
   test_asExpression() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -30,7 +30,7 @@ f(var v) {
   }
 
   test_catchClause() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -46,7 +46,7 @@ f(var v) {
   }
 
   test_fieldFormalParameter() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -61,7 +61,7 @@ class C {
   }
 
   test_functionDeclaration_returnType() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -73,7 +73,7 @@ a.A f() { return null; }''', [
   }
 
   test_functionTypedFormalParameter_returnType() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -85,7 +85,7 @@ f(a.A g()) {}''', [
   }
 
   test_isExpression() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -100,7 +100,7 @@ f(var v) {
   }
 
   test_methodDeclaration_returnType() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -114,7 +114,7 @@ class C {
   }
 
   test_simpleFormalParameter() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -126,7 +126,7 @@ f(a.A v) {}''', [
   }
 
   test_typeArgumentList() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -139,7 +139,7 @@ C<a.A> c;''', [
   }
 
   test_typeArgumentList2() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -153,7 +153,7 @@ C<a.A, a.A> c;''', [
   }
 
   test_typeParameter_bound() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''
@@ -165,7 +165,7 @@ class C<E extends a.A> {}''', [
   }
 
   test_variableDeclarationList() async {
-    newFile("/test/lib/lib1.dart", content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}''');
     await assertErrorsInCode('''

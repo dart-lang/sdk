@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.35.0';
+const String vmServiceVersion = '3.42.0';
 
 /// @optional
 const String optional = 'optional';
@@ -117,7 +117,6 @@ Map<String, Function> _typeFactories = {
   'Class': Class.parse,
   'ClassHeapStats': ClassHeapStats.parse,
   'ClassList': ClassList.parse,
-  'ClientName': ClientName.parse,
   '@Code': CodeRef.parse,
   'Code': Code.parse,
   '@Context': ContextRef.parse,
@@ -140,6 +139,7 @@ Map<String, Function> _typeFactories = {
   'Instance': Instance.parse,
   '@Isolate': IsolateRef.parse,
   'Isolate': Isolate.parse,
+  'IsolateFlag': IsolateFlag.parse,
   '@IsolateGroup': IsolateGroupRef.parse,
   'IsolateGroup': IsolateGroup.parse,
   'InboundReferences': InboundReferences.parse,
@@ -157,9 +157,12 @@ Map<String, Function> _typeFactories = {
   'Null': NullVal.parse,
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
+  'PortList': PortList.parse,
   'ProfileFunction': ProfileFunction.parse,
   'ProtocolList': ProtocolList.parse,
   'Protocol': Protocol.parse,
+  'ProcessMemoryUsage': ProcessMemoryUsage.parse,
+  'ProcessMemoryItem': ProcessMemoryItem.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -197,7 +200,6 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
   'getClassList': const ['ClassList'],
-  'getClientName': const ['ClientName'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences'],
@@ -208,7 +210,9 @@ Map<String, List<String>> _methodReturnTypes = {
   'getIsolateGroupMemoryUsage': const ['MemoryUsage'],
   'getScripts': const ['ScriptList'],
   'getObject': const ['Obj'],
+  'getPorts': const ['PortList'],
   'getRetainingPath': const ['RetainingPath'],
+  'getProcessMemoryUsage': const ['ProcessMemoryUsage'],
   'getStack': const ['Stack'],
   'getSupportedProtocols': const ['ProtocolList'],
   'getSourceReport': const ['SourceReport'],
@@ -223,9 +227,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'reloadSources': const ['ReloadReport'],
   'removeBreakpoint': const ['Success'],
   'requestHeapSnapshot': const ['Success'],
-  'requirePermissionToResume': const ['Success'],
   'resume': const ['Success'],
-  'setClientName': const ['Success'],
   'setExceptionPauseMode': const ['Success'],
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
@@ -513,13 +515,6 @@ abstract class VmServiceInterface {
   /// returned.
   Future<ClassList> getClassList(String isolateId);
 
-  /// The `getClientName` RPC is used to retrieve the name associated with the
-  /// currently connected VM service client. If no name was previously set
-  /// through the [setClientName] RPC, a default name will be returned.
-  ///
-  /// See [ClientName].
-  Future<ClientName> getClientName();
-
   /// The `getCpuSamples` RPC is used to retrieve samples collected by the CPU
   /// profiler. Only samples collected in the time range `[timeOriginMicros,
   /// timeOriginMicros + timeExtentMicros]` will be reported.
@@ -695,6 +690,12 @@ abstract class VmServiceInterface {
     int count,
   });
 
+  /// The `getPorts` RPC is used to retrieve the list of `ReceivePort` instances
+  /// for a given isolate.
+  ///
+  /// See [PortList].
+  Future<PortList> getPorts(String isolateId);
+
   /// The `getRetainingPath` RPC is used to lookup a path from an object
   /// specified by `targetId` to a GC root (i.e., the object which is preventing
   /// this object from being garbage collected).
@@ -722,8 +723,21 @@ abstract class VmServiceInterface {
   Future<RetainingPath> getRetainingPath(
       String isolateId, String targetId, int limit);
 
+  /// Returns a description of major uses of memory known to the VM.
+  ///
+  /// Adding or removing buckets is considered a backwards-compatible change for
+  /// the purposes of versioning. A client must gracefully handle the removal or
+  /// addition of any bucket.
+  Future<ProcessMemoryUsage> getProcessMemoryUsage();
+
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
+  ///
+  /// If `limit` is provided, up to `limit` frames from the top of the stack
+  /// will be returned. If the stack depth is smaller than `limit` the entire
+  /// stack is returned. Note: this limit also applies to the
+  /// `asyncCausalFrames` and `awaiterFrames` stack representations in the
+  /// `Stack` response.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -732,7 +746,7 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Stack> getStack(String isolateId);
+  Future<Stack> getStack(String isolateId, {int limit});
 
   /// The `getSupportedProtocols` RPC is used to determine which protocols are
   /// supported by the current server.
@@ -937,39 +951,6 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> requestHeapSnapshot(String isolateId);
 
-  /// The `requirePermissionToResume` RPC is used to change the pause/resume
-  /// behavior of isolates by providing a way for the VM service to wait for
-  /// approval to resume from some set of clients. This is useful for clients
-  /// which want to perform some operation on an isolate after a pause without
-  /// it being resumed by another client.
-  ///
-  /// If the `onPauseStart` parameter is `true`, isolates will not resume after
-  /// pausing on start until the client sends a `resume` request and all other
-  /// clients which need to provide resume approval for this pause type have
-  /// done so.
-  ///
-  /// If the `onPauseReload` parameter is `true`, isolates will not resume after
-  /// pausing after a reload until the client sends a `resume` request and all
-  /// other clients which need to provide resume approval for this pause type
-  /// have done so.
-  ///
-  /// If the `onPauseExit` parameter is `true`, isolates will not resume after
-  /// pausing on exit until the client sends a `resume` request and all other
-  /// clients which need to provide resume approval for this pause type have
-  /// done so.
-  ///
-  /// **Important Notes:**
-  ///
-  /// - All clients with the same client name share resume permissions. Only a
-  /// single client of a given name is required to provide resume approval.
-  /// - When a client requiring approval disconnects from the service, a paused
-  /// isolate may resume if all other clients requiring resume approval have
-  /// already given approval. In the case that no other client requires resume
-  /// approval for the current pause event, the isolate will be resumed if at
-  /// least one other client has attempted to [resume] the isolate.
-  Future<Success> requirePermissionToResume(
-      {bool onPauseStart, bool onPauseReload, bool onPauseExit});
-
   /// The `resume` RPC is used to resume execution of a paused isolate.
   ///
   /// If the `step` parameter is not provided, the program will resume regular
@@ -1001,15 +982,6 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex});
-
-  /// The `setClientName` RPC is used to set a name to be associated with the
-  /// currently connected VM service client. If the `name` parameter is a
-  /// non-empty string, `name` will become the new name associated with the
-  /// client. If `name` is an empty string, the client's name will be reset to
-  /// its default name.
-  ///
-  /// See [Success].
-  Future<Success> setClientName(String name);
 
   /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
   /// when an exception is thrown.
@@ -1147,6 +1119,20 @@ abstract class VmServiceInterface {
   Future<Success> streamListen(String streamId);
 }
 
+class _PendingServiceRequest {
+  Future<Map<String, Object>> get future => _completer.future;
+  final _completer = Completer<Map<String, Object>>();
+
+  final dynamic originalId;
+
+  _PendingServiceRequest(this.originalId);
+
+  void complete(Map<String, Object> response) {
+    response['id'] = originalId;
+    _completer.complete(response);
+  }
+}
+
 /// A Dart VM Service Protocol connection that delegates requests to a
 /// [VmServiceInterface] implementation.
 ///
@@ -1170,8 +1156,7 @@ class VmServerConnection {
   final _doneCompleter = Completer<Null>();
 
   /// Pending service extension requests to this client by id.
-  final _pendingServiceExtensionRequests =
-      <String, Completer<Map<String, Object>>>{};
+  final _pendingServiceExtensionRequests = <dynamic, _PendingServiceRequest>{};
 
   VmServerConnection(this._requestStream, this._responseSink,
       this._serviceExtensionRegistry, this._serviceImplementation) {
@@ -1193,21 +1178,19 @@ class VmServerConnection {
     // multiple clients ids.
     var newId = '${_nextServiceRequestId++}:$originalId';
     request['id'] = newId;
-    var responseCompleter = Completer<Map<String, Object>>();
-    _pendingServiceExtensionRequests[newId] = responseCompleter;
+    var pendingRequest = _PendingServiceRequest(originalId);
+    _pendingServiceExtensionRequests[newId] = pendingRequest;
     _responseSink.add(request);
-    return responseCompleter.future;
+    return pendingRequest.future;
   }
 
   void _delegateRequest(Map<String, Object> request) async {
     try {
-      var id = request['id'] as String;
+      var id = request['id'];
       // Check if this is actually a response to a pending request.
       if (_pendingServiceExtensionRequests.containsKey(id)) {
-        // Restore the original request ID.
-        var originalId = id.substring(id.indexOf(':') + 1);
-        _pendingServiceExtensionRequests[id]
-            .complete(Map.of(request)..['id'] = originalId);
+        final pending = _pendingServiceExtensionRequests[id];
+        pending.complete(Map.of(request));
         return;
       }
       var method = request['method'] as String;
@@ -1292,9 +1275,6 @@ class VmServerConnection {
             params['isolateId'],
           );
           break;
-        case 'getClientName':
-          response = await _serviceImplementation.getClientName();
-          break;
         case 'getCpuSamples':
           response = await _serviceImplementation.getCpuSamples(
             params['isolateId'],
@@ -1352,6 +1332,11 @@ class VmServerConnection {
             count: params['count'],
           );
           break;
+        case 'getPorts':
+          response = await _serviceImplementation.getPorts(
+            params['isolateId'],
+          );
+          break;
         case 'getRetainingPath':
           response = await _serviceImplementation.getRetainingPath(
             params['isolateId'],
@@ -1359,9 +1344,13 @@ class VmServerConnection {
             params['limit'],
           );
           break;
+        case 'getProcessMemoryUsage':
+          response = await _serviceImplementation.getProcessMemoryUsage();
+          break;
         case 'getStack':
           response = await _serviceImplementation.getStack(
             params['isolateId'],
+            limit: params['limit'],
           );
           break;
         case 'getSupportedProtocols':
@@ -1425,23 +1414,11 @@ class VmServerConnection {
             params['isolateId'],
           );
           break;
-        case 'requirePermissionToResume':
-          response = await _serviceImplementation.requirePermissionToResume(
-            onPauseStart: params['onPauseStart'],
-            onPauseReload: params['onPauseReload'],
-            onPauseExit: params['onPauseExit'],
-          );
-          break;
         case 'resume':
           response = await _serviceImplementation.resume(
             params['isolateId'],
             step: params['step'],
             frameIndex: params['frameIndex'],
-          );
-          break;
-        case 'setClientName':
-          response = await _serviceImplementation.setClientName(
-            params['name'],
           );
           break;
         case 'setExceptionPauseMode':
@@ -1756,9 +1733,6 @@ class VmService implements VmServiceInterface {
       _call('getClassList', {'isolateId': isolateId});
 
   @override
-  Future<ClientName> getClientName() => _call('getClientName');
-
-  @override
   Future<CpuSamples> getCpuSamples(
           String isolateId, int timeOriginMicros, int timeExtentMicros) =>
       _call('getCpuSamples', {
@@ -1817,14 +1791,24 @@ class VmService implements VmServiceInterface {
       });
 
   @override
+  Future<PortList> getPorts(String isolateId) =>
+      _call('getPorts', {'isolateId': isolateId});
+
+  @override
   Future<RetainingPath> getRetainingPath(
           String isolateId, String targetId, int limit) =>
       _call('getRetainingPath',
           {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   @override
-  Future<Stack> getStack(String isolateId) =>
-      _call('getStack', {'isolateId': isolateId});
+  Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
+      _call('getProcessMemoryUsage');
+
+  @override
+  Future<Stack> getStack(String isolateId, {int limit}) => _call('getStack', {
+        'isolateId': isolateId,
+        if (limit != null) 'limit': limit,
+      });
 
   @override
   Future<ProtocolList> getSupportedProtocols() =>
@@ -1907,15 +1891,6 @@ class VmService implements VmServiceInterface {
       _call('requestHeapSnapshot', {'isolateId': isolateId});
 
   @override
-  Future<Success> requirePermissionToResume(
-          {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
-      _call('requirePermissionToResume', {
-        if (onPauseStart != null) 'onPauseStart': onPauseStart,
-        if (onPauseReload != null) 'onPauseReload': onPauseReload,
-        if (onPauseExit != null) 'onPauseExit': onPauseExit,
-      });
-
-  @override
   Future<Success> resume(String isolateId,
           {/*StepOption*/ String step, int frameIndex}) =>
       _call('resume', {
@@ -1923,10 +1898,6 @@ class VmService implements VmServiceInterface {
         if (step != null) 'step': step,
         if (frameIndex != null) 'frameIndex': frameIndex,
       });
-
-  @override
-  Future<Success> setClientName(String name) =>
-      _call('setClientName', {'name': name});
 
   @override
   Future<Success> setExceptionPauseMode(
@@ -1973,7 +1944,7 @@ class VmService implements VmServiceInterface {
 
   /// Invoke a specific service protocol extension method.
   ///
-  /// See https://api.dartlang.org/stable/dart-developer/dart-developer-library.html.
+  /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
   @override
   Future<Response> callServiceExtension(String method,
       {String isolateId, Map args}) {
@@ -2487,6 +2458,9 @@ class InstanceKind {
 
   /// An instance of the Dart class BoundedType.
   static const String kBoundedType = 'BoundedType';
+
+  /// An instance of the Dart class ReceivePort.
+  static const String kReceivePort = 'ReceivePort';
 }
 
 /// A `SentinelKind` is used to distinguish different kinds of `Sentinel`
@@ -3029,35 +3003,6 @@ class ClassList extends Response {
   }
 
   String toString() => '[ClassList type: ${type}, classes: ${classes}]';
-}
-
-/// See [getClientName] and [setClientName].
-class ClientName extends Response {
-  static ClientName parse(Map<String, dynamic> json) =>
-      json == null ? null : ClientName._fromJson(json);
-
-  /// The name of the currently connected VM service client.
-  String name;
-
-  ClientName({
-    @required this.name,
-  });
-
-  ClientName._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'];
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    var json = <String, dynamic>{};
-    json['type'] = 'ClientName';
-    json.addAll({
-      'name': name,
-    });
-    return json;
-  }
-
-  String toString() => '[ClientName type: ${type}, name: ${name}]';
 }
 
 /// `CodeRef` is a reference to a `Code` object.
@@ -4323,6 +4268,27 @@ class InstanceRef extends ObjRef {
   @optional
   ContextRef closureContext;
 
+  /// The port ID for a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  int portId;
+
+  /// The stack trace associated with the allocation of a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  InstanceRef allocationLocation;
+
+  /// A name associated with a ReceivePort used for debugging purposes.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  String debugName;
+
   InstanceRef({
     @required this.kind,
     @required this.classRef,
@@ -4336,6 +4302,9 @@ class InstanceRef extends ObjRef {
     this.pattern,
     this.closureFunction,
     this.closureContext,
+    this.portId,
+    this.allocationLocation,
+    this.debugName,
   }) : super(id: id);
 
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -4353,6 +4322,10 @@ class InstanceRef extends ObjRef {
         createServiceObject(json['closureFunction'], const ['FuncRef']);
     closureContext =
         createServiceObject(json['closureContext'], const ['ContextRef']);
+    portId = json['portId'];
+    allocationLocation =
+        createServiceObject(json['allocationLocation'], const ['InstanceRef']);
+    debugName = json['debugName'];
   }
 
   @override
@@ -4372,6 +4345,9 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'pattern', pattern?.toJson());
     _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
     _setIfNotNull(json, 'closureContext', closureContext?.toJson());
+    _setIfNotNull(json, 'portId', portId);
+    _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
+    _setIfNotNull(json, 'debugName', debugName);
     return json;
   }
 
@@ -4402,6 +4378,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - Double (suitable for passing to Double.parse())
   ///  - Int (suitable for passing to int.parse())
   ///  - String (value may be truncated)
+  ///  - StackTrace
   @optional
   String valueAsString;
 
@@ -4638,6 +4615,27 @@ class Instance extends Obj implements InstanceRef {
   @optional
   InstanceRef bound;
 
+  /// The port ID for a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  int portId;
+
+  /// The stack trace associated with the allocation of a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  InstanceRef allocationLocation;
+
+  /// A name associated with a ReceivePort used for debugging purposes.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  String debugName;
+
   Instance({
     @required this.kind,
     @required this.classRef,
@@ -4666,6 +4664,9 @@ class Instance extends Obj implements InstanceRef {
     this.parameterIndex,
     this.targetType,
     this.bound,
+    this.portId,
+    this.allocationLocation,
+    this.debugName,
   }) : super(id: id);
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -4711,6 +4712,10 @@ class Instance extends Obj implements InstanceRef {
     parameterIndex = json['parameterIndex'];
     targetType = createServiceObject(json['targetType'], const ['InstanceRef']);
     bound = createServiceObject(json['bound'], const ['InstanceRef']);
+    portId = json['portId'];
+    allocationLocation =
+        createServiceObject(json['allocationLocation'], const ['InstanceRef']);
+    debugName = json['debugName'];
   }
 
   @override
@@ -4747,6 +4752,9 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'parameterIndex', parameterIndex);
     _setIfNotNull(json, 'targetType', targetType?.toJson());
     _setIfNotNull(json, 'bound', bound?.toJson());
+    _setIfNotNull(json, 'portId', portId);
+    _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
+    _setIfNotNull(json, 'debugName', debugName);
     return json;
   }
 
@@ -4772,16 +4780,22 @@ class IsolateRef extends Response {
   /// A name identifying this isolate. Not guaranteed to be unique.
   String name;
 
+  /// Specifies whether the isolate was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
+
   IsolateRef({
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolate,
   });
 
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolate = json['isSystemIsolate'];
   }
 
   @override
@@ -4792,6 +4806,7 @@ class IsolateRef extends Response {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolate': isSystemIsolate,
     });
     return json;
   }
@@ -4800,8 +4815,9 @@ class IsolateRef extends Response {
 
   operator ==(other) => other is IsolateRef && id == other.id;
 
-  String toString() =>
-      '[IsolateRef type: ${type}, id: ${id}, number: ${number}, name: ${name}]';
+  String toString() => '[IsolateRef ' //
+      'type: ${type}, id: ${id}, number: ${number}, name: ${name}, ' //
+      'isSystemIsolate: ${isSystemIsolate}]';
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
@@ -4817,6 +4833,14 @@ class Isolate extends Response implements IsolateRef {
 
   /// A name identifying this isolate. Not guaranteed to be unique.
   String name;
+
+  /// Specifies whether the isolate was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
+
+  /// The list of isolate flags provided to this isolate. See Dart_IsolateFlags
+  /// in dart_api.h for the list of accepted isolate flags.
+  List<IsolateFlag> isolateFlags;
 
   /// The time that the VM started in milliseconds since the epoch.
   ///
@@ -4866,6 +4890,8 @@ class Isolate extends Response implements IsolateRef {
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolate,
+    @required this.isolateFlags,
     @required this.startTime,
     @required this.runnable,
     @required this.livePorts,
@@ -4883,6 +4909,9 @@ class Isolate extends Response implements IsolateRef {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolate = json['isSystemIsolate'];
+    isolateFlags = List<IsolateFlag>.from(
+        createServiceObject(json['isolateFlags'], const ['IsolateFlag']) ?? []);
     startTime = json['startTime'];
     runnable = json['runnable'];
     livePorts = json['livePorts'];
@@ -4908,6 +4937,8 @@ class Isolate extends Response implements IsolateRef {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolate': isSystemIsolate,
+      'isolateFlags': isolateFlags.map((f) => f.toJson()).toList(),
       'startTime': startTime,
       'runnable': runnable,
       'livePorts': livePorts,
@@ -4931,6 +4962,40 @@ class Isolate extends Response implements IsolateRef {
   String toString() => '[Isolate]';
 }
 
+/// Represents the value of a single isolate flag. See [Isolate].
+class IsolateFlag {
+  static IsolateFlag parse(Map<String, dynamic> json) =>
+      json == null ? null : IsolateFlag._fromJson(json);
+
+  /// The name of the flag.
+  String name;
+
+  /// The value of this flag as a string.
+  String valueAsString;
+
+  IsolateFlag({
+    @required this.name,
+    @required this.valueAsString,
+  });
+
+  IsolateFlag._fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    valueAsString = json['valueAsString'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'name': name,
+      'valueAsString': valueAsString,
+    });
+    return json;
+  }
+
+  String toString() =>
+      '[IsolateFlag name: ${name}, valueAsString: ${valueAsString}]';
+}
+
 /// `IsolateGroupRef` is a reference to an `IsolateGroup` object.
 class IsolateGroupRef extends Response {
   static IsolateGroupRef parse(Map<String, dynamic> json) =>
@@ -4946,16 +5011,22 @@ class IsolateGroupRef extends Response {
   /// A name identifying this isolate group. Not guaranteed to be unique.
   String name;
 
+  /// Specifies whether the isolate group was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;
+
   IsolateGroupRef({
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolateGroup,
   });
 
   IsolateGroupRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolateGroup = json['isSystemIsolateGroup'];
   }
 
   @override
@@ -4966,6 +5037,7 @@ class IsolateGroupRef extends Response {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolateGroup': isSystemIsolateGroup,
     });
     return json;
   }
@@ -4974,8 +5046,9 @@ class IsolateGroupRef extends Response {
 
   operator ==(other) => other is IsolateGroupRef && id == other.id;
 
-  String toString() =>
-      '[IsolateGroupRef type: ${type}, id: ${id}, number: ${number}, name: ${name}]';
+  String toString() => '[IsolateGroupRef ' //
+      'type: ${type}, id: ${id}, number: ${number}, name: ${name}, ' //
+      'isSystemIsolateGroup: ${isSystemIsolateGroup}]';
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
@@ -4992,6 +5065,10 @@ class IsolateGroup extends Response implements IsolateGroupRef {
   /// A name identifying this isolate. Not guaranteed to be unique.
   String name;
 
+  /// Specifies whether the isolate group was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;
+
   /// A list of all isolates in this isolate group.
   List<IsolateRef> isolates;
 
@@ -4999,6 +5076,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolateGroup,
     @required this.isolates,
   });
 
@@ -5006,6 +5084,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolateGroup = json['isSystemIsolateGroup'];
     isolates = List<IsolateRef>.from(
         createServiceObject(json['isolates'], const ['IsolateRef']) ?? []);
   }
@@ -5018,6 +5097,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolateGroup': isSystemIsolateGroup,
       'isolates': isolates.map((f) => f.toJson()).toList(),
     });
     return json;
@@ -5029,7 +5109,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
 
   String toString() => '[IsolateGroup ' //
       'type: ${type}, id: ${id}, number: ${number}, name: ${name}, ' //
-      'isolates: ${isolates}]';
+      'isSystemIsolateGroup: ${isSystemIsolateGroup}, isolates: ${isolates}]';
 }
 
 /// See [getInboundReferences].
@@ -5755,6 +5835,37 @@ class Obj extends Response implements ObjRef {
   String toString() => '[Obj type: ${type}, id: ${id}]';
 }
 
+/// A `PortList` contains a list of ports associated with some isolate.
+///
+/// See [getPort].
+class PortList extends Response {
+  static PortList parse(Map<String, dynamic> json) =>
+      json == null ? null : PortList._fromJson(json);
+
+  List<InstanceRef> ports;
+
+  PortList({
+    @required this.ports,
+  });
+
+  PortList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    ports = List<InstanceRef>.from(
+        createServiceObject(json['ports'], const ['InstanceRef']) ?? []);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'PortList';
+    json.addAll({
+      'ports': ports.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[PortList type: ${type}, ports: ${ports}]';
+}
+
 /// A `ProfileFunction` contains profiling information about a Dart or native
 /// function.
 ///
@@ -5883,6 +5994,84 @@ class Protocol {
 
   String toString() => '[Protocol ' //
       'protocolName: ${protocolName}, major: ${major}, minor: ${minor}]';
+}
+
+/// Set [getProcessMemoryUsage].
+class ProcessMemoryUsage extends Response {
+  static ProcessMemoryUsage parse(Map<String, dynamic> json) =>
+      json == null ? null : ProcessMemoryUsage._fromJson(json);
+
+  ProcessMemoryItem root;
+
+  ProcessMemoryUsage({
+    @required this.root,
+  });
+
+  ProcessMemoryUsage._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json) {
+    root = createServiceObject(json['root'], const ['ProcessMemoryItem']);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'ProcessMemoryUsage';
+    json.addAll({
+      'root': root.toJson(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProcessMemoryUsage type: ${type}, root: ${root}]';
+}
+
+class ProcessMemoryItem {
+  static ProcessMemoryItem parse(Map<String, dynamic> json) =>
+      json == null ? null : ProcessMemoryItem._fromJson(json);
+
+  /// A short name for this bucket of memory.
+  String name;
+
+  /// A longer description for this item.
+  String description;
+
+  /// The amount of memory in bytes. This is a retained size, not a shallow
+  /// size. That is, it includes the size of children.
+  int size;
+
+  /// Subdivisons of this bucket of memory.
+  List<ProcessMemoryItem> children;
+
+  ProcessMemoryItem({
+    @required this.name,
+    @required this.description,
+    @required this.size,
+    @required this.children,
+  });
+
+  ProcessMemoryItem._fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    description = json['description'];
+    size = json['size'];
+    children = List<ProcessMemoryItem>.from(
+        createServiceObject(json['children'], const ['ProcessMemoryItem']) ??
+            []);
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'name': name,
+      'description': description,
+      'size': size,
+      'children': children.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProcessMemoryItem ' //
+      'name: ${name}, description: ${description}, size: ${size}, ' //
+      'children: ${children}]';
 }
 
 class ReloadReport extends Response {
@@ -6484,23 +6673,40 @@ class SourceReportRange {
       'compiled: ${compiled}]';
 }
 
+/// The `Stack` class represents the various components of a Dart stack trace
+/// for a given isolate.
+///
+/// See [getStack].
 class Stack extends Response {
   static Stack parse(Map<String, dynamic> json) =>
       json == null ? null : Stack._fromJson(json);
 
+  /// A list of frames that make up the synchronous stack, rooted at the message
+  /// loop (i.e., the frames since the last asynchronous gap or the isolate's
+  /// entrypoint).
   List<Frame> frames;
 
+  /// A list of frames representing the asynchronous path. Comparable to
+  /// `awaiterFrames`, if provided, although some frames may be different.
   @optional
   List<Frame> asyncCausalFrames;
 
+  /// A list of frames representing the asynchronous path. Comparable to
+  /// `asyncCausalFrames`, if provided, although some frames may be different.
   @optional
   List<Frame> awaiterFrames;
 
+  /// A list of messages in the isolate's message queue.
   List<Message> messages;
+
+  /// Specifies whether or not this stack is complete or has been artificially
+  /// truncated.
+  bool truncated;
 
   Stack({
     @required this.frames,
     @required this.messages,
+    @required this.truncated,
     this.asyncCausalFrames,
     this.awaiterFrames,
   });
@@ -6518,6 +6724,7 @@ class Stack extends Response {
             createServiceObject(json['awaiterFrames'], const ['Frame']));
     messages = List<Message>.from(
         createServiceObject(json['messages'], const ['Message']) ?? []);
+    truncated = json['truncated'];
   }
 
   @override
@@ -6527,6 +6734,7 @@ class Stack extends Response {
     json.addAll({
       'frames': frames.map((f) => f.toJson()).toList(),
       'messages': messages.map((f) => f.toJson()).toList(),
+      'truncated': truncated,
     });
     _setIfNotNull(json, 'asyncCausalFrames',
         asyncCausalFrames?.map((f) => f?.toJson())?.toList());
@@ -6535,8 +6743,9 @@ class Stack extends Response {
     return json;
   }
 
-  String toString() =>
-      '[Stack type: ${type}, frames: ${frames}, messages: ${messages}]';
+  String toString() => '[Stack ' //
+      'type: ${type}, frames: ${frames}, messages: ${messages}, ' //
+      'truncated: ${truncated}]';
 }
 
 /// The `Success` type is used to indicate that an operation completed
@@ -6563,7 +6772,7 @@ class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
       json == null ? null : Timeline._fromJson(json);
 
-  /// A list of timeline events. No order is guarenteed for these events; in
+  /// A list of timeline events. No order is guaranteed for these events; in
   /// particular, these events may be unordered with respect to their
   /// timestamps.
   List<TimelineEvent> traceEvents;
@@ -6953,6 +7162,12 @@ class VM extends Response implements VMRef {
   /// A list of isolate groups running in the VM.
   List<IsolateGroupRef> isolateGroups;
 
+  /// A list of system isolates running in the VM.
+  List<IsolateRef> systemIsolates;
+
+  /// A list of isolate groups which contain system isolates running in the VM.
+  List<IsolateGroupRef> systemIsolateGroups;
+
   VM({
     @required this.name,
     @required this.architectureBits,
@@ -6964,6 +7179,8 @@ class VM extends Response implements VMRef {
     @required this.startTime,
     @required this.isolates,
     @required this.isolateGroups,
+    @required this.systemIsolates,
+    @required this.systemIsolateGroups,
   });
 
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -6980,6 +7197,12 @@ class VM extends Response implements VMRef {
     isolateGroups = List<IsolateGroupRef>.from(
         createServiceObject(json['isolateGroups'], const ['IsolateGroupRef']) ??
             []);
+    systemIsolates = List<IsolateRef>.from(
+        createServiceObject(json['systemIsolates'], const ['IsolateRef']) ??
+            []);
+    systemIsolateGroups = List<IsolateGroupRef>.from(createServiceObject(
+            json['systemIsolateGroups'], const ['IsolateGroupRef']) ??
+        []);
   }
 
   @override
@@ -6997,6 +7220,9 @@ class VM extends Response implements VMRef {
       'startTime': startTime,
       'isolates': isolates.map((f) => f.toJson()).toList(),
       'isolateGroups': isolateGroups.map((f) => f.toJson()).toList(),
+      'systemIsolates': systemIsolates.map((f) => f.toJson()).toList(),
+      'systemIsolateGroups':
+          systemIsolateGroups.map((f) => f.toJson()).toList(),
     });
     return json;
   }

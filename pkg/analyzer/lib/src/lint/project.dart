@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -121,7 +120,7 @@ class _ApiModel {
     return false;
   }
 
-  void _calculate() async {
+  Future<void> _calculate() async {
     if (sources == null || sources.isEmpty) {
       return;
     }

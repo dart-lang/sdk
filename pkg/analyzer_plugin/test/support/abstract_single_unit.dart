@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -11,7 +9,6 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -21,14 +18,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   String testCode;
   String testFile;
-  Source testSource;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
-  void addTestSource(String code, [Uri uri]) {
+  void addTestSource(String code) {
     testCode = code;
-    testSource = addSource(testFile, code, uri);
+    addSource(testFile, code);
   }
 
   Element findElement(String name, [ElementKind kind]) {
@@ -96,7 +92,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
-    var result = await driver.getResult(testFile);
+    var result = await resolveFile(testFile);
     testUnit = (result).unit;
     if (verifyNoTestUnitErrors) {
       expect(result.errors.where((AnalysisError error) {
@@ -116,6 +112,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = convertPath('/test.dart');
+    testFile = convertPath('$testPackageRootPath/test.dart');
   }
 }

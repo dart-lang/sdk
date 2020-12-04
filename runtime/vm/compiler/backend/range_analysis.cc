@@ -1310,22 +1310,22 @@ class BoundsCheckGeneralizer {
   }
 
 #ifndef PRODUCT
-  static void PrettyPrintIndexBoundRecursively(BufferFormatter* f,
+  static void PrettyPrintIndexBoundRecursively(BaseTextBuffer* f,
                                                Definition* index_bound) {
     BinarySmiOpInstr* binary_op = index_bound->AsBinarySmiOp();
     if (binary_op != NULL) {
-      f->Print("(");
+      f->AddString("(");
       PrettyPrintIndexBoundRecursively(f, binary_op->left()->definition());
-      f->Print(" %s ", Token::Str(binary_op->op_kind()));
+      f->Printf(" %s ", Token::Str(binary_op->op_kind()));
       PrettyPrintIndexBoundRecursively(f, binary_op->right()->definition());
-      f->Print(")");
+      f->AddString(")");
     } else if (index_bound->IsConstant()) {
-      f->Print("%" Pd "",
-               Smi::Cast(index_bound->AsConstant()->value()).Value());
+      f->Printf("%" Pd "",
+                Smi::Cast(index_bound->AsConstant()->value()).Value());
     } else {
-      f->Print("v%" Pd "", index_bound->ssa_temp_index());
+      f->Printf("v%" Pd "", index_bound->ssa_temp_index());
     }
-    f->Print(" {%s}", Range::ToCString(index_bound->range()));
+    f->Printf(" {%s}", Range::ToCString(index_bound->range()));
   }
 
   static const char* IndexBoundToCString(Definition* index_bound) {
@@ -2665,6 +2665,22 @@ void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   *range = result;
 }
 
+static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
+  switch (r) {
+    case kTagged:
+      return RangeBoundary::kRangeBoundarySmi;
+    case kUnboxedInt32:
+    case kUnboxedUint8:  // Overapproximate Uint8 as Int32.
+      return RangeBoundary::kRangeBoundaryInt32;
+    case kUnboxedInt64:
+    case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
+      return RangeBoundary::kRangeBoundaryInt64;
+    default:
+      UNREACHABLE();
+      return RangeBoundary::kRangeBoundarySmi;
+  }
+}
+
 void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
@@ -2677,6 +2693,12 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+      break;
+
+    case Slot::Kind::kTypeArguments_length:
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(
+                         compiler::target::TypeArguments::kMaxElements));
       break;
 
     case Slot::Kind::kString_length:
@@ -2701,14 +2723,32 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kClosureData_default_type_arguments:
+    case Slot::Kind::kFunction_data:
+    case Slot::Kind::kFunction_parameter_names:
+    case Slot::Kind::kFunction_parameter_types:
+    case Slot::Kind::kFunction_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kTypeParameter_bound:
+    case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
       // Not an integer valued field.
       UNREACHABLE();
+      break;
+
+    case Slot::Kind::kArrayElement:
+      // Should not be used in LoadField instructions.
+      UNREACHABLE();
+      break;
+
+    case Slot::Kind::kFunction_kind_tag:
+    case Slot::Kind::kFunction_packed_fields:
+    case Slot::Kind::kTypeParameter_flags:
+      *range = Range::Full(RepresentationToRangeSize(slot().representation()));
       break;
 
     case Slot::Kind::kClosure_hash:
@@ -2724,6 +2764,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kArgumentsDescriptor_size:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
+
+    case Slot::Kind::kClosureData_default_type_arguments_info:
+      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
   }
 }
 
@@ -2802,21 +2845,6 @@ void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       Range(RangeBoundary::FromConstant(min), RangeBoundary::FromConstant(max));
 }
 
-static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
-  switch (r) {
-    case kTagged:
-      return RangeBoundary::kRangeBoundarySmi;
-    case kUnboxedInt32:
-      return RangeBoundary::kRangeBoundaryInt32;
-    case kUnboxedInt64:
-    case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
-      return RangeBoundary::kRangeBoundaryInt64;
-    default:
-      UNREACHABLE();
-      return RangeBoundary::kRangeBoundarySmi;
-  }
-}
-
 void BinaryIntegerOpInstr::InferRangeHelper(const Range* left_range,
                                             const Range* right_range,
                                             Range* range) {
@@ -2858,6 +2886,15 @@ static void CacheRange(Range** slot,
   }
 }
 
+void BinaryIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  auto const left_size =
+      RepresentationToRangeSize(RequiredInputRepresentation(0));
+  auto const right_size =
+      RepresentationToRangeSize(RequiredInputRepresentation(1));
+  InferRangeHelper(GetInputRange(analysis, left_size, left()),
+                   GetInputRange(analysis, right_size, right()), range);
+}
+
 void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* right_smi_range = analysis->GetSmiRange(right());
   // TODO(vegorov) completely remove this once GetSmiRange is eliminated.
@@ -2867,16 +2904,6 @@ void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                RangeBoundary::kRangeBoundarySmi);
   }
   InferRangeHelper(analysis->GetSmiRange(left()), right_smi_range, range);
-}
-
-void BinaryInt32OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  InferRangeHelper(analysis->GetSmiRange(left()),
-                   analysis->GetSmiRange(right()), range);
-}
-
-void BinaryInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  InferRangeHelper(left()->definition()->range(),
-                   right()->definition()->range(), range);
 }
 
 void ShiftIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {

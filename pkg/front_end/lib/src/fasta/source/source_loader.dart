@@ -4,8 +4,6 @@
 
 library fasta.source_loader;
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show utf8;
 
 import 'dart:typed_data' show Uint8List;
@@ -41,6 +39,7 @@ import 'package:kernel/ast.dart'
         Library,
         LibraryDependency,
         Nullability,
+        Procedure,
         ProcedureKind,
         Reference,
         Supertype,
@@ -53,6 +52,8 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
+import 'package:kernel/type_environment.dart';
 
 import 'package:package_config/package_config.dart';
 
@@ -71,6 +72,7 @@ import '../builder/class_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -81,41 +83,10 @@ import '../builder/type_declaration_builder.dart';
 
 import '../export.dart' show Export;
 
-import '../import.dart' show Import;
-
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        SummaryTemplate,
-        Template,
-        messageObjectExtends,
-        messageObjectImplements,
-        messageObjectMixesIn,
-        messagePartOrphan,
-        messageStrongModeNNBDButOptOut,
-        messageTypedefCause,
-        messageTypedefUnaliasedTypeCause,
-        noLength,
-        templateAmbiguousSupertypes,
-        templateCantReadFile,
-        templateCyclicClassHierarchy,
-        templateDuplicatedLibraryExport,
-        templateDuplicatedLibraryExportContext,
-        templateDuplicatedLibraryImport,
-        templateDuplicatedLibraryImportContext,
-        templateExtendingEnum,
-        templateExtendingRestricted,
-        templateIllegalMixin,
-        templateIllegalMixinDueToConstructors,
-        templateIllegalMixinDueToConstructorsCause,
-        templateInternalProblemUriMissingScheme,
-        templateSourceOutlineSummary,
-        templateStrongModeNNBDPackageOptOut,
-        templateUntranslatableUri;
+import '../fasta_codes.dart';
 
 import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ClassMember, DelayedOverrideCheck;
+    show ClassHierarchyBuilder, ClassMember, DelayedCheck;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -161,8 +132,9 @@ class SourceLoader extends Loader {
   ReferenceFromIndex referenceFromIndex;
 
   /// Used when building directly to kernel.
-  ClassHierarchy hierarchy;
+  ClassHierarchy _hierarchy;
   CoreTypes _coreTypes;
+  TypeEnvironment _typeEnvironment;
 
   /// For builders created with a reference, this maps from that reference to
   /// that builder. This is used for looking up source builders when finalizing
@@ -204,6 +176,19 @@ class SourceLoader extends Loader {
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
     return _coreTypes;
+  }
+
+  ClassHierarchy get hierarchy => _hierarchy;
+
+  void set hierarchy(ClassHierarchy value) {
+    if (_hierarchy != value) {
+      _hierarchy = value;
+      _typeEnvironment = null;
+    }
+  }
+
+  TypeEnvironment get typeEnvironment {
+    return _typeEnvironment ??= new TypeEnvironment(coreTypes, hierarchy);
   }
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
@@ -264,7 +249,7 @@ class SourceLoader extends Loader {
         configuration: new ScannerConfiguration(
             enableTripleShift: library.enableTripleShiftInLibrary,
             enableExtensionMethods: library.enableExtensionMethodsInLibrary,
-            enableNonNullable: library.isNonNullableByDefault),
+            enableNonNullable: library.enableNonNullableInLibrary),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
@@ -336,6 +321,18 @@ class SourceLoader extends Loader {
   void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
     _strongOptOutLibraries ??= {};
     _strongOptOutLibraries.add(libraryBuilder);
+    hasInvalidNnbdModeLibrary = true;
+  }
+
+  bool hasInvalidNnbdModeLibrary = false;
+
+  Map<LibraryBuilder, Message> _nnbdMismatchLibraries;
+
+  void registerNnbdMismatchLibrary(
+      LibraryBuilder libraryBuilder, Message message) {
+    _nnbdMismatchLibraries ??= {};
+    _nnbdMismatchLibraries[libraryBuilder] = message;
+    hasInvalidNnbdModeLibrary = true;
   }
 
   @override
@@ -358,50 +355,79 @@ class SourceLoader extends Loader {
       // config we include each library uri in the message. For non-package
       // libraries with no corresponding package config we generate a message
       // per library.
-      Map<String, List<LibraryBuilder>> libraryByPackage = {};
-      for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
-        Package package =
-            target.uriTranslator.getPackage(libraryBuilder.importUri);
+      giveCombinedErrorForNonStrongLibraries(_strongOptOutLibraries,
+          emitNonPackageErrors: true);
+      _strongOptOutLibraries = null;
+    }
+    if (_nnbdMismatchLibraries != null) {
+      for (MapEntry<LibraryBuilder, Message> entry
+          in _nnbdMismatchLibraries.entries) {
+        addProblem(entry.value, -1, noLength, entry.key.fileUri);
+      }
+      _nnbdMismatchLibraries = null;
+    }
+  }
 
-        if (package != null &&
-            package.languageVersion != null &&
-            package.languageVersion is! InvalidLanguageVersion) {
-          Version version = new Version(
-              package.languageVersion.major, package.languageVersion.minor);
-          if (version < enableNonNullableVersion) {
-            (libraryByPackage[package?.name] ??= []).add(libraryBuilder);
-            continue;
-          }
+  FormattedMessage giveCombinedErrorForNonStrongLibraries(
+      Set<LibraryBuilder> libraries,
+      {bool emitNonPackageErrors}) {
+    Map<String, List<LibraryBuilder>> libraryByPackage = {};
+    Map<Package, Version> enableNonNullableVersionByPackage = {};
+    for (LibraryBuilder libraryBuilder in libraries) {
+      final Package package =
+          target.uriTranslator.getPackage(libraryBuilder.importUri);
+
+      if (package != null &&
+          package.languageVersion != null &&
+          package.languageVersion is! InvalidLanguageVersion) {
+        Version enableNonNullableVersion =
+            enableNonNullableVersionByPackage[package] ??=
+                target.getExperimentEnabledVersionInLibrary(
+                    ExperimentalFlag.nonNullable,
+                    new Uri(scheme: 'package', path: package.name));
+        Version version = new Version(
+            package.languageVersion.major, package.languageVersion.minor);
+        if (version < enableNonNullableVersion) {
+          (libraryByPackage[package.name] ??= []).add(libraryBuilder);
+          continue;
         }
-        if (libraryBuilder.importUri.scheme == 'package') {
-          (libraryByPackage[null] ??= []).add(libraryBuilder);
-        } else {
+      }
+      if (libraryBuilder.importUri.scheme == 'package') {
+        (libraryByPackage[null] ??= []).add(libraryBuilder);
+      } else {
+        if (emitNonPackageErrors) {
           // Emit a message that doesn't mention running 'pub'.
           addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
               libraryBuilder.fileUri);
         }
       }
-      if (libraryByPackage.isNotEmpty) {
-        List<String> dependencies = [];
-        libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
-          if (name != null) {
-            dependencies.add('package:$name');
-          } else {
-            for (LibraryBuilder libraryBuilder in libraries) {
-              dependencies.add(libraryBuilder.importUri.toString());
-            }
-          }
-        });
-        // Emit a message that suggests to run 'pub' to check for opted in
-        // versions of the packages.
-        addProblem(
-            templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
-            -1,
-            -1,
-            null);
-        _strongOptOutLibraries = null;
-      }
     }
+    if (libraryByPackage.isNotEmpty) {
+      List<Uri> involvedFiles = [];
+      List<String> dependencies = [];
+      libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
+        if (name != null) {
+          dependencies.add('package:$name');
+          for (LibraryBuilder libraryBuilder in libraries) {
+            involvedFiles.add(libraryBuilder.fileUri);
+          }
+        } else {
+          for (LibraryBuilder libraryBuilder in libraries) {
+            dependencies.add(libraryBuilder.importUri.toString());
+            involvedFiles.add(libraryBuilder.fileUri);
+          }
+        }
+      });
+      // Emit a message that suggests to run 'pub' to check for opted in
+      // versions of the packages.
+      return addProblem(
+          templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
+          -1,
+          -1,
+          null,
+          involvedFiles: involvedFiles);
+    }
+    return null;
   }
 
   List<int> getSource(List<int> bytes) {
@@ -481,7 +507,8 @@ class SourceLoader extends Loader {
         -1,
         null,
         null,
-        AsyncMarker.Sync)
+        AsyncMarker.Sync,
+        /* isExtensionInstanceMember = */ false)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -916,84 +943,10 @@ class SourceLoader extends Loader {
 
   List<SourceClassBuilder> checkSemantics(ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
-    List<SourceClassBuilder> classes = handleHierarchyCycles(objectClass);
-
-    // Check imports and exports for duplicate names.
-    // This is rather silly, e.g. it makes importing 'foo' and exporting another
-    // 'foo' ok.
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder && library.loader == this) {
-        // Check exports.
-        if (library.exports.isNotEmpty) {
-          Map<String, List<Export>> nameToExports;
-          bool errorExports = false;
-          for (Export export in library.exports) {
-            String name = export.exported?.name ?? '';
-            if (name != '') {
-              nameToExports ??= new Map<String, List<Export>>();
-              List<Export> exports = nameToExports[name] ??= <Export>[];
-              exports.add(export);
-              if (exports[0].exported != export.exported) errorExports = true;
-            }
-          }
-          if (errorExports) {
-            for (String name in nameToExports.keys) {
-              List<Export> exports = nameToExports[name];
-              if (exports.length < 2) continue;
-              List<LocatedMessage> context = <LocatedMessage>[];
-              for (Export export in exports.skip(1)) {
-                context.add(templateDuplicatedLibraryExportContext
-                    .withArguments(name)
-                    .withLocation(uri, export.charOffset, noLength));
-              }
-              library.addProblem(
-                  templateDuplicatedLibraryExport.withArguments(name),
-                  exports[0].charOffset,
-                  noLength,
-                  uri,
-                  context: context);
-            }
-          }
-        }
-
-        // Check imports.
-        if (library.imports.isNotEmpty) {
-          Map<String, List<Import>> nameToImports;
-          bool errorImports;
-          for (Import import in library.imports) {
-            String name = import.imported?.name ?? '';
-            if (name != '') {
-              nameToImports ??= new Map<String, List<Import>>();
-              List<Import> imports = nameToImports[name] ??= <Import>[];
-              imports.add(import);
-              if (imports[0].imported != import.imported) errorImports = true;
-            }
-          }
-          if (errorImports != null) {
-            for (String name in nameToImports.keys) {
-              List<Import> imports = nameToImports[name];
-              if (imports.length < 2) continue;
-              List<LocatedMessage> context = <LocatedMessage>[];
-              for (Import import in imports.skip(1)) {
-                context.add(templateDuplicatedLibraryImportContext
-                    .withArguments(name)
-                    .withLocation(uri, import.charOffset, noLength));
-              }
-              library.addProblem(
-                  templateDuplicatedLibraryImport.withArguments(name),
-                  imports[0].charOffset,
-                  noLength,
-                  uri,
-                  context: context);
-            }
-          }
-        }
-      }
-    });
-    ticker.logMs("Checked imports and exports for duplicate names");
-    return classes;
+    return handleHierarchyCycles(objectClass);
   }
 
+  /// Builds the core AST structure needed for the outline of the component.
   void buildComponent() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
@@ -1112,8 +1065,7 @@ class SourceLoader extends Loader {
   }
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
-    List<DelayedOverrideCheck> overrideChecks =
-        builderHierarchy.takeDelayedOverrideChecks();
+    List<DelayedCheck> overrideChecks = builderHierarchy.takeDelayedChecks();
     for (int i = 0; i < overrideChecks.length; i++) {
       overrideChecks[i].check(builderHierarchy);
     }
@@ -1125,7 +1077,7 @@ class SourceLoader extends Loader {
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
     List<ClassMember> delayedMemberChecks =
-        builderHierarchy.takeDelayedMemberChecks();
+        builderHierarchy.takeDelayedMemberComputations();
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
       delayedMemberChecks[i].getMember(builderHierarchy);
@@ -1286,12 +1238,6 @@ class SourceLoader extends Loader {
     }
   }
 
-  Expression instantiateInvocation(Expression receiver, String name,
-      Arguments arguments, int offset, bool isSuper) {
-    return target.backendTarget.instantiateInvocation(
-        coreTypes, receiver, name, arguments, offset, isSuper);
-  }
-
   Expression instantiateNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
       {bool isMethod: false,
@@ -1316,6 +1262,134 @@ class SourceLoader extends Loader {
         isStatic: isStatic,
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
+  }
+
+  void checkMainMethods() {
+    DartType listOfString;
+
+    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+      if (libraryBuilder.loader == this &&
+          libraryBuilder.isNonNullableByDefault) {
+        Builder mainBuilder =
+            libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
+        mainBuilder ??=
+            libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
+        if (mainBuilder is MemberBuilder) {
+          if (mainBuilder is InvalidTypeDeclarationBuilder) {
+            // This is an ambiguous export, skip the check.
+            return;
+          }
+          if (mainBuilder.isField ||
+              mainBuilder.isGetter ||
+              mainBuilder.isSetter) {
+            if (mainBuilder.parent != libraryBuilder) {
+              libraryBuilder.addProblem(
+                  messageMainNotFunctionDeclarationExported,
+                  libraryBuilder.charOffset,
+                  noLength,
+                  libraryBuilder.fileUri,
+                  context: [
+                    messageExportedMain.withLocation(mainBuilder.fileUri,
+                        mainBuilder.charOffset, mainBuilder.name.length)
+                  ]);
+            } else {
+              libraryBuilder.addProblem(
+                  messageMainNotFunctionDeclaration,
+                  mainBuilder.charOffset,
+                  mainBuilder.name.length,
+                  mainBuilder.fileUri);
+            }
+          } else {
+            Procedure procedure = mainBuilder.member;
+            if (procedure.function.requiredParameterCount > 2) {
+              if (mainBuilder.parent != libraryBuilder) {
+                libraryBuilder.addProblem(
+                    messageMainTooManyRequiredParametersExported,
+                    libraryBuilder.charOffset,
+                    noLength,
+                    libraryBuilder.fileUri,
+                    context: [
+                      messageExportedMain.withLocation(mainBuilder.fileUri,
+                          mainBuilder.charOffset, mainBuilder.name.length)
+                    ]);
+              } else {
+                libraryBuilder.addProblem(
+                    messageMainTooManyRequiredParameters,
+                    mainBuilder.charOffset,
+                    mainBuilder.name.length,
+                    mainBuilder.fileUri);
+              }
+            } else if (procedure.function.namedParameters
+                .any((parameter) => parameter.isRequired)) {
+              if (mainBuilder.parent != libraryBuilder) {
+                libraryBuilder.addProblem(
+                    messageMainRequiredNamedParametersExported,
+                    libraryBuilder.charOffset,
+                    noLength,
+                    libraryBuilder.fileUri,
+                    context: [
+                      messageExportedMain.withLocation(mainBuilder.fileUri,
+                          mainBuilder.charOffset, mainBuilder.name.length)
+                    ]);
+              } else {
+                libraryBuilder.addProblem(
+                    messageMainRequiredNamedParameters,
+                    mainBuilder.charOffset,
+                    mainBuilder.name.length,
+                    mainBuilder.fileUri);
+              }
+            } else if (procedure.function.positionalParameters.length > 0) {
+              DartType parameterType =
+                  procedure.function.positionalParameters.first.type;
+
+              listOfString ??= new InterfaceType(
+                  coreTypes.listClass,
+                  Nullability.nonNullable,
+                  [coreTypes.stringNonNullableRawType]);
+
+              if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
+                  SubtypeCheckMode.withNullabilities)) {
+                if (mainBuilder.parent != libraryBuilder) {
+                  libraryBuilder.addProblem(
+                      templateMainWrongParameterTypeExported.withArguments(
+                          parameterType,
+                          listOfString,
+                          libraryBuilder.isNonNullableByDefault),
+                      libraryBuilder.charOffset,
+                      noLength,
+                      libraryBuilder.fileUri,
+                      context: [
+                        messageExportedMain.withLocation(mainBuilder.fileUri,
+                            mainBuilder.charOffset, mainBuilder.name.length)
+                      ]);
+                } else {
+                  libraryBuilder.addProblem(
+                      templateMainWrongParameterType.withArguments(
+                          parameterType,
+                          listOfString,
+                          libraryBuilder.isNonNullableByDefault),
+                      mainBuilder.charOffset,
+                      mainBuilder.name.length,
+                      mainBuilder.fileUri);
+                }
+              }
+            }
+          }
+        } else if (mainBuilder != null) {
+          if (mainBuilder.parent != libraryBuilder) {
+            libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+                libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+                context: [
+                  messageExportedMain.withLocation(
+                      mainBuilder.fileUri, mainBuilder.charOffset, noLength)
+                ]);
+          } else {
+            libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
+                mainBuilder.charOffset, noLength, mainBuilder.fileUri);
+          }
+        }
+      }
+    });
   }
 
   void releaseAncillaryResources() {
@@ -1471,17 +1545,15 @@ class Function {}
 const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 
-void _asyncStarListenHelper(var object, var awaiter) {}
-
 void _asyncStarMoveNextHelper(var stream) {}
-
-_asyncStackTraceHelper(async_op) {}
 
 _asyncThenWrapperHelper(continuation) {}
 
 _awaitHelper(object, thenCallback, errorCallback, awaiter) {}
 
-_completeOnAsyncReturn(completer, value) {}
+_completeOnAsyncReturn(_future, value, async_jump_var) {}
+
+_completeOnAsyncError(_future, e, st, async_jump_var) {}
 
 class _AsyncStarStreamController {
   add(event) {}
@@ -1512,14 +1584,10 @@ class Future<T> {
 class FutureOr {
 }
 
-class _AsyncAwaitCompleter implements Completer {
-  get future => null;
+class _Future {
+  void _completeError(Object error, StackTrace stackTrace) {}
 
-  complete([value]) {}
-
-  completeError(error, [stackTrace]) {}
-
-  void start(void Function() f) {}
+  void _asyncCompleteError(Object error, StackTrace stackTrace) {}
 }
 
 class Stream {}
@@ -1536,6 +1604,28 @@ class _StreamIterator {
 /// A minimal implementation of dart:collection that is sufficient to create an
 /// instance of [CoreTypes] and compile program.
 const String defaultDartCollectionSource = """
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
+  factory LinkedHashMap(
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey}) => null;
+}
+
+class _InternalLinkedHashMap<K, V> {
+  _InternalLinkedHashMap();
+}
+
+abstract class LinkedHashSet<E> implements Set<E> {
+  factory LinkedHashSet(
+      {bool Function(E, E)? equals,
+      int Function(E)? hashCode,
+      bool Function(dynamic)? isValidKey}) => null;
+}
+
+class _CompactLinkedHashSet<E> {
+  _CompactLinkedHashSet();
+}
+
 class _UnmodifiableSet {
   final Map _map;
   const _UnmodifiableSet(this._map);
@@ -1550,6 +1640,9 @@ class Symbol {
 }
 
 T unsafeCast<T>(Object v) {}
+class ReachabilityError {
+  ReachabilityError([message]);
+}
 """;
 
 /// A minimal implementation of dart:typed_data that is sufficient to create an

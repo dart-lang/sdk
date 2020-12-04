@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,15 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class InvalidRequiredPositionalParamTest extends DriverResolutionTest
-    with PackageMixin {
+class InvalidRequiredPositionalParamTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
   }
 
-  test_requiredPositionalParameter() async {
+  test_ofFunction_first() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -33,13 +31,33 @@ m(@required a) => null;
     ]);
   }
 
-  test_requiredPositionalParameter_asSecond() async {
+  test_ofFunction_second() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m(a, @required b) => null;
 ''', [
       error(HintCode.INVALID_REQUIRED_POSITIONAL_PARAM, 39, 11),
+    ]);
+  }
+
+  test_ofGenericFunctionType_named() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+typedef F = void Function(@required int a);
+''', [
+      error(HintCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 15),
+    ]);
+  }
+
+  test_ofGenericFunctionType_unnamed() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+typedef F = void Function(@required int);
+''', [
+      error(HintCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 13),
     ]);
   }
 

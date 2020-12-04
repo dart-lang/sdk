@@ -8,6 +8,7 @@ import '../visitor.dart';
 
 class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   final CoreTypes coreTypes;
+  // TODO(dmitryas): Implement also equateBottomTypes.
   final bool equateTopTypes;
   final bool ignoreAllNullabilities;
   final bool ignoreTopLevelNullability;
@@ -195,6 +196,11 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   @override
   bool visitInvalidType(InvalidType node, DartType other) {
     return other is InvalidType;
+  }
+
+  @override
+  bool visitNullType(NullType node, DartType other) {
+    return other is NullType;
   }
 
   @override

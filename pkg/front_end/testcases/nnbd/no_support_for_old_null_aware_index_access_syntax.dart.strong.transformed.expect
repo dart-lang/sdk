@@ -1,0 +1,131 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:7:6: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42];
+//      ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:8:6: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42] = 42;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:8:11: Error: Can't assign to this.
+//   c?.[42] = 42;
+//           ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42]++;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Can't assign to this.
+//   c?.[42]++;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   ++c?.[42];
+//        ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Can't assign to this.
+//   ++c?.[42];
+//        ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:11:6: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42]?.[0];
+//      ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:11:12: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42]?.[0];
+//            ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:12:6: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42]?.[0] ??= 42;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:12:12: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42]?.[0] ??= 42;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:12:16: Error: Can't assign to this.
+//   c?.[42]?.[0] ??= 42;
+//                ^^^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:6: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42]?.[0]++;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   c?.[42]?.[0]++;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Can't assign to this.
+//   c?.[42]?.[0]++;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:8: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   ++c?.[42]?.[0];
+//        ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   ++c?.[42]?.[0];
+//              ^
+//
+// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Can't assign to this.
+//   ++c?.[42]?.[0];
+//              ^
+//
+import self as self;
+
+static method main() → dynamic {
+  dynamic c;
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:7:6: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  c?.[42];
+     ^";
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:8:11: Error: Can't assign to this.
+  c?.[42] = 42;
+          ^";
+  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Can't assign to this.
+  c?.[42]++;
+     ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  c?.[42]++;
+     ^";
+  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Can't assign to this.
+  ++c?.[42];
+       ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  ++c?.[42];
+       ^";
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:11:12: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  c?.[42]?.[0];
+           ^";
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:12:16: Error: Can't assign to this.
+  c?.[42]?.[0] ??= 42;
+               ^^^";
+  let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Can't assign to this.
+  c?.[42]?.[0]++;
+           ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  c?.[42]?.[0]++;
+           ^";
+  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Can't assign to this.
+  ++c?.[42]?.[0];
+             ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  ++c?.[42]?.[0];
+             ^";
+}

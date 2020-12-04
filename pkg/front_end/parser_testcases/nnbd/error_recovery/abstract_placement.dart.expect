@@ -1,0 +1,195 @@
+Problems reported:
+
+parser/nnbd/error_recovery/abstract_placement:6:9: The modifier 'abstract' should be before the modifier 'final'.
+  final abstract int i1;
+        ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:7:9: The modifier 'abstract' should be before the modifier 'final'.
+  final abstract i2;
+        ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:8:13: The modifier 'abstract' should be before the modifier 'covariant'.
+  covariant abstract num i3;
+            ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:9:13: The modifier 'abstract' should be before the modifier 'covariant'.
+  covariant abstract var i4;
+            ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:10:9: The modifier 'abstract' should be before the modifier 'final'.
+  final abstract i5;
+        ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:11:7: The modifier 'abstract' should be before the modifier 'var'.
+  var abstract i6;
+      ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:12:5: Expected ';' after this.
+  C abstract i7;
+    ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:12:14: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  C abstract i7;
+             ^^
+
+parser/nnbd/error_recovery/abstract_placement:16:5: The modifier 'abstract' should be before the modifier 'var'.
+var abstract foo;
+    ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:16:5: Can't have modifier 'abstract' here.
+var abstract foo;
+    ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:20:13: The modifier 'required' should be before the modifier 'covariant'.
+  covariant required x;
+            ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:20:13: Can't have modifier 'required' here.
+  covariant required x;
+            ^^^^^^^^
+
+parser/nnbd/error_recovery/abstract_placement:20:22: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  covariant required x;
+                     ^
+
+beginCompilationUnit(abstract)
+  beginMetadataStar(abstract)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(abstract)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(abstract, abstract, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(abstract, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(final)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'abstract' should be before the modifier 'final'., Try re-ordering the modifiers., {string: abstract, string2: final}], abstract, abstract)
+        beginMember()
+          beginFields({)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i1)
+            handleType(int, null)
+            handleIdentifier(i1, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(abstract, null, null, null, null, final, 1, final, ;)
+        endMember()
+        beginMetadataStar(final)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'abstract' should be before the modifier 'final'., Try re-ordering the modifiers., {string: abstract, string2: final}], abstract, abstract)
+        beginMember()
+          beginFields(;)
+            handleNoType(abstract)
+            handleIdentifier(i2, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(abstract, null, null, null, null, final, 1, final, ;)
+        endMember()
+        beginMetadataStar(covariant)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'abstract' should be before the modifier 'covariant'., Try re-ordering the modifiers., {string: abstract, string2: covariant}], abstract, abstract)
+        beginMember()
+          beginFields(;)
+            handleIdentifier(num, typeReference)
+            handleNoTypeArguments(i3)
+            handleType(num, null)
+            handleIdentifier(i3, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(abstract, null, null, covariant, null, null, 1, covariant, ;)
+        endMember()
+        beginMetadataStar(covariant)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'abstract' should be before the modifier 'covariant'., Try re-ordering the modifiers., {string: abstract, string2: covariant}], abstract, abstract)
+        beginMember()
+          beginFields(;)
+            handleNoType(var)
+            handleIdentifier(i4, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(abstract, null, null, covariant, null, var, 1, covariant, ;)
+        endMember()
+        beginMetadataStar(final)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'abstract' should be before the modifier 'final'., Try re-ordering the modifiers., {string: abstract, string2: final}], abstract, abstract)
+        beginMember()
+          beginFields(;)
+            handleNoType(abstract)
+            handleIdentifier(i5, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(abstract, null, null, null, null, final, 1, final, ;)
+        endMember()
+        beginMetadataStar(var)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'abstract' should be before the modifier 'var'., Try re-ordering the modifiers., {string: abstract, string2: var}], abstract, abstract)
+        beginMember()
+          beginFields(;)
+            handleNoType(abstract)
+            handleIdentifier(i6, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(abstract, null, null, null, null, var, 1, var, ;)
+        endMember()
+        beginMetadataStar(C)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(;)
+            handleIdentifier(C, typeReference)
+            handleNoTypeArguments(abstract)
+            handleType(C, null)
+            handleIdentifier(abstract, fieldDeclaration)
+            handleNoFieldInitializer(i7)
+            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], abstract, abstract)
+          endClassFields(null, null, null, null, null, null, 1, C, ;)
+        endMember()
+        beginMetadataStar(i7)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(;)
+            handleRecoverableError(MissingConstFinalVarOrType, i7, i7)
+            handleNoType(;)
+            handleIdentifier(i7, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, null, null, null, 1, i7, ;)
+        endMember()
+      endClassOrMixinBody(DeclarationKind.Class, 8, {, })
+    endClassDeclaration(abstract, })
+  endTopLevelDeclaration(var)
+  beginMetadataStar(var)
+  endMetadataStar(0)
+  beginTopLevelMember(var)
+    handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'abstract' should be before the modifier 'var'., Try re-ordering the modifiers., {string: abstract, string2: var}], abstract, abstract)
+    handleRecoverableError(Message[ExtraneousModifier, Can't have modifier 'abstract' here., Try removing 'abstract'., {token: abstract}], abstract, abstract)
+    beginFields(})
+      handleNoType(abstract)
+      handleIdentifier(foo, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(null, null, null, null, var, 1, var, ;)
+  endTopLevelDeclaration(abstract)
+  beginMetadataStar(abstract)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(abstract)
+    handleIdentifier(Bar, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(abstract, abstract, Bar)
+      handleNoType(Bar)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(abstract, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(covariant)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'required' should be before the modifier 'covariant'., Try re-ordering the modifiers., {string: required, string2: covariant}], required, required)
+        handleRecoverableError(Message[ExtraneousModifier, Can't have modifier 'required' here., Try removing 'required'., {token: required}], required, required)
+        beginMember()
+          beginFields({)
+            handleRecoverableError(MissingConstFinalVarOrType, x, x)
+            handleNoType(required)
+            handleIdentifier(x, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, covariant, null, null, 1, covariant, ;)
+        endMember()
+      endClassOrMixinBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(abstract, })
+  endTopLevelDeclaration()
+endCompilationUnit(3, )

@@ -24,7 +24,7 @@ class RemoveEmptyCatchTest extends FixProcessorLintTest {
   String get lintCode => LintNames.empty_catches;
 
   Future<void> test_incompleteCatch() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo() {
   try {
     1;
@@ -35,7 +35,7 @@ void foo() {
   }
 
   Future<void> test_singleCatch_finally_newLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo() {
   try {
     1;
@@ -57,7 +57,7 @@ void foo() {
   }
 
   Future<void> test_singleCatch_finally_sameLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo() {
   try {} catch (e) {} finally {}
 }
@@ -72,7 +72,7 @@ void foo() {
   Future<void> test_singleCatch_noFinally() async {
     // The catch can't be removed unless we also remove the try, which is more
     // than this fix does at the moment.
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo() {
   try {
   } catch (e) {}

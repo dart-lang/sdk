@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -22,7 +21,6 @@ class InvocationInferenceHelper {
   final ErrorReporter _errorReporter;
   final FlowAnalysisHelper _flowAnalysis;
   final TypeSystemImpl _typeSystem;
-  final TypeProviderImpl _typeProvider;
   final MigrationResolutionHooks _migrationResolutionHooks;
 
   List<DartType> _typeArgumentTypes;
@@ -37,7 +35,6 @@ class InvocationInferenceHelper {
       : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
-        _typeProvider = typeSystem.typeProvider,
         _flowAnalysis = flowAnalysis,
         _migrationResolutionHooks = migrationResolutionHooks;
 
@@ -157,43 +154,29 @@ class InvocationInferenceHelper {
     return null;
   }
 
-  /// Given a method invocation [node], attempt to infer a better
-  /// type for the result if the target is dynamic and the method
-  /// being called is one of the object methods.
-  bool inferMethodInvocationObject(MethodInvocation node) {
-    // If we have a call like `toString()` or `libraryPrefix.toString()`, don't
-    // infer it.
-    Expression target = node.realTarget;
-    if (target == null ||
-        target is SimpleIdentifier && target.staticElement is PrefixElement) {
-      return false;
-    }
-    DartType nodeType = node.staticInvokeType;
-    if (nodeType == null ||
-        !nodeType.isDynamic ||
-        node.argumentList.arguments.isNotEmpty) {
-      return false;
-    }
-    // Object methods called on dynamic targets can have their types improved.
-    String name = node.methodName.name;
-    MethodElement inferredElement =
-        _typeProvider.objectType.element.getMethod(name);
-    if (inferredElement == null || inferredElement.isStatic) {
-      return false;
-    }
-    inferredElement = _resolver.toLegacyElement(inferredElement);
-    DartType inferredType = inferredElement.type;
-    if (inferredType is FunctionType) {
-      DartType returnType = inferredType.returnType;
-      if (inferredType.parameters.isEmpty &&
-          returnType is InterfaceType &&
-          _typeProvider.nonSubtypableClasses.contains(returnType.element)) {
-        node.staticInvokeType = inferredType;
-        recordStaticType(node, inferredType.returnType);
-        return true;
+  /// Given an uninstantiated generic function type, referenced by the
+  /// [identifier] in the tear-off [expression], try to infer the instantiated
+  /// generic function type from the surrounding context.
+  DartType inferTearOff(
+    Expression expression,
+    SimpleIdentifier identifier,
+    DartType tearOffType,
+  ) {
+    var context = InferenceContext.getContext(expression);
+    if (context is FunctionType && tearOffType is FunctionType) {
+      var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
+        context,
+        tearOffType,
+        errorReporter: _resolver.errorReporter,
+        errorNode: expression,
+      );
+      (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
+          typeArguments;
+      if (typeArguments.isNotEmpty) {
+        return tearOffType.instantiate(typeArguments);
       }
     }
-    return false;
+    return tearOffType;
   }
 
   /// Record that the static type of the given node is the given type.
@@ -265,7 +248,11 @@ class InvocationInferenceHelper {
     node.typeArgumentTypes = _typeArgumentTypes;
     node.staticInvokeType = _invokeType;
 
-    var returnType = computeInvokeReturnType(_invokeType);
+    var returnType = _typeSystem.refineNumericInvocationType(
+        node.realTarget?.staticType,
+        node.methodName.staticElement,
+        [for (var argument in node.argumentList.arguments) argument.staticType],
+        computeInvokeReturnType(_invokeType));
     recordStaticType(node, returnType);
   }
 

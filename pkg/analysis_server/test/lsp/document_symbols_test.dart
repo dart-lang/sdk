@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -16,6 +18,67 @@ void main() {
 
 @reflectiveTest
 class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_enumMember_notSupported() async {
+    const content = '''
+    enum Theme {
+      light,
+    }
+    ''';
+    newFile(mainFilePath, content: content);
+    await initialize();
+
+    final result = await getDocumentSymbols(mainFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(2));
+
+    final themeEnum = symbols[0];
+    expect(themeEnum.name, equals('Theme'));
+    expect(themeEnum.kind, equals(SymbolKind.Enum));
+    expect(themeEnum.containerName, isNull);
+
+    final enumValue = symbols[1];
+    expect(enumValue.name, equals('light'));
+    // EnumMember is not in the original LSP list, so unless the client explicitly
+    // advertises support, we will fall back to Enum.
+    expect(enumValue.kind, equals(SymbolKind.Enum));
+    expect(enumValue.containerName, 'Theme');
+  }
+
+  Future<void> test_enumMember_supported() async {
+    const content = '''
+    enum Theme {
+      light,
+    }
+    ''';
+    newFile(mainFilePath, content: content);
+    await initialize(
+      textDocumentCapabilities: withDocumentSymbolKinds(
+        emptyTextDocumentClientCapabilities,
+        [SymbolKind.Enum, SymbolKind.EnumMember],
+      ),
+    );
+
+    final result = await getDocumentSymbols(mainFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(2));
+
+    final themeEnum = symbols[0];
+    expect(themeEnum.name, equals('Theme'));
+    expect(themeEnum.kind, equals(SymbolKind.Enum));
+    expect(themeEnum.containerName, isNull);
+
+    final enumValue = symbols[1];
+    expect(enumValue.name, equals('light'));
+    expect(enumValue.kind, equals(SymbolKind.EnumMember));
+    expect(enumValue.containerName, 'Theme');
+  }
+
   Future<void> test_flat() async {
     const content = '''
     String topLevel = '';
@@ -115,13 +178,47 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(method.kind, equals(SymbolKind.Method));
   }
 
+  Future<void> test_noAnalysisRoot_openedFile() async {
+    // When there are no analysis roots and we open a file, it should be added as
+    // a temporary root allowing us to service requests for it.
+    const content = 'class MyClass {}';
+    newFile(mainFilePath, content: content);
+    await initialize(allowEmptyRootUri: true);
+    await openFile(mainFileUri, content);
+
+    final result = await getDocumentSymbols(mainFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(1));
+
+    final myClass = symbols[0];
+    expect(myClass.name, equals('MyClass'));
+    expect(myClass.kind, equals(SymbolKind.Class));
+    expect(myClass.containerName, isNull);
+  }
+
+  Future<void> test_noAnalysisRoot_unopenedFile() async {
+    // When there are no analysis roots and we receive requests for a file that
+    // was not opened, we will reject the file due to not being analyzed.
+    const content = 'class MyClass {}';
+    newFile(mainFilePath, content: content);
+    await initialize(allowEmptyRootUri: true);
+
+    await expectLater(getDocumentSymbols(mainFileUri.toString()),
+        throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)));
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 
     final result = await getDocumentSymbols(pubspecFileUri.toString());
+    // Since the list is empty, it will deserialise into whatever the first
+    // type is, so just accept both types.
     final symbols = result.map(
-      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (docsymbols) => docsymbols,
       (symbolInfos) => symbolInfos,
     );
     expect(symbols, isEmpty);

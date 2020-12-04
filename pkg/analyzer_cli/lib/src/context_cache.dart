@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
@@ -85,16 +86,20 @@ class ContextCacheEntry {
   String get analysisRoot => _analysisRoot ??= _getAnalysisRoot();
 
   void _buildContextFeatureSet(AnalysisOptionsImpl analysisOptions) {
-    var featureSet = FeatureSet.fromEnableFlags(
-      clOptions.enabledExperiments,
+    var featureSet = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
+      flags: clOptions.enabledExperiments,
     );
 
     analysisOptions.contextFeatures = featureSet;
 
     if (clOptions.defaultLanguageVersion != null) {
-      analysisOptions.nonPackageFeatureSet = featureSet.restrictToVersion(
-        Version.parse(clOptions.defaultLanguageVersion + '.0'),
+      var nonPackageLanguageVersion = Version.parse(
+        clOptions.defaultLanguageVersion + '.0',
       );
+      analysisOptions.nonPackageLanguageVersion = nonPackageLanguageVersion;
+      analysisOptions.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
+          .restrictToVersion(nonPackageLanguageVersion);
     }
   }
 
@@ -108,7 +113,6 @@ class ContextCacheEntry {
 
     _buildContextFeatureSet(contextOptions);
     contextOptions.hint = !clOptions.disableHints;
-    contextOptions.useFastaParser = clOptions.useFastaParser;
     return contextOptions;
   }
 

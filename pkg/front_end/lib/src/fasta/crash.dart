@@ -4,8 +4,6 @@
 
 library fasta.crash;
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show jsonEncode;
 
 import 'dart:io'

@@ -1367,7 +1367,7 @@ main() {
 
   group("if", () {
     test("await in test", () {
-      f(v) async {
+      f(bool v) async {
         if (await new Future.value(v)) {
           return 42;
         } else {
@@ -1379,7 +1379,7 @@ main() {
     });
 
     test("await err in test", () {
-      f(v) async {
+      f(bool v) async {
         if (await new Future.error("err")) {
           return 42;
         } else {
@@ -1391,7 +1391,7 @@ main() {
     });
 
     test("await in then", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return await new Future.value(42);
         }
@@ -1402,7 +1402,7 @@ main() {
     });
 
     test("await err in then", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return await new Future.error("err");
         }
@@ -1413,7 +1413,7 @@ main() {
     });
 
     test("await in then with else", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return await new Future.value(42);
         } else {
@@ -1426,7 +1426,7 @@ main() {
     });
 
     test("await err in then with else", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return await new Future.error("err");
         } else {
@@ -1439,7 +1439,7 @@ main() {
     });
 
     test("await in else", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return 37;
         } else {
@@ -1452,7 +1452,7 @@ main() {
     });
 
     test("await err in else", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return 37;
         } else {
@@ -1465,7 +1465,7 @@ main() {
     });
 
     test("await in else-if test", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return 37;
         } else if (!await new Future.value(v)) {
@@ -1480,7 +1480,7 @@ main() {
     });
 
     test("await in else-if then", () {
-      f(v) async {
+      f(bool v) async {
         if (v) {
           return 37;
         } else if (!v) {
@@ -1497,7 +1497,7 @@ main() {
 
   group("conditional operator", () {
     test("await in test", () {
-      f(v) async {
+      f(bool v) async {
         return (await new Future.value(v)) ? 42 : 37;
       }
 
@@ -1505,7 +1505,7 @@ main() {
     });
 
     test("await err in test", () {
-      f(v) async {
+      f(bool v) async {
         return (await new Future.error("err")) ? 42 : 37;
       }
 
@@ -1513,7 +1513,7 @@ main() {
     });
 
     test("await in then", () {
-      f(v) async {
+      f(bool v) async {
         return v ? (await new Future.value(42)) : 37;
       }
 
@@ -1521,7 +1521,7 @@ main() {
     });
 
     test("await err in then", () {
-      f(v) async {
+      f(bool v) async {
         return v ? (await new Future.error("err")) : 37;
       }
 
@@ -1529,7 +1529,7 @@ main() {
     });
 
     test("await in else", () {
-      f(v) async {
+      f(bool v) async {
         return v ? 37 : (await new Future.value(42));
       }
 
@@ -1537,7 +1537,7 @@ main() {
     });
 
     test("await err in else", () {
-      f(v) async {
+      f(bool v) async {
         return v ? 37 : (await new Future.error("err"));
       }
 

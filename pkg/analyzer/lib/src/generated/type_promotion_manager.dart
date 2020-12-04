@@ -132,7 +132,8 @@ class TypePromotionManager {
   void _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
       AstNode target) {
     for (Element element in _promotedElements) {
-      if (_currentFunctionBody.isPotentiallyMutatedInScope(element)) {
+      if (_currentFunctionBody
+          .isPotentiallyMutatedInScope(element as VariableElement)) {
         if (_isVariableAccessedInClosure(element, target)) {
           _setType(element, null);
         }
@@ -313,12 +314,12 @@ class _ResolverVisitor_isVariableAccessedInClosure
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    bool inClosure = this._inClosure;
+    bool inClosure = _inClosure;
     try {
-      this._inClosure = true;
+      _inClosure = true;
       super.visitFunctionExpression(node);
     } finally {
-      this._inClosure = inClosure;
+      _inClosure = inClosure;
     }
   }
 

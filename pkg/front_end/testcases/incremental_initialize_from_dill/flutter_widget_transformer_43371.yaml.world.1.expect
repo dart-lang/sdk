@@ -1,0 +1,65 @@
+main = <No Member>;
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  abstract class Bar extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → fra::Bar
+      : super dart.core::Object::•()
+      ;
+  }
+  abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
+    final field dart.core::Object? key;
+    final field wid::_Location? _location /*isLegacy, from null */;
+    const constructor •({dart.core::Object? key = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
+      : fra::Widget::key = key, super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+  abstract class StatelessWidget extends fra::Widget /*hasConstConstructor*/  {
+    const constructor •({dart.core::Object? key = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::StatelessWidget
+      : super fra::Widget::•(key: key, $creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+  }
+}
+library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
+
+  abstract class _HasCreationLocation extends dart.core::Object {
+    synthetic constructor •() → wid::_HasCreationLocation
+      : super dart.core::Object::•()
+      ;
+    abstract get _location() → wid::_Location;
+  }
+  class _Location extends dart.core::Object /*hasConstConstructor*/  {
+    final field dart.core::String file;
+    final field dart.core::int line;
+    final field dart.core::int column;
+    final field dart.core::String name;
+    final field dart.core::List<wid::_Location> parameterLocations;
+    const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+      : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///foo.dart" as foo {
+
+  import "package:flutter/src/widgets/framework.dart";
+  import "package:flutter/src/widgets/widget_inspector.dart";
+
+  class Foo extends fra::StatelessWidget /*hasConstConstructor*/  {
+    const constructor •([dart.core::Object* key = #C1]) → foo::Foo*
+      : super fra::StatelessWidget::•(key: key)
+      ;
+    abstract member-signature get key() → dart.core::Object*; -> fra::Widget::key
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///foo.dart";
+
+}
+constants  {
+  #C1 = null
+}

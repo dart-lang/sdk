@@ -43,7 +43,7 @@ main() async {
   Expect.throws(() {
       x3 = a!;
   });
-  Object? x4 = 0;
+  var x4 = 0 as Object?;
   Expect.throws(() {
       x4 = a!;
   });
@@ -62,7 +62,7 @@ main() async {
   // ignores its argument, and verify that the appropriate exception is still
   // thrown.
   var x6 = 2;
-  int? i = 2;
+  var i = 2 as int?;
   x6 * i!;
   var x7 = new C();
   i = null;
@@ -73,9 +73,9 @@ main() async {
   // `-x!` means `-(x!)`, not `(-x)!`.  We check the compile-time behavior by
   // checking that the negation is accepted even though x is nullable.  We check
   // the runtime behavior by using an object whose operator- returns null.
-  int? x8 = 2;
+  var x8 = 2 as int?;
   -x8!;
-  C? x9 = new C();
+  var x9 = new C() as C?;
   var x10 = -x9!;
   Expect.isNull(x10);
 

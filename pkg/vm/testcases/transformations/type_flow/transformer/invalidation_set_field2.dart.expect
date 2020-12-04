@@ -23,7 +23,7 @@ class T3 extends core::Object {
   }
 }
 class Q<T extends core::Object* = dynamic> extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  final field self::Q::T* result;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field self::Q::T* result;
   constructor •(self::Q::T* result) → self::Q<self::Q::T*>*
     : self::Q::result = result, super core::Object::•()
     ;

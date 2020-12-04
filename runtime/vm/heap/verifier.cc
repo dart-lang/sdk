@@ -53,8 +53,8 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
             allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
           continue;
         }
-        uword raw_addr = ObjectLayout::ToAddr(raw_obj);
-        FATAL1("Invalid object pointer encountered %#" Px "\n", raw_addr);
+        FATAL2("Invalid object pointer encountered %#" Px ": %#" Px "\n",
+               reinterpret_cast<uword>(current), static_cast<uword>(raw_obj));
       }
     }
   }
@@ -89,11 +89,22 @@ VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
     : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
 
 void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
+  // The caller of this function is walking heap pages using the
+  // ExclusivePageIterator - which holds the pages lock.
+  //
+  // If we allow handle verification, then any assignment to a handle will call
+  // `heap()->Contains()` for heap objects, which in return is implemented by
+  // walking pages using ExclusivePageIterator, which can cause a deadlock.
+  //
+  // Therefore we disable the handle verification here.
+  const bool old_verify_flag = FLAG_verify_handles;
+  FLAG_verify_handles = false;
+
   // TODO(dartbug.com/36097): The heap walk can encounter canonical objects of
   // other isolates. We should either scan live objects from the roots of each
   // individual isolate, or wait until we are ready to share constants across
   // isolates.
-  if (!FLAG_enable_isolate_groups) {
+  if (!FLAG_enable_isolate_groups || FLAG_precompiled_mode) {
     if ((obj->GetClassId() >= kInstanceCid) &&
         (obj->GetClassId() != kTypeArgumentsCid)) {
       if (obj->ptr()->IsCanonical()) {
@@ -107,6 +118,7 @@ void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
       }
     }
   }
+  FLAG_verify_handles = old_verify_flag;
 }
 #endif  // defined(DEBUG)
 

@@ -5,8 +5,7 @@
 /// Helpers for working with the output of `--trace-precompiler-to` VM flag.
 library vm_snapshot_analysis.precompiler_trace;
 
-import 'dart:math' as math;
-
+import 'package:vm_snapshot_analysis/src/dominators.dart' as dominators;
 import 'package:vm_snapshot_analysis/name.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
 
@@ -36,11 +35,6 @@ class CallGraphNode {
   /// a [String] (dynamic call selector) or an [int] (dispatch table
   /// selector id).
   final data;
-
-  /// Preorder number of this node.
-  ///
-  /// Computed by [CallGraph.computeDominators].
-  int _preorderNumber;
 
   /// Dominator of this node.
   ///
@@ -105,38 +99,47 @@ class CallGraph {
 
   // Mapping from [ProgramInfoNode] to a corresponding [CallGraphNode] (if any)
   // via [ProgramInfoNode.id].
-  final List<CallGraphNode> _nodeByEntityId;
+  final List<CallGraphNode> _graphNodeByEntityId;
 
-  CallGraph._(this.program, this.nodes, this._nodeByEntityId);
+  CallGraph._(this.program, this.nodes, this._graphNodeByEntityId);
 
   CallGraphNode get root => nodes.first;
 
-  CallGraphNode lookup(ProgramInfoNode node) => _nodeByEntityId[node.id];
+  CallGraphNode lookup(ProgramInfoNode node) => _graphNodeByEntityId[node.id];
 
   Iterable<CallGraphNode> get dynamicCalls =>
       nodes.where((n) => n.isDynamicCallNode);
 
   /// Compute a collapsed version of the call-graph, where
   CallGraph collapse(NodeType type, {bool dropCallNodes = false}) {
-    final nodesByData = <Object, CallGraphNode>{};
-    final nodeByEntityId = <CallGraphNode>[];
+    final graphNodesByData = <Object, CallGraphNode>{};
+    final graphNodeByEntityId = <CallGraphNode>[];
 
     ProgramInfoNode collapsed(ProgramInfoNode nn) {
+      // Root always collapses onto itself.
+      if (nn == program.root) {
+        return nn;
+      }
+
+      // Even though all code is grouped into libraries, not all libraries
+      // are grouped into packages (e.g. dart:* libraries). Meaning
+      // that if we are collapsing by package we need to stop right before
+      // hitting the root node.
       var n = nn;
-      while (n.parent != null && n.type != type) {
+      while (n.parent != program.root && n.type != type) {
         n = n.parent;
       }
       return n;
     }
 
-    CallGraphNode nodeFor(Object data) {
-      return nodesByData.putIfAbsent(data, () {
-        final n = CallGraphNode(nodesByData.length, data: data);
+    CallGraphNode callGraphNodeFor(Object data) {
+      return graphNodesByData.putIfAbsent(data, () {
+        final n = CallGraphNode(graphNodesByData.length, data: data);
         if (data is ProgramInfoNode) {
-          if (nodeByEntityId.length <= data.id) {
-            nodeByEntityId.length = data.id * 2 + 1;
+          if (graphNodeByEntityId.length <= data.id) {
+            graphNodeByEntityId.length = data.id * 2 + 1;
           }
-          nodeByEntityId[data.id] = n;
+          graphNodeByEntityId[data.id] = n;
         }
         return n;
       });
@@ -144,9 +147,9 @@ class CallGraph {
 
     final newNodes = nodes.map((n) {
       if (n.data is ProgramInfoNode) {
-        return nodeFor(collapsed(n.data));
+        return callGraphNodeFor(collapsed(n.data));
       } else if (!dropCallNodes) {
-        return nodeFor(n.data);
+        return callGraphNodeFor(n.data);
       }
     }).toList(growable: false);
 
@@ -161,125 +164,22 @@ class CallGraph {
       }
     }
 
-    return CallGraph._(
-        program, nodesByData.values.toList(growable: false), nodeByEntityId);
+    return CallGraph._(program, graphNodesByData.values.toList(growable: false),
+        graphNodeByEntityId);
   }
 
   /// Compute dominator tree of the call-graph.
-  ///
-  /// The code for dominator tree computation is taken verbatim from the
-  /// native compiler (see runtime/vm/compiler/backend/flow_graph.cc).
   void computeDominators() {
-    final size = nodes.length;
-
-    // Compute preorder numbering for the graph using DFS.
-    final parent = List<int>.filled(size, -1);
-    final preorder = List<CallGraphNode>.filled(size, null);
-
-    var N = 0;
-    void dfs() {
-      final stack = [_DfsState(p: -1, n: nodes.first)];
-      while (stack.isNotEmpty) {
-        final s = stack.removeLast();
-        final p = s.p;
-        final n = s.n;
-        if (n._preorderNumber == null) {
-          n._preorderNumber = N;
-          preorder[n._preorderNumber] = n;
-          parent[n._preorderNumber] = p;
-
-          for (var w in n.succ) {
-            stack.add(_DfsState(p: n._preorderNumber, n: w));
-          }
-
-          N++;
-        }
-      }
-    }
-
-    dfs();
-
-    for (var node in nodes) {
-      if (node._preorderNumber == null) {
-        print('${node} is unreachable');
-      }
-    }
-
-    // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
-    // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
-    // that eliminates a pass by using nearest-common ancestor (NCA) to
-    // compute immediate dominators from semidominators.  It also removes a
-    // level of indirection in the link-eval forest data structure.
-    //
-    // The algorithm is described in Georgiadis, Tarjan, and Werneck's
-    // "Finding Dominators in Practice".
-    // See http://www.cs.princeton.edu/~rwerneck/dominators/ .
-
-    // All arrays are maps between preorder basic-block numbers.
-    final idom = parent.toList(); // Immediate dominator.
-    final semi = List<int>.generate(size, (i) => i); // Semidominator.
-    final label =
-        List<int>.generate(size, (i) => i); // Label for link-eval forest.
-
-    void compressPath(int start, int current) {
-      final next = parent[current];
-      if (next > start) {
-        compressPath(start, next);
-        label[current] = math.min(label[current], label[next]);
-        parent[current] = parent[next];
-      }
-    }
-
-    // 1. First pass: compute semidominators as in Lengauer-Tarjan.
-    // Semidominators are computed from a depth-first spanning tree and are an
-    // approximation of immediate dominators.
-
-    // Use a link-eval data structure with path compression.  Implement path
-    // compression in place by mutating the parent array.  Each block has a
-    // label, which is the minimum block number on the compressed path.
-
-    // Loop over the blocks in reverse preorder (not including the graph
-    // entry).
-    for (var block_index = size - 1; block_index >= 1; --block_index) {
-      // Loop over the predecessors.
-      final block = preorder[block_index];
-      // Clear the immediately dominated blocks in case ComputeDominators is
-      // used to recompute them.
-      for (final pred in block.pred) {
-        // Look for the semidominator by ascending the semidominator path
-        // starting from pred.
-        final pred_index = pred._preorderNumber;
-        var best = pred_index;
-        if (pred_index > block_index) {
-          compressPath(block_index, pred_index);
-          best = label[pred_index];
-        }
-
-        // Update the semidominator if we've found a better one.
-        semi[block_index] = math.min(semi[block_index], semi[best]);
-      }
-
-      // Now use label for the semidominator.
-      label[block_index] = semi[block_index];
-    }
-
-    // 2. Compute the immediate dominators as the nearest common ancestor of
-    // spanning tree parent and semidominator, for all blocks except the entry.
-    for (var block_index = 1; block_index < size; ++block_index) {
-      var dom_index = idom[block_index];
-      while (dom_index > semi[block_index]) {
-        dom_index = idom[dom_index];
-      }
-      idom[block_index] = dom_index;
-      preorder[dom_index]._addDominatedBlock(preorder[block_index]);
+    final dom = dominators.computeDominators(
+        size: nodes.length,
+        root: nodes.first.id,
+        succ: (i) => nodes[i].succ.map((n) => n.id),
+        predOf: (i) => nodes[i].pred.map((n) => n.id),
+        handleEdge: (from, to) {});
+    for (var i = 1; i < nodes.length; i++) {
+      nodes[dom[i]]._addDominatedBlock(nodes[i]);
     }
   }
-}
-
-class _DfsState {
-  final int p;
-  final CallGraphNode n;
-  _DfsState({this.p, this.n});
 }
 
 /// Helper class for reading `--trace-precompiler-to` output.
@@ -519,4 +419,22 @@ class _TraceReader {
     return program.makeNode(
         name: libraryUri, parent: node, type: NodeType.libraryNode);
   }
+}
+
+/// Generates a [CallGraph] from the given [precompilerTrace], which is produced
+/// by `--trace-precompiler-to`, then collapses it down to the granularity
+/// specified by [nodeType], and computes dominators of the resulting graph.
+CallGraph generateCallGraphWithDominators(
+  Object precompilerTrace,
+  NodeType nodeType,
+) {
+  var callGraph = loadTrace(precompilerTrace);
+
+  // Convert call graph into the approximate dependency graph, dropping any
+  // dynamic and dispatch table based dependencies from the graph and only
+  // following the static call, field access and allocation edges.
+  callGraph = callGraph.collapse(nodeType, dropCallNodes: true)
+    ..computeDominators();
+
+  return callGraph;
 }

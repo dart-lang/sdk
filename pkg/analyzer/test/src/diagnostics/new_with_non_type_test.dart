@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NewWithNonTypeTest extends DriverResolutionTest {
+class NewWithNonTypeTest extends PubPackageResolutionTest {
   test_functionTypeAlias() async {
     await assertErrorsInCode('''
 typedef F = void Function();
@@ -28,7 +28,7 @@ void foo() {
   }
 
   test_imported() async {
-    newFile("/test/lib/lib.dart", content: "class B {}");
+    newFile('$testPackageLibPath/lib.dart', content: "class B {}");
     await assertErrorsInCode('''
 import 'lib.dart' as lib;
 void f() {

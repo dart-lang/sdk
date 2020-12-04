@@ -19,9 +19,16 @@ class FlutterMoveUpTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_MOVE_UP;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_first() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -37,8 +44,7 @@ main() {
   }
 
   Future<void> test_last() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -66,8 +72,7 @@ main() {
   }
 
   Future<void> test_notInList() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Center(

@@ -74,17 +74,8 @@ class KernelLoaderTask extends CompilerTask {
       ir.Component component;
       var isDill = resolvedUri.path.endsWith('.dill');
 
-      // TODO(sigmund): remove after we unfork the sdk, and force null-safety to
-      // always be considered to be true.
-      void inferNullSafety() {
-        if (component.libraries.any((lib) =>
-            lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
-          _options.useNullSafety = true;
-        }
-      }
-
       void inferNullSafetyMode(bool isSound) {
-        if (isSound) assert(_options.useNullSafety == true);
+        if (isSound) assert(_options.enableNonNullable);
         if (_options.nullSafetyMode == NullSafetyMode.unspecified) {
           _options.nullSafetyMode =
               isSound ? NullSafetyMode.sound : NullSafetyMode.unsound;
@@ -94,7 +85,7 @@ class KernelLoaderTask extends CompilerTask {
       void validateNullSafety() {
         assert(_options.nullSafetyMode != NullSafetyMode.unspecified);
         if (_options.nullSafetyMode == NullSafetyMode.sound) {
-          assert(_options.useNullSafety);
+          assert(_options.enableNonNullable);
         }
       }
 
@@ -119,7 +110,6 @@ class KernelLoaderTask extends CompilerTask {
           throw ArgumentError("$resolvedUri was compiled with $dillMode null "
               "safety and is incompatible with the '$option' option");
         }
-        inferNullSafety();
         inferNullSafetyMode(isStrongDill);
         validateNullSafety();
 
@@ -154,13 +144,13 @@ class KernelLoaderTask extends CompilerTask {
           ..target = target
           ..librariesSpecificationUri = _options.librariesSpecificationUri
           ..packagesFileUri = _options.packageConfig
-          ..experimentalFlags = _options.languageExperiments
+          ..explicitExperimentalFlags = _options.explicitExperimentalFlags
           ..verbose = verbose
           ..fileSystem = fileSystem
           ..onDiagnostic = onDiagnostic;
         bool isLegacy =
             await fe.uriUsesLegacyLanguageVersion(resolvedUri, options);
-        inferNullSafetyMode(_options.useNullSafety && !isLegacy);
+        inferNullSafetyMode(_options.enableNonNullable && !isLegacy);
 
         List<Uri> dependencies = [];
         if (_options.platformBinaries != null) {
@@ -170,20 +160,20 @@ class KernelLoaderTask extends CompilerTask {
         if (_options.dillDependencies != null) {
           dependencies.addAll(_options.dillDependencies);
         }
+
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
             target,
             _options.librariesSpecificationUri,
             dependencies,
             _options.packageConfig,
-            experimentalFlags: _options.languageExperiments,
+            explicitExperimentalFlags: _options.explicitExperimentalFlags,
             nnbdMode: _options.useLegacySubtyping
                 ? fe.NnbdMode.Weak
                 : fe.NnbdMode.Strong);
         component = await fe.compile(initializedCompilerState, verbose,
             fileSystem, onDiagnostic, resolvedUri);
         if (component == null) return null;
-        inferNullSafety();
         validateNullSafety();
       }
 

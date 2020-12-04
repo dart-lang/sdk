@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test/test.dart';
@@ -32,7 +30,7 @@ class MoveFileTest extends RefactoringTest {
     addSource(pathB, "import 'test.dart';");
     addSource(pathC, '');
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library lib;
 import 'dart:math';
 import '22/c.dart';
@@ -40,6 +38,7 @@ export '333/d.dart';
 part 'a.dart';
 part '${toUriStr('/absolute/uri.dart')}';
 ''');
+    await analyzeTestPackageFiles();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -61,6 +60,7 @@ part '${toUriStr('/absolute/uri.dart')}';
     addTestSource(r'''
 import 'package:test/old_name.dart';
 ''');
+    await analyzeTestPackageFiles();
 
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
@@ -149,6 +149,7 @@ import 'package:test0.test1/111/name.dart';
     addTestSource(r'''
 import 'package:test/111/old_name.dart';
 ''');
+    await analyzeTestPackageFiles();
 
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
@@ -168,6 +169,7 @@ import 'package:test/222/new_name.dart';
     addTestSource(r'''
 import 'package:test/222/old_name.dart';
 ''');
+    await analyzeTestPackageFiles();
 
     // Since the file being refactored isn't the test source, we set the
     // testAnalysisResult manually here, the path is referenced through the
@@ -188,7 +190,8 @@ import 'package:test/new_name.dart';
     addSource(pathA, '''
 import 'test.dart';
 ''');
-    await resolveTestUnit('');
+    await analyzeTestPackageFiles();
+    await resolveTestCode('');
 
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/new_name.dart');
@@ -206,7 +209,8 @@ import '22/new_name.dart';
     addSource(pathA, '''
 import 'sub/folder/test.dart';
 ''');
-    await resolveTestUnit('');
+    await analyzeTestPackageFiles();
+    await resolveTestCode('');
     // perform refactoring
     _createRefactoring('/home/test/000/new/folder/name/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -222,7 +226,8 @@ import '../new/folder/name/new_name.dart';
     addSource(pathA, '''
 import '22/test.dart';
 ''');
-    await resolveTestUnit('');
+    await analyzeTestPackageFiles();
+    await resolveTestCode('');
     // perform refactoring
     _createRefactoring('/home/test/000/1111/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -247,7 +252,7 @@ part '22/test.dart';
 library lib;
 part '1111/22/test.dart';
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 part of lib;
 ''');
     // perform refactoring
@@ -271,9 +276,11 @@ part '1111/22/new_name.dart';
 library lib;
 part '22/test.dart';
 ''');
-    await resolveTestUnit('''
+    addTestSource('''
 part of lib;
 ''');
+    await analyzeTestPackageFiles();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -330,9 +337,11 @@ part '22/new_name.dart';
 library lib;
 part '22/test.dart';
 ''');
-    await resolveTestUnit('''
+    addTestSource('''
 part of '../a.dart';
 ''');
+    await analyzeTestPackageFiles();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/33/test.dart');
     await _assertSuccessfulRefactoring();
@@ -354,7 +363,7 @@ part of '../../a.dart';
     addSource(pathA, '''
 part of 'test.dart';
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 part 'a.dart';
 ''');
     // perform refactoring
@@ -377,7 +386,7 @@ part '../a.dart';
     addSource(pathA, '''
 part of 'test.dart';
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 part 'a.dart';
 ''');
     // perform refactoring
@@ -400,9 +409,11 @@ part 'a.dart';
     addSource(pathA, '''
 part 'test.dart';
 ''');
-    await resolveTestUnit('''
+    addTestSource('''
 part of 'a.dart';
 ''');
+    await analyzeTestPackageFiles();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/test.dart');
     await _assertSuccessfulRefactoring();
@@ -423,9 +434,11 @@ part of '../a.dart';
     addSource(pathA, '''
 part 'test.dart';
 ''');
-    await resolveTestUnit('''
+    addTestSource('''
 part of 'a.dart';
 ''');
+    await analyzeTestPackageFiles();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/test2.dart');
     await _assertSuccessfulRefactoring();
@@ -451,10 +464,11 @@ part of 'a.dart';
   }
 
   void _createRefactoring(String newFile, {String oldFile}) {
-    var refactoringWorkspace = RefactoringWorkspace([driver], searchEngine);
+    var refactoringWorkspace =
+        RefactoringWorkspace([driverFor(testFile)], searchEngine);
     // Allow passing an oldName for when we don't want to rename testSource,
     // but otherwise fall back to testSource.fullname
-    oldFile = convertPath(oldFile ?? testSource.fullName);
+    oldFile = convertPath(oldFile ?? testFile);
     refactoring = MoveFileRefactoring(
         resourceProvider, refactoringWorkspace, testAnalysisResult, oldFile);
     refactoring.newFile = convertPath(newFile);

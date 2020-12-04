@@ -52,9 +52,9 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   @override
   DartType computeNodeValue(Id id, AstNode node) {
     if (node is SimpleIdentifier && node.inGetterContext()) {
-      var element = node.staticElement;
+      var element = _readElement(node);
       if (element is LocalVariableElement || element is ParameterElement) {
-        TypeImpl promotedType = node.staticType;
+        TypeImpl promotedType = _readType(node);
         TypeImpl declaredType = (element as VariableElement).type;
         var isPromoted = promotedType != declaredType;
         if (isPromoted) {
@@ -64,6 +64,32 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     }
     return null;
   }
+
+  static Element _readElement(SimpleIdentifier node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return parent.readElement;
+    } else if (parent is PostfixExpression) {
+      return parent.readElement;
+    } else if (parent is PrefixExpression) {
+      return parent.readElement;
+    } else {
+      return node.staticElement;
+    }
+  }
+
+  static DartType _readType(SimpleIdentifier node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return parent.readType;
+    } else if (parent is PostfixExpression) {
+      return parent.readType;
+    } else if (parent is PrefixExpression) {
+      return parent.readType;
+    } else {
+      return node.staticType;
+    }
+  }
 }
 
 class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
@@ -71,14 +97,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   String getText(DartType actualData, [String indentation]) {
-    if (actualData is TypeParameterTypeImpl) {
-      var element = actualData.element;
-      var promotedBound = actualData.promotedBound;
-      if (promotedBound != null) {
-        return '${element.name} & ${_typeToString(promotedBound)}';
-      }
-    }
-    return _typeToString(actualData);
+    return actualData.getDisplayString(withNullability: true);
   }
 
   @override
@@ -93,8 +112,4 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   bool isEmpty(DartType actualData) => actualData == null;
-
-  String _typeToString(DartType type) {
-    return type.getDisplayString(withNullability: true);
-  }
 }

@@ -10,7 +10,7 @@
 
 namespace dart {
 
-const intptr_t kSkipCount = 4;
+const intptr_t kSkipCount = 5;
 
 }  // namespace dart
 

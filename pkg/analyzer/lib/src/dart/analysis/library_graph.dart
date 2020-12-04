@@ -18,6 +18,8 @@ void computeLibraryCycle(Uint32List salt, FileState file) {
 
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
+  final int id = fileObjectId++;
+
   /// The libraries that belong to this cycle.
   final List<FileState> libraries = [];
 
@@ -49,6 +51,10 @@ class LibraryCycle {
 
   LibraryCycle.external() : transitiveSignature = '<external>';
 
+  bool get isUnresolvedFile {
+    return libraries.length == 1 && libraries[0].isUnresolved;
+  }
+
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
   /// Practically invalidation means that we clear the library cycle in all the
@@ -65,7 +71,7 @@ class LibraryCycle {
 
   @override
   String toString() {
-    return '[' + libraries.join(', ') + ']';
+    return '[[id: $id] ' + libraries.join(', ') + ']';
   }
 }
 
@@ -123,6 +129,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
+      signature.addLanguageVersion(node.file.packageLanguageVersion);
       signature.addString(node.file.uriStr);
 
       signature.addInt(node.file.libraryFiles.length);

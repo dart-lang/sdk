@@ -11,20 +11,26 @@ class _TestClass {
   _TestClass();
   // Make sure these fields are not removed by the tree shaker.
   @pragma("vm:entry-point")
-  var x;
+  dynamic x;
   @pragma("vm:entry-point")
-  var y;
+  dynamic y;
 }
 
-var target1 = new _TestClass();
-var target2 = new _TestClass();
-var target3 = new _TestClass();
-var target4 = new _TestClass();
-var target5 = new _TestClass();
-var globalObject = new _TestClass();
-var globalList = new List(100);
-var globalMap1 = new Map();
-var globalMap2 = new Map();
+dynamic target1 = new _TestClass();
+dynamic target2 = new _TestClass();
+dynamic target3 = new _TestClass();
+dynamic target4 = new _TestClass();
+dynamic target5 = new _TestClass();
+dynamic target6 = new _TestClass();
+Expando<_TestClass> expando = Expando<_TestClass>();
+@pragma("vm:entry-point") // Prevent obfuscation
+dynamic globalObject = new _TestClass();
+@pragma("vm:entry-point") // Prevent obfuscation
+dynamic globalList = new List<dynamic>.filled(100, null);
+@pragma("vm:entry-point") // Prevent obfuscation
+dynamic globalMap1 = new Map();
+@pragma("vm:entry-point") // Prevent obfuscation
+dynamic globalMap2 = new Map();
 
 void warmup() {
   globalObject.x = target1;
@@ -73,6 +79,15 @@ takeTarget5() {
 }
 
 @pragma("vm:entry-point")
+takeExpandoTarget() {
+  var tmp = target6;
+  target6 = null;
+  var tmp2 = _TestClass();
+  expando[tmp] = tmp2;
+  return tmp2;
+}
+
+@pragma("vm:entry-point")
 getTrue() => true;
 
 invoke(Isolate isolate, String selector) async {
@@ -93,9 +108,9 @@ var tests = <IsolateTest>[
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
-    expect(result['gcRootType'], 'static fields table');
-    expect(result['elements'].length, equals(1));
-    expect(result['elements'][0]['value']['type'], equals('@Instance'));
+    expect(result['gcRootType'], 'user global');
+    expect(result['elements'].length, equals(2));
+    expect(result['elements'][1]['value']['name'], equals('globalObject'));
   },
 
   // missing limit.
@@ -104,14 +119,14 @@ var tests = <IsolateTest>[
     var params = {
       'targetId': obj['id'],
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
       expect(false, isTrue, reason: 'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.data['details'],
+      expect(e.data!['details'],
           "getRetainingPath expects the \'limit\' parameter");
     }
     expect(caughtException, isTrue);
@@ -125,10 +140,10 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'static fields table');
-    expect(result['elements'].length, equals(2));
-    expect(result['elements'][0]['value']['type'], equals('@Instance'));
+    expect(result['gcRootType'], 'user global');
+    expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentField'], equals('x'));
+    expect(result['elements'][2]['value']['name'], equals('globalObject'));
   },
 
   (Isolate isolate) async {
@@ -139,10 +154,10 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'static fields table');
-    expect(result['elements'].length, equals(2));
+    expect(result['gcRootType'], 'user global');
+    expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentField'], equals('y'));
-    expect(result['elements'][1]['value']['type'], equals('@Instance'));
+    expect(result['elements'][2]['value']['name'], equals('globalObject'));
   },
 
   (Isolate isolate) async {
@@ -153,10 +168,10 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'static fields table');
-    expect(result['elements'].length, equals(2));
+    expect(result['gcRootType'], 'user global');
+    expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentListIndex'], equals(12));
-    expect(result['elements'][1]['value']['type'], equals('@Instance'));
+    expect(result['elements'][2]['value']['name'], equals('globalList'));
   },
 
   (Isolate isolate) async {
@@ -167,11 +182,11 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'static fields table');
-    expect(result['elements'].length, equals(2));
+    expect(result['gcRootType'], 'user global');
+    expect(result['elements'].length, equals(3));
     expect(
         result['elements'][1]['parentMapKey']['valueAsString'], equals('key'));
-    expect(result['elements'][1]['value']['type'], equals('@Instance'));
+    expect(result['elements'][2]['value']['name'], equals('globalMap1'));
   },
 
   (Isolate isolate) async {
@@ -182,10 +197,27 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['elements'].length, equals(2));
+    expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentMapKey']['class']['name'],
         equals('_TestClass'));
-    expect(result['elements'][1]['value']['type'], equals('@Instance'));
+    expect(result['elements'][2]['value']['name'], equals('globalMap2'));
+  },
+
+  (Isolate isolate) async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/44016
+    var target6 = await invoke(isolate, 'takeExpandoTarget');
+    var params = {
+      'targetId': target6['id'],
+      'limit': 100,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
+    expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(5));
+    expect(result['elements'][1]['parentMapKey']['class']['name'],
+        equals('_TestClass'));
+    expect(result['elements'][2]['parentListIndex'], isNotNull);
+    expect(result['elements'][3]['value']['class']['name'], 'Expando');
+    expect(result['elements'][4]['value']['name'], 'expando');
   },
 
   // object store
@@ -196,7 +228,10 @@ var tests = <IsolateTest>[
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
-    expect(result['gcRootType'], 'isolate_object store');
+    expect(
+        result['gcRootType'] == 'class table' ||
+            result['gcRootType'] == 'isolate_object store',
+        true);
     expect(result['elements'].length, 0);
   },
 ];

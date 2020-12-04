@@ -10,13 +10,14 @@
 namespace dart {
 
 static ClassPtr CreateTestClass(const char* name) {
-  const String& class_name =
-      String::Handle(Symbols::New(Thread::Current(), name));
+  Thread* thread = Thread::Current();
+  const String& class_name = String::Handle(Symbols::New(thread, name));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(Class::New(
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
   cls.set_interfaces(Object::empty_array());
   cls.set_is_declaration_loaded();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   cls.SetFunctions(Object::empty_array());
   cls.SetFields(Object::empty_array());
   return cls.raw();

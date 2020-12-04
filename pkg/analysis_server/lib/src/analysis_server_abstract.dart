@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:core';
 import 'dart:io' as io;
 
@@ -23,7 +22,6 @@ import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
-import 'package:analyzer/dart/analysis/features.dart' as analyzer_features;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -37,9 +35,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
-import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -60,10 +56,6 @@ abstract class AbstractAnalysisServer {
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
   ContextManager contextManager;
-
-  /// The default options used to create new analysis contexts. This object is
-  /// also referenced by the ContextManager.
-  final AnalysisOptionsImpl defaultContextOptions = AnalysisOptionsImpl();
 
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
@@ -156,11 +148,6 @@ abstract class AbstractAnalysisServer {
         instrumentationService);
     var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
-    defaultContextOptions.contextFeatures =
-        analyzer_features.FeatureSet.fromEnableFlags(
-            options.enabledExperiments);
-    defaultContextOptions.useFastaParser = options.useFastaParser;
-
     {
       var name = options.newAnalysisDriverLog;
       StringSink sink = NullStringSink();
@@ -192,7 +179,7 @@ abstract class AbstractAnalysisServer {
     }
 
     contextManager = ContextManagerImpl(resourceProvider, sdkManager,
-        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
+        analyzedFilesGlobs, instrumentationService);
     searchEngine = SearchEngineImpl(driverMap.values);
   }
 
@@ -411,6 +398,14 @@ abstract class AbstractAnalysisServer {
   /// Notify the flutter widget properties support that the file with the
   /// given [path] was changed - added, updated, or removed.
   void notifyFlutterWidgetDescriptions(String path) {}
+
+  /// Read all files, resolve all URIs, and perform required analysis in
+  /// all current analysis drivers.
+  void reanalyze() {
+    for (var driver in driverMap.values) {
+      driver.resetUriResolution();
+    }
+  }
 
   /// Sends an error notification to the user.
   void sendServerErrorNotification(

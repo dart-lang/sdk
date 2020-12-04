@@ -12,9 +12,9 @@
 #include <stdint.h>
 
 #include <fuchsia/deprecatedtimezone/cpp/fidl.h>
-#include <lib/async/default.h>
-#include <lib/async-loop/loop.h>
 #include <lib/async-loop/default.h>
+#include <lib/async-loop/loop.h>
+#include <lib/async/default.h>
 #include <lib/inspect/cpp/inspect.h>
 #include <lib/sys/cpp/component_context.h>
 #include <lib/sys/cpp/service_directory.h>
@@ -22,6 +22,7 @@
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
+#include <zircon/time.h>
 #include <zircon/types.h>
 
 #include "platform/assert.h"
@@ -115,6 +116,15 @@ bool InitializeTZData() {
   return true;
 }
 
+int64_t GetCurrentTimeNanos() {
+  struct timespec ts;
+  if (timespec_get(&ts, TIME_UTC) == 0) {
+    FATAL("timespec_get failed");
+    return 0;
+  }
+  return zx_time_add_duration(ZX_SEC(ts.tv_sec), ZX_NSEC(ts.tv_nsec));
+}
+
 }  // namespace
 
 namespace dart {
@@ -177,21 +187,18 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   int32_t local_offset, dst_offset;
-  zx_time_t now = 0;
-  zx_clock_get(ZX_CLOCK_UTC, &now);
-  zx_status_t status = GetLocalAndDstOffsetInSeconds(
-      now / ZX_SEC(1), &local_offset, &dst_offset);
+  int64_t now_seconds = GetCurrentTimeNanos() / ZX_SEC(1);
+  zx_status_t status =
+      GetLocalAndDstOffsetInSeconds(now_seconds, &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset : 0;
 }
 
 int64_t OS::GetCurrentTimeMillis() {
-  return GetCurrentTimeMicros() / 1000;
+  return GetCurrentTimeNanos() / ZX_MSEC(1);
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  zx_time_t now = 0;
-  zx_clock_get(ZX_CLOCK_UTC, &now);
-  return now / kNanosecondsPerMicrosecond;
+  return GetCurrentTimeNanos() / ZX_USEC(1);
 }
 
 int64_t OS::GetCurrentMonotonicTicks() {
@@ -346,7 +353,7 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
-  if (async_get_default_dispatcher() == NULL) {
+  if (async_get_default_dispatcher() == nullptr) {
     async_loop_create(&kAsyncLoopConfigAttachToCurrentThread, &message_loop);
     async_set_default_dispatcher(async_loop_get_dispatcher(message_loop));
     async_loop_start_thread(message_loop, "Fuchsia async loop", nullptr);
@@ -361,9 +368,19 @@ void OS::Init() {
 }
 
 void OS::Cleanup() {
+  if (message_loop != nullptr) {
+    async_loop_shutdown(message_loop);
+  }
+
   metrics = nullptr;
   component_inspector = nullptr;
+
   if (message_loop != nullptr) {
+    // Check message_loop is still the default dispatcher before clearing it.
+    if (async_get_default_dispatcher() ==
+        async_loop_get_dispatcher(message_loop)) {
+      async_set_default_dispatcher(nullptr);
+    }
     async_loop_destroy(message_loop);
     message_loop = nullptr;
   }

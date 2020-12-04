@@ -8,11 +8,14 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         MessageCode,
         messageAbstractClassMember,
+        messageAbstractLateField,
+        messageAbstractStaticField,
         messageConstConstructorWithBody,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
         messageExternalField,
+        messageExternalLateField,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
@@ -125,6 +128,9 @@ class AstBuilder extends StackListener {
   /// `true` if triple-shift behavior is enabled
   final bool enableTripleShift;
 
+  /// `true` if nonfunction-type-aliases behavior is enabled
+  final bool enableNonFunctionTypeAliases;
+
   /// `true` if variance behavior is enabled
   final bool enableVariance;
 
@@ -133,14 +139,16 @@ class AstBuilder extends StackListener {
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       this._featureSet,
       [Uri uri])
-      : this.errorReporter = FastaErrorReporter(errorReporter),
-        this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
-        this.enableSpreadCollections =
+      : errorReporter = FastaErrorReporter(errorReporter),
+        enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
+        enableSpreadCollections =
             _featureSet.isEnabled(Feature.spread_collections),
-        this.enableControlFlowCollections =
+        enableControlFlowCollections =
             _featureSet.isEnabled(Feature.control_flow_collections),
-        this.enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
-        this.enableVariance = _featureSet.isEnabled(Feature.variance),
+        enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
+        enableNonFunctionTypeAliases =
+            _featureSet.isEnabled(Feature.nonfunction_type_aliases),
+        enableVariance = _featureSet.isEnabled(Feature.variance),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -482,11 +490,6 @@ class AstBuilder extends StackListener {
   @override
   void debugEvent(String name) {
     // printEvent('AstBuilder: $name');
-  }
-
-  @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    pop();
   }
 
   void doDotExpression(Token dot) {
@@ -849,13 +852,29 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
-    if (!enableNonNullable && abstractToken != null) {
-      handleRecoverableError(
-          messageAbstractClassMember, abstractToken, abstractToken);
+    if (abstractToken != null) {
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageAbstractClassMember, abstractToken, abstractToken);
+      } else {
+        if (staticToken != null) {
+          handleRecoverableError(
+              messageAbstractStaticField, abstractToken, abstractToken);
+        }
+        if (lateToken != null) {
+          handleRecoverableError(
+              messageAbstractLateField, abstractToken, abstractToken);
+        }
+      }
     }
     if (externalToken != null) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);
@@ -872,7 +891,9 @@ class AstBuilder extends StackListener {
     currentDeclarationMembers.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
+        abstractKeyword: abstractToken,
         covariantKeyword: covariantKeyword,
+        externalKeyword: externalToken,
         staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
@@ -1516,20 +1537,11 @@ class AstBuilder extends StackListener {
       SimpleIdentifier name = pop();
       List<Annotation> metadata = pop();
       Comment comment = _findComment(metadata, typedefKeyword);
-      if (type is! GenericFunctionType) {
-        // This error is also reported in the OutlineBuilder.
+      if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
         handleRecoverableError(messageTypedefNotFunction, equals, equals);
-        type = null;
       }
-      declarations.add(ast.genericTypeAlias(
-          comment,
-          metadata,
-          typedefKeyword,
-          name,
-          templateParameters,
-          equals,
-          type as GenericFunctionType,
-          semicolon));
+      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
+          name, templateParameters, equals, type, semicolon));
     }
   }
 
@@ -2139,8 +2151,13 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelFields");
 
     if (externalToken != null) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);
@@ -2154,7 +2171,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
-        comment, metadata, variableList, semicolon));
+        comment, metadata, variableList, semicolon,
+        externalKeyword: externalToken));
   }
 
   @override
@@ -2420,10 +2438,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     assert(extendsKeyword == null || extendsKeyword.isKeywordOrIdentifier);
     debugEvent("ClassExtends");
 
+    // If more extends clauses was specified (parser has already issued an
+    // error) throw them away for now and pick the first one.
+    while (typeCount > 1) {
+      pop();
+      typeCount--;
+    }
     TypeName supertype = pop();
     if (supertype != null) {
       push(ast.extendsClause(extendsKeyword, supertype));
@@ -3014,8 +3038,11 @@ class AstBuilder extends StackListener {
 
       // Determine if this is a set or map based on type args and content
       final typeArgCount = typeArguments?.arguments?.length;
-      bool isSet =
-          typeArgCount == 1 ? true : typeArgCount != null ? false : null;
+      bool isSet = typeArgCount == 1
+          ? true
+          : typeArgCount != null
+              ? false
+              : null;
       isSet ??= hasSetEntry;
 
       // Build the set or map
@@ -3377,7 +3404,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         spreadToken,
         spreadToken,
@@ -3600,7 +3627,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         forToken,
         forToken,
@@ -3633,7 +3660,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         ifToken,
         ifToken,
@@ -3649,7 +3676,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         questionMark,
         questionMark,
@@ -3671,7 +3698,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         modifierToken,
         modifierToken,
@@ -3684,7 +3711,7 @@ class AstBuilder extends StackListener {
     handleRecoverableError(
       templateExperimentNotEnabled.withArguments(
         feature.enableString,
-        _versionAsString(ExperimentStatus.currentVersion),
+        _versionAsString(feature.releaseVersion),
       ),
       bang,
       bang,

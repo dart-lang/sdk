@@ -47,10 +47,6 @@ import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
-import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
-import 'bytecode/gen_bytecode.dart'
-    show generateBytecode, createFreshComponentWithBytecode;
-import 'bytecode/options.dart' show BytecodeOptions;
 import 'http_filesystem.dart' show HttpAwareFileSystem;
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
@@ -129,14 +125,6 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('data-dir',
       help: 'Name of the subdirectory of //data for output files');
   args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
-  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
-  args.addMultiOption('bytecode-options',
-      help: 'Specify options for bytecode generation:',
-      valueHelp: 'opt1,opt2,...',
-      allowed: BytecodeOptions.commandLineFlags.keys,
-      allowedHelp: BytecodeOptions.commandLineFlags);
-  args.addFlag('drop-ast',
-      help: 'Include only bytecode into the output file', defaultsTo: true);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
@@ -184,8 +172,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool tfa = options['tfa'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
-  final bool genBytecode = options['gen-bytecode'];
-  final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
   final bool nullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
@@ -215,13 +201,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     }
   }
 
-  final BytecodeOptions bytecodeOptions = new BytecodeOptions(
-    enableAsserts: enableAsserts,
-    emitSourceFiles: embedSources,
-    environmentDefines: environmentDefines,
-    aot: aot,
-  )..parseCommandLineFlags(options['bytecode-options']);
-
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
@@ -246,7 +225,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..fileSystem = fileSystem
     ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
-    ..experimentalFlags = parseExperimentalFlags(
+    ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
     ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
@@ -256,7 +235,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..embedSourceText = embedSources;
 
   if (nullSafety == null &&
-      compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+      compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
@@ -276,9 +255,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts,
-      genBytecode: genBytecode,
-      bytecodeOptions: bytecodeOptions,
-      dropAST: dropAST && !splitOutputByPackages,
       useProtobufTreeShaker: useProtobufTreeShaker,
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
@@ -291,19 +267,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return compileTimeErrorExitCode;
   }
 
-  if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
-    BytecodeSizeStatistics.reset();
-  }
-
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink,
       libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
   printer.writeComponentFile(results.component);
   await sink.close();
-
-  if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
-    BytecodeSizeStatistics.dump();
-  }
 
   if (depfile != null) {
     await writeDepfile(
@@ -316,9 +284,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       compilerOptions,
       results,
       outputFileName,
-      genBytecode: genBytecode,
-      bytecodeOptions: bytecodeOptions,
-      dropAST: dropAST,
     );
   }
 
@@ -357,9 +322,6 @@ Future<KernelCompilationResults> compileToKernel(
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
     bool enableAsserts: true,
-    bool genBytecode: false,
-    BytecodeOptions bytecodeOptions,
-    bool dropAST: false,
     bool useProtobufTreeShaker: false,
     bool useProtobufTreeShakerV2: false,
     bool minimalKernel: false,
@@ -408,26 +370,6 @@ Future<KernelCompilationResults> compileToKernel(
 
       component.metadata.clear();
       component.uriToSource.clear();
-    }
-  }
-
-  if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
-    List<Library> libraries = new List<Library>();
-    for (Library library in component.libraries) {
-      if (loadedLibraries.contains(library)) continue;
-      libraries.add(library);
-    }
-
-    await runWithFrontEndCompilerContext(source, options, component, () {
-      generateBytecode(component,
-          libraries: libraries,
-          hierarchy: compilerResult.classHierarchy,
-          coreTypes: compilerResult.coreTypes,
-          options: bytecodeOptions);
-    });
-
-    if (dropAST) {
-      component = createFreshComponentWithBytecode(component);
     }
   }
 
@@ -683,21 +625,8 @@ Future<Uri> convertToPackageUri(
 /// Write a separate kernel binary for each package. The name of the
 /// output kernel binary is '[outputFileName]-$package.dilp'.
 /// The list of package names is written into a file '[outputFileName]-packages'.
-///
-/// Generates bytecode for each package if requested.
-Future writeOutputSplitByPackages(
-  Uri source,
-  CompilerOptions compilerOptions,
-  KernelCompilationResults compilationResults,
-  String outputFileName, {
-  bool genBytecode: false,
-  BytecodeOptions bytecodeOptions,
-  bool dropAST: false,
-}) async {
-  if (bytecodeOptions.showBytecodeSizeStatistics) {
-    BytecodeSizeStatistics.reset();
-  }
-
+Future writeOutputSplitByPackages(Uri source, CompilerOptions compilerOptions,
+    KernelCompilationResults compilationResults, String outputFileName) async {
   final packages = new List<String>();
   await runWithFrontEndCompilerContext(
       source, compilerOptions, compilationResults.component, () async {
@@ -710,17 +639,6 @@ Future writeOutputSplitByPackages(
       final IOSink sink = new File(filename).openWrite();
 
       Component partComponent = compilationResults.component;
-      if (genBytecode) {
-        generateBytecode(partComponent,
-            options: bytecodeOptions,
-            libraries: libraries,
-            hierarchy: compilationResults.classHierarchy,
-            coreTypes: compilationResults.coreTypes);
-
-        if (dropAST) {
-          partComponent = createFreshComponentWithBytecode(partComponent);
-        }
-      }
 
       final BinaryPrinter printer = new BinaryPrinter(sink,
           libraryFilter: (lib) =>
@@ -730,10 +648,6 @@ Future writeOutputSplitByPackages(
       await sink.close();
     }, mainFirst: false);
   });
-
-  if (bytecodeOptions.showBytecodeSizeStatistics) {
-    BytecodeSizeStatistics.dump();
-  }
 
   final IOSink packagesList = new File('$outputFileName-packages').openWrite();
   for (String package in packages) {

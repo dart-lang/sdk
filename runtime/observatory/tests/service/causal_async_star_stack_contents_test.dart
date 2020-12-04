@@ -1,8 +1,8 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--no-causal-async-stacks --lazy-async-stacks --verbose_debug
-// VMOptions=--causal-async-stacks --no-lazy-async-stacks --verbose_debug
+//
+// VMOptions=--lazy-async-stacks --verbose_debug
 
 import 'dart:developer';
 import 'package:observatory/models.dart' as M;
@@ -44,16 +44,9 @@ var tests = <IsolateTest>[
     // No causal frames because we are in a completely synchronous stack.
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];
-    if (useCausalAsyncStacks) {
-      expect(asyncStack.length, greaterThanOrEqualTo(3));
-      expect(asyncStack[0].toString(), contains('helper'));
-      expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
-      expect(asyncStack[2].toString(), contains('testMain'));
-    } else {
-      expect(asyncStack.length, greaterThanOrEqualTo(1));
-      expect(asyncStack[0].toString(), contains('helper'));
-      // helper isn't awaited.
-    }
+    expect(asyncStack.length, greaterThanOrEqualTo(1));
+    expect(asyncStack[0].toString(), contains('helper'));
+    // helper isn't awaited.
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
@@ -68,10 +61,6 @@ var tests = <IsolateTest>[
     expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
     expect(asyncStack[2].toString(), contains('helper'));
     expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
-    if (useCausalAsyncStacks) {
-      // helper isn't awaited.
-      expect(asyncStack[4].toString(), contains('testMain'));
-    }
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
@@ -93,12 +82,6 @@ var tests = <IsolateTest>[
     expect(asyncStack[2].toString(), contains('helper'));
     expect(await asyncStack[2].location.toUserString(), contains('.dart:30'));
     expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
-    if (useCausalAsyncStacks) {
-      // helper isn't awaited.
-      expect(asyncStack.length, greaterThanOrEqualTo(5));
-      expect(asyncStack[4].toString(), contains('testMain'));
-      expect(await asyncStack[4].location.toUserString(), contains('.dart:36'));
-    }
   },
 ];
 

@@ -31,8 +31,7 @@
  * The data for kTypedData is copied on message send and ownership remains with
  * the caller. The ownership of data for kExternalTyped is passed to the VM on
  * message send and returned when the VM invokes the
- * Dart_WeakPersistentHandleFinalizer callback; a non-NULL callback must be
- * provided.
+ * Dart_HandleFinalizer callback; a non-NULL callback must be provided.
  */
 typedef enum {
   Dart_CObject_kNull = 0,
@@ -79,7 +78,7 @@ typedef struct _Dart_CObject {
       intptr_t length;
       uint8_t* data;
       void* peer;
-      Dart_WeakPersistentHandleFinalizer callback;
+      Dart_HandleFinalizer callback;
     } as_external_typed_data;
   } value;
 } Dart_CObject;
@@ -177,8 +176,6 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  * TODO(turnidge): Document.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll();
-
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_ReadAllBytecode();
 
 /**
  * Finalizes all classes.

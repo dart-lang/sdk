@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -23,8 +21,15 @@ class ExtractWidgetTest extends RefactoringTest {
   @override
   ExtractWidgetRefactoringImpl refactoring;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_checkAllConditions_selection() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 class C {}
@@ -36,7 +41,6 @@ class C {}
   }
 
   Future<void> test_checkName() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -67,7 +71,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_checkName_alreadyDeclared() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -89,7 +92,6 @@ class Test {}
   }
 
   Future<void> test_expression() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -148,7 +150,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_localFunction() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -195,7 +196,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_onTypeName() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -232,7 +232,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_selection() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -280,7 +279,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_topFunction() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -321,7 +319,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_invocation_enclosingClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -346,7 +343,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_invocation_enclosingSuperClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -373,7 +369,6 @@ abstract class MyWidget extends StatelessWidget implements MyInterface {
   }
 
   Future<void> test_invocation_otherClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -435,7 +430,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_method() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -444,7 +438,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return createColumn();
   }
-  
+
   Widget createColumn() {
     var a = new Text('AAA');
     var b = new Text('BBB');
@@ -484,7 +478,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_method_parameters() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -501,7 +494,7 @@ class MyWidget extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget createColumn(String p1, int p2) {
     var a = new Text('$foo $p1');
     var b = new Text('$p2');
@@ -556,7 +549,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_method_parameters_named() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -573,7 +565,7 @@ class MyWidget extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget createColumn({String p1, int p2}) {
     var a = new Text('$foo $p1');
     var b = new Text('$p2');
@@ -628,7 +620,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_read_enclosingClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -672,7 +663,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_read_otherClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -724,7 +714,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_read_topLevelVariable() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -765,7 +754,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_write_enclosingClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -790,7 +778,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_write_enclosingSuperClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -817,7 +804,6 @@ class MyWidget extends MySuperWidget {
   }
 
   Future<void> test_parameters_field_write_otherClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -879,7 +865,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_key() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -898,7 +883,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parameters_local_read_enclosingScope() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -940,7 +924,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_local_write_enclosingScope() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -964,7 +947,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parameters_private() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -1008,7 +990,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_private_conflictWithPublic() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -1056,7 +1037,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_readField_readLocal() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -1114,7 +1094,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_refactoringName() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -1130,7 +1109,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_statements() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -1186,7 +1164,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_statements_BAD_emptySelection() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -1202,7 +1179,6 @@ void main() {
   }
 
   Future<void> test_statements_BAD_notReturnStatement() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 

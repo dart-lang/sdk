@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
-import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
@@ -644,11 +641,7 @@ class CompletionTargetTest extends _Base {
   Future<void> test_IfStatement_droppedToken() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('main() { if (v i^) }');
-    if (usingFastaParser) {
-      assertTarget(')', 'if (v) ;', droppedToken: 'i');
-    } else {
-      assertTarget('i;', 'if (v) i;');
-    }
+    assertTarget(')', 'if (v) ;', droppedToken: 'i');
   }
 
   Future<void> test_InstanceCreationExpression_identifier() async {
@@ -678,9 +671,9 @@ class CompletionTargetTest extends _Base {
 
   Future<void> test_MapLiteral_expression() async {
     super.setUp();
-    final experimentStatus =
-        (driver.analysisOptions as analyzer.AnalysisOptionsImpl)
-            .experimentStatus;
+    final experimentStatus = (driverFor(testPackageRootPath).analysisOptions
+            as analyzer.AnalysisOptionsImpl)
+        .experimentStatus;
     if (experimentStatus.control_flow_collections ||
         experimentStatus.spread_collections) {
       // SimpleIdentifier  MapLiteral  VariableDeclaration
@@ -910,8 +903,6 @@ class _Base extends AbstractContextTest {
   CompletionTarget target;
   FindElement findElement;
 
-  bool get usingFastaParser => analyzer.Parser.useFasta;
-
   void assertTarget(
     String entityText,
     String nodeText, {
@@ -976,7 +967,7 @@ class _Base extends AbstractContextTest {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: content);
 
-    var result = await driver.getResult(path);
+    var result = await resolveFile(path);
     findElement = FindElement(result.unit);
 
     target = CompletionTarget.forOffset(result.unit, offset);

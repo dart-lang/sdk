@@ -119,6 +119,185 @@ int parseHexByte(String source, int index) {
   return digit1 * 16 + digit2 - (digit2 & 256);
 }
 
+/// A resusable `null`-valued future used by `dart:async`.
+///
+/// **DO NOT USE.**
+///
+/// This future is used in situations where a future is expected,
+/// but no asynchronous computation actually happens,
+/// like cancelling a stream from a controller with no `onCancel` callback.
+/// *Some code depends on recognizing this future in order to react
+/// synchronously.*
+/// It does so to avoid changing event interleaving during the null safety
+/// migration where, for example, the [StreamSubscription.cancel] method
+/// stopped being able to return `null`.
+/// The code that would be broken by such a timing change is fragile,
+/// but we are not able to simply change it.
+/// For better or worse, code depends on the precise timing that our libraries
+/// have so far exhibited.
+///
+/// This future will be removed again if we can ever do so.
+/// Do not use it for anything other than preserving timing
+/// during the null safety migration.
+final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
+
+/// A default hash function used by the platform in various places.
+///
+/// This is currently the [Jenkins hash function][1] but using masking to keep
+/// values in SMI range.
+///
+/// [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+///
+/// Usage:
+/// Hash each value with the hash of the previous value, then get the final
+/// hash by calling finish.
+/// ```
+/// var hash = 0;
+/// for (var value in values) {
+///   hash = SystemHash.combine(hash, value.hashCode);
+/// }
+/// hash = SystemHash.finish(hash);
+/// ```
+// TODO(lrn): Consider specializing this code per platform,
+// so the VM can use its 64-bit integers directly.
+@Since("2.11")
+class SystemHash {
+  static int combine(int hash, int value) {
+    hash = 0x1fffffff & (hash + value);
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+
+  static int hash2(int v1, int v2) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    return finish(hash);
+  }
+
+  static int hash3(int v1, int v2, int v3) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    return finish(hash);
+  }
+
+  static int hash4(int v1, int v2, int v3, int v4) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    return finish(hash);
+  }
+
+  static int hash5(int v1, int v2, int v3, int v4, int v5) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    return finish(hash);
+  }
+
+  static int hash6(int v1, int v2, int v3, int v4, int v5, int v6) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    return finish(hash);
+  }
+
+  static int hash7(int v1, int v2, int v3, int v4, int v5, int v6, int v7) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    return finish(hash);
+  }
+
+  static int hash8(
+      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    return finish(hash);
+  }
+
+  static int hash9(
+      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8, int v9) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    return finish(hash);
+  }
+
+  static int hash10(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int v9, int v10) {
+    int hash = 0;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    return finish(hash);
+  }
+
+  /// Bit shuffling operation to improve hash codes.
+  ///
+  /// Dart integers have very simple hash codes (their value),
+  /// which is acceptable for the hash above because it smears the bits
+  /// as part of the combination.
+  /// However, for the unordered hash based on xor, we need to improve
+  /// the hash code of, e.g., integers, so a set containing the integers
+  /// from zero to 2^n won't always have a zero hashcode.
+  ///
+  /// Assumes the input hash code is an unsigned 32-bit integer.
+  /// Found by Christopher Wellons [https://github.com/skeeto/hash-prospector].
+  static int smear(int x) {
+    // TODO: Use >>> instead of >> when available.
+    x ^= x >> 16;
+    x = (x * 0x7feb352d) & 0xFFFFFFFF;
+    x ^= x >> 15;
+    x = (x * 0x846ca68b) & 0xFFFFFFFF;
+    x ^= x >> 16;
+    return x;
+  }
+}
+
 /// Given an [instance] of some generic type [T], and [extract], a first-class
 /// generic function that takes the same number of type parameters as [T],
 /// invokes the function with the same type arguments that were passed to T
@@ -187,7 +366,7 @@ external Object? extractTypeArguments<T>(T instance, Function extract);
 /// of that class.
 /// If applied to a class method, or parameter of such,
 /// any method implementing that interface method is also annotated.
-/// I multiple `Since` annotations apply to the same declaration or
+/// If multiple `Since` annotations apply to the same declaration or
 /// parameter, the latest version takes precendence.
 ///
 /// Any use of a marked API may trigger a warning if the using code

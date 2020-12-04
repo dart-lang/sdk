@@ -143,7 +143,7 @@ Future<Null> killSafari({Uri bundle}) async {
   if (result.exitCode == 0) {
     var stdout = result.stdout as String;
     var pids =
-        stdout.split("\n").where((String line) => !line.isEmpty).toList();
+        stdout.split("\n").where((String line) => line.isNotEmpty).toList();
     var timer = Timer(const Duration(seconds: 10), () {
       print("Kill -9 Safari $pids");
       kill(pids, force: true);

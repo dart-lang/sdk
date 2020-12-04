@@ -10,14 +10,13 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for resolving [PostfixExpression]s.
@@ -52,14 +51,24 @@ class PostfixExpressionResolver {
       return;
     }
 
-    node.operand.accept(_resolver);
-
-    var receiverType = getReadType(
-      node.operand,
+    var operandResolution = _resolver.resolveForWrite(
+      node: node.operand,
+      hasRead: true,
     );
 
-    _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
+    var readElement = operandResolution.readElement;
+    var writeElement = operandResolution.writeElement;
 
+    var operand = node.operand;
+    _resolver.setReadElement(operand, readElement);
+    _resolver.setWriteElement(operand, writeElement);
+    _resolver.migrationResolutionHooks
+        ?.setCompoundAssignmentExpressionTypes(node);
+
+    // TODO(scheglov) Use VariableElement and do in resolveForWrite() ?
+    _assignmentShared.checkFinalAlreadyAssigned(operand);
+
+    var receiverType = node.readType;
     _resolve1(node, receiverType);
     _resolve2(node, receiverType);
   }
@@ -69,8 +78,8 @@ class PostfixExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      AstNode node, Expression operand, DartType type) {
-    var operandWriteType = _getWriteType(operand);
+      PostfixExpression node, Expression operand, DartType type) {
+    var operandWriteType = node.writeType;
     if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
@@ -116,16 +125,6 @@ class PostfixExpressionResolver {
     }
   }
 
-  DartType _getWriteType(Expression node) {
-    if (node is SimpleIdentifier) {
-      var element = node.staticElement;
-      if (element is PromotableElement) {
-        return element.type;
-      }
-    }
-    return node.staticType;
-  }
-
   void _resolve1(PostfixExpression node, DartType receiverType) {
     Expression operand = node.operand;
 
@@ -143,10 +142,10 @@ class PostfixExpressionResolver {
       receiverType: receiverType,
       name: methodName,
       receiverErrorNode: operand,
-      nameErrorNode: operand,
+      nameErrorEntity: operand,
     );
     node.staticElement = result.getter;
-    if (_shouldReportInvalidMember(receiverType, result)) {
+    if (result.needsGetterError) {
       if (operand is SuperExpression) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
@@ -193,6 +192,16 @@ class PostfixExpressionResolver {
   void _resolveNullCheck(PostfixExpressionImpl node) {
     var operand = node.operand;
 
+    if (operand is SuperExpression) {
+      _resolver.errorReporter.reportErrorForNode(
+        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+        node,
+      );
+      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
+      return;
+    }
+
     var contextType = InferenceContext.getContext(node);
     if (contextType != null) {
       if (_isNonNullableByDefault) {
@@ -204,25 +213,12 @@ class PostfixExpressionResolver {
     operand.accept(_resolver);
     operand = node.operand;
 
-    var operandType = getReadType(operand);
+    var operandType = operand.staticType;
 
     var type = _typeSystem.promoteToNonNull(operandType);
     _inferenceHelper.recordStaticType(node, type);
 
+    _resolver.nullShortingTermination(node);
     _flowAnalysis?.flow?.nonNullAssert_end(operand);
-  }
-
-  /// Return `true` if we should report an error for the lookup [result] on
-  /// the [type].
-  ///
-  /// TODO(scheglov) this is duplicate
-  bool _shouldReportInvalidMember(DartType type, ResolutionResult result) {
-    if (result.isNone && type != null && !type.isDynamic) {
-      if (_isNonNullableByDefault && _typeSystem.isPotentiallyNullable(type)) {
-        return false;
-      }
-      return true;
-    }
-    return false;
   }
 }

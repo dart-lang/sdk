@@ -4,14 +4,20 @@
 
 // @dart = 2.7
 
-/*class: A:OutputUnit(main, {})*/
+/*class: A:
+ class_unit=1{c},
+ type_unit=1{c}
+*/
 class A {
-  /*member: A.:OutputUnit(1, {c})*/
+  /*member: A.:member_unit=1{c}*/
   A();
 }
 
-/*class: B:OutputUnit(main, {})*/
+/*class: B:
+ class_unit=none,
+ type_unit=main{}
+*/
 class B extends A {}
 
-/*member: createA:OutputUnit(1, {c})*/
+/*member: createA:member_unit=1{c}*/
 createA() => new A();

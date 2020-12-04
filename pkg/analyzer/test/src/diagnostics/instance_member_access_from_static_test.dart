@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,8 +14,24 @@ main() {
 }
 
 @reflectiveTest
-class InstanceMemberAccessFromStaticTest extends DriverResolutionTest {
-  test_class_getter_fromMethod() async {
+class InstanceMemberAccessFromStaticTest extends PubPackageResolutionTest {
+  test_class_superMethod_fromMethod() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static void bar() {
+    foo();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 75, 3),
+    ]);
+  }
+
+  test_class_thisGetter_fromMethod() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -29,7 +45,7 @@ class A {
     ]);
   }
 
-  test_class_getter_fromMethod_fromClosure() async {
+  test_class_thisGetter_fromMethod_fromClosure() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -45,7 +61,7 @@ class A {
     ]);
   }
 
-  test_class_method_fromMethod() async {
+  test_class_thisMethod_fromMethod() async {
     await assertErrorsInCode(r'''
 class A {
   void foo() {}
@@ -59,7 +75,7 @@ class A {
     ]);
   }
 
-  test_class_setter_fromMethod() async {
+  test_class_thisSetter_fromMethod() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(int _) {}

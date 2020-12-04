@@ -129,6 +129,8 @@ class TranslationHelper {
                      intptr_t len,
                      Heap::Space space);
 
+  const String& DartString(const GrowableHandlePtrArray<const String>& pieces);
+
   const String& DartSymbolPlain(const char* content) const;
   String& DartSymbolPlain(StringIndex string_index) const;
   const String& DartSymbolObfuscate(const char* content) const;
@@ -191,11 +193,6 @@ class TranslationHelper {
                    const TokenPosition position,
                    const char* format,
                    ...) PRINTF_ATTRIBUTE(5, 6);
-
-  ArrayPtr GetBytecodeComponent() const { return info_.bytecode_component(); }
-  void SetBytecodeComponent(const Array& bytecode_component) {
-    info_.set_bytecode_component(bytecode_component);
-  }
 
   void SetExpressionEvaluationFunction(const Function& function) {
     ASSERT(expression_evaluation_function_ == nullptr);
@@ -441,7 +438,8 @@ class FieldHelper {
  public:
   enum Field {
     kStart,  // tag.
-    kCanonicalName,
+    kCanonicalNameGetter,
+    kCanonicalNameSetter,
     kSourceUriIndex,
     kPosition,
     kEndPosition,
@@ -487,7 +485,8 @@ class FieldHelper {
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
 
-  NameIndex canonical_name_;
+  NameIndex canonical_name_getter_;
+  NameIndex canonical_name_setter_;
   TokenPosition position_;
   TokenPosition end_position_;
   uint32_t flags_ = 0;
@@ -518,11 +517,11 @@ class ProcedureHelper {
     kPosition,
     kEndPosition,
     kKind,
+    kStubKind,
     kFlags,
     kName,
     kAnnotations,
-    kForwardingStubSuperTarget,
-    kForwardingStubInterfaceTarget,
+    kStubTarget,
     kFunction,
     kEnd,
   };
@@ -535,18 +534,26 @@ class ProcedureHelper {
     kFactory,
   };
 
+  enum StubKind {
+    kRegularStubKind,
+    kForwardingStubKind,
+    kForwardingSuperStubKind,
+    kNoSuchMethodForwarderStubKind,
+    kMemberSignatureStubKind,
+    kMixinStubKind,
+    kMixinSuperStubKind,
+  };
+
   enum Flag {
     kStatic = 1 << 0,
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
-    kForwardingStub = 1 << 4,
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 6,
-    kNoSuchMethodForwarder = 1 << 7,
-    kExtensionMember = 1 << 8,
-    kMemberSignature = 1 << 9,
+    kRedirectingFactoryConstructor = 1 << 4,
+    kExtensionMember = 1 << 5,
+    kSyntheticProcedure = 1 << 7,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -565,15 +572,20 @@ class ProcedureHelper {
   bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() const { return (flags_ & kForwardingStub) != 0; }
+  bool IsForwardingStub() const {
+    return stub_kind_ == kForwardingStubKind ||
+           stub_kind_ == kForwardingSuperStubKind;
+  }
   bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
-    return (flags_ & kNoSuchMethodForwarder) != 0;
+    return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsMemberSignature() const { return (flags_ & kMemberSignature) != 0; }
+  bool IsMemberSignature() const {
+    return stub_kind_ == kMemberSignatureStubKind;
+  }
 
   NameIndex canonical_name_;
   TokenPosition start_position_;
@@ -583,6 +595,7 @@ class ProcedureHelper {
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
+  StubKind stub_kind_;
 
   // Only valid if the 'isForwardingStub' flag is set.
   NameIndex forwarding_stub_super_target_;
@@ -686,12 +699,12 @@ class ClassHelper {
   };
 
   enum Flag {
-    kIsAbstract = 1 << 2,
-    kIsEnumClass = 1 << 3,
-    kIsAnonymousMixin = 1 << 4,
-    kIsEliminatedMixin = 1 << 5,
-    kFlagMixinDeclaration = 1 << 6,
-    kHasConstConstructor = 1 << 7,
+    kIsAbstract = 1 << 0,
+    kIsEnumClass = 1 << 1,
+    kIsAnonymousMixin = 1 << 2,
+    kIsEliminatedMixin = 1 << 3,
+    kFlagMixinDeclaration = 1 << 4,
+    kHasConstConstructor = 1 << 5,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -767,11 +780,10 @@ class LibraryHelper {
   };
 
   enum Flag {
-    kExternal = 1 << 0,
-    kSynthetic = 1 << 1,
-    kIsNonNullableByDefault = 1 << 2,
-    kNonNullableByDefaultCompiledModeBit1Weak = 1 << 3,
-    kNonNullableByDefaultCompiledModeBit2Strong = 1 << 4,
+    kSynthetic = 1 << 0,
+    kIsNonNullableByDefault = 1 << 1,
+    kNonNullableByDefaultCompiledModeBit1 = 1 << 2,
+    kNonNullableByDefaultCompiledModeBit2 = 1 << 3,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -786,18 +798,18 @@ class LibraryHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
   bool IsNonNullableByDefault() const {
     return (flags_ & kIsNonNullableByDefault) != 0;
   }
   NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
-    bool weak = (flags_ & kNonNullableByDefaultCompiledModeBit1Weak) != 0;
-    bool strong = (flags_ & kNonNullableByDefaultCompiledModeBit2Strong) != 0;
-    if (weak && strong) return NNBDCompiledMode::kAgnostic;
-    if (strong) return NNBDCompiledMode::kStrong;
-    if (weak) return NNBDCompiledMode::kWeak;
-    return NNBDCompiledMode::kDisabled;
+    bool bit1 = (flags_ & kNonNullableByDefaultCompiledModeBit1) != 0;
+    bool bit2 = (flags_ & kNonNullableByDefaultCompiledModeBit2) != 0;
+    if (!bit1 && !bit2) return NNBDCompiledMode::kWeak;
+    if (bit1 && !bit2) return NNBDCompiledMode::kStrong;
+    if (bit1 && bit2) return NNBDCompiledMode::kAgnostic;
+    if (!bit1 && bit2) return NNBDCompiledMode::kInvalid;
+    UNREACHABLE();
   }
 
   uint8_t flags_ = 0;
@@ -1200,6 +1212,7 @@ class KernelReaderHelper {
   uint32_t PeekListLength();
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
+  NameIndex ReadInterfaceMemberNameReference();
   StringIndex ReadNameAsStringIndex();
   const String& ReadNameAsMethodName();
   const String& ReadNameAsGetterName();
@@ -1209,6 +1222,7 @@ class KernelReaderHelper {
   void SkipStringReference();
   void SkipConstantReference();
   void SkipCanonicalNameReference();
+  void SkipInterfaceMemberNameReference();
   void SkipDartType();
   void SkipOptionalDartType();
   void SkipInterfaceType(bool simple);
@@ -1256,8 +1270,6 @@ class KernelReaderHelper {
   // kernel program.
   intptr_t data_program_offset_;
 
-  friend class BytecodeMetadataHelper;
-  friend class BytecodeReaderHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
   friend class ConstantReader;

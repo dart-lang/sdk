@@ -5,22 +5,25 @@ import "dart:_internal" as _in;
 
 class Class extends core::Object {
   field core::int? _#Class#field = null;
+  field core::bool _#Class#field#isSet = false;
   constructor constructor1() → self::Class
     : super core::Object::•()
     ;
   constructor constructor2(core::int field) → self::Class
-    : self::Class::_#Class#field = field, super core::Object::•()
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   constructor constructor3(core::int value) → self::Class
-    : self::Class::_#Class#field = value.{core::num::+}(1), super core::Object::•()
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = value.{core::num::+}(1), super core::Object::•()
     ;
   constructor constructor4([core::int field = #C1]) → self::Class
-    : self::Class::_#Class#field = field, super core::Object::•()
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int
-    return let final core::int? #t1 = this.{self::Class::_#Class#field} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.") : #t1{core::int};
-  set field(core::int #t2) → void
+    return this.{self::Class::_#Class#field#isSet} ?{core::int} let final core::int? #t1 = this.{self::Class::_#Class#field} in #t1{core::int} : throw new _in::LateError::fieldNI("field");
+  set field(core::int #t2) → void {
+    this.{self::Class::_#Class#field#isSet} = true;
     this.{self::Class::_#Class#field} = #t2;
+  }
 }
 class Subclass extends self::Class {
   constructor constructor1() → self::Subclass

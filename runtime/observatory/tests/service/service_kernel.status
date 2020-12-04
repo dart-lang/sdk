@@ -29,6 +29,15 @@ pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
 
+[ $compiler == dartk ]
+bad_reload_test: RuntimeError # Issue 34025
+coverage_optimized_function_test: Pass, Slow
+evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
+evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
+evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
+pause_on_unhandled_async_exceptions2_test: Pass, Slow
+
 [ $compiler == dartkp ]
 add_breakpoint_rpc_kernel_test: SkipByDesign
 async_generator_breakpoint_test: SkipByDesign
@@ -102,6 +111,7 @@ get_isolate_after_language_error_test: CompileTimeError
 get_object_rpc_test: SkipByDesign
 get_source_report_test: Skip, Timeout
 get_source_report_with_mixin_test: Skip, Timeout
+get_stack_limit_rpc_test: Skip, Timeout
 get_stack_rpc_test: Skip, Timeout
 implicit_getter_setter_test: SkipByDesign
 invoke_test: Skip, Timeout
@@ -143,6 +153,7 @@ next_through_simple_linear_2_test: SkipByDesign
 next_through_simple_linear_test: SkipByDesign
 parameters_in_scope_at_entry_test: Skip, Timeout
 pause_idle_isolate_test: Skip, Timeout
+pause_on_exception_from_slow_path_test: SkipByDesign
 pause_on_exceptions_test: SkipByDesign
 pause_on_start_then_step_test: SkipByDesign
 pause_on_unhandled_async_exceptions2_test: SkipByDesign
@@ -177,6 +188,7 @@ step_through_setter_test: SkipByDesign
 step_through_switch_test: SkipByDesign
 step_through_switch_with_continue_test: SkipByDesign
 valid_source_locations_test: Skip, Timeout
+validate_timer_port_behavior_test: SkipByDesign, Timeout # Debugger disabled in AOT
 vm_timeline_flags_test: Skip, Timeout
 weak_properties_test: CompileTimeError
 yield_positions_with_finally_test: SkipByDesign
@@ -201,19 +213,12 @@ valid_source_locations_test: Skip # Issue 34736, too slow.
 [ $arch != simarm && $arch != simarm64 && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
-[ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed) ]
-*: Skip # There are still timeouts in the interpreter and mixed modes which cause infra timeouts.
-
-[ $mode == debug && $system == windows ]
-debugger_location_second_test: Skip, Timeout
-debugger_location_test: Skip, Timeout
-
-[ $mode == debug && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
 rewind_optimized_out_test: Pass, Slow
 
-[ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk && $system == windows ]
 add_breakpoint_rpc_kernel_test: Skip # Timeout
 break_on_default_constructor_test: Skip # Issues 32137 and 32138.
 breakpoint_in_parts_class_test: Skip # Timeout
@@ -264,7 +269,7 @@ step_through_setter_test: Skip # Issues 32137 and 32138.
 step_through_switch_test: Skip # Times out. Issue 32137.
 step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 
-[ ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
 add_breakpoint_rpc_kernel_test: RuntimeError # Issue #34736
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
@@ -294,11 +299,6 @@ set_name_rpc_test: RuntimeError # Please triage.
 simple_reload_test: RuntimeError, Timeout
 valid_source_locations_test: Skip # Issue 34736, too slow.
 
-[ $compiler == dartk || $compiler == dartkb ]
-bad_reload_test: RuntimeError # Issue 34025
-coverage_optimized_function_test: Pass, Slow
-evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
-evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
-evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
-get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
-pause_on_unhandled_async_exceptions2_test: Pass, Slow
+[ $mode == debug && $system == windows ]
+debugger_location_second_test: Skip, Timeout
+debugger_location_test: Skip, Timeout

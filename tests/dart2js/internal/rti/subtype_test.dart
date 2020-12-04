@@ -5,12 +5,15 @@
 import 'dart:_foreign_helper' show JS, JS_GET_NAME, TYPE_REF;
 import 'dart:_js_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
+import 'package:expect/expect.dart';
 
 import 'subtype_utils.dart';
 
 final String objectName = JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
 final String futureName = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
 final String nullName = JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
+
+final String nullableObject = "$objectName?";
 
 const typeRulesJson = r'''
 {
@@ -27,6 +30,8 @@ final typeRules = JS('=Object', 'JSON.parse(#)', typeRulesJson);
 
 main() {
   rti.testingAddRules(universe, typeRules);
+  rti.testingUniverseEvalOverride(
+      universe, nullableObject, TYPE_REF<Object?>());
   rti.testingUniverseEvalOverride(universe, objectName, TYPE_REF<Object>());
   rti.testingUniverseEvalOverride(universe, nullName, TYPE_REF<Null>());
   runTests();
@@ -53,35 +58,46 @@ void testInterfaces() {
 }
 
 void testTopTypes() {
-  strictSubtype('List<int>', objectName);
-  equivalent(objectName, objectName);
+  strictSubtype('List<int>', nullableObject);
+  equivalent(nullableObject, nullableObject);
   equivalent('@', '@');
   equivalent('~', '~');
   equivalent('1&', '1&');
-  equivalent(objectName, '@');
-  equivalent(objectName, '~');
-  equivalent(objectName, '1&');
+  equivalent(nullableObject, '@');
+  equivalent(nullableObject, '~');
+  equivalent(nullableObject, '1&');
   equivalent('@', '~');
   equivalent('@', '1&');
   equivalent('~', '1&');
-  equivalent('List<$objectName>', 'List<@>');
-  equivalent('List<$objectName>', 'List<~>');
-  equivalent('List<$objectName>', 'List<1&>');
+  equivalent('List<$nullableObject>', 'List<@>');
+  equivalent('List<$nullableObject>', 'List<~>');
+  equivalent('List<$nullableObject>', 'List<1&>');
   equivalent('List<@>', 'List<~>');
   equivalent('List<@>', 'List<1&>');
   equivalent('List<~>', 'List<1&>');
 }
 
 void testNull() {
-  strictSubtype(nullName, 'int');
-  strictSubtype(nullName, 'Iterable<CodeUnits>');
-  strictSubtype(nullName, objectName);
+  if (hasSoundNullSafety) {
+    unrelated(nullName, 'int');
+    unrelated(nullName, 'Iterable<CodeUnits>');
+    unrelated(nullName, objectName);
+  } else {
+    strictSubtype(nullName, 'int');
+    strictSubtype(nullName, 'Iterable<CodeUnits>');
+    strictSubtype(nullName, objectName);
+  }
+  strictSubtype(nullName, nullableObject);
   equivalent(nullName, nullName);
 }
 
 void testBottom() {
   String never = '0&';
-  equivalent(nullName, never); // This test is run with legacy subtyping
+  if (hasSoundNullSafety) {
+    strictSubtype(never, nullName);
+  } else {
+    equivalent(never, nullName);
+  }
 }
 
 void testFutureOr() {

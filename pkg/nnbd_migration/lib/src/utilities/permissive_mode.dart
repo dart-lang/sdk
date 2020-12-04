@@ -20,7 +20,7 @@ mixin PermissiveModeVisitor<T> on GeneralizingAstVisitor<T> {
 
   /// Executes [callback].  If [listener] is not `null`, and an exception
   /// occurs, the exception is caught and reported to the [listener].
-  void reportExceptionsIfPermissive(AstNode node, void callback()) {
+  void reportExceptionsIfPermissive(AstNode node, void Function() callback) {
     if (listener != null) {
       try {
         return callback();

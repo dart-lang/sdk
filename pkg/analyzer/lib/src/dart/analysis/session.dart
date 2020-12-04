@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -16,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -26,12 +23,6 @@ import 'package:meta/meta.dart';
 class AnalysisSessionImpl implements AnalysisSession {
   /// The analysis driver performing analysis for this session.
   final driver.AnalysisDriver _driver;
-
-  /// The type provider being used by the analysis driver.
-  TypeProvider _typeProvider;
-
-  /// The type system being used by the analysis driver.
-  TypeSystemImpl _typeSystem;
 
   /// The URI converter used to convert between URI's and file paths.
   UriConverter _uriConverter;
@@ -53,41 +44,6 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   ResourceProvider get resourceProvider => _driver.resourceProvider;
-
-  @override
-  SourceFactory get sourceFactory => _driver.sourceFactory;
-
-  @Deprecated('Use LibraryElement.typeProvider')
-  @override
-  Future<TypeProvider> get typeProvider async {
-    _checkConsistency();
-    if (_typeProvider == null) {
-      LibraryElement coreLibrary = await _driver.getLibraryByUri('dart:core');
-      LibraryElement asyncLibrary = await _driver.getLibraryByUri('dart:async');
-      _typeProvider = TypeProviderImpl(
-        coreLibrary: coreLibrary,
-        asyncLibrary: asyncLibrary,
-        isNonNullableByDefault: false,
-      );
-    }
-    return _typeProvider;
-  }
-
-  @Deprecated('Use LibraryElement.typeSystem')
-  @override
-  Future<TypeSystemImpl> get typeSystem async {
-    _checkConsistency();
-    if (_typeSystem == null) {
-      var typeProvider = await this.typeProvider;
-      _typeSystem = TypeSystemImpl(
-        implicitCasts: true,
-        isNonNullableByDefault: false,
-        strictInference: false,
-        typeProvider: typeProvider,
-      );
-    }
-    return _typeSystem;
-  }
 
   @override
   UriConverter get uriConverter {
@@ -126,14 +82,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     return libraryElement;
   }
 
-  @deprecated
-  @override
-  Future<ParseResult> getParsedAst(String path) async => getParsedUnit(path);
-
-  @deprecated
-  @override
-  ParseResult getParsedAstSync(String path) => getParsedUnit(path);
-
   @override
   ParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
@@ -152,10 +100,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     _checkConsistency();
     return _driver.parseFileSync(path);
   }
-
-  @deprecated
-  @override
-  Future<ResolveResult> getResolvedAst(String path) => getResolvedUnit(path);
 
   @override
   Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
@@ -231,7 +175,7 @@ class SynchronousSession {
   AnalysisOptionsImpl get analysisOptions => _analysisOptions;
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
-    this._analysisOptions = analysisOptions;
+    _analysisOptions = analysisOptions;
 
     _typeSystemLegacy?.updateOptions(
       implicitCasts: analysisOptions.implicitCasts,
@@ -244,20 +188,12 @@ class SynchronousSession {
     );
   }
 
-  @Deprecated('Use LibraryElement.typeProvider')
-  TypeProvider get typeProvider => _typeProviderLegacy;
-
   TypeProvider get typeProviderLegacy {
     return _typeProviderLegacy;
   }
 
   TypeProvider get typeProviderNonNullableByDefault {
     return _typeProviderNonNullableByDefault;
-  }
-
-  @Deprecated('Use LibraryElement.typeSystem')
-  TypeSystemImpl get typeSystem {
-    return typeSystemLegacy;
   }
 
   TypeSystemImpl get typeSystemLegacy {

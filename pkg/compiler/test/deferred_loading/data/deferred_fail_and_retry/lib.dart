@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*member: foo:OutputUnit(1, {lib})*/
+/*member: foo:member_unit=1{lib}*/
 foo() {
   return "loaded";
 }

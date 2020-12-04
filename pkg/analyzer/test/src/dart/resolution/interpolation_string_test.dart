@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class InterpolationStringTest extends DriverResolutionTest {
+class InterpolationStringTest extends PubPackageResolutionTest {
   void test_contents() async {
     var code = r'''
 var bar;

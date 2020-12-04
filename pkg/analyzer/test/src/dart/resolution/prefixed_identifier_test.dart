@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionTest extends DriverResolutionTest {
+class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest {
   test_dynamic_explicitCore_withPrefix() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core' as mycore;
@@ -33,8 +33,22 @@ main() {
     );
   }
 
+  test_functionType_call_read() async {
+    await assertNoErrorsInCode('''
+void f(int Function(String) a) {
+  a.call;
+}
+''');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('.call;'),
+      element: null,
+      type: 'int Function(String)',
+    );
+  }
+
   test_implicitCall_tearOff() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int call() => 0;
 }
@@ -56,24 +70,224 @@ int Function() foo() {
     );
     assertType(identifier, 'A');
   }
+
+  test_read() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('a.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
+  }
+
+  test_read_staticMethod_generic() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo<U>(int a, U u) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function<U>(int, U)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.class_('A'),
+      writeElement: null,
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.method('foo'),
+      writeElement: null,
+      type: 'void Function<U>(int, U)',
+    );
+  }
+
+  test_read_staticMethod_ofGenericClass() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo(int a) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function(int)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.class_('A'),
+      writeElement: null,
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.method('foo'),
+      writeElement: null,
+      type: 'void Function(int)',
+    );
+  }
+
+  test_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo += 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    if (hasAssignmentLeftResolution) {
+      assertPrefixedIdentifier(
+        prefixed,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefixed.identifier,
+        readElement: null,
+        writeElement: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
+  }
+
+  test_write() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    if (hasAssignmentLeftResolution) {
+      assertPrefixedIdentifier(
+        prefixed,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefixed.identifier,
+        readElement: null,
+        writeElement: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
+  }
 }
 
 @reflectiveTest
 class PrefixedIdentifierResolutionWithNullSafetyTest
     extends PrefixedIdentifierResolutionTest with WithNullSafetyMixin {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' deferred as a;
 
 main() {
   a.loadLibrary;
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 22, 8),
+    ]);
 
     var import = findElement.importFind('package:test/a.dart');
 
@@ -88,7 +302,7 @@ main() {
   }
 
   test_implicitCall_tearOff_nullable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int call() => 0;
 }

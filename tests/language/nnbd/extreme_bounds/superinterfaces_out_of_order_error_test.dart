@@ -4,8 +4,6 @@
 
 // Requirements=nnbd-weak
 
-// @dart = 2.10
-
 // Test that upper bound computations which rely on the computations of the
 // cardinality of the superinterface sets define those sets without erasing or
 // modifying the superinterfaces.
@@ -33,7 +31,7 @@ void testLegacyNonNullable(bool b) {
 
     // The type of the conditional is not inferred as Generic
     Generic<int> x1 = (b ? Legacy() : NonNullable())..genericMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -43,7 +41,7 @@ void testLegacyNonNullable(bool b) {
 
     // The type of the conditional not inferred as Legacy, nor dynamic
     Generic<int> x2 = (b ? Legacy() : NonNullable())..legacyMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -53,7 +51,7 @@ void testLegacyNonNullable(bool b) {
 
     // The type of the conditional is not inferred as NonNullable, nor dynamic
     Generic<int> x3 = (b ? Legacy() : NonNullable())..nonNullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -101,7 +99,7 @@ void testLegacyNonNullable(bool b) {
 
     // The type of the conditional is not inferred as Generic
     Generic<int> x1 = (b ? legacy : nonNullable)..genericMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -111,7 +109,7 @@ void testLegacyNonNullable(bool b) {
 
     // The type of the conditional not inferred as Legacy, nor dynamic
     Generic<int> x2 = (b ? legacy : nonNullable)..legacyMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -121,7 +119,7 @@ void testLegacyNonNullable(bool b) {
 
     // The type of the conditional is not inferred as NonNullable, nor dynamic
     Generic<int> x3 = (b ? legacy : nonNullable)..nonNullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -178,7 +176,7 @@ void testLegacyNullable(bool b) {
 
     // The type of the conditional is not inferred as Generic
     Generic<int> x1 = (b ? Legacy() : Nullable())..genericMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -188,7 +186,7 @@ void testLegacyNullable(bool b) {
 
     // The type of the conditional not inferred as Legacy, nor dynamic
     Generic<int> x2 = (b ? Legacy() : Nullable())..legacyMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -198,7 +196,7 @@ void testLegacyNullable(bool b) {
 
     // The type of the conditional is not inferred as Nullable, nor dynamic
     Generic<int> x3 = (b ? Legacy() : Nullable())..nullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -246,7 +244,7 @@ void testLegacyNullable(bool b) {
 
     // The type of the conditional is not inferred as Generic
     Generic<int> x1 = (b ? legacy : nullable)..genericMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -256,7 +254,7 @@ void testLegacyNullable(bool b) {
 
     // The type of the conditional not inferred as Legacy, nor dynamic
     Generic<int> x2 = (b ? legacy : nullable)..legacyMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -266,7 +264,7 @@ void testLegacyNullable(bool b) {
 
     // The type of the conditional is not inferred as Nullable, nor dynamic
     Generic<int> x3 = (b ? legacy : nullable)..nullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -322,7 +320,7 @@ void testNullableNonNullable(bool b) {
 
     // The type of the conditional is Generic<int>
     Generic<int> x1 = (b ? Nullable() : NonNullable())..genericMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -332,7 +330,7 @@ void testNullableNonNullable(bool b) {
 
     // The type of the conditional not inferred as Nullable, nor dynamic
     Generic<int> x2 = (b ? Nullable() : NonNullable())..nullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -342,7 +340,7 @@ void testNullableNonNullable(bool b) {
 
     // The type of the conditional is not inferred as NonNullable, nor dynamic
     Generic<int> x3 = (b ? Nullable() : NonNullable())..nonNullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -391,7 +389,7 @@ void testNullableNonNullable(bool b) {
 
     // The type of the conditional is Generic<int>
     Generic<int> x1 = (b ? nullable : nonNullable)..genericMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -401,7 +399,7 @@ void testNullableNonNullable(bool b) {
 
     // The type of the conditional not inferred as Nullable, nor dynamic
     Generic<int> x2 = (b ? nullable : nonNullable)..nullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.
@@ -411,7 +409,7 @@ void testNullableNonNullable(bool b) {
 
     // The type of the conditional is not inferred as NonNullable, nor dynamic
     Generic<int> x3 = (b ? nullable : nonNullable)..nonNullableMethod();
-    //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                   ^
     // [cfe] A value of type 'Root' can't be assigned to a variable of type 'Generic<int>'.

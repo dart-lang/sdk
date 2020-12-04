@@ -12,7 +12,7 @@ main() {
   dynamic f = func;
 
   // Invalid: Subtype may not redeclare optional parameters as required.
-  Expect.throws(() {
+  Expect.throwsTypeError(() {
     Function(
       String p0, {
       required int p1,
@@ -21,7 +21,7 @@ main() {
   });
 
   // Invalid: Subtype may not declare new required named parameters.
-  Expect.throws(() {
+  Expect.throwsTypeError(() {
     Function(
       String p0, {
       required int p1,
@@ -29,18 +29,18 @@ main() {
   });
 
   // Invalid: Invocation with explicit null required named argument.
-  Expect.throws(() {
+  Expect.throwsTypeError(() {
     f("", p1: null, p2: null);
   });
-  Expect.throws(() {
+  Expect.throwsTypeError(() {
     Function.apply(f, [""], {#p1: null, #p2: null});
   });
 
   // Invalid: Invocation that omits a required named argument.
-  Expect.throws(() {
+  Expect.throwsNoSuchMethodError(() {
     f("", p1: 100);
   });
-  Expect.throws(() {
+  Expect.throwsNoSuchMethodError(() {
     Function.apply(f, [""], {#p1: 100});
   });
 }

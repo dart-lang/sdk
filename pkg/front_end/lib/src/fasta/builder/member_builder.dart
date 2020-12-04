@@ -54,6 +54,13 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// a factory this is the [member] itself. For a setter this is `null`.
   Member get invokeTarget;
 
+  /// The members from this builder that are accessible in exports through
+  /// the name of the builder.
+  ///
+  /// This is used to allow a single builder to create separate members for
+  /// the getter and setter capabilities.
+  Iterable<Member> get exportedMembers;
+
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind;
 
@@ -149,6 +156,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
 
+  /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f);
 
@@ -243,9 +251,6 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isStatic => memberBuilder.isStatic;
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
-
-  @override
   bool isObjectMember(ClassBuilder objectClass) {
     return classBuilder == objectClass;
   }
@@ -281,12 +286,6 @@ abstract class BuilderClassMember implements ClassMember {
 
   @override
   ClassMember get concrete => this;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return false;
-  }
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';

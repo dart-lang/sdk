@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -24,13 +23,9 @@ import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
-import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
-    show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -40,185 +35,21 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart';
 import 'package:linter/src/rules.dart' as linter;
-import 'package:path/path.dart' as path;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
-
-/// Commandline argument parser. (Copied from analyzer/lib/options.dart)
-/// TODO(pquitslund): replaces with a simple [ArgParser] instance
-/// when the args package supports ignoring unrecognized
-/// options/flags (https://github.com/dart-lang/args/issues/9).
-/// TODO(devoncarew): Consider removing the ability to support unrecognized
-/// flags for the analysis server.
-class CommandLineParser {
-  final List<String> _knownFlags;
-  final ArgParser _parser;
-
-  /// Creates a new command line parser
-  CommandLineParser()
-      : _knownFlags = <String>[],
-        _parser = ArgParser(allowTrailingOptions: true);
-
-  ArgParser get parser => _parser;
-
-  /// Defines a flag.
-  /// See [ArgParser.addFlag()].
-  void addFlag(String name,
-      {String abbr,
-      String help,
-      bool defaultsTo = false,
-      bool negatable = true,
-      void Function(bool value) callback,
-      bool hide = false}) {
-    _knownFlags.add(name);
-    _parser.addFlag(name,
-        abbr: abbr,
-        help: help,
-        defaultsTo: defaultsTo,
-        negatable: negatable,
-        callback: callback,
-        hide: hide);
-  }
-
-  /// Defines an option that takes multiple values.
-  /// See [ArgParser.addMultiOption].
-  void addMultiOption(String name,
-      {String abbr,
-      String help,
-      String valueHelp,
-      Iterable<String> allowed,
-      Map<String, String> allowedHelp,
-      Iterable<String> defaultsTo,
-      void Function(List<String> values) callback,
-      bool splitCommas = true,
-      bool hide = false}) {
-    _knownFlags.add(name);
-    _parser.addMultiOption(name,
-        abbr: abbr,
-        help: help,
-        valueHelp: valueHelp,
-        allowed: allowed,
-        allowedHelp: allowedHelp,
-        defaultsTo: defaultsTo,
-        callback: callback,
-        splitCommas: splitCommas,
-        hide: hide);
-  }
-
-  /// Defines a value-taking option.
-  /// See [ArgParser.addOption()].
-  void addOption(String name,
-      {String abbr,
-      String help,
-      List<String> allowed,
-      Map<String, String> allowedHelp,
-      String defaultsTo,
-      void Function(Object) callback}) {
-    _knownFlags.add(name);
-    _parser.addOption(name,
-        abbr: abbr,
-        help: help,
-        allowed: allowed,
-        allowedHelp: allowedHelp,
-        defaultsTo: defaultsTo,
-        callback: callback);
-  }
-
-  /// Generates a string displaying usage information for the defined options.
-  /// See [ArgParser.usage].
-  String getUsage() => _parser.usage;
-
-  /// Parses [args], a list of command-line arguments, matches them against the
-  /// flags and options defined by this parser, and returns the result. The
-  /// values of any defined variables are captured in the given map.
-  /// See [ArgParser].
-  ArgResults parse(List<String> args, Map<String, String> definedVariables) =>
-      _parser.parse(
-          _filterUnknowns(parseDefinedVariables(args, definedVariables)));
-
-  List<String> parseDefinedVariables(
-      List<String> args, Map<String, String> definedVariables) {
-    var count = args.length;
-    var remainingArgs = <String>[];
-    for (var i = 0; i < count; i++) {
-      var arg = args[i];
-      if (arg == '--') {
-        while (i < count) {
-          remainingArgs.add(args[i++]);
-        }
-      } else if (arg.startsWith('-D')) {
-        definedVariables[arg.substring(2)] = args[++i];
-      } else {
-        remainingArgs.add(arg);
-      }
-    }
-    return remainingArgs;
-  }
-
-  List<String> _filterUnknowns(List<String> args) {
-    // TODO(devoncarew): Consider dropping support for the
-    // --ignore-unrecognized-flags option.
-
-    // Only filter args if the ignore flag is specified.
-    if (args.contains('--ignore-unrecognized-flags')) {
-      // Filter all unrecognized flags and options.
-      var filtered = <String>[];
-      for (var i = 0; i < args.length; ++i) {
-        var arg = args[i];
-        if (arg.startsWith('--') && arg.length > 2) {
-          var option = arg.substring(2);
-          // remove any leading 'no-'
-          if (option.startsWith('no-')) {
-            option = option.substring(3);
-          }
-          // strip the last '=value'
-          var equalsOffset = option.lastIndexOf('=');
-          if (equalsOffset != -1) {
-            option = option.substring(0, equalsOffset);
-          }
-          // check the option
-          if (!_knownFlags.contains(option)) {
-            //"eat" params by advancing to the next flag/option
-            i = _getNextFlagIndex(args, i);
-          } else {
-            filtered.add(arg);
-          }
-        } else {
-          filtered.add(arg);
-        }
-      }
-
-      return filtered;
-    } else {
-      return args;
-    }
-  }
-
-  int _getNextFlagIndex(List<String> args, int i) {
-    for (; i < args.length; ++i) {
-      if (args[i].startsWith('--')) {
-        return i;
-      }
-    }
-    return i;
-  }
-}
 
 /// The [Driver] class represents a single running instance of the analysis
 /// server application.  It is responsible for parsing command line options
 /// and starting the HTTP and/or stdio servers.
 class Driver implements ServerStarter {
   /// The name of the application that is used to start a server.
-  static const BINARY_NAME = 'server';
+  static const BINARY_NAME = 'analysis_server';
 
   /// The name of the option used to set the identifier for the client.
   static const String CLIENT_ID = 'client-id';
 
   /// The name of the option used to set the version for the client.
   static const String CLIENT_VERSION = 'client-version';
-
-  /// The name of the option used to enable DartPad specific functionality.
-  static const String DARTPAD_OPTION = 'dartpad';
 
   /// The name of the option used to disable exception handling.
   static const String DISABLE_SERVER_EXCEPTION_HANDLING =
@@ -232,15 +63,6 @@ class Driver implements ServerStarter {
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
 
-  /// The name of the option used to enable experiments.
-  static const String ENABLE_EXPERIMENT_OPTION = 'enable-experiment';
-
-  /// The name of the option used to enable instrumentation.
-  static const String ENABLE_INSTRUMENTATION_OPTION = 'enable-instrumentation';
-
-  /// The name of the option used to set the file read mode.
-  static const String FILE_READ_MODE = 'file-read-mode';
-
   /// The name of the option used to print usage information.
   static const String HELP_OPTION = 'help';
 
@@ -252,49 +74,35 @@ class Driver implements ServerStarter {
 
   /// The name of the option used to cause instrumentation to also be written to
   /// a local file.
-  static const String INSTRUMENTATION_LOG_FILE = 'instrumentation-log-file';
+  static const String PROTOCOL_TRAFFIC_LOG = 'protocol-traffic-log';
+  static const String PROTOCOL_TRAFFIC_LOG_ALIAS = 'instrumentation-log-file';
 
   /// The name of the option used to specify if [print] should print to the
   /// console instead of being intercepted.
   static const String INTERNAL_PRINT_TO_CONSOLE = 'internal-print-to-console';
 
   /// The name of the option used to describe the new analysis driver logger.
-  static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
-
-  /// The name of the flag used to enable version 2 of semantic highlight
-  /// notification.
-  static const String USE_ANALYSIS_HIGHLIGHT2 = 'useAnalysisHighlight2';
+  static const String ANALYSIS_DRIVER_LOG = 'analysis-driver-log';
+  static const String ANALYSIS_DRIVER_LOG_ALIAS = 'new-analysis-driver-log';
 
   /// The option for specifying the http diagnostic port.
   /// If specified, users can review server status and performance information
   /// by opening a web browser on http://localhost:<port>
-  static const String PORT_OPTION = 'port';
+  static const String DIAGNOSTIC_PORT = 'diagnostic-port';
+  static const String DIAGNOSTIC_PORT_ALIAS = 'port';
 
   /// The path to the SDK.
-  static const String SDK_OPTION = 'sdk';
+  static const String DART_SDK = 'dart-sdk';
+  static const String DART_SDK_ALIAS = 'sdk';
 
   /// The path to the data cache.
   static const String CACHE_FOLDER = 'cache';
 
-  /// Whether to enable parsing via the Fasta parser.
-  static const String USE_FASTA_PARSER = 'use-fasta-parser';
-
   /// The name of the flag to use the Language Server Protocol (LSP).
   static const String USE_LSP = 'lsp';
 
-  /// Whether or not to enable ML ranking for code completion.
-  static const String ENABLE_COMPLETION_MODEL = 'enable-completion-model';
-
-  /// The path on disk to a directory containing language model files for smart
-  /// code completion.
-  static const String COMPLETION_MODEL_FOLDER = 'completion-model';
-
   /// A directory to analyze in order to train an analysis server snapshot.
   static const String TRAIN_USING = 'train-using';
-
-  /// A flag indicating that the new code completion relevance computation
-  /// should be used to compute relevance scores.
-  static const String USE_NEW_RELEVANCE = 'use-new-relevance';
 
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
@@ -318,14 +126,11 @@ class Driver implements ServerStarter {
   @override
   void start(List<String> arguments, [SendPort sendPort]) {
     var parser = _createArgParser();
-    var results = parser.parse(arguments, <String, String>{});
+    var results = parser.parse(arguments);
 
     var analysisServerOptions = AnalysisServerOptions();
-    analysisServerOptions.useAnalysisHighlight2 =
-        results[USE_ANALYSIS_HIGHLIGHT2];
-    analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
     analysisServerOptions.newAnalysisDriverLog =
-        results[NEW_ANALYSIS_DRIVER_LOG];
+        results[ANALYSIS_DRIVER_LOG] ?? results[ANALYSIS_DRIVER_LOG_ALIAS];
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
     // For clients that don't supply their own identifier, use a default based on
@@ -337,40 +142,10 @@ class Driver implements ServerStarter {
 
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
-    if (results.wasParsed(ENABLE_EXPERIMENT_OPTION)) {
-      analysisServerOptions.enabledExperiments =
-          (results[ENABLE_EXPERIMENT_OPTION] as List).cast<String>().toList();
-    }
-    analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
-    analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
-
-    // ML model configuration.
-    final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
-    analysisServerOptions.completionModelFolder =
-        results[COMPLETION_MODEL_FOLDER];
-    if (results.wasParsed(ENABLE_COMPLETION_MODEL) && !enableCompletionModel) {
-      // This is the case where the user has explicitly turned off model-based
-      // code completion.
-      analysisServerOptions.completionModelFolder = null;
-    }
-    // TODO(devoncarew): Simplify this logic and use the value from sdkConfig.
-    if (enableCompletionModel &&
-        analysisServerOptions.completionModelFolder == null) {
-      // The user has enabled ML code completion without explicitly setting a
-      // model for us to choose, so use the default one. We need to walk over
-      // from $SDK/bin/snapshots/analysis_server.dart.snapshot to
-      // $SDK/bin/model/lexeme.
-      analysisServerOptions.completionModelFolder = path.join(
-        File.fromUri(Platform.script).parent.path,
-        '..',
-        'model',
-        'lexeme',
-      );
-    }
 
     // Analytics
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
@@ -411,9 +186,6 @@ class Driver implements ServerStarter {
     final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
     final crashReportSender =
         CrashReportSender.prod(crashProductId, shouldSendCallback);
-    // TODO(mfairhurst): send these to prod or disable.
-    final crashReportSenderAngular = CrashReportSender.staging(
-        'Dart_angular_analysis_plugin', shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
@@ -421,10 +193,6 @@ class Driver implements ServerStarter {
         print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
         return null;
       }
-    }
-
-    if (results[DARTPAD_OPTION]) {
-      UriContributor.suggestFilePaths = false;
     }
 
     {
@@ -439,7 +207,7 @@ class Driver implements ServerStarter {
     }
 
     if (results[HELP_OPTION]) {
-      _printUsage(parser.parser, analytics, fromHelp: true);
+      _printUsage(parser, analytics, fromHelp: true);
       return null;
     }
 
@@ -453,7 +221,8 @@ class Driver implements ServerStarter {
     //
     // Initialize the instrumentation service.
     //
-    String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    String logFilePath =
+        results[PROTOCOL_TRAFFIC_LOG] ?? results[PROTOCOL_TRAFFIC_LOG_ALIAS];
     var allInstrumentationServices = instrumentationService == null
         ? <InstrumentationService>[]
         : [instrumentationService];
@@ -464,29 +233,32 @@ class Driver implements ServerStarter {
     }
 
     var errorNotifier = ErrorNotifier();
-    allInstrumentationServices.add(CrashReportingInstrumentation(
-        crashReportSender, crashReportSenderAngular));
+    allInstrumentationServices
+        .add(CrashReportingInstrumentation(crashReportSender));
     instrumentationService =
         MulticastInstrumentationService(allInstrumentationServices);
 
     instrumentationService.logVersion(
-        results[TRAIN_USING] != null
-            ? 'training-0'
-            : _readUuid(instrumentationService),
-        analysisServerOptions.clientId,
-        analysisServerOptions.clientVersion,
-        PROTOCOL_VERSION,
-        defaultSdk.sdkVersion);
+      results[TRAIN_USING] != null
+          ? 'training-0'
+          : _readUuid(instrumentationService),
+      analysisServerOptions.clientId,
+      analysisServerOptions.clientVersion,
+      PROTOCOL_VERSION,
+      defaultSdk.languageVersion.toString(),
+    );
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     int diagnosticServerPort;
-    if (results[PORT_OPTION] != null) {
+    final String portValue =
+        results[DIAGNOSTIC_PORT] ?? results[DIAGNOSTIC_PORT_ALIAS];
+    if (portValue != null) {
       try {
-        diagnosticServerPort = int.parse(results[PORT_OPTION]);
+        diagnosticServerPort = int.parse(portValue);
       } on FormatException {
-        print('Invalid port number: ${results[PORT_OPTION]}');
+        print('Invalid port number: $portValue');
         print('');
-        _printUsage(parser.parser, analytics);
+        _printUsage(parser, analytics);
         exitCode = 1;
         return null;
       }
@@ -518,7 +290,7 @@ class Driver implements ServerStarter {
   void startAnalysisServer(
     ArgResults results,
     AnalysisServerOptions analysisServerOptions,
-    CommandLineParser parser,
+    ArgParser parser,
     DartSdkManager dartSdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
@@ -629,42 +401,11 @@ class Driver implements ServerStarter {
           socketServer.analysisServer.shutdown();
           if (sendPort == null) exit(0);
         });
-        startCompletionRanking(socketServer, null, analysisServerOptions);
       },
           print: results[INTERNAL_PRINT_TO_CONSOLE]
               ? null
               : httpServer.recordPrint);
     }
-  }
-
-  /// This will be invoked after createAnalysisServer has been called on the
-  /// socket server. At that point, we'll be able to send a server.error
-  /// notification in case model startup fails.
-  void startCompletionRanking(
-      SocketServer socketServer,
-      LspSocketServer lspSocketServer,
-      AnalysisServerOptions analysisServerOptions) {
-    // If ML completion is not enabled, or we're on a 32-bit machine, don't try
-    // and start the completion model.
-    if (analysisServerOptions.completionModelFolder == null ||
-        ffi.sizeOf<ffi.IntPtr>() == 4) {
-      return;
-    }
-
-    // Start completion model isolate if this is a 64 bit system and analysis
-    // server was configured to load a language model on disk.
-    CompletionRanking.instance =
-        CompletionRanking(analysisServerOptions.completionModelFolder);
-    CompletionRanking.instance.start().catchError((exception, stackTrace) {
-      // Disable smart ranking if model startup fails.
-      analysisServerOptions.completionModelFolder = null;
-      // TODO(brianwilkerson) Shutdown the isolates that have already been
-      //  started.
-      CompletionRanking.instance = null;
-      AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage(
-              'Failed to start ranking model isolate', exception, stackTrace));
-    });
   }
 
   void startLspServer(
@@ -709,7 +450,6 @@ class Driver implements ServerStarter {
           exit(0);
         }
       });
-      startCompletionRanking(null, socketServer, analysisServerOptions);
     });
   }
 
@@ -739,14 +479,63 @@ class Driver implements ServerStarter {
   }
 
   /// Create and return the parser used to parse the command-line arguments.
-  CommandLineParser _createArgParser() {
-    var parser = CommandLineParser();
+  ArgParser _createArgParser() {
+    var parser = ArgParser();
+    parser.addFlag(HELP_OPTION,
+        abbr: 'h', negatable: false, help: 'Print this usage information.');
     parser.addOption(CLIENT_ID,
-        help: 'an identifier used to identify the client');
-    parser.addOption(CLIENT_VERSION, help: 'the version of the client');
-    parser.addFlag(DARTPAD_OPTION,
-        help: 'enable DartPad specific functionality',
+        valueHelp: 'name',
+        help: 'An identifier for the analysis server client.');
+    parser.addOption(CLIENT_VERSION,
+        valueHelp: 'version',
+        help: 'The version of the analysis server client.');
+    parser.addOption(DART_SDK,
+        valueHelp: 'path', help: 'Override the Dart SDK to use for analysis.');
+    parser.addOption(DART_SDK_ALIAS, hide: true);
+    parser.addOption(CACHE_FOLDER,
+        valueHelp: 'path',
+        help: 'Override the location of the analysis server\'s cache.');
+    parser.addFlag(USE_LSP,
         defaultsTo: false,
+        negatable: false,
+        help: 'Whether to use the Language Server Protocol (LSP).');
+
+    parser.addSeparator('Server diagnostics:');
+
+    parser.addOption(PROTOCOL_TRAFFIC_LOG,
+        valueHelp: 'file path',
+        help: 'Write server protocol traffic to the given file.');
+    parser.addOption(PROTOCOL_TRAFFIC_LOG_ALIAS, hide: true);
+
+    parser.addOption(ANALYSIS_DRIVER_LOG,
+        valueHelp: 'file path',
+        help: 'Write analysis driver diagnostic data to the given file.');
+    parser.addOption(ANALYSIS_DRIVER_LOG_ALIAS, hide: true);
+
+    parser.addOption(DIAGNOSTIC_PORT,
+        valueHelp: 'port',
+        help: 'Serve a web UI for status and performance data on the given '
+            'port.');
+    parser.addOption(DIAGNOSTIC_PORT_ALIAS, hide: true);
+
+    //
+    // Hidden; these have not yet been made public.
+    //
+    parser.addFlag(ANALYTICS_FLAG,
+        help: 'enable or disable sending analytics information to Google',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
+    parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
+        negatable: false,
+        help: 'suppress analytics for this session',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
+
+    //
+    // Hidden; these are for internal development.
+    //
+    parser.addOption(TRAIN_USING,
+        valueHelp: 'path',
+        help: 'Pass in a directory to analyze for purposes of training an '
+            'analysis server snapshot.',
         hide: true);
     parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
         // TODO(jcollins-g): Pipeline option through and apply to all
@@ -759,75 +548,38 @@ class Driver implements ServerStarter {
         help: 'disable all completion features', defaultsTo: false, hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
         help: 'disable all search features', defaultsTo: false, hide: true);
-    parser.addMultiOption(ENABLE_EXPERIMENT_OPTION,
-        help: 'Enable one or more experimental features. If multiple features '
-            'are being added, they should be comma separated.',
-        hide: true,
-        splitCommas: true);
-    parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
-        help: 'enable sending instrumentation information to a server',
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(HELP_OPTION,
-        help: 'print this help message without starting a server',
-        abbr: 'h',
-        defaultsTo: false,
-        negatable: false);
-    parser.addOption(INSTRUMENTATION_LOG_FILE,
-        help: 'write instrumentation data to the given file');
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: 'enable sending `print` output to the console',
         defaultsTo: false,
-        negatable: false);
-    parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
-        help: "set a destination for the new analysis driver's log");
-    parser.addFlag(ANALYTICS_FLAG,
-        help: 'enable or disable sending analytics information to Google',
-        hide: !telemetry.SHOW_ANALYTICS_UI);
-    parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
         negatable: false,
-        help: 'suppress analytics for this session',
-        hide: !telemetry.SHOW_ANALYTICS_UI);
-    parser.addOption(PORT_OPTION,
-        help: 'the http diagnostic port on which the server provides'
-            ' status and performance information');
-    parser.addOption(SDK_OPTION, help: '[path] the path to the sdk');
-    parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
-        help: 'enable version 2 of semantic highlight',
-        defaultsTo: false,
-        negatable: false);
-    parser.addOption(FILE_READ_MODE,
-        help: 'an option for reading files (some clients normalize eol '
-            'characters, which make the file offset and range information '
-            'incorrect)',
-        allowed: ['as-is', 'normalize-eol-always'],
-        allowedHelp: {
-          'as-is': 'file contents are read as-is',
-          'normalize-eol-always':
-              r"eol characters normalized to the single character new line ('\n')"
-        },
-        defaultsTo: 'as-is');
-    parser.addOption(CACHE_FOLDER,
-        help: '[path] path to the location where to cache data');
-    parser.addFlag('preview-dart-2',
-        help: 'Enable the Dart 2.0 preview (deprecated)', hide: true);
-    parser.addFlag(USE_FASTA_PARSER,
-        defaultsTo: true,
-        help: 'Whether to enable parsing via the Fasta parser');
-    parser.addFlag(USE_LSP,
-        defaultsTo: false, help: 'Whether to use the Language Server Protocol');
-    parser.addFlag(ENABLE_COMPLETION_MODEL,
-        help: 'Whether or not to turn on ML ranking for code completion');
-    parser.addOption(COMPLETION_MODEL_FOLDER,
-        help: '[path] path to the location of a code completion model');
-    parser.addOption(TRAIN_USING,
-        help: 'Pass in a directory to analyze for purposes of training an '
-            'analysis server snapshot.');
+        hide: true);
+
     //
-    // Temporary flags.
+    // Hidden; these are deprecated and no longer read from.
     //
-    parser.addFlag(USE_NEW_RELEVANCE,
-        help: 'Use the new relevance computation for code completion.');
+
+    // Removed 11/15/2020.
+    parser.addOption('completion-model', hide: true);
+    // Removed 11/8/2020.
+    parser.addFlag('dartpad', hide: true);
+    // Removed 11/15/2020.
+    parser.addFlag('enable-completion-model', hide: true);
+    // Removed 10/30/2020.
+    parser.addMultiOption('enable-experiment', hide: true);
+    // Removed 9/23/2020.
+    parser.addFlag('enable-instrumentation', hide: true);
+    // Removed 11/12/2020.
+    parser.addOption('file-read-mode', hide: true);
+    // Removed 11/12/2020.
+    parser.addFlag('ignore-unrecognized-flags', hide: true);
+    // Removed 11/8/2020.
+    parser.addFlag('preview-dart-2', hide: true);
+    // Removed 11/12/2020.
+    parser.addFlag('useAnalysisHighlight2', hide: true);
+    // Removed 11/13/2020.
+    parser.addFlag('use-new-relevance', hide: true);
+    // Removed 9/23/2020.
+    parser.addFlag('use-fasta-parser', hide: true);
 
     return parser;
   }
@@ -848,16 +600,21 @@ class Driver implements ServerStarter {
   }
 
   String _getSdkPath(ArgResults args) {
-    if (args[SDK_OPTION] != null) {
-      return args[SDK_OPTION];
+    if (args[DART_SDK] != null) {
+      return args[DART_SDK];
+    } else if (args[DART_SDK_ALIAS] != null) {
+      return args[DART_SDK_ALIAS];
     } else {
       return getSdkPath();
     }
   }
 
   /// Print information about how to use the server.
-  void _printUsage(ArgParser parser, telemetry.Analytics analytics,
-      {bool fromHelp = false}) {
+  void _printUsage(
+    ArgParser parser,
+    telemetry.Analytics analytics, {
+    bool fromHelp = false,
+  }) {
     print('Usage: $BINARY_NAME [flags]');
     print('');
     print('Supported flags are:');

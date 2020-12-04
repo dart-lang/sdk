@@ -405,7 +405,7 @@ class CommandQueue {
   void _tryRunNextCommand() {
     _checkDone();
 
-    if (_numProcesses < _maxProcesses && !_runQueue.isEmpty) {
+    if (_numProcesses < _maxProcesses && _runQueue.isNotEmpty) {
       var command = _runQueue.removeFirst();
       var isBrowserCommand = command is BrowserTestCommand;
 
@@ -614,6 +614,8 @@ class CommandExecutorImpl implements CommandExecutor {
       return RunningProcess(command, timeout,
               configuration: globalConfiguration)
           .run();
+    } else if (command is RRCommand) {
+      return command.run(timeout);
     } else {
       throw ArgumentError("Unknown command type ${command.runtimeType}.");
     }

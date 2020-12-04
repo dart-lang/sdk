@@ -47,6 +47,13 @@ List<String> assertListOfString(List<String> list) {
   return list;
 }
 
+List<vms.IsolateFlag> assertListOfIsolateFlag(List<vms.IsolateFlag> list) {
+  for (vms.IsolateFlag elem in list) {
+    assertIsolateFlag(elem);
+  }
+  return list;
+}
+
 String assertString(String obj) {
   assertNotNull(obj);
   if (obj.isEmpty) throw 'expected non-zero length string';
@@ -185,6 +192,7 @@ String assertInstanceKind(String obj) {
   if (obj == "MirrorReference") return obj;
   if (obj == "Null") return obj;
   if (obj == "PlainInstance") return obj;
+  if (obj == "ReceivePort") return obj;
   if (obj == "RegExp") return obj;
   if (obj == "StackTrace") return obj;
   if (obj == "String") return obj;
@@ -364,13 +372,6 @@ vms.ClassList assertClassList(vms.ClassList obj) {
   assertNotNull(obj);
   assertString(obj.type);
   assertListOfClassRef(obj.classes);
-  return obj;
-}
-
-vms.ClientName assertClientName(vms.ClientName obj) {
-  assertNotNull(obj);
-  assertString(obj.type);
-  assertString(obj.name);
   return obj;
 }
 
@@ -656,6 +657,7 @@ vms.IsolateRef assertIsolateRef(vms.IsolateRef obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolate);
   return obj;
 }
 
@@ -672,6 +674,8 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolate);
+  assertListOfIsolateFlag(obj.isolateFlags);
   assertInt(obj.startTime);
   assertBool(obj.runnable);
   assertInt(obj.livePorts);
@@ -683,12 +687,20 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   return obj;
 }
 
+vms.IsolateFlag assertIsolateFlag(vms.IsolateFlag obj) {
+  assertNotNull(obj);
+  assertString(obj.name);
+  assertString(obj.valueAsString);
+  return obj;
+}
+
 vms.IsolateGroupRef assertIsolateGroupRef(vms.IsolateGroupRef obj) {
   assertNotNull(obj);
   assertString(obj.type);
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolateGroup);
   return obj;
 }
 
@@ -706,6 +718,7 @@ vms.IsolateGroup assertIsolateGroup(vms.IsolateGroup obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolateGroup);
   assertListOfIsolateRef(obj.isolates);
   return obj;
 }
@@ -900,6 +913,13 @@ vms.Obj assertObj(vms.Obj obj) {
   return obj;
 }
 
+vms.PortList assertPortList(vms.PortList obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertListOfInstanceRef(obj.ports);
+  return obj;
+}
+
 vms.ProfileFunction assertProfileFunction(vms.ProfileFunction obj) {
   assertNotNull(obj);
   assertString(obj.kind);
@@ -936,6 +956,30 @@ vms.Protocol assertProtocol(vms.Protocol obj) {
 List<vms.Protocol> assertListOfProtocol(List<vms.Protocol> list) {
   for (vms.Protocol elem in list) {
     assertProtocol(elem);
+  }
+  return list;
+}
+
+vms.ProcessMemoryUsage assertProcessMemoryUsage(vms.ProcessMemoryUsage obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertProcessMemoryItem(obj.root);
+  return obj;
+}
+
+vms.ProcessMemoryItem assertProcessMemoryItem(vms.ProcessMemoryItem obj) {
+  assertNotNull(obj);
+  assertString(obj.name);
+  assertString(obj.description);
+  assertInt(obj.size);
+  assertListOfProcessMemoryItem(obj.children);
+  return obj;
+}
+
+List<vms.ProcessMemoryItem> assertListOfProcessMemoryItem(
+    List<vms.ProcessMemoryItem> list) {
+  for (vms.ProcessMemoryItem elem in list) {
+    assertProcessMemoryItem(elem);
   }
   return list;
 }
@@ -1061,6 +1105,7 @@ vms.Stack assertStack(vms.Stack obj) {
   assertString(obj.type);
   assertListOfFrame(obj.frames);
   assertListOfMessage(obj.messages);
+  assertBool(obj.truncated);
   return obj;
 }
 
@@ -1169,5 +1214,7 @@ vms.VM assertVM(vms.VM obj) {
   assertInt(obj.startTime);
   assertListOfIsolateRef(obj.isolates);
   assertListOfIsolateGroupRef(obj.isolateGroups);
+  assertListOfIsolateRef(obj.systemIsolates);
+  assertListOfIsolateGroupRef(obj.systemIsolateGroups);
   return obj;
 }

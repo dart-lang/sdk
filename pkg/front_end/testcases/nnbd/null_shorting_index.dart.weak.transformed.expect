@@ -2,45 +2,57 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:33:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   c1?.[0] ??= 1;
-//     ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:31:6: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?[0] ??= 1;
+//      ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:34:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   c1?.[0] ??= 1 + c1[1];
-//     ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:32:6: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?[0] ??= 1 + c1[1];
+//      ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:46:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   c2?.[0] ??= 1;
-//     ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:42:6: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c2?[0] ??= 1;
+//      ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:47:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   c2?.[0] ??= 1 + c2[1];
-//     ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:43:6: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c2?[0] ??= 1 + c2[1];
+//      ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:58:16: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   Extension(c2)?.[0] ??= 1;
-//                ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:52:17: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c2)?[0] ??= 1;
+//                 ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:59:16: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   Extension(c2)?.[0] ??= 1 + Extension(c2)[1];
-//                ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:53:17: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c2)?[0] ??= 1 + Extension(c2)[1];
+//                 ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:70:12: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   c1?.field?.[0] ??= 1;
-//            ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:62:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?.field?[0] ??= 1;
+//             ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:71:12: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   c1?.field?.[0] ??= 1 + c1[1];
-//            ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:63:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?.field?[0] ??= 1 + c1[1];
+//             ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:82:23: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   Extension(c1?.field)?.[0] ??= 1;
-//                       ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:67:49: Warning: Operand of null-aware operation '!' has type 'int' which excludes null.
+//   Extension(c1?.field)?[0] = 1 + (Extension(c2)?[0]! as int);
+//                                                 ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting_index.dart:83:23: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   Extension(c1?.field)?.[0] ??= 1 + Extension(c2)?.[1]!;
-//                       ^
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:69:50: Warning: Operand of null-aware operation '!' has type 'int' which excludes null.
+//   Extension(c1?.field)?[0] += 1 + (Extension(c2)?[0]! as int);
+//                                                  ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:72:24: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c1?.field)?[0] ??= 1;
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:73:24: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c1?.field)?[0] ??= 1 + (Extension(c2)?[1]! as int);
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:73:51: Warning: Operand of null-aware operation '!' has type 'int' which excludes null.
+//   Extension(c1?.field)?[0] ??= 1 + (Extension(c2)?[1]! as int);
+//                                                   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -111,11 +123,75 @@ static method main() → dynamic {
   let final self::Class1? #t75 = c1 in #t75.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t76 = #t75{self::Class1}.{self::Class1::field} in #t76.{core::Object::==}(null) ?{core::int?} null : let final core::int #t77 = 0 in self::Extension|[](#t76{self::Class2}, #t77).{core::num::==}(null) ?{core::int} self::Extension|[]=(#t76{self::Class2}, #t77, 1.{core::num::+}(c1{self::Class1}.{self::Class1::[]}(1))) : null;
   let final self::Class1? #t78 = c1 in #t78.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t79 = #t78{self::Class1}.{self::Class1::field} in #t79.{core::Object::==}(null) ?{core::int?} null : self::Extension|[](#t79{self::Class2}, 0);
   let final self::Class1? #t80 = c1 in #t80.{core::Object::==}(null) ?{void} null : let final self::Class2? #t81 = #t80{self::Class1}.{self::Class1::field} in #t81.{core::Object::==}(null) ?{void} null : self::Extension|[]=(#t81{self::Class2}, 0, 1);
-  let final self::Class1? #t82 = c1 in #t82.{core::Object::==}(null) ?{void} null : let final self::Class2? #t83 = #t82{self::Class1}.{self::Class1::field} in #t83.{core::Object::==}(null) ?{void} null : self::Extension|[]=(#t83{self::Class2}, 0, 1.{core::num::+}((let final self::Class2? #t84 = c2 in #t84.{core::Object::==}(null) ?{core::int?} null : self::Extension|[](#t84{self::Class2}, 0))!));
+  let final self::Class1? #t82 = c1 in #t82.{core::Object::==}(null) ?{void} null : let final self::Class2? #t83 = #t82{self::Class1}.{self::Class1::field} in #t83.{core::Object::==}(null) ?{void} null : self::Extension|[]=(#t83{self::Class2}, 0, 1.{core::num::+}(let final self::Class2? #t84 = c2 in #t84.{core::Object::==}(null) ?{core::int?} null : self::Extension|[](#t84{self::Class2}, 0)!));
   let final self::Class1? #t85 = c1 in #t85.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t86 = #t85{self::Class1}.{self::Class1::field} in #t86.{core::Object::==}(null) ?{core::int?} null : let final core::int #t87 = 0 in self::Extension|[]=(#t86{self::Class2}, #t87, self::Extension|[](#t86{self::Class2}, #t87).{core::num::+}(1));
-  let final self::Class1? #t88 = c1 in #t88.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t89 = #t88{self::Class1}.{self::Class1::field} in #t89.{core::Object::==}(null) ?{core::int?} null : let final core::int #t90 = 0 in self::Extension|[]=(#t89{self::Class2}, #t90, self::Extension|[](#t89{self::Class2}, #t90).{core::num::+}(1.{core::num::+}((let final self::Class2? #t91 = c2 in #t91.{core::Object::==}(null) ?{core::int?} null : self::Extension|[](#t91{self::Class2}, 0))!)));
+  let final self::Class1? #t88 = c1 in #t88.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t89 = #t88{self::Class1}.{self::Class1::field} in #t89.{core::Object::==}(null) ?{core::int?} null : let final core::int #t90 = 0 in self::Extension|[]=(#t89{self::Class2}, #t90, self::Extension|[](#t89{self::Class2}, #t90).{core::num::+}(1.{core::num::+}(let final self::Class2? #t91 = c2 in #t91.{core::Object::==}(null) ?{core::int?} null : self::Extension|[](#t91{self::Class2}, 0)!)));
   let final self::Class1? #t92 = c1 in #t92.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t93 = #t92{self::Class1}.{self::Class1::field} in #t93.{core::Object::==}(null) ?{core::int?} null : let final core::int #t94 = 0 in let final core::int #t95 = self::Extension|[](#t93{self::Class2}, #t94).{core::num::+}(1) in let final void #t96 = self::Extension|[]=(#t93{self::Class2}, #t94, #t95) in #t95;
   let final self::Class1? #t97 = c1 in #t97.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t98 = #t97{self::Class1}.{self::Class1::field} in #t98.{core::Object::==}(null) ?{core::int?} null : let final core::int #t99 = 0 in self::Extension|[]=(#t98{self::Class2}, #t99, self::Extension|[](#t98{self::Class2}, #t99).{core::num::+}(1));
   let final self::Class1? #t100 = c1 in #t100.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t101 = #t100{self::Class1}.{self::Class1::field} in #t101.{core::Object::==}(null) ?{core::int?} null : let final core::int #t102 = 0 in self::Extension|[](#t101{self::Class2}, #t102).{core::num::==}(null) ?{core::int} self::Extension|[]=(#t101{self::Class2}, #t102, 1) : null;
-  let final self::Class1? #t103 = c1 in #t103.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t104 = #t103{self::Class1}.{self::Class1::field} in #t104.{core::Object::==}(null) ?{core::int?} null : let final core::int #t105 = 0 in self::Extension|[](#t104{self::Class2}, #t105).{core::num::==}(null) ?{core::int} self::Extension|[]=(#t104{self::Class2}, #t105, 1.{core::num::+}((let final self::Class2? #t106 = c2 in #t106.{core::Object::==}(null) ?{core::int?} null : self::Extension|[](#t106{self::Class2}, 1))!)) : null;
+  let final self::Class1? #t103 = c1 in #t103.{core::Object::==}(null) ?{core::int?} null : let final self::Class2? #t104 = #t103{self::Class1}.{self::Class1::field} in #t104.{core::Object::==}(null) ?{core::int?} null : let final core::int #t105 = 0 in self::Extension|[](#t104{self::Class2}, #t105).{core::num::==}(null) ?{core::int} self::Extension|[]=(#t104{self::Class2}, #t105, 1.{core::num::+}(let final self::Class2? #t106 = c2 in #t106.{core::Object::==}(null) ?{core::int?} null : self::Extension|[](#t106{self::Class2}, 1)!)) : null;
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:27:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:27:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:28:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:28:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:29:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:29:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:30:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:30:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:31:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:31:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:32:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:32:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:38:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:38:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:39:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:39:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:40:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:40:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:41:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:41:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:42:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:42:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:43:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:43:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:48:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:48:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:49:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:49:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:50:20 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:50:20 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:51:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:51:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:52:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:52:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:53:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:53:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:58:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:58:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:59:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:59:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:60:16 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:60:16 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:61:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:61:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:62:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:62:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:63:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:63:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:68:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:68:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:69:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:69:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:70:27 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:70:27 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:71:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:71:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:72:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:72:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:73:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:73:25 -> IntConstant(0)
+Extra constant evaluation: evaluated: 702, effectively constant: 60

@@ -1,0 +1,11 @@
+typedef F<T> = T Function(T, T);
+test1() {}
+test2() {}
+test3a() {}
+test3b() {}
+test4() {}
+test5() {}
+test6() {}
+test7() {}
+test8() {}
+main() {}

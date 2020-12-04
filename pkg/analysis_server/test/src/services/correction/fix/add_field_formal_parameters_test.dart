@@ -20,8 +20,11 @@ class AddFieldFormalParametersTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 
   Future<void> test_flutter() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    writeTestPackageConfig(
+      flutter: true,
+    );
+
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -46,7 +49,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_hasRequiredParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   final int a;
   final int b;
@@ -65,7 +68,7 @@ class Test {
   }
 
   Future<void> test_noParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   final int a;
   final int b;
@@ -84,7 +87,7 @@ class Test {
   }
 
   Future<void> test_noRequiredParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   final int a;
   final int b;
@@ -103,7 +106,7 @@ class Test {
   }
 
   Future<void> test_notAllFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   final int a;
   int b;

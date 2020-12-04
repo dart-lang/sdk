@@ -1,0 +1,97 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+//   const Foo.withInvalidCondition(this.x) : assert(x);
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/const_asserts.dart:19:21: Error: Constant expression expected.
+// Try inserting 'const'.
+//       : assert(bool.fromEnvironment("foo", defaultValue: null));
+//                     ^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  final field core::int* x;
+  const constructor •(core::int* x) → self::Foo*
+    : self::Foo::x = x, assert(x.{core::num::>}(0), "x is not positive"), assert(x.{core::num::>}(0)), assert(x.{core::num::>}(0), ""), assert(const core::bool::fromEnvironment("foo").{core::Object::==}(false), "foo was ${const core::bool::fromEnvironment("foo")}"), assert(const core::bool::fromEnvironment("foo").{core::Object::==}(false)), super core::Object::•()
+    ;
+  const constructor withMessage(core::int* x) → self::Foo*
+    : self::Foo::x = x, assert(x.{core::num::<}(0), "btw foo was ${const core::bool::fromEnvironment("foo")}"), super core::Object::•()
+    ;
+  const constructor withInvalidMessage(core::int* x) → self::Foo*
+    : self::Foo::x = x, assert(x.{core::num::<}(0), x), super core::Object::•()
+    ;
+  const constructor withInvalidCondition(core::int* x) → self::Foo*
+    : self::Foo::x = x, assert(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+  const Foo.withInvalidCondition(this.x) : assert(x);
+                                                  ^" in x as{TypeError} core::bool*), super core::Object::•()
+    ;
+  const constructor withNullConditionFromEnv1(core::int* x) → self::Foo*
+    : self::Foo::x = x, assert(const core::bool::fromEnvironment("foo", defaultValue: null)), super core::Object::•()
+    ;
+  const constructor withNullConditionFromEnv2(core::int* x) → self::Foo*
+    : self::Foo::x = x, assert(const core::bool::fromEnvironment("foo", defaultValue: null)), super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Bar extends core::Object /*hasConstConstructor*/  {
+  final field core::int* x;
+  const constructor withMessage(core::int* x) → self::Bar*
+    : self::Bar::x = x, assert(x.{core::num::<}(0), "x is not negative"), super core::Object::•()
+    ;
+  const constructor withoutMessage(core::int* x) → self::Bar*
+    : self::Bar::x = x, assert(x.{core::num::<}(0)), super core::Object::•()
+    ;
+  const constructor withEmptyMessage(core::int* x) → self::Bar*
+    : self::Bar::x = x, assert(x.{core::num::<}(0)), super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field self::Foo* foo1 = const self::Foo::•(1);
+static const field self::Foo* foo2 = const self::Foo::•(0);
+static const field self::Foo* foo3 = const self::Foo::withMessage(42);
+static const field self::Foo* foo4 = const self::Foo::withInvalidMessage(42);
+static const field self::Foo* foo5 = const self::Foo::withInvalidCondition(42);
+static const field self::Foo* foo6 = const self::Foo::withNullConditionFromEnv1(42);
+static const field self::Foo* foo7 = const self::Foo::withNullConditionFromEnv2(42);
+static const field self::Bar* bar1 = const self::Bar::withMessage(1);
+static const field self::Bar* bar2 = const self::Bar::withMessage(0);
+static const field self::Bar* bar3 = const self::Bar::withoutMessage(1);
+static const field self::Bar* bar4 = const self::Bar::withoutMessage(0);
+static const field self::Bar* bar5 = const self::Bar::withEmptyMessage(1);
+static const field self::Bar* bar6 = const self::Bar::withEmptyMessage(0);
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:11:50 -> BoolConstant(true)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:12:59 -> StringConstant("foo was false")
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:13:50 -> BoolConstant(true)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:15:73 -> StringConstant("btw foo was false")
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:19:21 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:21:22 -> NullConstant(null)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:31:24 -> InstanceConstant(const Foo{Foo.x: 1})
+Extra constant evaluation: evaluated: 48, effectively constant: 7

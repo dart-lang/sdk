@@ -17,7 +17,7 @@ class JSONWriter : ValueObject {
   explicit JSONWriter(intptr_t buf_size = 256);
 
   TextBuffer* buffer() { return &buffer_; }
-  const char* ToCString() { return buffer_.buf(); }
+  const char* ToCString() { return buffer_.buffer(); }
 
   void Steal(char** buffer, intptr_t* buffer_length);
 

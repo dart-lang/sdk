@@ -248,7 +248,8 @@ bool TranslationHelper::IsField(NameIndex name) {
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
-  return StringEquals(CanonicalNameString(kind), "@fields");
+  return StringEquals(CanonicalNameString(kind), "@fields") ||
+         StringEquals(CanonicalNameString(kind), "@=fields");
 }
 
 bool TranslationHelper::IsConstructor(NameIndex name) {
@@ -340,12 +341,7 @@ NameIndex TranslationHelper::EnclosingName(NameIndex name) {
 InstancePtr TranslationHelper::Canonicalize(const Instance& instance) {
   if (instance.IsNull()) return instance.raw();
 
-  const char* error_str = NULL;
-  InstancePtr result = instance.CheckAndCanonicalize(thread(), &error_str);
-  if (result == Object::null()) {
-    ReportError("Invalid const object %s", error_str);
-  }
-  return result;
+  return instance.Canonicalize(thread());
 }
 
 const String& TranslationHelper::DartString(const char* content,
@@ -368,6 +364,11 @@ String& TranslationHelper::DartString(const uint8_t* utf8_array,
                                       intptr_t len,
                                       Heap::Space space) {
   return String::ZoneHandle(Z, String::FromUTF8(utf8_array, len, space));
+}
+
+const String& TranslationHelper::DartString(
+    const GrowableHandlePtrArray<const String>& pieces) {
+  return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
 }
 
 const String& TranslationHelper::DartSymbolPlain(const char* content) const {
@@ -578,9 +579,6 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
   CheckStaticLookup(klass);
   ASSERT(!klass.IsNull());
-  if (klass.is_declared_in_bytecode()) {
-    klass.EnsureDeclarationLoaded();
-  }
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
@@ -623,12 +621,11 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   } else {
     ASSERT(IsClass(enclosing));
     Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
+    const auto& error = klass.EnsureIsFinalized(thread_);
+    ASSERT(error == Error::null());
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
-    // Redirecting factory must be resolved.
-    ASSERT(!function.IsRedirectingFactory() ||
-           function.RedirectionTarget() != Function::null());
     return function.raw();
   }
 }
@@ -646,6 +643,8 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   Function& function = Function::Handle(
       Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
   CheckStaticLookup(function);
@@ -663,6 +662,8 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
 
   String& new_name =
       String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
   ASSERT(function != Object::null());
   return function;
@@ -672,9 +673,10 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
                                                     const String& method_name) {
   NameIndex kernel_class = EnclosingName(target);
   Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
-
-  Function& function =
-      Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
+  Function& function = Function::Handle(Z);
+  if (klass.EnsureIsFinalized(thread_) == Error::null()) {
+    function = klass.LookupFunctionAllowPrivate(method_name);
+  }
 #ifdef DEBUG
   if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
@@ -728,8 +730,7 @@ void TranslationHelper::SetupFieldAccessorFunction(
   function.set_num_fixed_parameters(parameter_count);
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.set_parameter_names(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  function.CreateNameArrayIncludingFlags(Heap::kNew);
 
   intptr_t pos = 0;
   if (is_method) {
@@ -989,9 +990,14 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
       FALL_THROUGH;
-    case kCanonicalName:
-      canonical_name_ =
-          helper_->ReadCanonicalNameReference();  // read canonical_name.
+    case kCanonicalNameGetter:
+      canonical_name_getter_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_getter.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    case kCanonicalNameSetter:
+      canonical_name_setter_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_setter.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kSourceUriIndex:
@@ -1075,6 +1081,10 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       kind_ = static_cast<Kind>(helper_->ReadByte());
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kStubKind:
+      stub_kind_ = static_cast<StubKind>(helper_->ReadByte());
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kFlags:
       flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
@@ -1091,12 +1101,12 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
       FALL_THROUGH;
-    case kForwardingStubSuperTarget:
-      forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    case kForwardingStubInterfaceTarget:
-      helper_->ReadCanonicalNameReference();
+    case kStubTarget:
+      if (stub_kind_ == kForwardingSuperStubKind) {
+        forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
+      } else {
+        helper_->ReadCanonicalNameReference();
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFunction:
@@ -1811,13 +1821,13 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   AlternativeReadingScopeWithNewData alt(&helper_->reader_,
                                          &H.metadata_payloads(), md_offset);
 
-  Thread* T = Thread::Current();
-  Zone* Z = T->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   intptr_t unit_count = helper_->ReadUInt();
-  Array& loading_units = Array::Handle(Z, Array::New(unit_count + 1));
-  LoadingUnit& unit = LoadingUnit::Handle(Z);
-  LoadingUnit& parent = LoadingUnit::Handle(Z);
-  Library& lib = Library::Handle(Z);
+  Array& loading_units = Array::Handle(zone, Array::New(unit_count + 1));
+  LoadingUnit& unit = LoadingUnit::Handle(zone);
+  LoadingUnit& parent = LoadingUnit::Handle(zone);
+  Library& lib = Library::Handle(zone);
 
   for (int i = 0; i < unit_count; i++) {
     intptr_t id = helper_->ReadUInt();
@@ -1825,15 +1835,16 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     unit.set_id(id);
 
     intptr_t parent_id = helper_->ReadUInt();
+    RELEASE_ASSERT(parent_id < id);
     parent ^= loading_units.At(parent_id);
-    ASSERT(parent.IsNull() == (parent_id == 0));
+    RELEASE_ASSERT(parent.IsNull() == (parent_id == 0));
     unit.set_parent(parent);
 
     intptr_t library_count = helper_->ReadUInt();
     for (intptr_t j = 0; j < library_count; j++) {
       const String& uri =
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
-      lib = Library::LookupLibrary(T, uri);
+      lib = Library::LookupLibrary(thread, uri);
       if (lib.IsNull()) {
         FATAL1("Missing library: %s\n", uri.ToCString());
       }
@@ -1995,6 +2006,16 @@ NameIndex KernelReaderHelper::ReadCanonicalNameReference() {
   return reader_.ReadCanonicalNameReference();
 }
 
+NameIndex KernelReaderHelper::ReadInterfaceMemberNameReference() {
+  NameIndex name_index = reader_.ReadCanonicalNameReference();
+  NameIndex origin_name_index = reader_.ReadCanonicalNameReference();
+  if (!FLAG_precompiled_mode && origin_name_index != NameIndex::kInvalidName) {
+    // Reference to a skipped member signature target, return the origin target.
+    return origin_name_index;
+  }
+  return name_index;
+}
+
 StringIndex KernelReaderHelper::ReadNameAsStringIndex() {
   StringIndex name_index = ReadStringReference();  // read name index.
   if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
@@ -2061,6 +2082,11 @@ void KernelReaderHelper::SkipConstantReference() {
 
 void KernelReaderHelper::SkipCanonicalNameReference() {
   ReadUInt();
+}
+
+void KernelReaderHelper::SkipInterfaceMemberNameReference() {
+  SkipCanonicalNameReference();
+  SkipCanonicalNameReference();
 }
 
 void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
@@ -2286,36 +2312,25 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kPropertySet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipExpression();              // read value.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertyGet:
       ReadPosition();                // read position.
       SkipName();                    // read name.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
       ReadPosition();                // read position.
       SkipName();                    // read name.
       SkipExpression();              // read value.
-      SkipCanonicalNameReference();  // read interface_target_reference.
-      return;
-    case kDirectPropertyGet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
-      return;
-    case kDirectPropertySet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
-      SkipExpression();              // read value·
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kStaticGet:
       ReadPosition();                // read position.
@@ -2327,23 +2342,18 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();              // read expression.
       return;
     case kMethodInvocation:
+      ReadFlags();                   // read flags.
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperMethodInvocation:
       ReadPosition();                // read position.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
-      SkipCanonicalNameReference();  // read interface_target_reference.
-      return;
-    case kDirectMethodInvocation:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
-      SkipArguments();               // read arguments.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kStaticInvocation:
       ReadPosition();                // read position.
@@ -2501,6 +2511,8 @@ void KernelReaderHelper::SkipStatement() {
       SkipExpression();  // read expression.
       return;
     case kBlock:
+      ReadPosition();  // read file offset.
+      ReadPosition();  // read file end offset.
       SkipStatementList();
       return;
     case kEmptyStatement:
@@ -2972,9 +2984,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
   const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(klass_name));
   ASSERT(!klass.IsNull());
-  if (klass.is_declared_in_bytecode()) {
-    klass.EnsureDeclarationLoaded();
-  }
   if (simple) {
     if (finalize_ || klass.is_type_finalized()) {
       // Fast path for non-generic types: retrieve or populate the class's only
@@ -2999,7 +3008,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
-    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+    result_ = ClassFinalizer::FinalizeType(result_);
   }
 }
 
@@ -3048,31 +3057,24 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     all_count = positional_count;
   }
 
-  const intptr_t all_count_with_receiver = all_count + 1;
-  const Array& parameter_types =
-      Array::Handle(Z, Array::New(all_count_with_receiver, Heap::kOld));
-  signature_function.set_parameter_types(parameter_types);
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(simple ? all_count_with_receiver
-                           : Function::NameArrayLengthIncludingFlags(
-                                 all_count_with_receiver),
-                    Heap::kOld));
-  signature_function.set_parameter_names(parameter_names);
-
-  intptr_t pos = 0;
-  parameter_types.SetAt(pos, AbstractType::dynamic_type());
-  parameter_names.SetAt(pos, H.DartSymbolPlain("_receiver_"));
-  ++pos;
-  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
-    BuildTypeInternal();  // read ith positional parameter.
-    parameter_types.SetAt(pos, result_);
-    parameter_names.SetAt(pos, H.DartSymbolPlain("noname"));
-  }
-
   // The additional first parameter is the receiver type (set to dynamic).
   signature_function.set_num_fixed_parameters(1 + required_count);
   signature_function.SetNumOptionalParameters(
       all_count - required_count, positional_count > required_count);
+
+  signature_function.set_parameter_types(
+      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld)));
+  signature_function.CreateNameArrayIncludingFlags(Heap::kOld);
+
+  intptr_t pos = 0;
+  signature_function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+  signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("_receiver_"));
+  ++pos;
+  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
+    BuildTypeInternal();  // read ith positional parameter.
+    signature_function.SetParameterTypeAt(pos, result_);
+    signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("noname"));
+  }
 
   if (!simple) {
     const intptr_t named_count =
@@ -3082,15 +3084,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
       const uint8_t flags = helper_->ReadFlags();  // read flags
-      parameter_types.SetAt(pos, result_);
-      parameter_names.SetAt(pos, name);
+      signature_function.SetParameterTypeAt(pos, result_);
+      signature_function.SetParameterNameAt(pos, name);
       if (!apply_legacy_erasure_ &&
           (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
         signature_function.SetIsRequiredAt(pos);
       }
     }
-    signature_function.TruncateUnusedParameterFlags();
   }
+  signature_function.TruncateUnusedParameterFlags();
 
   if (!simple) {
     helper_->SkipOptionalDartType();  // read typedef type.
@@ -3105,8 +3107,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       Type::ZoneHandle(Z, signature_function.SignatureType(nullability));
 
   if (finalize_) {
-    signature_type ^=
-        ClassFinalizer::FinalizeType(*active_class_->klass, signature_type);
+    signature_type ^= ClassFinalizer::FinalizeType(signature_type);
     // Do not refer to signature_function anymore, since it may have been
     // replaced during canonicalization.
     signature_function = Function::null();
@@ -3183,8 +3184,7 @@ void TypeTranslator::BuildTypeParameterType() {
         active_class_->RecordDerivedTypeParameter(Z, type_param,
                                                   TypeParameter::Cast(result_));
         if (finalize_) {
-          result_ =
-              ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+          result_ = ClassFinalizer::FinalizeType(result_);
         }
         return;
       }
@@ -3200,7 +3200,7 @@ void TypeTranslator::BuildTypeParameterType() {
       active_class_->RecordDerivedTypeParameter(Z, type_param,
                                                 TypeParameter::Cast(result_));
       if (finalize_) {
-        result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+        result_ = ClassFinalizer::FinalizeType(result_);
       }
       return;
     }
@@ -3239,7 +3239,7 @@ const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
     }
 
     if (finalize_) {
-      type_arguments = type_arguments.Canonicalize();
+      type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
     }
   }
   return type_arguments;
@@ -3264,7 +3264,7 @@ const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
   Type& type = Type::Handle(
       Z, Type::New(receiver_class, type_arguments, TokenPosition::kNoSource));
   if (finalize_) {
-    type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
+    type ^= ClassFinalizer::FinalizeType(type);
   }
 
   const TypeArguments& instantiated_type_arguments =
@@ -3330,33 +3330,32 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   }
   ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
-  // Step b) Fill in the bounds of all [TypeParameter]s.
+  // Step b) Fill in the bounds and default arguments of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
 
-    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
-    // by the frontend.
     parameter ^= type_parameters.TypeAt(i);
-    const Tag tag = helper_->PeekTag();  // peek ith bound type.
-    if (tag == kDynamicType) {
-      helper_->SkipDartType();  // read ith bound.
-      parameter.set_bound(
-          Type::Handle(Z, nnbd_mode == NNBDMode::kOptedInLib
-                              ? I->object_store()->nullable_object_type()
-                              : I->object_store()->legacy_object_type()));
-    } else {
-      AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
-      parameter.set_bound(bound);
+    AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
+    parameter.set_bound(bound);
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
+    const AbstractType* default_arg = &Object::dynamic_type();
+    if (helper_->ReadTag() == kSomething) {
+      default_arg = &BuildTypeWithoutFinalization();
     }
-
+    parameter.set_default_argument(*default_arg);
     helper.Finish();
   }
 
-  // Fix bounds in all derived type parameters (with different nullabilities).
+  if (set_on.IsFunction()) {
+    Function::Cast(set_on).UpdateCachedDefaultTypeArguments(Thread::Current());
+  }
+
+  // Fix bounds and default arguments in all derived type parameters (with
+  // different nullabilities).
   if (active_class->derived_type_parameters != nullptr) {
     auto& derived = TypeParameter::Handle(Z);
-    auto& bound = AbstractType::Handle(Z);
+    auto& type = AbstractType::Handle(Z);
     for (intptr_t i = 0, n = active_class->derived_type_parameters->Length();
          i < n; ++i) {
       derived ^= active_class->derived_type_parameters->At(i);
@@ -3365,8 +3364,10 @@ void TypeTranslator::LoadAndSetupTypeParameters(
            derived.parameterized_function() == set_on.raw())) {
         ASSERT(!derived.IsFinalized());
         parameter ^= type_parameters.TypeAt(derived.index());
-        bound = parameter.bound();
-        derived.set_bound(bound);
+        type = parameter.bound();
+        derived.set_bound(type);
+        type = parameter.default_argument();
+        derived.set_default_argument(type);
       }
     }
   }
@@ -3527,10 +3528,7 @@ void TypeTranslator::SetupFunctionParameters(
 
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(Function::NameArrayLengthIncludingFlags(parameter_count),
-                    Heap::kOld));
-  function.set_parameter_names(parameter_names);
+  function.CreateNameArrayIncludingFlags(Heap::kOld);
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
@@ -3552,6 +3550,8 @@ void TypeTranslator::SetupFunctionParameters(
     // Read ith variable declaration.
     VariableDeclarationHelper helper(helper_);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    // The required flag should only be set on named parameters.
+    ASSERT(!helper.IsRequired());
     const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
     Tag tag = helper_->ReadTag();  // read (first part of) initializer.
     if (tag == kSomething) {

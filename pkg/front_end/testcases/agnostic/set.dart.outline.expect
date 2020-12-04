@@ -7,3 +7,11 @@ static const field core::List<core::int?> b = const <core::int?>[];
 static const field core::Set<core::List<core::int?>> c = const <core::List<core::int?>>{self::a, self::b};
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///set.dart:5:16 -> ListConstant(const <int>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///set.dart:6:17 -> ListConstant(const <int?>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///set.dart:7:12 -> ListConstant(const <int>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///set.dart:7:15 -> ListConstant(const <int?>[])
+Extra constant evaluation: evaluated: 5, effectively constant: 4

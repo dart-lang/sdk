@@ -132,6 +132,11 @@ const Register kWriteBarrierSlotReg = R13;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = RDX;
 
+// Common ABI for shared slow path stubs.
+struct SharedSlowPathStubABI {
+  static const Register kResultReg = RAX;
+};
+
 // ABI for instantiation stubs.
 struct InstantiationABI {
   static const Register kUninstantiatedTypeArgumentsReg = RBX;
@@ -148,14 +153,39 @@ struct TypeTestABI {
   static const Register kInstantiatorTypeArgumentsReg = RDX;
   static const Register kFunctionTypeArgumentsReg = RCX;
   static const Register kSubtypeTestCacheReg = R9;
+  static const Register kScratchReg = RSI;
+
+  // For calls to InstanceOfStub.
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For calls to SubtypeNTestCacheStub. Must not overlap with any other
+  // registers above, for it is also used internally as kNullReg in those stubs.
+  static const Register kSubtypeTestCacheResultReg = R8;
+
+  // No registers need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters = 0;
 
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg);
+      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg) |
+      (1 << kSubtypeTestCacheResultReg);
+};
 
-  // For call to InstanceOfStub.
-  static const Register kResultReg = RAX;
+// Calling convention when calling AssertSubtypeStub.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = RAX;
+  static const Register kSuperTypeReg = RBX;
+  static const Register kInstantiatorTypeArgumentsReg = RDX;
+  static const Register kFunctionTypeArgumentsReg = RCX;
+  static const Register kDstNameReg = R9;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kDstNameReg);
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
 };
 
 // ABI for InitStaticFieldStub.
@@ -176,6 +206,11 @@ struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = RAX;
   static const Register kAddressReg = RCX;
   static const Register kScratchReg = RSI;
+};
+
+// ABI for LateInitializationError stubs.
+struct LateInitializationErrorABI {
+  static const Register kFieldReg = RSI;
 };
 
 // ABI for ThrowStub.
@@ -204,6 +239,12 @@ struct RangeErrorABI {
 struct AllocateMintABI {
   static const Register kResultReg = RAX;
   static const Register kTempReg = RBX;
+};
+
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = RAX;
+  static const Register kResultReg = RAX;
 };
 
 // Registers used inside the implementation of type testing stubs.
@@ -243,7 +284,16 @@ enum ScaleFactor {
   // https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4
   // 3.7.5 Specifying an Offset
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt64SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt64SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 #define R(reg) (1 << (reg))
@@ -259,6 +309,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters =
       R(kArg1Reg) | R(kArg2Reg) | R(kArg3Reg) | R(kArg4Reg);
   static const intptr_t kNumArgRegs = 4;
+  static const Register kPointerToReturnStructRegisterCall = kArg1Reg;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters =
@@ -269,6 +320,16 @@ class CallingConventions {
   // same time? (Windows no, rest yes)
   static const bool kArgumentIntRegXorFpuReg = true;
 
+  // > The x64 Application Binary Interface (ABI) uses a four-register
+  // > fast-call calling convention by default. Space is allocated on the call
+  // > stack as a shadow store for callees to save those registers.
+  // https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-160
+  //
+  // The caller allocates this space. The caller should also reclaim this space
+  // after the call to restore the stack to its original state if needed.
+  //
+  // This is also known as home space.
+  // https://devblogs.microsoft.com/oldnewthing/20160623-00/?p=93735
   static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
@@ -293,6 +354,7 @@ class CallingConventions {
   static constexpr Register kReturnReg = RAX;
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
@@ -323,6 +385,7 @@ class CallingConventions {
                                              R(kArg3Reg) | R(kArg4Reg) |
                                              R(kArg5Reg) | R(kArg6Reg);
   static const intptr_t kNumArgRegs = 6;
+  static const Register kPointerToReturnStructRegisterCall = kArg1Reg;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
@@ -353,8 +416,10 @@ class CallingConventions {
   static const XmmRegister xmmFirstNonParameterReg = XMM8;
 
   static constexpr Register kReturnReg = RAX;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = RDX;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+  static constexpr FpuRegister kSecondReturnFpuReg = XMM1;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
@@ -387,10 +452,13 @@ class CallingConventions {
 
   COMPILE_ASSERT(((R(kFirstCalleeSavedCpuReg)) & kCalleeSaveCpuRegisters) != 0);
 
-  COMPILE_ASSERT(((R(kFirstNonArgumentRegister) |
-                   R(kSecondNonArgumentRegister)) &
-                  kArgumentRegisters) == 0);
+  COMPILE_ASSERT(
+      ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
+
+constexpr intptr_t kAbiPreservedCpuRegs =
+    CallingConventions::kCalleeSaveCpuRegisters;
 
 #undef R
 
@@ -423,7 +491,7 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-const uword kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
+const uint64_t kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
 
 }  // namespace dart
 

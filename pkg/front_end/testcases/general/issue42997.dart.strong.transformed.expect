@@ -1,0 +1,88 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue42997.dart:9:16: Error: Expected a function body or '=>'.
+// Try adding {}.
+// PropertyState();
+//                ^
+//
+// pkg/front_end/testcases/general/issue42997.dart:10:7: Error: 'PropertyState' is already declared in this scope.
+// class PropertyState<I, O> {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/issue42997.dart:9:1: Context: Previous declaration of 'PropertyState'.
+// PropertyState();
+// ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
+//     for (PropertyState<Object, Object>> state in _states) ;
+//          ^
+//
+// pkg/front_end/testcases/general/issue42997.dart:12:24: Error: Expected ';' after this.
+//     for (PropertyState<Object, Object>> state in _states) ;
+//                        ^^^^^^
+//
+// pkg/front_end/testcases/general/issue42997.dart:12:30: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//     for (PropertyState<Object, Object>> state in _states) ;
+//                              ^
+//
+// pkg/front_end/testcases/general/issue42997.dart:12:30: Error: Expected ';' after this.
+//     for (PropertyState<Object, Object>> state in _states) ;
+//                              ^
+//
+// pkg/front_end/testcases/general/issue42997.dart:12:47: Error: Unexpected token 'in'.
+//     for (PropertyState<Object, Object>> state in _states) ;
+//                                               ^^
+//
+// pkg/front_end/testcases/general/issue42997.dart:12:41: Error: The getter 'state' isn't defined for the class 'PropertyState#1<I, O>'.
+//  - 'PropertyState#1' is from 'pkg/front_end/testcases/general/issue42997.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'state'.
+//     for (PropertyState<Object, Object>> state in _states) ;
+//                                         ^^^^^
+//
+// pkg/front_end/testcases/general/issue42997.dart:12:38: Error: The operator '>>' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '>>' operator.
+//     for (PropertyState<Object, Object>> state in _states) ;
+//                                      ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class PropertyState#1<I extends core::Object* = dynamic, O extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::PropertyState#1<self::PropertyState#1::I*, self::PropertyState#1::O*>*
+    : super core::Object::•()
+    ;
+  method dispose() → void {
+    for (final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
+    for (PropertyState<Object, Object>> state in _states) ;
+         ^".<(core::Object*); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
+    for (PropertyState<Object, Object>> state in _states) ;
+                             ^"; invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
+    for (PropertyState<Object, Object>> state in _states) ;
+                             ^", invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:38: Error: The operator '>>' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '>>' operator.
+    for (PropertyState<Object, Object>> state in _states) ;
+                                     ^^")
+      ;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+static abstract method PropertyState() → dynamic;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///issue42997.dart:12:24 -> TypeLiteralConstant(Object*)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

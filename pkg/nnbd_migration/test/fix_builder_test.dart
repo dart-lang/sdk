@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
@@ -70,6 +68,9 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isNodeChangeForExpression =
       TypeMatcher<NodeChangeForExpression>();
 
+  static final isNoValidMigration =
+      isNodeChangeForExpression.havingNoValidMigrationWithInfo(anything);
+
   static final isNullCheck =
       isNodeChangeForExpression.havingNullCheckWithInfo(anything);
 
@@ -78,6 +79,16 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           (c) => c.removeLanguageVersionComment,
           'removeLanguageVersionComment',
           true);
+
+  static final isAddImportOfIterableExtension =
+      TypeMatcher<NodeChangeForCompilationUnit>()
+          .having((c) => c.addImports, 'addImports', {
+    'package:collection/collection.dart': {'IterableExtension'}
+  });
+
+  static final isAddShowOfIterableExtension =
+      TypeMatcher<NodeChangeForShowCombinator>().having((c) => c.addNames,
+          'addNames', unorderedEquals(['IterableExtension']));
 
   static final isRemoveNullAwareness =
       TypeMatcher<NodeChangeForPropertyAccess>()
@@ -108,10 +119,20 @@ class FixBuilderTest extends EdgeBuilderTestBase {
     return unit;
   }
 
+  TypeMatcher<NodeChangeForArgumentList> isDropArgument(
+          dynamic argumentsToDrop) =>
+      TypeMatcher<NodeChangeForArgumentList>()
+          .having((c) => c.argumentsToDrop, 'argumentsToDrop', argumentsToDrop);
+
   TypeMatcher<AtomicEditInfo> isInfo(description, fixReasons) =>
       TypeMatcher<AtomicEditInfo>()
           .having((i) => i.description, 'description', description)
           .having((i) => i.fixReasons, 'fixReasons', fixReasons);
+
+  TypeMatcher<NodeChangeForMethodName> isMethodNameChange(
+          dynamic replacement) =>
+      TypeMatcher<NodeChangeForMethodName>()
+          .having((c) => c.replacement, 'replacement', replacement);
 
   Map<AstNode, NodeChange> scopedChanges(
           FixBuilder fixBuilder, AstNode scope) =>
@@ -280,7 +301,6 @@ _f(_C/*!*/ x, int/*!*/ y) => x += y;
     visitSubexpression(findNode.assignment('+='), '_D');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39642')
   Future<void> test_assignmentExpression_compound_rhs_nullable_check() async {
     await analyze('''
 abstract class _C {
@@ -1125,7 +1145,7 @@ class C<T extends num/*?*/> {
 }
 ''');
     var assignment = findNode.assignment('+=');
-    visitSubexpression(assignment, 'T',
+    visitSubexpression(assignment, 'num',
         changes: {assignment: isNullableSource});
   }
 
@@ -1345,6 +1365,24 @@ _f(int/*!*/ x, int/*?*/ y) {
         changes: {findNode.simple('y;'): isNullCheck});
   }
 
+  Future<void> test_firstWhere_transform() async {
+    await analyze('''
+_f(Iterable<int> x) => x.firstWhere((n) => n.isEven, orElse: () => null);
+''');
+    var methodInvocation = findNode.methodInvocation('firstWhere');
+    var functionExpression = findNode.functionExpression('() => null');
+    var fixBuilder = visitSubexpression(methodInvocation, 'int?', changes: {
+      methodInvocation.methodName: isMethodNameChange('firstWhereOrNull'),
+      methodInvocation.argumentList:
+          isDropArgument({functionExpression.parent: anything}),
+      // Behavior of the function expression and its subexpression don't matter
+      // because they're being dropped.
+      functionExpression.parent: anything,
+      findNode.nullLiteral('null'): anything
+    });
+    expect(fixBuilder.needsIterableExtension, true);
+  }
+
   Future<void> test_functionExpressionInvocation_dynamic() async {
     await analyze('''
 _f(dynamic d) => d();
@@ -1544,6 +1582,75 @@ _f(int/*?*/ x) {
           isInfo(NullabilityFixDescription.downcastExpression,
               {FixReasonTarget.root: isEdge}))
     });
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_add_show() async {
+    addPackageFile('collection', 'collection.dart', 'class PriorityQueue {}');
+    await analyze('''
+import 'package:collection/collection.dart' show PriorityQueue;
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {
+      findNode.import('package:collection').combinators[0]:
+          isAddShowOfIterableExtension
+    });
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_all() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await analyze('''
+import 'package:collection/collection.dart';
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {});
+  }
+
+  Future<void>
+      test_import_IterableExtension_already_imported_and_shown() async {
+    addPackageFile('collection', 'collection.dart',
+        'extension IterableExtension<T> on Iterable<T> {}');
+    await analyze('''
+import 'package:collection/collection.dart' show IterableExtension;
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {});
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_prefixed() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await analyze('''
+import 'package:collection/collection.dart' as c;
+
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
+  }
+
+  Future<void> test_import_IterableExtension_other_import() async {
+    addPackageFile(
+        'foo', 'foo.dart', 'extension IterableExtension<T> on Iterable<T> {}');
+    await analyze('''
+import 'package:foo/foo.dart' show IterableExtension;
+
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
+  }
+
+  Future<void> test_import_IterableExtension_simple() async {
+    await analyze('''
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
   }
 
   Future<void> test_indexExpression_dynamic() async {
@@ -1956,6 +2063,16 @@ abstract class C {
     visitSubexpression(assignment, 'int?');
   }
 
+  Future<void> test_nullable_value_in_null_context() async {
+    await analyze('int/*!*/ f(int/*?*/ i) => i;');
+    var iRef = findNode.simple('i;');
+    visitSubexpression(iRef, 'int', changes: {
+      iRef: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
+          NullabilityFixDescription.checkExpression,
+          {FixReasonTarget.root: TypeMatcher<NullabilityEdge>()}))
+    });
+  }
+
   Future<void> test_nullAssertion_promotes() async {
     await analyze('''
 _f(bool/*?*/ x) => x && x;
@@ -1971,6 +2088,36 @@ _f(bool/*?*/ x) => x && x;
 f() => null;
 ''');
     visitSubexpression(findNode.nullLiteral('null'), 'Null');
+  }
+
+  Future<void> test_nullLiteral_hinted() async {
+    await analyze('''
+int/*!*/ f() => null/*!*/;
+''');
+    var literal = findNode.nullLiteral('null');
+    // Normally we would leave the null literal alone and add an informative
+    // comment saying there's no valid migration for it.  But since the user
+    // specifically hinted that `!` should be added, we respect that.
+    visitSubexpression(literal, 'Never', changes: {
+      literal: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
+          NullabilityFixDescription.checkExpressionDueToHint,
+          {FixReasonTarget.root: TypeMatcher<FixReason_NullCheckHint>()}))
+    });
+  }
+
+  Future<void> test_nullLiteral_noValidMigration() async {
+    await analyze('''
+int/*!*/ f() => null;
+''');
+    var literal = findNode.nullLiteral('null');
+    // Note: in spite of the fact that we leave the literal as `null`, we
+    // analyze it as though it has type `Never`, because it's in a context where
+    // `null` doesn't work.
+    visitSubexpression(literal, 'Never', changes: {
+      literal: isNodeChangeForExpression.havingNoValidMigrationWithInfo(isInfo(
+          NullabilityFixDescription.noValidMigrationForNull,
+          {FixReasonTarget.root: TypeMatcher<NullabilityEdge>()}))
+    });
   }
 
   Future<void> test_parenthesizedExpression() async {
@@ -3298,8 +3445,12 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 
   void visitAll(
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
-      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      bool injectNeedsIterableExtension = false}) {
     var fixBuilder = _createFixBuilder(testUnit);
+    if (injectNeedsIterableExtension) {
+      fixBuilder.needsIterableExtension = true;
+    }
     fixBuilder.visitAll();
     expect(scopedChanges(fixBuilder, testUnit), changes);
     expect(scopedProblems(fixBuilder, testUnit), problems);
@@ -3333,7 +3484,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     expect(scopedProblems(fixBuilder, node), problems);
   }
 
-  void visitSubexpression(Expression node, String expectedType,
+  FixBuilder visitSubexpression(Expression node, String expectedType,
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
       bool warnOnWeakCode = false}) {
@@ -3343,6 +3494,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
+    return fixBuilder;
   }
 
   void visitTypeAnnotation(TypeAnnotation node, String expectedType,
@@ -3365,10 +3517,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
           identical(ElementTypeProvider.current, const ElementTypeProvider()));
       ElementTypeProvider.current = fixBuilder.migrationResolutionHooks;
       var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
-      var isReadWrite = assignment.operator.type != TokenType.EQ;
-      var readType =
-          isReadWrite ? getReadType(node) ?? typeProvider.dynamicType : null;
-      var writeType = node.staticType;
+      var readType = assignment.readType;
+      var writeType = assignment.writeType;
       return AssignmentTargetInfo(readType, writeType);
     } finally {
       ElementTypeProvider.current = const ElementTypeProvider();
@@ -3388,7 +3538,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         null,
         scope.thisOrAncestorOfType<CompilationUnit>(),
         warnOnWeakCode,
-        graph);
+        graph, {});
   }
 
   bool _isInScope(AstNode node, AstNode scope) {
@@ -3407,6 +3557,12 @@ extension on TypeMatcher<NodeChangeForExpression> {
           dynamic matcher) =>
       having((c) => c.addsNullCheck, 'addsNullCheck', true)
           .having((c) => c.addNullCheckInfo, 'addNullCheckInfo', matcher);
+
+  TypeMatcher<NodeChangeForExpression> havingNoValidMigrationWithInfo(
+          dynamic matcher) =>
+      having((c) => c.addsNoValidMigration, 'addsNoValidMigration', true)
+          .having((c) => c.addNoValidMigrationInfo, 'addNoValidMigrationInfo',
+              matcher);
 
   TypeMatcher<NodeChangeForExpression> havingIndroduceAsWithInfo(
           dynamic typeStringMatcher, dynamic infoMatcher) =>

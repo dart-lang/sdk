@@ -19,6 +19,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -484,7 +485,7 @@ void IsolateGroupReloadContext::ReportError(const Error& error) {
   // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
   // call to accept an isolate group instead of an isolate.
   Isolate* isolate = Isolate::Current();
-  if (Isolate::IsVMInternalIsolate(isolate)) {
+  if (Isolate::IsSystemIsolate(isolate)) {
     return;
   }
   TIR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
@@ -497,7 +498,7 @@ void IsolateGroupReloadContext::ReportSuccess() {
   // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
   // call to accept an isolate group instead of an isolate.
   Isolate* isolate = Isolate::Current();
-  if (Isolate::IsVMInternalIsolate(isolate)) {
+  if (Isolate::IsSystemIsolate(isolate)) {
     return;
   }
   ServiceEvent service_event(isolate, ServiceEvent::kIsolateReload);
@@ -857,9 +858,13 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // ValidateReload mutates the direct subclass information and does
     // not remove dead subclasses.  Rebuild the direct subclass
     // information from scratch.
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->reload_context()->RebuildDirectSubclasses();
-    });
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      ForEachIsolate([&](Isolate* isolate) {
+        isolate->reload_context()->RebuildDirectSubclasses();
+      });
+    }
     const intptr_t final_library_count =
         GrowableObjectArray::Handle(Z,
                                     first_isolate_->object_store()->libraries())
@@ -1095,20 +1100,25 @@ ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
-  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
-  if (tmp.IsError()) {
-    return tmp.raw();
-  }
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
+    if (tmp.IsError()) {
+      return tmp.raw();
+    }
 
-  // If main method disappeared or were not there to begin with then
-  // KernelLoader will return null. In this case lookup library by
-  // URL.
-  auto& lib = Library::Handle(Library::RawCast(tmp.raw()));
-  if (lib.IsNull()) {
-    lib = Library::LookupLibrary(thread, root_lib_url);
+    // If main method disappeared or were not there to begin with then
+    // KernelLoader will return null. In this case lookup library by
+    // URL.
+    auto& lib = Library::Handle(Library::RawCast(tmp.raw()));
+    if (lib.IsNull()) {
+      lib = Library::LookupLibrary(thread, root_lib_url);
+    }
+    isolate_->object_store()->set_root_library(lib);
+    return Object::null();
+  } else {
+    return thread->StealStickyError();
   }
-  isolate_->object_store()->set_root_library(lib);
-  return Object::null();
 }
 
 void IsolateReloadContext::ReloadPhase3FinalizeLoading() {
@@ -1217,7 +1227,7 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   Function& func = Function::Handle();
   while (it.HasNextFrame()) {
     StackFrame* frame = it.NextFrame();
-    if (frame->IsDartFrame() && !frame->is_interpreted()) {
+    if (frame->IsDartFrame()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
       // Force-optimized functions don't need unoptimized code because their
@@ -1238,6 +1248,8 @@ void IsolateReloadContext::DeoptimizeDependentCode() {
   Class& cls = Class::Handle();
   Array& fields = Array::Handle();
   Field& field = Field::Handle();
+  Thread* thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t cls_idx = bottom; cls_idx < top; cls_idx++) {
     if (!class_table->HasValidClassAt(cls_idx)) {
       // Skip.
@@ -1269,16 +1281,22 @@ void IsolateGroupReloadContext::CheckpointSharedClassTable() {
   // Copy the size table for isolate group.
   intptr_t* saved_size_table = nullptr;
   shared_class_table_->CopyBeforeHotReload(&saved_size_table, &saved_num_cids_);
+
+  Thread* thread = Thread::Current();
   {
-    NoSafepointScope no_safepoint_scope(Thread::Current());
+    NoSafepointScope no_safepoint_scope(thread);
 
     // The saved_size_table_ will now become source of truth for GC.
     saved_size_table_.store(saved_size_table, std::memory_order_release);
-
-    // We can therefore wipe out all of the old entries (if that table is used
-    // for GC during the hot-reload we have a bug).
-    shared_class_table_->ResetBeforeHotReload();
   }
+
+  // But the concurrent sweeper may still be reading from the old table.
+  thread->heap()->WaitForSweeperTasks(thread);
+
+  // Now we can clear the old table. This satisfies asserts during class
+  // registration and encourages fast failure if we use the wrong table
+  // for GC during reload, but isn't strictly needed for correctness.
+  shared_class_table_->ResetBeforeHotReload();
 }
 
 void IsolateReloadContext::CheckpointClasses() {
@@ -1917,7 +1935,7 @@ void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     visitor->VisitPointers(class_table, saved_num_cids_);
   }
   ClassPtr* saved_tlc_class_table =
-      saved_class_table_.load(std::memory_order_relaxed);
+      saved_tlc_class_table_.load(std::memory_order_relaxed);
   if (saved_tlc_class_table != NULL) {
     auto class_table =
         reinterpret_cast<ObjectPtr*>(&(saved_tlc_class_table[0]));
@@ -1935,31 +1953,25 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   Zone* zone = stack_zone.GetZone();
 
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   Function& function = Function::Handle(zone);
   CallSiteResetter resetter(zone);
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      resetter.RebindStaticTargets(bytecode);
+    code = frame->LookupDartCode();
+    if (code.is_optimized() && !code.is_force_optimized()) {
+      // If this code is optimized, we need to reset the ICs in the
+      // corresponding unoptimized code, which will be executed when the stack
+      // unwinds to the optimized code.
+      function = code.function();
+      code = function.unoptimized_code();
+      ASSERT(!code.IsNull());
+      resetter.ResetSwitchableCalls(code);
+      resetter.ResetCaches(code);
     } else {
-      code = frame->LookupDartCode();
-      if (code.is_optimized() && !code.is_force_optimized()) {
-        // If this code is optimized, we need to reset the ICs in the
-        // corresponding unoptimized code, which will be executed when the stack
-        // unwinds to the optimized code.
-        function = code.function();
-        code = function.unoptimized_code();
-        ASSERT(!code.IsNull());
-        resetter.ResetSwitchableCalls(code);
-        resetter.ResetCaches(code);
-      } else {
-        resetter.ResetSwitchableCalls(code);
-        resetter.ResetCaches(code);
-      }
+      resetter.ResetSwitchableCalls(code);
+      resetter.ResetCaches(code);
     }
     frame = iterator.NextFrame();
   }
@@ -2022,14 +2034,6 @@ void IsolateReloadContext::RunInvalidationVisitors() {
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
 
-  Thread* mutator_thread = I->mutator_thread();
-  if (mutator_thread != nullptr) {
-    Interpreter* interpreter = mutator_thread->interpreter();
-    if (interpreter != nullptr) {
-      interpreter->ClearLookupCache();
-    }
-  }
-
   GrowableArray<const Function*> functions(4 * KB);
   GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
   GrowableArray<const Field*> fields(4 * KB);
@@ -2074,10 +2078,6 @@ void IsolateReloadContext::InvalidateKernelInfos(
       table.Clear();
       info.set_classes_cache(table.Release());
     }
-    // Clear the bytecode object table.
-    if (info.bytecode_component() != Array::null()) {
-      kernel::BytecodeReader::ResetObjectTable(info);
-    }
   }
 }
 
@@ -2092,7 +2092,6 @@ void IsolateReloadContext::InvalidateFunctions(
   Class& owning_class = Class::Handle(zone);
   Library& owning_lib = Library::Handle(zone);
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
     if (func.IsSignatureFunction()) {
@@ -2105,7 +2104,6 @@ void IsolateReloadContext::InvalidateFunctions(
     // Grab the current code.
     code = func.CurrentCode();
     ASSERT(!code.IsNull());
-    bytecode = func.bytecode();
 
     owning_class = func.Owner();
     owning_lib = owning_class.library();
@@ -2115,10 +2113,6 @@ void IsolateReloadContext::InvalidateFunctions(
     // Zero edge counters, before clearing the ICDataArray, since that's where
     // they're held.
     resetter.ZeroEdgeCounters(func);
-
-    if (!bytecode.IsNull()) {
-      resetter.RebindStaticTargets(bytecode);
-    }
 
     if (stub_code) {
       // Nothing to reset.
@@ -2282,6 +2276,8 @@ class FieldInvalidator {
          i += SubtypeTestCache::kTestEntryLength) {
       if ((entries_.At(i + SubtypeTestCache::kInstanceClassIdOrFunction) ==
            instance_cid_or_function_.raw()) &&
+          (entries_.At(i + SubtypeTestCache::kDestinationType) ==
+           type_.raw()) &&
           (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
            instance_type_arguments_.raw()) &&
           (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
@@ -2310,8 +2306,9 @@ class FieldInvalidator {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {
-        cache_.AddCheck(instance_cid_or_function_, instance_type_arguments_,
-                        instantiator_type_arguments_, function_type_arguments_,
+        cache_.AddCheck(instance_cid_or_function_, type_,
+                        instance_type_arguments_, instantiator_type_arguments_,
+                        function_type_arguments_,
                         parent_function_type_arguments_,
                         delayed_function_type_arguments_, Bool::True());
       }

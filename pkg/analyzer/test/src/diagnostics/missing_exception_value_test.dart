@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class MissingExceptionValueTest extends DriverResolutionTest {
+class MissingExceptionValueTest extends PubPackageResolutionTest {
   test_missing() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

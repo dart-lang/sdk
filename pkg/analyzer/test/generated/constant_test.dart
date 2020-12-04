@@ -9,7 +9,7 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstantEvaluatorTest extends DriverResolutionTest {
+class ConstantEvaluatorTest extends PubPackageResolutionTest {
   test_bitAnd_int_int() async {
     await _assertValueInt(74 & 42, "74 & 42");
   }
@@ -501,8 +501,7 @@ $context
     var file = getFile(result.path);
     var evaluator = ConstantEvaluator(
       file.createSource(result.uri),
-      result.typeProvider,
-      typeSystem: result.typeSystem,
+      result.libraryElement,
     );
 
     return evaluator.evaluate(expression);

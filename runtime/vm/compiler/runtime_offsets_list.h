@@ -21,7 +21,11 @@
 // FIELD(Class, Name) Offset of a field within a class.
 // ARRAY(Class, Name) Offset of the first element and the size of the elements
 //     in an array of this class.
-// SIZEOF(Class, Name, What) Size of an object.
+// SIZEOF(Class, Name, What) Class::Name() is defined as sizeof(What).
+// PAYLOAD_SIZEOF(Class, Name, HeaderSize) Instance size for a payload object.
+//     Defines Class::Name(word payload_size) and uses Class::HeaderSize(),
+//     which should give the size of the header before the payload. Also
+//     defines Class::Name() (with no payload size argument) to be 0.
 // RANGE(Class, Name, Type, First, Last, Filter) An array of offsets generated
 //     by passing a value of the given Type in the range from First to Last to
 //     Class::Name() if Filter returns true for that value.
@@ -31,7 +35,11 @@
 // JIT_OFFSETS_LIST is for declarations that are only valid in JIT mode.
 // A declaration that is not valid in product mode can be wrapped with
 // NOT_IN_PRODUCT().
-#define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, RANGE, CONSTANT)             \
+//
+// TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
+
+#define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, PAYLOAD_SIZEOF, RANGE,       \
+                            CONSTANT)                                          \
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
@@ -39,17 +47,21 @@
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetAOT)                           \
+  CONSTANT(Instructions, kBarePayloadAlignment)                                \
+  CONSTANT(Instructions, kNonBarePayloadAlignment)                             \
   CONSTANT(OldPage, kBytesPerCardLog2)                                         \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceClassIdOrFunction)                       \
+  CONSTANT(SubtypeTestCache, kDestinationType)                                 \
   CONSTANT(SubtypeTestCache, kInstanceDelayedFunctionTypeArguments)            \
   CONSTANT(SubtypeTestCache, kInstanceParentFunctionTypeArguments)             \
   CONSTANT(SubtypeTestCache, kInstanceTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
+  CONSTANT(TypeArguments, kMaxElements)                                        \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
   FIELD(ArgumentsDescriptor, size_offset)                                      \
@@ -74,6 +86,8 @@
   FIELD(Closure, function_type_arguments_offset)                               \
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
+  FIELD(ClosureData, default_type_arguments_offset)                            \
+  FIELD(ClosureData, default_type_arguments_info_offset)                       \
   FIELD(Code, object_pool_offset)                                              \
   FIELD(Code, saved_instructions_offset)                                       \
   FIELD(Code, owner_offset)                                                    \
@@ -92,8 +106,14 @@
   FIELD(Field, is_nullable_offset)                                             \
   FIELD(Field, kind_bits_offset)                                               \
   FIELD(Function, code_offset)                                                 \
+  FIELD(Function, data_offset)                                                 \
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
+  FIELD(Function, kind_tag_offset)                                             \
+  FIELD(Function, packed_fields_offset)                                        \
+  FIELD(Function, parameter_names_offset)                                      \
+  FIELD(Function, parameter_types_offset)                                      \
+  FIELD(Function, type_parameters_offset)                                      \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
@@ -105,6 +125,7 @@
   FIELD(ICData, entries_offset)                                                \
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
+  FIELD(Int32x4, value_offset)                                                 \
   FIELD(Isolate, shared_class_table_offset)                                    \
   FIELD(Isolate, cached_class_table_table_offset)                              \
   FIELD(Isolate, current_tag_offset)                                           \
@@ -160,7 +181,6 @@
   FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
   FIELD(Thread, allocate_object_slow_stub_offset)                              \
   FIELD(Thread, api_top_scope_offset)                                          \
-  FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
   FIELD(Thread, bool_true_offset)                                              \
@@ -188,8 +208,6 @@
   FIELD(Thread, float_not_address_offset)                                      \
   FIELD(Thread, float_zerow_address_offset)                                    \
   FIELD(Thread, global_object_pool_offset)                                     \
-  FIELD(Thread, interpret_call_entry_point_offset)                             \
-  FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
@@ -202,6 +220,8 @@
   FIELD(Thread, switchable_call_miss_entry_offset)                             \
   FIELD(Thread, switchable_call_miss_stub_offset)                              \
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
+  FIELD(Thread, late_initialization_error_shared_with_fpu_regs_stub_offset)    \
+  FIELD(Thread, late_initialization_error_shared_without_fpu_regs_stub_offset) \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
   FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
   FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
@@ -244,8 +264,16 @@
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
+  FIELD(TypeParameter, parameterized_class_id_offset)                          \
+  FIELD(TypeParameter, index_offset)                                           \
+  FIELD(TypeParameter, nullability_offset)                                     \
   FIELD(TypeArguments, instantiations_offset)                                  \
+  FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
+  FIELD(TypeArguments, types_offset)                                           \
+  FIELD(TypeParameter, bound_offset)                                           \
+  FIELD(TypeParameter, flags_offset)                                           \
+  FIELD(TypeParameter, name_offset)                                            \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, data_offset)                                            \
@@ -272,14 +300,12 @@
   SIZEOF(Array, InstanceSize, ArrayLayout)                                     \
   SIZEOF(Array, header_size, ArrayLayout)                                      \
   SIZEOF(Bool, InstanceSize, BoolLayout)                                       \
-  SIZEOF(Bytecode, InstanceSize, BytecodeLayout)                               \
   SIZEOF(Capability, InstanceSize, CapabilityLayout)                           \
   SIZEOF(Class, InstanceSize, ClassLayout)                                     \
   SIZEOF(Closure, InstanceSize, ClosureLayout)                                 \
   SIZEOF(ClosureData, InstanceSize, ClosureDataLayout)                         \
   SIZEOF(Code, InstanceSize, CodeLayout)                                       \
-  SIZEOF(CodeSourceMap, InstanceSize, CodeSourceMapLayout)                     \
-  SIZEOF(CompressedStackMaps, InstanceSize, CompressedStackMapsLayout)         \
+  SIZEOF(CodeSourceMap, HeaderSize, CodeSourceMapLayout)                       \
   SIZEOF(CompressedStackMaps, HeaderSize, CompressedStackMapsLayout)           \
   SIZEOF(Context, InstanceSize, ContextLayout)                                 \
   SIZEOF(Context, header_size, ContextLayout)                                  \
@@ -299,9 +325,7 @@
   SIZEOF(GrowableObjectArray, InstanceSize, GrowableObjectArrayLayout)         \
   SIZEOF(ICData, InstanceSize, ICDataLayout)                                   \
   SIZEOF(Instance, InstanceSize, InstanceLayout)                               \
-  SIZEOF(Instructions, InstanceSize, InstructionsLayout)                       \
   SIZEOF(Instructions, UnalignedHeaderSize, InstructionsLayout)                \
-  SIZEOF(InstructionsSection, InstanceSize, InstructionsSectionLayout)         \
   SIZEOF(InstructionsSection, UnalignedHeaderSize, InstructionsSectionLayout)  \
   SIZEOF(Int32x4, InstanceSize, Int32x4Layout)                                 \
   SIZEOF(Integer, InstanceSize, IntegerLayout)                                 \
@@ -321,12 +345,10 @@
   SIZEOF(Object, InstanceSize, ObjectLayout)                                   \
   SIZEOF(ObjectPool, InstanceSize, ObjectPoolLayout)                           \
   SIZEOF(OneByteString, InstanceSize, OneByteStringLayout)                     \
-  SIZEOF(ParameterTypeCheck, InstanceSize, ParameterTypeCheckLayout)           \
   SIZEOF(PatchClass, InstanceSize, PatchClassLayout)                           \
-  SIZEOF(PcDescriptors, InstanceSize, PcDescriptorsLayout)                     \
+  SIZEOF(PcDescriptors, HeaderSize, PcDescriptorsLayout)                       \
   SIZEOF(Pointer, InstanceSize, PointerLayout)                                 \
   SIZEOF(ReceivePort, InstanceSize, ReceivePortLayout)                         \
-  SIZEOF(RedirectionData, InstanceSize, RedirectionDataLayout)                 \
   SIZEOF(RegExp, InstanceSize, RegExpLayout)                                   \
   SIZEOF(Script, InstanceSize, ScriptLayout)                                   \
   SIZEOF(SendPort, InstanceSize, SendPortLayout)                               \
@@ -352,9 +374,14 @@
   SIZEOF(UserTag, InstanceSize, UserTagLayout)                                 \
   SIZEOF(WeakProperty, InstanceSize, WeakPropertyLayout)                       \
   SIZEOF(WeakSerializationReference, InstanceSize,                             \
-         WeakSerializationReferenceLayout)
+         WeakSerializationReferenceLayout)                                     \
+  PAYLOAD_SIZEOF(CodeSourceMap, InstanceSize, HeaderSize)                      \
+  PAYLOAD_SIZEOF(CompressedStackMaps, InstanceSize, HeaderSize)                \
+  PAYLOAD_SIZEOF(InstructionsSection, InstanceSize, HeaderSize)                \
+  PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)
 
-#define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, RANGE, CONSTANT)                \
+#define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, PAYLOAD_SIZEOF, RANGE,          \
+                         CONSTANT)                                             \
   FIELD(Function, usage_counter_offset)                                        \
   FIELD(ICData, receivers_static_type_offset)
 

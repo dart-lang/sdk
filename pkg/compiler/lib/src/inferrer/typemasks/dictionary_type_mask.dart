@@ -29,15 +29,15 @@ class DictionaryTypeMask extends MapTypeMask {
 
   /// Deserializes a [DictionaryTypeMask] object from [source].
   factory DictionaryTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask keyType = new TypeMask.readFromDataSource(source, closedWorld);
-    TypeMask valueType = new TypeMask.readFromDataSource(source, closedWorld);
-    Map<String, AbstractValue> typeMap = source.readStringMap(
-        () => new TypeMask.readFromDataSource(source, closedWorld));
+    TypeMask keyType = new TypeMask.readFromDataSource(source, domain);
+    TypeMask valueType = new TypeMask.readFromDataSource(source, domain);
+    Map<String, AbstractValue> typeMap = source
+        .readStringMap(() => new TypeMask.readFromDataSource(source, domain));
     source.end(tag);
     return new DictionaryTypeMask(forwardTo, allocationNode, allocationElement,
         keyType, valueType, typeMap);

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ListLiteralTest extends DriverResolutionTest {
+class ListLiteralTest extends PubPackageResolutionTest {
   test_context_noTypeArgs_expression_conflict() async {
     await assertErrorsInCode('''
 List<int> a = ['a'];
@@ -33,7 +32,16 @@ List<int> a = [1];
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
-  test_context_noTypeArgs_noElements() async {
+  test_context_noTypeArgs_noElements_fromReturnType() async {
+    await assertNoErrorsInCode('''
+List<int> f() {
+  return [];
+}
+''');
+    assertType(findNode.listLiteral('[]'), 'List<int>');
+  }
+
+  test_context_noTypeArgs_noElements_fromVariableType() async {
     await assertNoErrorsInCode('''
 List<String> a = [];
 ''');
@@ -274,7 +282,7 @@ var a = [...b, ...c];
     await assertNoErrorsInCode(r'''
 mixin L on List<int> {}
 
-main(L l1) {
+void f(L l1) {
   // ignore:unused_local_variable
   var l2 = [...l1];
 }

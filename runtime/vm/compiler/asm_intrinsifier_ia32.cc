@@ -83,132 +83,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-#define TYPED_ARRAY_ALLOCATION(cid, max_len, scale_factor)                     \
-  const intptr_t kArrayLengthStackOffset = 1 * target::kWordSize;              \
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EDI, normal_ir_body, false));    \
-  __ movl(EDI, Address(ESP, kArrayLengthStackOffset)); /* Array length. */     \
-  /* Check that length is a positive Smi. */                                   \
-  /* EDI: requested array length argument. */                                  \
-  __ testl(EDI, Immediate(kSmiTagMask));                                       \
-  __ j(NOT_ZERO, normal_ir_body);                                              \
-  __ cmpl(EDI, Immediate(0));                                                  \
-  __ j(LESS, normal_ir_body);                                                  \
-  __ SmiUntag(EDI);                                                            \
-  /* Check for maximum allowed length. */                                      \
-  /* EDI: untagged array length. */                                            \
-  __ cmpl(EDI, Immediate(max_len));                                            \
-  __ j(GREATER, normal_ir_body);                                               \
-  /* Special case for scaling by 16. */                                        \
-  if (scale_factor == TIMES_16) {                                              \
-    /* double length of array. */                                              \
-    __ addl(EDI, EDI);                                                         \
-    /* only scale by 8. */                                                     \
-    scale_factor = TIMES_8;                                                    \
-  }                                                                            \
-  const intptr_t fixed_size_plus_alignment_padding =                           \
-      target::TypedData::InstanceSize() +                                      \
-      target::ObjectAlignment::kObjectAlignment - 1;                           \
-  __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding)); \
-  __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));         \
-  __ movl(EAX, Address(THR, target::Thread::top_offset()));                    \
-  __ movl(EBX, EAX);                                                           \
-                                                                               \
-  /* EDI: allocation size. */                                                  \
-  __ addl(EBX, EDI);                                                           \
-  __ j(CARRY, normal_ir_body);                                                 \
-                                                                               \
-  /* Check if the allocation fits into the remaining space. */                 \
-  /* EAX: potential new object start. */                                       \
-  /* EBX: potential next object start. */                                      \
-  /* EDI: allocation size. */                                                  \
-  __ cmpl(EBX, Address(THR, target::Thread::end_offset()));                    \
-  __ j(ABOVE_EQUAL, normal_ir_body);                                           \
-                                                                               \
-  /* Successfully allocated the object(s), now update top to point to */       \
-  /* next object start and initialize the object. */                           \
-  __ movl(Address(THR, target::Thread::top_offset()), EBX);                    \
-  __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-                                                                               \
-  /* Initialize the tags. */                                                   \
-  /* EAX: new object start as a tagged pointer. */                             \
-  /* EBX: new object end address. */                                           \
-  /* EDI: allocation size. */                                                  \
-  {                                                                            \
-    Label size_tag_overflow, done;                                             \
-    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));         \
-    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);                     \
-    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -          \
-                           target::ObjectAlignment::kObjectAlignmentLog2));    \
-    __ jmp(&done, Assembler::kNearJump);                                       \
-                                                                               \
-    __ Bind(&size_tag_overflow);                                               \
-    __ movl(EDI, Immediate(0));                                                \
-    __ Bind(&done);                                                            \
-                                                                               \
-    /* Get the class index and insert it into the tags. */                     \
-    uint32_t tags =                                                            \
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);        \
-    __ orl(EDI, Immediate(tags));                                              \
-    __ movl(FieldAddress(EAX, target::Object::tags_offset()),                  \
-            EDI); /* Tags. */                                                  \
-  }                                                                            \
-  /* Set the length field. */                                                  \
-  /* EAX: new object start as a tagged pointer. */                             \
-  /* EBX: new object end address. */                                           \
-  __ movl(EDI, Address(ESP, kArrayLengthStackOffset)); /* Array length. */     \
-  __ StoreIntoObjectNoBarrier(                                                 \
-      EAX, FieldAddress(EAX, target::TypedDataBase::length_offset()), EDI);    \
-  /* Initialize all array elements to 0. */                                    \
-  /* EAX: new object start as a tagged pointer. */                             \
-  /* EBX: new object end address. */                                           \
-  /* EDI: iterator which initially points to the start of the variable */      \
-  /* ECX: scratch register. */                                                 \
-  /* data area to be initialized. */                                           \
-  __ xorl(ECX, ECX); /* Zero. */                                               \
-  __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));          \
-  __ StoreInternalPointer(                                                     \
-      EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),      \
-      EDI);                                                                    \
-  Label done, init_loop;                                                       \
-  __ Bind(&init_loop);                                                         \
-  __ cmpl(EDI, EBX);                                                           \
-  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);                              \
-  __ movl(Address(EDI, 0), ECX);                                               \
-  __ addl(EDI, Immediate(target::kWordSize));                                  \
-  __ jmp(&init_loop, Assembler::kNearJump);                                    \
-  __ Bind(&done);                                                              \
-                                                                               \
-  __ ret();                                                                    \
-  __ Bind(normal_ir_body);
-
-static ScaleFactor GetScaleFactor(intptr_t size) {
-  switch (size) {
-    case 1:
-      return TIMES_1;
-    case 2:
-      return TIMES_2;
-    case 4:
-      return TIMES_4;
-    case 8:
-      return TIMES_8;
-    case 16:
-      return TIMES_16;
-  }
-  UNREACHABLE();
-  return static_cast<ScaleFactor>(0);
-}
-
-#define TYPED_DATA_ALLOCATOR(clazz)                                            \
-  void AsmIntrinsifier::TypedData_##clazz##_factory(Assembler* assembler,      \
-                                                    Label* normal_ir_body) {   \
-    intptr_t size = TypedDataElementSizeInBytes(kTypedData##clazz##Cid);       \
-    intptr_t max_len = TypedDataMaxNewSpaceElements(kTypedData##clazz##Cid);   \
-    ScaleFactor scale = GetScaleFactor(size);                                  \
-    TYPED_ARRAY_ALLOCATION(kTypedData##clazz##Cid, max_len, scale);            \
-  }
-CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
-#undef TYPED_DATA_ALLOCATOR
-
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
@@ -2036,7 +1910,8 @@ static void TryAllocateString(Assembler* assembler,
   __ cmpl(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EAX, failure, false));
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(cid, EAX, failure, Assembler::kFarJump));
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -2090,7 +1965,7 @@ static void TryAllocateString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orl(EDI, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
@@ -2363,20 +2238,6 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 #endif
-}
-
-void AsmIntrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  __ LoadObject(EAX, NullObject());
-  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
-  __ ret();
-}
-
-void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
-  __ LoadObject(EAX, NullObject());
-  __ ret();
 }
 
 #undef __

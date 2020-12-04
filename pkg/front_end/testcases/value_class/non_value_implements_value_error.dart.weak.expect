@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/non_value_implements_value_error.dart:9:13: Error: Final field 'numberOfLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/value_class/non_value_implements_value_error.dart:13:13: Error: Final field 'numberOfLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int numberOfLegs = null;
+  synthetic constructor •({required core::int numberOfLegs}) → self::Animal
+    : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
+    ;
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
+    return other is self::Animal && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Animal}.{self::Animal::numberOfLegs});
+  get /*isLegacy*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine("org-dartlang-testcase:///non_value_implements_value_error.dartAnimal".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}));
+  method /*isLegacy*/ toString() → core::String
+    return "Animal(numberOfLegs: ${this.{self::Animal::numberOfLegs}.{core::int::toString}()})";
+  method /*isLegacy*/ copyWith({core::int numberOfLegs}) → dynamic
+    return new self::Animal::•(numberOfLegs: numberOfLegs);
+}
+class Cat extends core::Object implements self::Animal {
+  final field core::int numberOfLegs = null;
+  synthetic constructor •() → self::Cat
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    : super core::Object::•()
+    ;
+  static method combine(core::int hash, core::int value) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
+  }
+  static method finish(core::int hash) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+  }
+}
+static const field core::String valueClass = #C1;
+
+constants  {
+  #C1 = "valueClass"
+}

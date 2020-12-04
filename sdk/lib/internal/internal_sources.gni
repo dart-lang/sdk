@@ -14,6 +14,7 @@ internal_sdk_sources = [
   "iterable.dart",
   "linked_list.dart",
   "list.dart",
+  "lowering.dart",
   "print.dart",
   "sort.dart",
   "symbol.dart",

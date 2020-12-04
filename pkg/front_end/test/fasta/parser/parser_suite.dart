@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show ParserError, parse;
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Future, Result, Step, runMe;
+    show Chain, ChainContext, Result, Step, runMe;
 
 import '../../utils/scanner_chain.dart' show Read, Scan, ScannedFile;
 

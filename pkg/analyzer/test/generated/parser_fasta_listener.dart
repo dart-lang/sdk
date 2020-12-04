@@ -1154,7 +1154,8 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endTopLevelDeclaration(Token token) {
-    // There is no corresponding beginTopLevelDeclaration
+    // There is no corresponding beginTopLevelDeclaration.
+    // It is insteads started by another begin, see listener.
     //_expectBegin('TopLevelDeclaration');
     expectIn('CompilationUnit');
     super.endTopLevelDeclaration(token);
@@ -1260,9 +1261,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     expectIn('ClassDeclaration');
-    listener.handleClassExtends(extendsKeyword);
+    listener.handleClassExtends(extendsKeyword, typeCount);
   }
 
   @override

@@ -3,94 +3,56 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart';
+import 'package:pub/pub.dart';
 
 import '../core.dart';
-import '../experiments.dart';
-import '../sdk.dart';
+import '../vm_interop_handler.dart';
 
-class TestCommand extends DartdevCommand<int> {
-  TestCommand() : super('test', 'Runs tests in this project.');
+/// Implement `dart test`.
+///
+/// This command largely delegates to `pub run test`.
+class TestCommand extends DartdevCommand {
+  static const String cmdName = 'test';
 
+  TestCommand() : super(cmdName, 'Run tests in this package.');
+
+  // This argument parser is here solely to ensure that VM specific flags are
+  // provided before any command and to provide a more consistent help message
+  // with the rest of the tool.
   @override
-  final ArgParser argParser = ArgParser.allowAnything();
-
-  @override
-  void printUsage() {
-    if (!Sdk.checkSnapshotExists(sdk.pub)) {
-      return;
-    }
-    final command = sdk.pub;
-    final args = ['run', 'test', '--help'];
-
-    log.trace('$command ${args.join(' ')}');
-
-    final result = Process.runSync(command, args);
-    if (result.stderr.isNotEmpty) {
-      stderr.write(result.stderr);
-    }
-    if (result.stdout.isNotEmpty) {
-      stdout.write(result.stdout);
-    }
-
-    // "Could not find package "test". Did you forget to add a dependency?"
-    if (result.exitCode == 65 && project.hasPackageConfigFile) {
-      if (!project.packageConfig.hasDependency('test')) {
-        _printPackageTestInstructions();
-      }
-    }
+  ArgParser createArgParser() {
+    return ArgParser.allowAnything();
   }
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkSnapshotExists(sdk.pub)) {
-      return 255;
+    if (argResults.rest.contains('-h') || argResults.rest.contains('--help')) {
+      printUsage();
+      return 0;
     }
-    final command = sdk.pub;
-    final testArgs = argResults.arguments.toList();
+    if (!project.hasPubspecFile) {
+      log.stdout('''
+No pubspec.yaml file found; please run this command from the root of your project.
+''');
 
-    final args = [
-      'run',
-      if (wereExperimentsSpecified)
-        '--$experimentFlagName=${specifiedExperiments.join(',')}',
-      'test',
-      ...testArgs,
-    ];
-
-    log.trace('$command ${args.join(' ')}');
-
-    // Starting in ProcessStartMode.inheritStdio mode means the child process
-    // can detect support for ansi chars.
-    var process =
-        await Process.start(command, args, mode: ProcessStartMode.inheritStdio);
-
-    int exitCode = await process.exitCode;
-
-    // "Could not find package "test". Did you forget to add a dependency?"
-    if (exitCode == 65 && project.hasPackageConfigFile) {
-      if (!project.packageConfig.hasDependency('test')) {
-        _printPackageTestInstructions();
-      }
+      printUsage();
+      return 65;
     }
-
-    return exitCode;
-  }
-
-  void _printPackageTestInstructions() {
-    log.stdout('');
-
-    final ansi = log.ansi;
-
-    log.stdout('''
-In order to run tests, you need to add a dependency on package:test in your
-pubspec.yaml file:
-
-${ansi.emphasized('dev_dependencies:\n  test: ^1.0.0')}
-
-See https://pub.dev/packages/test#-installing-tab- for more information on
-adding package:test, and https://dart.dev/guides/testing for general
-information on testing.''');
+    try {
+      final testExecutable = await getExecutableForCommand('test:test');
+      log.trace('dart $testExecutable ${argResults.rest.join(' ')}');
+      VmInteropHandler.run(testExecutable, argResults.rest,
+          packageConfigOverride:
+              join(current, '.dart_tool', 'package_config.json'));
+      return 0;
+    } on CommandResolutionFailedException catch (e) {
+      print(e.message);
+      print('You need to add a dependency on package:test.');
+      print('Try running `dart pub add test`.');
+      return 65;
+    }
   }
 }

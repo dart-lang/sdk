@@ -11,73 +11,52 @@
 
 namespace dart {
 
-TextBuffer::TextBuffer(intptr_t buf_size) {
-  ASSERT(buf_size > 0);
-  buf_ = reinterpret_cast<char*>(malloc(buf_size));
-  if (buf_ == NULL) {
-    OUT_OF_MEMORY();
-  }
-  buf_size_ = buf_size;
-  Clear();
-}
-
-TextBuffer::~TextBuffer() {
-  free(buf_);
-  buf_ = NULL;
-}
-
-void TextBuffer::Clear() {
-  msg_len_ = 0;
-  buf_[0] = '\0';
-}
-
-char* TextBuffer::Steal() {
-  char* r = buf_;
-  buf_ = NULL;
-  buf_size_ = 0;
-  msg_len_ = 0;
-  return r;
-}
-
-void TextBuffer::AddChar(char ch) {
-  EnsureCapacity(sizeof(ch));
-  buf_[msg_len_] = ch;
-  msg_len_++;
-  buf_[msg_len_] = '\0';
-}
-
-void TextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
-  EnsureCapacity(buffer_length);
-  memmove(&buf_[msg_len_], buffer, buffer_length);
-  msg_len_ += buffer_length;
-  buf_[msg_len_] = '\0';
-}
-
-intptr_t TextBuffer::Printf(const char* format, ...) {
+intptr_t BaseTextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  intptr_t remaining = buf_size_ - msg_len_;
+  intptr_t remaining = capacity_ - length_;
   ASSERT(remaining >= 0);
-  intptr_t len = Utils::VSNPrint(buf_ + msg_len_, remaining, format, args);
+  intptr_t len = Utils::VSNPrint(buffer_ + length_, remaining, format, args);
   va_end(args);
   if (len >= remaining) {
-    EnsureCapacity(len);
-    remaining = buf_size_ - msg_len_;
+    if (!EnsureCapacity(len)) {
+      length_ = capacity_ - 1;
+      buffer_[length_] = '\0';
+      return remaining - 1;
+    }
+    remaining = capacity_ - length_;
     ASSERT(remaining > len);
     va_list args2;
     va_start(args2, format);
-    intptr_t len2 = Utils::VSNPrint(buf_ + msg_len_, remaining, format, args2);
+    intptr_t len2 =
+        Utils::VSNPrint(buffer_ + length_, remaining, format, args2);
     va_end(args2);
     ASSERT(len == len2);
   }
-  msg_len_ += len;
-  buf_[msg_len_] = '\0';
+  length_ += len;
+  buffer_[length_] = '\0';
   return len;
+}
+
+void BaseTextBuffer::AddChar(char ch) {
+  if (!EnsureCapacity(sizeof(ch))) return;
+  buffer_[length_] = ch;
+  length_++;
+  buffer_[length_] = '\0';
+}
+
+void BaseTextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
+  if (!EnsureCapacity(buffer_length)) {
+    buffer_length = capacity_ - length_ - 1;  // Copy what fits.
+  }
+  memmove(&buffer_[length_], buffer, buffer_length);
+  length_ += buffer_length;
+  buffer_[length_] = '\0';
 }
 
 // Write a UTF-32 code unit so it can be read by a JSON parser in a string
 // literal. Use official encoding from JSON specification. http://json.org/
-void TextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
+void BaseTextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
   switch (codeunit) {
     case '"':
       AddRaw(reinterpret_cast<uint8_t const*>("\\\""), 2);
@@ -117,49 +96,50 @@ void TextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
 
 // Write an incomplete UTF-16 code unit so it can be read by a JSON parser in a
 // string literal.
-void TextBuffer::EscapeAndAddUTF16CodeUnit(uint16_t codeunit) {
+void BaseTextBuffer::EscapeAndAddUTF16CodeUnit(uint16_t codeunit) {
   Printf("\\u%04X", codeunit);
 }
 
-void TextBuffer::AddString(const char* s) {
+void BaseTextBuffer::AddString(const char* s) {
   Printf("%s", s);
 }
 
-void TextBuffer::AddEscapedString(const char* s) {
+void BaseTextBuffer::AddEscapedString(const char* s) {
   intptr_t len = strlen(s);
   for (int i = 0; i < len; i++) {
     EscapeAndAddCodeUnit(s[i]);
   }
 }
 
-void TextBuffer::EnsureCapacity(intptr_t len) {
-  intptr_t remaining = buf_size_ - msg_len_;
+TextBuffer::TextBuffer(intptr_t buf_size) {
+  ASSERT(buf_size > 0);
+  buffer_ = reinterpret_cast<char*>(malloc(buf_size));
+  capacity_ = buf_size;
+  Clear();
+}
+
+TextBuffer::~TextBuffer() {
+  free(buffer_);
+  buffer_ = nullptr;
+}
+
+char* TextBuffer::Steal() {
+  char* r = buffer_;
+  buffer_ = nullptr;
+  capacity_ = 0;
+  length_ = 0;
+  return r;
+}
+
+bool TextBuffer::EnsureCapacity(intptr_t len) {
+  intptr_t remaining = capacity_ - length_;
   if (remaining <= len) {
-    intptr_t new_size = buf_size_ + Utils::Maximum(buf_size_, len + 1);
-    char* new_buf = reinterpret_cast<char*>(realloc(buf_, new_size));
-    if (new_buf == NULL) {
-      OUT_OF_MEMORY();
-    }
-    buf_ = new_buf;
-    buf_size_ = new_size;
+    intptr_t new_size = capacity_ + Utils::Maximum(capacity_, len + 1);
+    char* new_buf = reinterpret_cast<char*>(realloc(buffer_, new_size));
+    buffer_ = new_buf;
+    capacity_ = new_size;
   }
-}
-
-void BufferFormatter::Print(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  VPrint(format, args);
-  va_end(args);
-}
-
-void BufferFormatter::VPrint(const char* format, va_list args) {
-  intptr_t available = size_ - position_;
-  if (available <= 0) return;
-  intptr_t written =
-      Utils::VSNPrint(buffer_ + position_, available, format, args);
-  if (written >= 0) {
-    position_ += (available <= written) ? available : written;
-  }
+  return true;
 }
 
 }  // namespace dart

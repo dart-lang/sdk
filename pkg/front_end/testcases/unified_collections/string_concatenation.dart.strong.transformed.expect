@@ -6,8 +6,14 @@ static method main() → dynamic {
   core::bool* b = false;
   block {
     final core::List<core::String*>* #t1 = <core::String*>[];
-    #t1.{core::List::add}("ab");
+    #t1.{core::List::add}{Invariant}("ab");
     if(b)
-      #t1.{core::List::add}("cd");
+      #t1.{core::List::add}{Invariant}("cd");
   } =>#t1;
 }
+
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///string_concatenation.dart:7:3 -> StringConstant("ab")
+Evaluated: StringConcatenation @ org-dartlang-testcase:///string_concatenation.dart:7:18 -> StringConstant("cd")
+Extra constant evaluation: evaluated: 10, effectively constant: 2

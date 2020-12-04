@@ -1,8 +1,8 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--no-causal-async-stacks --lazy-async-stacks
-// VMOptions=--causal-async-stacks --no-lazy-async-stacks
+//
+// VMOptions=--lazy-async-stacks
 
 import 'dart:developer';
 import 'common/service_test_common.dart';
@@ -36,12 +36,6 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E),
   stepInto,
-
-  ...ifLazyAsyncStacks(<IsolateTest>[
-    hasStoppedAtBreakpoint,
-    stoppedAtLine(18), // helper() async { ... }
-    stepInto,
-  ]),
 
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),

@@ -117,7 +117,9 @@ namespace bin {
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_FilterPointer, 1)                                             \
   V(SecureSocket_GetSelectedProtocol, 1)                                       \
-  V(SecureSocket_Handshake, 1)                                                 \
+  V(SecureSocket_Handshake, 2)                                                 \
+  V(SecureSocket_MarkAsTrusted, 3)                                             \
+  V(SecureSocket_NewX509CertificateWrapper, 1)                                 \
   V(SecureSocket_Init, 1)                                                      \
   V(SecureSocket_PeerCertificate, 1)                                           \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \

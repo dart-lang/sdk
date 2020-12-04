@@ -69,7 +69,7 @@ assignInClosure() {
 
   int lines = 0;
   local(/*[null]*/ () {
-    lines = /*invoke: [exact=JSUInt31]*/ -42;
+    lines = -42;
   });
   return lines;
 }
@@ -80,10 +80,10 @@ assignInTwoClosures() {
 
   int lines = 0;
   local(/*[null]*/ () {
-    lines = /*invoke: [exact=JSUInt31]*/ -42;
+    lines = -42;
   });
   local(/*[null]*/ () {
-    lines = /*invoke: [exact=JSUInt31]*/ -87;
+    lines = -87;
   });
   return lines;
 }

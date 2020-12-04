@@ -81,7 +81,7 @@ class NoDynamicUsesAnnotator {
   }
 
   visitField(Field node) {
-    if (node.isStatic || node.name.name == 'call') {
+    if (node.isStatic || node.name.text == 'call') {
       return;
     }
 
@@ -104,7 +104,7 @@ class NoDynamicUsesAnnotator {
   }
 
   visitProcedure(Procedure node) {
-    if (node.isStatic || node.name.name == 'call') {
+    if (node.isStatic || node.name.text == 'call') {
       return;
     }
 
@@ -190,17 +190,6 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   }
 
   @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    super.visitDirectMethodInvocation(node);
-
-    Selector selector;
-    if (node.receiver is! ThisExpression) {
-      nonThisSelectors
-          .add(selector ??= new Selector.doInvoke(node.target.name));
-    }
-  }
-
-  @override
   visitPropertyGet(PropertyGet node) {
     super.visitPropertyGet(node);
 
@@ -220,20 +209,6 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   }
 
   @override
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    super.visitDirectPropertyGet(node);
-
-    if (node.receiver is! ThisExpression) {
-      nonThisSelectors.add(new Selector.doGet(node.target.name));
-    }
-
-    final target = node.target;
-    if (target is Procedure && target.kind == ProcedureKind.Method) {
-      tearOffSelectors.add(new Selector.doInvoke(target.name));
-    }
-  }
-
-  @override
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
 
@@ -244,16 +219,6 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
       if (node.receiver is! ThisExpression) {
         nonThisSelectors.add(selector ??= new Selector.doSet(node.name));
       }
-    }
-  }
-
-  @override
-  visitDirectPropertySet(DirectPropertySet node) {
-    super.visitDirectPropertySet(node);
-
-    Selector selector;
-    if (node.receiver is! ThisExpression) {
-      nonThisSelectors.add(selector ??= new Selector.doSet(node.target.name));
     }
   }
 }

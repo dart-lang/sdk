@@ -21,3 +21,8 @@ class Class extends core::Object {
   constructor baz(core::int foo) → self2::Class
     ;
 }
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

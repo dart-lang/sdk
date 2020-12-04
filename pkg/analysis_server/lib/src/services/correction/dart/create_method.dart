@@ -36,13 +36,18 @@ class CreateMethod extends CorrectionProducer {
   }
 
   Future<void> createEqualsOrHashCode(ChangeBuilder builder) async {
-    final methodDecl = node.thisOrAncestorOfType<MethodDeclaration>();
-    final classDecl = methodDecl.thisOrAncestorOfType<ClassDeclaration>();
-    if (methodDecl != null && classDecl != null) {
+    final memberDecl = node.thisOrAncestorOfType<ClassMember>();
+    if (memberDecl == null) {
+      return;
+    }
+    final classDecl = memberDecl.thisOrAncestorOfType<ClassDeclaration>();
+    if (classDecl != null) {
       final classElement = classDecl.declaredElement;
 
-      var element;
-      if (methodDecl.name.name == 'hashCode') {
+      var missingEquals = memberDecl is FieldDeclaration ||
+          (memberDecl as MethodDeclaration).name.name == 'hashCode';
+      ExecutableElement element;
+      if (missingEquals) {
         _memberName = '==';
         element = classElement.lookUpInheritedMethod(
             _memberName, classElement.library);

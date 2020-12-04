@@ -4,8 +4,6 @@
 
 library fasta.test.compile_platform_test;
 
-import 'dart:async';
-
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';

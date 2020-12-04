@@ -12,10 +12,13 @@ const kExactResultTypePragmaName = "vm:exact-result-type";
 const kNonNullableResultType = "vm:non-nullable-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
+const kRecognizedPragmaName = "vm:recognized";
 
 abstract class ParsedPragma {}
 
 enum PragmaEntryPointType { Default, GetterOnly, SetterOnly, CallOnly }
+
+enum PragmaRecognizedType { AsmIntrinsic, GraphIntrinsic, Other }
 
 class ParsedEntryPointPragma extends ParsedPragma {
   final PragmaEntryPointType type;
@@ -36,6 +39,11 @@ class ParsedResultTypeByPathPragma extends ParsedPragma {
 
 class ParsedNonNullableResultType extends ParsedPragma {
   ParsedNonNullableResultType();
+}
+
+class ParsedRecognized extends ParsedPragma {
+  final PragmaRecognizedType type;
+  ParsedRecognized(this.type);
 }
 
 abstract class PragmaAnnotationParser {
@@ -66,7 +74,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     if (pragmaConstant == null) return null;
 
     String pragmaName;
-    Constant name = pragmaConstant.fieldValues[coreTypes.pragmaName.reference];
+    Constant name =
+        pragmaConstant.fieldValues[coreTypes.pragmaName.getterReference];
     if (name is StringConstant) {
       pragmaName = name.value;
     } else {
@@ -74,7 +83,7 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     }
 
     Constant options =
-        pragmaConstant.fieldValues[coreTypes.pragmaOptions.reference];
+        pragmaConstant.fieldValues[coreTypes.pragmaOptions.getterReference];
     assert(options != null);
 
     switch (pragmaName) {
@@ -117,6 +126,22 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
             "pragma: $options";
       case kNonNullableResultType:
         return new ParsedNonNullableResultType();
+      case kRecognizedPragmaName:
+        PragmaRecognizedType type;
+        if (options is StringConstant) {
+          if (options.value == "asm-intrinsic") {
+            type = PragmaRecognizedType.AsmIntrinsic;
+          } else if (options.value == "graph-intrinsic") {
+            type = PragmaRecognizedType.GraphIntrinsic;
+          } else if (options.value == "other") {
+            type = PragmaRecognizedType.Other;
+          }
+        }
+        if (type == null) {
+          throw "ERROR: Unsupported option to '$kRecognizedPragmaName' "
+              "pragma: $options";
+        }
+        return new ParsedRecognized(type);
       default:
         return null;
     }

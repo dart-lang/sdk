@@ -1,0 +1,24 @@
+import 'value_class_support_lib.dart';
+
+abstract class Animal2 {
+  int get numberOfLegs;
+}
+
+class Animal {
+  final int numberOfLegs;
+}
+
+@valueClass
+class Cat implements Animal {
+  final int numberOfLegs;
+  final int numberOfWhiskers;
+}
+
+@valueClass
+class Cat2 implements Animal2 {
+  final int numberOfLegs;
+  final int numberOfWhiskers;
+}
+
+expect(Object? expected, Object? actual) {}
+main() {}

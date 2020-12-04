@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// An object used to compute the list of elements referenced within a given
 /// region of a compilation unit that are imported into the compilation unit's
@@ -83,7 +84,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
         node.offset <= endOffset &&
         node.end >= startOffset &&
         !_isConstructorDeclarationReturnType(node)) {
-      var nodeElement = node.staticElement;
+      var nodeElement = node.writeOrReadElement;
       if (nodeElement != null &&
           nodeElement.enclosingElement is CompilationUnitElement) {
         var nodeLibrary = nodeElement.library;

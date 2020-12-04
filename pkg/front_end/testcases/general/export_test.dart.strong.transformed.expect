@@ -4,9 +4,14 @@ import "dart:core" as core;
 import "dart:developer" as dev;
 additionalExports = (core::print)
 
-import "dart:developer";
-export "dart:core";
+import "dart:developer" show UserTag;
+export "dart:core" show print;
 
 static method main() → dynamic {
   core::print(dev::UserTag*);
 }
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///export_test.dart:14:9 -> TypeLiteralConstant(UserTag*)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

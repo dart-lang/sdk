@@ -12,6 +12,8 @@ import 'package:kernel/src/printer.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import 'package:vm/kernel_front_end.dart'
+    show runGlobalTransformations, ErrorDetector;
 import 'package:vm/transformations/protobuf_aware_treeshaker/transformer.dart'
     as treeshaker;
 
@@ -20,7 +22,12 @@ import '../../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
 runTestCase(Uri source) async {
-  final target = new TestingVmTarget(new TargetFlags());
+  await shakeAndRun(source);
+  await compileAOT(source);
+}
+
+Future<void> shakeAndRun(Uri source) async {
+  final target = TestingVmTarget(TargetFlags());
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 
@@ -42,8 +49,7 @@ runTestCase(Uri source) async {
   }
 
   final systemTempDir = Directory.systemTemp;
-  final file =
-      new File('${systemTempDir.path}/${source.pathSegments.last}.dill');
+  final file = File('${systemTempDir.path}/${source.pathSegments.last}.dill');
   try {
     final sink = file.openWrite();
     final printer = BinaryPrinter(sink, includeSources: false);
@@ -59,6 +65,30 @@ runTestCase(Uri source) async {
       file.deleteSync();
     }
   }
+}
+
+Future<void> compileAOT(Uri source) async {
+  final target = TestingVmTarget(TargetFlags());
+  Component component =
+      await compileTestCaseToKernelProgram(source, target: target);
+
+  // Imitate the global transformations as run by the protobuf-aware tree shaker
+  // in AOT mode.
+  // Copied verbatim from pkg/vm/bin/protobuf_aware_treeshaker.dart.
+  const bool useGlobalTypeFlowAnalysis = true;
+  const bool enableAsserts = false;
+  const bool useProtobufAwareTreeShaker = true;
+  const bool useProtobufAwareTreeShakerV2 = false;
+  final nopErrorDetector = ErrorDetector();
+  runGlobalTransformations(
+    target,
+    component,
+    useGlobalTypeFlowAnalysis,
+    enableAsserts,
+    useProtobufAwareTreeShaker,
+    useProtobufAwareTreeShakerV2,
+    nopErrorDetector,
+  );
 }
 
 main() async {

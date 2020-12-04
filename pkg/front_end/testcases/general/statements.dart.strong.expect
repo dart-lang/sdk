@@ -1,21 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/statements.dart:15:5: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
-//     yield x;
-//     ^^^^^
-//
-// pkg/front_end/testcases/general/statements.dart:16:5: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
-//     yield* x;
-//     ^^^^^
-//
-// pkg/front_end/testcases/general/statements.dart:14:23: Error: The type 'List<dynamic>' used in the 'for' loop must implement 'Stream<dynamic>'.
-//  - 'List' is from 'dart:core'.
-//  - 'Stream' is from 'dart:async'.
-//   await for (var x in []) {
-//                       ^
-//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -28,14 +11,10 @@ static method foo() → dynamic {
     core::print("Hello from finally block!");
   }
 }
-static method bar() → dynamic async {
-  await for (dynamic x in let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/statements.dart:14:23: Error: The type 'List<dynamic>' used in the 'for' loop must implement 'Stream<dynamic>'.
- - 'List' is from 'dart:core'.
- - 'Stream' is from 'dart:async'.
-  await for (var x in []) {
-                      ^" in <dynamic>[] as{TypeError} asy::Stream<dynamic>*) {
+static method bar(dynamic d) → dynamic async* {
+  await for (dynamic x in d as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
     yield x;
-    yield* x;
+    yield* x as{TypeError,ForDynamic} asy::Stream<dynamic>*;
   }
 }
 static method main() → dynamic {
@@ -53,12 +32,12 @@ static method main() → dynamic {
   for (core::String* s in <core::String*>["Hello from for-in without block!"])
     core::print(s);
   dynamic s;
-  for (final dynamic #t2 in <dynamic>["Hello from for-in without decl!"]) {
-    s = #t2;
+  for (final dynamic #t1 in <dynamic>["Hello from for-in without decl!"]) {
+    s = #t1;
     core::print(s);
   }
-  for (final dynamic #t3 in <dynamic>["Hello from for-in without decl and block!"]) {
-    s = #t3;
+  for (final dynamic #t2 in <dynamic>["Hello from for-in without decl and block!"]) {
+    s = #t2;
     core::print(s);
   }
   core::print("Hello from labeled statement!");

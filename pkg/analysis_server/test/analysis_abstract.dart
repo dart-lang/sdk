@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -18,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
@@ -191,6 +190,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
+  @mustCallSuper
   void setUp() {
     serverChannel = MockServerChannel();
     projectPath = convertPath('/project');
@@ -207,6 +207,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     });
   }
 
+  @mustCallSuper
   void tearDown() {
     server.done();
     handler = null;

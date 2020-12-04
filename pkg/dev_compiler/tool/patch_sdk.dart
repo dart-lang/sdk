@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Command line tool to merge the SDK libraries and our patch files.
 /// This is currently designed as an offline tool, but we could automate it.
 
@@ -18,6 +20,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/fasta/resolve_input_uri.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 void main(List<String> argv) {
   var args = _parser.parse(argv);
@@ -40,7 +43,7 @@ void main(List<String> argv) {
   var outDir = resolveInputUri(outPath.endsWith('/') ? outPath : '$outPath/');
   var outLibRoot = outDir.resolve('lib/');
 
-  var inputVersion = Platform.script.resolve('../../../tools/VERSION');
+  var inputVersion = Uri.file(Platform.executable).resolve('../version');
   var outVersion = outDir.resolve('version');
 
   var specification = LibrariesSpecification.parse(
@@ -473,7 +476,10 @@ class _StringEdit implements Comparable<_StringEdit> {
 }
 
 ParseStringResult _parseString(String source, {bool useNnbd}) {
-  var features = FeatureSet.fromEnableFlags([if (useNnbd) 'non-nullable']);
+  var features = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.10.0'),
+    flags: [if (useNnbd) 'non-nullable'],
+  );
   return parseString(content: source, featureSet: features);
 }
 

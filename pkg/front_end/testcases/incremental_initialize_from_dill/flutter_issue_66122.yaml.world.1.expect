@@ -1,0 +1,91 @@
+main = <No Member>;
+library from "org-dartlang-test:///after_layout.dart" as aft {
+
+  import "package:flutter/framework.dart";
+
+  abstract class AfterLayoutMixin<T extends fra::StatefulWidget* = fra::StatefulWidget*> extends fra::State<aft::AfterLayoutMixin::T*> /*isMixinDeclaration*/  {
+    abstract member-signature get _widget() → aft::AfterLayoutMixin::T*; -> fra::State::_widget
+    abstract member-signature set _widget(generic-covariant-impl aft::AfterLayoutMixin::T* value) → void; -> fra::State::_widget
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+}
+library from "package:flutter/framework.dart" as fra {
+
+  abstract class Diagnosticable extends dart.core::Object /*isMixinDeclaration*/  {
+    method toString() → dart.core::String {
+      return "foo";
+    }
+  }
+  abstract class _State&Object&Diagnosticable = dart.core::Object with fra::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → fra::_State&Object&Diagnosticable
+      : super dart.core::Object::•()
+      ;
+  }
+  abstract class State<T extends fra::StatefulWidget = fra::StatefulWidget> extends fra::_State&Object&Diagnosticable {
+    generic-covariant-impl field fra::State::T? _widget = null;
+    synthetic constructor •() → fra::State<fra::State::T>
+      : super fra::_State&Object&Diagnosticable::•()
+      ;
+  }
+  class State2 extends fra::State<fra::StatefulWidget> {
+    synthetic constructor •() → fra::State2
+      : super fra::State::•()
+      ;
+  }
+  class StatefulWidget extends dart.core::Object {
+    synthetic constructor •() → fra::StatefulWidget
+      : super dart.core::Object::•()
+      ;
+  }
+  class Widget extends dart.core::Object {
+    synthetic constructor •() → fra::Widget
+      : super dart.core::Object::•()
+      ;
+  }
+  class BuildContext extends dart.core::Object {
+    synthetic constructor •() → fra::BuildContext
+      : super dart.core::Object::•()
+      ;
+  }
+  static final field fra::State<fra::StatefulWidget> state = new fra::State2::•();
+  static method foo() → void {
+    fra::state.{fra::State::_widget} = null;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:flutter/framework.dart";
+  import "org-dartlang-test:///after_layout.dart";
+
+  abstract class __HotReloadIssueState&State&AfterLayoutMixin = fra::State<main::HotReloadIssue*> with aft::AfterLayoutMixin<main::HotReloadIssue*> /*isAnonymousMixin*/  {
+    synthetic constructor •() → main::__HotReloadIssueState&State&AfterLayoutMixin*
+      : super fra::State::•()
+      ;
+    abstract member-signature get _widget() → main::HotReloadIssue*; -> fra::State::_widget
+    abstract member-signature set _widget(generic-covariant-impl main::HotReloadIssue* value) → void; -> fra::State::_widget
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+  class _HotReloadIssueState extends main::__HotReloadIssueState&State&AfterLayoutMixin {
+    synthetic constructor •() → main::_HotReloadIssueState*
+      : super main::__HotReloadIssueState&State&AfterLayoutMixin::•()
+      ;
+    method build(fra::BuildContext* context) → fra::Widget* {}
+    method afterFirstLayout(fra::BuildContext* context) → void {}
+  }
+  class HotReloadIssue extends fra::StatefulWidget {
+    synthetic constructor •() → main::HotReloadIssue*
+      : super fra::StatefulWidget::•()
+      ;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+}

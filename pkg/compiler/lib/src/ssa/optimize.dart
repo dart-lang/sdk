@@ -13,6 +13,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../ir/util.dart';
 import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/backend.dart' show CodegenInputs;
@@ -71,8 +72,6 @@ class SsaOptimizerTask extends CompilerTask {
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
-    bool trustPrimitives = _options.trustPrimitives;
-    Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
 
@@ -113,7 +112,6 @@ class SsaOptimizerTask extends CompilerTask {
             typeRecipeDomain,
             registry,
             log),
-        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaInstructionSimplifier(
             globalInferenceResults,
             _options,
@@ -122,7 +120,6 @@ class SsaOptimizerTask extends CompilerTask {
             typeRecipeDomain,
             registry,
             log),
-        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         // Run a dead code eliminator before LICM because dead
@@ -154,7 +151,6 @@ class SsaOptimizerTask extends CompilerTask {
             typeRecipeDomain,
             registry,
             log),
-        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
 
@@ -183,7 +179,6 @@ class SsaOptimizerTask extends CompilerTask {
               typeRecipeDomain,
               registry,
               log),
-          new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
@@ -675,15 +670,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (selector.isCall || selector.isOperator) {
       FunctionEntity target;
       if (input.isExtendableArray(_abstractValueDomain).isDefinitelyTrue) {
-        if (applies(commonElements.jsArrayRemoveLast)) {
-          target = commonElements.jsArrayRemoveLast;
-        } else if (applies(commonElements.jsArrayAdd)) {
-          // The codegen special cases array calls, but does not
-          // inline argument type checks.
-          if (!_closedWorld.annotationsData
+        if (applies(commonElements.jsArrayAdd)) {
+          // Codegen special cases array calls to `Array.push`, but does not
+          // inline argument type checks. We lower if the check always passes
+          // (due to invariance or being a top-type), or if the check is not
+          // emitted.
+          if (node.isInvariant ||
+              input is HLiteralList ||
+              !_closedWorld.annotationsData
                   .getParameterCheckPolicy(commonElements.jsArrayAdd)
-                  .isEmitted ||
-              input is HLiteralList) {
+                  .isEmitted) {
             target = commonElements.jsArrayAdd;
           }
         }
@@ -714,6 +710,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // bounds check on removeLast). Once we start inlining, the
         // bounds check will become explicit, so we won't need this
         // optimization.
+        // TODO(sra): Fix comment - SsaCheckInserter is deleted.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
             node.selector,
             node.receiverType,
@@ -908,7 +905,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = node.inputs.last; // Drop interceptor.
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
@@ -919,7 +916,26 @@ class SsaInstructionSimplifier extends HBaseVisitor
     result.sideEffects.setDependsOnSomething();
     result.sideEffects.clearAllSideEffects();
     result.setUseGvn();
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
+  }
+
+  HInstruction maybeAddNativeReturnNullCheck(
+      HInstruction node, HInstruction replacement, FunctionEntity method) {
+    if (_options.nativeNullAssertions) {
+      if (method.library.isNonNullableByDefault) {
+        FunctionType type =
+            _closedWorld.elementEnvironment.getFunctionType(method);
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType) &&
+            memberEntityIsInWebLibrary(method)) {
+          node.block.addBefore(node, replacement);
+          replacement = HNullCheck(replacement,
+              _abstractValueDomain.excludeNull(replacement.instructionType),
+              sticky: true);
+        }
+      }
+    }
+    return replacement;
   }
 
   // Try to 'inline' an instance setter call to a known native or js-interop
@@ -1025,14 +1041,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = inputs[1];
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method,
         [receiver, ...inputs.skip(2)], // '2': Drop interceptor and receiver.
         returnType,
         nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
   }
 
   @override
@@ -1200,6 +1217,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitIf(HIf node) {
     HInstruction condition = node.condition;
     if (condition.isConstant()) return node;
+
+    AbstractBool isTruthy =
+        _abstractValueDomain.isTruthy(condition.instructionType);
+    if (isTruthy.isDefinitelyTrue) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(true, _closedWorld));
+    } else if (isTruthy.isDefinitelyFalse) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(false, _closedWorld));
+    }
+
     bool isNegated = condition is HNot;
 
     if (isNegated) {
@@ -1219,6 +1247,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
     simplifyCondition(node.thenBlock, condition, !isNegated);
     simplifyCondition(node.elseBlock, condition, isNegated);
+    return node;
+  }
+
+  /// Returns [node] after replacing condition.
+  HInstruction _replaceHIfCondition(HIf node, HInstruction newCondition) {
+    HInstruction condition = node.condition;
+    node.inputs[0] = newCondition;
+    condition.usedBy.remove(node);
+    newCondition.usedBy.add(node);
     return node;
   }
 
@@ -1269,37 +1306,61 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitGetLength(HGetLength node) {
     HInstruction receiver = node.receiver;
-    if (_graph.allocatedFixedLists.contains(receiver)) {
-      // TODO(ngeoffray): checking if the second input is an integer
-      // should not be necessary but it currently makes it easier for
-      // other optimizations to reason about a fixed length constructor
-      // that we know takes an int.
-      if (receiver.inputs[0].isInteger(_abstractValueDomain).isDefinitelyTrue) {
-        return receiver.inputs[0];
-      }
-    } else if (receiver.isConstantList()) {
+
+    if (receiver.isConstantList()) {
       HConstant constantReceiver = receiver;
       ListConstantValue constant = constantReceiver.constant;
       return _graph.addConstantInt(constant.length, _closedWorld);
-    } else if (receiver.isConstantString()) {
+    }
+
+    if (receiver.isConstantString()) {
       HConstant constantReceiver = receiver;
       StringConstantValue constant = constantReceiver.constant;
       return _graph.addConstantInt(constant.length, _closedWorld);
-    } else {
-      AbstractValue type = receiver.instructionType;
-      if (_abstractValueDomain.isContainer(type) &&
-          _abstractValueDomain.getContainerLength(type) != null) {
-        HInstruction constant = _graph.addConstantInt(
-            _abstractValueDomain.getContainerLength(type), _closedWorld);
-        if (_abstractValueDomain.isNull(type).isPotentiallyTrue) {
+    }
+
+    AbstractValue receiverType = receiver.instructionType;
+    if (_abstractValueDomain.isContainer(receiverType)) {
+      int /*?*/ length = _abstractValueDomain.getContainerLength(receiverType);
+      if (length != null) {
+        HInstruction constant = _graph.addConstantInt(length, _closedWorld);
+        if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
           // If the container can be null, we update all uses of the length
           // access to use the constant instead, but keep the length access in
           // the graph, to ensure we still have a null check.
           node.block.rewrite(node, constant);
           return node;
-        } else {
-          return constant;
         }
+        return constant;
+      }
+    }
+
+    // Can we find the length as an input to an allocation?
+    HInstruction potentialAllocation = receiver;
+    if (receiver is HInvokeStatic &&
+        receiver.element == commonElements.setRuntimeTypeInfo) {
+      // Look through `setRuntimeTypeInfo(new Array(), ...)`
+      potentialAllocation = receiver.inputs.first;
+    }
+    if (_graph.allocatedFixedLists.contains(potentialAllocation)) {
+      // TODO(sra): How do we keep this working if we lower/inline the receiver
+      // in an optimization?
+
+      HInstruction lengthInput = potentialAllocation.inputs.first;
+
+      // We don't expect a non-integer first input to the fixed-size allocation,
+      // but checking the input is an integer ensures we do not replace a
+      // HGetlength with a reference to something with a type that will confuse
+      // bounds check eliminiation.
+      if (lengthInput.isInteger(_abstractValueDomain).isDefinitelyTrue) {
+        // TODO(sra). HGetLength may have a better type than [lengthInput] as
+        // the allocation may throw on an out-of-range input. Typically the
+        // input is an unconstrained `int` and the length is non-negative. We
+        // may have done some optimizations with the better type that we won't
+        // be able to do with the broader type of [lengthInput].  We should
+        // insert a HTypeKnown witnessed by the allocation to narrow the
+        // lengthInput.
+        return lengthInput;
       }
     }
 
@@ -1812,16 +1873,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (environment is HInstanceEnvironment) {
       HInstruction instance = environment.inputs.single;
       AbstractValue instanceAbstractValue = instance.instructionType;
-      ClassEntity instanceClass =
-          _abstractValueDomain.getExactClass(instanceAbstractValue);
-      if (instanceClass == null) {
-        // All the subclasses of JSArray are JSArray at runtime.
-        ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
-        if (_abstractValueDomain
-            .isInstanceOf(instanceAbstractValue, jsArrayClass)
-            .isDefinitelyTrue) {
-          instanceClass = jsArrayClass;
-        }
+      ClassEntity instanceClass;
+
+      // All the subclasses of JSArray are JSArray at runtime.
+      ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
+      if (_abstractValueDomain
+          .isInstanceOf(instanceAbstractValue, jsArrayClass)
+          .isDefinitelyTrue) {
+        instanceClass = jsArrayClass;
+      } else {
+        instanceClass =
+            _abstractValueDomain.getExactClass(instanceAbstractValue);
       }
       if (instanceClass != null) {
         if (_typeRecipeDomain.isReconstruction(
@@ -1845,37 +1907,53 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // TODO(fishythefish): Correctly constant fold `null as T` (also in
     // [visitAsCheckSimple]) when running with strong NNBD. We might get this
     // for free if nullability is precisely propagated to the typemasks.
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
 
-    // See if this check can be lowered to a simple one.
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {
       TypeExpressionRecipe recipe = typeInput.typeExpression;
-      DartType dartType = recipe.type;
-      MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
-          dartType, _closedWorld.commonElements, _options.useLegacySubtyping);
-      if (specializedCheck != null) {
-        AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType, nullable: true);
-        return HAsCheckSimple(node.checkedInput, dartType, checkedType,
-            node.isTypeError, specializedCheck, node.instructionType);
-      }
-      if (_closedWorld.dartTypes.isTopType(dartType)) {
-        return node.checkedInput;
-      }
+      node.checkedTypeExpression = recipe.type;
+    }
+
+    if (node.isRedundant(_closedWorld, _options)) {
+      return node.checkedInput;
+    }
+
+    // See if this check can be lowered to a simple one.
+    MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
+        node.checkedTypeExpression,
+        _closedWorld.commonElements,
+        _options.useLegacySubtyping);
+    if (specializedCheck != null) {
+      AbstractValueWithPrecision checkedType = _abstractValueDomain
+          .createFromStaticType(node.checkedTypeExpression, nullable: true);
+      return HAsCheckSimple(
+          node.checkedInput,
+          node.checkedTypeExpression,
+          checkedType,
+          node.isTypeError,
+          specializedCheck,
+          node.instructionType);
     }
     return node;
   }
 
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    if (node.isRedundant(_closedWorld, _options)) {
+      return node.checkedInput;
+    }
     return node;
   }
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    HInstruction typeInput = node.typeInput;
+    if (typeInput is HLoadType) {
+      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      node.dartType = recipe.type;
+    }
+
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -1883,36 +1961,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return _graph.addConstantBool(true, _closedWorld);
     }
 
-    HInstruction typeInput = node.typeInput;
-    if (typeInput is HLoadType) {
-      TypeExpressionRecipe recipe = typeInput.typeExpression;
-      DartType dartType = recipe.type;
-      if (_closedWorld.dartTypes.isTopType(dartType)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      }
+    IsTestSpecialization specialization =
+        SpecializedChecks.findIsTestSpecialization(
+            node.dartType, _graph, _closedWorld);
 
-      IsTestSpecialization specialization =
-          SpecializedChecks.findIsTestSpecialization(
-              dartType, _graph, _closedWorld);
+    if (specialization == IsTestSpecialization.isNull ||
+        specialization == IsTestSpecialization.notNull) {
+      HInstruction nullTest = HIdentity(node.checkedInput,
+          _graph.addConstantNull(_closedWorld), _abstractValueDomain.boolType);
+      if (specialization == IsTestSpecialization.isNull) return nullTest;
+      nullTest.sourceInformation = node.sourceInformation;
+      node.block.addBefore(node, nullTest);
+      return HNot(nullTest, _abstractValueDomain.boolType);
+    }
 
-      if (specialization == IsTestSpecialization.isNull ||
-          specialization == IsTestSpecialization.notNull) {
-        HInstruction nullTest = HIdentity(
-            node.checkedInput,
-            _graph.addConstantNull(_closedWorld),
-            _abstractValueDomain.boolType);
-        if (specialization == IsTestSpecialization.isNull) return nullTest;
-        nullTest.sourceInformation = node.sourceInformation;
-        node.block.addBefore(node, nullTest);
-        return HNot(nullTest, _abstractValueDomain.boolType);
-      }
-
-      if (specialization != null) {
-        AbstractValueWithPrecision checkedType = _abstractValueDomain
-            .createFromStaticType(dartType, nullable: false);
-        return HIsTestSimple(dartType, checkedType, specialization,
-            node.checkedInput, _abstractValueDomain.boolType);
-      }
+    if (specialization != null) {
+      AbstractValueWithPrecision checkedType = _abstractValueDomain
+          .createFromStaticType(node.dartType, nullable: false);
+      return HIsTestSimple(node.dartType, checkedType, specialization,
+          node.checkedInput, _abstractValueDomain.boolType);
     }
 
     // TODO(fishythefish): Prune now-unneeded is-tests from the metadata.
@@ -1922,7 +1989,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -1986,98 +2053,231 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     return node;
   }
-}
-
-class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
-  final Set<HInstruction> boundsChecked;
-  final bool trustPrimitives;
-  final JClosedWorld closedWorld;
-  @override
-  final String name = "SsaCheckInserter";
-  HGraph graph;
-
-  SsaCheckInserter(this.trustPrimitives, this.closedWorld, this.boundsChecked);
-
-  AbstractValueDomain get _abstractValueDomain =>
-      closedWorld.abstractValueDomain;
 
   @override
-  void visitGraph(HGraph graph) {
-    this.graph = graph;
+  HInstruction visitBitAnd(HBitAnd node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
 
-    // In --trust-primitives mode we don't add bounds checks.  This is better
-    // than trying to remove them later as the limit expression would become
-    // dead and require DCE.
-    if (trustPrimitives) return;
-
-    visitDominatorTree(graph);
-  }
-
-  @override
-  void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
-    while (instruction != null) {
-      HInstruction next = instruction.next;
-      instruction = instruction.accept(this);
-      instruction = next;
+    if (left is HConstant) {
+      if (right is HConstant) {
+        return foldBinary(node.operation(), left, right) ?? node;
+      }
+      //  c1 & a  -->  a & c1
+      return HBitAnd(right, left, node.instructionType);
     }
-  }
 
-  HBoundsCheck insertBoundsCheck(
-      HInstruction indexNode, HInstruction array, HInstruction indexArgument) {
-    HGetLength length = new HGetLength(
-        array, closedWorld.abstractValueDomain.positiveIntType,
-        isAssignable: !isFixedLength(array.instructionType, closedWorld));
-    indexNode.block.addBefore(indexNode, length);
+    if (right is HConstant) {
+      ConstantValue constant = right.constant;
+      if (constant.isZero) return right; // a & 0  -->  0
+      if (_isFull32BitMask(constant)) {
+        if (left.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
+          // Mask of all '1's has no effect.
+          return left;
+          // TODO(sra): A more advanced version of this would be to see if the
+          // input might have any bits that would be cleared by the mask.  Thus
+          // `a >> 24 & 255` is a no-op since `a >> 24` can have only the low 8
+          // bits non-zero. If a bit is must-zero, we can remove it from
+          // mask. e.g. if a is Uint31, then `a >> 24 & 0xF0` becomes `a >> 24 &
+          // 0x70`.
+        }
 
-    AbstractValue type =
-        indexArgument.isPositiveInteger(_abstractValueDomain).isDefinitelyTrue
-            ? indexArgument.instructionType
-            : closedWorld.abstractValueDomain.positiveIntType;
-    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type)
-      ..sourceInformation = indexNode.sourceInformation;
-    indexNode.block.addBefore(indexNode, check);
-    // If the index input to the bounds check was not known to be an integer
-    // then we replace its uses with the bounds check, which is known to be an
-    // integer.  However, if the input was already an integer we don't do this
-    // because putting in a check instruction might obscure the real nature of
-    // the index eg. if it is a constant.  The range information from the
-    // BoundsCheck instruction is attached to the input directly by
-    // visitBoundsCheck in the SsaValueRangeAnalyzer.
-    if (indexArgument.isInteger(_abstractValueDomain).isPotentiallyFalse) {
-      indexArgument.replaceAllUsersDominatedBy(indexNode, check);
+        // Ensure that the result is still canonicalized to an unsigned 32-bit
+        // integer using `left >>> 0`. This shift is often removed or combined
+        // in subsequent optimization.
+        HConstant zero = _graph.addConstantInt(0, _closedWorld);
+        return HShiftRight(left, zero, node.instructionType);
+      }
+
+      if (left is HBitAnd && left.usedBy.length == 1) {
+        HInstruction operand1 = left.left;
+        HInstruction operand2 = left.right;
+        if (operand2 is HConstant) {
+          //  (a & c1) & c2  -->  a & (c1 & c2)
+          HInstruction folded =
+              foldBinary(constant_system.bitAnd, operand2, right);
+          if (folded == null) return node;
+          return HBitAnd(operand1, folded, node.instructionType);
+        }
+        // TODO(sra): We don't rewrite (a & c1) & b --> (a & b) & c1. I suspect
+        // that the JavaScript VM might benefit from reducing the value early
+        // (e.g. to a 'Smi'). We could do that, but we should also consider a
+        // variation of the above rule where:
+        //
+        //     a & c1 & ... & b & c2  -->  a & (c1 & c2) & ... & b
+        //
+        // This would probably be best deferred until after GVN in case (a & c1)
+        // is reused.
+      }
     }
-    boundsChecked.add(indexNode);
-    return check;
+
+    return node;
+  }
+
+  bool _isFull32BitMask(ConstantValue constant) {
+    return constant is IntConstantValue && constant.intValue == _mask32;
+  }
+
+  static final _mask32 = BigInt.parse('FFFFFFFF', radix: 16);
+
+  @override
+  HInstruction visitBitOr(HBitOr node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+
+    if (left is HConstant) {
+      if (right is HConstant) {
+        return foldBinary(node.operation(), left, right) ?? node;
+      }
+      //  c1 | a  -->  a | c1
+      return HBitOr(right, left, node.instructionType);
+    }
+
+    //  (a | b) | c
+    if (left is HBitOr && left.usedBy.length == 1) {
+      HInstruction operand1 = left.left;
+      HInstruction operand2 = left.right;
+      if (operand2 is HConstant) {
+        if (right is HConstant) {
+          //  (a | c1) | c2  -->  a | (c1 | c2)
+          HInstruction folded =
+              foldBinary(constant_system.bitOr, operand2, right);
+          if (folded == null) return node;
+          return HBitOr(operand1, folded, node.instructionType);
+        } else {
+          //  (a | c1) | b  -->  (a | b) | c1
+          HInstruction or1 = _makeBitOr(operand1, right)
+            ..sourceInformation = left.sourceInformation;
+          node.block.addBefore(node, or1);
+          // TODO(sra): Restart simplification at 'or1'.
+          return _makeBitOr(or1, operand2);
+        }
+      }
+    }
+
+    //  (a & c1) | (a & c2)  -->  a & (c1 | c2)
+    if (left is HBitAnd &&
+        left.usedBy.length == 1 &&
+        right is HBitAnd &&
+        right.usedBy.length == 1) {
+      HInstruction a1 = left.left;
+      HInstruction a2 = right.left;
+      if (a1 == a2) {
+        HInstruction c1 = left.right;
+        HInstruction c2 = right.right;
+        if (c1 is HConstant && c2 is HConstant) {
+          HInstruction folded = foldBinary(constant_system.bitOr, c1, c2);
+          if (folded != null) {
+            return HBitAnd(a1, folded, node.instructionType);
+          }
+        }
+      }
+    }
+
+    // TODO(sra):
+    //
+    //  (e | (a & c1)) | (a & c2)  -->  e | (a & (c1 | c2))
+
+    return node;
+  }
+
+  HBitOr _makeBitOr(HInstruction operand1, HInstruction operand2) {
+    AbstractValue instructionType = _abstractValueDomainBitOr(
+        operand1.instructionType, operand2.instructionType);
+    return HBitOr(operand1, operand2, instructionType);
+  }
+
+  // TODO(sra): Use a common definition of primitive operations in the
+  // AbstractValueDomain.
+  AbstractValue _abstractValueDomainBitOr(AbstractValue a, AbstractValue b) {
+    return (_abstractValueDomain.isUInt31(a).isDefinitelyTrue &&
+            _abstractValueDomain.isUInt31(b).isDefinitelyTrue)
+        ? _abstractValueDomain.uint31Type
+        : _abstractValueDomain.uint32Type;
   }
 
   @override
-  void visitIndex(HIndex node) {
-    if (boundsChecked.contains(node)) return;
-    HInstruction index = node.index;
-    index = insertBoundsCheck(node, node.receiver, index);
+  HInstruction visitShiftRight(HShiftRight node) {
+    HInstruction left = node.left;
+    HInstruction count = node.right;
+    if (count is HConstant) {
+      if (left is HConstant) {
+        return foldBinary(node.operation(), left, count) ?? node;
+      }
+      ConstantValue countValue = count.constant;
+      // Shift by zero can convert to 32 bit unsigned, so remove only if no-op.
+      //  a >> 0  -->  a
+      if (countValue.isZero &&
+          left.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
+        return left;
+      }
+      if (left is HBitAnd && left.usedBy.length == 1) {
+        // TODO(sra): Should this be postponed to after GVN?
+        HInstruction operand = left.left;
+        HInstruction mask = left.right;
+        if (mask is HConstant) {
+          // Reduce mask constant size.
+          //  (a & mask) >> count  -->  (a >> count) & (mask >> count)
+          ConstantValue maskValue = mask.constant;
+
+          ConstantValue shiftedMask =
+              constant_system.shiftRight.fold(maskValue, countValue);
+          if (shiftedMask is IntConstantValue && shiftedMask.isUInt32()) {
+            // TODO(sra): The shift type should be available from the abstract
+            // value domain.
+            AbstractValue shiftType = shiftedMask.isZero
+                ? _abstractValueDomain.uint32Type
+                : _abstractValueDomain.uint31Type;
+            var shift = HShiftRight(operand, count, shiftType)
+              ..sourceInformation = node.sourceInformation;
+
+            node.block.addBefore(node, shift);
+            HConstant shiftedMaskInstruction =
+                _graph.addConstant(shiftedMask, _closedWorld);
+            return HBitAnd(shift, shiftedMaskInstruction, node.instructionType);
+          }
+        }
+        return node;
+      }
+    }
+    return node;
   }
 
   @override
-  void visitIndexAssign(HIndexAssign node) {
-    if (boundsChecked.contains(node)) return;
-    HInstruction index = node.index;
-    index = insertBoundsCheck(node, node.receiver, index);
-  }
-
-  @override
-  void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    MemberEntity element = node.element;
-    if (node.isInterceptedCall) return;
-    if (element != closedWorld.commonElements.jsArrayRemoveLast) return;
-    if (boundsChecked.contains(node)) return;
-    // `0` is the index we want to check, but we want to report `-1`, as if we
-    // executed `a[a.length-1]`
-    HBoundsCheck check = insertBoundsCheck(
-        node, node.receiver, graph.addConstantInt(0, closedWorld));
-    HInstruction minusOne = graph.addConstantInt(-1, closedWorld);
-    check.inputs.add(minusOne);
-    minusOne.usedBy.add(check);
+  HInstruction visitShiftLeft(HShiftLeft node) {
+    HInstruction left = node.left;
+    HInstruction count = node.right;
+    if (count is HConstant) {
+      if (left is HConstant) {
+        return foldBinary(node.operation(), left, count) ?? node;
+      }
+      // Shift by zero can convert to 32 bit unsigned, so remove only if no-op.
+      //  a << 0  -->  a
+      if (count.constant.isZero &&
+          left.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
+        return left;
+      }
+      // Shift-mask-unshift reduction.
+      //   ((a >> c1) & c2) << c1  -->  a & (c2 << c1);
+      if (left is HBitAnd && left.usedBy.length == 1) {
+        HInstruction operand1 = left.left;
+        HInstruction operand2 = left.right;
+        if (operand2 is HConstant) {
+          if (operand1 is HShiftRight && operand1.usedBy.length == 1) {
+            HInstruction a = operand1.left;
+            HInstruction count2 = operand1.right;
+            if (count2 == count) {
+              HInstruction folded =
+                  foldBinary(constant_system.shiftLeft, operand2, count);
+              if (folded != null) {
+                return HBitAnd(a, folded, node.instructionType);
+              }
+            }
+          }
+        }
+      }
+    }
+    return node;
   }
 }
 
@@ -3331,14 +3531,14 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   @override
   void visitIndex(HIndex instruction) {
     HInstruction receiver = instruction.receiver.nonCheck();
-    HInstruction existing =
-        memorySet.lookupKeyedValue(receiver, instruction.index);
+    HInstruction index = instruction.index.nonCheck();
+    HInstruction existing = memorySet.lookupKeyedValue(receiver, index);
     if (existing != null) {
       checkNewGvnCandidates(instruction, existing);
       instruction.block.rewriteWithBetterUser(instruction, existing);
       instruction.block.remove(instruction);
     } else {
-      memorySet.registerKeyedValue(receiver, instruction.index, instruction);
+      memorySet.registerKeyedValue(receiver, index, instruction);
     }
   }
 
@@ -3346,7 +3546,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitIndexAssign(HIndexAssign instruction) {
     HInstruction receiver = instruction.receiver.nonCheck();
     memorySet.registerKeyedValueUpdate(
-        receiver, instruction.index, instruction.value);
+        receiver, instruction.index.nonCheck(), instruction.value);
   }
 
   // Pure operations that do not escape their inputs.

@@ -17,14 +17,20 @@ void f1(
   (nullableInt ?? nullableInt) + 1;
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] unspecified
+//                             ^
+// [cfe] Operator '+' cannot be called on 'int?' because it is potentially null.
   (nonNullInt ?? nullableInt) + 1;
-//               ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] unspecified
+// ^
+// [cfe] Operand of null-aware operation '??' has type 'int' which excludes null.
+//               ^^^^^^^^^^^
+// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+//                            ^
+// [cfe] Operator '+' cannot be called on 'int?' because it is potentially null.
   (nonNullInt ?? nonNullInt) + 1;
+// ^
+// [cfe] Operand of null-aware operation '??' has type 'int' which excludes null.
 //               ^^^^^^^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 }

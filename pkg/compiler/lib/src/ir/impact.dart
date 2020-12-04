@@ -201,9 +201,10 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   final ir.StaticTypeContext staticTypeContext;
 
-  ImpactBuilderBase(this.staticTypeContext, ir.ClassHierarchy classHierarchy,
-      this.variableScopeModel)
-      : super(staticTypeContext.typeEnvironment, classHierarchy);
+  ImpactBuilderBase(this.staticTypeContext, StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy, this.variableScopeModel)
+      : super(
+            staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
 
   @override
   void handleIntLiteral(ir.IntLiteral node) {
@@ -542,7 +543,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
             positionArguments, namedArguments, typeArguments);
         // TODO(johnniwinther): Avoid treating a known function call as a
         // dynamic call when CFE provides a way to distinguish the two.
-        if (operatorFromString(node.name.name) == null &&
+        if (operatorFromString(node.name.text) == null &&
             receiverType is ir.DynamicType) {
           // We might implicitly call a getter that returns a function.
           registerFunctionInvocation(const ir.DynamicType(), positionArguments,
@@ -565,21 +566,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleDirectMethodInvocation(
-      ir.DirectMethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
-    registerInstanceInvocation(
-        receiverType,
-        ClassRelation.exact,
-        node.target,
-        node.arguments.positional.length,
-        _getNamedArguments(node.arguments),
-        node.arguments.types);
-  }
-
-  @override
   void handlePropertyGet(
       ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
     ClassRelation relation = computeClassRelationFromType(receiverType);
@@ -591,12 +577,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleDirectPropertyGet(ir.DirectPropertyGet node,
-      ir.DartType receiverType, ir.DartType resultType) {
-    registerInstanceGet(receiverType, ClassRelation.exact, node.target);
-  }
-
-  @override
   void handlePropertySet(
       ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
     ClassRelation relation = computeClassRelationFromType(receiverType);
@@ -605,12 +585,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     } else {
       registerDynamicSet(receiverType, relation, node.name);
     }
-  }
-
-  @override
-  void handleDirectPropertySet(ir.DirectPropertySet node,
-      ir.DartType receiverType, ir.DartType valueType) {
-    registerInstanceSet(receiverType, ClassRelation.exact, node.target);
   }
 
   @override
@@ -669,10 +643,15 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
   @override
   final inferEffectivelyFinalVariableTypes;
 
-  ImpactBuilder(ir.StaticTypeContext staticTypeContext,
-      ir.ClassHierarchy classHierarchy, VariableScopeModel variableScopeModel,
-      {this.useAsserts: false, this.inferEffectivelyFinalVariableTypes: true})
-      : super(staticTypeContext, classHierarchy, variableScopeModel);
+  ImpactBuilder(
+      ir.StaticTypeContext staticTypeContext,
+      StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy,
+      VariableScopeModel variableScopeModel,
+      {this.useAsserts: false,
+      this.inferEffectivelyFinalVariableTypes: true})
+      : super(staticTypeContext, staticTypeCache, classHierarchy,
+            variableScopeModel);
 
   ImpactBuilderData computeImpact(ir.Member node) {
     if (retainDataForTesting) {

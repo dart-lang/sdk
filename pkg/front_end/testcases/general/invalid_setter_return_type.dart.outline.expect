@@ -1,0 +1,119 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_setter_return_type.dart:5:1: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+// int set setter1(_) {} // error
+// ^
+//
+// pkg/front_end/testcases/general/invalid_setter_return_type.dart:6:1: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+// dynamic set setter2(_) {} // error
+// ^
+//
+// pkg/front_end/testcases/general/invalid_setter_return_type.dart:11:3: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+//   int set setter1(_) {} // error
+//   ^
+//
+// pkg/front_end/testcases/general/invalid_setter_return_type.dart:12:3: Error: The return type of the operator []= must be 'void'.
+// Try changing the return type to 'void'.
+//   int operator []=(a, b) {} // error
+//   ^
+//
+// pkg/front_end/testcases/general/invalid_setter_return_type.dart:16:3: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+//   dynamic set setter2(_) {} // error
+//   ^
+//
+// pkg/front_end/testcases/general/invalid_setter_return_type.dart:17:3: Error: The return type of the operator []= must be 'void'.
+// Try changing the return type to 'void'.
+//   dynamic operator []=(a, b) {} // error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1*
+    ;
+  set setter1(dynamic _) → void
+    ;
+  operator []=(dynamic a, dynamic b) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2*
+    ;
+  set setter2(dynamic _) → void
+    ;
+  operator []=(dynamic a, dynamic b) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class3 extends core::Object {
+  synthetic constructor •() → self::Class3*
+    ;
+  set setter3(dynamic _) → void
+    ;
+  operator []=(dynamic a, dynamic b) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class4 extends core::Object {
+  synthetic constructor •() → self::Class4*
+    ;
+  set setter4(dynamic _) → void
+    ;
+  operator []=(dynamic a, dynamic b) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static set setter1(dynamic _) → void
+  ;
+static set setter2(dynamic _) → void
+  ;
+static set setter3(dynamic _) → void
+  ;
+static set setter4(dynamic _) → void
+  ;
+static method main() → dynamic
+  ;

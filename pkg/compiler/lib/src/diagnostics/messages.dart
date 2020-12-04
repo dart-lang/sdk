@@ -73,12 +73,8 @@ enum MessageKind {
   INVALID_PACKAGE_CONFIG,
   INVALID_PACKAGE_URI,
   INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
-  JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
-  JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
-  JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
-  JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NOT_FOUND,
@@ -176,76 +172,9 @@ class MessageTemplate {
           MessageKind.STRING_EXPECTED,
           "Expected a 'String', but got an instance of '#{type}'."),
 
-      MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS:
-          const MessageTemplate(
-              MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
-              "Js-interop class '#{cls}' cannot extend from the non js-interop "
-              "class '#{superclass}'.",
-              howToFix: "Annotate the superclass with @JS.",
-              examples: const [
-            """
-              import 'package:js/js.dart';
-
-              class Foo { }
-
-              @JS()
-              class Bar extends Foo { }
-
-              main() {
-                new Bar();
-              }
-              """
-          ]),
-
-      MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
-          const MessageTemplate(
-              MessageKind
-                  .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-              "Some parameters in anonymous js-interop class '#{cls}' "
-              "object literal constructor are positional instead of named."
-              ".",
-              howToFix: "Make all arguments in external factory object literal "
-                  "constructors named.",
-              examples: const [
-            """
-class Super {
-  factory Super.foo() => null;
-}
-class Class extends Super {
-  Class() : super.foo();
-}
-main() => new Class();
-"""
-          ]),
-
       MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER,
           "Js-interop members must be 'external'."),
-
-      MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS: const MessageTemplate(
-          MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
-          "Js-interop class members are only supported in js-interop classes.",
-          howToFix: "Try marking the enclosing class as js-interop or "
-              "remove the js-interop annotation from the member."),
-
-      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
-          MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-          "Member '#{member}' in js-interop class '#{cls}' is not external.",
-          howToFix: "Try adding the 'external' to '#{member}'.",
-          examples: const [
-            """
-              import 'package:js/js.dart';
-
-              @JS()
-              class Foo {
-                bar() {}
-              }
-
-              main() {
-                new Foo().bar();
-              }
-              """
-          ]),
 
       MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED:
           const MessageTemplate(

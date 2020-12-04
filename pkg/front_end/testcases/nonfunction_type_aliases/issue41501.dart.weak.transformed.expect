@@ -2,12 +2,12 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
 //   FutureOr<AAlias> foLegacyNonNullable = null; // error
 //                                          ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
 //   FutureOr<AAliasNonNullable> foNonNullable = null; // error
 //                                               ^
@@ -21,12 +21,12 @@ import "org-dartlang-testcase:///issue41501_lib.dart";
 typedef AAliasNonNullable = opt::A;
 typedef AAliasNullable = opt::A?;
 static method test() → dynamic {
-  FutureOr<opt::A>foLegacyNonNullable = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
+  FutureOr<opt::A>foLegacyNonNullable = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAlias> foLegacyNonNullable = null; // error
                                          ^" in null;
   FutureOr<opt::A?>foLegacyNullable = null;
-  FutureOr<opt::A>foNonNullable = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
+  FutureOr<opt::A>foNonNullable = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAliasNonNullable> foNonNullable = null; // error
                                               ^" in null;
@@ -48,16 +48,16 @@ class A extends core::Object {
   synthetic constructor •() → opt::A*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
   FutureOr<opt::A*>* foLegacy = null;

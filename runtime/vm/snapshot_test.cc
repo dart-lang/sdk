@@ -52,12 +52,6 @@ static bool Equals(const Object& expected, const Object& actual) {
   return false;
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
-}
-
 // Compare two Dart_CObject object graphs rooted in first and
 // second. The second graph will be destroyed by this operation no matter
 // whether the graphs are equal or not.
@@ -387,7 +381,6 @@ ISOLATE_UNIT_TEST_CASE(SerializeSingletons) {
   TEST_ROUND_TRIP_IDENTICAL(Object::script_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::library_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::code_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::bytecode_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::instructions_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::pc_descriptors_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::exception_handlers_class());
@@ -755,10 +748,14 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    FullSnapshotWriter writer(Snapshot::kFull, NULL,
-                              &isolate_snapshot_data_buffer, &malloc_allocator,
-                              NULL, /*image_writer*/ nullptr);
+    MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
+    FullSnapshotWriter writer(
+        Snapshot::kFull, /*vm_snapshot_data=*/nullptr, &isolate_snapshot_data,
+        /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
     writer.WriteFullSnapshot();
+    // Take ownership so it doesn't get freed by the stream destructor.
+    intptr_t unused;
+    isolate_snapshot_data_buffer = isolate_snapshot_data.Steal(&unused);
   }
 
   // Now Create another isolate using the snapshot and execute a method
@@ -2019,8 +2016,6 @@ ISOLATE_UNIT_TEST_CASE(OmittedObjectEncodingLength) {
   // For performance, we'd like single-byte headers when ids are omitted.
   // If this starts failing, consider renumbering the snapshot ids.
   EXPECT_EQ(1, writer.BytesWritten());
-
-  free(writer.buffer());
 }
 
 TEST_CASE(IsKernelNegative) {
@@ -2075,12 +2070,12 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
     // Verify that snapshot writing succeeds if erasure is not required.
     if (!required) {
       // Write snapshot with object content.
-      uint8_t* isolate_snapshot_data_buffer;
+      MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
       FullSnapshotWriter writer(
-          Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
-          &malloc_allocator, NULL, /*image_writer*/ nullptr);
+          Snapshot::kFullCore, /*vm_snapshot_data=*/nullptr,
+          &isolate_snapshot_data,
+          /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
       writer.WriteFullSnapshot();
-      free(isolate_snapshot_data_buffer);
     }
   }
 }

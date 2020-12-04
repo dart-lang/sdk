@@ -20,7 +20,7 @@ void main() {
   var _ = <int>{...<String>[]}; //# 09: compile-time error
 
   // Downcast element.
-  var _ = <int>[...<num>[1, 2]]); //# 10: compile-time error
-  var _ = <int, int>{...<num, num>{1: 1, 2: 2}}); //# 11: compile-time error
-  var _ = <int>{...<num>[1, 2]}); //# 12: compile-time error
+  var _ = <int>[...<num>[1, 2]]; //# 10: compile-time error
+  var _ = <int, int>{...<num, num>{1: 1, 2: 2}}; //# 11: compile-time error
+  var _ = <int>{...<num>[1, 2]}; //# 12: compile-time error
 }

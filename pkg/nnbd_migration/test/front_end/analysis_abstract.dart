@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../abstract_context.dart';
 
 /// An abstract base for all 'analysis' domain tests.
-class AbstractAnalysisTest extends AbstractContextTest
-    with ResourceProviderMixin {
+class AbstractAnalysisTest extends AbstractContextTest {
   String projectPath;
   String testFolder;
   String testFile;
@@ -73,8 +71,8 @@ class AbstractAnalysisTest extends AbstractContextTest
 
   void setUp() {
     super.setUp();
-    projectPath = convertPath(AbstractContextTest.testsPath);
-    testFolder = convertPath('${AbstractContextTest.testsPath}/bin');
-    testFile = convertPath('${AbstractContextTest.testsPath}/bin/test.dart');
+    projectPath = convertPath(testsPath);
+    testFolder = convertPath('$testsPath/bin');
+    testFile = convertPath('$testsPath/bin/test.dart');
   }
 }

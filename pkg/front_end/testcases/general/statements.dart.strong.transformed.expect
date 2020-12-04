@@ -1,0 +1,239 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+import "dart:_internal" as _in;
+
+static method foo() → dynamic {
+  try {
+    return;
+  }
+  finally {
+    core::print("Hello from finally block!");
+  }
+}
+static method bar(dynamic d) → dynamic /* originally async* */ {
+  asy::_AsyncStarStreamController<dynamic>* :controller;
+  dynamic :controller_stream;
+  (dynamic) →* dynamic :async_op_then;
+  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  core::int* :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  dynamic :saved_try_context_var2;
+  dynamic :exception0;
+  dynamic :stack_trace0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try
+      try {
+        #L1:
+        {
+          {
+            asy::Stream<dynamic>* :stream = d as{TypeError,ForDynamic} asy::Stream<dynamic>*;
+            asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+            try
+              #L2:
+              while (true) {
+                dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream);
+                [yield] let dynamic #t2 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+                if(_in::unsafeCast<core::bool>(:result)) {
+                  dynamic x = :for-iterator.{asy::_StreamIterator::current};
+                  {
+                    if(:controller.{asy::_AsyncStarStreamController::add}(x))
+                      return null;
+                    else
+                      [yield] null;
+                    if(:controller.{asy::_AsyncStarStreamController::addStream}(x as{TypeError,ForDynamic} asy::Stream<dynamic>*))
+                      return null;
+                    else
+                      [yield] null;
+                  }
+                }
+                else
+                  break #L2;
+              }
+            finally
+              if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+                [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+                :result;
+              }
+          }
+        }
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      }
+    finally {
+      :controller.{asy::_AsyncStarStreamController::close}();
+    }
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
+  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+  return :controller_stream;
+}
+static method main() → dynamic {
+  do {
+    core::print("Hello from do-while!");
+  }
+  while (false)
+  do {
+    void x = core::print("Hello from do-while!");
+  }
+  while (false)
+  {
+    core::Iterator<core::String*>* :sync-for-iterator = <core::String*>["Hello from for-in!"].{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::String* s = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::print(s);
+      }
+    }
+  }
+  {
+    core::Iterator<core::String*>* :sync-for-iterator = <core::String*>["Hello from for-in without block!"].{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::String* s = :sync-for-iterator.{core::Iterator::current};
+      core::print(s);
+    }
+  }
+  dynamic s;
+  {
+    core::Iterator<dynamic>* :sync-for-iterator = <dynamic>["Hello from for-in without decl!"].{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+      {
+        s = #t4;
+        core::print(s);
+      }
+    }
+  }
+  {
+    core::Iterator<dynamic>* :sync-for-iterator = <dynamic>["Hello from for-in without decl and block!"].{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
+      {
+        s = #t5;
+        core::print(s);
+      }
+    }
+  }
+  core::print("Hello from labeled statement!");
+  try {
+    try {
+      throw "Hello from rethrow!";
+    }
+    on dynamic catch(final dynamic e) {
+      rethrow;
+    }
+  }
+  on dynamic catch(final dynamic e) {
+    core::print(e);
+  }
+  self::foo();
+  core::bool* done = false;
+  while (!done) {
+    done = true;
+    core::print("Hello from while!");
+  }
+  ;
+  assert(true);
+  assert(true, "Hello from assert!");
+  try {
+    assert(false, "Hello from assert!");
+  }
+  on dynamic catch(final dynamic e) {
+    core::print(e);
+  }
+  #L3:
+  switch(1) {
+    #L4:
+    case #C1:
+    case #C2:
+      {
+        core::print("Hello from switch case!");
+        break #L3;
+      }
+    #L5:
+    default:
+      {
+        break #L3;
+      }
+  }
+  #L6:
+  switch(4) {
+    #L7:
+    case #C2:
+      {
+        core::print("Hello from case 2!");
+        break #L6;
+      }
+    #L8:
+    case #C1:
+      {
+        core::print("Hello from case 1!");
+        continue #L7;
+      }
+    #L9:
+    case #C3:
+      {
+        core::print("Hello from case 0!");
+        continue #L8;
+      }
+    #L10:
+    case #C4:
+      {
+        core::print("Hello from case 4!");
+        continue #L11;
+      }
+    #L11:
+    default:
+      {
+        continue #L9;
+      }
+  }
+  #L12:
+  switch(4) {
+    #L13:
+    case #C1:
+      {
+        core::print("Hello from next case 1");
+        break #L12;
+      }
+    #L14:
+    default:
+      {
+        continue #L13;
+      }
+  }
+  core::int* i = 0;
+  #L15:
+  do
+    #L16:
+    {
+      core::print("Hello from do-while!");
+      if((i = i.{core::num::+}(1)).{core::num::<}(3))
+        break #L16;
+      break #L15;
+    }
+  while (true)
+  i = 0;
+  #L17:
+  while (true)
+    #L18:
+    {
+      core::print("Hello from while!");
+      if((i = i.{core::num::+}(1)).{core::num::<}(3))
+        break #L18;
+      break #L17;
+    }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 0
+  #C4 = 4
+}

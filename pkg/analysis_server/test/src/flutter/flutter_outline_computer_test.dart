@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -28,8 +26,8 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
+    writeTestPackageConfig(flutter: true);
     testPath = convertPath('/home/test/lib/test.dart');
-    addFlutterPackage();
   }
 
   Future<void> test_attribute_namedExpression() async {

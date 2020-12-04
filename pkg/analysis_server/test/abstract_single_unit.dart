@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -22,18 +21,31 @@ import 'abstract_context.dart';
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
+  /// Whether to rewrite line endings in test code based on platform.
+  bool useLineEndingsForPlatform = false;
+
   String testCode;
   String testFile;
-  Source testSource;
   ResolvedUnitResult testAnalysisResult;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
   FindNode findNode;
 
-  void addTestSource(String code, [Uri uri]) {
+  @override
+  void addSource(String path, String content) {
+    if (useLineEndingsForPlatform) {
+      content = normalizeNewlinesForPlatform(content);
+    }
+    super.addSource(path, content);
+  }
+
+  void addTestSource(String code) {
+    if (useLineEndingsForPlatform) {
+      code = normalizeNewlinesForPlatform(code);
+    }
     testCode = code;
-    testSource = addSource(testFile, code, uri);
+    addSource(testFile, code);
   }
 
   Element findElement(String name, [ElementKind kind]) {
@@ -108,8 +120,20 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<void> resolveTestUnit(String code) async {
+  @override
+  File newFile(String path, {String content = ''}) {
+    if (useLineEndingsForPlatform) {
+      content = normalizeNewlinesForPlatform(content);
+    }
+    return super.newFile(path, content: content);
+  }
+
+  Future<void> resolveTestCode(String code) async {
     addTestSource(code);
+    await resolveTestFile();
+  }
+
+  Future<void> resolveTestFile() async {
     testAnalysisResult = await session.getResolvedUnit(testFile);
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
@@ -125,7 +149,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     }
     testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
-    findNode = FindNode(code, testUnit);
+    findNode = FindNode(testCode, testUnit);
   }
 
   @override

@@ -21,7 +21,7 @@ class OrganizeDirectivesTest extends AbstractAnalysisServerIntegrationTest {
 import 'dart:math';
 import 'dart:async';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
@@ -40,7 +40,7 @@ int minified(int x, int y) => min(x, y);
 import 'dart:async';
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
@@ -57,7 +57,7 @@ int minified(int x, int y) => min(x, y);
 import 'dart:async'
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);

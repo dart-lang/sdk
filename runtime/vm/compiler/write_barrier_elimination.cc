@@ -192,6 +192,8 @@ void WriteBarrierElimination::SaveResults() {
 void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
   BitmapBuilder array_allocations;
 
+  GrowableArray<Definition*> create_array_worklist;
+
   for (intptr_t i = 0; i < block_order_->length(); ++i) {
     BlockEntryInstr* const block = block_order_->At(i);
     if (auto join_block = block->AsJoinEntry()) {
@@ -209,14 +211,32 @@ void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       if (Definition* current = it.Current()->AsDefinition()) {
         if (IsUsable(current)) {
-          array_allocations.Set(definition_count_, current->IsCreateArray());
+          const bool is_create_array = current->IsCreateArray();
+          array_allocations.Set(definition_count_, is_create_array);
           definition_indices_.Insert({current, definition_count_++});
+          if (is_create_array) {
+            create_array_worklist.Add(current);
+          }
 #if defined(DEBUG)
           if (tracing_) {
             THR_Print("Definition (%" Pd ") has index %" Pd ".\n",
                       current->ssa_temp_index(), definition_count_ - 1);
           }
 #endif
+        }
+      }
+    }
+  }
+
+  while (!create_array_worklist.is_empty()) {
+    auto instr = create_array_worklist.RemoveLast();
+    for (Value::Iterator it(instr->input_use_list()); !it.Done();
+         it.Advance()) {
+      if (auto phi_use = it.Current()->instruction()->AsPhi()) {
+        const intptr_t index = Index(phi_use);
+        if (!array_allocations.Get(index)) {
+          array_allocations.Set(index, /*can_be_create_array=*/true);
+          create_array_worklist.Add(phi_use);
         }
       }
     }
@@ -329,7 +349,7 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
     case Slot::Kind::kDartField:  // Instance
       return true;
 
-#define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, type, modifiers)   \
+#define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, __, ___)           \
   case Slot::Kind::k##class##_##field:                                         \
     return std::is_base_of<InstanceLayout, underlying_type>::value ||          \
            std::is_base_of<ContextLayout, underlying_type>::value ||           \

@@ -129,10 +129,7 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
       if (assignment.rightHandSide == expression) {
         if (assignment.operator.type == TokenType.EQ) {
           // v = myFunction();
-          var lhs = assignment.leftHandSide;
-          if (lhs != null) {
-            return lhs.staticType;
-          }
+          return assignment.writeType;
         } else {
           // v += myFunction();
           var method = assignment.staticElement;
@@ -230,6 +227,10 @@ class CorrectionProducerContext {
   final ChangeWorkspace workspace;
   final DartFixContext dartFixContext;
 
+  /// A flag indicating whether the correction producers will be run in the
+  /// context of applying bulk fixes.
+  final bool applyingBulkFixes;
+
   final Diagnostic diagnostic;
 
   AstNode _node;
@@ -237,6 +238,7 @@ class CorrectionProducerContext {
   CorrectionProducerContext({
     @required this.resolvedResult,
     @required this.workspace,
+    this.applyingBulkFixes = false,
     this.dartFixContext,
     this.diagnostic,
     this.selectionOffset = -1,
@@ -318,6 +320,8 @@ abstract class _AbstractCorrectionProducer {
   /// Initialize a newly created producer.
   _AbstractCorrectionProducer();
 
+  bool get applyingBulkFixes => _context.applyingBulkFixes;
+
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
@@ -382,6 +386,11 @@ abstract class _AbstractCorrectionProducer {
   void configure(CorrectionProducerContext context) {
     _context = context;
   }
+
+  /// Return the text that should be displayed to users when referring to the
+  /// given [type].
+  String displayStringForType(DartType type) => type.getDisplayString(
+      withNullability: libraryElement.isNonNullableByDefault);
 
   /// Return the function body of the most deeply nested method or function that
   /// encloses the [node], or `null` if the node is not in a method or function.

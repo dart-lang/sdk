@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -220,7 +219,17 @@ class PreviewSite extends Site
       } else if (path == rerunMigrationPath) {
         await rerunMigration();
 
-        respondOk(request);
+        if (migrationState.hasErrors) {
+          return await respondJson(
+              request,
+              {
+                'success': false,
+                'errors': migrationState.analysisResult.toJson(),
+              },
+              HttpStatus.ok);
+        } else {
+          respondOk(request);
+        }
         return;
       } else if (path == applyHintPath) {
         final hintAction = HintAction.fromJson(await requestBodyJson(request));
@@ -306,7 +315,7 @@ class PreviewSite extends Site
     unitInfo.diskContent = newContent;
   }
 
-  /// Perform the edit indicated by the [uri].
+  /// Perform the hint edit indicated by the [hintAction].
   Future<void> performHintAction(HintAction hintAction) async {
     final node = migrationState.nodeMapper.nodeForId(hintAction.nodeId);
     final edits = node.hintActions[hintAction.kind];
@@ -355,7 +364,9 @@ class PreviewSite extends Site
 
   Future<void> rerunMigration() async {
     migrationState = await rerunFunction();
-    reset();
+    if (!migrationState.hasErrors) {
+      reset();
+    }
   }
 
   void reset() {

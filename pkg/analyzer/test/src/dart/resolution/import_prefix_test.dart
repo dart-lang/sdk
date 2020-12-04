@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ImportPrefixDriverResolutionTest extends DriverResolutionTest {
+class ImportPrefixDriverResolutionTest extends PubPackageResolutionTest {
   test_asExpression_expressionStatement() async {
     await assertErrorsInCode(r'''
 import 'dart:async' as p;
@@ -24,6 +24,7 @@ main() {
   p; // use
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 12),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 38, 1),
     ]);
 
@@ -40,6 +41,7 @@ main() {
   for (var x in p) {}
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 12),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
     ]);
@@ -64,6 +66,7 @@ main() {
   var x = new C(p);
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 12),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
     ]);

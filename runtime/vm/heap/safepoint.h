@@ -233,6 +233,7 @@ class TransitionGeneratedToNative : public TransitionSafepointState {
 class TransitionVMToBlocked : public TransitionSafepointState {
  public:
   explicit TransitionVMToBlocked(Thread* T) : TransitionSafepointState(T) {
+    ASSERT(!T->isolate_group()->safepoint_handler()->IsOwnedByTheThread(T));
     // A thread blocked on a monitor is considered to be at a safepoint.
     ASSERT(T->execution_state() == Thread::kThreadInVM);
     T->set_execution_state(Thread::kThreadInBlockedState);

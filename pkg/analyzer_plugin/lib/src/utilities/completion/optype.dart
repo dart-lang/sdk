@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
-import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 typedef SuggestionsFilter = int Function(DartType dartType, int relevance);
 
@@ -44,13 +43,6 @@ class OpType {
   /// Indicates whether fields and getters along with methods and functions that
   /// have a non-[void] return type should be suggested.
   bool includeReturnValueSuggestions = false;
-
-  /// If [includeReturnValueSuggestions] is set to true, then this function may
-  /// be set to a non-default function to filter out potential suggestions
-  /// (null) based on their static [DartType], or change the relative relevance
-  /// by returning a higher or lower relevance.
-  SuggestionsFilter returnValueSuggestionsFilter =
-      (DartType _, int relevance) => relevance;
 
   /// Indicates whether named arguments should be suggested.
   bool includeNamedArgumentSuggestions = false;
@@ -190,17 +182,6 @@ class OpType {
       _requiredType = null;
       return;
     }
-
-    returnValueSuggestionsFilter = (DartType dartType, int relevance) {
-      if (dartType != null) {
-        if (dartType == _requiredType) {
-          return relevance + DART_RELEVANCE_BOOST_TYPE;
-        } else if (_isSubtypeOf(dartType, _requiredType)) {
-          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
-        }
-      }
-      return relevance;
-    };
   }
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
@@ -902,9 +883,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.expression)) {
       optype.completionLocation = 'InterpolationExpression_expression';
       optype.includeReturnValueSuggestions = true;
-      // Only include type names in a ${ } expression
-      optype.includeTypeNameSuggestions =
-          node.leftBracket != null && node.leftBracket.length > 1;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -1135,7 +1114,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    if (identical(entity, node.expression)) {
+    if (identical(entity, node.expression) ||
+        (identical(entity, node.semicolon) && node.expression == null)) {
       optype.completionLocation = 'ReturnStatement_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;

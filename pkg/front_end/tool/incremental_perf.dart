@@ -42,7 +42,6 @@
 ///  updates input1.dart a second time.
 library front_end.tool.incremental_perf;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 

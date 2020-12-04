@@ -5,4 +5,4 @@ class C {
   const factory C.good() = C.constant;
   C notEvenAConstructor(a) = h;
 }
-main() { }
+main() {}

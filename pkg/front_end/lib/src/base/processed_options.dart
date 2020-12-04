@@ -4,15 +4,19 @@
 
 import 'dart:io' show exitCode;
 
-import 'dart:async' show Future;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
+import 'package:kernel/kernel.dart'
+    show
+        CanonicalName,
+        Component,
+        Location,
+        NonNullableByDefaultCompiledMode,
+        Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -47,6 +51,7 @@ import '../fasta/fasta_codes.dart'
         templateCannotReadSdkSpecification,
         templateCantReadFile,
         templateDebugTrace,
+        templateExceptionReadingFile,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -158,6 +163,8 @@ class ProcessedOptions {
 
   bool get verify => _raw.verify;
 
+  bool get verifySkipPlatform => _raw.verifySkipPlatform;
+
   bool get debugDump => _raw.debugDump;
 
   bool get omitPlatform => _raw.omitPlatform;
@@ -173,6 +180,8 @@ class ProcessedOptions {
   bool get emitDeps => _raw.emitDeps;
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
+
+  bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
 
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
@@ -198,7 +207,8 @@ class ProcessedOptions {
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
   FormattedMessage format(
-      LocatedMessage message, Severity severity, List<LocatedMessage> context) {
+      LocatedMessage message, Severity severity, List<LocatedMessage> context,
+      {List<Uri> involvedFiles}) {
     int offset = message.charOffset;
     Uri uri = message.uri;
     Location location = offset == -1 ? null : getLocation(uri, offset);
@@ -212,11 +222,12 @@ class ProcessedOptions {
       }
     }
     return message.withFormatting(formatted, location?.line ?? -1,
-        location?.column ?? -1, severity, formattedContext);
+        location?.column ?? -1, severity, formattedContext,
+        involvedFiles: involvedFiles);
   }
 
   void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage> context}) {
+      {List<LocatedMessage> context, List<Uri> involvedFiles}) {
     if (command_line_reporting.isHidden(severity)) return;
     if (command_line_reporting.isCompileTimeError(severity)) {
       CompilerContext.current.logError(message, severity);
@@ -224,7 +235,8 @@ class ProcessedOptions {
     if (CompilerContext.current.options.setExitCodeOnProblem) {
       exitCode = 1;
     }
-    reportDiagnosticMessage(format(message, severity, context));
+    reportDiagnosticMessage(
+        format(message, severity, context, involvedFiles: involvedFiles));
     if (command_line_reporting.shouldThrowOn(severity)) {
       if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
         // Skip this one. The interesting one comes later.
@@ -311,9 +323,6 @@ class ProcessedOptions {
   /// effect.
   void clearFileSystemCache() => _fileSystem = null;
 
-  /// Whether to generate bytecode.
-  bool get bytecode => _raw.bytecode;
-
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
 
@@ -331,9 +340,22 @@ class ProcessedOptions {
   /// This is `true` either if the [flag] is passed through an explicit
   /// `--enable-experiment` option or if the [flag] is expired and on by
   /// default.
+  bool isExperimentEnabledByDefault(flags.ExperimentalFlag flag) {
+    return flags.isExperimentEnabled(flag,
+        defaultExperimentFlagsForTesting:
+            _raw.defaultExperimentFlagsForTesting);
+  }
+
+  /// Returns `true` if the [flag] is enabled globally.
+  ///
+  /// This is `true` either if the [flag] is passed through an explicit
+  /// `--enable-experiment` option or if the [flag] is expired and on by
+  /// default.
   bool isExperimentEnabledGlobally(flags.ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
-        experimentalFlags: _raw.experimentalFlags);
+        explicitExperimentalFlags: _raw.explicitExperimentalFlags,
+        defaultExperimentFlagsForTesting:
+            _raw.defaultExperimentFlagsForTesting);
   }
 
   /// Returns `true` if the [flag] is enabled in the library with the given
@@ -344,9 +366,30 @@ class ProcessedOptions {
   /// the 'allowed_experiments.json' file for this library.
   bool isExperimentEnabledInLibrary(
       flags.ExperimentalFlag flag, Uri importUri) {
-    return flags.isExperimentEnabledInLibrary(flag, importUri,
-        experimentalFlags: _raw.experimentalFlags,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlags);
+    return _raw.isExperimentEnabledInLibrary(flag, importUri);
+  }
+
+  Version getExperimentEnabledVersionInLibrary(
+      flags.ExperimentalFlag flag, Uri importUri) {
+    return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
+  }
+
+  Component _validateNullSafetyMode(Component component) {
+    if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
+      throw new FormatException(
+          'Provided .dill file for the following libraries has an invalid null '
+          'safety mode and does not support null safety:\n'
+          '${component.libraries.join('\n')}');
+    }
+    if (nnbdMode == NnbdMode.Strong &&
+        !(component.mode == NonNullableByDefaultCompiledMode.Strong ||
+            component.mode == NonNullableByDefaultCompiledMode.Agnostic)) {
+      throw new FormatException(
+          'Provided .dill file for the following libraries does not '
+          'support sound null safety:\n'
+          '${component.libraries.join('\n')}');
+    }
+    return component;
   }
 
   /// Get an outline component that summarizes the SDK, if any.
@@ -366,6 +409,7 @@ class ProcessedOptions {
     if (_sdkSummaryComponent != null) {
       throw new StateError("sdkSummary already loaded.");
     }
+    _validateNullSafetyMode(platform);
     _sdkSummaryComponent = platform;
   }
 
@@ -391,6 +435,7 @@ class ProcessedOptions {
     if (_additionalDillComponents != null) {
       throw new StateError("inputAdditionalDillsComponents already loaded.");
     }
+    components.forEach(_validateNullSafetyMode);
     _additionalDillComponents = components;
   }
 
@@ -406,7 +451,7 @@ class ProcessedOptions {
             disableLazyReading: false,
             alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
         .readComponent(component);
-    return component;
+    return _validateNullSafetyMode(component);
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
@@ -515,6 +560,13 @@ class ProcessedOptions {
         reportWithoutLocation(
             templateCantReadFile.withArguments(uri, e.message), Severity.error);
       }
+    } catch (e) {
+      Message message = templateExceptionReadingFile.withArguments(uri, '$e');
+      reportWithoutLocation(message, Severity.error);
+      // We throw a new exception to ensure that the message include the uri
+      // that led to the exception. Exceptions in Uri don't include the
+      // offending uri in the exception message.
+      throw new ArgumentError(message.message);
     }
     return null;
   }
@@ -622,11 +674,22 @@ class ProcessedOptions {
     }
 
     Future<Uri> checkInDir(Uri dir) async {
-      Uri candidate = dir.resolve('.dart_tool/package_config.json');
-      if (await fileSystem.entityForUri(candidate).exists()) return candidate;
-      candidate = dir.resolve('.packages');
-      if (await fileSystem.entityForUri(candidate).exists()) return candidate;
-      return null;
+      Uri candidate;
+      try {
+        candidate = dir.resolve('.dart_tool/package_config.json');
+        if (await fileSystem.entityForUri(candidate).exists()) return candidate;
+        candidate = dir.resolve('.packages');
+        if (await fileSystem.entityForUri(candidate).exists()) return candidate;
+        return null;
+      } catch (e) {
+        Message message =
+            templateExceptionReadingFile.withArguments(candidate, '$e');
+        reportWithoutLocation(message, Severity.error);
+        // We throw a new exception to ensure that the message include the uri
+        // that led to the exception. Exceptions in Uri don't include the
+        // offending uri in the exception message.
+        throw new ArgumentError(message.message);
+      }
     }
 
     // Check for $cwd/.packages

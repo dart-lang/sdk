@@ -7,6 +7,7 @@ import 'never_null_assignability_lib1.dart';
 
 // This test validates that in a null safe (opted in) library which calls out
 // to another null safe (opted in) library, the static errors around `Never`
+
 // and `Null` that are suppressed when calling out a null safe library from
 // a **legacy** library are correctly reported.  This file is derived from
 // never_null_assignability_weak_test.dart and validates that calls to a
@@ -28,7 +29,7 @@ void testNullSafeCalls() {
     takesNever(nil);
     //         ^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Never'.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Never' because 'Never' is not nullable.
     takesNever(never);
     takesNever(3 as dynamic);
     (takesNever as dynamic)(3);
@@ -40,7 +41,7 @@ void testNullSafeCalls() {
     takesInt(nil);
     //       ^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'int'.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
     takesInt(nil as dynamic);
     (takesInt as dynamic)(nil);
     (takesInt as dynamic)("hello");
@@ -52,7 +53,7 @@ void testNullSafeCalls() {
     takesObject(nil);
     //          ^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Object'.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Object' because 'Object' is not nullable.
     takesObject(nil as dynamic);
     (takesObject as dynamic)(nil);
   }
@@ -74,17 +75,17 @@ void testNullSafeApply() {
     applyTakesNull(takesNever, nil);
     //             ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Never' isn't.
     applyTakesNull(takesAny, nil);
 
     applyTakesNull(takesInt, nil);
     //             ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'int' isn't.
     applyTakesNull(takesObject, nil);
     //             ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Object' isn't.
   }
 
   // Test applying a null safe function of static type void Function(Null)
@@ -95,15 +96,15 @@ void testNullSafeApply() {
     applyTakesNull(takesNever, 3);
     //             ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Never' isn't.
     applyTakesNull(takesInt, 3);
     //             ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'int' isn't.
     applyTakesNull(takesObject, 3);
     //             ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Object' isn't.
     applyTakesNull(takesAny, 3);
   }
 
@@ -139,16 +140,16 @@ void testNullSafeApplyDynamically() {
     applyTakesNullDynamically(takesNever, nil);
     //                        ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Never' isn't.
     applyTakesNullDynamically(takesAny, nil);
     applyTakesNullDynamically(takesInt, nil);
     //                        ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'int' isn't.
     applyTakesNullDynamically(takesObject, nil);
     //                        ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Object' isn't.
   }
 
   // Test dynamically applying a null safe function of static type
@@ -159,19 +160,19 @@ void testNullSafeApplyDynamically() {
     applyTakesNullDynamically(takesNever, 3);
     //                        ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Never' isn't.
     applyTakesNullDynamically(takesInt, 3);
     //                        ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'int' isn't.
     applyTakesNullDynamically(takesInt, "hello");
     //                        ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'int' isn't.
     applyTakesNullDynamically(takesObject, 3);
     //                        ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)' because 'Null' is nullable and 'Object' isn't.
     applyTakesNullDynamically(takesAny, 3);
   }
 
@@ -204,12 +205,12 @@ void main() {
   // ^
   // [analyzer] unspecified
   //      ^
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never'.
+  // [cfe] The value 'null' can't be assigned to a variable of type 'Never' because 'Never' is not nullable.
   never = nil;
   // ^
   // [analyzer] unspecified
   //      ^
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never'.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never' because 'Never' is not nullable.
   nil = never;
   testNullSafeCalls();
   testNullSafeApply();

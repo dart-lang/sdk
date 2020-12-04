@@ -34,7 +34,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     for (var member in classDeclaration.members) {
       if (member is FieldDeclaration) {
         var variableList = member.fields;
-        if (variableList.isFinal) {
+        if (variableList.isFinal && !variableList.isLate) {
           fieldNames.addAll(variableList.variables
               .where((v) => v.initializer == null)
               .map((v) => v.name.name));

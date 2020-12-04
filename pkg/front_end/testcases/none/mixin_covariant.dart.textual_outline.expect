@@ -1,0 +1,19 @@
+class Superclass {
+  String method1(num argument1, num argument2) => "Superclass";
+  String method2(num argument1, num argument2) => "Superclass";
+  String method3(num argument1, covariant int argument2) => "Superclass";
+  String method4(num argument1, covariant num argument2) => "Superclass";
+}
+
+class Mixin {
+  String method1(num argument1, num argument2) => "Mixin";
+  String method2(covariant int argument1, num argument2) => "Mixin";
+  String method3(num argument1, num argument2) => "Mixin";
+  String method4(covariant int argument1, int argument2) => "Mixin";
+}
+
+class Class extends Superclass with Mixin {}
+
+main() {}
+void expect(expected, actual) {}
+void throws(void Function() f) {}

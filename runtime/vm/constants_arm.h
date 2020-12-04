@@ -285,11 +285,11 @@ extern const char* fpu_d_reg_names[kNumberOfDRegisters];
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register PP = R5;     // Caches object pool pointer in generated code.
+const Register PP = R5;  // Caches object pool pointer in generated code.
 const Register DISPATCH_TABLE_REG = NOTFP;  // Dispatch table register.
-const Register SPREG = SP;  // Stack pointer register.
-const Register FPREG = FP;  // Frame pointer register.
-const Register LRREG = LR;  // Link register.
+const Register SPREG = SP;                  // Stack pointer register.
+const Register FPREG = FP;                  // Frame pointer register.
+const Register LRREG = LR;                  // Link register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.
@@ -310,6 +310,11 @@ const Register kWriteBarrierSlotReg = R9;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = R3;
 
+// Common ABI for shared slow path stubs.
+struct SharedSlowPathStubABI {
+  static const Register kResultReg = R0;
+};
+
 // ABI for instantiation stubs.
 struct InstantiationABI {
   static const Register kUninstantiatedTypeArgumentsReg = R3;
@@ -326,14 +331,39 @@ struct TypeTestABI {
   static const Register kInstantiatorTypeArgumentsReg = R2;
   static const Register kFunctionTypeArgumentsReg = R1;
   static const Register kSubtypeTestCacheReg = R3;
+  static const Register kScratchReg = R4;
+
+  // For calls to InstanceOfStub.
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For calls to SubtypeNTestCacheStub. Must be saved by the caller if the
+  // original value is needed after the call.
+  static const Register kSubtypeTestCacheResultReg = kSubtypeTestCacheReg;
+
+  // Registers that need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
+      1 << kSubtypeTestCacheReg;
 
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg);
+      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
+};
 
-  // For call to InstanceOfStub.
-  static const Register kResultReg = R0;
+// Calling convention when calling AssertSubtypeStub.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = R0;
+  static const Register kSuperTypeReg = R8;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kDstNameReg = R3;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kDstNameReg);
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
 };
 
 // Registers used inside the implementation of type testing stubs.
@@ -365,6 +395,11 @@ struct InitLateInstanceFieldInternalRegs {
   static const Register kScratchReg = R4;
 };
 
+// ABI for LateInitializationError stubs.
+struct LateInitializationErrorABI {
+  static const Register kFieldReg = R9;
+};
+
 // ABI for ThrowStub.
 struct ThrowABI {
   static const Register kExceptionReg = R0;
@@ -391,6 +426,12 @@ struct RangeErrorABI {
 struct AllocateMintABI {
   static const Register kResultReg = R0;
   static const Register kTempReg = R1;
+};
+
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = R4;
+  static const Register kResultReg = R0;
 };
 
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
@@ -446,6 +487,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 4;
+  static const Register kPointerToReturnStructRegisterCall = R0;
 
   static const intptr_t kFpuArgumentRegisters = 0;
 
@@ -485,12 +527,17 @@ class CallingConventions {
   static constexpr Register kReturnReg = R0;
   static constexpr Register kSecondReturnReg = R1;
   static constexpr FpuRegister kReturnFpuReg = Q0;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // We choose these to avoid overlap between themselves and reserved registers.
   static constexpr Register kFirstNonArgumentRegister = R8;
   static constexpr Register kSecondNonArgumentRegister = R9;
   static constexpr Register kFirstCalleeSavedCpuReg = R4;
   static constexpr Register kStackPointerRegister = SPREG;
+
+  COMPILE_ASSERT(
+      ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
 #undef R
@@ -658,6 +705,24 @@ enum InstructionFields {
   kOpc1Bits = 3,
 
   kBranchOffsetMask = 0x00ffffff
+};
+
+enum ScaleFactor {
+  TIMES_1 = 0,
+  TIMES_2 = 1,
+  TIMES_4 = 2,
+  TIMES_8 = 3,
+  TIMES_16 = 4,
+// Don't use (dart::)kWordSizeLog2, as this needs to work for crossword as
+// well. If this is included, we know the target is 32 bit.
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt32SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt32SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 // The class Instr enables access to individual fields defined in the ARM
@@ -967,7 +1032,7 @@ float ReciprocalStep(float op1, float op2);
 float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
-constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
+constexpr uword kBreakInstructionFiller = 0xE1200070;   // bkpt #0
 constexpr uword kDataMemoryBarrier = 0xf57ff050 | 0xb;  // dmb ish
 
 }  // namespace dart

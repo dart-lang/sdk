@@ -1,8 +1,8 @@
+// @dart = 2.7
+
 import 'load_in_correct_order_lib5.dart';
 import 'load_in_correct_order_lib6.dart';
 import 'load_in_correct_order_lib7.dart';
-
-// @dart = 2.7
 
 class C2 {
   final c;

@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,106 +15,106 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateImportTest extends DriverResolutionTest {
+class DuplicateImportTest extends PubPackageResolutionTest {
   test_duplicateImport() async {
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}''');
 
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart';
 A a;''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.DUPLICATE_IMPORT, 38, 11),
     ]);
   }
 
   test_importsHaveIdenticalShowHide() async {
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}
 class B {}''');
 
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart' as M show A hide B;
 import 'lib1.dart' as M show A hide B;
 M.A a;''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.DUPLICATE_IMPORT, 57, 11),
     ]);
   }
 
   test_oneImportHasHide() async {
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}
 class B {}''');
 
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' hide A;
 A a;
 B b;''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart');
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart');
   }
 
   test_oneImportHasShow() async {
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}
 class B {}''');
 
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' show A;
 A a;
 B b;''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart');
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart');
   }
 
   test_oneImportUsesAs() async {
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}''');
 
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' as one;
 A a;
 one.A a2;''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart');
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart');
   }
 
   test_twoDuplicateImports() async {
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}''');
 
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart';
 import 'lib1.dart';
 A a;''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.DUPLICATE_IMPORT, 38, 11),
       error(HintCode.DUPLICATE_IMPORT, 58, 11),
     ]);

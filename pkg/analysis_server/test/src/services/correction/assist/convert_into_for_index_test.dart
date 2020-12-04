@@ -20,7 +20,7 @@ class ConvertIntoForIndexTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
 
   Future<void> test_bodyNotBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) print(item);
 }
@@ -29,7 +29,7 @@ main(List<String> items) {
   }
 
   Future<void> test_doesNotDeclareVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   String item;
   for (item in items) {
@@ -41,7 +41,7 @@ main(List<String> items) {
   }
 
   Future<void> test_iterableIsNotVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for (String item in ['a', 'b', 'c']) {
     print(item);
@@ -52,7 +52,7 @@ main() {
   }
 
   Future<void> test_iterableNotList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(Iterable<String> items) {
   for (String item in items) {
     print(item);
@@ -63,7 +63,7 @@ main(Iterable<String> items) {
   }
 
   Future<void> test_onDeclaredIdentifier_name() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -81,7 +81,7 @@ main(List<String> items) {
   }
 
   Future<void> test_onDeclaredIdentifier_type() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -99,7 +99,7 @@ main(List<String> items) {
   }
 
   Future<void> test_onFor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -117,7 +117,7 @@ main(List<String> items) {
   }
 
   Future<void> test_usesI() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) {
     int i = 0;
@@ -135,7 +135,7 @@ main(List<String> items) {
   }
 
   Future<void> test_usesIJ() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -155,7 +155,7 @@ main(List<String> items) {
   }
 
   Future<void> test_usesIJK() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) {
     print(item);

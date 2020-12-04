@@ -251,9 +251,6 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
     }
 
-    if (_configuration.compiler == Compiler.dartkb) {
-      multiplier *= 4;
-    }
     if (mode.isDebug) {
       multiplier *= 2;
     }
@@ -261,6 +258,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       multiplier *= 2;
     }
     if (_configuration.sanitizer != Sanitizer.none) {
+      multiplier *= 2;
+    }
+    if (_configuration.rr) {
       multiplier *= 2;
     }
     return multiplier;
@@ -297,13 +297,17 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       arguments.insertAll(0, config.arguments);
       executable = config.executable;
     }
-    return [VMCommand(executable, arguments, environmentOverrides)];
+    var command = VMCommand(executable, arguments, environmentOverrides);
+    if (_configuration.rr && !isCrashExpected) {
+      return [RRCommand(command)];
+    }
+    return [command];
   }
 }
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   final bool useElf;
-  DartPrecompiledRuntimeConfiguration({bool useElf}) : useElf = useElf;
+  DartPrecompiledRuntimeConfiguration({this.useElf});
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -326,7 +330,11 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       executable = config.executable;
     }
 
-    return [VMCommand(executable, arguments, environmentOverrides)];
+    var command = VMCommand(executable, arguments, environmentOverrides);
+    if (_configuration.rr && !isCrashExpected) {
+      return [RRCommand(command)];
+    }
+    return [command];
   }
 }
 
@@ -360,7 +368,7 @@ class DartPrecompiledAdbRuntimeConfiguration
   static const deviceTestDir = '/data/local/tmp/precompilation-testing/test';
 
   final bool useElf;
-  DartPrecompiledAdbRuntimeConfiguration({bool useElf}) : useElf = useElf;
+  DartPrecompiledAdbRuntimeConfiguration({this.useElf});
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -404,6 +412,7 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     if (isCrashExpected) {
       runtimeArgs.insert(0, '--suppress-core-dump');
     }
+    runtimeArgs.insert(runtimeArgs.length - 1, '--disable-dart-dev');
     return [
       VMCommand(FuchsiaEmulator.fsshTool, runtimeArgs, environmentOverrides)
     ];

@@ -77,7 +77,7 @@ final String _implCode = r'''
 
   /// Invoke a specific service protocol extension method.
   ///
-  /// See https://api.dartlang.org/stable/dart-developer/dart-developer-library.html.
+  /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
   @override
   Future<Response> callServiceExtension(String method, {
     String isolateId,
@@ -627,6 +627,20 @@ abstract class VmServiceInterface {
     // The server class, takes a VmServiceInterface and delegates to it
     // automatically.
     gen.write('''
+  class _PendingServiceRequest {
+    Future<Map<String, Object>> get future => _completer.future;
+    final _completer = Completer<Map<String, Object>>();
+
+    final dynamic originalId;
+
+    _PendingServiceRequest(this.originalId);
+
+    void complete(Map<String, Object> response) {
+      response['id'] = originalId;
+      _completer.complete(response);
+    }
+  }
+
   /// A Dart VM Service Protocol connection that delegates requests to a
   /// [VmServiceInterface] implementation.
   ///
@@ -649,8 +663,7 @@ abstract class VmServiceInterface {
     final _doneCompleter = Completer<Null>();
 
     /// Pending service extension requests to this client by id.
-    final _pendingServiceExtensionRequests =
-        <String, Completer<Map<String, Object>>>{};
+    final _pendingServiceExtensionRequests = <dynamic, _PendingServiceRequest>{};
 
     VmServerConnection(
         this._requestStream, this._responseSink, this._serviceExtensionRegistry,
@@ -673,21 +686,19 @@ abstract class VmServiceInterface {
       // multiple clients ids.
       var newId = '\${_nextServiceRequestId++}:\$originalId';
       request['id'] = newId;
-      var responseCompleter = Completer<Map<String, Object>>();
-      _pendingServiceExtensionRequests[newId] = responseCompleter;
+      var pendingRequest = _PendingServiceRequest(originalId);
+      _pendingServiceExtensionRequests[newId] = pendingRequest;
       _responseSink.add(request);
-      return responseCompleter.future;
+      return pendingRequest.future;
     }
 
     void _delegateRequest(Map<String, Object> request) async {
       try {
-        var id = request['id'] as String;
+        var id = request['id'];
         // Check if this is actually a response to a pending request.
         if (_pendingServiceExtensionRequests.containsKey(id)) {
-          // Restore the original request ID.
-          var originalId = id.substring(id.indexOf(':') + 1);
-          _pendingServiceExtensionRequests[id].complete(
-              Map.of(request)..['id'] = originalId);
+          final pending = _pendingServiceExtensionRequests[id];
+          pending.complete(Map.of(request));
           return;
         }
         var method = request['method'] as String;
@@ -925,6 +936,13 @@ List<String> assertListOfString(List<String> list) {
   return list;
 }
 
+List<vms.IsolateFlag> assertListOfIsolateFlag(List<vms.IsolateFlag> list) {
+  for (vms.IsolateFlag elem in list) {
+    assertIsolateFlag(elem);
+  }
+  return list;
+}
+
 String assertString(String obj) {
   assertNotNull(obj);
   if (obj.isEmpty) throw 'expected non-zero length string';
@@ -1012,6 +1030,7 @@ vms.Event assertIsolateEvent(vms.Event event) {
             'LibraryDependency',
             'Message',
             'ProfileFunction',
+            'ProcessMemoryItem',
             'Protocol',
             'RetainingObject',
             'SourceReportRange',

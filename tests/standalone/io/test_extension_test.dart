@@ -4,6 +4,9 @@
 //
 // Dart test program for testing native extensions.
 
+// OtherResources=test_extension.dart
+// OtherResources=test_extension_tester.dart
+
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 import 'dart:async';

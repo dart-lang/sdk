@@ -1,5 +1,53 @@
 # Changelog
 
+## 5.5.0
+- Update to version `3.42.0` of the spec.
+- Added optional `limit` parameter to `getStack` RPC.
+
+## 5.4.0
+- Update to version `3.41.0` of the spec.
+- Added `PortList` class.
+- Added `getPorts` RPC.
+- Added optional properties `portId`, `allocationLocation`, and `debugName` to
+  `InstanceRef` and `Instance`.
+
+## 5.3.1
+- Rename `State` class to `_State` to avoid class name conflicts with Flutter.
+
+## 5.3.0
+- Added support for `dart:io` extensions version 1.5.
+- Added combination getter/setter `socketProfilingEnabled`.
+- Deprecated `startSocketProfiling` and `pauseSocketProfiling`.
+- Update to version `3.40.0` of the spec.
+- Added `IsolateFlag` class.
+- Added `isolateFlags` property to `Isolate`.
+
+## 5.2.0
+- Added support for `dart:io` extensions version 1.3.
+- Added combination getter/setter `httpEnableTimelineLogging`.
+- Deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.
+
+## 5.1.0
+- Added support for `dart:io` extensions version 1.2.
+- Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs.
+- Added `OpenFileList`, `OpenFileRef`, `OpenFile`, `SpawnedProcessList`, `SpawnedProcessRef`, and `SpawnedProcess` objects.
+
+## 5.0.0
+
+- **breaking**: Update to version `3.39.0` of the spec.
+  - Removes `ClientName` and `WebSocketTarget` objects
+  - Removes `getClientName`, `getWebSocketTarget`, `requirePermissionToResume`,
+    and `setClientName` RPCs.
+- Added `isSystemIsolate` property to `IsolateRef` and `Isolate`.
+- Added `isSystemIsolateGroup` property to `IsolateGroupRef` and `IsolateGroup`.
+- Added `serviceIsolates` and `serviceIsolateGroups` properties to `VM`.
+- Fixed issue where `VmServerConnection` would always response with a string ID even if the request ID was not a string.
+
+## 4.2.0
+- Update to version `3.37.0` of the spec.
+- Added `getProcessMemoryUsage` RPC and `ProcessMemoryUsage` and `ProcessMemoryItem` objects.
+- Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
+
 ## 4.1.0
 - Update to version `3.35.0` of the spec.
 - Expose more `@required` parameters on the named constructors of VM service objects.

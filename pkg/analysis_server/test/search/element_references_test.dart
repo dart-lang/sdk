@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -644,6 +642,48 @@ CONSTRUCTOR
 CLASS B
 COMPILATION_UNIT test.dart
 LIBRARY my_lib''');
+  }
+
+  Future<void> test_path_inExtension_named() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+extension E on A {
+  void bar() {
+    foo();
+  }
+}
+''');
+    await findElementReferences('foo() {}', false);
+    assertHasResult(SearchResultKind.INVOCATION, 'foo();');
+    expect(getPathString(result.path), '''
+METHOD bar
+EXTENSION E
+COMPILATION_UNIT test.dart
+LIBRARY''');
+  }
+
+  Future<void> test_path_inExtension_unnamed() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+extension on A {
+  void bar() {
+    foo();
+  }
+}
+''');
+    await findElementReferences('foo() {}', false);
+    assertHasResult(SearchResultKind.INVOCATION, 'foo();');
+    expect(getPathString(result.path), '''
+METHOD bar
+EXTENSION
+COMPILATION_UNIT test.dart
+LIBRARY''');
   }
 
   @failingTest

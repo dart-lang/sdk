@@ -1,0 +1,11 @@
+class C {
+  final dynamic n;
+  factory C(dynamic n) = D;
+}
+
+class D implements C {
+  final dynamic n;
+  D(this.n);
+}
+
+main() {}

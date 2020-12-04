@@ -6,8 +6,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class FinalNotInitializedTest extends DriverResolutionTest {
+class FinalNotInitializedTest extends PubPackageResolutionTest {
   test_class_instanceField_final_factoryConstructor_only() async {
     await assertNoErrorsInCode('''
 class A {
@@ -84,8 +83,42 @@ mixin M {
 }
 
 @reflectiveTest
-class FinalNotInitializedWithNullSafetyTest extends DriverResolutionTest
+class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_field_abstract() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+''');
+  }
+
+  test_field_abstract_with_constructor() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+  A();
+}
+''');
+  }
+
+  test_field_external() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+''');
+  }
+
+  test_field_external_with_constructor() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+  A();
+}
+''');
+  }
+
   test_field_noConstructor_initializer() async {
     await assertNoErrorsInCode('''
 class C {
@@ -100,6 +133,16 @@ class C {
   late final f;
 }
 ''');
+  }
+
+  test_field_ofClass() async {
+    await assertErrorsInCode('''
+abstract class A {
+  final int x;
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 31, 1),
+    ]);
   }
 
   test_field_unnamedConstructor_constructorInitializer() async {
@@ -156,5 +199,19 @@ f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
+  }
+
+  test_static_field_external() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static final int x;
+}
+''');
+  }
+
+  test_variable_external() async {
+    await assertNoErrorsInCode('''
+external final int x;
+''');
   }
 }

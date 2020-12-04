@@ -17,6 +17,14 @@ abstract class TypeBuilder {
 
   TypeDeclarationBuilder get declaration => null;
 
+  /// Returns the Uri for the file in which this type annotation occurred, or
+  /// `null` if the type was synthesized.
+  Uri get fileUri;
+
+  /// Returns the character offset with [fileUri] at which this type annotation
+  /// occurred, or `null` if the type was synthesized.
+  int get charOffset;
+
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {}
 
@@ -64,4 +72,6 @@ abstract class TypeBuilder {
       LibraryBuilder library, int charOffset, Uri fileUri);
 
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder);
+
+  bool get isVoidType;
 }

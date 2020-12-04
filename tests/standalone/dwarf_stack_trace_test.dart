@@ -40,7 +40,7 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  final dwarf = Dwarf.fromFile("dwarf.so");
+  final dwarf = Dwarf.fromFile("dwarf.so")!;
 
   await checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }
@@ -86,7 +86,7 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
     Expect.isNotNull(externalCallInfo);
     final allCallInfo = dwarf.callInfoFor(addr, includeInternalFrames: true);
     Expect.isNotNull(allCallInfo);
-    for (final call in allCallInfo) {
+    for (final call in allCallInfo!) {
       Expect.isTrue(call is DartCallInfo, "got non-Dart call info ${call}");
     }
     Expect.deepEquals(externalCallInfo, allCallInfo);

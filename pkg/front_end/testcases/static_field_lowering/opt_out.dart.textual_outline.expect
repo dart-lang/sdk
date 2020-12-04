@@ -1,0 +1,31 @@
+// @dart = 2.8
+dynamic lastInit;
+T init<T>(T value) {}
+const int constTopLevelField = 324;
+int topLevelFieldWithoutInitializer;
+int topLevelFieldWithInitializer1 = init(42);
+int topLevelFieldWithInitializer2 = init(42);
+final int finalTopLevelFieldWithInitializer1 = init(87);
+int finalTopLevelFieldWithInitializer2Init = 0;
+final int finalTopLevelFieldWithInitializer2 =
+    finalTopLevelFieldWithInitializer2Init++ == 0
+        ? finalTopLevelFieldWithInitializer2 + 1
+        : 87;
+
+class Class {
+  static const int staticConstField = 123;
+  int instanceFieldWithInitializer = init(55);
+  static int staticFieldWithoutInitializer;
+  static int staticFieldWithInitializer1 = init(55);
+  static int staticFieldWithInitializer2 = init(55);
+  static final int staticFinalFieldWithInitializer1 = init(73);
+  static int staticFinalFieldWithInitializer2Init = 0;
+  static final int staticFinalFieldWithInitializer2 =
+      staticFinalFieldWithInitializer2Init++ == 0
+          ? staticFinalFieldWithInitializer2 + 1
+          : 87;
+}
+
+main() {}
+expect(expected, actual) {}
+throws(f(), String message) {}

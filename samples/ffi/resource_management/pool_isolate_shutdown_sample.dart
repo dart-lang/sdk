@@ -22,7 +22,7 @@ void main() {
       receiveFromHelper.sendPort,
     );
     print("Main: Helper started.");
-    Pointer<SomeResource> resource;
+    Pointer<SomeResource> resource = nullptr;
     receiveFromHelper.listen((message) {
       if (message is int) {
         resource = Pointer<SomeResource>.fromAddress(message);

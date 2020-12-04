@@ -516,8 +516,15 @@ class AstTestFactory {
           argumentList: argumentList);
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
-          TypeAnnotation type, List<VariableDeclaration> variables) =>
+          TypeAnnotation type, List<VariableDeclaration> variables,
+          {bool isAbstract = false, bool isExternal = false}) =>
       astFactory.fieldDeclaration2(
+          abstractKeyword: isAbstract
+              ? TokenFactory.tokenFromKeyword(Keyword.ABSTRACT)
+              : null,
+          externalKeyword: isExternal
+              ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL)
+              : null,
           staticKeyword:
               isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
           fieldList: variableDeclarationList(keyword, type, variables),
@@ -1289,12 +1296,16 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TopLevelVariableDeclaration topLevelVariableDeclaration2(
-          Keyword keyword, List<VariableDeclaration> variables) =>
+          Keyword keyword, List<VariableDeclaration> variables,
+          {bool isExternal = false}) =>
       astFactory.topLevelVariableDeclaration(
           null,
           null,
           variableDeclarationList(keyword, null, variables),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+          TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          externalKeyword: isExternal
+              ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL)
+              : null);
 
   static TryStatement tryStatement(Block body, Block finallyClause) =>
       tryStatement3(body, <CatchClause>[], finallyClause);

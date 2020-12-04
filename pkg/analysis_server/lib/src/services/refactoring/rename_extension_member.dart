@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -106,10 +104,9 @@ class _ExtensionMemberValidator {
   final List<SearchMatch> references = <SearchMatch>[];
 
   _ExtensionMemberValidator.forRename(
-      this.searchEngine, this.sessionHelper, Element element, this.name)
+      this.searchEngine, this.sessionHelper, this.element, this.name)
       : isRename = true,
         library = element.library,
-        element = element,
         elementExtension = element.enclosingElement,
         elementKind = element.kind;
 

@@ -19,6 +19,7 @@ compilesdk
 constructor(s)
 count.#count
 d
+dart.dev
 dart2js_server
 dart:ffi
 dart_runner
@@ -27,16 +28,17 @@ dname
 e.g
 enum's
 f
-field's
 flutter_runner
 futureor
 h
+https
 interop
 libraries.json
 list.filled
 loadlibrary
 name.#name
 name.stack
+nameokempty
 native('native
 nativetype
 nnbd
@@ -51,7 +53,9 @@ patch(es)
 pubspec.yaml
 re
 sdksummary
+solutions
 stacktrace
+stringokempty
 struct<#name
 structs
 super.namedconstructor
@@ -61,5 +65,6 @@ this.namedconstructor
 this.x
 type3.#name
 u
+unsound
 v
 x

@@ -495,6 +495,8 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.abstractKeyword, " ");
+    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
     safelyVisitTokenWithSuffix(node.staticKeyword, " ");
     safelyVisitNode(node.fields);
     sink.write(";");
@@ -666,7 +668,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNode(node.name);
     safelyVisitNode(node.typeParameters);
     sink.write(" = ");
-    safelyVisitNode(node.functionType);
+    safelyVisitNode(node.type);
   }
 
   @override
@@ -1073,6 +1075,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
     safelyVisitNodeWithSuffix(node.variables, ";");
   }
 

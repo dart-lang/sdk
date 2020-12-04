@@ -8,6 +8,7 @@ import 'dart:convert' hide JsonDecoder;
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
@@ -18,12 +19,45 @@ void addAllEditsForSource(
   edits.forEach(sourceFileEdit.add);
 }
 
-/// Adds the given [sourceEdit] to the list in [sourceFileEdit].
+/// Adds the given [sourceEdit] to the list in [sourceFileEdit] while preserving
+/// two invariants:
+/// - the list is sorted such that edits with a larger offset appear earlier in
+///   the list, and
+/// - no two edits in the list overlap each other.
+///
+/// If the invariants can't be preserved, then a [ConflictingEditException] is
+/// thrown.
 void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
   var edits = sourceFileEdit.edits;
+  var length = edits.length;
   var index = 0;
-  while (index < edits.length && edits[index].offset > sourceEdit.offset) {
+  while (index < length && edits[index].offset > sourceEdit.offset) {
     index++;
+  }
+  if (index > 0) {
+    var previousEdit = edits[index - 1];
+    // The [previousEdit] has an offset that is strictly greater than the offset
+    // of the [sourceEdit] so we only need to look at the end of the
+    // [sourceEdit] to know whether they overlap.
+    if (sourceEdit.offset + sourceEdit.length > previousEdit.offset) {
+      throw ConflictingEditException(
+          newEdit: sourceEdit, existingEdit: previousEdit);
+    }
+  }
+  if (index < length) {
+    var nextEdit = edits[index];
+    // The [nextEdit] has an offset that is less than or equal to the offset of
+    // the [sourceEdit]. If they're equal, then we consider it to be a conflict.
+    // Otherwise the offset of [nextEdit] is strictly less than the offset of
+    // the [sourceEdit] so we need to look at the end of the [nextEdit] to know
+    // whether they overlap.
+    if ((sourceEdit.offset == nextEdit.offset &&
+            sourceEdit.length > 0 &&
+            nextEdit.length > 0) ||
+        nextEdit.offset + nextEdit.length > sourceEdit.offset) {
+      throw ConflictingEditException(
+          newEdit: sourceEdit, existingEdit: nextEdit);
+    }
   }
   edits.insert(index, sourceEdit);
 }

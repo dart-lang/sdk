@@ -25,7 +25,7 @@ class IsolateRepository extends M.IsolateRepository {
     return isolate;
   }
 
-  Future reloadSources(M.IsolateRef i, {M.Service service}) async {
+  Future reloadSources(M.IsolateRef i, {M.Service? service}) async {
     if (service == null) {
       S.Isolate isolate = i as S.Isolate;
       assert(isolate != null);

@@ -7,6 +7,8 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -20,6 +22,8 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -104,10 +108,9 @@ class ContextInfo {
   /// added to the context.
   Map<String, Source> sources = HashMap<String, Source>();
 
-  ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
+  ContextInfo(ContextManagerImpl contextManager, this.parent, this.folder,
       File packagespecFile, this.disposition)
-      : folder = folder,
-        pathFilter = PathFilter(
+      : pathFilter = PathFilter(
             folder.path, null, contextManager.resourceProvider.pathContext) {
     packageDescriptionPath = packagespecFile.path;
     parent.children.add(this);
@@ -291,10 +294,8 @@ abstract class ContextManagerCallbacks {
   /// Return the notification manager associated with the server.
   AbstractNotificationManager get notificationManager;
 
-  /// Create and return a new analysis driver rooted at the given [folder], with
-  /// the given analysis [options].
-  AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options);
+  /// Create and return a new analysis driver rooted at the given [folder].
+  AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot);
 
   /// An [event] was processed, so analysis state might be different now.
   void afterWatchEvent(WatchEvent event);
@@ -315,9 +316,8 @@ abstract class ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event);
 
   /// Create and return a context builder that can be used to create a context
-  /// for the files in the given [folder] when analyzed using the given
-  /// [options].
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options);
+  /// for the files in the given [folder].
+  ContextBuilder createContextBuilder(Folder folder);
 
   /// Remove the context associated with the given [folder].  [flushedFiles] is
   /// a list of the files which will be "orphaned" by removing this context
@@ -328,6 +328,9 @@ abstract class ContextManagerCallbacks {
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 class ContextManagerImpl implements ContextManager {
+  /// The name of the data file used to specify data-driven fixes.
+  static const String dataFileName = 'fix_data.yaml';
+
   /// The name of the `doc` directory.
   static const String DOC_DIR_NAME = 'doc';
 
@@ -371,9 +374,6 @@ class ContextManagerImpl implements ContextManager {
   /// A list of the globs used to determine which files should be analyzed.
   final List<Glob> analyzedFilesGlobs;
 
-  /// The default options used to create new analysis contexts.
-  final AnalysisOptionsImpl defaultContextOptions;
-
   /// The instrumentation service used to report instrumentation data.
   final InstrumentationService _instrumentationService;
 
@@ -394,11 +394,11 @@ class ContextManagerImpl implements ContextManager {
       <Folder, StreamSubscription<WatchEvent>>{};
 
   ContextManagerImpl(
-      this.resourceProvider,
-      this.sdkManager,
-      this.analyzedFilesGlobs,
-      this._instrumentationService,
-      this.defaultContextOptions) {
+    this.resourceProvider,
+    this.sdkManager,
+    this.analyzedFilesGlobs,
+    this._instrumentationService,
+  ) {
     pathContext = resourceProvider.pathContext;
   }
 
@@ -738,6 +738,31 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Use the given analysis [driver] to analyze the content of the
+  /// data file at the given [path].
+  void _analyzeDataFile(AnalysisDriver driver, String path) {
+    List<protocol.AnalysisError> convertedErrors;
+    try {
+      var file = resourceProvider.getFile(path);
+      var packageName = file.parent.parent.shortName;
+      var content = _readFile(path);
+      var errorListener = RecordingErrorListener();
+      var errorReporter = ErrorReporter(errorListener, file.createSource());
+      var parser = TransformSetParser(errorReporter, packageName);
+      parser.parse(content);
+      var converter = AnalyzerConverter();
+      convertedErrors = converter.convertAnalysisErrors(errorListener.errors,
+          lineInfo: _computeLineInfo(content), options: driver.analysisOptions);
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
+    callbacks.notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId,
+        path,
+        convertedErrors ?? const <protocol.AnalysisError>[]);
+  }
+
+  /// Use the given analysis [driver] to analyze the content of the
   /// AndroidManifest file at the given [path].
   void _analyzeManifestFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
@@ -776,6 +801,39 @@ class ContextManagerImpl implements ContextManager {
         var converter = AnalyzerConverter();
         convertedErrors = converter.convertAnalysisErrors(errors,
             lineInfo: lineInfo, options: driver.analysisOptions);
+
+        if (driver.analysisOptions.lint) {
+          var visitors = <LintRule, PubspecVisitor>{};
+          for (var linter in driver.analysisOptions.lintRules) {
+            if (linter is LintRule) {
+              var visitor = linter.getPubspecVisitor();
+              if (visitor != null) {
+                visitors[linter] = visitor;
+              }
+            }
+          }
+
+          if (visitors.isNotEmpty) {
+            var sourceUri = resourceProvider.pathContext.toUri(path);
+            var pubspecAst = Pubspec.parse(content,
+                sourceUrl: sourceUri, resourceProvider: resourceProvider);
+            var listener = RecordingErrorListener();
+            var reporter = ErrorReporter(listener,
+                resourceProvider.getFile(path).createSource(sourceUri),
+                isNonNullableByDefault: false);
+            for (var entry in visitors.entries) {
+              entry.key.reporter = reporter;
+              pubspecAst.accept(entry.value);
+            }
+            if (listener.errors.isNotEmpty) {
+              convertedErrors ??= <protocol.AnalysisError>[];
+              convertedErrors.addAll(converter.convertAnalysisErrors(
+                  listener.errors,
+                  lineInfo: lineInfo,
+                  options: driver.analysisOptions));
+            }
+          }
+        }
       }
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
@@ -802,6 +860,19 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
+  void _checkForDataFileUpdate(String path, ContextInfo info) {
+    if (_isDataFile(path)) {
+      var driver = info.analysisDriver;
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
+      }
+      _analyzeDataFile(driver, path);
+    }
+  }
+
   void _checkForManifestUpdate(String path, ContextInfo info) {
     if (_isManifest(path)) {
       var driver = info.analysisDriver;
@@ -816,9 +887,9 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _checkForPackagespecUpdate(String path, ContextInfo info) {
-    // Check to see if this is the .packages file for this context and if so,
-    // update the context's source factory.
-    if (pathContext.basename(path) == PACKAGE_SPEC_NAME) {
+    // Check to see if this is `.dart_tool/package_config.json` or `.packages`
+    // file for this context and if so, update the context's source factory.
+    if (_isPackageConfigJsonFilePath(path) || _isDotPackagesFilePath(path)) {
       var driver = info.analysisDriver;
       if (driver == null) {
         // I suspect that this happens as a result of a race condition: server
@@ -828,6 +899,10 @@ class ContextManagerImpl implements ContextManager {
       }
 
       _updateAnalysisOptions(info);
+      final optionsFile = info?.analysisDriver?.contextRoot?.optionsFilePath;
+      if (optionsFile != null) {
+        _analyzeAnalysisOptionsFile(driver, optionsFile);
+      }
     }
   }
 
@@ -925,7 +1000,7 @@ class ContextManagerImpl implements ContextManager {
     } catch (_) {
       // Parse errors are reported elsewhere.
     }
-    AnalysisOptions options = AnalysisOptionsImpl.from(defaultContextOptions);
+    var options = AnalysisOptionsImpl();
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
@@ -940,10 +1015,14 @@ class ContextManagerImpl implements ContextManager {
     if (optionsFile != null) {
       contextRoot.optionsFilePath = optionsFile.path;
     }
-    info.analysisDriver =
-        callbacks.addAnalysisDriver(folder, contextRoot, options);
+    info.analysisDriver = callbacks.addAnalysisDriver(folder, contextRoot);
     if (optionsFile != null) {
       _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
+    }
+    var dataFile =
+        folder.getChildAssumingFolder('lib').getChildAssumingFile(dataFileName);
+    if (dataFile.exists) {
+      _analyzeDataFile(info.analysisDriver, dataFile.path);
     }
     var pubspecFile = folder.getChildAssumingFile(PUBSPEC_NAME);
     if (pubspecFile.exists) {
@@ -1029,9 +1108,9 @@ class ContextManagerImpl implements ContextManager {
 
   /// Set up a [SourceFactory] that resolves packages as appropriate for the
   /// given [folder].
-  SourceFactory _createSourceFactory(AnalysisOptions options, Folder folder) {
-    var builder = callbacks.createContextBuilder(folder, options);
-    return builder.createSourceFactory(folder.path, options);
+  SourceFactory _createSourceFactory(Folder folder) {
+    var builder = callbacks.createContextBuilder(folder);
+    return builder.createSourceFactory(folder.path);
   }
 
   /// Clean up and destroy the context associated with the given folder.
@@ -1170,6 +1249,9 @@ class ContextManagerImpl implements ContextManager {
     if (info.hasDependency(path)) {
       _recomputeFolderDisposition(info);
     }
+
+    _checkForPackagespecUpdate(path, info);
+
     // maybe excluded globally
     if (_isExcluded(path) ||
         _isContainedInDotFolder(info.folder.path, path) ||
@@ -1204,7 +1286,7 @@ class ContextManagerImpl implements ContextManager {
                 return;
               }
             }
-            if (_isPackagespec(path)) {
+            if (_isDotPackagesFilePath(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
                   .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
@@ -1244,7 +1326,7 @@ class ContextManagerImpl implements ContextManager {
                 return;
               }
             }
-            if (_isPackagespec(path)) {
+            if (_isDotPackagesFilePath(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
                   .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
@@ -1273,8 +1355,8 @@ class ContextManagerImpl implements ContextManager {
           }
         }
     }
-    _checkForPackagespecUpdate(path, info);
     _checkForAnalysisOptionsUpdate(path, info);
+    _checkForDataFileUpdate(path, info);
     _checkForPubspecUpdate(path, info);
     _checkForManifestUpdate(path, info);
   }
@@ -1304,6 +1386,14 @@ class ContextManagerImpl implements ContextManager {
     return false;
   }
 
+  /// Return `true` if the [path] appears to be the name of the data file used
+  /// to specify data-driven fixes.
+  bool _isDataFile(String path) => pathContext.basename(path) == dataFileName;
+
+  bool _isDotPackagesFilePath(String path) {
+    return pathContext.basename(path) == PACKAGE_SPEC_NAME;
+  }
+
   /// Returns `true` if the given [path] is excluded by [excludedPaths].
   bool _isExcluded(String path) => _isExcludedBy(excludedPaths, path);
 
@@ -1331,8 +1421,12 @@ class ContextManagerImpl implements ContextManager {
 
   bool _isManifest(String path) => pathContext.basename(path) == MANIFEST_NAME;
 
-  bool _isPackagespec(String path) =>
-      pathContext.basename(path) == PACKAGE_SPEC_NAME;
+  bool _isPackageConfigJsonFilePath(String path) {
+    var components = pathContext.split(path);
+    return components.length > 2 &&
+        components[components.length - 1] == 'package_config.json' &&
+        components[components.length - 2] == '.dart_tool';
+  }
 
   bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
 
@@ -1390,20 +1484,23 @@ class ContextManagerImpl implements ContextManager {
   void _updateAnalysisOptions(ContextInfo info) {
     var driver = info.analysisDriver;
     var contextRoot = info.folder.path;
-    var builder =
-        callbacks.createContextBuilder(info.folder, defaultContextOptions);
+    var builder = callbacks.createContextBuilder(info.folder);
     var options = builder.getAnalysisOptions(contextRoot,
         contextRoot: driver.contextRoot);
-    var factory = builder.createSourceFactory(contextRoot, options);
-    driver.configure(analysisOptions: options, sourceFactory: factory);
+    var packages = builder.createPackageMap(contextRoot);
+    var factory = builder.createSourceFactory(contextRoot);
+    driver.configure(
+      analysisOptions: options,
+      packages: packages,
+      sourceFactory: factory,
+    );
     callbacks.analysisOptionsUpdated(driver);
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {
     var info = getContextInfoFor(contextFolder);
     var driver = info.analysisDriver;
-    var sourceFactory =
-        _createSourceFactory(driver.analysisOptions, contextFolder);
+    var sourceFactory = _createSourceFactory(contextFolder);
     driver.configure(sourceFactory: sourceFactory);
   }
 

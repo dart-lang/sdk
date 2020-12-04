@@ -16,6 +16,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
+#include "vm/image_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
 #include "vm/stack_frame.h"
@@ -95,7 +96,9 @@ class SimulatorDebugger {
 
   static TokenPosition GetApproximateTokenIndex(const Code& code, uword pc);
 
-  static void PrintDartFrame(uword pc,
+  static void PrintDartFrame(uword vm_instructions,
+                             uword isolate_instructions,
+                             uword pc,
                              uword fp,
                              uword sp,
                              const Function& function,
@@ -241,7 +244,29 @@ TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   return token_pos;
 }
 
-void SimulatorDebugger::PrintDartFrame(uword pc,
+#if defined(DART_PRECOMPILED_RUNTIME)
+static const char* ImageName(uword vm_instructions,
+                             uword isolate_instructions,
+                             uword pc,
+                             intptr_t* offset) {
+  const Image vm_image(vm_instructions);
+  const Image isolate_image(isolate_instructions);
+  if (vm_image.contains(pc)) {
+    *offset = pc - vm_instructions;
+    return kVmSnapshotInstructionsAsmSymbol;
+  } else if (isolate_image.contains(pc)) {
+    *offset = pc - isolate_instructions;
+    return kIsolateSnapshotInstructionsAsmSymbol;
+  } else {
+    *offset = 0;
+    return "<unknown>";
+  }
+}
+#endif
+
+void SimulatorDebugger::PrintDartFrame(uword vm_instructions,
+                                       uword isolate_instructions,
+                                       uword pc,
                                        uword fp,
                                        uword sp,
                                        const Function& function,
@@ -257,25 +282,44 @@ void SimulatorDebugger::PrintDartFrame(uword pc,
     script.GetTokenLocation(token_pos, &line, &column);
   }
   OS::PrintErr(
-      "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")\n", pc,
+      "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")", pc,
       fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
       func_name.ToCString(), url.ToCString(), line, column);
+#if defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t offset;
+  auto const symbol_name =
+      ImageName(vm_instructions, isolate_instructions, pc, &offset);
+  OS::PrintErr(" %s+0x%" Px "", symbol_name, offset);
+#endif
+  OS::PrintErr("\n");
 }
 
 void SimulatorDebugger::PrintBacktrace() {
-  StackFrameIterator frames(
-      sim_->get_register(FP), sim_->get_register(SP), sim_->get_pc(),
-      ValidationPolicy::kDontValidateFrames, Thread::Current(),
-      StackFrameIterator::kNoCrossThreadIteration);
+  auto const T = Thread::Current();
+  auto const Z = T->zone();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  auto const vm_instructions = reinterpret_cast<uword>(
+      Dart::vm_isolate()->group()->source()->snapshot_instructions);
+  auto const isolate_instructions = reinterpret_cast<uword>(
+      T->isolate_group()->source()->snapshot_instructions);
+  OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
+               vm_instructions, isolate_instructions);
+#else
+  const uword vm_instructions = 0;
+  const uword isolate_instructions = 0;
+#endif
+  StackFrameIterator frames(sim_->get_register(FP), sim_->get_register(SP),
+                            sim_->get_pc(),
+                            ValidationPolicy::kDontValidateFrames, T,
+                            StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
-  Function& function = Function::Handle();
-  Function& inlined_function = Function::Handle();
-  Code& code = Code::Handle();
-  Code& unoptimized_code = Code::Handle();
+  Function& function = Function::Handle(Z);
+  Function& inlined_function = Function::Handle(Z);
+  Code& code = Code::Handle(Z);
+  Code& unoptimized_code = Code::Handle(Z);
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
-      ASSERT(!frame->is_interpreted());  // Not yet supported.
       code = frame->LookupDartCode();
       function = code.function();
       if (code.is_optimized()) {
@@ -291,24 +335,33 @@ void SimulatorDebugger::PrintBacktrace() {
           it.Advance();
           if (!it.Done()) {
             PrintDartFrame(
-                unoptimized_pc, frame->fp(), frame->sp(), inlined_function,
+                vm_instructions, isolate_instructions, unoptimized_pc,
+                frame->fp(), frame->sp(), inlined_function,
                 GetApproximateTokenIndex(unoptimized_code, unoptimized_pc),
                 true, true);
           }
         }
         // Print the optimized inlining frame below.
       }
-      PrintDartFrame(frame->pc(), frame->fp(), frame->sp(), function,
+      PrintDartFrame(vm_instructions, isolate_instructions, frame->pc(),
+                     frame->fp(), frame->sp(), function,
                      GetApproximateTokenIndex(code, frame->pc()),
                      code.is_optimized(), false);
     } else {
-      OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
+      OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame",
                    frame->pc(), frame->fp(), frame->sp(),
                    frame->IsEntryFrame()
                        ? "entry"
                        : frame->IsExitFrame()
                              ? "exit"
                              : frame->IsStubFrame() ? "stub" : "invalid");
+#if defined(DART_PRECOMPILED_RUNTIME)
+      intptr_t offset;
+      auto const symbol_name = ImageName(vm_instructions, isolate_instructions,
+                                         frame->pc(), &offset);
+      OS::PrintErr(" %s+0x%" Px "", symbol_name, offset);
+#endif
+      OS::PrintErr("\n");
     }
     frame = frames.NextFrame();
   }
@@ -3598,13 +3651,15 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // in the previous C++ frames.
   StackResource::Unwind(thread);
 
+  // Keep the following code in sync with `StubCode::JumpToFrameStub()`.
+
   // Unwind the C++ stack and continue simulation in the target frame.
   set_register(PC, static_cast<int32_t>(pc));
   set_register(SP, static_cast<int32_t>(sp));
   set_register(FP, static_cast<int32_t>(fp));
   set_register(THR, reinterpret_cast<uword>(thread));
   // Set the tag.
-  thread->set_vm_tag(VMTag::kDartCompiledTagId);
+  thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
   // Restore pool pointer.
@@ -3617,6 +3672,10 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
   set_register(CODE_REG, code);
   set_register(PP, pp);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    set_register(DISPATCH_TABLE_REG,
+                 reinterpret_cast<int32_t>(thread->dispatch_table_array()));
+  }
   buf->Longjmp();
 }
 

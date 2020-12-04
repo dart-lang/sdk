@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         NeverType,
         Nullability,
         Procedure,
+        ProcedureKind,
         Reference,
         StaticGet,
         StringConstant,
@@ -31,10 +32,10 @@ import 'package:kernel/ast.dart'
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/dynamic_type_builder.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/modifier_builder.dart';
-import '../builder/never_type_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -59,7 +60,7 @@ import 'dill_class_builder.dart' show DillClassBuilder;
 
 import 'dill_extension_builder.dart';
 
-import 'dill_member_builder.dart' show DillMemberBuilder;
+import 'dill_member_builder.dart';
 
 import 'dill_loader.dart' show DillLoader;
 
@@ -151,16 +152,20 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   String get name => library.name;
 
   void addSyntheticDeclarationOfDynamic() {
-    addBuilder(
-        "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
+    addBuilder("dynamic",
+        new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
   }
 
   void addSyntheticDeclarationOfNever() {
     addBuilder(
         "Never",
-        new NeverTypeBuilder(
+        new NeverTypeDeclarationBuilder(
             const NeverType(Nullability.nonNullable), this, -1),
         -1);
+  }
+
+  void addSyntheticDeclarationOfNull() {
+    // The name "Null" is declared by the class Null.
   }
 
   void addClass(Class cls) {
@@ -187,7 +192,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addMember(Member member) {
-    String name = member.name.name;
+    if (member.isExtensionMember) {
+      return null;
+    }
+    String name = member.name.text;
     if (name == "_exports#") {
       Field field = member;
       String stringValue;
@@ -203,13 +211,45 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       unserializableExports =
           json != null ? new Map<String, String>.from(json) : null;
     } else {
-      addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
+      if (member is Field) {
+        addBuilder(name, new DillFieldBuilder(member, this), member.fileOffset);
+      } else if (member is Procedure) {
+        switch (member.kind) {
+          case ProcedureKind.Factory:
+            addBuilder(
+                name, new DillFactoryBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Setter:
+            addBuilder(
+                name, new DillSetterBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Getter:
+            addBuilder(
+                name, new DillGetterBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Operator:
+            addBuilder(
+                name, new DillOperatorBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Method:
+            addBuilder(
+                name, new DillMethodBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Factory:
+            throw new UnsupportedError(
+                "Unexpected library procedure ${member.kind} for ${member}");
+        }
+      } else {
+        throw new UnsupportedError(
+            "Unexpected library member ${member} (${member.runtimeType})");
+      }
     }
   }
 
   @override
   Builder addBuilder(String name, Builder declaration, int charOffset) {
     if (name == null || name.isEmpty) return null;
+
     bool isSetter = declaration.isSetter;
     if (isSetter) {
       scopeBuilder.addSetter(name, declaration);
@@ -219,7 +259,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     if (declaration.isExtension) {
       scopeBuilder.addExtension(declaration);
     }
-    if (!name.startsWith("_")) {
+    if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
         exportScopeBuilder.addSetter(name, declaration);
       } else {
@@ -327,11 +367,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           name = node.name;
         } else if (node is Procedure) {
           libraryUri = node.enclosingLibrary.importUri;
-          name = node.name.name;
+          name = node.name.text;
           isSetter = node.isSetter;
         } else if (node is Member) {
           libraryUri = node.enclosingLibrary.importUri;
-          name = node.name.name;
+          name = node.name.text;
         } else if (node is Typedef) {
           libraryUri = node.enclosingLibrary.importUri;
           name = node.name;

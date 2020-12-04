@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class FunctionExpressionInvocationTest extends DriverResolutionTest {
+class FunctionExpressionInvocationTest extends PubPackageResolutionTest {
   test_dynamic_withoutTypeArguments() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -52,14 +51,14 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionInvocationWithNullSafetyTest
-    extends DriverResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_call_infer_fromArguments() async {
     await assertNoErrorsInCode(r'''
 class A {
   void call<T>(T t) {}
 }
 
-main(A a) {
+void f(A a) {
   a(0);
 }
 ''');
@@ -103,7 +102,7 @@ class A {
   }
 }
 
-main(A a, int context) {
+void f(A a, int context) {
   context = a();
 }
 ''');
@@ -125,7 +124,7 @@ class A {
   }
 }
 
-main(A a) {
+void f(A a) {
   a<int>();
 }
 ''');
@@ -141,11 +140,11 @@ main(A a) {
 
   test_never() async {
     await assertErrorsInCode(r'''
-main(Never x) {
+void f(Never x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 18, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
     ]);
 
     assertFunctionExpressionInvocation(
@@ -161,11 +160,11 @@ main(Never x) {
 
   test_neverQ() async {
     await assertErrorsInCode(r'''
-main(Never? x) {
+void f(Never? x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertFunctionExpressionInvocation(

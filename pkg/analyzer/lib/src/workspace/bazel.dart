@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 /// Instances of the class `BazelFileUriResolver` resolve `file` URI's by first
 /// resolving file uri's in the expected way, and then by looking in the
@@ -74,6 +76,10 @@ class BazelPackageUriResolver extends UriResolver {
 
       // If the path either starts with a slash or has no slash, it is invalid.
       if (slash < 1) {
+        return null;
+      }
+
+      if (uriPath.contains('//') || uriPath.contains('..')) {
         return null;
       }
 
@@ -255,6 +261,19 @@ class BazelWorkspace extends Workspace
   WorkspacePackage findPackageFor(String filePath) {
     path.Context context = provider.pathContext;
     Folder folder = provider.getFolder(context.dirname(filePath));
+    if (!context.isWithin(root, folder.path)) {
+      return null;
+    }
+
+    // Handle files which are given with their location in "bazel-bin", etc.
+    // This does not typically happen during usual analysis, but it still could,
+    // and it can come up in tests.
+    for (var binPath in [genfiles, ...binPaths]) {
+      if (context.isWithin(binPath, folder.path)) {
+        return findPackageFor(
+            context.join(root, context.relative(filePath, from: binPath)));
+      }
+    }
 
     while (true) {
       Folder parent = folder.parent;
@@ -295,7 +314,8 @@ class BazelWorkspace extends Workspace
       // [folder]'s path, relative to [root]. For example, "foo/bar".
       String relative = context.relative(folder.path, from: root);
       for (String bin in binPaths) {
-        Folder binChild = provider.getFolder(context.join(bin, relative));
+        Folder binChild =
+            provider.getFolder(context.normalize(context.join(bin, relative)));
         if (binChild.exists &&
             binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
           // [folder]'s sister folder within [bin] contains a ".packages" file.
@@ -483,8 +503,24 @@ class BazelWorkspacePackage extends WorkspacePackage {
   @override
   final BazelWorkspace workspace;
 
+  bool _buildFileReady = false;
+  List<String> _enabledExperiments;
+  Version _languageVersion;
+
   BazelWorkspacePackage(String packageName, this.root, this.workspace)
-      : this._uriPrefix = 'package:$packageName/';
+      : _uriPrefix = 'package:$packageName/';
+
+  @override
+  List<String> get enabledExperiments {
+    _readBuildFile();
+    return _enabledExperiments;
+  }
+
+  @override
+  Version get languageVersion {
+    _readBuildFile();
+    return _languageVersion;
+  }
 
   @override
   bool contains(Source source) {
@@ -504,5 +540,76 @@ class BazelWorkspacePackage extends WorkspacePackage {
     // package; it could be in a "subpackage." Must go through the work of
     // learning exactly which package [filePath] is contained in.
     return workspace.findPackageFor(filePath).root == root;
+  }
+
+  @override
+  // TODO(brianwilkerson) Implement this by looking in the BUILD file for 'deps'
+  //  lists.
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      <String, List<Folder>>{};
+
+  @override
+  bool sourceIsInPublicApi(Source source) {
+    var filePath = filePathFromSource(source);
+    if (filePath == null) return false;
+
+    var libFolder = workspace.provider.pathContext.join(root, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$root/lib" is public iff it is not in "$root/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+
+    var relativeRoot =
+        workspace.provider.pathContext.relative(root, from: workspace.root);
+    for (var binPath in workspace.binPaths) {
+      libFolder =
+          workspace.provider.pathContext.join(binPath, relativeRoot, 'lib');
+      if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+        // A file in "$bin/lib" is public iff it is not in "$bin/lib/src".
+        var libSrcFolder =
+            workspace.provider.pathContext.join(libFolder, 'src');
+        return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      }
+    }
+
+    libFolder = workspace.provider.pathContext
+        .join(workspace.genfiles, relativeRoot, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$genfiles/lib" is public iff it is not in
+      // "$genfiles/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+
+    return false;
+  }
+
+  void _readBuildFile() {
+    if (_buildFileReady) {
+      return;
+    }
+
+    try {
+      _buildFileReady = true;
+      var buildContent = workspace.provider
+          .getFolder(root)
+          .getChildAssumingFile('BUILD')
+          .readAsStringSync();
+      var hasNonNullableFlag = buildContent
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => !e.startsWith('#'))
+          .map((e) => e.replaceAll(' ', ''))
+          .join()
+          .contains('dart_package(null_safety=True');
+      if (hasNonNullableFlag) {
+        _enabledExperiments = [EnableString.non_nullable];
+      } else {
+        _languageVersion = Version.parse('2.9.0');
+      }
+    } on FileSystemException {
+      // ignored
+    }
   }
 }

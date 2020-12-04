@@ -377,7 +377,7 @@ config("compiler") {
 #   configs -= [ "//build/config/compiler:clang_stackrealign" ]
 # See https://crbug.com/556393 for details of where it must be avoided.
 config("clang_stackrealign") {
-  if (is_clang && current_cpu == "x86" && !is_nacl) {
+  if (is_clang && current_cpu == "x86" && !is_nacl && !is_win) {
     cflags = [
       # Align the stack on 16-byte boundaries, http://crbug.com/418554.
       "-mstack-alignment=16",
@@ -516,14 +516,14 @@ if (is_win) {
 
   if (is_clang) {
     default_warning_flags += [
-      "-Wno-deprecated-declarations", # crashpad
-      "-Wno-ignored-pragma-optimize", # icu, double-conversion
-      "-Wno-implicit-int-float-conversion", # icu
+      "-Wno-deprecated-declarations",  # crashpad
+      "-Wno-ignored-pragma-optimize",  # icu, double-conversion
+      "-Wno-implicit-int-float-conversion",  # icu
       "-Wno-macro-redefined",
       "-Wno-microsoft-cast",
       "-Wno-microsoft-unqualified-friend",
-      "-Wno-unknown-argument", # icu
-      "-Wno-unused-value", # crashpad
+      "-Wno-unknown-argument",  # icu
+      "-Wno-unused-value",  # crashpad
     ]
   } else {
     default_warning_flags += [

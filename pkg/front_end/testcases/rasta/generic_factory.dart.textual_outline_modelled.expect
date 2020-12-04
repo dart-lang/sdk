@@ -11,14 +11,14 @@ class B<S> extends A<S> {
   factory B.b() = C<C2>;
 }
 
+class C<U> extends B<U> {
+  C() : super.internal();
+}
+
 class C1 {}
 
 class C2 {}
 
 class C3 {}
-
-class C<U> extends B<U> {
-  C() : super.internal();
-}
 
 main() {}

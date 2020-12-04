@@ -56,3 +56,9 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
 @patch
 Object? extractTypeArguments<T>(T instance, Function extract) =>
     dart.extractTypeArguments<T>(instance, extract);
+
+@patch
+T createSentinel<T>() => throw UnsupportedError('createSentinel');
+
+@patch
+bool isSentinel(dynamic value) => throw UnsupportedError('isSentinel');

@@ -5,9 +5,12 @@
 /**
  * File, socket, HTTP, and other I/O support for non-web applications.
  *
- * **Important:** Browser-based applications can't use this library.
- * Only servers, command-line scripts, and Flutter mobile apps can import
- * and use dart:io.
+ * **Important:** Browser-based apps can't use this library.
+ * Only the following can import and use the dart:io library:
+ *   - Servers
+ *   - Command-line scripts
+ *   - Flutter mobile apps
+ *   - Flutter desktop apps
  *
  * This library allows you to work with files, directories,
  * sockets, processes, HTTP servers and clients, and more.

@@ -1,0 +1,1 @@
+--enable-experiment=nonfunction-type-aliases,no-non-nullable

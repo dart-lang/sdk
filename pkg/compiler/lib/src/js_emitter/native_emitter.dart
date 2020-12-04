@@ -37,9 +37,10 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionEntity> nativeMethods = new Set<FunctionEntity>();
 
-  // Type metadata redirections, where the key is the class being redirected to
-  // and the value is the list of classes being redirected.
-  final Map<Class, List<Class>> typeRedirections = {};
+  // Type metadata redirections, where the key is the class type data being
+  // redirected to and the value is the list of class type data being
+  // redirected.
+  final Map<ClassTypeData, List<ClassTypeData>> typeRedirections = {};
 
   NativeEmitter(
       this._emitterTask, this._closedWorld, this._nativeCodegenEnqueuer);
@@ -157,19 +158,20 @@ class NativeEmitter {
         neededClasses.add(cls);
         neededClasses.add(cls.superclass);
         nonLeafClasses.add(cls.superclass);
-      } else if (!cls.isTriviallyChecked(_commonElements) ||
-          cls.namedTypeVariablesNewRti.isNotEmpty) {
+      } else if (!cls.typeData.isTriviallyChecked(_commonElements) ||
+          cls.typeData.namedTypeVariables.isNotEmpty) {
         // The class is not marked 'needed', but we still need it in the type
         // metadata.
 
-        // Redirect this class (and all classes which would have redirected to
-        // this class) to its superclass. Because we have a post-order visit,
-        // this eventually causes all such native classes to redirect to their
-        // leaf interceptors.
-        List<Class> redirectedClasses = typeRedirections[cls] ?? [];
-        redirectedClasses.add(cls);
-        typeRedirections[cls.superclass] = redirectedClasses;
-        typeRedirections.remove(cls);
+        // Redirect this class type data (and all class type data which would
+        // have redirected to this class type data) to its superclass. Because
+        // we have a post-order visit, this eventually causes all such native
+        // classes to redirect to their leaf interceptors.
+        List<ClassTypeData> redirectedClasses =
+            typeRedirections[cls.typeData] ?? [];
+        redirectedClasses.add(cls.typeData);
+        typeRedirections[cls.superclass.typeData] = redirectedClasses;
+        typeRedirections.remove(cls.typeData);
       }
     }
 

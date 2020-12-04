@@ -11,6 +11,8 @@ import shutil
 import tempfile
 
 PUBSPEC = """name: pub_integration_test
+environment:
+  sdk: '>=2.10.0 <=3.0.0'
 dependencies:
   shelf:
   test:

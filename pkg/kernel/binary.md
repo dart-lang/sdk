@@ -99,6 +99,10 @@ type SourceInfo {
   List<UInt> lineStarts;
 
   List<Byte> importUriUtf8Bytes;
+
+  // List of constructors evaluated *by* this library. Note that these can be
+  // in other libraries.
+  List<ConstructorReference> constructorCoverage;
 }
 
 type String {
@@ -143,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 44;
+  UInt32 formatVersion = 51;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -230,8 +234,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (_unused_, isSynthetic, isNonNullableByDefault,
-              nnbdModeBit1, nnbdModeBit2);
+  Byte flags (isSynthetic, isNonNullableByDefault, nnbdModeBit1, nnbdModeBit2);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;
@@ -301,16 +304,6 @@ abstract type Node {
   Byte tag;
 }
 
-enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
-
-// A class can be represented at one of three levels: type, hierarchy, or body.
-//
-// If the enclosing library is external, a class is either at type or
-// hierarchy level, depending on its isTypeLevel flag.
-// If the enclosing library is not external, a class is always at body level.
-//
-// See ClassLevel in ast.dart for the details of each loading level.
-
 type Class extends Node {
   Byte tag = 2;
   CanonicalNameReference canonicalName;
@@ -319,9 +312,8 @@ type Class extends Node {
   FileOffset startFileOffset; // Offset of the start of the class including any annotations.
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
-  Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
-              isEliminatedMixin, isMixinDeclaration,
-              hasConstConstructor); // Where level is index into ClassLevel
+  Byte flags (isAbstract, isEnum, isAnonymousMixin, isEliminatedMixin,
+              isMixinDeclaration, hasConstConstructor);
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
@@ -365,7 +357,8 @@ abstract type Member extends Node {}
 
 type Field extends Member {
   Byte tag = 4;
-  CanonicalNameReference canonicalName;
+  CanonicalNameReference canonicalNameGetter;
+  CanonicalNameReference canonicalNameSetter;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
   FileOffset fileOffset;
@@ -403,6 +396,18 @@ enum ProcedureKind {
 }
 */
 
+/*
+enum ProcedureStubKind {
+  Regular,
+  ForwardingStub,
+  ForwardingSuperStub,
+  NoSuchMethodForwarder,
+  MemberSignature,
+  MixinStub,
+  MixinSuperStub,
+}
+*/
+
 type Procedure extends Member {
   Byte tag = 6;
   CanonicalNameReference canonicalName;
@@ -412,15 +417,13 @@ type Procedure extends Member {
   FileOffset fileOffset; // Offset of the procedure name.
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
-  UInt flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
-              isForwardingSemiStub, isRedirectingFactoryConstructor,
-              isNoSuchMethodForwarder, isExtensionMember, isMemberSignature,
+  Byte stubKind; // Index into the ProcedureStubKind enum above.
+  UInt flags (isStatic, isAbstract, isExternal, isConst,
+              isRedirectingFactoryConstructor, isExtensionMember,
               isNonNullableByDefault);
   Name name;
   List<Expression> annotations;
-  // Only present if the 'isForwardingStub' flag is set.
-  MemberReference forwardingStubSuperTarget; // May be NullReference.
-  MemberReference forwardingStubInterfaceTarget; // May be NullReference.
+  MemberReference stubTarget; // May be NullReference.
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }
@@ -582,6 +585,7 @@ type PropertyGet extends Expression {
   Expression receiver;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type PropertySet extends Expression {
@@ -591,6 +595,7 @@ type PropertySet extends Expression {
   Name name;
   Expression value;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type SuperPropertyGet extends Expression {
@@ -598,6 +603,7 @@ type SuperPropertyGet extends Expression {
   FileOffset fileOffset;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type SuperPropertySet extends Expression {
@@ -606,21 +612,7 @@ type SuperPropertySet extends Expression {
   Name name;
   Expression value;
   MemberReference interfaceTarget; // May be NullReference.
-}
-
-type DirectPropertyGet extends Expression {
-  Byte tag = 15; // Note: tag is out of order
-  FileOffset fileOffset;
-  Expression receiver;
-  MemberReference target;
-}
-
-type DirectPropertySet extends Expression {
-  Byte tag = 16; // Note: tag is out of order
-  FileOffset fileOffset;
-  Expression receiver;
-  MemberReference target;
-  Expression value;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type StaticGet extends Expression {
@@ -652,11 +644,13 @@ type NamedExpression {
 
 type MethodInvocation extends Expression {
   Byte tag = 28;
+  Byte flags;
   FileOffset fileOffset;
   Expression receiver;
   Name name;
   Arguments arguments;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type SuperMethodInvocation extends Expression {
@@ -665,14 +659,7 @@ type SuperMethodInvocation extends Expression {
   Name name;
   Arguments arguments;
   MemberReference interfaceTarget; // May be NullReference.
-}
-
-type DirectMethodInvocation extends Expression {
-  Byte tag = 17; // Note: tag is out of order
-  FileOffset fileOffset;
-  Expression receiver;
-  MemberReference target;
-  Arguments arguments;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type StaticInvocation extends Expression {
@@ -1050,6 +1037,8 @@ type ExpressionStatement extends Statement {
 
 type Block extends Statement {
   Byte tag = 62;
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
   List<Statement> statements;
 }
 

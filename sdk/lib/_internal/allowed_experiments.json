@@ -34,6 +34,12 @@
     "collection": {
       "experimentSet": "nullSafety"
     },
+    "connectivity": {
+      "experimentSet": "nullSafety"
+    },
+    "connectivity_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
     "convert": {
       "experimentSet": "nullSafety"
     },
@@ -46,7 +52,16 @@
     "dart_internal": {
       "experimentSet": "nullSafety"
     },
+    "device_info": {
+      "experimentSet": "nullSafety"
+    },
+    "device_info_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
     "fake_async": {
+      "experimentSet": "nullSafety"
+    },
+    "file": {
       "experimentSet": "nullSafety"
     },
     "fixnum": {
@@ -55,10 +70,31 @@
     "flutter": {
       "experimentSet": "nullSafety"
     },
+    "flutter_driver": {
+      "experimentSet": "nullSafety"
+    },
     "flutter_test": {
       "experimentSet": "nullSafety"
     },
+    "flutter_goldens": {
+      "experimentSet": "nullSafety"
+    },
+    "flutter_goldens_client": {
+      "experimentSet": "nullSafety"
+    },
+    "http": {
+      "experimentSet": "nullSafety"
+    },
+    "http_parser": {
+      "experimentSet": "nullSafety"
+    },
+    "intl": {
+      "experimentSet": "nullSafety"
+    },
     "js": {
+      "experimentSet": "nullSafety"
+    },
+    "logging": {
       "experimentSet": "nullSafety"
     },
     "matcher": {
@@ -67,13 +103,34 @@
     "meta": {
       "experimentSet": "nullSafety"
     },
+    "native_stack_traces": {
+      "experimentSet": "nullSafety"
+    },
+    "observatory": {
+      "experimentSet": "nullSafety"
+    },
+    "observatory_test_package": {
+      "experimentSet": "nullSafety"
+    },
     "path": {
       "experimentSet": "nullSafety"
     },
     "pedantic": {
       "experimentSet": "nullSafety"
     },
+    "platform": {
+      "experimentSet": "nullSafety"
+    },
+    "plugin_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
     "pool": {
+      "experimentSet": "nullSafety"
+    },
+    "process": {
+      "experimentSet": "nullSafety"
+    },
+    "pub_semver": {
       "experimentSet": "nullSafety"
     },
     "sky_engine": {
@@ -112,7 +169,31 @@
     "typed_data": {
       "experimentSet": "nullSafety"
     },
+    "url_launcher": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_linux": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_macos": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_windows": {
+      "experimentSet": "nullSafety"
+    },
     "vector_math": {
+      "experimentSet": "nullSafety"
+    },
+    "video_player": {
+      "experimentSet": "nullSafety"
+    },
+    "video_player_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
+    "video_player_web": {
       "experimentSet": "nullSafety"
     }
   }

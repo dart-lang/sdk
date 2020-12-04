@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class SubClass extends mai::Class {
+  synthetic constructor •() → self::SubClass
+    : super mai::Class::•()
+    ;
+}
+static method main() → dynamic {
+  new self::SubClass::•();
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+class SuperClass extends core::Object {
+  synthetic constructor •() → mai::SuperClass
+    : super core::Object::•()
+    ;
+  method method(covariant core::int i) → void {}
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → mai::Mixin
+    : super core::Object::•()
+    ;
+  method method(core::num i) → void {}
+}
+abstract class _Class&SuperClass&Mixin = mai::SuperClass with mai::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → mai::_Class&SuperClass&Mixin
+    : super mai::SuperClass::•()
+    ;
+  forwarding-stub method method(covariant core::num i) → void
+    return super.{mai::SuperClass::method}(i);
+}
+class Class extends mai::_Class&SuperClass&Mixin {
+  synthetic constructor •() → mai::Class
+    : super mai::_Class&SuperClass&Mixin::•()
+    ;
+}

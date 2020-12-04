@@ -18,13 +18,13 @@
 
 namespace dart {
 
-static void FinalizeAndCanonicalize(const Class& klass, AbstractType* type) {
-  *type = ClassFinalizer::FinalizeType(klass, *type);
+static void FinalizeAndCanonicalize(AbstractType* type) {
+  *type = ClassFinalizer::FinalizeType(*type);
   ASSERT(type->IsCanonical());
 }
 
 static void CanonicalizeTAV(TypeArguments* tav) {
-  *tav = tav->Canonicalize();
+  *tav = tav->Canonicalize(Thread::Current(), nullptr);
 }
 
 static void RunTTSTest(
@@ -75,8 +75,14 @@ static void RunTTSTest(
   arguments.SetAt(5, dst_type);
 
   // Ensure we have a) uninitialized TTS b) no/empty SubtypeTestCache.
-  dst_type.SetTypeTestingStub(StubCode::LazySpecializeTypeTest());
-  EXPECT(dst_type.type_test_stub() == StubCode::LazySpecializeTypeTest().raw());
+  auto& instantiated_dst_type = AbstractType::Handle(dst_type.raw());
+  if (dst_type.IsTypeParameter()) {
+    instantiated_dst_type = TypeParameter::Cast(dst_type).GetFromTypeArguments(
+        instantiator_tav, function_tav);
+  }
+  instantiated_dst_type.SetTypeTestingStub(StubCode::LazySpecializeTypeTest());
+  EXPECT(instantiated_dst_type.type_test_stub() ==
+         StubCode::LazySpecializeTypeTest().raw());
   EXPECT(pool.ObjectAt(kSubtypeTestCacheIndex) == Object::null());
 
   auto& result = Object::Handle();
@@ -92,7 +98,7 @@ static void RunTTSTest(
   result = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
                                  thread);
   stc ^= pool.ObjectAt(kSubtypeTestCacheIndex);
-  tts = dst_type.type_test_stub();
+  tts = instantiated_dst_type.type_test_stub();
   if (!result.IsError()) {
     EXPECT(tts.raw() != StubCode::LazySpecializeTypeTest().raw());
   }
@@ -102,7 +108,7 @@ static void RunTTSTest(
   result2 = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
                                   thread);
   stc2 ^= pool.ObjectAt(kSubtypeTestCacheIndex);
-  tts2 = dst_type.type_test_stub();
+  tts2 = instantiated_dst_type.type_test_stub();
   abi_regs_modified ^= abi_regs_modified_box.At(0);
   rest_regs_modified ^= rest_regs_modified_box.At(0);
   EXPECT(result2.IsError() || !abi_regs_modified.IsNull());
@@ -114,18 +120,13 @@ static void RunTTSTest(
   // SubtypeTestCache
   // (This is to simulate AOT where we don't use lazy specialization but
   // precompile the TTS)
-  auto& dst_type_to_specialize = AbstractType::Handle(dst_type.raw());
-  if (dst_type_to_specialize.IsTypeParameter()) {
-    dst_type_to_specialize = TypeParameter::Cast(dst_type).GetFromTypeArguments(
-        instantiator_tav, function_tav);
-  }
-  TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type_to_specialize);
-  tts = dst_type.type_test_stub();
+  TypeTestingStubGenerator::SpecializeStubFor(thread, instantiated_dst_type);
+  tts = instantiated_dst_type.type_test_stub();
 
   result2 = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
                                   thread);
   stc2 ^= pool.ObjectAt(kSubtypeTestCacheIndex);
-  tts2 = dst_type.type_test_stub();
+  tts2 = instantiated_dst_type.type_test_stub();
   abi_regs_modified ^= abi_regs_modified_box.At(0);
   rest_regs_modified ^= rest_regs_modified_box.At(0);
   EXPECT(result2.IsError() || !abi_regs_modified.IsNull());
@@ -252,7 +253,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   const auto& class_base = Class::Handle(GetClass(root_library, "Base"));
   const auto& class_i = Class::Handle(GetClass(root_library, "I"));
   const auto& class_i2 = Class::Handle(GetClass(root_library, "I2"));
-  const auto& class_null = Class::Handle(Class::null());
 
   const auto& obj_i = Object::Handle(Invoke(root_library, "createI"));
   const auto& obj_i2 = Object::Handle(Invoke(root_library, "createI2"));
@@ -320,7 +320,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   // <...> as Base<Object>
   auto& type_base = AbstractType::Handle(
       Type::New(class_base, tav_object, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_null, &type_base);
+  FinalizeAndCanonicalize(&type_base);
   RunTTSTest(obj_i, type_base, tav_null, tav_null, ExpectLazilyFailedViaTTS,
              ExpectFailedViaTTS);
   RunTTSTest(obj_i2, type_base, tav_null, tav_null, ExpectLazilyFailedViaTTS,
@@ -364,7 +364,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   // <...> as I<Object, dynamic>
   auto& type_i_object_dynamic = AbstractType::Handle(
       Type::New(class_i, tav_object_dynamic, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_null, &type_i_object_dynamic);
+  FinalizeAndCanonicalize(&type_i_object_dynamic);
   RunTTSTest(obj_i, type_i_object_dynamic, tav_null, tav_null,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
   RunTTSTest(obj_i2, type_i_object_dynamic, tav_null, tav_null,
@@ -391,7 +391,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   //
   auto& type_dynamic_t = AbstractType::Handle(
       Type::New(class_i, tav_dynamic_t, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_base, &type_dynamic_t);
+  FinalizeAndCanonicalize(&type_dynamic_t);
   RunTTSTest(obj_i, type_dynamic_t, tav_object, tav_null,
              ExpectLazilyHandledViaSTC, ExpectHandledViaSTC);
   RunTTSTest(obj_i2, type_dynamic_t, tav_object, tav_null,
@@ -432,7 +432,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   const auto& class_i = Class::Handle(GetClass(root_library, "I"));
   const auto& fun_generic =
       Function::Handle(GetFunction(root_library, "genericFun"));
-  const auto& class_null = Class::Handle(Class::null());
 
   const auto& obj_i = Object::Handle(Invoke(root_library, "createI"));
   const auto& obj_i2 = Object::Handle(Invoke(root_library, "createI2"));
@@ -470,7 +469,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   if (!TestCase::IsNNBD()) {
     type_a1 = type_a1.ToNullability(Nullability::kLegacy, Heap::kNew);
   }
-  FinalizeAndCanonicalize(class_null, &type_a1);
+  FinalizeAndCanonicalize(&type_a1);
 
   const auto& tav_null = TypeArguments::Handle(TypeArguments::null());
 
@@ -495,7 +494,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
 
   auto& type_i_object_dynamic = AbstractType::Handle(
       Type::New(class_i, tav_object_dynamic, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_null, &type_i_object_dynamic);
+  FinalizeAndCanonicalize(&type_i_object_dynamic);
   const auto& tav_iod = TypeArguments::Handle(TypeArguments::New(1));
   tav_iod.SetTypeAt(0, type_i_object_dynamic);
 
@@ -514,7 +513,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   // <...> as Base<I<Object, dynamic>>
   auto& type_base_i_object_dynamic = AbstractType::Handle(
       Type::New(class_base, tav_iod, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_null, &type_base_i_object_dynamic);
+  FinalizeAndCanonicalize(&type_base_i_object_dynamic);
   RunTTSTest(obj_baseb2int, type_base_i_object_dynamic, tav_null, tav_null,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
   RunTTSTest(obj_baseistringdouble, type_base_i_object_dynamic, tav_null,
@@ -538,7 +537,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
       0, TypeParameter::Handle(GetClassTypeParameter(class_base, "T")));
   auto& type_base_t = AbstractType::Handle(
       Type::New(class_base, tav_baset, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_base, &type_base_t);
+  FinalizeAndCanonicalize(&type_base_t);
   RunTTSTest(obj_baseint, type_base_t, tav_int, tav_null,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
   RunTTSTest(obj_baseistringdouble, type_base_t, tav_int, tav_null,
@@ -550,7 +549,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
       0, TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, "B")));
   auto& type_base_b = AbstractType::Handle(
       Type::New(class_base, tav_baseb, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_null, &type_base_b);
+  FinalizeAndCanonicalize(&type_base_b);
   // With B == int
   RunTTSTest(obj_baseint, type_base_b, tav_null, tav_dynamic_int,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
@@ -576,7 +575,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
       Type::New(class_i, tav_dynamic_string, TokenPosition::kNoSource));
   type_i_dynamic_string = type_i_dynamic_string.ToNullability(
       Nullability::kNonNullable, Heap::kNew);
-  FinalizeAndCanonicalize(class_null, &type_i_dynamic_string);
+  FinalizeAndCanonicalize(&type_i_dynamic_string);
   RunTTSTest(obj_i, type_i_dynamic_string, tav_null, tav_null,
              ExpectLazilyHandledViaSTC, ExpectHandledViaSTC);
   RunTTSTest(obj_baseint, type_i_dynamic_string, tav_null, tav_null,
@@ -589,14 +588,14 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   auto& type_a2_t =
       Type::Handle(Type::New(class_a2, tav_t, TokenPosition::kNoSource));
   type_a2_t = type_a2_t.ToNullability(Nullability::kLegacy, Heap::kNew);
-  FinalizeAndCanonicalize(class_null, &type_a2_t);
+  FinalizeAndCanonicalize(&type_a2_t);
   const auto& tav_a2_t = TypeArguments::Handle(TypeArguments::New(1));
   tav_a2_t.SetTypeAt(0, type_a2_t);
   auto& type_base_a2_t =
       Type::Handle(Type::New(class_base, tav_a2_t, TokenPosition::kNoSource));
   type_base_a2_t =
       type_base_a2_t.ToNullability(Nullability::kNonNullable, Heap::kNew);
-  FinalizeAndCanonicalize(class_null, &type_base_a2_t);
+  FinalizeAndCanonicalize(&type_base_a2_t);
   RunTTSTest(obj_basea2int, type_base_a2_t, tav_null, tav_null,
              ExpectLazilyHandledViaSTC, ExpectHandledViaSTC);
   RunTTSTest(obj_baseint, type_base_a2_t, tav_null, tav_null,
@@ -608,14 +607,14 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   auto& type_a2_a1 =
       Type::Handle(Type::New(class_a2, tav_a1, TokenPosition::kNoSource));
   type_a2_a1 = type_a2_a1.ToNullability(Nullability::kLegacy, Heap::kNew);
-  FinalizeAndCanonicalize(class_null, &type_a2_a1);
+  FinalizeAndCanonicalize(&type_a2_a1);
   const auto& tav_a2_a1 = TypeArguments::Handle(TypeArguments::New(1));
   tav_a2_a1.SetTypeAt(0, type_a2_a1);
   auto& type_base_a2_a1 =
       Type::Handle(Type::New(class_base, tav_a2_a1, TokenPosition::kNoSource));
   type_base_a2_a1 =
       type_base_a2_a1.ToNullability(Nullability::kNonNullable, Heap::kNew);
-  FinalizeAndCanonicalize(class_null, &type_base_a2_a1);
+  FinalizeAndCanonicalize(&type_base_a2_a1);
   RunTTSTest(obj_basea2a1, type_base_a2_a1, tav_null, tav_null,
              ExpectLazilyHandledViaSTC, ExpectHandledViaSTC);
   RunTTSTest(obj_basea2int, type_base_a2_a1, tav_null, tav_null,
@@ -638,7 +637,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
   const auto& class_b = Class::Handle(GetClass(root_library, "B"));
-  const auto& class_null = Class::Handle(Class::null());
 
   const auto& acint = Object::Handle(Invoke(root_library, "createACint"));
   const auto& bcint = Object::Handle(Invoke(root_library, "createBCint"));
@@ -650,7 +648,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
                     TypeParameter::Handle(GetClassTypeParameter(class_b, "T")));
   auto& dst_type =
       Type::Handle(Type::New(class_b, dst_tav, TokenPosition::kNoSource));
-  FinalizeAndCanonicalize(class_null, &dst_type);
+  FinalizeAndCanonicalize(&dst_type);
   const auto& cint_tav =
       TypeArguments::Handle(Instance::Cast(acint).GetTypeArguments());
   const auto& function_tav = TypeArguments::Handle();
@@ -662,6 +660,52 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
   // a as B<T> -- a==B<C<num>, T==<C<int>>
   RunTTSTest(bcnum, dst_type, cint_tav, function_tav, ExpectLazilyFailedViaTTS,
              ExpectFailedViaTTS);
+}
+
+ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
+  const char* kScript =
+      R"(
+          class A<T> {
+            T test(dynamic x) => x as T;
+          }
+          H genericFun<H>(dynamic x) => x as H;
+
+          createAInt() => A<int>();
+          createAString() => A<String>();
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& class_a = Class::Handle(GetClass(root_library, "A"));
+  ClassFinalizer::FinalizeTypesInClass(class_a);
+
+  const auto& fun_generic =
+      Function::Handle(GetFunction(root_library, "genericFun"));
+
+  const auto& dst_type_t =
+      TypeParameter::Handle(GetClassTypeParameter(class_a, "T"));
+  const auto& dst_type_h =
+      TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, "H"));
+
+  const auto& aint = Object::Handle(Invoke(root_library, "createAInt"));
+  const auto& astring = Object::Handle(Invoke(root_library, "createAString"));
+
+  const auto& int_tav =
+      TypeArguments::Handle(Instance::Cast(aint).GetTypeArguments());
+  const auto& string_tav =
+      TypeArguments::Handle(Instance::Cast(astring).GetTypeArguments());
+
+  const auto& int_instance = Integer::Handle(Integer::New(1));
+  const auto& string_instance = String::Handle(String::New("foo"));
+
+  RunTTSTest(int_instance, dst_type_t, int_tav, string_tav,
+             ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+  RunTTSTest(string_instance, dst_type_t, int_tav, string_tav,
+             ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
+
+  RunTTSTest(string_instance, dst_type_h, int_tav, string_tav,
+             ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+  RunTTSTest(int_instance, dst_type_h, int_tav, string_tav,
+             ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
 }
 
 }  // namespace dart

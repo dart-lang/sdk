@@ -12,8 +12,6 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
-import 'package:analyzer/src/error/codes.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 

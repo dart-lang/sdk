@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,10 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class InvalidFactoryAnnotationTest extends DriverResolutionTest
-    with PackageMixin {
+class InvalidFactoryAnnotationTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_class() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @factory
@@ -30,7 +33,6 @@ class X {
   }
 
   test_field() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class X {
@@ -43,7 +45,6 @@ class X {
   }
 
   test_topLevelFunction() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @factory

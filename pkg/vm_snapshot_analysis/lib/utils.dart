@@ -30,8 +30,13 @@ Map<String, dynamic> buildComparisonTreemap(Object oldJson, Object newJson,
   final newSizes = loadProgramInfoFromJson(newJson,
       collapseAnonymousClosures: collapseAnonymousClosures);
 
-  final diff = computeDiff(oldSizes, newSizes);
+  return compareProgramInfo(oldSizes, newSizes, format: format);
+}
 
+Map<String, dynamic> compareProgramInfo(
+    ProgramInfo oldSizes, ProgramInfo newSizes,
+    {TreemapFormat format = TreemapFormat.collapsed}) {
+  final diff = computeDiff(oldSizes, newSizes);
   return treemapFromInfo(diff, format: format);
 }
 
@@ -107,4 +112,13 @@ void printHistogram(ProgramInfo info, Histogram histogram,
         ' (${formatPercent(visibleSize, totalSize)} of total)');
   }
   print('Total: ${totalSize} bytes');
+}
+
+List<String> partsForPath(String path) {
+  final parts = path.split('/');
+  if (parts.first.startsWith('package:')) {
+    // Convert dot separated package name into a path from which this package originated.
+    parts.replaceRange(0, 1, parts.first.split('.'));
+  }
+  return parts;
 }

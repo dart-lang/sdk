@@ -18,21 +18,21 @@ class C extends core::Object {
     () →* void f;
     f.{core::Object::toString}();
   }
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
   () →* void f;
   f.{core::Object::toString}();
-  core::Function* foo = () → core::Null? {
+  core::Function* foo = () → Null {
     () →* void f;
     f.{core::Object::toString}();
   };
@@ -90,7 +90,7 @@ static method test() → dynamic {
   (let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:24:3: Error: Non-nullable variable 'f' must be assigned before it can be used.
   f.toString(); // error
   ^" in f).{core::Object::toString}();
-  core::Function foo = () → core::Null? {
+  core::Function foo = () → Null {
     () → void f;
     (let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:29:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error

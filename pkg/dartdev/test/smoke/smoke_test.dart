@@ -25,9 +25,9 @@ void main() {
               script,
             ],
           );
-          expect(result.exitCode, 0);
-          expect(result.stdout, contains('Smoke test!'));
           expect(result.stderr, isEmpty);
+          expect(result.stdout, contains('Smoke test!'));
+          expect(result.exitCode, 0);
         }
       });
 
@@ -45,10 +45,48 @@ void main() {
               script,
             ],
           );
-          expect(result.exitCode, 0);
-          expect(result.stdout, contains('Smoke test!'));
           expect(result.stderr, isEmpty);
+          expect(result.stdout, contains('Smoke test!'));
+          expect(result.exitCode, 0);
         }
+      });
+
+      // This test verifies that an error isn't thrown when a valid experiment
+      // is passed.
+      // Experiments are lists here:
+      // https://github.com/dart-lang/sdk/blob/master/tools/experimental_features.yaml
+      test(
+          'dart --enable-experiment=variance '
+          'run smoke.dart', () async {
+        final result = await Process.run(
+          Platform.executable,
+          [
+            '--enable-experiment=variance',
+            'run',
+            script,
+          ],
+        );
+        expect(result.stderr, isEmpty);
+        expect(result.stdout, contains('Smoke test!'));
+        expect(result.exitCode, 0);
+      });
+
+      // This test verifies that an error is thrown when an invalid experiment
+      // is passed.
+      test(
+          'dart --enable-experiment=invalid-experiment-name '
+          'run smoke.dart', () async {
+        final result = await Process.run(
+          Platform.executable,
+          [
+            '--enable-experiment=invalid-experiment-name',
+            'run',
+            script,
+          ],
+        );
+        expect(result.stderr, isNotEmpty);
+        expect(result.stdout, isEmpty);
+        expect(result.exitCode, 254);
       });
     },
     timeout: Timeout.none,

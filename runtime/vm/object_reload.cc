@@ -176,57 +176,6 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
 }
 
-void CallSiteResetter::RebindStaticTargets(const Bytecode& bytecode) {
-  // Iterate over the Bytecode's object pool and reset all ICDatas.
-  pool_ = bytecode.object_pool();
-  ASSERT(!pool_.IsNull());
-
-  for (intptr_t i = 0; i < pool_.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool_.TypeAt(i);
-    if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-      continue;
-    }
-    object_ = pool_.ObjectAt(i);
-    if (object_.IsFunction()) {
-      const Function& old_function = Function::Cast(object_);
-      if (old_function.IsClosureFunction()) {
-        continue;
-      }
-      name_ = old_function.name();
-      new_cls_ = old_function.Owner();
-      if (new_cls_.IsTopLevel()) {
-        new_lib_ = new_cls_.library();
-        new_function_ = new_lib_.LookupLocalFunction(name_);
-      } else {
-        new_function_ = new_cls_.LookupFunction(name_);
-      }
-      if (!new_function_.IsNull() &&
-          (new_function_.is_static() == old_function.is_static()) &&
-          (new_function_.kind() == old_function.kind())) {
-        pool_.SetObjectAt(i, new_function_);
-      } else {
-        VTIR_Print("Cannot rebind function %s\n", old_function.ToCString());
-      }
-    } else if (object_.IsField()) {
-      const Field& old_field = Field::Cast(object_);
-      name_ = old_field.name();
-      new_cls_ = old_field.Owner();
-      if (new_cls_.IsTopLevel()) {
-        new_lib_ = new_cls_.library();
-        new_field_ = new_lib_.LookupLocalField(name_);
-      } else {
-        new_field_ = new_cls_.LookupField(name_);
-      }
-      if (!new_field_.IsNull() &&
-          (new_field_.is_static() == old_field.is_static())) {
-        pool_.SetObjectAt(i, new_field_);
-      } else {
-        VTIR_Print("Cannot rebind field %s\n", old_field.ToCString());
-      }
-    }
-  }
-}
-
 void CallSiteResetter::ResetCaches(const ObjectPool& pool) {
   for (intptr_t i = 0; i < pool.Length(); i++) {
     ObjectPool::EntryType entry_type = pool.TypeAt(i);
@@ -296,7 +245,7 @@ void Class::CopyCanonicalConstants(const Class& old_cls) const {
   {
     // Class has no canonical constants allocated.
     const Array& my_constants = Array::Handle(constants());
-    ASSERT(my_constants.Length() == 0);
+    ASSERT(my_constants.IsNull() || my_constants.Length() == 0);
   }
 #endif  // defined(DEBUG).
   // Copy old constants into new class.
@@ -493,12 +442,10 @@ void Class::PatchFieldsAndFunctions() const {
       PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  if (!lib.is_declared_in_bytecode()) {
-    patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
-    patch.set_library_kernel_offset(lib.kernel_offset());
-  }
+  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
+  patch.set_library_kernel_offset(lib.kernel_offset());
 
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
   Function& func = Function::Handle();
   Object& owner = Object::Handle();
   for (intptr_t i = 0; i < funcs.Length(); i++) {
@@ -521,6 +468,8 @@ void Class::PatchFieldsAndFunctions() const {
     }
   }
 
+  Thread* thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Array& field_list = Array::Handle(fields());
   Field& field = Field::Handle();
   for (intptr_t i = 0; i < field_list.Length(); i++) {
@@ -537,7 +486,8 @@ void Class::PatchFieldsAndFunctions() const {
 
 void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
                                           const Class& new_cls) const {
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
+  Thread* thread = Thread::Current();
   Function& old_func = Function::Handle();
   String& selector = String::Handle();
   Function& new_func = Function::Handle();
@@ -547,7 +497,7 @@ void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
     old_func ^= funcs.At(i);
     if (old_func.is_static() && old_func.HasImplicitClosureFunction()) {
       selector = old_func.name();
-      new_func = new_cls.LookupFunction(selector);
+      new_func = Resolver::ResolveFunction(thread->zone(), new_cls, selector);
       if (!new_func.IsNull() && new_func.is_static()) {
         old_func = old_func.ImplicitClosureFunction();
         old_closure = old_func.ImplicitStaticClosure();
@@ -954,8 +904,8 @@ void CallSiteResetter::Reset(const ICData& ic) {
           (class_ids[1] == kSmiCid)) {
         // The smi fast path case, preserve the initial entry but reset the
         // count.
-        ic.ClearCountAt(0);
-        ic.WriteSentinelAt(1);
+        ic.ClearCountAt(0, *this);
+        ic.WriteSentinelAt(1, *this);
         entries_ = ic.entries();
         entries_.Truncate(2 * ic.TestEntryLength());
         return;
@@ -982,7 +932,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
              old_target_.kind() == FunctionLayout::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       new_cls_ = old_target_.Owner();
-      new_target_ = new_cls_.LookupFunction(name_);
+      new_target_ = Resolver::ResolveFunction(zone_, new_cls_, name_);
       if (new_target_.kind() != old_target_.kind()) {
         new_target_ = Function::null();
       }
@@ -992,17 +942,8 @@ void CallSiteResetter::Reset(const ICData& ic) {
       ASSERT(!caller_.is_static());
       new_cls_ = caller_.Owner();
       new_cls_ = new_cls_.SuperClass();
-      new_target_ = Function::null();
-      while (!new_cls_.IsNull()) {
-        // TODO(rmacnak): Should use Resolver::ResolveDynamicAnyArgs to handle
-        // method-extractors and call-through-getters, but we're in a no
-        // safepoint scope here.
-        new_target_ = new_cls_.LookupDynamicFunction(name_);
-        if (!new_target_.IsNull()) {
-          break;
-        }
-        new_cls_ = new_cls_.SuperClass();
-      }
+      new_target_ = Resolver::ResolveDynamicAnyArgs(zone_, new_cls_, name_,
+                                                    /*allow_add=*/true);
     }
     args_desc_array_ = ic.arguments_descriptor();
     ArgumentsDescriptor args_desc(args_desc_array_);
@@ -1014,7 +955,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
                  Object::Handle(zone_, ic.Owner()).ToCString());
       return;
     }
-    ic.ClearAndSetStaticTarget(new_target_);
+    ic.ClearAndSetStaticTarget(new_target_, *this);
   } else {
     FATAL("Unexpected rebind rule.");
   }

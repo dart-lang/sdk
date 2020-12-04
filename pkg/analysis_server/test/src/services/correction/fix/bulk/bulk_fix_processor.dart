@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -37,7 +36,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<void> assertHasFix(String expected) async {
-    change = await _computeFixes();
+    change = await _computeSourceChange();
 
     // apply to "file"
     var fileEdits = change.edits;
@@ -48,6 +47,23 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
+  Future<void> assertNoFix() async {
+    change = await _computeSourceChange();
+    var fileEdits = change.edits;
+    expect(fileEdits, isEmpty);
+  }
+
+  /// Computes fixes for the specified [testUnit].
+  Future<BulkFixProcessor> computeFixes() async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    var processor =
+        BulkFixProcessor(InstrumentationService.NULL_SERVICE, workspace);
+    await processor.fixErrors([analysisContext]);
+    return processor;
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -55,13 +71,10 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     _createAnalysisOptionsFile();
   }
 
-  /// Computes fixes for the given [error] in [testUnit].
-  Future<SourceChange> _computeFixes() async {
-    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(driver.analysisContext);
-    var changeBuilder =
-        await BulkFixProcessor(workspace).fixErrorsInLibraries([testFile]);
-    return changeBuilder.sourceChange;
+  /// Returns the source change for computed fixes in the specified [testUnit].
+  Future<SourceChange> _computeSourceChange() async {
+    var processor = await computeFixes();
+    return processor.builder.sourceChange;
   }
 
   /// Create the analysis options file needed in order to correctly analyze the

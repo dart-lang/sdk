@@ -50,7 +50,8 @@ enum {
 
 // If the forwarded bit and pointer tag bit are the same, we can avoid a few
 // conversions.
-COMPILE_ASSERT(kForwarded == kHeapObjectTag);
+COMPILE_ASSERT(static_cast<uword>(kForwarded) ==
+               static_cast<uword>(kHeapObjectTag));
 
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;
@@ -317,7 +318,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       new_obj = ObjectLayout::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
-        uint32_t tags = static_cast<uint32_t>(header);
+        uword tags = static_cast<uword>(header);
         tags = ObjectLayout::OldBit::update(true, tags);
         tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
         tags = ObjectLayout::NewBit::update(false, tags);
@@ -761,6 +762,7 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
   delete to_;
+  ASSERT(blocks_ == nullptr);
 }
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
@@ -829,7 +831,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (!is_remembered_) {
           FATAL3(
-              "Old object %#" Px "references new object %#" Px
+              "Old object %#" Px " references new object %#" Px
               ", but it is not"
               " in any store buffer. Consider using rr to watch the slot %p and"
               " reverse-continue to find the store with a missing barrier.\n",
@@ -1023,9 +1025,8 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   // Grab the deduplication sets out of the isolate's consolidated store buffer.
   StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   StoreBufferBlock* pending = blocks_;
-  blocks_ = nullptr;
   intptr_t total_count = 0;
-  while (pending != NULL) {
+  while (pending != nullptr) {
     StoreBufferBlock* next = pending->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(pending, sizeof(*pending));
@@ -1044,10 +1045,10 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
     store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
-    pending = next;
+    blocks_ = pending = next;
   }
   // Done iterating through old objects remembered in the store buffers.
-  visitor->VisitingOldObject(NULL);
+  visitor->VisitingOldObject(nullptr);
 
   heap_->RecordData(kStoreBufferEntries, total_count);
   heap_->RecordData(kDataUnused1, 0);
@@ -1511,6 +1512,10 @@ void Scavenger::Scavenge() {
   if (abort_) {
     ReverseScavenge(&from);
     bytes_promoted = 0;
+  } else if ((CapacityInWords() - UsedInWords()) < KBInWords) {
+    // Don't scavenge again until the next old-space GC has occurred. Prevents
+    // performing one scavenge per allocation as the heap limit is approached.
+    heap_->assume_scavenge_will_fail_ = true;
   }
   ASSERT(promotion_stack_.IsEmpty());
   MournWeakHandles();
@@ -1613,15 +1618,15 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
         intptr_t size = to_obj->ptr()->HeapSize();
 
         // Reset the ages bits in case this was a promotion.
-        uint32_t tags = static_cast<uint32_t>(to_header);
-        tags = ObjectLayout::OldBit::update(false, tags);
-        tags = ObjectLayout::OldAndNotRememberedBit::update(false, tags);
-        tags = ObjectLayout::NewBit::update(true, tags);
-        tags = ObjectLayout::OldAndNotMarkedBit::update(false, tags);
-        uword original_header =
-            (to_header & ~static_cast<uword>(0xFFFFFFFF)) | tags;
+        uword from_header = static_cast<uword>(to_header);
+        from_header = ObjectLayout::OldBit::update(false, from_header);
+        from_header =
+            ObjectLayout::OldAndNotRememberedBit::update(false, from_header);
+        from_header = ObjectLayout::NewBit::update(true, from_header);
+        from_header =
+            ObjectLayout::OldAndNotMarkedBit::update(false, from_header);
 
-        WriteHeader(from_obj, original_header);
+        WriteHeader(from_obj, from_header);
 
         ForwardingCorpse::AsForwarder(ObjectLayout::ToAddr(to_obj), size)
             ->set_target(from_obj);
@@ -1640,9 +1645,23 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   to_ = *from;
   *from = temp;
 
+  // Release any remaining part of the promotion worklist that wasn't completed.
   promotion_stack_.Reset();
 
-  // This also rebuilds the remembered set.
+  // Release any remaining part of the rememebred set that wasn't completed.
+  StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
+  StoreBufferBlock* pending = blocks_;
+  while (pending != nullptr) {
+    StoreBufferBlock* next = pending->next();
+    pending->Reset();
+    // Return the emptied block for recycling (no need to check threshold).
+    store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
+    pending = next;
+  }
+  blocks_ = nullptr;
+
+  // Reverse the partial forwarding from the aborted scavenge. This also
+  // rebuilds the remembered set.
   Become::FollowForwardingPointers(thread);
 
   // Don't scavenge again until the next old-space GC has occurred. Prevents

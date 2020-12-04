@@ -345,7 +345,7 @@ class Parser {
   ParsedType parseType() {
     if (optional("class")) return parseClass();
     if (optional("typedef")) return parseTypedef();
-    ParsedType result;
+    List<ParsedType> results = <ParsedType>[];
     do {
       ParsedType type;
       if (optional("(") || optional("<")) {
@@ -369,12 +369,17 @@ class Parser {
         ParsedNullability parsedNullability = parseNullability();
         type = new ParsedInterfaceType(name, arguments, parsedNullability);
       }
+      results.add(type);
+    } while (optionalAdvance("&"));
+    // Parse `A & B & C` as `A & (B & C)` and not `(A & B) & C`.
+    ParsedType result;
+    for (ParsedType type in results.reversed) {
       if (result == null) {
         result = type;
       } else {
-        result = new ParsedIntersectionType(result, type);
+        result = new ParsedIntersectionType(type, result);
       }
-    } while (optionalAdvance("&"));
+    }
     return result;
   }
 

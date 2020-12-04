@@ -105,11 +105,11 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   @override
   Nullability visitNullability(DartType node) {
     if (forNonNullableByDefault) {
-      if (node.nullability == Nullability.legacy) {
+      if (node.declaredNullability == Nullability.legacy) {
         return Nullability.nonNullable;
       }
     } else {
-      if (node.nullability != Nullability.legacy) {
+      if (node.declaredNullability != Nullability.legacy) {
         return Nullability.legacy;
       }
     }

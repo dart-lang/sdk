@@ -12,7 +12,8 @@ void main() {
 }
 
 void defineMigrateTests() {
-  final didYouForgetToRunPubGet = contains('Did you forget to run "pub get"?');
+  final runPubGet = contains('Run `dart pub get`');
+  final setLowerSdkConstraint = contains('Set the lower SDK constraint');
 
   TestProject p;
 
@@ -31,7 +32,7 @@ void defineMigrateTests() {
   });
 
   test('directory implicit', () {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'int get foo => 1;\n');
     var result =
         p.runSync('migrate', ['--no-web-preview'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
@@ -40,7 +41,7 @@ void defineMigrateTests() {
   });
 
   test('directory explicit', () {
-    p = project(mainSrc: 'int get foo => 1;\n');
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'int get foo => 1;\n');
     var result = p.runSync('migrate', ['--no-web-preview', p.dirPath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -60,7 +61,8 @@ void defineMigrateTests() {
     var result = p.runSync('migrate', [p.dirPath]);
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, didYouForgetToRunPubGet);
+    expect(result.stdout, runPubGet);
+    expect(result.stdout, isNot(setLowerSdkConstraint));
   });
 
   test('non-pub-related error', () {
@@ -68,6 +70,7 @@ void defineMigrateTests() {
     var result = p.runSync('migrate', [p.dirPath]);
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, isNot(didYouForgetToRunPubGet));
+    expect(result.stdout, runPubGet);
+    expect(result.stdout, setLowerSdkConstraint);
   });
 }

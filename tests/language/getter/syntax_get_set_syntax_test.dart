@@ -142,6 +142,7 @@ class C1 {
   List set d;
 //^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+// [cfe] The return type of the setter must be 'void' or absent.
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 //         ^
@@ -154,6 +155,7 @@ class C1 {
   List? set e, f;
 //^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+// [cfe] The return type of the setter must be 'void' or absent.
 //          ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [cfe] A method declaration needs an explicit list of parameters.
@@ -190,6 +192,7 @@ class C2 {
   List<int> set d;
 //^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+// [cfe] The return type of the setter must be 'void' or absent.
 //^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 //              ^
@@ -202,6 +205,7 @@ class C2 {
   List<int>? set e, f;
 //^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+// [cfe] The return type of the setter must be 'void' or absent.
 //               ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [cfe] A method declaration needs an explicit list of parameters.

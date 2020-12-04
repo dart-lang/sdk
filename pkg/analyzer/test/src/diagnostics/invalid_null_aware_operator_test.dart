@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,8 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidNullAwareOperatorAfterShortCircuitTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class InvalidNullAwareOperatorAfterShortCircuitTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   Future<void> test_getter_previousTarget() async {
     await assertErrorsInCode('''
 void f(String? s) {
@@ -26,7 +26,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           31, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
     ]);
   }
 
@@ -38,7 +38,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           27, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 1)]),
     ]);
   }
 
@@ -54,7 +54,7 @@ class C {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           75, 2,
-          contextMessages: [message('/test/lib/test.dart', 69, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 69, 2)]),
     ]);
   }
 
@@ -66,7 +66,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
     ]);
   }
 
@@ -78,17 +78,99 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           55, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
     ]);
   }
 }
 
 @reflectiveTest
-class InvalidNullAwareOperatorTest extends DriverResolutionTest
+class InvalidNullAwareOperatorTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_extensionOverride_assignmentExpression_indexExpression() async {
+    await assertErrorsInCode('''
+extension E on int {
+  operator[]=(int index, bool _) {}
+}
+
+void f(int? a, int b) {
+  E(a)?[0] = true;
+  E(b)?[0] = true;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 109, 2),
+    ]);
+  }
+
+  test_extensionOverride_assignmentExpression_propertyAccess() async {
+    await assertErrorsInCode('''
+extension E on int {
+  set foo(bool _) {}
+}
+
+void f(int? a, int b) {
+  E(a)?.foo = true;
+  E(b)?.foo = true;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 95, 2),
+    ]);
+  }
+
+  test_extensionOverride_indexExpression() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool operator[](int index) => true;
+}
+
+void f(int? a, int b) {
+  E(a)?[0];
+  E(b)?[0];
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 104, 2),
+    ]);
+    assertType(findNode.index('E(a)'), 'bool?');
+    assertType(findNode.index('E(b)'), 'bool?');
+  }
+
+  test_extensionOverride_methodInvocation() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool foo() => true;
+}
+
+void f(int? a, int b) {
+  E(a)?.foo();
+  E(b)?.foo();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
+    ]);
+
+    assertType(findNode.methodInvocation('E(a)'), 'bool?');
+    assertType(findNode.methodInvocation('E(b)'), 'bool?');
+  }
+
+  test_extensionOverride_propertyAccess() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool get foo => true;
+}
+
+void f(int? a, int b) {
+  E(a)?.foo;
+  E(b)?.foo;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
+    ]);
+    assertType(findNode.propertyAccess('E(a)'), 'bool?');
+    assertType(findNode.propertyAccess('E(b)'), 'bool?');
+  }
+
   test_getter_class() async {
     await assertNoErrorsInCode('''
 class C {
@@ -114,19 +196,21 @@ f() {
   }
 
   test_getter_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   x?.isEven;
   x?..isEven;
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_getter_mixin() async {
@@ -166,7 +250,7 @@ f(int? x) {
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_getter_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''
@@ -176,24 +260,27 @@ f() {
   p?.x;
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
     ]);
   }
 
   test_index_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = [0];
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   x?[0];
   x?..[0];
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_index_nonNullable() async {
@@ -242,19 +329,21 @@ f() {
   }
 
   test_method_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   x?.round();
   x?..round();
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_method_mixin() async {
@@ -299,18 +388,20 @@ f(List<int> x) {
   }
 
   test_nullableSpread_legacyType() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = <int>[];
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   [...?x];
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_nullableSpread_nonNullableType() async {
@@ -371,7 +462,7 @@ f() {
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_setter_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''
@@ -381,7 +472,25 @@ f() {
   p?.x = 0;
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
+    ]);
+  }
+
+  test_super() async {
+    await assertErrorsInCode('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void bar() {
+    super?.foo();
+  }
+}
+''', [
+      error(ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER, 73,
+          2),
     ]);
   }
 }

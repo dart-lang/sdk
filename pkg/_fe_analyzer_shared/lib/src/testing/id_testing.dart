@@ -726,6 +726,14 @@ class MarkerOptions {
   }
 }
 
+String getTestName(FileSystemEntity entity) {
+  if (entity is Directory) {
+    return entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
+  } else {
+    return entity.uri.pathSegments.last;
+  }
+}
+
 /// Check code for all tests in [dataDir] using [runTest].
 Future<void> runTests<T>(Directory dataDir,
     {List<String> args: const <String>[],
@@ -766,16 +774,14 @@ Future<void> runTests<T>(Directory dataDir,
           !entity.path.endsWith('~') && !entity.path.endsWith('marker.options'))
       .toList();
   if (shards > 1) {
+    entities.sort((a, b) => getTestName(a).compareTo(getTestName(b)));
     int start = entities.length * shardIndex ~/ shards;
     int end = entities.length * (shardIndex + 1) ~/ shards;
     entities = entities.sublist(start, end);
   }
   int testCount = 0;
   for (FileSystemEntity entity in entities) {
-    String name = entity.uri.pathSegments.last;
-    if (entity is Directory) {
-      name = entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
-    }
+    String name = getTestName(entity);
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
     testCount++;
@@ -908,12 +914,15 @@ bool skipForConfig(
 /// This assumes that the current working directory is the repository root.
 Future<void> updateAllTests(List<String> relativeTestPaths) async {
   for (String testPath in relativeTestPaths) {
-    List<String> arguments = [
-      '--packages=${Platform.packageConfig}',
+    List<String> arguments = [];
+    if (Platform.packageConfig != null) {
+      arguments.add('--packages=${Platform.packageConfig}');
+    }
+    arguments.addAll([
       testPath,
       '-g',
-      '--run-all'
-    ];
+      '--run-all',
+    ]);
     print('Running: ${Platform.resolvedExecutable} ${arguments.join(' ')}');
     Process process = await Process.start(
         Platform.resolvedExecutable, arguments,

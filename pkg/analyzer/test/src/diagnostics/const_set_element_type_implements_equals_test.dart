@@ -2,24 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
-    defineReflectiveTests(
-        ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest);
   });
 }
 
 @reflectiveTest
-class ConstSetElementTypeImplementsEqualsTest extends DriverResolutionTest {
+class ConstSetElementTypeImplementsEqualsTest extends PubPackageResolutionTest
+    with ConstSetElementTypeImplementsEqualsTestCases {}
+
+mixin ConstSetElementTypeImplementsEqualsTestCases on PubPackageResolutionTest {
   test_constField() async {
     await assertErrorsInCode(r'''
 class A {
@@ -114,8 +112,7 @@ main() {
   }
 
   test_spread_list() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -124,23 +121,14 @@ class A {
 main() {
   const {...[A()]};
 }
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    75,
-                    8),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 75, 8),
-              ]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 75, 8),
+    ]);
   }
 
   test_spread_set() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -149,23 +137,10 @@ class A {
 main() {
   const {...{A()}};
 }
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [
-                error(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    79,
-                    3),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 75, 8),
-                error(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    79,
-                    3),
-              ]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 79, 3),
+    ]);
   }
 
   test_super() async {
@@ -185,14 +160,4 @@ main() {
           9),
     ]);
   }
-}
-
-@reflectiveTest
-class ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest
-    extends ConstSetElementTypeImplementsEqualsTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

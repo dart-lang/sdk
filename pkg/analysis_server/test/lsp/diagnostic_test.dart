@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -18,6 +19,8 @@ void main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
+  Folder pedanticLibFolder;
+
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
 
@@ -80,6 +83,47 @@ String b = "Test";
     expect(updatedDiagnostics, hasLength(1));
   }
 
+  Future<void> test_analysisOptionsFile() async {
+    newFile(analysisOptionsPath, content: '''
+linter:
+  rules:
+    - invalid_lint_rule_name
+''').path;
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics.first.code, 'undefined_lint_warning');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43926')
+  Future<void> test_analysisOptionsFile_packageInclude() async {
+    newFile(analysisOptionsPath, content: '''
+include: package:pedantic/analysis_options.yaml
+''').path;
+
+    // Verify there's an error for the import.
+    final firstDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics.first.code, 'include_file_not_found');
+
+    // TODO(scheglov) The server does not handle the file change.
+    throw 'Times out';
+
+    // // Write a package file that allows resolving the include.
+    // final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    // writePackageConfig(projectFolderPath, pedantic: true);
+    //
+    // // Ensure the error disappeared.
+    // final updatedDiagnostics = await secondDiagnosticsUpdate;
+    // expect(updatedDiagnostics, hasLength(0));
+  }
+
   Future<void> test_contextMessage() async {
     newFile(mainFilePath, content: '''
 void f() {
@@ -122,7 +166,7 @@ void f() {
 
     // Deleting the file should result in an update to remove the diagnostics.
     final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await deleteFile(mainFilePath);
+    deleteFile(mainFilePath);
     final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(0));
   }
@@ -199,6 +243,21 @@ void f() {
     // Ensure that as part of responding to getHover, diagnostics were not
     // transmitted.
     expect(diagnostics, isNull);
+  }
+
+  Future<void> test_fixDataFile() async {
+    var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
+    var fixDataUri = Uri.file(fixDataPath);
+    newFile(fixDataPath, content: '''
+version: latest
+''').path;
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(fixDataUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Error);
+    expect(initialDiagnostics.first.code, 'invalid_value');
   }
 
   Future<void> test_fromPlugins_dartFile() async {

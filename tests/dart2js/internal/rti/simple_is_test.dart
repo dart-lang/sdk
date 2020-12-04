@@ -25,9 +25,9 @@ main() {
   check<Generic<int>>(Generic<int>());
 
   check<Generic<dynamic>>(Generic<dynamic>());
-  check<Generic<Object>>(Generic<Object>());
-  check<Generic<Object>>(Generic<dynamic>());
-  check<Generic<dynamic>>(Generic<Object>());
+  check<Generic<Object?>>(Generic<Object?>());
+  check<Generic<Object?>>(Generic<dynamic>());
+  check<Generic<dynamic>>(Generic<Object?>());
 
   Expect.isTrue(Generic<Thingy>().checkMethod(Thingy()));
   Expect.isTrue(Generic<Object>().checkMethod(Object()));

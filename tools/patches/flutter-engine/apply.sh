@@ -15,6 +15,9 @@
 # then it stops applying patches atomically as there isn't a patch available yet
 # for the new roll.
 #
+# Additionally, this script updates the flutter engine DEPS file with the
+# Dart SDK dependencies.
+#
 # Usage: src/third_party/dart/tools/patches/flutter-engine/apply.sh
 # (run inside the root of a flutter engine checkout)
 
@@ -36,6 +39,12 @@ fi
 patch=src/third_party/dart/tools/patches/flutter-engine/${pinned_dart_sdk}.patch
 if [ -e "$patch" ]; then
   (cd src/flutter && git apply ../../$patch)
+  need_runhooks=true
+fi
+
+# Update the flutter DEPS with the revisions in the Dart SDK DEPS.
+src/tools/dart/create_updated_flutter_deps.py
+if ! (cd src/flutter && git diff --exit-code DEPS); then
   need_runhooks=true
 fi
 
