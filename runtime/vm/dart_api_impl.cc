@@ -4627,7 +4627,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
-  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
   return Api::NewHandle(T, AllocateObject(T, cls));
 }
 
@@ -4653,7 +4653,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
-  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
   if (num_native_fields != cls.num_native_fields()) {
     return Api::NewError(
         "%s: invalid number of native fields %" Pd " passed in, expected %d",
