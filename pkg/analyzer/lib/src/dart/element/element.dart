@@ -3509,7 +3509,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
     // Build fields for all enum constants.
     var containerRef = reference.getChild('@constant');
-    var constants = linkedContext.getEnumConstants(linkedNode);
+    var constants = (linkedNode as EnumDeclaration).constants;
     for (var i = 0; i < constants.length; ++i) {
       var constant = constants[i];
       var name = constant.name.name;

@@ -80,7 +80,6 @@ class LinkedUnitContext {
     return unit;
   }
 
-  /// TODO(scheglov) make it static
   void applyResolution(AstNode node) {
     if (node is VariableDeclaration) {
       node = node.parent.parent;
@@ -184,11 +183,6 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
-  }
-
-  /// TODO(scheglov) inline
-  List<EnumConstantDeclaration> getEnumConstants(EnumDeclaration node) {
-    return node.constants;
   }
 
   String getFieldFormalParameterName(AstNode node) {
