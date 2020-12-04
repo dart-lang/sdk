@@ -2004,6 +2004,11 @@ class TypeInferrerImpl implements TypeInferrer {
           new List<DartType>.filled(
               calleeTypeParameters.length, const DynamicType()));
     }
+    TreeNode parent = arguments.parent;
+    bool isIdentical = arguments.positional.length == 2 &&
+        parent is StaticInvocation &&
+        parent.target.name.name == 'identical' &&
+        parent.target.parent == typeSchemaEnvironment.coreTypes.coreLibrary;
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
     for (int position = 0; position < arguments.positional.length; position++) {
@@ -2044,6 +2049,14 @@ class TypeInferrerImpl implements TypeInferrer {
             : legacyErasure(result.inferredType);
         Expression expression =
             _hoist(result.expression, inferredType, hoistedExpressions);
+        if (isIdentical && arguments.positional.length == 2) {
+          if (position == 0) {
+            flowAnalysis?.equalityOp_rightBegin(expression, inferredType);
+          } else {
+            flowAnalysis?.equalityOp_end(
+                arguments.parent, expression, inferredType);
+          }
+        }
         arguments.positional[position] = expression..parent = arguments;
       }
       if (inferenceNeeded || typeChecksNeeded) {

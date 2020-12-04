@@ -788,8 +788,9 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitArgumentList(ArgumentList node) {
+  void visitArgumentList(ArgumentList node, {bool isIdentical = false}) {
     DartType callerType = InferenceContext.getContext(node);
+    NodeList<Expression> arguments = node.arguments;
     if (callerType is FunctionType) {
       Map<String, DartType> namedParameterTypes =
           callerType.namedParameterTypes;
@@ -798,7 +799,6 @@ class ResolverVisitor extends ScopedVisitor {
       int normalCount = normalParameterTypes.length;
       int optionalCount = optionalParameterTypes.length;
 
-      NodeList<Expression> arguments = node.arguments;
       Iterable<Expression> positional =
           arguments.takeWhile((l) => l is! NamedExpression);
       Iterable<Expression> required = positional.take(normalCount);
@@ -840,7 +840,23 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     }
-    super.visitArgumentList(node);
+    checkUnreachableNode(node);
+    int length = arguments.length;
+    for (var i = 0; i < length; i++) {
+      if (isIdentical && length > 1 && i == 1) {
+        var firstArg = arguments[0];
+        _flowAnalysis?.flow
+            ?.equalityOp_rightBegin(firstArg, firstArg.staticType);
+      }
+      arguments[i].accept(this);
+    }
+    if (isIdentical && length > 1) {
+      var secondArg = arguments[1];
+      _flowAnalysis?.flow
+          ?.equalityOp_end(node.parent, secondArg, secondArg.staticType);
+    }
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
   }
 
   @override
