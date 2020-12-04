@@ -329,15 +329,28 @@ class ResolutionSink {
     } else if (type is FunctionType) {
       _writeFunctionType(type);
     } else if (type is InterfaceType) {
-      writeByte(Tag.InterfaceType);
-      // TODO(scheglov) Write raw
-      writeElement(type.element);
       var typeArguments = type.typeArguments;
-      _sink.writeUInt30(typeArguments.length);
-      for (var i = 0; i < typeArguments.length; ++i) {
-        writeType(typeArguments[i]);
+      var nullabilitySuffix = type.nullabilitySuffix;
+      if (typeArguments.isEmpty) {
+        if (nullabilitySuffix == NullabilitySuffix.none) {
+          writeByte(Tag.InterfaceType_noTypeArguments_none);
+        } else if (nullabilitySuffix == NullabilitySuffix.question) {
+          writeByte(Tag.InterfaceType_noTypeArguments_question);
+        } else if (nullabilitySuffix == NullabilitySuffix.star) {
+          writeByte(Tag.InterfaceType_noTypeArguments_star);
+        }
+        // TODO(scheglov) Write raw
+        writeElement(type.element);
+      } else {
+        writeByte(Tag.InterfaceType);
+        // TODO(scheglov) Write raw
+        writeElement(type.element);
+        _sink.writeUInt30(typeArguments.length);
+        for (var i = 0; i < typeArguments.length; ++i) {
+          writeType(typeArguments[i]);
+        }
+        _writeNullabilitySuffix(nullabilitySuffix);
       }
-      _writeNullabilitySuffix(type.nullabilitySuffix);
     } else if (type is NeverType) {
       writeByte(Tag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);

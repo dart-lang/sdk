@@ -416,6 +416,27 @@ class LinkedResolutionReader {
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
+    } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
+      var element = nextElement();
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: const <DartType>[],
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
+      var element = nextElement();
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: const <DartType>[],
+        nullabilitySuffix: NullabilitySuffix.question,
+      );
+    } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
+      var element = nextElement();
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: const <DartType>[],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
     } else if (tag == Tag.NeverType) {
       var nullability = _readNullability();
       return NeverTypeImpl.instance.withNullability(nullability);
