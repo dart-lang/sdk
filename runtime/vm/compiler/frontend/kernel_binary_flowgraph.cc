@@ -2057,9 +2057,37 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
       // If the variable isn't initialized, call the initializer and set it.
       Fragment initialize(is_uninitialized);
       initialize += BuildExpression();
-      initialize += StoreLocal(position, variable);
-      initialize += Drop();
-      initialize += Goto(join);
+      if (variable->is_final()) {
+        // Late final variable, so check whether it has been assigned
+        // during initialization.
+        initialize += LoadLocal(variable);
+        TargetEntryInstr *is_uninitialized_after_init,
+            *is_initialized_after_init;
+        initialize += Constant(Object::sentinel());
+        initialize += flow_graph_builder_->BranchIfStrictEqual(
+            &is_uninitialized_after_init, &is_initialized_after_init);
+        {
+          // The variable is uninitialized, so store the initializer result.
+          Fragment store_result(is_uninitialized_after_init);
+          store_result += StoreLocal(position, variable);
+          store_result += Drop();
+          store_result += Goto(join);
+        }
+
+        {
+          // Already initialized, so throw a LateInitializationError.
+          Fragment already_assigned(is_initialized_after_init);
+          already_assigned += flow_graph_builder_->ThrowLateInitializationError(
+              position, "_throwLocalAssignedDuringInitialization",
+              variable->name());
+          already_assigned += Goto(join);
+        }
+      } else {
+        // Late non-final variable. Store the initializer result.
+        initialize += StoreLocal(position, variable);
+        initialize += Drop();
+        initialize += Goto(join);
+      }
     } else {
       // The variable has no initializer, so throw a LateInitializationError.
       Fragment initialize(is_uninitialized);

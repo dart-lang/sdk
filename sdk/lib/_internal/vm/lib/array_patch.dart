@@ -46,44 +46,11 @@ class List<E> {
 
   @patch
   factory List.of(Iterable<E> elements, {bool growable: true}) {
-    final cid = ClassID.getID(elements);
-    final isVMList = (cid == ClassID.cidArray) ||
-        (cid == ClassID.cidGrowableObjectArray) ||
-        (cid == ClassID.cidImmutableArray);
-
-    if (isVMList) {
-      final ListBase<E> elementsAsList = elements as ListBase<E>;
-      final int length = elementsAsList.length;
-      final list =
-          growable ? new _GrowableList<E>(length) : new _List<E>(length);
-      if (length > 0) {
-        for (int i = 0; i < length; i++) {
-          list[i] = elementsAsList[i];
-        }
-      }
-      return list;
+    if (growable) {
+      return _GrowableList.of(elements);
+    } else {
+      return _List.of(elements);
     }
-
-    if (elements is EfficientLengthIterable) {
-      final int length = elements.length;
-      final list =
-          growable ? new _GrowableList<E>(length) : new _List<E>(length);
-      if (length > 0) {
-        int i = 0;
-        for (var element in elements) {
-          list[i++] = element;
-        }
-        if (i != length) throw ConcurrentModificationError(elements);
-      }
-      return list;
-    }
-
-    final list = <E>[];
-    for (var elements in elements) {
-      list.add(elements);
-    }
-    if (growable) return list;
-    return makeListFixedLength(list);
   }
 
   @patch

@@ -130,6 +130,72 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
+  // Specialization of List.of constructor for growable == true.
+  factory _GrowableList.of(Iterable<T> elements) {
+    if (elements is _GrowableList) {
+      return _GrowableList._ofGrowableList(unsafeCast(elements));
+    }
+    if (elements is _List) {
+      return _GrowableList._ofList(unsafeCast(elements));
+    }
+    if (elements is _ImmutableList) {
+      return _GrowableList._ofImmutableList(unsafeCast(elements));
+    }
+    if (elements is EfficientLengthIterable) {
+      return _GrowableList._ofEfficientLengthIterable(unsafeCast(elements));
+    }
+    return _GrowableList._ofOther(elements);
+  }
+
+  factory _GrowableList._ofList(_List<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofGrowableList(_GrowableList<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofImmutableList(_ImmutableList<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofEfficientLengthIterable(
+      EfficientLengthIterable<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    if (length > 0) {
+      int i = 0;
+      for (var element in elements) {
+        list[i++] = element;
+      }
+      if (i != length) throw ConcurrentModificationError(elements);
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofOther(Iterable<T> elements) {
+    final list = _GrowableList<T>(0);
+    for (var elements in elements) {
+      list.add(elements);
+    }
+    return list;
+  }
+
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])

@@ -28,13 +28,9 @@ void setup() {
 })()""");
 }
 
-inscrutable(x) {
-  if (new DateTime.now().millisecondsSinceEpoch == 0) {
-    return x;
-  } else {
-    return 42;
-  }
-}
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
+inscrutable(x) => x;
 
 main() {
   setup();
