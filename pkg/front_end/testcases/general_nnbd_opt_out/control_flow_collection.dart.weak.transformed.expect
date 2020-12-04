@@ -5,8 +5,7 @@ import "dart:collection" as col;
 
 static method main() → dynamic {
   final core::List<core::int*>* aList = block {
-    final core::List<core::int*>* #t1 = <core::int*>[];
-    #t1.{core::List::add}{Invariant}(1);
+    final core::List<core::int*>* #t1 = <core::int*>[1];
     if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t1.{core::List::add}{Invariant}(2);
     if(self::oracle() as{TypeError,ForDynamic} core::bool*)
@@ -107,4 +106,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.d
 Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:20:26 -> IntConstant(-1)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:29:29 -> IntConstant(-1)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:29:33 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 160, effectively constant: 4
+Extra constant evaluation: evaluated: 158, effectively constant: 4
