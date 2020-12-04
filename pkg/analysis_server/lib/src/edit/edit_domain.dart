@@ -759,30 +759,26 @@ error.errorCode: ${error.errorCode}
       );
 
       try {
-        List<Assist> assists;
-        try {
-          var processor = AssistProcessor(context);
-          assists = await processor.compute();
-        } on InconsistentAnalysisException {
-          assists = [];
-        } catch (exception, stackTrace) {
-          var parametersFile = '''
-offset: $offset
-length: $length
-      ''';
-          throw CaughtExceptionWithFiles(exception, stackTrace, {
-            file: result.content,
-            'parameters': parametersFile,
-          });
-        }
-
+        var processor = AssistProcessor(context);
+        var assists = await processor.compute();
         assists.sort(Assist.SORT_BY_RELEVANCE);
         for (var assist in assists) {
           changes.add(assist.change);
         }
+      } on InconsistentAnalysisException {
+        // ignore
+      } catch (exception, stackTrace) {
+        var parametersFile = '''
+offset: $offset
+length: $length
+      ''';
+        throw CaughtExceptionWithFiles(exception, stackTrace, {
+          file: result.content,
+          'parameters': parametersFile,
+        });
+      }
 
-        server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
-      } catch (_) {}
+      server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
     }
 
     return changes;
