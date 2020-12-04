@@ -679,7 +679,7 @@ class UnitReader implements ReferenceNodeAccessor {
 
     astReader.offset = headerOffset;
     var languageVersion = _readLanguageVersion();
-    var featureSetEncoded = astReader.readUint32List();
+    var featureSetEncoded = astReader.readUint8List();
     var lineInfo = _readLineInfo();
     var codeLength = astReader.readUInt30();
     var featureSet = ExperimentStatus.fromStorage(featureSetEncoded);

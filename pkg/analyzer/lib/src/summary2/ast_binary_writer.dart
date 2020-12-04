@@ -1605,11 +1605,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _sink.addDouble(value);
   }
 
-  /// TODO(scheglov) Optimize the encoding format.
   void _writeFeatureSet(FeatureSet featureSet) {
     var experimentStatus = featureSet as ExperimentStatus;
     var encoded = experimentStatus.toStorage();
-    _writeUint32List(encoded);
+    _writeUint8List(encoded);
   }
 
   void _writeInformativeUint30(int value) {
@@ -1729,11 +1728,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         (value >> 8) & 0xFF, value & 0xFF);
   }
 
-  void _writeUint32List(List<int> values) {
+  void _writeUint8List(List<int> values) {
     var length = values.length;
-    _writeUInt32(length);
+    _writeUInt30(length);
     for (var i = 0; i < length; i++) {
-      _writeUInt32(values[i]);
+      _writeByte(values[i]);
     }
   }
 
