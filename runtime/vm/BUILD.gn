@@ -49,8 +49,10 @@ config("libdart_vm_config") {
     libs = [
       "advapi32.lib",
       "shell32.lib",
-      "dbghelp.lib",
     ]
+    if (target_os != "winuwp") {
+      libs += [ "dbghelp.lib" ]
+    }
   } else {
     libs = [ "dl" ]
     if (!is_android) {

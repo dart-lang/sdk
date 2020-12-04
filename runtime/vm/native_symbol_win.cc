@@ -23,6 +23,10 @@ void NativeSymbolResolver::Init() {
     lock_ = new Mutex();
   }
   running_ = true;
+
+// Symbol resolution API's used in this file are not supported
+// when compiled in UWP.
+#ifndef TARGET_OS_WINDOWS_UWP
   SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
   HANDLE hProcess = GetCurrentProcess();
   if (!SymInitialize(hProcess, NULL, TRUE)) {
@@ -32,6 +36,7 @@ void NativeSymbolResolver::Init() {
                  error);
     return;
   }
+#endif
 }
 
 void NativeSymbolResolver::Cleanup() {
@@ -40,6 +45,7 @@ void NativeSymbolResolver::Cleanup() {
     return;
   }
   running_ = false;
+#ifndef TARGET_OS_WINDOWS_UWP
   HANDLE hProcess = GetCurrentProcess();
   if (!SymCleanup(hProcess)) {
     DWORD error = GetLastError();
@@ -47,9 +53,13 @@ void NativeSymbolResolver::Cleanup() {
                  ")\n",
                  error);
   }
+#endif
 }
 
 char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
+#ifdef TARGET_OS_WINDOWS_UWP
+  return NULL;
+#else
   static const intptr_t kMaxNameLength = 2048;
   static const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
   static char buffer[kSymbolInfoSize + kMaxNameLength];
@@ -76,6 +86,7 @@ char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
     *start = pc - displacement;
   }
   return Utils::StrDup(pSymbol->Name);
+#endif  // ifdef TARGET_OS_WINDOWS_UWP
 }
 
 void NativeSymbolResolver::FreeSymbolName(char* name) {
