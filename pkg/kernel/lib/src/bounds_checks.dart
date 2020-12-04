@@ -345,7 +345,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     } else if (variables[i].bound is! InvalidType) {
       DartType bound = substitute(variables[i].bound, substitutionMap);
       if (!library.isNonNullableByDefault) {
-        bound = legacyErasure(typeEnvironment.coreTypes, bound);
+        bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
         // If the bound is InvalidType it's not checked, because an error was
@@ -454,7 +454,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     } else if (parameters[i].bound is! InvalidType) {
       DartType bound = substitute(parameters[i].bound, substitutionMap);
       if (!library.isNonNullableByDefault) {
-        bound = legacyErasure(typeEnvironment.coreTypes, bound);
+        bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
         result ??= <TypeArgumentIssue>[];

@@ -1985,7 +1985,7 @@ class TypeInferrerImpl implements TypeInferrer {
       typeSchemaEnvironment.inferGenericFunctionOrType(
           isNonNullableByDefault
               ? calleeType.returnType
-              : legacyErasure(coreTypes, calleeType.returnType),
+              : legacyErasure(calleeType.returnType),
           calleeTypeParameters,
           null,
           null,
@@ -2034,14 +2034,14 @@ class TypeInferrerImpl implements TypeInferrer {
             arguments.positional[position],
             isNonNullableByDefault
                 ? inferredFormalType
-                : legacyErasure(coreTypes, inferredFormalType),
+                : legacyErasure(inferredFormalType),
             inferenceNeeded ||
                 isSpecialCasedBinaryOperator ||
                 isSpecialCasedTernaryOperator ||
                 typeChecksNeeded);
         inferredType = result.inferredType == null || isNonNullableByDefault
             ? result.inferredType
-            : legacyErasure(coreTypes, result.inferredType);
+            : legacyErasure(result.inferredType);
         Expression expression =
             _hoist(result.expression, inferredType, hoistedExpressions);
         arguments.positional[position] = expression..parent = arguments;
@@ -2073,12 +2073,12 @@ class TypeInferrerImpl implements TypeInferrer {
           namedArgument.value,
           isNonNullableByDefault
               ? inferredFormalType
-              : legacyErasure(coreTypes, inferredFormalType),
+              : legacyErasure(inferredFormalType),
           inferenceNeeded || isSpecialCasedBinaryOperator || typeChecksNeeded);
       DartType inferredType =
           result.inferredType == null || isNonNullableByDefault
               ? result.inferredType
-              : legacyErasure(coreTypes, result.inferredType);
+              : legacyErasure(result.inferredType);
       Expression expression =
           _hoist(result.expression, inferredType, hoistedExpressions);
       namedArgument.value = expression..parent = namedArgument;
@@ -2216,7 +2216,7 @@ class TypeInferrerImpl implements TypeInferrer {
         "Inferred function type: $calleeType.");
 
     if (!isNonNullableByDefault) {
-      inferredType = legacyErasure(coreTypes, inferredType);
+      inferredType = legacyErasure(inferredType);
     }
 
     return new SuccessfulInferenceResult(inferredType);

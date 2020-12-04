@@ -3,15 +3,14 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import '../ast.dart' hide MapEntry;
-import '../core_types.dart';
 
 import 'replacement_visitor.dart';
 
 /// Returns legacy erasure of [type], that is, the type in which all nnbd
 /// nullabilities have been replaced with legacy nullability, and all required
 /// named parameters are not required.
-DartType legacyErasure(CoreTypes coreTypes, DartType type) {
-  return rawLegacyErasure(coreTypes, type) ?? type;
+DartType legacyErasure(DartType type) {
+  return rawLegacyErasure(type) ?? type;
 }
 
 /// Returns legacy erasure of [type], that is, the type in which all nnbd
@@ -19,22 +18,21 @@ DartType legacyErasure(CoreTypes coreTypes, DartType type) {
 /// named parameters are not required.
 ///
 /// Returns `null` if the type wasn't changed.
-DartType rawLegacyErasure(CoreTypes coreTypes, DartType type) {
-  return type.accept(new _LegacyErasure(coreTypes));
+DartType rawLegacyErasure(DartType type) {
+  return type.accept(const _LegacyErasure());
 }
 
 /// Returns legacy erasure of [supertype], that is, the type in which all nnbd
 /// nullabilities have been replaced with legacy nullability, and all required
 /// named parameters are not required.
-Supertype legacyErasureSupertype(CoreTypes coreTypes, Supertype supertype) {
+Supertype legacyErasureSupertype(Supertype supertype) {
   if (supertype.typeArguments.isEmpty) {
     return supertype;
   }
   List<DartType> newTypeArguments;
   for (int i = 0; i < supertype.typeArguments.length; i++) {
     DartType typeArgument = supertype.typeArguments[i];
-    DartType newTypeArgument =
-        typeArgument.accept(new _LegacyErasure(coreTypes));
+    DartType newTypeArgument = typeArgument.accept(const _LegacyErasure());
     if (newTypeArgument != null) {
       newTypeArguments ??= supertype.typeArguments.toList(growable: false);
       newTypeArguments[i] = newTypeArgument;
@@ -51,9 +49,7 @@ Supertype legacyErasureSupertype(CoreTypes coreTypes, Supertype supertype) {
 ///
 /// The visitor returns `null` if the type wasn't changed.
 class _LegacyErasure extends ReplacementVisitor {
-  final CoreTypes coreTypes;
-
-  _LegacyErasure(this.coreTypes);
+  const _LegacyErasure();
 
   Nullability visitNullability(DartType node) {
     if (node.declaredNullability != Nullability.legacy) {

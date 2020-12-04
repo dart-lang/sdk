@@ -694,8 +694,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             : Substitution.fromInterfaceType(type2).substituteType(
                 info2.genericSuperType[next.classNode].asInterfaceType);
         if (!clientLibrary.isNonNullableByDefault) {
-          superType1 = legacyErasure(coreTypes, superType1);
-          superType2 = legacyErasure(coreTypes, superType2);
+          superType1 = legacyErasure(superType1);
+          superType2 = legacyErasure(superType2);
         }
         if (superType1 == superType2) {
           candidate = superType1.withDeclaredNullability(
@@ -1657,7 +1657,7 @@ class _ClassInfo {
     Supertype canonical = genericSuperType[cls];
     if (canonical == null) {
       if (!classNode.enclosingLibrary.isNonNullableByDefault) {
-        canonical = legacyErasureSupertype(coreTypes, type);
+        canonical = legacyErasureSupertype(type);
       } else {
         canonical = type;
       }
@@ -1679,7 +1679,7 @@ class _ClassInfo {
           genericSuperType[cls] = result;
         }
       } else {
-        type = legacyErasureSupertype(coreTypes, type);
+        type = legacyErasureSupertype(type);
         if (type != canonical) {
           onAmbiguousSupertypes(classNode, canonical, type);
         }

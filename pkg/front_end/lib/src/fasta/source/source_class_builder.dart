@@ -1234,8 +1234,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
           if (!library.isNonNullableByDefault) {
-            computedBound =
-                legacyErasure(types.hierarchy.coreTypes, computedBound);
+            computedBound = legacyErasure(computedBound);
           }
           if (!types
               .performNullabilityAwareMutualSubtypesCheck(
@@ -1305,7 +1304,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     if (!declaredMember.isNonNullableByDefault &&
         interfaceMember.isNonNullableByDefault) {
-      interfaceType = legacyErasure(types.hierarchy.coreTypes, interfaceType);
+      interfaceType = legacyErasure(interfaceType);
     }
 
     bool inParameter = declaredParameter != null || asIfDeclaredParameter;

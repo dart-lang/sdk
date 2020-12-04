@@ -301,7 +301,7 @@ abstract class CombinedMemberSignatureBase<T> {
           "No member computed for index ${index} in ${members}");
       candidateType = _computeMemberType(thisType, target);
       if (!classBuilder.library.isNonNullableByDefault) {
-        DartType legacyErasure = rawLegacyErasure(_coreTypes, candidateType);
+        DartType legacyErasure = rawLegacyErasure(candidateType);
         if (legacyErasure != null) {
           _neededLegacyErasureIndices ??= {};
           _neededLegacyErasureIndices.add(index);
