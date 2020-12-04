@@ -98,13 +98,13 @@ void FieldTable::Grow(intptr_t new_capacity) {
   // via store to table_.
   std::atomic_thread_fence(std::memory_order_release);
   table_ = new_table;
-  if (is_isolate_field_table_) {
-    Thread::Current()->field_table_values_ = table_;
+  if (isolate_ != nullptr) {
+    isolate_->mutator_thread()->field_table_values_ = table_;
   }
 }
 
-FieldTable* FieldTable::Clone(bool is_isolate_field_table) {
-  FieldTable* clone = new FieldTable(is_isolate_field_table);
+FieldTable* FieldTable::Clone(Isolate* for_isolate) {
+  FieldTable* clone = new FieldTable(for_isolate);
   auto new_table = static_cast<InstancePtr*>(
       malloc(capacity_ * sizeof(InstancePtr)));  // NOLINT
   memmove(new_table, table_, capacity_ * sizeof(InstancePtr));
