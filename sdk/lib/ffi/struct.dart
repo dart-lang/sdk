@@ -4,19 +4,48 @@
 
 part of dart.ffi;
 
-/// This class is extended to define structs.
+/// The supertype of all FFI struct types.
 ///
-/// Fields in a struct, annotated with a subtype of [NativeType], are
-/// automatically transformed into wrappers to access the fields of the struct
-/// in native memory.
+/// FFI struct types should extend this class and declare fields corresponding
+/// to the underlying native structure.
 ///
-/// All fields in a struct must either have a type which extends [NativeType] or
-/// else have an annotation indicating the corresponding native type (e.g.
-/// "@Int32()" for "int").
+/// Field declarations in a [Struct] subclass declaration are automatically
+/// given a setter and getter implementation which accesses the native struct's
+/// field in memory.
+///
+/// All field declarations in a [Struct] subclass declaration must either have
+/// type [int] or [float] and be annotated with a [NativeType] representing the
+/// native type, or must be of type [Pointer]. For example:
+///
+/// ```
+/// typedef struct {
+///  int a;
+///  float b;
+///  void* c;
+/// } my_struct;
+/// ```
+///
+/// ```
+/// class MyStruct extends Struct {
+///   @Int32
+///   external int a;
+///
+///   @Float
+///   external double b;
+///
+///   external Pointer<Void> c;
+/// }
+/// ```
+///
+/// All field declarations in a [Struct] subclass declaration must be marked
+/// `external`. You cannot create instances of the class, only have it point to
+/// existing native memory, so there is no memory in which to store non-native
+/// fields. External fields also cannot be initialized by constructors since no
+/// Dart object is being created.
 ///
 /// Instances of a subclass of [Struct] have reference semantics and are backed
 /// by native memory. The may allocated via allocation or loaded from a
-/// [Pointer], but not by a generative constructor.
+/// [Pointer], but cannot be created by a generative constructor.
 abstract class Struct extends NativeType {
   final Object _addressOf;
 

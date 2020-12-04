@@ -697,8 +697,7 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
   }
   I->isolate_object_store()->Init();
   I->isolate_object_store()->PreallocateObjects();
-  I->set_field_table(T, source_isolate_group->initial_field_table()->Clone(
-                            /*is_isolate_field_table=*/true));
+  I->set_field_table(T, source_isolate_group->initial_field_table()->Clone(I));
 
   return true;
 }
@@ -743,8 +742,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    I->set_field_table(T, I->group()->initial_field_table()->Clone(
-                              /*is_isolate_field_table=*/true));
+    I->set_field_table(T, I->group()->initial_field_table()->Clone(I));
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {

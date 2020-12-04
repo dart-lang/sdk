@@ -16,17 +16,18 @@
 
 namespace dart {
 
+class Isolate;
 class Field;
 
 class FieldTable {
  public:
-  explicit FieldTable(bool is_isolate_field_table)
+  explicit FieldTable(Isolate* isolate)
       : top_(0),
         capacity_(0),
         free_head_(-1),
         table_(nullptr),
         old_tables_(new MallocGrowableArray<InstancePtr*>()),
-        is_isolate_field_table_(is_isolate_field_table) {}
+        isolate_(isolate) {}
 
   ~FieldTable();
 
@@ -56,7 +57,7 @@ class FieldTable {
   }
   void SetAt(intptr_t index, InstancePtr raw_instance);
 
-  FieldTable* Clone(bool is_isolate_field_table);
+  FieldTable* Clone(Isolate* for_isolate);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -83,10 +84,10 @@ class FieldTable {
   // so it will get freed when its are no longer in use.
   MallocGrowableArray<InstancePtr*>* old_tables_;
 
-  // Whether this table is used as a isolate-specific table of it's global field
-  // values and therefore needs to keep the cached field table in the `Thread`
-  // object up-to-date.
-  bool is_isolate_field_table_;
+  // If non-NULL, it will specify the isolate this field table belongs to.
+  // Growing the field table will keep the cached field table on the isolate's
+  // mutator thread up-to-date.
+  Isolate* isolate_;
 
   DISALLOW_COPY_AND_ASSIGN(FieldTable);
 };

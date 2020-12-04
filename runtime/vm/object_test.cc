@@ -3065,7 +3065,11 @@ static FieldPtr CreateTestField(const char* name) {
   const Field& field = Field::Handle(Field::New(
       field_name, true, false, false, true, false, cls, Object::dynamic_type(),
       TokenPosition::kMinSource, TokenPosition::kMinSource));
-  thread->isolate_group()->RegisterStaticField(field, Instance::sentinel());
+  {
+    SafepointWriteRwLocker locker(thread,
+                                  thread->isolate_group()->program_lock());
+    thread->isolate_group()->RegisterStaticField(field, Instance::sentinel());
+  }
   return field.raw();
 }
 

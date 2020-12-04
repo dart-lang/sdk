@@ -353,7 +353,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
-      initial_field_table_(new FieldTable(/*is_isolate_field_table=*/false)),
+      initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
       symbols_lock_(new SafepointRwLock()),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
@@ -907,6 +907,8 @@ void Isolate::ValidateClassTable() {
 
 void IsolateGroup::RegisterStaticField(const Field& field,
                                        const Instance& initial_value) {
+  ASSERT(program_lock()->IsCurrentThreadWriter());
+
   ASSERT(field.is_static());
   initial_field_table()->Register(field);
   initial_field_table()->SetAt(field.field_id(), initial_value.raw());
@@ -1631,7 +1633,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
       shared_class_table_(isolate_group->shared_class_table()),
-      field_table_(new FieldTable(/*is_isolate_field_table=*/true)),
+      field_table_(new FieldTable(/*isolate=*/this)),
       isolate_group_(isolate_group),
       isolate_object_store_(
           new IsolateObjectStore(isolate_group->object_store())),
