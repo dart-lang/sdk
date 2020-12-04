@@ -30,7 +30,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
     this._localElements,
     this._resolution,
   ) {
-    _enclosingElements.add(_unitContext.unit.declaredElement as ElementImpl);
+    _enclosingElements.add(_unitContext.element);
   }
 
   /// TODO(scheglov) make private
@@ -821,8 +821,8 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
       element.bound = node.bound?.type;
 
       node.metadata.accept(this);
-      element.metadata = _buildAnnotations2(
-        _unitContext.reference.element,
+      element.metadata = _buildAnnotations(
+        _unitContext.element,
         node.metadata,
       );
 
@@ -894,7 +894,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   /// Return annotations for the given [nodeList] in the [unit].
-  List<ElementAnnotation> _buildAnnotations2(
+  List<ElementAnnotation> _buildAnnotations(
       CompilationUnitElementImpl unit, List<Annotation> nodeList) {
     var length = nodeList.length;
     if (length == 0) {

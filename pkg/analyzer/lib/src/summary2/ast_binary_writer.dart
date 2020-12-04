@@ -131,7 +131,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitBooleanLiteral(BooleanLiteral node) {
     _writeByte(Tag.BooleanLiteral);
     _writeByte(node.value ? 1 : 0);
-    // TODO(scheglov) Dont write type?
     _resolutionSink?.writeType(node.staticType);
   }
 

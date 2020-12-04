@@ -32,6 +32,10 @@ class LinkedUnitContext {
       this.uriStr, this.reference, this.isSynthetic,
       {@required this.unit, @required this.unitReader});
 
+  CompilationUnitElementImpl get element {
+    return reference.element;
+  }
+
   LinkedElementFactory get elementFactory => libraryContext.elementFactory;
 
   bool get hasPartOfDirective {
