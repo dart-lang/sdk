@@ -3837,7 +3837,7 @@ class InferenceVisitor
     }
 
     if (!inferrer.isNonNullableByDefault) {
-      binaryType = legacyErasure(inferrer.coreTypes, binaryType);
+      binaryType = legacyErasure(binaryType);
     }
 
     if (!inferrer.isTopLevel && binaryTarget.isNullable) {
@@ -3934,7 +3934,7 @@ class InferenceVisitor
     }
 
     if (!inferrer.isNonNullableByDefault) {
-      unaryType = legacyErasure(inferrer.coreTypes, unaryType);
+      unaryType = legacyErasure(unaryType);
     }
 
     if (!inferrer.isTopLevel && unaryTarget.isNullable) {
@@ -4022,7 +4022,7 @@ class InferenceVisitor
     }
 
     if (!inferrer.isNonNullableByDefault) {
-      readType = legacyErasure(inferrer.coreTypes, readType);
+      readType = legacyErasure(readType);
     }
 
     if (!inferrer.isTopLevel && readTarget.isNullable) {
@@ -4220,7 +4220,7 @@ class InferenceVisitor
     }
 
     if (!inferrer.isNonNullableByDefault) {
-      readType = legacyErasure(inferrer.coreTypes, readType);
+      readType = legacyErasure(readType);
     }
 
     readResult ??= new ExpressionInferenceResult(readType, read);
@@ -5275,7 +5275,7 @@ class InferenceVisitor
     DartType type = target.getterType;
 
     if (!inferrer.isNonNullableByDefault) {
-      type = legacyErasure(inferrer.coreTypes, type);
+      type = legacyErasure(type);
     }
 
     if (target is Procedure && target.kind == ProcedureKind.Method) {

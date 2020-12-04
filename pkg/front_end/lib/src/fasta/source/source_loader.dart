@@ -1447,13 +1447,15 @@ class Iterable<E> {
   Iterator<E> get iterator => null;
 }
 
-class List<E> extends Iterable {
+class List<E> extends Iterable<E> {
   factory List() => null;
   factory List.unmodifiable(elements) => null;
   factory List.filled(int length, E fill, {bool growable = false}) => null;
   factory List.generate(int length, E generator(int index),
       {bool growable = true}) => null;
-  void add(E) {}
+  factory List.of() => null;
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
 }
 
@@ -1512,7 +1514,9 @@ class Symbol {}
 class Set<E> {
   factory Set() = Set<E>._fake;
   external factory Set._fake();
-  void add(E) {}
+  external factory Set.of();
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
 }
 
 class Type {}

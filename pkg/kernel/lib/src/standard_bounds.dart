@@ -271,9 +271,7 @@ mixin StandardBounds {
           type1, type2, clientLibrary);
     }
     return _getNullabilityObliviousStandardLowerBound(
-        legacyErasure(coreTypes, type1),
-        legacyErasure(coreTypes, type2),
-        clientLibrary);
+        legacyErasure(type1), legacyErasure(type2), clientLibrary);
   }
 
   DartType _getNullabilityAwareStandardLowerBound(
@@ -594,9 +592,7 @@ mixin StandardBounds {
           type1, type2, clientLibrary);
     }
     return _getNullabilityObliviousStandardUpperBound(
-        legacyErasure(coreTypes, type1),
-        legacyErasure(coreTypes, type2),
-        clientLibrary);
+        legacyErasure(type1), legacyErasure(type2), clientLibrary);
   }
 
   DartType _getNullabilityAwareStandardUpperBound(

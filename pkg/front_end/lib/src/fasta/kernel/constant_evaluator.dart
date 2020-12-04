@@ -174,8 +174,6 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   ConstantWeakener(this._evaluator);
 
-  CoreTypes get _coreTypes => _evaluator.coreTypes;
-
   Constant processValue(Constant node, Constant value) {
     if (value != null) {
       value = _evaluator.canonicalize(value);
@@ -207,8 +205,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitMapConstant(MapConstant node) {
-    DartType keyType = rawLegacyErasure(_coreTypes, node.keyType);
-    DartType valueType = rawLegacyErasure(_coreTypes, node.valueType);
+    DartType keyType = rawLegacyErasure(node.keyType);
+    DartType valueType = rawLegacyErasure(node.valueType);
     List<ConstantMapEntry> entries;
     for (int index = 0; index < node.entries.length; index++) {
       ConstantMapEntry entry = node.entries[index];
@@ -229,7 +227,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitListConstant(ListConstant node) {
-    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    DartType typeArgument = rawLegacyErasure(node.typeArgument);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -247,7 +245,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitSetConstant(SetConstant node) {
-    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    DartType typeArgument = rawLegacyErasure(node.typeArgument);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -267,8 +265,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
   Constant visitInstanceConstant(InstanceConstant node) {
     List<DartType> typeArguments;
     for (int index = 0; index < node.typeArguments.length; index++) {
-      DartType typeArgument =
-          rawLegacyErasure(_coreTypes, node.typeArguments[index]);
+      DartType typeArgument = rawLegacyErasure(node.typeArguments[index]);
       if (typeArgument != null) {
         typeArguments ??= node.typeArguments.toList(growable: false);
         typeArguments[index] = typeArgument;
@@ -294,7 +291,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
       PartialInstantiationConstant node) {
     List<DartType> types;
     for (int index = 0; index < node.types.length; index++) {
-      DartType type = rawLegacyErasure(_coreTypes, node.types[index]);
+      DartType type = rawLegacyErasure(node.types[index]);
       if (type != null) {
         types ??= node.types.toList(growable: false);
         types[index] = type;
@@ -311,7 +308,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitTypeLiteralConstant(TypeLiteralConstant node) {
-    DartType type = rawLegacyErasure(_coreTypes, node.type);
+    DartType type = rawLegacyErasure(node.type);
     if (type != null) {
       return new TypeLiteralConstant(type);
     }
@@ -840,7 +837,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       case EvaluationMode.agnostic:
         return type;
       case EvaluationMode.weak:
-        return legacyErasure(coreTypes, type);
+        return legacyErasure(type);
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -852,9 +849,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       case EvaluationMode.agnostic:
         return types;
       case EvaluationMode.weak:
-        return types
-            .map((DartType type) => legacyErasure(coreTypes, type))
-            .toList();
+        return types.map((DartType type) => legacyErasure(type)).toList();
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -2608,7 +2603,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
     DartType constantType = constant.getType(_staticTypeContext);
     if (mode == SubtypeCheckMode.ignoringNullabilities) {
-      constantType = rawLegacyErasure(coreTypes, constantType) ?? constantType;
+      constantType = rawLegacyErasure(constantType) ?? constantType;
     }
     bool result = typeEnvironment.isSubtypeOf(constantType, type, mode);
     if (targetingJavaScript && !result) {

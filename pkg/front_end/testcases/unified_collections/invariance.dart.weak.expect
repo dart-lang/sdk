@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  core::List<core::int*>* list1 = <core::int*>[0];
+  core::List<core::num*>* list2 = <core::num*>[0];
+  dynamic list3 = <core::int*>[0];
+  core::List<core::int*>* list = block {
+    final core::List<core::int*>* #t1 = <core::int*>[0];
+    #t1.{core::List::addAll}{Invariant}(list1);
+    for (final dynamic #t2 in list2) {
+      final core::int* #t3 = #t2 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t3);
+    }
+    for (final dynamic #t4 in list3 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::int* #t5 = #t4 as{TypeError} core::int*;
+      #t1.{core::List::add}{Invariant}(#t5);
+    }
+    if(true)
+      #t1.{core::List::add}{Invariant}(2);
+  } =>#t1;
+  core::Set<core::int*>* set1 = block {
+    final core::Set<core::int*>* #t6 = col::LinkedHashSet::•<core::int*>();
+    #t6.{core::Set::add}{Invariant}(0);
+  } =>#t6;
+  core::Set<core::num*>* set2 = block {
+    final core::Set<core::num*>* #t7 = col::LinkedHashSet::•<core::num*>();
+    #t7.{core::Set::add}{Invariant}(0);
+  } =>#t7;
+  dynamic set3 = block {
+    final core::Set<core::int*>* #t8 = col::LinkedHashSet::•<core::int*>();
+    #t8.{core::Set::add}{Invariant}(0);
+  } =>#t8;
+  core::Set<core::int*>* set = block {
+    final core::Set<core::int*>* #t9 = col::LinkedHashSet::•<core::int*>();
+    #t9.{core::Set::add}{Invariant}(0);
+    #t9.{core::Set::addAll}{Invariant}(set1);
+    for (final dynamic #t10 in set2) {
+      final core::int* #t11 = #t10 as{TypeError} core::int*;
+      #t9.{core::Set::add}{Invariant}(#t11);
+    }
+    for (final dynamic #t12 in set3 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::int* #t13 = #t12 as{TypeError} core::int*;
+      #t9.{core::Set::add}{Invariant}(#t13);
+    }
+    if(true)
+      #t9.{core::Set::add}{Invariant}(2);
+  } =>#t9;
+  core::Map<core::int*, core::String*>* map1 = <core::int*, core::String*>{0: "foo"};
+  core::Map<core::num*, core::Object*>* map2 = <core::num*, core::Object*>{0: "bar"};
+  dynamic map3 = <core::int*, core::String*>{0: "baz"};
+  core::Map<core::int*, core::String*>* map = block {
+    final core::Map<core::int*, core::String*>* #t14 = <core::int*, core::String*>{};
+    #t14.{core::Map::[]=}{Invariant}(0, "foo");
+    for (final core::MapEntry<core::int*, core::String*>* #t15 in map1.{core::Map::entries})
+      #t14.{core::Map::[]=}{Invariant}(#t15.{core::MapEntry::key}, #t15.{core::MapEntry::value});
+    for (final core::MapEntry<dynamic, dynamic>* #t16 in map2.{core::Map::entries}) {
+      final core::int* #t17 = #t16.{core::MapEntry::key} as{TypeError} core::int*;
+      final core::String* #t18 = #t16.{core::MapEntry::value} as{TypeError} core::String*;
+      #t14.{core::Map::[]=}{Invariant}(#t17, #t18);
+    }
+    for (final core::MapEntry<dynamic, dynamic>* #t19 in (map3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}) {
+      final core::int* #t20 = #t19.{core::MapEntry::key} as{TypeError} core::int*;
+      final core::String* #t21 = #t19.{core::MapEntry::value} as{TypeError} core::String*;
+      #t14.{core::Map::[]=}{Invariant}(#t20, #t21);
+    }
+    if(true)
+      #t14.{core::Map::[]=}{Invariant}(2, "baz");
+  } =>#t14;
+}

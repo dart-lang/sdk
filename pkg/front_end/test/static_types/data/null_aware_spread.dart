@@ -12,17 +12,13 @@ nullAwareListSpread(List<String> list) {
       /*cfe.List<String>*/
       /*cfe:nnbd.List<String!>!*/
       [
-    /*invoke: void*/
     /*cfe.String*/
     /*cfe:nnbd.String!*/
     'foo',
-    /*invoke: void*/
-    /*cfe.current: String*/
-    /*cfe:nnbd.current: String!*/
     ...?
     /*cfe.List<String>*/
     /*cfe:nnbd.List<String!>!*/
-    list
+    /*invoke: void*/ list
   ];
 }
 
@@ -30,22 +26,16 @@ nullAwareSetSpread(Set<String> set) {
   /*cfe.update: Set<String>*/
   /*cfe:nnbd.update: Set<String!>!*/
   set =
-      /*cfe.invoke: LinkedHashSet<String>!*/
-      /*cfe:nnbd.invoke: LinkedHashSet<String!>!*/
-      /*cfe.<String>*/
-      /*cfe:nnbd.<String!>*/
+      /*cfe.Set<String>*/
+      /*cfe:nnbd.Set<String!>!*/
       {
-    /*invoke: bool!*/
     /*cfe.String*/
     /*cfe:nnbd.String!*/
     'foo',
-    /*invoke: bool!*/
-    /*cfe.current: String*/
-    /*cfe:nnbd.current: String!*/
     ...?
     /*cfe.Set<String>*/
     /*cfe:nnbd.Set<String!>!*/
-    set
+    /*invoke: void*/ set
   };
 }
 

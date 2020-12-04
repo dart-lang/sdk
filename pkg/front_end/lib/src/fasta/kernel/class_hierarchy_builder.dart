@@ -1265,7 +1265,7 @@ class ClassHierarchyNodeBuilder {
             norm(hierarchy.coreTypes, inheritedType));
       }
     } else {
-      inheritedType = legacyErasure(hierarchy.coreTypes, inheritedType);
+      inheritedType = legacyErasure(inheritedType);
       if (inferredType == null) {
         return inheritedType;
       } else {
@@ -1703,8 +1703,7 @@ class ClassHierarchyNodeBuilder {
       if (!classBuilder.library.isNonNullableByDefault &&
           supernode.classBuilder.library.isNonNullableByDefault) {
         for (int i = 0; i < superclasses.length; i++) {
-          superclasses[i] =
-              legacyErasureSupertype(hierarchy.coreTypes, superclasses[i]);
+          superclasses[i] = legacyErasureSupertype(superclasses[i]);
         }
       }
 
@@ -2377,7 +2376,7 @@ class ClassHierarchyNodeBuilder {
       Supertype type) {
     if (type == null) return null;
     if (!classBuilder.library.isNonNullableByDefault) {
-      type = legacyErasureSupertype(hierarchy.coreTypes, type);
+      type = legacyErasureSupertype(type);
     }
     ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
     if (node == null) return null;
