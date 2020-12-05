@@ -5,7 +5,7 @@
 import "split_constants_canonicalization_test.dart";
 
 @pragma("vm:never-inline")
-mint() => 0x7FFFFFFFFFFFFFFF;
+mint() => 0x7FFFFFFFFFFFF000;
 
 @pragma("vm:never-inline")
 string() => "We all have identical strings";
