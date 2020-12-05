@@ -1,3 +1,7 @@
+# 1.6.1
+- Fixed unhandled `StateError` that could be thrown if the VM service disconnected
+  while a request was outstanding.
+
 # 1.6.0
 - Added `errorCode` to `DartDevelopmentServiceException` to communicate the
   underlying reason of the failure.
