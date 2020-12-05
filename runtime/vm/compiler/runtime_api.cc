@@ -384,6 +384,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return LinkedHashMap::InstanceSize();
     case kUnhandledExceptionCid:
       return UnhandledException::InstanceSize();
+    case kWeakPropertyCid:
+      return WeakProperty::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kFfiPointerCid:

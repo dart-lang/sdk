@@ -4310,6 +4310,10 @@ ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
       UNREACHABLE();
     }
   }
+  // May be allocate-finalized recursively during EnsureIsFinalized.
+  if (is_allocate_finalized()) {
+    return Error::null();
+  }
   error ^= ClassFinalizer::AllocateFinalizeClass(*this);
   return error.raw();
 }
@@ -18756,7 +18760,7 @@ bool Instance::IsCallable(Function* function) const {
 
 InstancePtr Instance::New(const Class& cls, Heap::Space space) {
   Thread* thread = Thread::Current();
-  if (cls.EnsureIsFinalized(thread) != Error::null()) {
+  if (cls.EnsureIsAllocateFinalized(thread) != Error::null()) {
     return Instance::null();
   }
   intptr_t instance_size = cls.host_instance_size();
@@ -23912,7 +23916,7 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
 
   const Class& cls =
       Class::Handle(Isolate::Current()->class_table()->At(kFfiPointerCid));
-  cls.EnsureIsFinalized(Thread::Current());
+  cls.EnsureIsAllocateFinalized(Thread::Current());
 
   Pointer& result = Pointer::Handle(zone);
   result ^= Object::Allocate(kFfiPointerCid, Pointer::InstanceSize(), space);
@@ -24713,9 +24717,7 @@ WeakPropertyPtr WeakProperty::New(Heap::Space space) {
          Class::null());
   ObjectPtr raw = Object::Allocate(WeakProperty::kClassId,
                                    WeakProperty::InstanceSize(), space);
-  WeakPropertyPtr result = static_cast<WeakPropertyPtr>(raw);
-  result->ptr()->next_ = 0;  // Init the list to NULL.
-  return result;
+  return static_cast<WeakPropertyPtr>(raw);
 }
 
 const char* WeakProperty::ToCString() const {

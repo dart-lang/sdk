@@ -1122,7 +1122,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
   class_count_++;
   cls.set_is_allocated(true);
-  error_ = cls.EnsureIsFinalized(T);
+  error_ = cls.EnsureIsAllocateFinalized(T);
   if (!error_.IsNull()) {
     Jump(error_);
   }

@@ -541,6 +541,15 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
+  TypeAliasElement typeAlias(String name) {
+    for (var element in unitElement.typeAliases) {
+      if (element.name == name) {
+        return element;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
   ConstructorElement unnamedConstructor(String name) {
     return class_(name).unnamedConstructor;
   }

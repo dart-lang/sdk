@@ -20,7 +20,9 @@
 #include "bin/secure_socket_utils.h"
 #include "platform/syslog.h"
 
+#ifndef TARGET_OS_WINDOWS_UWP
 #pragma comment(lib, "crypt32.lib")
+#endif
 
 namespace dart {
 namespace bin {
@@ -42,6 +44,11 @@ static void PrintSSLErr(const char* str) {
 
 // Add certificates from Windows trusted root store.
 static bool AddCertificatesFromRootStore(X509_STORE* store) {
+// The UWP platform doesn't support CertEnumCertificatesInStore hence
+// this function cannot work when compiled in UWP mode.
+#ifdef TARGET_OS_WINDOWS_UWP
+  return false;
+#else
   // Open root system store.
   // Note that only current user certificates are accessible using this method,
   // not the local machine store.
@@ -98,6 +105,7 @@ static bool AddCertificatesFromRootStore(X509_STORE* store) {
     return false;
   }
   return true;
+#endif  // ifdef TARGET_OS_WINDOWS_UWP
 }
 
 void SSLCertContext::TrustBuiltinRoots() {

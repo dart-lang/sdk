@@ -233,7 +233,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
             "%s is not loaded yet.",
             klass.ToCString());
       }
-      const auto& obj = Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));
+      const auto& obj =
+          Object::Handle(Z, klass.EnsureIsAllocateFinalized(H.thread()));
       ASSERT(obj.IsNull());
       ASSERT(klass.is_enum_class() || klass.is_const());
       instance = Instance::New(klass, Heap::kOld);

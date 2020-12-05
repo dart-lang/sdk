@@ -421,6 +421,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 12;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 12;
 static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word
@@ -941,6 +943,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 24;
 static constexpr dart::compiler::target::word Array_element_size = 8;
 static constexpr dart::compiler::target::word
@@ -1457,6 +1461,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 12;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 12;
 static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word
@@ -1974,6 +1980,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 24;
 static constexpr dart::compiler::target::word Array_element_size = 8;
 static constexpr dart::compiler::target::word
@@ -2490,6 +2498,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 12;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 12;
 static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word
@@ -3004,6 +3014,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 24;
 static constexpr dart::compiler::target::word Array_element_size = 8;
 static constexpr dart::compiler::target::word
@@ -3514,6 +3526,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 12;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 12;
 static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word
@@ -4025,6 +4039,8 @@ static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 24;
 static constexpr dart::compiler::target::word Array_element_size = 8;
 static constexpr dart::compiler::target::word
@@ -4581,6 +4597,8 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_target_offset = 4;
+static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
+static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     12;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 4;
@@ -5154,6 +5172,9 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -5731,6 +5752,9 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -6302,6 +6326,8 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_target_offset = 4;
+static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
+static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     12;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 4;
@@ -6868,6 +6894,9 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -7438,6 +7467,9 @@ static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
+static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
+    16;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;

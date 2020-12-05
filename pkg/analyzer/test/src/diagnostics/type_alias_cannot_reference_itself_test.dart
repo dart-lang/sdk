@@ -33,7 +33,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 101, 1),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 38, 37),
     ]);
   }
 
@@ -147,7 +147,6 @@ typedef A B();
 typedef A<T extends A<int>>();
 ''', [
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
     ]);
   }
 }

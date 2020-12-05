@@ -10,19 +10,18 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(WeakProperty_new, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, key, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(1));
-  const WeakProperty& weak_property = WeakProperty::Handle(WeakProperty::New());
-  weak_property.set_key(key);
-  weak_property.set_value(value);
-  return weak_property.raw();
-}
-
 DEFINE_NATIVE_ENTRY(WeakProperty_getKey, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(WeakProperty, weak_property,
                                arguments->NativeArgAt(0));
   return weak_property.key();
+}
+
+DEFINE_NATIVE_ENTRY(WeakProperty_setKey, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(WeakProperty, weak_property,
+                               arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, key, arguments->NativeArgAt(1));
+  weak_property.set_key(key);
+  return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(WeakProperty_getValue, 0, 1) {

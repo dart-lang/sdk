@@ -83,7 +83,6 @@ class Linker {
     _computeLibraryScopes();
     _createTypeSystem();
     _resolveTypes();
-    TypeAliasSelfReferenceFinder().perform(this);
     _performTopLevelInference();
     _resolveConstructors();
     _resolveConstantInitializers();
@@ -245,6 +244,7 @@ class Linker {
     }
     VarianceBuilder().perform(this);
     computeSimplyBounded(builders.values);
+    TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder().build(nodesToBuildType);
   }
 }

@@ -131,7 +131,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitBooleanLiteral(BooleanLiteral node) {
     _writeByte(Tag.BooleanLiteral);
     _writeByte(node.value ? 1 : 0);
-    // TODO(scheglov) Dont write type?
     _resolutionSink?.writeType(node.staticType);
   }
 
@@ -743,10 +742,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _pushScopeTypeParameters(node.typeParameters);
 
     _writeOptionalNode(node.typeParameters);
-    _writeOptionalNode(node.functionType);
+    _writeOptionalNode(node.type);
     _storeTypeAlias(node);
 
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
+    var element = node.declaredElement as TypeAliasElementImpl;
     // TODO(scheglov) pack into one byte
     _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
     _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
@@ -1605,11 +1604,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _sink.addDouble(value);
   }
 
-  /// TODO(scheglov) Optimize the encoding format.
   void _writeFeatureSet(FeatureSet featureSet) {
     var experimentStatus = featureSet as ExperimentStatus;
     var encoded = experimentStatus.toStorage();
-    _writeUint32List(encoded);
+    _writeUint8List(encoded);
   }
 
   void _writeInformativeUint30(int value) {
@@ -1729,11 +1727,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         (value >> 8) & 0xFF, value & 0xFF);
   }
 
-  void _writeUint32List(List<int> values) {
+  void _writeUint8List(List<int> values) {
     var length = values.length;
-    _writeUInt32(length);
+    _writeUInt30(length);
     for (var i = 0; i < length; i++) {
-      _writeUInt32(values[i]);
+      _writeByte(values[i]);
     }
   }
 

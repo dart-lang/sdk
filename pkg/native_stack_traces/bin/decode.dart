@@ -300,12 +300,12 @@ Future<void> main(List<String> arguments) async {
   if (options['help']) return print(_usages[options.command?.name]);
   if (options.command == null) return errorWithUsage('no command provided');
 
-  switch (options.command.name) {
+  switch (options.command!.name) {
     case 'help':
-      return help(options.command);
+      return help(options.command!);
     case 'find':
-      return find(options.command);
+      return find(options.command!);
     case 'translate':
-      return await translate(options.command);
+      return await translate(options.command!);
   }
 }

@@ -948,6 +948,8 @@ class Smi : public AllStatic {
 
 class WeakProperty : public AllStatic {
  public:
+  static word key_offset();
+  static word value_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };

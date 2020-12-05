@@ -126,14 +126,6 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeFunctionTypeAliasElement(FunctionTypeAliasElementImpl element) {
-    _write('typedef ');
-    _write(element.displayName);
-    _writeTypeParameters(element.typeParameters);
-    _write(' = ');
-    element.function?.appendTo(this);
-  }
-
   void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
     _writeType(element.returnType);
     _write(' Function');
@@ -168,6 +160,20 @@ class ElementDisplayStringBuilder {
   void writePrefixElement(PrefixElementImpl element) {
     _write('as ');
     _write(element.displayName);
+  }
+
+  void writeTypeAliasElement(TypeAliasElementImpl element) {
+    _write('typedef ');
+    _write(element.displayName);
+    _writeTypeParameters(element.typeParameters);
+    _write(' = ');
+
+    var aliasedElement = element.aliasedElement;
+    if (aliasedElement != null) {
+      aliasedElement.appendTo(this);
+    } else {
+      _writeType(element.aliasedType);
+    }
   }
 
   void writeTypeParameter(TypeParameterElement element) {

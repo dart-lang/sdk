@@ -5449,8 +5449,8 @@ class GenericTypeAliasImpl extends TypeAliasImpl
   /// is returned.
   @override
   GenericFunctionType get functionType {
-    var t = _type;
-    return t is GenericFunctionTypeImpl ? t : null;
+    var type = _type;
+    return type is GenericFunctionTypeImpl ? type : null;
   }
 
   @override

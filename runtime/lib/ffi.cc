@@ -224,7 +224,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
   const auto& typed_data_class =
       Class::Handle(zone, isolate->class_table()->At(cid));
   const auto& error =
-      Error::Handle(zone, typed_data_class.EnsureIsFinalized(thread));
+      Error::Handle(zone, typed_data_class.EnsureIsAllocateFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
