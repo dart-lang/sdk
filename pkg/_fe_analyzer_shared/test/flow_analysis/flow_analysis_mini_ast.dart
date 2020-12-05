@@ -199,7 +199,7 @@ abstract class Expression implements _Visitable<Type> {
   Expression get nonNullAssert => new _NonNullAssert(this);
 
   /// If `this` is an expression `x`, creates the expression `(x)`.
-  Expression get parenthesized => new _WrappedExpression(null, this, null);
+  Expression get parenthesized => new _ParenthesizedExpression(this);
 
   /// If `this` is an expression `x`, creates the statement `x;`.
   Statement get stmt => new _ExpressionStatement(this);
@@ -1222,6 +1222,28 @@ class _NullLiteral extends Expression {
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.nullLiteral(this);
     return Type('Null');
+  }
+}
+
+class _ParenthesizedExpression extends Expression {
+  final Expression expr;
+
+  _ParenthesizedExpression(this.expr);
+
+  @override
+  String toString() => '($expr)';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    expr._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    var type = expr._visit(h, flow);
+    flow.parenthesizedExpression(this, expr);
+    return type;
   }
 }
 
