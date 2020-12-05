@@ -18,12 +18,14 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_text.dart';
-import 'test_strategies.dart';
 
 /// Abstract base class for resynthesizing and comparing elements.
 ///
 /// The return type separator: →
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
+  /// The set of features enabled in this test.
+  FeatureSet featureSet;
+
   DeclaredVariables declaredVariables = DeclaredVariables();
   /*late final*/ SourceFactory sourceFactory;
   /*late final*/ MockSdk sdk;
@@ -31,10 +33,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   /*late final*/ String testFile;
   Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
-
-  /// Tests may set this to `true` to indicate that a missing file at the time
-  /// of summary resynthesis shouldn't trigger an error.
-  bool allowMissingFiles = false;
 
   AbstractResynthesizeTest() {
     sdk = MockSdk(resourceProvider: resourceProvider);
@@ -70,28 +68,31 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
     testSource = addSource(testFile, code);
     return testSource;
   }
+
+  Future<LibraryElementImpl /*!*/ > checkLibrary(String text,
+      {bool allowErrors = false});
 }
 
-/// Mixin containing test cases exercising summary resynthesis.  Intended to be
-/// applied to a class implementing [ResynthesizeTestStrategy], along with the
-/// mixin [ResynthesizeTestHelpers].
-mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
-  static final FeatureSet featureSetLegacy = FeatureSet.fromEnableFlags2(
+class FeatureSets {
+  static final FeatureSet beforeNullSafe = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.9.0'),
     flags: [],
   );
 
-  static final FeatureSet featureSetNullSafe = FeatureSet.fromEnableFlags2(
+  static final FeatureSet nullSafe = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.12.0'),
     flags: [],
   );
 
-  static final FeatureSet featureSetNonFunctionTypeAliases =
-      FeatureSet.fromEnableFlags2(
+  static final FeatureSet nonFunctionTypeAliases = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.12.0'),
     flags: [EnableString.nonfunction_type_aliases],
   );
+}
 
+/// Mixin containing test cases exercising summary resynthesis.  Intended to be
+/// applied to a class implementing [AbstractResynthesizeTest].
+mixin ResynthesizeTestCases on AbstractResynthesizeTest {
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -926,7 +927,7 @@ class C {
   }
 
   test_class_field_const_late() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library =
         await checkLibrary('class C { static late const int i = 0; }');
     checkElementText(library, r'''
@@ -946,7 +947,7 @@ class C {
   }
 
   test_class_field_implicit_type_late() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('class C { late var x; }');
     checkElementText(library, r'''
 class C {
@@ -965,7 +966,7 @@ class C {
   }
 
   test_class_field_static_late() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''
 class C {
@@ -985,7 +986,7 @@ class C {
   }
 
   test_class_fields_late() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class C {
   late int foo;
@@ -1004,7 +1005,7 @@ class C {
   }
 
   test_class_fields_late_final() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class C {
   late final int foo;
@@ -1023,7 +1024,7 @@ class C {
   }
 
   test_class_fields_late_final_initialized() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class C {
   late final int foo = 0;
@@ -1468,7 +1469,7 @@ class C<T> {
   }
 
   test_class_ref_nullability_none() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class C {}
 C c;
@@ -1484,7 +1485,7 @@ C c;
   }
 
   test_class_ref_nullability_question() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class C {}
 C? c;
@@ -1500,7 +1501,7 @@ C? c;
   }
 
   test_class_ref_nullability_star() async {
-    featureSet = featureSetLegacy;
+    featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('''
 class C {}
 C c;
@@ -1796,7 +1797,7 @@ notSimplyBounded class A<covariant X extends void Function(X) = void Function(Nu
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_nullSafe() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 typedef F<X> = void Function(X);
 
@@ -1829,7 +1830,7 @@ notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dy
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_invariant_nullSafe() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 typedef F<X> = X Function(X);
 
@@ -1856,7 +1857,7 @@ notSimplyBounded class A<X extends X Function(X) = dynamic Function(Null)> {
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_both_nullSafe() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 class A<X extends X Function(X)> {}
 ''');
@@ -1877,7 +1878,7 @@ notSimplyBounded class A<X extends void Function(X) = void Function(Null)> {
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_contravariant_nullSafe() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 class A<X extends void Function(X)> {}
 ''');
@@ -1898,7 +1899,7 @@ notSimplyBounded class A<X extends X Function() = dynamic Function()> {
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_covariant_nullSafe() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 class A<X extends X Function()> {}
 ''');
@@ -2713,7 +2714,7 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
   }
 
   test_compilationUnit_nnbd_disabled_via_dart_directive() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 // @dart=2.2
 ''');
@@ -2721,19 +2722,19 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
   }
 
   test_compilationUnit_nnbd_disabled_via_feature_set() async {
-    featureSet = featureSetLegacy;
+    featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('');
     expect(library.isNonNullableByDefault, isFalse);
   }
 
   test_compilationUnit_nnbd_enabled() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('');
     expect(library.isNonNullableByDefault, isTrue);
   }
 
   test_const_asExpression() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 const num a = 0;
 const b = a as int;
@@ -2747,7 +2748,7 @@ const int b =
   }
 
   test_const_assignmentExpression() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 const a = 0;
 const b = (a += 1);
@@ -2786,7 +2787,7 @@ const int b;
   }
 
   test_const_cascadeExpression() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 const a = 0..isEven..abs();
 ''');
@@ -2896,7 +2897,7 @@ class C {
   }
 
   test_const_indexExpression() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 const a = [0];
 const b = 0;
@@ -3402,7 +3403,7 @@ const dynamic V = const
   }
 
   test_const_isExpression() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 const a = 0;
 const b = a is int;
@@ -3690,7 +3691,7 @@ const Object x = const <
   }
 
   test_const_methodInvocation() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 T f<T>(T a) => a;
 const b = f<int>(0);
@@ -3799,7 +3800,7 @@ class C {
   }
 
   test_const_postfixExpression_increment() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 const a = 0;
 const b = a++;
@@ -3833,7 +3834,7 @@ const int b;
   }
 
   test_const_postfixExpression_nullCheck() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 const int? a = 0;
 const b = a!;
@@ -3863,7 +3864,7 @@ const int b;
   }
 
   test_const_prefixExpression_increment() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 const a = 0;
 const b = ++a;
@@ -4458,7 +4459,7 @@ const Symbol vSymbol = #aaa.bbb.ccc;
   }
 
   test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 const String? a = '';
 
@@ -5525,7 +5526,7 @@ class D {
   }
 
   test_defaultValue_eliminateTypeParameters() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class A<T> {
   const X({List<T> a = const []});
@@ -6345,7 +6346,6 @@ Exports:
   }
 
   test_export_uri() async {
-    allowMissingFiles = true;
     var library = await checkLibrary('''
 export 'foo.dart';
 ''');
@@ -6532,7 +6532,7 @@ extension E on int {
   }
 
   test_field_abstract() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 abstract class C {
   abstract int i;
@@ -6576,7 +6576,7 @@ class C {
   }
 
   test_field_external() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 abstract class C {
   external int i;
@@ -6817,7 +6817,7 @@ class C {
   }
 
   test_field_type_inferred_Never() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 class C {
   var a = throw 42;
@@ -6835,7 +6835,7 @@ class C {
   }
 
   test_field_type_inferred_nonNullify() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
 
     addSource('/a.dart', '''
 // @dart = 2.7
@@ -7330,7 +7330,7 @@ FutureOr<int> f() {}
   }
 
   test_generic_function_type_nullability_none() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 void Function() f;
 ''');
@@ -7343,7 +7343,7 @@ void Function() f;
   }
 
   test_generic_function_type_nullability_question() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 void Function()? f;
 ''');
@@ -7356,7 +7356,7 @@ void Function()? f;
   }
 
   test_generic_function_type_nullability_star() async {
-    featureSet = featureSetLegacy;
+    featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('''
 void Function() f;
 ''');
@@ -7857,7 +7857,6 @@ Future<dynamic> f;
   }
 
   test_import_invalidUri_metadata() async {
-    allowMissingFiles = true;
     var library = await checkLibrary('''
 @foo
 import 'ht:';
@@ -7950,7 +7949,6 @@ import "dart:math" show e, pi;
   }
 
   test_import_uri() async {
-    allowMissingFiles = true;
     var library = await checkLibrary('''
 import 'foo.dart';
 ''');
@@ -8211,7 +8209,7 @@ dynamic f<T>() {}
   }
 
   test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class A {
   static final foo = bar(1.2);
@@ -8260,7 +8258,7 @@ abstract class D {
   }
 
   test_inferred_type_nullability_class_ref_none() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addSource('/a.dart', 'int f() => 0;');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -8276,7 +8274,7 @@ int x;
   }
 
   test_inferred_type_nullability_class_ref_question() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addSource('/a.dart', 'int? f() => 0;');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -8292,7 +8290,7 @@ int? x;
   }
 
   test_inferred_type_nullability_function_type_none() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addSource('/a.dart', 'void Function() f() => () {};');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -8308,7 +8306,7 @@ void Function() x;
   }
 
   test_inferred_type_nullability_function_type_question() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addSource('/a.dart', 'void Function()? f() => () {};');
     var library = await checkLibrary('''
 import 'a.dart';
@@ -8675,7 +8673,7 @@ class X3 extends LegacyInt* {
   }
 
   test_instanceInference_operator_equal_legacy_from_legacy_nullSafe() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addLibrarySource('/legacy.dart', r'''
 // @dart = 2.7
 class LegacyDefault {
@@ -8732,7 +8730,7 @@ class X3 extends LegacyInt* implements NullSafeInt* {
   }
 
   test_instanceInference_operator_equal_nullSafe_from_nullSafe() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addLibrarySource('/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
@@ -9039,7 +9037,6 @@ class C {
   }
 
   test_invalidUris() async {
-    allowMissingFiles = true;
     var library = await checkLibrary(r'''
 import ':[invaliduri]';
 import ':[invaliduri]:foo.dart';
@@ -10372,7 +10369,7 @@ mixin M<U> on A<U*>* {
   }
 
   test_mixin_inference_nullSafety() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 class A<T> {}
 mixin M<U> on A<U> {}
@@ -10393,7 +10390,7 @@ mixin M<U> on A<U> {
   }
 
   test_mixin_inference_nullSafety2() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addLibrarySource('/a.dart', r'''
 class A<T> {}
 
@@ -10418,7 +10415,7 @@ class D extends A<int*>* with B<int*>*, C<int*>* {
   }
 
   test_mixin_inference_nullSafety_mixed_inOrder() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addLibrarySource('/a.dart', r'''
 class A<T> {}
 mixin M<U> on A<U> {}
@@ -10441,7 +10438,7 @@ class B extends A<int*>* with M<int*>* {
 
   @FailingTest(reason: 'Out-of-order inference is not specified yet')
   test_mixin_inference_nullSafety_mixed_outOfOrder() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     addLibrarySource('/a.dart', r'''
 // @dart = 2.8
 class A<T> {}
@@ -11013,7 +11010,6 @@ void named({dynamic x: 1}) {}
   }
 
   test_part_emptyUri() async {
-    allowMissingFiles = true;
     var library = await checkLibrary(r'''
 part '';
 class B extends A {}
@@ -11028,7 +11024,6 @@ class B {
   }
 
   test_part_uri() async {
-    allowMissingFiles = true;
     var library = await checkLibrary('''
 part 'foo.dart';
 ''');
@@ -11054,7 +11049,6 @@ unit: b.dart
   }
 
   test_parts_invalidUri() async {
-    allowMissingFiles = true;
     addSource('/foo/bar.dart', 'part of my.lib;');
     var library = await checkLibrary('library my.lib; part "foo/";');
     checkElementText(library, r'''
@@ -11067,7 +11061,6 @@ unit: foo
   }
 
   test_parts_invalidUri_nullStringValue() async {
-    allowMissingFiles = true;
     addSource('/foo/bar.dart', 'part of my.lib;');
     var library = await checkLibrary(r'''
 library my.lib;
@@ -11269,7 +11262,7 @@ bool f() {}
   }
 
   test_top_level_variable_external() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 external int i;
 ''');
@@ -11556,7 +11549,7 @@ dynamic v;
   }
 
   test_type_never_disableNnbd() async {
-    featureSet = featureSetLegacy;
+    featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('Never d;');
     checkElementText(
         library,
@@ -11567,7 +11560,7 @@ Null* d;
   }
 
   test_type_never_enableNnbd() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('Never d;');
     checkElementText(
         library,
@@ -11578,7 +11571,7 @@ Never d;
   }
 
   test_type_param_ref_nullability_none() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class C<T> {
   T t;
@@ -11595,7 +11588,7 @@ class C<T> {
   }
 
   test_type_param_ref_nullability_question() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('''
 class C<T> {
   T? t;
@@ -11612,7 +11605,7 @@ class C<T> {
   }
 
   test_type_param_ref_nullability_star() async {
-    featureSet = featureSetLegacy;
+    featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('''
 class C<T> {
   T t;
@@ -11997,7 +11990,7 @@ dynamic Function() f;
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<int, T>;
 class A<T, U> {}
@@ -12014,7 +12007,7 @@ class B implements A<int, String> {
 
   @failingTest
   test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<T>?;
 class A<T> {}
@@ -12031,7 +12024,7 @@ class B implements A<int, String> {
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_asInterfaceType_void() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = void;
 class A {}
@@ -12051,7 +12044,7 @@ class C implements A, B {
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_asMixinType() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
@@ -12069,7 +12062,7 @@ class B extends Object with A<int> {
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_asSuperType_interfaceType() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
@@ -12086,7 +12079,7 @@ class B extends A<int> {
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_using_dynamic() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = dynamic;
 void f(A a) {}
@@ -12098,7 +12091,7 @@ void f(dynamic a) {}
   }
 
   test_typedef_nonFunction_using_interface_disabled() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 typedef A = int;
 void f(A a) {}
@@ -12114,7 +12107,7 @@ void f(dynamic Function() a) {}
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = int;
 void f(A a) {}
@@ -12126,7 +12119,7 @@ void f(int a) {}
   }
 
   test_typedef_nonFunction_using_interface_withTypeParameters() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = Map<int, T>;
 void f(A<String> a) {}
@@ -12139,7 +12132,7 @@ void f(Map<int, String> a) {}
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_using_Never() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = Never;
 void f(A a) {}
@@ -12152,7 +12145,7 @@ void f(Never a) {}
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_using_typeParameter() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T;
 void f1(A a) {}
@@ -12167,7 +12160,7 @@ void f2(int a) {}
 
   /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_using_void() async {
-    featureSet = featureSetNonFunctionTypeAliases;
+    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = void;
 void f(A a) {}
@@ -12603,7 +12596,6 @@ class C {
   }
 
   test_unresolved_export() async {
-    allowMissingFiles = true;
     var library = await checkLibrary("export 'foo.dart';", allowErrors: true);
     checkElementText(library, r'''
 export 'foo.dart';
@@ -12611,7 +12603,6 @@ export 'foo.dart';
   }
 
   test_unresolved_import() async {
-    allowMissingFiles = true;
     var library = await checkLibrary("import 'foo.dart';", allowErrors: true);
     LibraryElement importedLibrary = library.imports[0].importedLibrary;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
@@ -12623,7 +12614,6 @@ import 'foo.dart';
   }
 
   test_unresolved_part() async {
-    allowMissingFiles = true;
     var library = await checkLibrary("part 'foo.dart';", allowErrors: true);
     checkElementText(library, r'''
 part 'foo.dart';
@@ -12671,7 +12661,7 @@ const int i = 0;
   }
 
   test_variable_const_late() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('late const int i = 0;');
     checkElementText(library, r'''
 late const int i = 0;
@@ -12837,7 +12827,7 @@ int v;
   }
 
   test_variable_late() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('late int x = 0;');
     checkElementText(
         library,
@@ -12850,7 +12840,7 @@ synthetic void set x(int _x) {}
   }
 
   test_variable_late_final() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('late final int x;');
     checkElementText(
         library,
@@ -12863,7 +12853,7 @@ synthetic void set x(int _x) {}
   }
 
   test_variable_late_final_initialized() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary('late final int x = 0;');
     checkElementText(
         library,
@@ -12944,7 +12934,7 @@ int get x {}
   }
 
   test_variable_type_inferred_Never() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
     var library = await checkLibrary(r'''
 var a = throw 42;
 ''');
@@ -12968,7 +12958,7 @@ dynamic a;
   }
 
   test_variable_type_inferred_nonNullify() async {
-    featureSet = featureSetNullSafe;
+    featureSet = FeatureSets.nullSafe;
 
     addSource('/a.dart', '''
 // @dart = 2.7
@@ -13056,18 +13046,5 @@ int j;
 
     var elementFactory = unit.linkedContext.elementFactory;
     return elementFactory.elementOfReference(reference);
-  }
-}
-
-/// Mixin containing helper methods for testing summary resynthesis.  Intended
-/// to be applied to a class implementing [ResynthesizeTestStrategy].
-mixin ResynthesizeTestHelpers
-    implements ResynthesizeTestStrategy, ResourceProviderMixin {
-  Future<LibraryElementImpl /*!*/ > checkLibrary(String text,
-      {bool allowErrors = false, bool dumpSummaries = false}) async {
-    throw 42;
-//    Source source = addTestSource(text);
-//    SummaryResynthesizer resynthesizer = encodeLibrary(source);
-//    return resynthesizer.getLibraryElement(source.uri.toString());
   }
 }

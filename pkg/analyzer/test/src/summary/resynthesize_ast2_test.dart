@@ -31,7 +31,7 @@ main() {
 }
 
 @reflectiveTest
-class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
+class ResynthesizeAst2Test extends AbstractResynthesizeTest
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
   static _SdkBundle _sdkBundleNullSafe;
@@ -134,6 +134,10 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     );
 
     return elementFactory.libraryOfUri('${source.uri}');
+  }
+
+  void setUp() {
+    featureSet = FeatureSets.beforeNullSafe;
   }
 
   void _addLibraryUnits(
