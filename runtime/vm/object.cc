@@ -8729,15 +8729,23 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   if (implicit_closure_function() != Function::null()) {
     return implicit_closure_function();
   }
+
 #if defined(DART_PRECOMPILED_RUNTIME)
   // In AOT mode all implicit closures are pre-created.
   FATAL("Cannot create implicit closure in AOT!");
   return Function::null();
 #else
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
+
   Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  if (implicit_closure_function() != Function::null()) {
+    return implicit_closure_function();
+  }
+
   // Create closure function.
+  Zone* zone = thread->zone();
   const String& closure_name = String::Handle(zone, name());
   const Function& closure_function = Function::Handle(
       zone, NewImplicitClosureFunction(closure_name, *this, token_pos()));
@@ -8917,15 +8925,24 @@ void Function::PrintSignatureParameters(Thread* thread,
 
 InstancePtr Function::ImplicitStaticClosure() const {
   ASSERT(IsImplicitStaticClosureFunction());
-  if (implicit_static_closure() == Instance::null()) {
-    Zone* zone = Thread::Current()->zone();
-    const Context& context = Context::Handle(zone);
-    Instance& closure =
-        Instance::Handle(zone, Closure::New(Object::null_type_arguments(),
-                                            Object::null_type_arguments(),
-                                            *this, context, Heap::kOld));
-    set_implicit_static_closure(closure);
+  if (implicit_static_closure() != Instance::null()) {
+    return implicit_static_closure();
   }
+
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  if (implicit_static_closure() != Instance::null()) {
+    return implicit_static_closure();
+  }
+
+  Zone* zone = thread->zone();
+  const auto& null_context = Context::Handle(zone);
+  const auto& closure =
+      Instance::Handle(zone, Closure::New(Object::null_type_arguments(),
+                                          Object::null_type_arguments(), *this,
+                                          null_context, Heap::kOld));
+  set_implicit_static_closure(closure);
   return implicit_static_closure();
 }
 
