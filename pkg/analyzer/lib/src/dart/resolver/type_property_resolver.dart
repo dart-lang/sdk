@@ -233,7 +233,10 @@ class TypePropertyResolver {
 
     return ResolutionResult(
       getter: getter,
-      needsGetterError: _needsGetterError && !_reportedGetterError,
+      // Parser recovery resulting in an empty property name should not be
+      // reported as an undefined getter.
+      needsGetterError:
+          _needsGetterError && _name.isNotEmpty && !_reportedGetterError,
       setter: setter,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );
