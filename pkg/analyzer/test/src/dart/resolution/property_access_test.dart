@@ -238,6 +238,30 @@ void f() {
     }
   }
 
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode('''
+void f({a = b?.foo}) {}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware_cascade() async {
+    await assertInvalidTestCode('''
+void f({a = b?..foo}) {}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?..foo'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
   test_ofExtension_read() async {
     await assertNoErrorsInCode('''
 class A {}
