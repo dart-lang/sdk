@@ -447,9 +447,21 @@ class ImportsVerifier {
       // Find import directives using namespaces.
       for (ImportDirective importDirective in _allImports) {
         Namespace namespace = _computeNamespace(importDirective);
-        if (namespace?.get(extensionElement.name) == extensionElement) {
-          _unusedImports.remove(importDirective);
-          _removeFromUnusedShownNamesMap(extensionElement, importDirective);
+        var prefix = importDirective.prefix?.name;
+        var elementName = extensionElement.name;
+        if (prefix == null) {
+          if (namespace?.get(elementName) == extensionElement) {
+            _unusedImports.remove(importDirective);
+            _removeFromUnusedShownNamesMap(extensionElement, importDirective);
+          }
+        } else {
+          // An extension might be used solely because one or more instance
+          // members are referenced, which does not require explicit use of the
+          // prefix. We still indicate that the import directive is used.
+          if (namespace?.getPrefixed(prefix, elementName) == extensionElement) {
+            _unusedImports.remove(importDirective);
+            _removeFromUnusedShownNamesMap(extensionElement, importDirective);
+          }
         }
       }
     }
