@@ -1450,6 +1450,7 @@ class Iterable<E> {
 class List<E> extends Iterable<E> {
   factory List() => null;
   factory List.unmodifiable(elements) => null;
+  factory List.empty({bool growable = false}) => null;
   factory List.filled(int length, E fill, {bool growable = false}) => null;
   factory List.generate(int length, E generator(int index),
       {bool growable = true}) => null;
@@ -1461,12 +1462,14 @@ class List<E> extends Iterable<E> {
 
 class _GrowableList<E> {
   factory _GrowableList() => null;
+  factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
   factory _GrowableList.generate(int length, E generator(int index)) => null;
 }
 
 class _List<E> {
   factory _List() => null;
+  factory _List.empty() => null;
   factory _List.filled() => null;
   factory _List.generate(int length, E generator(int index)) => null;
 }
