@@ -448,6 +448,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
         expectedPrefix: expectedPrefix);
   }
 
+  /// Resolve the [code], and ensure that it can be resolved without a crash,
+  /// and is invalid, i.e. produces a diagnostic.
+  Future<void> assertInvalidTestCode(String code) async {
+    await resolveTestCode(code);
+    assertHasTestErrors();
+  }
+
   void assertInvokeType(Expression node, String expected) {
     DartType actual;
     if (node is BinaryExpression) {

@@ -739,7 +739,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   void startNullAwareIndexExpression(IndexExpression node) {
     if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
-        _isNonNullableByDefault) {
+        _flowAnalysis != null) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(
           node.target, node.realTarget.staticType ?? typeProvider.dynamicType);
       _unfinishedNullShorts.add(node.nullShortingTermination);
@@ -750,7 +750,7 @@ class ResolverVisitor extends ScopedVisitor {
     PropertyAccess node,
   ) {
     if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
-        _isNonNullableByDefault) {
+        _flowAnalysis != null) {
       var target = node.target;
       if (target is SimpleIdentifier && target.staticElement is ClassElement) {
         // `?.` to access static methods is equivalent to `.`, so do nothing.
@@ -948,7 +948,7 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setTypeFromNode(node.target, node);
     node.target.accept(this);
 
-    if (node.isNullAware && _isNonNullableByDefault) {
+    if (node.isNullAware && _flowAnalysis != null) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(
           node.target, node.target.staticType ?? typeProvider.dynamicType);
       _unfinishedNullShorts.add(node.nullShortingTermination);
@@ -1652,7 +1652,7 @@ class ResolverVisitor extends ScopedVisitor {
     target?.accept(this);
 
     if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _isNonNullableByDefault) {
+        _flowAnalysis != null) {
       if (target is SimpleIdentifier && target.staticElement is ClassElement) {
         // `?.` to access static methods is equivalent to `.`, so do nothing.
       } else {

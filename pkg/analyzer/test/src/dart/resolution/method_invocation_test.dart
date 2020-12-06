@@ -1703,6 +1703,20 @@ class B extends A {
     assertSuperExpression(invocation.target);
   }
 
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode('''
+void f({a = b?.foo()}) {}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
   test_namedArgument() async {
     var question = typeToStringWithNullability ? '?' : '';
     await assertNoErrorsInCode('''
