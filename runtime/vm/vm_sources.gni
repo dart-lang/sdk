@@ -21,6 +21,7 @@ vm_sources = [
   "bootstrap_natives.h",
   "bss_relocs.cc",
   "bss_relocs.h",
+  "canonical_tables.cc",
   "canonical_tables.h",
   "class_finalizer.cc",
   "class_finalizer.h",

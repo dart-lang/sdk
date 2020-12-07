@@ -4738,22 +4738,8 @@ class Library : public Object {
 
   void AddExport(const Namespace& ns) const;
 
-  void AddClassMetadata(const Class& cls,
-                        const Object& tl_owner,
-                        TokenPosition token_pos,
-                        intptr_t kernel_offset) const;
-  void AddFieldMetadata(const Field& field,
-                        TokenPosition token_pos,
-                        intptr_t kernel_offset) const;
-  void AddFunctionMetadata(const Function& func,
-                           TokenPosition token_pos,
-                           intptr_t kernel_offset) const;
-  void AddLibraryMetadata(const Object& tl_owner,
-                          TokenPosition token_pos,
-                          intptr_t kernel_offset) const;
-  void AddTypeParameterMetadata(const TypeParameter& param,
-                                TokenPosition token_pos) const;
-  ObjectPtr GetMetadata(const Object& obj) const;
+  void AddMetadata(const Object& declaration, intptr_t kernel_offset) const;
+  ObjectPtr GetMetadata(const Object& declaration) const;
 
   // Tries to finds a @pragma annotation on [object].
   //
@@ -4978,8 +4964,8 @@ class Library : public Object {
   void set_flags(uint8_t flags) const;
   bool HasExports() const;
   ArrayPtr loaded_scripts() const { return raw_ptr()->loaded_scripts(); }
-  GrowableObjectArrayPtr metadata() const { return raw_ptr()->metadata(); }
-  void set_metadata(const GrowableObjectArray& value) const;
+  ArrayPtr metadata() const { return raw_ptr()->metadata(); }
+  void set_metadata(const Array& value) const;
   ArrayPtr dictionary() const { return raw_ptr()->dictionary(); }
   void InitClassDictionary() const;
 
@@ -5007,13 +4993,6 @@ class Library : public Object {
 
   void AllocatePrivateKey() const;
 
-  StringPtr MakeMetadataName(const Object& obj) const;
-  FieldPtr GetMetadataField(const String& metaname) const;
-  void AddMetadata(const Object& owner,
-                   const String& name,
-                   TokenPosition token_pos,
-                   intptr_t kernel_offset) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
   friend class Bootstrap;
@@ -5031,14 +5010,10 @@ class Library : public Object {
 // the show/hide combinators.
 class Namespace : public Object {
  public:
-  LibraryPtr library() const { return raw_ptr()->library(); }
+  LibraryPtr target() const { return raw_ptr()->target(); }
   ArrayPtr show_names() const { return raw_ptr()->show_names(); }
   ArrayPtr hide_names() const { return raw_ptr()->hide_names(); }
-
-  void AddMetadata(const Object& owner,
-                   TokenPosition token_pos,
-                   intptr_t kernel_offset = 0);
-  ObjectPtr GetMetadata() const;
+  LibraryPtr owner() const { return raw_ptr()->owner(); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(NamespaceLayout));
@@ -5050,13 +5025,11 @@ class Namespace : public Object {
 
   static NamespacePtr New(const Library& library,
                           const Array& show_names,
-                          const Array& hide_names);
+                          const Array& hide_names,
+                          const Library& owner);
 
  private:
   static NamespacePtr New();
-
-  FieldPtr metadata_field() const { return raw_ptr()->metadata_field(); }
-  void set_metadata_field(const Field& value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
@@ -8264,6 +8237,13 @@ class TypeParameter : public AbstractType {
   }
   bool IsFunctionTypeParameter() const {
     return parameterized_function() != Function::null();
+  }
+  ObjectPtr Owner() const {
+    if (IsClassTypeParameter()) {
+      return parameterized_class();
+    } else {
+      return parameterized_function();
+    }
   }
 
   static intptr_t parameterized_class_id_offset() {
