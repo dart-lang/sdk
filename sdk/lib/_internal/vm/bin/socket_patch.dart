@@ -580,21 +580,22 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // attempt isn't made until either a previous attempt has *failed*,
     // or the delay has passed.
     // This ensures that at most *n* uncompleted connections can be
-    // active after *n* &times; *delay* time has passed.
+    // active after *n* × *delay* time has passed.
     if (host is String) {
       host = escapeLinkLocalAddress(host);
     }
     _throwOnBadPort(port);
     _InternetAddress? source;
-    if (sourceAddress is _InternetAddress) {
-      source = sourceAddress;
-    } else if (sourceAddress is String) {
-      source = new _InternetAddress.fromString(sourceAddress);
+    if (sourceAddress != null) {
+      if (sourceAddress is _InternetAddress) {
+        source = sourceAddress;
+      } else if (sourceAddress is String) {
+        source = new _InternetAddress.fromString(sourceAddress);
+      } else {
+        throw ArgumentError.value(sourceAddress, "sourceAddress",
+            "Must be a string or native InternetAddress");
+      }
     }
-    // Should we throw if sourceAddress is not one of:
-    // null, _InternetAddress or String?
-    // Is it somehow ensured upstream
-    // that only those three types will reach here?
     return new Future.value(host).then<List<InternetAddress>>((host) {
       if (host is _InternetAddress) return [host];
       return lookup(host).then((addresses) {
@@ -606,7 +607,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }).then((addresses) {
       assert(addresses.isNotEmpty);
       // Completer for result.
-      var completer = new Completer<_NativeSocket>();
+      var result = new Completer<_NativeSocket>();
       // Index of next address in [addresses] to try.
       var index = 0;
       // Error, set if an error occurs.
@@ -632,43 +633,55 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         if (index >= addresses.length) {
           if (connecting.isEmpty) {
             assert(error != null);
-            assert(!completer.isCompleted);
-            completer.completeError(error);
+            assert(!result.isCompleted);
+            result.completeError(error);
           }
           return;
         }
         final address = addresses[index++] as _InternetAddress;
         var socket = new _NativeSocket.normal(address);
-        var result;
-        if (source == null) {
-          if (address.type == InternetAddressType.unix) {
-            result = socket.nativeCreateUnixDomainConnect(
+        // Will contain values of various types representing the result
+        // of trying to create a connection.
+        // A value of `true` means success, everything else means failure.
+        Object? connectionResult;
+        if (address.type == InternetAddressType.unix) {
+          if (source == null) {
+            connectionResult = socket.nativeCreateUnixDomainConnect(
                 address.address, _Namespace._namespace);
           } else {
-            result = socket.nativeCreateConnect(
-                address._in_addr, port, address._scope_id);
-          }
-        } else {
-          if (address.type == InternetAddressType.unix) {
             assert(source.type == InternetAddressType.unix);
-            result = socket.nativeCreateUnixDomainBindConnect(
+            connectionResult = socket.nativeCreateUnixDomainBindConnect(
                 address.address, source.address, _Namespace._namespace);
+          }
+          assert(connectionResult == true ||
+              connectionResult is Error ||
+              connectionResult is OSError);
+        } else {
+          if (source == null) {
+            connectionResult = socket.nativeCreateConnect(
+                address._in_addr, port, address._scope_id);
           } else {
-            result = socket.nativeCreateBindConnect(
+            connectionResult = socket.nativeCreateBindConnect(
                 address._in_addr, port, source._in_addr, address._scope_id);
           }
+          assert(connectionResult == true || connectionResult is OSError);
         }
-        if (result is OSError) {
-          // Keep first error, if present.
-          if (error == null) {
-            int errorCode = result.errorCode;
+        if (connectionResult != true) {
+          // connectionResult was not a success.
+          if (connectionResult is OSError) {
+            int errorCode = connectionResult.errorCode;
             if (source != null &&
                 errorCode != null &&
                 socket.isBindError(errorCode)) {
-              error = createError(result, "Bind failed", source);
+              error = createError(connectionResult, "Bind failed", source);
             } else {
-              error = createError(result, "Connection failed", address, port);
+              error = createError(
+                  connectionResult, "Connection failed", address, port);
             }
+          } else if (connectionResult is Error) {
+            error = connectionResult;
+          } else {
+            error = createError(null, "Connection failed", address);
           }
           connectNext(); // Try again after failure to connect.
           return;
@@ -722,7 +735,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             s.setListening(read: false, write: false);
           }
           connecting.clear();
-          completer.complete(socket);
+          result.complete(socket);
         }, error: (e, st) {
           connecting.remove(socket);
           socket.close();
@@ -743,15 +756,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           s.setListening(read: false, write: false);
         }
         connecting.clear();
-        if (!completer.isCompleted) {
+        if (!result.isCompleted) {
           error ??= createError(null,
               "Connection attempt cancelled, host: ${host}, port: ${port}");
-          completer.completeError(error);
+          result.completeError(error);
         }
       }
 
       connectNext();
-      return new ConnectionTask<_NativeSocket>._(completer.future, onCancel);
+      return new ConnectionTask<_NativeSocket>._(result.future, onCancel);
     });
   }
 
