@@ -72,8 +72,11 @@ class CompletionResolveHandler
       );
     }
 
+    // If filterText is different to the label, it's because label has parens/args
+    // appended and we should take the basic label. We cannot use insertText as
+    // it may include snippets, whereas filterText is always just the pure string.
+    var requestedName = item.filterText ?? item.label;
     // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
-    var requestedName = item.insertText ?? item.label;
     if (requestedName.contains('.')) {
       requestedName = requestedName.substring(
         0,
@@ -173,8 +176,6 @@ class CompletionResolveHandler
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
           textEdit: TextEdit(
-            // TODO(dantup): If `clientSupportsSnippets == true` then we should map
-            // `selection` in to a snippet (see how Dart Code does this).
             range: toRange(lineInfo, data.rOffset, data.rLength),
             newText: newInsertText,
           ),
