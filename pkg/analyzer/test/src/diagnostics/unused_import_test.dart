@@ -318,6 +318,34 @@ f() {
 ''');
   }
 
+  test_extension_prefixed_isUsed() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+extension E on String {
+  String empty() => '';
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart' as lib1;
+
+f() {
+  ''.empty();
+}
+''');
+  }
+
+  test_extension_prefixed_notUsed() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+extension E on String {
+  String empty() => '';
+}
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart' as lib1;
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
+  }
+
   test_extension_static_field() async {
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
