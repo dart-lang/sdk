@@ -1438,6 +1438,8 @@ export 'dart:async' show Future, Stream;
 
 print(object) {}
 
+bool identical(a, b) => false;
+
 class Iterator<E> {
   bool moveNext() => null;
   E get current => null;

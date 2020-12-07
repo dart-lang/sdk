@@ -1834,7 +1834,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
-      bool isImplicitCall: false}) {
+      bool isImplicitCall: false,
+      Member staticTarget}) {
     int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
     if (extensionTypeParameterCount != 0) {
       return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
@@ -1854,7 +1855,8 @@ class TypeInferrerImpl implements TypeInferrer {
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
         isImplicitExtensionMember: isImplicitExtensionMember,
-        isImplicitCall: isImplicitCall);
+        isImplicitCall: isImplicitCall,
+        staticTarget: staticTarget);
   }
 
   InvocationInferenceResult _inferGenericExtensionMethodInvocation(
@@ -1870,7 +1872,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
-      bool isImplicitCall: false}) {
+      bool isImplicitCall: false,
+      Member staticTarget}) {
     FunctionType extensionFunctionType = new FunctionType(
         [calleeType.positionalParameters.first],
         const DynamicType(),
@@ -1887,7 +1890,8 @@ class TypeInferrerImpl implements TypeInferrer {
         skipTypeArgumentInference: skipTypeArgumentInference,
         receiverType: receiverType,
         isImplicitExtensionMember: isImplicitExtensionMember,
-        isImplicitCall: isImplicitCall);
+        isImplicitCall: isImplicitCall,
+        staticTarget: staticTarget);
     Substitution extensionSubstitution = Substitution.fromPairs(
         extensionFunctionType.typeParameters, extensionArguments.types);
 
@@ -1914,7 +1918,8 @@ class TypeInferrerImpl implements TypeInferrer {
         isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
-        isImplicitCall: isImplicitCall);
+        isImplicitCall: isImplicitCall,
+        staticTarget: staticTarget);
     arguments.positional.clear();
     arguments.positional.addAll(extensionArguments.positional);
     arguments.positional.addAll(targetArguments.positional);
@@ -1942,7 +1947,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
-      bool isImplicitCall}) {
+      bool isImplicitCall,
+      Member staticTarget}) {
     List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
     if (calleeTypeParameters.isNotEmpty) {
       // It's possible that one of the callee type parameters might match a type
@@ -2004,11 +2010,8 @@ class TypeInferrerImpl implements TypeInferrer {
           new List<DartType>.filled(
               calleeTypeParameters.length, const DynamicType()));
     }
-    TreeNode parent = arguments.parent;
-    bool isIdentical = arguments.positional.length == 2 &&
-        parent is StaticInvocation &&
-        parent.target.name.name == 'identical' &&
-        parent.target.parent == typeSchemaEnvironment.coreTypes.coreLibrary;
+    bool isIdentical =
+        staticTarget == typeSchemaEnvironment.coreTypes.identicalProcedure;
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
     for (int position = 0; position < arguments.positional.length; position++) {

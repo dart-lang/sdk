@@ -822,7 +822,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             function.returnType,
             charOffset,
             target.function.computeFunctionType(Nullability.nonNullable),
-            targetInvocationArguments);
+            targetInvocationArguments,
+            staticTarget: target);
         List<DartType> typeArguments;
         if (result.inferredType is InterfaceType) {
           typeArguments = (result.inferredType as InterfaceType).typeArguments;

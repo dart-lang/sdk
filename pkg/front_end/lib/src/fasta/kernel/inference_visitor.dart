@@ -422,7 +422,7 @@ class InferenceVisitor
         computeConstructorReturnType(node.target, inferrer.coreTypes));
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, functionType, node.arguments,
-        isConst: node.isConst);
+        isConst: node.isConst, staticTarget: node.target);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (!hasExplicitTypeArguments) {
@@ -450,7 +450,8 @@ class InferenceVisitor
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments);
+        typeContext, node.fileOffset, calleeType, node.arguments,
+        staticTarget: node.target);
     Expression replacement = new StaticInvocation(node.target, node.arguments);
     if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
@@ -711,7 +712,7 @@ class InferenceVisitor
 
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, functionType, node.arguments,
-        isConst: node.isConst);
+        isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
     if (!inferrer.isTopLevel) {
@@ -742,7 +743,7 @@ class InferenceVisitor
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments,
-        isConst: node.isConst);
+        isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
     if (!inferrer.isTopLevel) {
@@ -770,7 +771,7 @@ class InferenceVisitor
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments,
-        isConst: node.isConst);
+        isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
     if (!inferrer.isTopLevel) {
@@ -5126,7 +5127,7 @@ class InferenceVisitor
             node.target.enclosingClass, inferrer.library.nonNullable));
     inferrer.inferInvocation(
         null, node.fileOffset, functionType, node.arguments,
-        skipTypeArgumentInference: true);
+        skipTypeArgumentInference: true, staticTarget: node.target);
     ArgumentsImpl.removeNonInferrableArgumentTypes(node.arguments);
   }
 
@@ -5294,7 +5295,8 @@ class InferenceVisitor
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments);
+        typeContext, node.fileOffset, calleeType, node.arguments,
+        staticTarget: node.target);
     if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
           node,
@@ -5341,7 +5343,7 @@ class InferenceVisitor
         inferrer.thisType);
     inferrer.inferInvocation(
         null, node.fileOffset, functionType, node.arguments,
-        skipTypeArgumentInference: true);
+        skipTypeArgumentInference: true, staticTarget: node.target);
   }
 
   @override
