@@ -26,8 +26,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
-  final List<bool> _sourcesFromRealImplementation = new List<bool>();
-  final List<bool> _sourcesUsedInLibrary = new List<bool>();
+  final List<bool> _sourcesFromRealImplementation = <bool>[];
+  final List<bool> _sourcesUsedInLibrary = <bool>[];
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
   NonNullableByDefaultCompiledMode compilationMode;
@@ -120,7 +120,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _binaryOffsetForStringTable = getBufferOffset();
 
     // Containers for the WTF-8 encoded strings.
-    final List<Uint8List> data = new List<Uint8List>();
+    final List<Uint8List> data = <Uint8List>[];
     int totalLength = 0;
     const int minLength = 1 << 16;
     Uint8List buffer;
@@ -561,7 +561,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeConstantTable(_constantIndexer);
       List<Library> libraries = component.libraries;
       if (libraryFilter != null) {
-        List<Library> librariesNew = new List<Library>();
+        List<Library> librariesNew = <Library>[];
         for (int i = 0; i < libraries.length; i++) {
           Library library = libraries[i];
           if (libraryFilter(library)) librariesNew.add(library);
@@ -773,7 +773,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     int length = _sourceUriIndexer.index.length;
     writeUInt32(length);
-    List<int> index = new List<int>(length);
+    List<int> index = new List<int>.filled(length, null);
 
     // Write data.
     int i = 0;
@@ -994,12 +994,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     leaveScope(memberScope: true);
 
     writeTypedefNodeList(node.typedefs);
-    classOffsets = new List<int>();
+    classOffsets = <int>[];
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeExtensionNodeList(node.extensions);
     writeFieldNodeList(node.fields);
-    procedureOffsets = new List<int>();
+    procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
@@ -2518,7 +2518,7 @@ class VariableIndexer {
   }
 
   void pushScope() {
-    scopes ??= new List<int>();
+    scopes ??= <int>[];
     scopes.add(stackHeight);
   }
 

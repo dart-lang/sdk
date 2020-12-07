@@ -25,7 +25,7 @@ class TableSelectorAssigner {
         _memberIdsForClass(cls, getter: true);
       }
     }
-    _selectorIdForMemberId = List(_unionFind.size);
+    _selectorIdForMemberId = List.filled(_unionFind.size, null);
     // Assign all selector IDs eagerly to make them independent of how they are
     // queried in later phases. This makes TFA test expectation files (which
     // contain selector IDs) more stable under changes to how selector IDs are

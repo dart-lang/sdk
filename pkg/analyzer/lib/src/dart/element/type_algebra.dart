@@ -239,7 +239,8 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       return const <TypeParameterElement>[];
     }
 
-    var freshElements = List<TypeParameterElement>(elements.length);
+    var freshElements =
+        List<TypeParameterElement>.filled(elements.length, null);
     for (var i = 0; i < elements.length; i++) {
       // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.

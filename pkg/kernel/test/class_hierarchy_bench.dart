@@ -243,7 +243,7 @@ main(List<String> args) {
     classIds[class_] = classIds.length;
   }
 
-  List<int> depth = new List(classes.length);
+  List<int> depth = new List.filled(classes.length, null);
   for (int i = 0; i < depth.length; ++i) {
     int parentDepth = 0;
     var classNode = classes[i];

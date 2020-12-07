@@ -91,7 +91,7 @@ class Setlet<E> extends SetBase<E> {
         // Do nothing.
         return false;
       } else {
-        List list = new List(CAPACITY);
+        List list = new List.filled(CAPACITY, null);
         list[0] = _contents;
         list[1] = element;
         _contents = list;

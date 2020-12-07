@@ -406,7 +406,7 @@ class ConstantEvaluationEngine {
     }
 
     int argumentCount = arguments.length;
-    var argumentValues = List<DartObjectImpl>(argumentCount);
+    var argumentValues = List<DartObjectImpl>.filled(argumentCount, null);
     Map<String, NamedExpression> namedNodes;
     Map<String, DartObjectImpl> namedValues;
     for (int i = 0; i < argumentCount; i++) {

@@ -168,8 +168,8 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   }
 
   List<T> toList() {
-    if (length == 0) return new List<T>(0);
-    List<T> list = new List<T>(length);
+    if (length == 0) return new List<T>.filled(0, null);
+    List<T> list = new List<T>.filled(length, null);
     int index = 0;
     Link<T> link = head;
     while (link.isNotEmpty) {

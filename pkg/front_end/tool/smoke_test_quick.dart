@@ -12,7 +12,7 @@ String get dartVm => Platform.executable;
 
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
-  List<Future> futures = new List<Future>();
+  List<Future> futures = <Future>[];
   futures.add(run(
       "pkg/front_end/test/explicit_creation_test.dart", ["--front-end-only"],
       filter: false));

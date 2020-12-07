@@ -24,9 +24,9 @@ class Link<T> implements Iterable<T> {
   List<T> toList({bool growable: true}) {
     List<T> result;
     if (!growable) {
-      result = new List<T>(slowLength());
+      result = new List<T>.filled(slowLength(), null);
     } else {
-      result = new List<T>();
+      result = <T>[];
       result.length = slowLength();
     }
     int i = 0;
@@ -46,9 +46,9 @@ class Link<T> implements Iterable<T> {
   List<E> mapToList<E>(E fn(T item), {bool growable: true}) {
     List<E> result;
     if (!growable) {
-      result = new List<E>(slowLength());
+      result = new List<E>.filled(slowLength(), null);
     } else {
-      result = new List<E>();
+      result = <E>[];
       result.length = slowLength();
     }
     int i = 0;

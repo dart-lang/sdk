@@ -245,7 +245,7 @@ class Call extends Statement {
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
-    final List<Type> argTypes = new List<Type>(args.values.length);
+    final List<Type> argTypes = new List<Type>.filled(args.values.length, null);
     for (int i = 0; i < args.values.length; i++) {
       final Type type = args.values[i].getComputedType(computedTypes);
       if (type == const EmptyType()) {
@@ -451,7 +451,7 @@ class CreateConcreteType extends Statement {
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
     bool hasRuntimeType = false;
-    final types = new List<Type>(flattenedTypeArgs.length);
+    final types = new List<Type>.filled(flattenedTypeArgs.length, null);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
       assert(computed is RuntimeType || computed is UnknownType);
@@ -483,7 +483,7 @@ class CreateRuntimeType extends Statement {
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
-    final types = new List<RuntimeType>(flattenedTypeArgs.length);
+    final types = new List<RuntimeType>.filled(flattenedTypeArgs.length, null);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
       assert(computed is RuntimeType || computed is UnknownType);
@@ -637,7 +637,7 @@ class Summary {
     //
     // The first `parameterCount` statements are Parameters.
 
-    List<Type> types = new List<Type>(_statements.length);
+    List<Type> types = new List<Type>.filled(_statements.length, null);
 
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
@@ -703,9 +703,9 @@ class Summary {
   }
 
   Args<Type> get argumentTypes {
-    final argTypes = new List<Type>(parameterCount);
-    final argNames =
-        new List<String>(parameterCount - positionalParameterCount);
+    final argTypes = new List<Type>.filled(parameterCount, null);
+    final argNames = new List<String>.filled(
+        parameterCount - positionalParameterCount, null);
     for (int i = 0; i < parameterCount; i++) {
       Parameter param = _statements[i] as Parameter;
       argTypes[i] = param.argumentType;
@@ -737,7 +737,7 @@ class Summary {
   }
 
   List<VariableDeclaration> get uncheckedParameters {
-    final params = List<VariableDeclaration>();
+    final params = <VariableDeclaration>[];
     for (Statement statement in _statements) {
       if (statement is TypeCheck &&
           statement.canAlwaysSkip &&

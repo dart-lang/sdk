@@ -1693,7 +1693,8 @@ class VariableDeclarationTest extends ParserTestCase {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
     TopLevelVariableDeclaration decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = astFactory.documentationComment(List<Token>(0));
+    Comment comment =
+        astFactory.documentationComment(List<Token>.filled(0, null));
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
     expect(varDecl.documentationComment, isNotNull);
@@ -1702,7 +1703,8 @@ class VariableDeclarationTest extends ParserTestCase {
 
   void test_getDocumentationComment_onNode() {
     VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
-    Comment comment = astFactory.documentationComment(List<Token>(0));
+    Comment comment =
+        astFactory.documentationComment(List<Token>.filled(0, null));
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
   }

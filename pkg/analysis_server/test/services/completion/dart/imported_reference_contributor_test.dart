@@ -3421,7 +3421,7 @@ class B {
     assertNotSuggested('_g');
     assertSuggestClass('bool');
     if (suggestConstructorsWithoutNew) {
-      assertSuggestConstructor('List');
+      assertSuggestConstructor('List.filled');
     }
   }
 

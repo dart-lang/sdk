@@ -77,7 +77,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool verbose: false,
     NnbdMode nnbdMode: NnbdMode.Weak}) async {
   List<Component> outputLoadedAdditionalDills =
-      new List<Component>(additionalDills.length);
+      new List<Component>.filled(additionalDills.length, null);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experiments),
       onError: (e) => throw e);

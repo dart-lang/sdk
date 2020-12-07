@@ -778,7 +778,7 @@ class CommandExecutorImpl implements CommandExecutor {
     // Start batch processes if needed.
     var runners = _batchProcesses[identifier];
     if (runners == null) {
-      runners = List<BatchRunnerProcess>(maxProcesses);
+      runners = List<BatchRunnerProcess>.filled(maxProcesses, null);
       for (var i = 0; i < maxProcesses; i++) {
         runners[i] = BatchRunnerProcess(useJson: identifier == "fasta");
       }

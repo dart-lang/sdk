@@ -89,7 +89,7 @@ void main() {
 
 void expectSplit(String s, bool splitAsCode, List<String> expectedWords,
     List<int> expectedOffsets) {
-  List<int> actualOffsets = new List<int>();
+  List<int> actualOffsets = <int>[];
   List<String> actualWords =
       splitStringIntoWords(s, actualOffsets, splitAsCode: splitAsCode);
   compareLists(actualWords, expectedWords);

@@ -125,7 +125,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   List<String> popIdentifierList(int count) {
     if (count == 0) return null;
-    List<String> list = new List<String>(count);
+    List<String> list = new List<String>.filled(count, null);
     bool isParserRecovery = false;
     for (int i = count - 1; i >= 0; i--) {
       popCharOffset();
@@ -387,7 +387,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
-    List<String> list = new List<String>(literalCount);
+    List<String> list = new List<String>.filled(literalCount, null);
     int charOffset = -1;
     for (int i = literalCount - 1; i >= 0; i--) {
       charOffset = pop();
@@ -1489,7 +1489,7 @@ class OutlineBuilder extends StackListenerImpl {
         formals = last;
       } else if (last is! ParserRecovery) {
         assert(last != null);
-        formals = new List<FormalParameterBuilder>(1);
+        formals = new List<FormalParameterBuilder>.filled(1, null);
         formals[0] = last;
       }
     } else if (count > 1) {
@@ -1833,7 +1833,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   List<FieldInfo> popFieldInfos(int count) {
     if (count == 0) return null;
-    List<FieldInfo> fieldInfos = new List<FieldInfo>(count);
+    List<FieldInfo> fieldInfos = new List<FieldInfo>.filled(count, null);
     bool isParserRecovery = false;
     for (int i = count - 1; i != -1; i--) {
       int charEndOffset = pop();
@@ -1928,7 +1928,7 @@ class OutlineBuilder extends StackListenerImpl {
           }
           if (bound == builder && bound.bound != null) {
             // Write out cycle.
-            List<String> via = new List<String>();
+            List<String> via = <String>[];
             bound = typeVariablesByName[builder.bound.name];
             while (bound != builder) {
               via.add(bound.name);

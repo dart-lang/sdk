@@ -3,7 +3,7 @@ import 'vm_service_coverage.dart' as helper;
 main(List<String> args) async {
   CoverageHelper coverageHelper = new CoverageHelper();
 
-  List<String> allArgs = new List<String>();
+  List<String> allArgs = <String>[];
   allArgs.addAll([
     "--disable-dart-dev",
     "--enable-asserts",

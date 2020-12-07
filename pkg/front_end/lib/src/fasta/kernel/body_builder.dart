@@ -1389,8 +1389,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<FormalParameterBuilder> formals =
         parameters.positionalParameters.length == 0
             ? null
-            : new List<FormalParameterBuilder>(
-                parameters.positionalParameters.length);
+            : new List<FormalParameterBuilder>.filled(
+                parameters.positionalParameters.length, null);
     for (int i = 0; i < parameters.positionalParameters.length; i++) {
       VariableDeclaration formal = parameters.positionalParameters[i];
       formals[i] = new FormalParameterBuilder(
@@ -3133,7 +3133,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (isSet) {
       buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
     } else {
-      List<MapEntry> mapEntries = new List<MapEntry>(setOrMapEntries.length);
+      List<MapEntry> mapEntries =
+          new List<MapEntry>.filled(setOrMapEntries.length, null);
       for (int i = 0; i < setOrMapEntries.length; ++i) {
         if (setOrMapEntries[i] is MapEntry) {
           mapEntries[i] = setOrMapEntries[i];
@@ -5456,7 +5457,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     int count = labelCount + expressionCount;
     List<Object> labelsAndExpressions =
         const FixedNullableList<Object>().pop(stack, count);
-    List<Label> labels = labelCount == 0 ? null : new List<Label>(labelCount);
+    List<Label> labels =
+        labelCount == 0 ? null : new List<Label>.filled(labelCount, null);
     List<Expression> expressions =
         new List<Expression>.filled(expressionCount, null, growable: true);
     int labelIndex = 0;

@@ -15,7 +15,7 @@ namespace dart {
   V(::, identical, ObjectIdentical, 0x19eb7f33)                                \
   V(ClassID, getID, ClassIDgetID, 0x4d140cb3)                                  \
   V(Object, Object., ObjectConstructor, 0x89c467da)                            \
-  V(List, ., ListFactory, 0x1892c890)                                          \
+  V(List, ., ListFactory, 0x1892cc51)                                          \
   V(_List, ., ObjectArrayAllocate, 0x4c9d39e2)                                 \
   V(_List, []=, ObjectArraySetIndexed, 0xe98d0a9e)                             \
   V(_GrowableList, []=, GrowableArraySetIndexed, 0xe98d0a9e)                   \

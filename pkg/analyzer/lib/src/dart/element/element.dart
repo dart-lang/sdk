@@ -1019,7 +1019,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       int count = superParameters.length;
       if (count > 0) {
         List<ParameterElement> implicitParameters =
-            List<ParameterElement>(count);
+            List<ParameterElement>.filled(count, null);
         for (int i = 0; i < count; i++) {
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
@@ -3167,7 +3167,7 @@ abstract class ElementImpl implements Element {
       return const <ElementAnnotation>[];
     }
 
-    var annotations = List<ElementAnnotation>(length);
+    var annotations = List<ElementAnnotation>.filled(length, null);
     for (int i = 0; i < length; i++) {
       var ast = nodeList[i];
       annotations[i] = ElementAnnotationImpl(unit)

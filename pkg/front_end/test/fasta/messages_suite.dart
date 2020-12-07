@@ -170,7 +170,7 @@ class MessageTestSuite extends ChainContext {
           int offset, String message, String messageForDenyListed) {
         if (source == null) {
           List<int> bytes = file.readAsBytesSync();
-          List<int> lineStarts = new List<int>();
+          List<int> lineStarts = <int>[];
           int indexOf = 0;
           while (indexOf >= 0) {
             lineStarts.add(indexOf);
@@ -179,7 +179,7 @@ class MessageTestSuite extends ChainContext {
           lineStarts.add(bytes.length);
           source = new Source(lineStarts, bytes, uri, uri);
         }
-        List<String> result = new List<String>();
+        List<String> result = <String>[];
         for (int i = 0; i < spellResult.misspelledWords.length; i++) {
           Location location = source.getLocation(
               uri, offset + spellResult.misspelledWordsOffset[i]);
@@ -217,7 +217,7 @@ class MessageTestSuite extends ChainContext {
                   spell.Dictionaries.cfeMessages
                 ]);
             if (spellingResult.misspelledWords != null) {
-              spellingMessages ??= new List<String>();
+              spellingMessages ??= <String>[];
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
@@ -236,7 +236,7 @@ class MessageTestSuite extends ChainContext {
                   spell.Dictionaries.cfeMessages
                 ]);
             if (spellingResult.misspelledWords != null) {
-              spellingMessages ??= new List<String>();
+              spellingMessages ??= <String>[];
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
@@ -741,7 +741,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
     List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
     if (example.allowMoreCodes) {
-      List<DiagnosticMessage> messagesFiltered = new List<DiagnosticMessage>();
+      List<DiagnosticMessage> messagesFiltered = <DiagnosticMessage>[];
       for (DiagnosticMessage message in messages) {
         if (getMessageCodeObject(message).name == example.expectedCode) {
           messagesFiltered.add(message);

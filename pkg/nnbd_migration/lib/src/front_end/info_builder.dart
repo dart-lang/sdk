@@ -252,7 +252,8 @@ class InfoBuilder {
     var files = collector.files;
     var regions = collector.regions;
     var rawTargets = collector.targets;
-    var convertedTargets = List<NavigationTarget>(rawTargets.length);
+    var convertedTargets =
+        List<NavigationTarget>.filled(rawTargets.length, null);
     return regions.map((region) {
       var targets = region.targets;
       if (targets.isEmpty) {

@@ -248,8 +248,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // default nullability of the corresponding type-parameter types.  This list
   // is used to collect such type-parameter types in order to set the
   // nullability after the bounds are built.
-  final List<TypeParameterType> pendingNullabilities =
-      new List<TypeParameterType>();
+  final List<TypeParameterType> pendingNullabilities = <TypeParameterType>[];
 
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of

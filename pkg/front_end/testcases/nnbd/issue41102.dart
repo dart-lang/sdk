@@ -14,7 +14,7 @@ final s1 = [];
 
 final s2 = s1?.length;
 
-final s3 = new List<int>(2);
+final s3 = new List<int>.filled(2, null);
 
 final s4 = () {
   var e = 0;

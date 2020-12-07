@@ -208,8 +208,9 @@ class Covariance {
     } else if (other._positionalParameters == null) {
       positionalParameters = _positionalParameters;
     } else {
-      positionalParameters = new List<int>(max(
-          _positionalParameters.length, other._positionalParameters.length));
+      positionalParameters = new List<int>.filled(
+          max(_positionalParameters.length, other._positionalParameters.length),
+          null);
       for (int index = 0; index < positionalParameters.length; index++) {
         positionalParameters[index] =
             getPositionalVariance(index) | other.getPositionalVariance(index);
@@ -237,8 +238,8 @@ class Covariance {
     } else if (other._typeParameters == null) {
       typeParameters = _typeParameters;
     } else {
-      typeParameters = new List<bool>(
-          max(_typeParameters.length, other._typeParameters.length));
+      typeParameters = new List<bool>.filled(
+          max(_typeParameters.length, other._typeParameters.length), null);
       for (int index = 0; index < typeParameters.length; index++) {
         typeParameters[index] = isTypeParameterGenericCovariantImpl(index) ||
             other.isTypeParameterGenericCovariantImpl(index);

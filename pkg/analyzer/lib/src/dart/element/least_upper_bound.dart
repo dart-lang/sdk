@@ -135,7 +135,7 @@ class InstantiatedClass {
   List<InstantiatedClass> _toInstantiatedClasses(
     List<InterfaceType> interfaces,
   ) {
-    var result = List<InstantiatedClass>(interfaces.length);
+    var result = List<InstantiatedClass>.filled(interfaces.length, null);
     for (var i = 0; i < interfaces.length; i++) {
       var interface = interfaces[i];
       var substituted = _substitution.substituteType(interface);
@@ -196,7 +196,7 @@ class InterfaceLeastUpperBoundHelper {
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
-      var args = List<DartType>(args1.length);
+      var args = List<DartType>.filled(args1.length, null);
       for (int i = 0; i < args1.length; i++) {
         // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.

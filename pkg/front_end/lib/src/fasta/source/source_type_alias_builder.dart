@@ -84,7 +84,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     TypeBuilder type = this.type;
     if (type is FunctionTypeBuilder) {
       List<TypeParameter> typeParameters =
-          new List<TypeParameter>(type.typeVariables?.length ?? 0);
+          new List<TypeParameter>.filled(type.typeVariables?.length ?? 0, null);
       for (int i = 0; i < typeParameters.length; ++i) {
         TypeVariableBuilder typeVariable = type.typeVariables[i];
         typeParameters[i] = typeVariable.parameter;

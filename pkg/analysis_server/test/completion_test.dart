@@ -181,7 +181,7 @@ class List{add(){}length(){}}t1() {var x;if (x is List) {x.!1add(3);}}''',
 
     // Type propagation
     buildTests('testCommentSnippets035', '''
-class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear();}''',
+class List{clear(){}length(){}}t3() {var x=[], y=x.!1length();x.!2clear();}''',
         <String>['1+length', '2+clear']);
 
     buildTests('testCommentSnippets036', '''
@@ -1829,7 +1829,7 @@ void b() {
   var x = [Q.!2]
 }
 void c() {
-  var x = new List([Q.!3])
+  var x = new List.filled([Q.!3], null)
 }
 void d() {
   new Q.!4

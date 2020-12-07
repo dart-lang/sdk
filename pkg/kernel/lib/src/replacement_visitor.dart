@@ -35,7 +35,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
     Substitution substitution;
     if (newTypeParameters != null) {
       List<TypeParameterType> typeParameterTypes =
-          new List<TypeParameterType>(newTypeParameters.length);
+          new List<TypeParameterType>.filled(newTypeParameters.length, null);
       for (int i = 0; i < newTypeParameters.length; i++) {
         typeParameterTypes[i] = new TypeParameterType.forAlphaRenaming(
             node.typeParameters[i], newTypeParameters[i]);

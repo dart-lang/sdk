@@ -10341,7 +10341,7 @@ class _Hash {
 
   static int combineMapHashUnordered(Map map, [int hash = 2]) {
     if (map == null || map.isEmpty) return hash;
-    List<int> entryHashes = List(map.length);
+    List<int> entryHashes = List.filled(map.length, null);
     int i = 0;
     for (core.MapEntry entry in map.entries) {
       entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);

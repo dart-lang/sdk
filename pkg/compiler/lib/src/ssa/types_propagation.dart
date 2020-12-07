@@ -31,7 +31,7 @@ import 'optimize.dart';
 // targeted conditioning checks.
 class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final Map<int, HInstruction> workmap = new Map<int, HInstruction>();
-  final List<int> worklist = new List<int>();
+  final List<int> worklist = <int>[];
   final Map<HInstruction, Function> pendingOptimizations =
       new Map<HInstruction, Function>();
 

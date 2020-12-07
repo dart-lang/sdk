@@ -708,7 +708,7 @@ extension ClassFieldsExtension on DirectParserASTContentClassFieldsEnd {
     // of the fields.
     int countLeft = count;
     List<DirectParserASTContentIdentifierHandle> identifiers =
-        new List<DirectParserASTContentIdentifierHandle>(count);
+        new List<DirectParserASTContentIdentifierHandle>.filled(count, null);
     for (int i = children.length - 1; i >= 0; i--) {
       DirectParserASTContent child = children[i];
       if (child is DirectParserASTContentIdentifierHandle) {

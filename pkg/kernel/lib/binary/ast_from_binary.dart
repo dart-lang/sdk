@@ -269,7 +269,7 @@ class BinaryBuilder {
   void readStringTable(List<String> table) {
     // Read the table of end offsets.
     int length = readUInt30();
-    List<int> endOffsets = new List<int>(length);
+    List<int> endOffsets = new List<int>.filled(length, null);
     for (int i = 0; i < length; ++i) {
       endOffsets[i] = readUInt30();
     }
@@ -357,7 +357,7 @@ class BinaryBuilder {
         final TearOffConstant tearOffConstant =
             readConstantReference() as TearOffConstant;
         final int length = readUInt30();
-        final List<DartType> types = new List<DartType>(length);
+        final List<DartType> types = new List<DartType>.filled(length, null);
         for (int i = 0; i < length; i++) {
           types[i] = readDartType();
         }
@@ -462,7 +462,7 @@ class BinaryBuilder {
 
   void readLinkTable(CanonicalName linkRoot) {
     int length = readUInt30();
-    _linkTable = new List<CanonicalName>(length);
+    _linkTable = new List<CanonicalName>.filled(length, null);
     for (int i = 0; i < length; ++i) {
       int biasedParentIndex = readUInt30();
       String name = readStringReference();
@@ -543,7 +543,7 @@ class BinaryBuilder {
       int componentFileIndex = 0;
       List<SubComponentView> views;
       if (createView) {
-        views = new List<SubComponentView>();
+        views = <SubComponentView>[];
       }
       while (_byteOffset < _bytes.length) {
         SubComponentView view = _readOneComponent(
@@ -672,7 +672,7 @@ class BinaryBuilder {
     result.libraryCount = readUint32();
     // Library offsets are used for start and end offsets, so there is one extra
     // element that this the end offset of the last library
-    result.libraryOffsets = new List<int>(result.libraryCount + 1);
+    result.libraryOffsets = new List<int>.filled(result.libraryCount + 1, null);
     result.componentFileSizeInBytes = readUint32();
     if (result.componentFileSizeInBytes != componentFileSize) {
       throw "Malformed binary: This component file's component index indicates "
@@ -783,8 +783,10 @@ class BinaryBuilder {
 
     SubComponentView result;
     if (createView) {
-      result = new SubComponentView(new List<Library>(numberOfLibraries),
-          _componentStartOffset, componentFileSize);
+      result = new SubComponentView(
+          new List<Library>.filled(numberOfLibraries, null),
+          _componentStartOffset,
+          componentFileSize);
     }
 
     for (int i = 0; i < numberOfLibraries; ++i) {
@@ -831,7 +833,7 @@ class BinaryBuilder {
       _sourceUriTable[i] = uri;
       Uint8List sourceCode = readByteList();
       int lineCount = readUInt30();
-      List<int> lineStarts = new List<int>(lineCount);
+      List<int> lineStarts = new List<int>.filled(lineCount, null);
       int previousLineStart = 0;
       for (int j = 0; j < lineCount; ++j) {
         int lineStart = readUInt30() + previousLineStart;
@@ -977,7 +979,7 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>(procedureCount + 1);
+    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, and then the class count (i.e. procedure count + 3 fields).
@@ -986,7 +988,7 @@ class BinaryBuilder {
     for (int i = 0; i < procedureCount + 1; i++) {
       procedureOffsets[i] = _componentStartOffset + readUint32();
     }
-    List<int> classOffsets = new List<int>(classCount + 1);
+    List<int> classOffsets = new List<int>.filled(classCount + 1, null);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, then the class count and that number + 1 (for the end) offsets.
@@ -1173,7 +1175,7 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>(procedureCount + 1);
+    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets (i.e. procedure count + 2 fields).
     _byteOffset = endOffset - (procedureCount + 2) * 4;
@@ -1827,7 +1829,8 @@ class BinaryBuilder {
           fieldValues[fieldRef] = value;
         }
         int assertCount = readUInt30();
-        List<AssertStatement> asserts = new List<AssertStatement>(assertCount);
+        List<AssertStatement> asserts =
+            new List<AssertStatement>.filled(assertCount, null);
         for (int i = 0; i < assertCount; i++) {
           asserts[i] = readStatement();
         }

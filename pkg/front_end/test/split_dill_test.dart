@@ -33,7 +33,7 @@ main() async {
   component.computeCanonicalNames();
 
   stopwatch.reset();
-  List<List<int>> libComponents = new List<List<int>>();
+  List<List<int>> libComponents = <List<int>>[];
   for (Library lib in component.libraries) {
     Component libComponent = new Component(nameRoot: component.root);
     libComponent.libraries.add(lib);

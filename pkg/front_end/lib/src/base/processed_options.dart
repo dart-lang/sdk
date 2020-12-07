@@ -216,7 +216,8 @@ class ProcessedOptions {
         command_line_reporting.format(message, severity, location: location);
     List<FormattedMessage> formattedContext;
     if (context != null && context.isNotEmpty) {
-      formattedContext = new List<FormattedMessage>(context.length);
+      formattedContext =
+          new List<FormattedMessage>.filled(context.length, null);
       for (int i = 0; i < context.length; i++) {
         formattedContext[i] = format(context[i], Severity.context, null);
       }

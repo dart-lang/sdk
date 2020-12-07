@@ -34,7 +34,7 @@ class StringCanonicalizer {
   int _count = 0;
 
   /// The table itself.
-  List<Node> _nodes = new List<Node>(INITIAL_SIZE);
+  List<Node> _nodes = new List<Node>.filled(INITIAL_SIZE, null);
 
   static String decode(List<int> data, int start, int end, bool asciiOnly) {
     String s;
@@ -64,7 +64,7 @@ class StringCanonicalizer {
 
   rehash() {
     int newSize = _size * 2;
-    List<Node> newNodes = new List<Node>(newSize);
+    List<Node> newNodes = new List<Node>.filled(newSize, null);
     for (int i = 0; i < _size; i++) {
       Node t = _nodes[i];
       while (t != null) {
@@ -117,7 +117,7 @@ class StringCanonicalizer {
 
   clear() {
     _size = INITIAL_SIZE;
-    _nodes = new List<Node>(_size);
+    _nodes = new List<Node>.filled(_size, null);
     _count = 0;
   }
 }

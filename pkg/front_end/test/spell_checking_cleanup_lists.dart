@@ -14,7 +14,7 @@ main() {
     for (spell.Dictionaries dictionary in spell.Dictionaries.values) {
       if (dictionary == spell.Dictionaries.common) continue;
       Uri uri = spell.dictionaryToUri(dictionary);
-      List<String> keep = new List<String>();
+      List<String> keep = <String>[];
       for (String line in new File.fromUri(uri).readAsLinesSync()) {
         if (!commonWords.contains(line)) {
           keep.add(line);
@@ -30,7 +30,7 @@ main() {
     Set<String> codeWords =
         spell.loadedDictionaries[spell.Dictionaries.cfeCode];
     Uri uri = spell.dictionaryToUri(spell.Dictionaries.cfeTests);
-    List<String> keep = new List<String>();
+    List<String> keep = <String>[];
     for (String line in new File.fromUri(uri).readAsLinesSync()) {
       if (!codeWords.contains(line)) {
         keep.add(line);

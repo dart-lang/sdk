@@ -3808,7 +3808,7 @@ class StringUtilitiesTest {
 
   void test_printListOfQuotedNames_empty() {
     expect(() {
-      StringUtilities.printListOfQuotedNames(List<String>(0));
+      StringUtilities.printListOfQuotedNames(List<String>.filled(0, null));
     }, throwsArgumentError);
   }
 

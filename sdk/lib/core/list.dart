@@ -27,7 +27,7 @@ part of dart.core;
  * The following code illustrates that some List implementations support
  * only a subset of the API.
  *
- *     List<int> fixedLengthList = new List(5);
+ *     List<int> fixedLengthList = new List.filled(5);
  *     fixedLengthList.length = 0;  // Error
  *     fixedLengthList.add(499);    // Error
  *     fixedLengthList[0] = 87;
@@ -55,13 +55,16 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Creates a list of the given length.
    *
-   * This constructor will throw an exception if [E] is not a nullable type.
-   * In this case, another constructor such as [List.filled] must be used
-   * instead.
+   * **NOTICE**: This constructor cannot be used in null-safe code.
+   * Use [List.filled] to create a non-empty list.
+   * This requires a fill value to initialize the list elements with.
+   * To create an empty list, use `[]` for a growable list or
+   * `List.empty` for a fixed length list (or where growability is determined
+   * at run-time).
    *
    * The created list is fixed-length if [length] is provided.
    *
-   *     List fixedLengthList = new List(3);
+   *     List fixedLengthList = new List.filled(3);
    *     fixedLengthList.length;     // 3
    *     fixedLengthList.length = 1; // Error
    *
@@ -84,14 +87,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * If the element type is not nullable, [length] must not be greater than
    * zero.
-   *
-   * This constructor cannot be used in null-safe code.
-   * Use [List.filled] to create a non-empty list.
-   * This requires a fill value to initialize the list elements with.
-   * To create an empty list, use `[]` for a growable list or
-   * `List.empty` for a fixed length list (or where growability is determined
-   * at run-time).
    */
+  @deprecated
   external factory List([int? length]);
 
   /**
@@ -705,7 +702,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * Example:
    * ```dart
-   *  List<int> list = new List(3);
+   *  List<int> list = new List.filled(3);
    *     list.fillRange(0, 2, 1);
    *     print(list); //  [1, 1, null]
    * ```

@@ -518,7 +518,7 @@ abstract class Stack {
 }
 
 class StackImpl implements Stack {
-  List<Object> array = new List<Object>(/* length = */ 8);
+  List<Object> array = new List<Object>.filled(/* length = */ 8, null);
   int arrayLength = 0;
 
   bool get isNotEmpty => arrayLength > 0;
@@ -581,14 +581,14 @@ class StackImpl implements Stack {
 
   List<Object> get values {
     final int length = arrayLength;
-    final List<Object> list = new List<Object>(length);
+    final List<Object> list = new List<Object>.filled(length, null);
     list.setRange(/* start = */ 0, length, array);
     return list;
   }
 
   void _grow() {
     final int length = array.length;
-    final List<Object> newArray = new List<Object>(length * 2);
+    final List<Object> newArray = new List<Object>.filled(length * 2, null);
     newArray.setRange(/* start = */ 0, length, array, /* skipCount = */ 0);
     array = newArray;
   }
@@ -597,7 +597,7 @@ class StackImpl implements Stack {
 class DebugStack implements Stack {
   Stack realStack = new StackImpl();
   Stack stackTraceStack = new StackImpl();
-  List<StackTrace> latestStacktraces = new List<StackTrace>();
+  List<StackTrace> latestStacktraces = <StackTrace>[];
 
   @override
   Object operator [](int index) {
@@ -654,13 +654,14 @@ class FixedNullableList<T> {
 
   List<T> pop(Stack stack, int count, [NullValue nullValue]) {
     if (count == 0) return null;
-    return stack.popList(count, new List<T>(count), nullValue);
+    return stack.popList(count, new List<T>.filled(count, null), nullValue);
   }
 
   List<T> popPadded(Stack stack, int count, int padding,
       [NullValue nullValue]) {
     if (count + padding == 0) return null;
-    return stack.popList(count, new List<T>(count + padding), nullValue);
+    return stack.popList(
+        count, new List<T>.filled(count + padding, null), nullValue);
   }
 }
 

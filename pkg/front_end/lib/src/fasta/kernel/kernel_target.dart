@@ -198,7 +198,7 @@ class KernelTarget extends TargetImplementation {
 
   /// Return list of same size as input with possibly translated uris.
   List<Uri> setEntryPoints(List<Uri> entryPoints) {
-    List<Uri> result = new List<Uri>();
+    List<Uri> result = <Uri>[];
     for (Uri entryPoint in entryPoints) {
       Uri translatedEntryPoint =
           getEntryPointUri(entryPoint, issueProblem: true);
@@ -842,7 +842,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
-    List<DartType> typeParameterTypes = new List<DartType>();
+    List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
       typeParameterTypes.add(

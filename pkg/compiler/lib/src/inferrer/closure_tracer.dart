@@ -15,7 +15,7 @@ import 'type_graph_nodes.dart';
 class ClosureTracerVisitor extends TracerVisitor {
   final Iterable<FunctionEntity> tracedElements;
   final List<CallSiteTypeInformation> _callsToAnalyze =
-      new List<CallSiteTypeInformation>();
+      <CallSiteTypeInformation>[];
 
   ClosureTracerVisitor(this.tracedElements, ApplyableTypeInformation tracedType,
       InferrerEngine inferrer)

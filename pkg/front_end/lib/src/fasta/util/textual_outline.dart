@@ -270,7 +270,7 @@ class _PartOfChunk extends _TokenChunk {
 }
 
 abstract class _ClassChunk extends _SortableChunk {
-  List<_Chunk> content = new List<_Chunk>();
+  List<_Chunk> content = <_Chunk>[];
   Token headerEnd;
   Token footerStart;
 
@@ -424,7 +424,7 @@ String textualOutline(List<int> rawBytes,
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
-  List<_Chunk> parsedChunks = new List<_Chunk>();
+  List<_Chunk> parsedChunks = <_Chunk>[];
 
   BoxedInt originalPosition = new BoxedInt(0);
 
@@ -482,7 +482,7 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
   StringBuffer sb = new StringBuffer();
   for (_Chunk chunk in chunks) {
     if (chunk is _MetadataChunk) {
-      metadataChunks ??= new List<_MetadataChunk>();
+      metadataChunks ??= <_MetadataChunk>[];
       metadataChunks.add(chunk);
     } else {
       chunk.metadata = metadataChunks;
@@ -491,7 +491,7 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
       sb.clear();
 
       if (chunk is _SingleImportExportChunk) {
-        importExportChunks ??= new List<_SingleImportExportChunk>();
+        importExportChunks ??= <_SingleImportExportChunk>[];
         importExportChunks.add(chunk);
       } else {
         if (importExportChunks != null) {

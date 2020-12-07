@@ -115,7 +115,8 @@ abstract class TypeInformation {
 
   // The below is not a compile time constant to make it differentiable
   // from other empty lists of [TypeInformation].
-  static final STOP_TRACKING_INPUTS_MARKER = new List<TypeInformation>(0);
+  static final STOP_TRACKING_INPUTS_MARKER =
+      new List<TypeInformation>.filled(0, null);
 
   bool areInputsTracked() {
     return inputs != STOP_TRACKING_INPUTS_MARKER;

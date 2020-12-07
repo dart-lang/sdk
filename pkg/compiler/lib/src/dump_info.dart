@@ -442,7 +442,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom) {
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
-    inlineMap.putIfAbsent(inlinedFrom, () => new List<Entity>());
+    inlineMap.putIfAbsent(inlinedFrom, () => <Entity>[]);
     inlineMap[inlinedFrom].add(element);
   }
 
@@ -486,9 +486,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   void registerEntityAst(Entity entity, jsAst.Node code,
       {LibraryEntity library}) {
     if (compiler.options.dumpInfo) {
-      _entityToNodes
-          .putIfAbsent(entity, () => new List<jsAst.Node>())
-          .add(code);
+      _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
       _nodeData[code] ??= useBinaryFormat ? new CodeSpan() : new _CodeData();
     }
   }

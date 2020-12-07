@@ -369,7 +369,8 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
   bool invalidated = false;
 
   _ClosedWorldClassHierarchySubtypes(this.hierarchy)
-      : _classesByTopDownIndex = new List<Class>(hierarchy._infoMap.length) {
+      : _classesByTopDownIndex =
+            new List<Class>.filled(hierarchy._infoMap.length, null) {
     hierarchy.allBetsOff = true;
     if (hierarchy._infoMap.isNotEmpty) {
       for (Class class_ in hierarchy._infoMap.keys) {
@@ -460,7 +461,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       onAmbiguousSupertypes(class_, a, b);
       List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
       if (recorded == null) {
-        recorded = new List<Supertype>();
+        recorded = <Supertype>[];
         _recordedAmbiguousSupertypes[class_] = recorded;
       }
       recorded.add(a);
@@ -473,7 +474,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       new LinkedHashMap<Class, _ClassInfo>();
 
   List<ForTestingClassInfo> getTestingClassInfo() {
-    List<ForTestingClassInfo> result = new List<ForTestingClassInfo>();
+    List<ForTestingClassInfo> result = <ForTestingClassInfo>[];
     for (_ClassInfo info in _infoMap.values) {
       result.add(new ForTestingClassInfo._(info));
     }
@@ -487,7 +488,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   List<Class> getUsedClasses() {
-    List<Class> result = new List<Class>();
+    List<Class> result = <Class>[];
     for (_ClassInfo classInfo in _infoMap.values) {
       if (classInfo.used) {
         result.add(classInfo.classNode);
@@ -928,7 +929,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
 
     // Add the new classes.
-    List<Class> addedClassesSorted = new List<Class>();
+    List<Class> addedClassesSorted = <Class>[];
     int expectedStartIndex = _topSortIndex;
     for (Library lib in ensureKnownLibraries) {
       if (knownLibraries.contains(lib)) continue;
@@ -955,7 +956,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       {bool findDescendants: false}) {
     if (classes.isEmpty) return this;
 
-    List<_ClassInfo> infos = new List<_ClassInfo>();
+    List<_ClassInfo> infos = <_ClassInfo>[];
     if (findDescendants) {
       Set<_ClassInfo> processedClasses = new Set<_ClassInfo>();
       List<_ClassInfo> worklist = <_ClassInfo>[];
@@ -1214,7 +1215,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         }
       }
     } else {
-      members = new List<Member>();
+      members = <Member>[];
       for (Procedure procedure in classNode.procedures) {
         if (procedure.isStatic) continue;
         if (procedure.kind == ProcedureKind.Setter) {

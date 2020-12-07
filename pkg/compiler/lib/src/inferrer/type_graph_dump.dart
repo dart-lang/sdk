@@ -136,7 +136,7 @@ class TypeGraphDump {
 class _GraphGenerator extends TypeInformationVisitor {
   final TypeGraphDump global;
   final Set<TypeInformation> seen = new Set<TypeInformation>();
-  final List<TypeInformation> worklist = new List<TypeInformation>();
+  final List<TypeInformation> worklist = <TypeInformation>[];
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   final String Function(AbstractValue) formatType;
   int usedIds = 0;

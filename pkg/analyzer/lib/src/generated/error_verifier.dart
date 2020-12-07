@@ -1529,7 +1529,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = element.displayName;
       List<Element> conflictingMembers = element.conflictingElements;
       int count = conflictingMembers.length;
-      List<String> libraryNames = List<String>(count);
+      List<String> libraryNames = List<String>.filled(count, null);
       for (int i = 0; i < count; i++) {
         libraryNames[i] = _getLibraryName(conflictingMembers[i]);
       }

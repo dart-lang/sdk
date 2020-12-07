@@ -3816,12 +3816,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
-    // Recognize `List()` and `List(n)`.
+    // Recognize `[]` and `List.filled(n, null)`.
     if (_commonElements.isUnnamedListConstructor(function)) {
       if (invocation.arguments.named.isEmpty) {
         int argumentCount = invocation.arguments.positional.length;
         if (argumentCount == 0) {
-          // `List()` takes no arguments, `JSArray.list()` takes a sentinel.
+          // `[]` takes no arguments, `JSArray.list()` takes a sentinel.
           assert(arguments.length == 0 || arguments.length == 1,
               '\narguments: $arguments\n');
           _handleInvokeLegacyGrowableListFactoryConstructor(
@@ -3936,14 +3936,14 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
   }
 
-  /// Handle the legacy `List<T>()` constructor.
+  /// Handle the legacy `<T>[]` constructor.
   void _handleInvokeLegacyGrowableListFactoryConstructor(
       ir.StaticInvocation invocation,
       ConstructorEntity function,
       AbstractValue typeMask,
       List<HInstruction> arguments,
       SourceInformation sourceInformation) {
-    // `List<T>()` is essentially the same as `<T>[]`.
+    // `<T>[]` is essentially the same as `<T>[]`.
     push(_buildLiteralList(<HInstruction>[]));
     HInstruction allocation = pop();
     var inferredType = globalInferenceResults.typeOfNewList(invocation);
@@ -3956,7 +3956,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _setListRuntimeTypeInfoIfNeeded(allocation, type, sourceInformation));
   }
 
-  /// Handle the `JSArray<T>.list(length)` and legacy `List<T>(length)`
+  /// Handle the `JSArray<T>.list(length)` and legacy `List<T>.filled(length, null)`
   /// constructors.
   void _handleInvokeLegacyFixedListFactoryConstructor(
       ir.StaticInvocation invocation,
@@ -5215,7 +5215,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     var argumentsInstruction = _buildLiteralList(arguments);
     add(argumentsInstruction);
 
-    var argumentNames = new List<HInstruction>();
+    var argumentNames = <HInstruction>[];
     for (String argumentName in selector.namedArguments) {
       ConstantValue argumentNameConstant =
           constant_system.createString(argumentName);
@@ -5865,10 +5865,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     ParameterStructure parameterStructure = function.parameterStructure;
     List<String> selectorArgumentNames =
         selector.callStructure.getOrderedNamedArguments();
-    List<HInstruction> compiledArguments = new List<HInstruction>(
+    List<HInstruction> compiledArguments = new List<HInstruction>.filled(
         parameterStructure.totalParameters +
             parameterStructure.typeParameters +
-            1); // Plus one for receiver.
+            1,
+        null); // Plus one for receiver.
 
     int compiledArgumentIndex = 0;
 

@@ -14,7 +14,7 @@ main() {
 }
 
 List<int> _b(int length) {
-  return List<int>(length);
+  return List<int>.filled(length, null);
 }
 
 @reflectiveTest

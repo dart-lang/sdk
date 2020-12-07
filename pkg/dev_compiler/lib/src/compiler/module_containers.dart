@@ -227,7 +227,7 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
   @override
   List<js_ast.Statement> emit() {
     if (moduleItems.isEmpty) return [];
-    var properties = List<js_ast.Expression>(length);
+    var properties = List<js_ast.Expression>.filled(length, null);
 
     // If the entire array holds just one value, generate a short initializer.
     var valueSet = <js_ast.Expression>{};

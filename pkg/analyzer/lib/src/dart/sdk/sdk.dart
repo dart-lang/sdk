@@ -142,7 +142,7 @@ abstract class AbstractDartSdk implements DartSdk {
   String _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
-    List<String> paths = List(length);
+    List<String> paths = List.filled(length, null);
     String filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;

@@ -331,7 +331,7 @@ class PreviousTokenStreamChange implements TokenStreamChange {
 /// implementation does this by rewriting the previous token to point to the
 /// inserted token. It also allows to undo these changes.
 class UndoableTokenStreamRewriter extends TokenStreamRewriter {
-  List<TokenStreamChange> _changes = new List<TokenStreamChange>();
+  List<TokenStreamChange> _changes = <TokenStreamChange>[];
 
   void undo() {
     for (int i = _changes.length - 1; i >= 0; i--) {

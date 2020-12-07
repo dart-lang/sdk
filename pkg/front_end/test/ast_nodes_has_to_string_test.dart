@@ -56,13 +56,13 @@ main(List<String> args) async {
               .toList();
           if (toStringList.length > 1) throw "What?";
           if (toStringList.length == 1) {
-            classMapWithOne[c.fileUri] ??= new List<Class>();
+            classMapWithOne[c.fileUri] ??= <Class>[];
             classMapWithOne[c.fileUri].add(c);
             continue;
           }
           toGo++;
 
-          classMap[c.fileUri] ??= new List<Class>();
+          classMap[c.fileUri] ??= <Class>[];
           classMap[c.fileUri].add(c);
         }
       }

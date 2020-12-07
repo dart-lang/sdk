@@ -794,7 +794,7 @@ mixin StandardBounds {
         int n = klass.typeParameters.length;
         List<DartType> leftArguments = type1.typeArguments;
         List<DartType> rightArguments = type2.typeArguments;
-        List<DartType> typeArguments = new List<DartType>(n);
+        List<DartType> typeArguments = new List<DartType>.filled(n, null);
         for (int i = 0; i < n; ++i) {
           int variance = klass.typeParameters[i].variance;
           if (variance == Variance.contravariant) {
@@ -1367,7 +1367,8 @@ mixin StandardBounds {
     // Calculate the SUB of each corresponding pair of parameters.
     int totalPositional =
         math.max(f.positionalParameters.length, g.positionalParameters.length);
-    List<DartType> positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters =
+        new List<DartType>.filled(totalPositional, null);
     for (int i = 0; i < totalPositional; i++) {
       if (i < f.positionalParameters.length) {
         DartType fType = f.positionalParameters[i];
@@ -1470,7 +1471,8 @@ mixin StandardBounds {
     // other.
     int totalPositional =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
-    List<DartType> positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters =
+        new List<DartType>.filled(totalPositional, null);
     for (int i = 0; i < totalPositional; i++) {
       positionalParameters[i] = getStandardLowerBound(
           f.positionalParameters[i], g.positionalParameters[i], clientLibrary);
@@ -1549,7 +1551,7 @@ mixin StandardBounds {
 
       assert(tArgs1.length == tArgs2.length);
       assert(tArgs1.length == tParams.length);
-      List<DartType> tArgs = new List(tArgs1.length);
+      List<DartType> tArgs = new List.filled(tArgs1.length, null);
       for (int i = 0; i < tArgs1.length; i++) {
         if (tParams[i].variance == Variance.contravariant) {
           tArgs[i] = getStandardLowerBound(tArgs1[i], tArgs2[i], clientLibrary);

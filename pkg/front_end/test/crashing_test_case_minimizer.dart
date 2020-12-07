@@ -959,7 +959,7 @@ void deleteBlocksOld(Uri uri, Component initialComponent) async {
   Uint8List data = fs.data[uri];
   Uint8List latestCrashData = data;
 
-  List<int> lineStarts = new List<int>();
+  List<int> lineStarts = <int>[];
 
   Token firstToken = parser_suite.scanRawBytes(data,
       nnbd ? scannerConfiguration : scannerConfigurationNonNNBD, lineStarts);
@@ -1697,7 +1697,7 @@ CompilerContext setupCompilerContext() {
 }
 
 String getFileAsStringContent(Uint8List rawBytes, bool nnbd) {
-  List<int> lineStarts = new List<int>();
+  List<int> lineStarts = <int>[];
 
   Token firstToken = parser_suite.scanRawBytes(rawBytes,
       nnbd ? scannerConfiguration : scannerConfigurationNonNNBD, lineStarts);
