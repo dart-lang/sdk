@@ -6,11 +6,11 @@ dart2js, and the Dart VM.  In addition, it will share implementation details
 with the analyzer package--this will be accomplished by having the analyzer
 package import (and re-export) parts of this package's private implementation.
 
-End-users should use the [dartanalyzer][analyzercli] command-line tool to
-analyze their Dart code.
+End-users should use the [`dart analyze`](https://dart.dev/tools/dart-tool)
+command-line tool to analyze their Dart code.
 
 Integrators that want to write tools that analyze Dart code should use the
-[analyzer] package.
+[analyzer](https://pub.dev/packages/analyzer) package.
 
 _Note:_ The APIs in this package are in an early state; developers should be
 careful about depending on this package.  In particular, there is no semver
