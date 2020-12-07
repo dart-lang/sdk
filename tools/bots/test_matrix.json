@@ -1436,7 +1436,7 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
-            "vm"
+            "vm/cc"
           ]
         }
       ]
@@ -1490,7 +1490,7 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
-            "vm"
+            "vm/cc"
           ]
         }
       ]

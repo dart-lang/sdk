@@ -27,24 +27,28 @@ bool GCSweeper::SweepPage(OldPage* page, FreeList* freelist, bool locked) {
   uword current = start;
 
   while (current < end) {
-    intptr_t obj_size;
     ObjectPtr raw_obj = ObjectLayout::FromAddr(current);
     ASSERT(OldPage::Of(raw_obj) == page);
-    if (raw_obj->ptr()->IsMarked()) {
+    // These acquire operations balance release operations in array
+    // truncaton, ensuring the writes creating the filler object are ordered
+    // before the writes inserting the filler object into the freelist.
+    uword tags = raw_obj->ptr()->tags_.load(std::memory_order_acquire);
+    intptr_t obj_size = raw_obj->ptr()->HeapSize(tags);
+    if (ObjectLayout::IsMarked(tags)) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ptr()->ClearMarkBit();
-      obj_size = raw_obj->ptr()->HeapSize();
       used_in_bytes += obj_size;
     } else {
-      uword free_end = current + raw_obj->ptr()->HeapSize();
+      uword free_end = current + obj_size;
       while (free_end < end) {
         ObjectPtr next_obj = ObjectLayout::FromAddr(free_end);
-        if (next_obj->ptr()->IsMarked()) {
+        tags = next_obj->ptr()->tags_.load(std::memory_order_acquire);
+        if (ObjectLayout::IsMarked(tags)) {
           // Reached the end of the free block.
           break;
         }
         // Expand the free block by the size of this object.
-        free_end += next_obj->ptr()->HeapSize();
+        free_end += next_obj->ptr()->HeapSize(tags);
       }
       obj_size = free_end - current;
       if (is_executable) {

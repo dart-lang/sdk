@@ -1467,14 +1467,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
-      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
-      do {
-        old_tags = tags;
-        // We can't use obj.CompareAndSwapTags here because we don't have a
-        // handle for the new object.
-      } while (!raw->ptr()->tags_.WeakCAS(old_tags, new_tags));
+      raw->ptr()->tags_ = new_tags;
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
@@ -1496,14 +1489,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
-      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
-      do {
-        old_tags = tags;
-        // We can't use obj.CompareAndSwapTags here because we don't have a
-        // handle for the new object.
-      } while (!raw->ptr()->tags_.WeakCAS(old_tags, new_tags));
+      raw->ptr()->tags_ = new_tags;
     }
   }
 }
@@ -23035,15 +23021,7 @@ ArrayPtr Array::Slice(intptr_t start,
 void Array::MakeImmutable() const {
   if (IsImmutable()) return;
   ASSERT(!IsCanonical());
-  NoSafepointScope no_safepoint;
-  uword tags = raw_ptr()->tags_;
-  uword old_tags;
-  do {
-    old_tags = tags;
-    uword new_tags =
-        ObjectLayout::ClassIdTag::update(kImmutableArrayCid, old_tags);
-    tags = CompareAndSwapTags(old_tags, new_tags);
-  } while (tags != old_tags);
+  raw_ptr()->SetClassId(kImmutableArrayCid);
 }
 
 const char* Array::ToCString() const {
@@ -23100,25 +23078,22 @@ void Array::Truncate(intptr_t new_len) const {
   // that it can be traversed over successfully during garbage collection.
   Object::MakeUnusedSpaceTraversable(array, old_size, new_size);
 
-  // For the heap to remain walkable by the sweeper, it must observe the
-  // creation of the filler object no later than the new length of the array.
-  std::atomic_thread_fence(std::memory_order_release);
-
   // Update the size in the header field and length of the array object.
-  uword tags = array.raw_ptr()->tags_;
-  ASSERT(kArrayCid == ObjectLayout::ClassIdTag::decode(tags));
-  uword old_tags;
+  // These release operations are balanced by acquire operations in the
+  // concurrent sweeper.
+  uword old_tags = array.raw_ptr()->tags_;
+  uword new_tags;
+  ASSERT(kArrayCid == ObjectLayout::ClassIdTag::decode(old_tags));
   do {
-    old_tags = tags;
-    uword new_tags = ObjectLayout::SizeTag::update(new_size, old_tags);
-    tags = CompareAndSwapTags(old_tags, new_tags);
-  } while (tags != old_tags);
+    new_tags = ObjectLayout::SizeTag::update(new_size, old_tags);
+  } while (!array.raw_ptr()->tags_.compare_exchange_weak(
+      old_tags, new_tags, std::memory_order_release));
 
   // Between the CAS of the header above and the SetLength below, the array is
   // temporarily in an inconsistent state. The header is considered the
   // overriding source of object size by ObjectLayout::Size, but the ASSERTs in
-  // ObjectLayout::SizeFromClass must handle this special case.
-  array.SetLengthIgnoreRace(new_len);
+  // ObjectLayout::HeapSizeFromClass must handle this special case.
+  array.SetLengthRelease(new_len);
 }
 
 ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,

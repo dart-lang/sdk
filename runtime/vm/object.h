@@ -290,10 +290,6 @@ class Object {
   ObjectPtr raw() const { return raw_; }
   void operator=(ObjectPtr value) { initializeHandle(this, value); }
 
-  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
-    raw()->ptr()->tags_.StrongCAS(old_tags, new_tags);
-    return old_tags;
-  }
   bool IsCanonical() const { return raw()->ptr()->IsCanonical(); }
   void SetCanonical() const { raw()->ptr()->SetCanonical(); }
   void ClearCanonical() const { raw()->ptr()->ClearCanonical(); }
@@ -644,9 +640,6 @@ class Object {
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(SmiPtr const* addr, SmiPtr value) const {
     raw()->ptr()->StoreSmi(addr, value);
-  }
-  void StoreSmiIgnoreRace(SmiPtr const* addr, SmiPtr value) const {
-    raw()->ptr()->StoreSmiIgnoreRace(addr, value);
   }
 
   template <typename FieldType>
@@ -9620,8 +9613,8 @@ class Array : public Instance {
   void SetLength(intptr_t value) const {
     raw_ptr()->set_length(Smi::New(value));
   }
-  void SetLengthIgnoreRace(intptr_t value) const {
-    raw_ptr()->set_length_ignore_race(Smi::New(value));
+  void SetLengthRelease(intptr_t value) const {
+    raw_ptr()->set_length<std::memory_order_release>(Smi::New(value));
   }
 
   template <typename type, std::memory_order order = std::memory_order_relaxed>
