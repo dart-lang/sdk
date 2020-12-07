@@ -3859,8 +3859,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Check that the given named optional [parameter] does not begin with '_'.
-  ///
-  /// See [CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER].
   void _checkForPrivateOptionalParameter(FormalParameter parameter) {
     // should be named parameter
     if (!parameter.isNamed) {
@@ -3873,7 +3871,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, parameter);
+        CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, parameter.identifier);
   }
 
   /// Check whether the given constructor [declaration] is the redirecting
