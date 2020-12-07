@@ -9,6 +9,8 @@ import /*analyzer.error: CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY*/ 'dart:_i
 
 export 'dart:async' show Future;
 
+bool identical(a, b) => false;
+
 /*class: Object:Object*/
 class Object {
   const Object();

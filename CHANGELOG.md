@@ -117,9 +117,23 @@ Updated the Linter to `0.1.126`, which includes:
 * New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
 
   And a corresponding `dart pub remove` that removes dependencies.
+* New option `dart pub upgrade --major-versions` will update constraints in
+  your `pubspec.yaml` to match the the _resolvable_ column reported in
+  `dart pub outdated`. This allows users to easily upgrade to latest version for
+  all dependencies where this is possible, even if such upgrade requires an
+  update to the version constraint in `pubspec.yaml`.
+
+  It is also possible to only upgrade the major version for a subset of your
+  dependencies using `dart pub upgrade --major-versions <dependencies...>`.
+* New option `dart pub upgrade --null-safety` will attempt to update constraints
+  in your `pubspec.yaml`, such that only null-safety migrated versions of
+  dependencies are allowed.
 * New option `dart pub outdated --mode=null-safety` that will analyze your
   dependencies for null-safety.
 * `dart pub publish` will now check your pubspec keys for likely typos.
+* `dart pub upgrade package_foo` will fetch dependencies, but ignore the
+  `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
+  dependencies.
 * New command `dart pub login` that logs in to pub.dev.
 * The `--server` option to `dart pub publish` and `dart pub uploader` have been
   deprecated. Use `publish_to` in your `pubspec.yaml` or set the

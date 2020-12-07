@@ -742,7 +742,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * in numerical order.
    *
    *     List<String> words = ['fee', 'fi', 'fo', 'fum'];
-   *     Map<int, String> map = words.asMap();
+   *     Map<int, String> map = words.asMap();  // {0: fee, 1: fi, 2: fo, 3: fum}
    *     map[0] + map[1];   // 'feefi';
    *     map.keys.toList(); // [0, 1, 2, 3]
    */
