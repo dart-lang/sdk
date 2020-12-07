@@ -27,7 +27,6 @@ class C {
   }
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 46, 1),
     ]);
   }
@@ -42,7 +41,6 @@ f() {
   p += 1;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
     ]);
   }
@@ -59,7 +57,6 @@ class C {
   }
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 46, 1),
     ]);
   }
@@ -93,7 +90,6 @@ f() {
   p = 1;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
     ]);
   }
@@ -108,7 +104,6 @@ f() {
   p += 1;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
     ]);
   }
@@ -154,7 +149,6 @@ f() {
   return p?.x;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 1),
     ]);
   }
@@ -169,7 +163,6 @@ f() {
   return p?.loadLibrary;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 48, 1),
     ]);
   }
@@ -185,7 +178,6 @@ f() {
   p?.x = null;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
     ]);
   }
@@ -200,7 +192,6 @@ f() {
   p?.loadLibrary = null;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 41, 1),
     ]);
   }
@@ -215,7 +206,6 @@ f() {
   return p;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 1),
     ]);
   }

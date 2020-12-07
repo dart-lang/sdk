@@ -779,7 +779,6 @@ main() {
   foo();
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 3),
     ]);
     _assertInvalidInvocation(
@@ -808,7 +807,6 @@ main() {
   math.foo(0);
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -1789,7 +1787,6 @@ main() {
   math();
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 40, 4),
     ]);
     assertElement(findNode.simple('math()'), findElement.prefix('math'));

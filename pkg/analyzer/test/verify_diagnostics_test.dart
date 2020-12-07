@@ -49,9 +49,6 @@ class DocumentationValidator {
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
-    // Need to avoid reporting an unused import with a prefix, when the prefix
-    // is only referenced in an invalid way.
-    'CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
     // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
