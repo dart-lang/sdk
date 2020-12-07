@@ -41,8 +41,68 @@ environment:
 flutter:
   ^
 ''');
-    assertSuggestion('assets: ');
+    assertSuggestion('assets:');
     assertSuggestion('plugin: ');
+  }
+
+  void test_flutter_assets_invalidPath() {
+    newFile('/home/test/assets/img1.jpg');
+    getCompletions('''
+flutter:
+  assets:
+    - assets?im^
+''');
+    assertNoSuggestion('img1.jpg');
+  }
+
+  void test_flutter_assets_nonExistentPath() {
+    newFile('/home/test/assets/img1.jpg');
+    getCompletions('''
+flutter:
+  assets:
+    - asets/im^
+''');
+    assertNoSuggestion('img1.jpg');
+  }
+
+  void test_flutter_assets_noPath() {
+    newFile('/home/test/assets/img1.jpg');
+    getCompletions('''
+flutter:
+  assets:
+    - ^
+''');
+    assertSuggestion('assets');
+  }
+
+  void test_flutter_assets_partialPath() {
+    newFile('/home/test/assets/img1.jpg');
+    getCompletions('''
+flutter:
+  assets:
+    - assets/im^
+''');
+    assertSuggestion('img1.jpg');
+  }
+
+  void test_flutter_assets_path_withFollowing() {
+    newFile('/home/test/assets/img1.jpg');
+    getCompletions('''
+flutter:
+  assets:
+    - assets/^img
+''');
+    assertSuggestion('img1.jpg');
+  }
+
+  void test_flutter_assets_path_withoutFollowing() {
+    newFile('/home/test/assets/img1.jpg');
+    getCompletions('''
+flutter:
+  assets:
+    - assets/^
+''');
+    assertSuggestion('img1.jpg');
   }
 
   void test_flutter_fonts() {

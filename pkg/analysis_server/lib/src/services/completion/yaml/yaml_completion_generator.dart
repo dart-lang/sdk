@@ -40,39 +40,43 @@ abstract class YamlCompletionGenerator {
       // If the contents can't be parsed, then there are no suggestions.
       return const YamlCompletionResults.empty();
     }
-    var path = _pathToOffset(root, offset);
-    var completionNode = path.last;
+    var nodePath = _pathToOffset(root, offset);
+    var completionNode = nodePath.last;
+    var precedingText = '';
     if (completionNode is YamlScalar) {
       var value = completionNode.value;
-      if (value == null) {
-        return getSuggestionsForPath(path, offset);
-      } else if (value is String && completionNode.style == ScalarStyle.PLAIN) {
-        return getSuggestionsForPath(path, offset);
+      if (value is String && completionNode.style == ScalarStyle.PLAIN) {
+        precedingText =
+            value.substring(0, offset - completionNode.span.start.offset);
+      } else if (value != null) {
+        // There are no completions at the given location.
+        return const YamlCompletionResults.empty();
       }
-    } else {
-      return getSuggestionsForPath(path, offset);
     }
-    // There are no completions at the given location.
-    return const YamlCompletionResults.empty();
+    var request = YamlCompletionRequest(
+        filePath: filePath,
+        precedingText: precedingText,
+        resourceProvider: resourceProvider);
+    return getSuggestionsForPath(request, nodePath, offset);
   }
 
-  /// Given a [path] to the node in which completions are being requested and
-  /// the offset of the cursor, return the completions appropriate at that
-  /// location.
-  YamlCompletionResults getSuggestionsForPath(List<YamlNode> path, int offset) {
-    var request = YamlCompletionRequest(resourceProvider);
-    var producer = _producerForPath(path);
+  /// Given the [request] to pass to producers, a [nodePath] to the node in
+  /// which completions are being requested and the offset of the cursor, return
+  /// the completions appropriate at that location.
+  YamlCompletionResults getSuggestionsForPath(
+      YamlCompletionRequest request, List<YamlNode> nodePath, int offset) {
+    var producer = _producerForPath(nodePath);
     if (producer == null) {
       return const YamlCompletionResults.empty();
     }
-    var invalidSuggestions = _siblingsOnPath(path);
+    var invalidSuggestions = _siblingsOnPath(nodePath);
     var suggestions = <CompletionSuggestion>[];
     for (var suggestion in producer.suggestions(request)) {
       if (!invalidSuggestions.contains(suggestion.completion)) {
         suggestions.add(suggestion);
       }
     }
-    final node = path.isNotEmpty ? path.last : null;
+    final node = nodePath.isNotEmpty ? nodePath.last : null;
     final replaceNode = node is YamlScalar && node.containsOffset(offset);
     final replacementOffset = replaceNode ? node.span.start.offset : offset;
     final replacementLength = replaceNode ? node.span.length : 0;
