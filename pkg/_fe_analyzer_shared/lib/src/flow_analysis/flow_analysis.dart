@@ -2566,12 +2566,8 @@ class _EqualityOpContext<Variable, Type> extends _BranchContext {
   /// The type of the expression on the LHS of `==` or `!=`.
   final Type _leftOperandType;
 
-  /// If the LHS of `==` or `!=` is a variable reference, the variable.
-  /// Otherwise `null`.
-  final Variable _leftOperandVariable;
-
-  _EqualityOpContext(ExpressionInfo<Variable, Type> conditionInfo,
-      this._leftOperandType, this._leftOperandVariable)
+  _EqualityOpContext(
+      ExpressionInfo<Variable, Type> conditionInfo, this._leftOperandType)
       : super(conditionInfo);
 
   @override
@@ -2606,14 +2602,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   /// corresponding to it.  Otherwise `null`.
   ExpressionInfo<Variable, Type> _expressionInfo;
 
-  /// The most recently visited expression which was a variable reference, or
-  /// `null` if no expression has been visited that was a variable reference.
-  Expression _expressionWithVariable;
-
-  /// If [_expressionVariable] is not `null`, the variable corresponding to it.
-  /// Otherwise `null`.
-  Variable _expressionVariable;
-
   int _functionNestingLevel = 0;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
@@ -2627,8 +2615,14 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void asExpression_end(Expression subExpression, Type type) {
-    Variable variable = _getExpressionVariable(subExpression);
-    if (variable == null) return;
+    ExpressionInfo<Variable, Type> subExpressionInfo =
+        _getExpressionInfo(subExpression);
+    Variable variable;
+    if (subExpressionInfo is _VariableReadInfo<Variable, Type>) {
+      variable = subExpressionInfo._variable;
+    } else {
+      return;
+    }
     _current = _current.tryPromoteForTypeCast(typeOperations, variable, type);
   }
 
@@ -2736,10 +2730,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _EqualityOpContext<Variable, Type> context =
         _stack.removeLast() as _EqualityOpContext<Variable, Type>;
     ExpressionInfo<Variable, Type> lhsInfo = context._conditionInfo;
-    Variable lhsVariable = context._leftOperandVariable;
     Type leftOperandType = context._leftOperandType;
     ExpressionInfo<Variable, Type> rhsInfo = _getExpressionInfo(rightOperand);
-    Variable rhsVariable = _getExpressionVariable(rightOperand);
     TypeClassification leftOperandTypeClassification =
         typeOperations.classifyType(leftOperandType);
     TypeClassification rightOperandTypeClassification =
@@ -2757,16 +2749,18 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
       // but weak mode it might produce an "equal" result.  We don't want flow
       // analysis behavior to depend on mode, so we conservatively assume that
       // either result is possible.
-    } else if (lhsInfo is _NullInfo<Variable, Type> && rhsVariable != null) {
+    } else if (lhsInfo is _NullInfo<Variable, Type> &&
+        rhsInfo is _VariableReadInfo<Variable, Type>) {
       assert(
           leftOperandTypeClassification == TypeClassification.nullOrEquivalent);
       ExpressionInfo<Variable, Type> equalityInfo =
-          _current.tryMarkNonNullable(typeOperations, rhsVariable);
+          _current.tryMarkNonNullable(typeOperations, rhsInfo._variable);
       _storeExpressionInfo(wholeExpression,
           notEqual ? equalityInfo : ExpressionInfo.invert(equalityInfo));
-    } else if (rhsInfo is _NullInfo<Variable, Type> && lhsVariable != null) {
+    } else if (rhsInfo is _NullInfo<Variable, Type> &&
+        lhsInfo is _VariableReadInfo<Variable, Type>) {
       ExpressionInfo<Variable, Type> equalityInfo =
-          _current.tryMarkNonNullable(typeOperations, lhsVariable);
+          _current.tryMarkNonNullable(typeOperations, lhsInfo._variable);
       _storeExpressionInfo(wholeExpression,
           notEqual ? equalityInfo : ExpressionInfo.invert(equalityInfo));
     }
@@ -2775,9 +2769,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {
     _stack.add(new _EqualityOpContext<Variable, Type>(
-        _getExpressionInfo(leftOperand),
-        leftOperandType,
-        _getExpressionVariable(leftOperand)));
+        _getExpressionInfo(leftOperand), leftOperandType));
   }
 
   @override
@@ -2852,9 +2844,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     if (identical(_expressionWithInfo, oldExpression)) {
       _expressionWithInfo = newExpression;
     }
-    if (identical(_expressionWithVariable, oldExpression)) {
-      _expressionWithVariable = newExpression;
-    }
   }
 
   @override
@@ -2912,12 +2901,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void ifNullExpression_rightBegin(
       Expression leftHandSide, Type leftHandSideType) {
-    Variable lhsVariable = _getExpressionVariable(leftHandSide);
+    ExpressionInfo<Variable, Type> lhsInfo = _getExpressionInfo(leftHandSide);
     FlowModel<Variable, Type> promoted;
     _current = _current.split();
-    if (lhsVariable != null) {
+    if (lhsInfo is _VariableReadInfo<Variable, Type>) {
       ExpressionInfo<Variable, Type> promotionInfo =
-          _current.tryMarkNonNullable(typeOperations, lhsVariable);
+          _current.tryMarkNonNullable(typeOperations, lhsInfo._variable);
       _current = promotionInfo.ifFalse;
       promoted = promotionInfo.ifTrue;
     } else {
@@ -2970,10 +2959,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void isExpression_end(Expression isExpression, Expression subExpression,
       bool isNot, Type type) {
-    Variable subExpressionVariable = _getExpressionVariable(subExpression);
-    if (subExpressionVariable != null) {
-      ExpressionInfo<Variable, Type> expressionInfo = _current
-          .tryPromoteForTypeCheck(typeOperations, subExpressionVariable, type);
+    ExpressionInfo<Variable, Type> subExpressionInfo =
+        _getExpressionInfo(subExpression);
+    if (subExpressionInfo is _VariableReadInfo<Variable, Type>) {
+      ExpressionInfo<Variable, Type> expressionInfo =
+          _current.tryPromoteForTypeCheck(
+              typeOperations, subExpressionInfo._variable, type);
       _storeExpressionInfo(isExpression,
           isNot ? ExpressionInfo.invert(expressionInfo) : expressionInfo);
     }
@@ -3063,10 +3054,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void nonNullAssert_end(Expression operand) {
-    Variable operandVariable = _getExpressionVariable(operand);
-    if (operandVariable != null) {
-      _current =
-          _current.tryMarkNonNullable(typeOperations, operandVariable).ifTrue;
+    ExpressionInfo<Variable, Type> operandInfo = _getExpressionInfo(operand);
+    if (operandInfo is _VariableReadInfo<Variable, Type>) {
+      _current = _current
+          .tryMarkNonNullable(typeOperations, operandInfo._variable)
+          .ifTrue;
     }
   }
 
@@ -3083,10 +3075,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _current = _current.split();
     _stack.add(new _NullAwareAccessContext<Variable, Type>(_current));
     if (target != null) {
-      Variable targetVariable = _getExpressionVariable(target);
-      if (targetVariable != null) {
-        _current =
-            _current.tryMarkNonNullable(typeOperations, targetVariable).ifTrue;
+      ExpressionInfo<Variable, Type> targetInfo = _getExpressionInfo(target);
+      if (targetInfo is _VariableReadInfo<Variable, Type>) {
+        _current = _current
+            .tryMarkNonNullable(typeOperations, targetInfo._variable)
+            .ifTrue;
       }
     }
   }
@@ -3233,7 +3226,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   Type variableRead(Expression expression, Variable variable) {
-    _storeExpressionVariable(expression, variable);
+    _storeExpressionInfo(expression, new _VariableReadInfo(_current, variable));
     return _current.infoFor(variable).promotedTypes?.last;
   }
 
@@ -3280,8 +3273,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     print('  current: $_current');
     print('  expressionWithInfo: $_expressionWithInfo');
     print('  expressionInfo: $_expressionInfo');
-    print('  expressionWithVariable: $_expressionWithVariable');
-    print('  expressionVariable: $_expressionVariable');
     print('  stack:');
     for (_FlowContext stackEntry in _stack.reversed) {
       print('    $stackEntry');
@@ -3310,19 +3301,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     }
   }
 
-  /// Gets the [Variable] associated with the [expression] (which should be the
-  /// last expression that was traversed).  If there is no [Variable] associated
-  /// with the [expression], then `null` is returned.
-  Variable _getExpressionVariable(Expression expression) {
-    if (identical(expression, _expressionWithVariable)) {
-      Variable expressionVariable = _expressionVariable;
-      _expressionVariable = null;
-      return expressionVariable;
-    } else {
-      return null;
-    }
-  }
-
   FlowModel<Variable, Type> _join(
           FlowModel<Variable, Type> first, FlowModel<Variable, Type> second) =>
       FlowModel.join(typeOperations, first, second, _current._emptyVariableMap);
@@ -3340,14 +3318,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _expressionWithInfo = expression;
     _expressionInfo = expressionInfo;
     _current = expressionInfo.after;
-  }
-
-  /// Associates [expression], which should be the most recently visited
-  /// expression, with the given [Variable] object.
-  void _storeExpressionVariable(
-      Expression expression, Variable expressionVariable) {
-    _expressionWithVariable = expression;
-    _expressionVariable = expressionVariable;
   }
 }
 
@@ -3465,6 +3435,28 @@ class _TryContext<Variable, Type> extends _SimpleContext<Variable, Type> {
   String toString() =>
       '_TryContext(previous: $_previous, beforeCatch: $_beforeCatch, '
       'afterBodyAndCatches: $_afterBodyAndCatches)';
+}
+
+/// [ExpressionInfo] representing an expression that reads the value of a
+/// variable.
+class _VariableReadInfo<Variable, Type>
+    implements ExpressionInfo<Variable, Type> {
+  @override
+  final FlowModel<Variable, Type> after;
+
+  /// The variable that is being read.
+  final Variable _variable;
+
+  _VariableReadInfo(this.after, this._variable);
+
+  @override
+  FlowModel<Variable, Type> get ifFalse => after;
+
+  @override
+  FlowModel<Variable, Type> get ifTrue => after;
+
+  @override
+  String toString() => '_VariableReadInfo(after: $after, variable: $_variable)';
 }
 
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
