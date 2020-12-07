@@ -34,22 +34,14 @@ main() {
 class ResynthesizeAst2Test extends AbstractResynthesizeTest
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
-  static _SdkBundle _sdkBundleNullSafe;
-
-  /// The shared SDK bundle, computed once and shared among test invocations.
-  static _SdkBundle _sdkBundleLegacy;
+  static _SdkBundle _sdkBundle;
 
   _SdkBundle get sdkBundle {
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      if (_sdkBundleNullSafe != null) {
-        return _sdkBundleNullSafe;
-      }
-    } else {
-      if (_sdkBundleLegacy != null) {
-        return _sdkBundleLegacy;
-      }
+    if (_sdkBundle != null) {
+      return _sdkBundle;
     }
 
+    var featureSet = FeatureSet.latestLanguageVersion();
     var inputLibraries = <LinkInputLibrary>[];
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
@@ -57,7 +49,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
       var unit = parseText(text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
-      _addLibraryUnits(source, unit, inputUnits);
+      _addLibraryUnits(source, unit, inputUnits, featureSet);
       inputLibraries.add(
         LinkInputLibrary(source, inputUnits),
       );
@@ -77,17 +69,10 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
 
     var sdkLinkResult = link(elementFactory, inputLibraries, true);
 
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      return _sdkBundleNullSafe = _SdkBundle(
-        astBytes: sdkLinkResult.astBytes,
-        resolutionBytes: sdkLinkResult.resolutionBytes,
-      );
-    } else {
-      return _sdkBundleLegacy = _SdkBundle(
-        astBytes: sdkLinkResult.astBytes,
-        resolutionBytes: sdkLinkResult.resolutionBytes,
-      );
-    }
+    return _sdkBundle = _SdkBundle(
+      astBytes: sdkLinkResult.astBytes,
+      resolutionBytes: sdkLinkResult.resolutionBytes,
+    );
   }
 
   @override
@@ -144,6 +129,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     Source definingSource,
     CompilationUnit definingUnit,
     List<LinkInputUnit> units,
+    FeatureSet featureSet,
   ) {
     units.add(
       LinkInputUnit(null, definingSource, false, definingUnit),
@@ -188,7 +174,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var unit = parseText(text, featureSet);
 
     var units = <LinkInputUnit>[];
-    _addLibraryUnits(source, unit, units);
+    _addLibraryUnits(source, unit, units, featureSet);
     libraries.add(
       LinkInputLibrary(source, units),
     );
