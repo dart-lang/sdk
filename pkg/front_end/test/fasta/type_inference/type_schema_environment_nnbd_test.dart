@@ -739,7 +739,7 @@ class TypeSchemaEnvironmentTest {
         actualParameterTypes: "int*, double*",
         returnContextType: null,
         inferredTypesFromDownwardPhase: "UNKNOWN",
-        expectedTypes: "num*");
+        expectedTypes: "num");
   }
 
   void test_inferTypeFromConstraints_applyBound() {
