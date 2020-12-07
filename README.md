@@ -1,7 +1,7 @@
 # Linter for Dart
 
 The Dart Linter package defines lint rules that identify and report on "lints" found in Dart code.  Linting is performed by the Dart
-analysis server and the `dartanalyzer` commandline tool.
+analysis server and the `dart analyze` command in the [Dart command-line tool](https://dart.dev/tools/dart-tool).
 
 [![Lint Count](https://dart-lang.github.io/linter/lints/count-badge.svg)](https://dart-lang.github.io/linter/lints/)
 [![Build Status](https://github.com/dart-lang/linter/workflows/linter/badge.svg)](https://github.com/dart-lang/linter/actions)
