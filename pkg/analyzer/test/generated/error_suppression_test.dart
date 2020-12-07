@@ -271,9 +271,7 @@ import 'dart:collection' as c;
 // ignore: undefined_prefixed_name
 f() => c.g;
 ''',
-      [
-        error(HintCode.UNUSED_IMPORT, 7, 17),
-      ],
+      [],
     );
   }
 }

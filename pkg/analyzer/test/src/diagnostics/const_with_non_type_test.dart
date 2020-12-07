@@ -23,7 +23,6 @@ void f() {
   const lib.A();
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 50, 1),
     ]);
   }

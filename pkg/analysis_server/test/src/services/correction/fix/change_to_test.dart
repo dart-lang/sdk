@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -127,9 +126,7 @@ main() {
   c.Future v = null;
   print(v);
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_CLASS;
-    });
+''');
   }
 
   Future<void> test_class_with() async {
@@ -180,9 +177,7 @@ main() {
   c.main();
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION;
-    });
+    await assertNoFix();
   }
 
   Future<void> test_function_thisLibrary() async {

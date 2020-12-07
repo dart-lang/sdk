@@ -52,7 +52,6 @@ import 'dart:math' as p;
 main() {
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 25, 13),
     ]);
   }

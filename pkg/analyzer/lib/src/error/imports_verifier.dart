@@ -417,6 +417,13 @@ class ImportsVerifier {
       // Find import directives using namespaces.
       for (var importDirective in _prefixElementMap[prefix] ?? []) {
         Namespace namespace = _computeNamespace(importDirective);
+        if (elements.isEmpty) {
+          // [prefix] and [elements] were added to [usedElements.prefixMap] but
+          // [elements] is empty, so the prefix was referenced incorrectly.
+          // Another diagnostic about the prefix reference is reported, and we
+          // shouldn't confuse by also reporting an unused prefix.
+          _unusedImports.remove(importDirective);
+        }
         for (var element in elements) {
           if (namespace?.getPrefixed(prefix.name, element.name) != null) {
             _unusedImports.remove(importDirective);
