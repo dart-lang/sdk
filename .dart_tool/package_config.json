@@ -536,7 +536,7 @@
       "name": "shelf",
       "rootUri": "../third_party/pkg/shelf",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "shelf_packages_handler",
