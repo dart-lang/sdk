@@ -53,6 +53,12 @@ class FeatureSetProvider {
   }
 
   /// Return the [FeatureSet] for the package that contains the file.
+  ///
+  /// Note, that [getLanguageVersion] returns the default language version
+  /// for libraries in the package, but this method does not restrict the
+  /// [FeatureSet] of this version. The reason is that we allow libraries to
+  /// "upgrade" to higher version than the default package language version,
+  /// and want this to preserve experimental features.
   FeatureSet getFeatureSet(String path, Uri uri) {
     if (uri.isScheme('dart')) {
       var pathSegments = uri.pathSegments;
