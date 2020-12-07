@@ -3816,12 +3816,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
-    // Recognize `[]` and `List.filled(n, null)`.
+    // Recognize `List()` and `List(n)`.
     if (_commonElements.isUnnamedListConstructor(function)) {
       if (invocation.arguments.named.isEmpty) {
         int argumentCount = invocation.arguments.positional.length;
         if (argumentCount == 0) {
-          // `[]` takes no arguments, `JSArray.list()` takes a sentinel.
+          // `List()` takes no arguments, `JSArray.list()` takes a sentinel.
           assert(arguments.length == 0 || arguments.length == 1,
               '\narguments: $arguments\n');
           _handleInvokeLegacyGrowableListFactoryConstructor(
@@ -3936,14 +3936,14 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
   }
 
-  /// Handle the legacy `<T>[]` constructor.
+  /// Handle the legacy `List<T>()` constructor.
   void _handleInvokeLegacyGrowableListFactoryConstructor(
       ir.StaticInvocation invocation,
       ConstructorEntity function,
       AbstractValue typeMask,
       List<HInstruction> arguments,
       SourceInformation sourceInformation) {
-    // `<T>[]` is essentially the same as `<T>[]`.
+    // `List<T>()` is essentially the same as `<T>[]`.
     push(_buildLiteralList(<HInstruction>[]));
     HInstruction allocation = pop();
     var inferredType = globalInferenceResults.typeOfNewList(invocation);
@@ -3956,7 +3956,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _setListRuntimeTypeInfoIfNeeded(allocation, type, sourceInformation));
   }
 
-  /// Handle the `JSArray<T>.list(length)` and legacy `List<T>.filled(length, null)`
+  /// Handle the `JSArray<T>.list(length)` and legacy `List<T>(length)`
   /// constructors.
   void _handleInvokeLegacyFixedListFactoryConstructor(
       ir.StaticInvocation invocation,

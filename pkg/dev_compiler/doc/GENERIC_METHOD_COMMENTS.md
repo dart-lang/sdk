@@ -139,7 +139,7 @@ original type is used at runtime, it may cause checked mode errors:
 
 ```dart
 List/*<T>*/ makeList/*<T extends num>*/() {
-  return <num /*=T*/>[];
+  return new List<num /*=T*/>();
 }
 
 void main() {
@@ -174,7 +174,7 @@ List<dynamic /*=S*/> foo/*<S>*/(/*=S*/ x) {
    var l0 = <dynamic /*=S*/>[x];
 
    // as above, but with a regular constructor.
-   var l1 = <dynamic /*=S*/>[];
+   var l1 = new List<dynamic /*=S*/>();
    return l1;
 }
 ```
