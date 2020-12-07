@@ -12,7 +12,6 @@ command-line tool to analyze their Dart code.
 Integrators that want to write tools that analyze Dart code should use the
 [analyzer](https://pub.dev/packages/analyzer) package.
 
-_Note:_ The APIs in this package are in an early state; developers should be
-careful about depending on this package.  In particular, there is no semver
-contract for release versions of this package.  Please depend directly on individual
-versions.
+_Note:_ A previous version of this package was published on pub.dev. It has now
+been marked DISCONTINUED as it is not intended for direct consumption, as per
+the notes above.
