@@ -130,14 +130,16 @@ class FunctionTypeBuilder extends TypeBuilder {
   FunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
     List<TypeVariableBuilder> clonedTypeVariables;
     if (typeVariables != null) {
-      clonedTypeVariables = new List<TypeVariableBuilder>(typeVariables.length);
+      clonedTypeVariables =
+          new List<TypeVariableBuilder>.filled(typeVariables.length, null);
       for (int i = 0; i < clonedTypeVariables.length; i++) {
         clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
       }
     }
     List<FormalParameterBuilder> clonedFormals;
     if (formals != null) {
-      clonedFormals = new List<FormalParameterBuilder>(formals.length);
+      clonedFormals =
+          new List<FormalParameterBuilder>.filled(formals.length, null);
       for (int i = 0; i < clonedFormals.length; i++) {
         FormalParameterBuilder formal = formals[i];
         clonedFormals[i] = formal.clone(newTypes);

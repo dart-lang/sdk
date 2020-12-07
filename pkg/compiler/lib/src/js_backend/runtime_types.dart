@@ -994,7 +994,7 @@ class ClassUse {
   /// For instance `A` in:
   ///
   ///     class A {}
-  ///     main() => new List<A>() is List<String>;
+  ///     main() => <A>[] is List<String>;
   ///
   bool typeArgument = false;
 
@@ -1003,7 +1003,7 @@ class ClassUse {
   /// For instance `A` in:
   ///
   ///     class A {}
-  ///     main() => new List<String>() is List<A>;
+  ///     main() => <String>[] is List<A>;
   ///
   bool checkedTypeArgument = false;
 

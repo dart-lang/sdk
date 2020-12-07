@@ -517,7 +517,7 @@ class BinaryMdDillReader {
 
         if (intCount >= 0) {
           readNothingIsOk = intCount == 0;
-          List<dynamic> value = new List(intCount);
+          List<dynamic> value = new List.filled(intCount, null);
           for (int i = 0; i < intCount; ++i) {
             int oldOffset2 = _binaryOffset;
             value[i] = _readBinary(type);

@@ -2087,10 +2087,10 @@ class AstBuilder extends StackListener {
           member.labels.insert(0, pop());
           --labelCount;
         }
-        members = List<SwitchMember>(expressionCount + 1);
+        members = List<SwitchMember>.filled(expressionCount + 1, null);
         members[expressionCount] = member;
       } else {
-        members = List<SwitchMember>(expressionCount);
+        members = List<SwitchMember>.filled(expressionCount, null);
       }
       for (int index = expressionCount - 1; index >= 0; --index) {
         SwitchMember member = pop();
@@ -3476,7 +3476,7 @@ class AstBuilder extends StackListener {
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
-    push(popTypedList(count, List<TypeParameter>(count)));
+    push(popTypedList(count, List<TypeParameter>.filled(count, null)));
   }
 
   @override
@@ -3563,7 +3563,7 @@ class AstBuilder extends StackListener {
   List<CommentReference> parseCommentReferences(Token dartdoc) {
     // Parse dartdoc into potential comment reference source/offset pairs
     int count = parser.parseCommentReferences(dartdoc);
-    List sourcesAndOffsets = List(count * 2);
+    List sourcesAndOffsets = List.filled(count * 2, null);
     popList(count * 2, sourcesAndOffsets);
 
     // Parse each of the source/offset pairs into actual comment references
@@ -3581,7 +3581,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    final references = List<CommentReference>(count);
+    final references = List<CommentReference>.filled(count, null);
     popTypedList(count, references);
     return references;
   }

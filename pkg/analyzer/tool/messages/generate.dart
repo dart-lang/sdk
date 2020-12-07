@@ -187,7 +187,7 @@ part of 'syntactic_errors.dart';
   }
 
   void generateFastaAnalyzerErrorCodeList() {
-    final sorted = List<Map>(translatedEntries.length);
+    final sorted = List<Map>.filled(translatedEntries.length, null);
     for (var entry in translatedEntries) {
       var index = entry['index'];
       if (index is int && index >= 1 && index <= sorted.length) {

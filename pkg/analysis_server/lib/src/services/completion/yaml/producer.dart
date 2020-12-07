@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 /// An object that represents the location of a Boolean value.
 class BooleanProducer extends Producer {
@@ -51,22 +53,61 @@ class EnumProducer extends Producer {
 
 /// An object that represents the location of a possibly relative file path.
 class FilePathProducer extends Producer {
-  /// The resource provider used to access the content of the file in which
-  /// completion was requested.
-  final ResourceProvider provider;
-
-  /// Initialize a location whose valid values are file paths.
-  FilePathProducer(this.provider);
+  /// Initialize a producer whose valid values are file paths.
+  const FilePathProducer();
 
   @override
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
-    // TODO(brianwilkerson) Implement this.
+    // This currently assumes that all paths will be posix paths, but we might
+    // want to support platform-specific paths at some point, in which case we
+    // should add a flag to the constructor and use that to choose between the
+    // hard-coded `path.posix` and `provider.pathContext`;
+    var provider = request.resourceProvider;
+    var context = path.posix;
+    var separator = context.separator;
+    var precedingText = request.precedingText;
+
+    String parentDirectory;
+    if (precedingText.isEmpty || precedingText.endsWith(separator)) {
+      parentDirectory = precedingText;
+    } else {
+      parentDirectory = context.dirname(precedingText);
+    }
+    if (parentDirectory == '.') {
+      parentDirectory = '';
+    } else if (parentDirectory.endsWith(separator)) {
+      parentDirectory = parentDirectory.substring(
+          0, parentDirectory.length - separator.length);
+    }
+    if (context.isRelative(parentDirectory)) {
+      parentDirectory =
+          context.join(context.dirname(request.filePath), parentDirectory);
+    }
+    parentDirectory = context.normalize(parentDirectory);
+    var dir = provider.getResource(parentDirectory);
+    if (dir is Folder) {
+      try {
+        for (var child in dir.getChildren()) {
+          var name = child.shortName;
+          if (child is Folder) {
+            if (!name.startsWith('.')) {
+              yield identifier(name);
+            }
+          } else if (child is File) {
+            yield identifier(name);
+          }
+        }
+      } on FileSystemException {
+        // Guard against I/O exceptions.
+      }
+    }
   }
 }
 
 /// An object that represents the location of the keys/values in a map.
 abstract class KeyValueProducer extends Producer {
+  /// Initialize a producer representing a key/value pair in a map.
   const KeyValueProducer();
 
   /// Returns a producer for values of the given [key].
@@ -106,7 +147,6 @@ class MapProducer extends KeyValueProducer {
   /// by the map of [children].
   const MapProducer(this._children);
 
-  /// Returns a producer for values of the given [key].
   @override
   Producer producerForKey(String key) => _children[key];
 
@@ -144,8 +184,20 @@ abstract class Producer {
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request);
 }
 
+/// The information provided to a [Producer] when requesting completions.
 class YamlCompletionRequest {
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  YamlCompletionRequest(this.resourceProvider);
+  /// The absolute path of the file in which completions are being requested.
+  final String filePath;
+
+  /// The text to the left of the cursor.
+  final String precedingText;
+
+  /// Initialize a newly created completion request.
+  YamlCompletionRequest(
+      {@required this.filePath,
+      @required this.precedingText,
+      @required this.resourceProvider});
 }

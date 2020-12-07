@@ -263,7 +263,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     FunctionNode functionNode = super.buildFunction(library);
     ClassBuilder enclosingClassBuilder = parent;
     Class enclosingClass = enclosingClassBuilder.cls;
-    List<DartType> typeParameterTypes = new List<DartType>();
+    List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
       typeParameterTypes.add(

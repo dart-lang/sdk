@@ -30,7 +30,7 @@ class VmConstantsBackend extends ConstantsBackend {
     // The _ImmutableMap class is implemented via one field pointing to a list
     // of key/value pairs -- see runtime/lib/immutable_map.dart!
     final List<Constant> kvListPairs =
-        new List<Constant>(2 * constant.entries.length);
+        new List<Constant>.filled(2 * constant.entries.length, null);
     for (int i = 0; i < constant.entries.length; i++) {
       final ConstantMapEntry entry = constant.entries[i];
       kvListPairs[2 * i] = entry.key;

@@ -328,13 +328,15 @@ external List<T> makeListFixedLength<T>(List<T> growableList);
  * Converts a fixed-length list to an unmodifiable list.
  *
  * For internal use only.
- * Only works for core fixed-length lists as created by `new List(length)`,
+ *
+ * Only works for core fixed-length lists as created by
+ * `List.filled(length)`/`List.empty()`,
  * or as returned by [makeListFixedLength].
  *
  * The operation is efficient. It doesn't copy the elements, but converts
  * the existing list directly to a fixed length list.
  * That means that it is a destructive conversion.
- * The original list should not be used afterwards.
+ * The original list reference should not be used afterwards.
  *
  * The unmodifiable list type is similar to the one used by const lists.
  */

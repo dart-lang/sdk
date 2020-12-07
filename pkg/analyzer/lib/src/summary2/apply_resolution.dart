@@ -901,7 +901,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
       return const <ElementAnnotation>[];
     }
 
-    var annotations = List<ElementAnnotation>(length);
+    var annotations = List<ElementAnnotation>.filled(length, null);
     for (int i = 0; i < length; i++) {
       var ast = nodeList[i];
       annotations[i] = ElementAnnotationImpl(unit)

@@ -30,7 +30,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
     //  and 'dev_dependencies'.
     'dependency_overrides': EmptyProducer(),
     'flutter': MapProducer({
-      'assets': EmptyProducer(), // ListProducer(FilePathProducer()),
+      'assets': ListProducer(FilePathProducer()),
       'fonts': ListProducer(MapProducer({
         'family': EmptyProducer(),
         'fonts': ListProducer(MapProducer({

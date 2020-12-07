@@ -112,15 +112,17 @@ class ParameterStubGenerator {
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<jsAst.Parameter> stubParameters = new List<jsAst.Parameter>(
+    List<jsAst.Parameter> stubParameters = new List<jsAst.Parameter>.filled(
         extraArgumentCount +
             selector.argumentCount +
-            selector.typeArgumentCount);
+            selector.typeArgumentCount,
+        null);
     // The arguments that will be passed to the real method.
-    List<jsAst.Expression> targetArguments = new List<jsAst.Expression>(
+    List<jsAst.Expression> targetArguments = new List<jsAst.Expression>.filled(
         extraArgumentCount +
             parameterStructure.totalParameters +
-            parameterStructure.typeParameters);
+            parameterStructure.typeParameters,
+        null);
 
     int count = 0;
     if (isInterceptedMethod) {

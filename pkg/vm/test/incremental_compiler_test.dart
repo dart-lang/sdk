@@ -145,7 +145,7 @@ main() {
     }
 
     // Collect coverage for the two user scripts.
-    List<Map> sourceReports = new List<Map>();
+    List<Map> sourceReports = <Map>[];
     if (getAllSources) {
       Map sourceReport = await remoteVm.getSourceReport();
       sourceReports.add(sourceReport);
@@ -167,7 +167,7 @@ main() {
       }
     }
 
-    List<String> errorMessages = new List<String>();
+    List<String> errorMessages = <String>[];
     Set<int> hits = new Set<int>();
 
     // Ensure that we can get a line and column number for all reported

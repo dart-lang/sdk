@@ -51,7 +51,7 @@ class Dart2jsTester {
   Map<Uri, List<int>> libToData;
   List<Uri> uris;
 
-  List<Uri> diffs = new List<Uri>();
+  List<Uri> diffs = <Uri>[];
   Set<Uri> componentUris = new Set<Uri>();
 
   Dart2jsTester(this.useExperimentalInvalidation, this.fast,
@@ -63,7 +63,7 @@ class Dart2jsTester {
       debugger();
     }
 
-    diffs = new List<Uri>();
+    diffs = <Uri>[];
     componentUris = new Set<Uri>();
 
     Stopwatch localStopwatch = new Stopwatch()..start();

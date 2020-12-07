@@ -117,7 +117,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   List<Uri> multiRoots;
   String multiRootScheme = 'org-dartlang-app';
   Uri packageConfig = null;
-  List<String> options = new List<String>();
+  List<String> options = <String>[];
   bool wantHelp = false;
   bool wantVersion = false;
   bool trustTypeAnnotations = false;

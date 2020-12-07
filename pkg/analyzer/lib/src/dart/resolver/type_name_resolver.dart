@@ -133,7 +133,7 @@ class TypeNameResolver {
       return const <DartType>[];
     }
 
-    var typeArguments = List<DartType>(parameterCount);
+    var typeArguments = List<DartType>.filled(parameterCount, null);
     for (var i = 0; i < parameterCount; i++) {
       typeArguments[i] = arguments[i].type;
     }

@@ -3789,8 +3789,8 @@ class HLoopInformation {
   HLoopBlockInformation loopBlockInformation;
 
   HLoopInformation(this.header, this.target, this.labels)
-      : blocks = new List<HBasicBlock>(),
-        backEdges = new List<HBasicBlock>();
+      : blocks = <HBasicBlock>[],
+        backEdges = <HBasicBlock>[];
 
   void addBackEdge(HBasicBlock predecessor) {
     backEdges.add(predecessor);

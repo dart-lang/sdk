@@ -120,7 +120,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     List<TypeBuilder> arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
-      arguments = new List<TypeBuilder>(kernelArguments.length);
+      arguments = new List<TypeBuilder>.filled(kernelArguments.length, null);
       for (int i = 0; i < kernelArguments.length; i++) {
         arguments[i] = kernelArguments[i].accept(this);
       }
@@ -154,8 +154,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     List<TypeVariableBuilder> typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
-    List<FormalParameterBuilder> formals = new List<FormalParameterBuilder>(
-        positionalParameters.length + namedParameters.length);
+    List<FormalParameterBuilder> formals =
+        new List<FormalParameterBuilder>.filled(
+            positionalParameters.length + namedParameters.length, null);
     for (int i = 0; i < positionalParameters.length; i++) {
       TypeBuilder type = positionalParameters[i].accept(this);
       FormalParameterKind kind = FormalParameterKind.mandatory;

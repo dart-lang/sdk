@@ -9,7 +9,7 @@ class ValueSet {
   int size = 0;
   List<HInstruction> table;
   ValueSetNode collisions;
-  ValueSet() : table = new List<HInstruction>(8);
+  ValueSet() : table = new List<HInstruction>.filled(8, null);
 
   bool get isEmpty => size == 0;
   int get length => size;
@@ -138,7 +138,7 @@ class ValueSet {
     // Reset the table with a bigger capacity.
     assert(capacity > table.length);
     size = 0;
-    table = new List<HInstruction>(capacity);
+    table = new List<HInstruction>.filled(capacity, null);
     collisions = null;
     // Add the old instructions to the new table.
     copyTo(this, oldTable, oldCollisions);

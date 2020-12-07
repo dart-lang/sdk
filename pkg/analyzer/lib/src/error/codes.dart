@@ -8629,7 +8629,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER =
       CompileTimeErrorCode('PRIVATE_OPTIONAL_PARAMETER',
-          "Named optional parameters can't start with an underscore.");
+          "Named parameters can't start with an underscore.");
 
   static const CompileTimeErrorCode PRIVATE_SETTER = CompileTimeErrorCode(
       'PRIVATE_SETTER',

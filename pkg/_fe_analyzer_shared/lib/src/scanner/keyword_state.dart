@@ -20,7 +20,8 @@ abstract class KeywordState {
   static KeywordState _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {
     if (_KEYWORD_STATE == null) {
-      List<String> strings = new List<String>(analyzer.Keyword.values.length);
+      List<String> strings =
+          new List<String>.filled(analyzer.Keyword.values.length, null);
       for (int i = 0; i < analyzer.Keyword.values.length; i++) {
         strings[i] = analyzer.Keyword.values[i].lexeme;
       }
@@ -38,7 +39,7 @@ abstract class KeywordState {
       int start, List<String> strings, int offset, int length) {
     bool isLowercase = true;
 
-    List<KeywordState> table = new List<KeywordState>($z - $A + 1);
+    List<KeywordState> table = new List<KeywordState>.filled($z - $A + 1, null);
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;

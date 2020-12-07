@@ -1676,7 +1676,7 @@ class MiniJsParser {
     Expression key = parseExpression();
     expectCategory(RPAREN);
     expectCategory(LBRACE);
-    var clauses = List<SwitchCase>();
+    var clauses = <SwitchCase>[];
     while (lastCategory != RBRACE) {
       clauses.add(parseSwitchClause());
     }
@@ -1701,7 +1701,7 @@ class MiniJsParser {
       heritage = parseConditional();
     }
     expectCategory(LBRACE);
-    var methods = List<Method>();
+    var methods = <Method>[];
     while (lastCategory != RBRACE) {
       methods.add(parseMethodOrProperty(onlyMethods: true) as Method);
     }

@@ -67,7 +67,7 @@ f(var message) {
     await assertNoErrorsInCode(r'''
 class A { }
 class X<T> {
-  final x = new List<T>();
+  final x = <T>[];
 }
 class Z {
   final X<A> y = new X<A>();

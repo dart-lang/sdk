@@ -1,7 +1,7 @@
 import 'package:kernel/import_table.dart';
 
 main() {
-  List<String> paths = new List<String>();
+  List<String> paths = <String>[];
   paths.add("file://");
   paths.add("file:///a");
   paths.add("file:///a/b");

@@ -5114,7 +5114,7 @@ class InferenceVisitor
     List<TypeParameter> classTypeParameters =
         node.target.enclosingClass.typeParameters;
     List<DartType> typeArguments =
-        new List<DartType>(classTypeParameters.length);
+        new List<DartType>.filled(classTypeParameters.length, null);
     for (int i = 0; i < typeArguments.length; i++) {
       typeArguments[i] = new TypeParameterType.withDefaultNullabilityForLibrary(
           classTypeParameters[i], inferrer.library.library);

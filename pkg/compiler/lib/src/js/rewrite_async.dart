@@ -1400,7 +1400,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     breakLabels[node] = after;
 
     beginLabel(before);
-    List<int> labels = new List<int>(node.cases.length);
+    List<int> labels = new List<int>.filled(node.cases.length, null);
 
     bool anyCaseExpressionTransformed = node.cases.any(
         (js.SwitchClause x) => x is js.Case && shouldTransform(x.expression));

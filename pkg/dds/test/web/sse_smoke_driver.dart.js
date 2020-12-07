@@ -4479,7 +4479,7 @@
     },
     Iterator: function Iterator() {
     },
-    List: function List() {
+    List: function [] {
     },
     Map: function Map() {
     },

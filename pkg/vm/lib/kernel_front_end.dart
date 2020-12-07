@@ -627,7 +627,7 @@ Future<Uri> convertToPackageUri(
 /// The list of package names is written into a file '[outputFileName]-packages'.
 Future writeOutputSplitByPackages(Uri source, CompilerOptions compilerOptions,
     KernelCompilationResults compilationResults, String outputFileName) async {
-  final packages = new List<String>();
+  final packages = <String>[];
   await runWithFrontEndCompilerContext(
       source, compilerOptions, compilationResults.component, () async {
     // When loading a kernel file list, flutter_runner and dart_runner expect
@@ -692,11 +692,10 @@ Future<Null> forEachPackage<T>(KernelCompilationResults results,
   sortComponent(component);
 
   final packages = new Map<String, List<Library>>();
-  packages['main'] = new List<Library>(); // Always create 'main'.
+  packages['main'] = <Library>[]; // Always create 'main'.
   for (Library lib in component.libraries) {
     packages
-        .putIfAbsent(
-            packageFor(lib, loadedLibraries), () => new List<Library>())
+        .putIfAbsent(packageFor(lib, loadedLibraries), () => <Library>[])
         .add(lib);
   }
   packages.remove(null); // Ignore external libraries.

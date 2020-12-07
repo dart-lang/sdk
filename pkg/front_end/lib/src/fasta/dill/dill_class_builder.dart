@@ -149,7 +149,7 @@ class DillClassBuilder extends ClassBuilderImpl {
     if (cls.implementedTypes.isEmpty) return null;
     if (super.interfaceBuilders == null) {
       List<TypeBuilder> result =
-          new List<TypeBuilder>(cls.implementedTypes.length);
+          new List<TypeBuilder>.filled(cls.implementedTypes.length, null);
       for (int i = 0; i < result.length; i++) {
         result[i] = computeTypeBuilder(library, cls.implementedTypes[i]);
       }

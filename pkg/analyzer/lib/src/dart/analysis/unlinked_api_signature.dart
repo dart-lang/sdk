@@ -28,15 +28,11 @@ class _UnitApiSignatureComputer {
     signature.addInt(node.members.length);
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
-        var lastInitializer = member.constKeyword != null &&
-                member.initializers != null &&
-                member.initializers.isNotEmpty
-            ? member.initializers.last
-            : null;
-        addTokens(
-          member.beginToken,
-          (lastInitializer ?? member.parameters ?? member.name).endToken,
-        );
+        addTokens(member.beginToken, member.parameters.endToken);
+        if (member.constKeyword != null) {
+          addNodeList(member.initializers);
+        }
+        addNode(member.redirectedConstructor);
       } else if (member is FieldDeclaration) {
         var variableList = member.fields;
         addVariables(
@@ -65,7 +61,15 @@ class _UnitApiSignatureComputer {
   }
 
   void addNode(AstNode node) {
-    addTokens(node.beginToken, node.endToken);
+    if (node != null) {
+      addTokens(node.beginToken, node.endToken);
+    }
+  }
+
+  void addNodeList(List<AstNode> nodes) {
+    for (var node in nodes) {
+      addNode(node);
+    }
   }
 
   void addToken(Token token) {

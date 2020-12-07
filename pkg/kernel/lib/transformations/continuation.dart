@@ -818,7 +818,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // with await in the loop's variable initializers or update expressions.
     bool isSimple = true;
     int length = stmt.variables.length;
-    List<List<Statement>> initEffects = new List<List<Statement>>(length);
+    List<List<Statement>> initEffects =
+        new List<List<Statement>>.filled(length, null);
     for (int i = 0; i < length; ++i) {
       VariableDeclaration decl = stmt.variables[i];
       initEffects[i] = <Statement>[];
@@ -831,7 +832,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     }
 
     length = stmt.updates.length;
-    List<List<Statement>> updateEffects = new List<List<Statement>>(length);
+    List<List<Statement>> updateEffects =
+        new List<List<Statement>>.filled(length, null);
     for (int i = 0; i < length; ++i) {
       updateEffects[i] = <Statement>[];
       stmt.updates[i] = expressionRewriter.rewrite(

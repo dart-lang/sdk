@@ -399,7 +399,7 @@ class NamedTypeBuilder extends TypeBuilder {
   NamedTypeBuilder clone(List<TypeBuilder> newTypes) {
     List<TypeBuilder> clonedArguments;
     if (arguments != null) {
-      clonedArguments = new List<TypeBuilder>(arguments.length);
+      clonedArguments = new List<TypeBuilder>.filled(arguments.length, null);
       for (int i = 0; i < clonedArguments.length; i++) {
         clonedArguments[i] = arguments[i].clone(newTypes);
       }

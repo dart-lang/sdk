@@ -55,7 +55,7 @@ class OrderedTypeSet {
 
     int levelCount = source.readInt();
     List<Link<InterfaceType>> levels =
-        new List<Link<InterfaceType>>(levelCount);
+        new List<Link<InterfaceType>>.filled(levelCount, null);
     for (int i = 0; i < levelCount; i++) {
       levels[i] = links[source.readInt()];
     }
@@ -90,7 +90,8 @@ class OrderedTypeSet {
   factory OrderedTypeSet.singleton(InterfaceType type) {
     Link<InterfaceType> types =
         new LinkEntry<InterfaceType>(type, const Link<InterfaceType>());
-    List<Link<InterfaceType>> list = new List<Link<InterfaceType>>(1);
+    List<Link<InterfaceType>> list =
+        new List<Link<InterfaceType>>.filled(1, null);
     list[0] = types;
     return new OrderedTypeSet.internal(list, types);
   }
@@ -107,7 +108,8 @@ class OrderedTypeSet {
             'OrderedTypeSet.extendClass'));
     Link<InterfaceType> extendedTypes =
         new LinkEntry<InterfaceType>(type, types);
-    List<Link<InterfaceType>> list = new List<Link<InterfaceType>>(levels + 1);
+    List<Link<InterfaceType>> list =
+        new List<Link<InterfaceType>>.filled(levels + 1, null);
     for (int i = 0; i < levels; i++) {
       list[i] = _levels[i];
     }
@@ -257,7 +259,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
 
   OrderedTypeSet toTypeSet() {
     List<Link<InterfaceType>> levels =
-        new List<Link<InterfaceType>>(maxDepth + 1);
+        new List<Link<InterfaceType>>.filled(maxDepth + 1, null);
     if (maxDepth < 0) {
       return new OrderedTypeSet.internal(levels, const Link<InterfaceType>());
     }

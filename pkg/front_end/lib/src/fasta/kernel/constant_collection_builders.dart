@@ -178,7 +178,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       SetConstant result = new SetConstant(elementType, entries);
       if (evaluator.desugarSets) {
         final List<ConstantMapEntry> mapEntries =
-            new List<ConstantMapEntry>(entries.length);
+            new List<ConstantMapEntry>.filled(entries.length, null);
         for (int i = 0; i < entries.length; ++i) {
           mapEntries[i] =
               new ConstantMapEntry(entries[i], evaluator.nullConstant);

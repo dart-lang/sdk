@@ -125,6 +125,12 @@ class Env {
         additionalTypes: additionalTypes);
   }
 
+  List<DartType> parseTypes(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return _libraryEnvironment.parseTypes(text,
+        additionalTypes: additionalTypes);
+  }
+
   List<TypeParameter> extendWithTypeParameters(String typeParameters) {
     if (typeParameters == null || typeParameters.isEmpty) {
       return <TypeParameter>[];
@@ -179,10 +185,19 @@ class TypeParserEnvironment {
     return node;
   }
 
+  /// Parses a single type.
   DartType parseType(String text,
       {Map<String, DartType Function()> additionalTypes}) {
     return _kernelFromParsedType(type_parser.parse(text).single,
         additionalTypes: additionalTypes);
+  }
+
+  /// Parses a list of types separated by commas.
+  List<DartType> parseTypes(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return (parseType("(${text}) -> void", additionalTypes: additionalTypes)
+            as FunctionType)
+        .positionalParameters;
   }
 
   bool isObject(String name) => name == "Object" && "$uri" == "dart:core";

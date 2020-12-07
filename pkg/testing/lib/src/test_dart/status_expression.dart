@@ -53,7 +53,7 @@ class Tokenizer {
   String expression;
   List<String> tokens;
 
-  Tokenizer(String this.expression) : tokens = new List<String>();
+  Tokenizer(String this.expression) : tokens = <String>[];
 
   // Tokens are : "(", ")", "$", ",", "&&", "||", "==", "!=", and (maximal) \w+.
   static final testRegexp =

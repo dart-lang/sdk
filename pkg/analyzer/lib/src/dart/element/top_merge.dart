@@ -212,7 +212,7 @@ class TopMergeHelper {
       throw _TopMergeStateError(T, S, 'Different number of formal parameters');
     }
 
-    var R_parameters = List<ParameterElement>(T_parameters.length);
+    var R_parameters = List<ParameterElement>.filled(T_parameters.length, null);
     for (var i = 0; i < T_parameters.length; i++) {
       var T_parameter = T_parameters[i];
       var S_parameter = S_parameters[i];
@@ -278,7 +278,7 @@ class TopMergeHelper {
     if (T_arguments.isEmpty) {
       return T;
     } else {
-      var arguments = List<DartType>(T_arguments.length);
+      var arguments = List<DartType>.filled(T_arguments.length, null);
       for (var i = 0; i < T_arguments.length; i++) {
         arguments[i] = topMerge(T_arguments[i], S_arguments[i]);
       }

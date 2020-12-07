@@ -182,7 +182,7 @@ class NamedTypeBuilder extends TypeBuilder {
       return const <DartType>[];
     } else if (arguments.isNotEmpty) {
       if (arguments.length == parameters.length) {
-        var result = List<DartType>(parameters.length);
+        var result = List<DartType>.filled(parameters.length, null);
         for (int i = 0; i < result.length; ++i) {
           var type = arguments[i];
           result[i] = _buildType(type);
@@ -192,7 +192,7 @@ class NamedTypeBuilder extends TypeBuilder {
         return _listOfDynamic(parameters.length);
       }
     } else {
-      var result = List<DartType>(parameters.length);
+      var result = List<DartType>.filled(parameters.length, null);
       for (int i = 0; i < result.length; ++i) {
         TypeParameterElementImpl parameter = parameters[i];
         var defaultType = parameter.defaultType;

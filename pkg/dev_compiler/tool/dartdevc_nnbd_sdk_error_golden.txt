@@ -1,11 +1,11 @@
 ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|3679|5|94|Const constructors can't throw exceptions.
-ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|7881|5|97|Const constructors can't throw exceptions.
+ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|7878|5|97|Const constructors can't throw exceptions.
 ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|893|5|95|Const constructors can't throw exceptions.
 ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|926|5|94|Const constructors can't throw exceptions.
 ERROR|COMPILE_TIME_ERROR|INVALID_ASSIGNMENT|lib/_internal/js_dev_runtime/private/interceptors.dart|1358|18|27|A value of type 'double' can't be assigned to a variable of type 'int'.
 ERROR|COMPILE_TIME_ERROR|RETURN_OF_INVALID_TYPE|lib/_internal/js_dev_runtime/private/interceptors.dart|1225|14|38|A value of type 'double' can't be returned from method '%' because it has a return type of 'JSNumber'.
 ERROR|COMPILE_TIME_ERROR|RETURN_OF_INVALID_TYPE|lib/_internal/js_dev_runtime/private/interceptors.dart|1227|14|38|A value of type 'double' can't be returned from method '%' because it has a return type of 'JSNumber'.
 ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|3677|3|5|Only redirecting factory constructors can be declared to be 'const'.
-ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|7879|3|5|Only redirecting factory constructors can be declared to be 'const'.
+ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|7876|3|5|Only redirecting factory constructors can be declared to be 'const'.
 ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|891|3|5|Only redirecting factory constructors can be declared to be 'const'.
 ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|924|3|5|Only redirecting factory constructors can be declared to be 'const'.

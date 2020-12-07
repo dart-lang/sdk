@@ -79,7 +79,7 @@ class DijkstrasAlgorithm<E> {
   }
 
   List<E> getPathFromTarget(GraphNode<E> source, GraphNode<E> target) {
-    List<E> path = new List<E>();
+    List<E> path = <E>[];
     GraphNode<E> u = target;
     while (u == source || prev[u] != null) {
       path.add(u.node);

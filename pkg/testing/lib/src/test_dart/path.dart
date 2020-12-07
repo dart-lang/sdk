@@ -121,7 +121,7 @@ class Path {
     while (common < length && pathSegments[common] == baseSegments[common]) {
       common++;
     }
-    final segments = new List<String>();
+    final segments = <String>[];
 
     if (common < baseSegments.length && baseSegments[common] == '..') {
       throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"

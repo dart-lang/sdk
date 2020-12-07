@@ -74,7 +74,7 @@ Future<CompilerResult> generateKernelInternal(
     DillTarget dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);
 
-    List<Component> loadedComponents = new List<Component>();
+    List<Component> loadedComponents = <Component>[];
 
     Component sdkSummary = await options.loadSdkSummary(null);
     // By using the nameRoot of the the summary, we enable sharing the

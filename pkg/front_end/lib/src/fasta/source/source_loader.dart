@@ -1106,7 +1106,7 @@ class SourceLoader extends Loader {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     if (!target.backendTarget.enableNoSuchMethodForwarders) return;
 
-    List<Class> changedClasses = new List<Class>();
+    List<Class> changedClasses = <Class>[];
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
         if (builder.addNoSuchMethodForwarders(target, hierarchy)) {

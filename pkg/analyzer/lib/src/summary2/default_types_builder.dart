@@ -161,8 +161,8 @@ class DefaultTypesBuilder {
 
     var nodes = parameterList.typeParameters;
     var length = nodes.length;
-    var elements = List<TypeParameterElementImpl>(length);
-    var bounds = List<DartType>(length);
+    var elements = List<TypeParameterElementImpl>.filled(length, null);
+    var bounds = List<DartType>.filled(length, null);
     for (int i = 0; i < length; i++) {
       var node = nodes[i];
       elements[i] = node.declaredElement;
@@ -324,8 +324,8 @@ class _TypeParametersGraph implements Graph<int> {
   ) {
     assert(parameters.length == bounds.length);
 
-    vertices = List<int>(parameters.length);
-    _edges = List<List<int>>(parameters.length);
+    vertices = List<int>.filled(parameters.length, null);
+    _edges = List<List<int>>.filled(parameters.length, null);
     for (int i = 0; i < vertices.length; i++) {
       vertices[i] = i;
       _edges[i] = <int>[];

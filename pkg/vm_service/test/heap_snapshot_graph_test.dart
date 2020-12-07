@@ -27,10 +27,10 @@ void script() {
   r.right = b;
   a.left = b;
 
-  lst = List(2);
+  lst = List.filled(2, null);
   lst[0] = lst; // Self-loop.
   // Larger than any other fixed-size list in a fresh heap.
-  lst[1] = List(1234569);
+  lst[1] = List.filled(1234569, null);
 }
 
 var tests = <IsolateTest>[

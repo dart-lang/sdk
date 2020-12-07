@@ -722,7 +722,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
                   actualOrigin.function.typeParameters[i], library.library);
         }
         List<DartType> newTypeArguments =
-            new List<DartType>(typeArguments.length);
+            new List<DartType>.filled(typeArguments.length, null);
         for (int i = 0; i < newTypeArguments.length; i++) {
           newTypeArguments[i] = substitute(typeArguments[i], substitution);
         }
@@ -755,8 +755,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     }
     _procedure.isRedirectingFactoryConstructor = true;
     if (redirectionTarget.typeArguments != null) {
-      typeArguments =
-          new List<DartType>(redirectionTarget.typeArguments.length);
+      typeArguments = new List<DartType>.filled(
+          redirectionTarget.typeArguments.length, null);
       for (int i = 0; i < typeArguments.length; i++) {
         typeArguments[i] = redirectionTarget.typeArguments[i].build(library);
       }

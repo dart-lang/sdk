@@ -4475,7 +4475,7 @@ class FormalParameterListImpl extends AstNodeImpl
   @override
   List<ParameterElement> get parameterElements {
     int count = _parameters.length;
-    List<ParameterElement> types = List<ParameterElement>(count);
+    List<ParameterElement> types = List<ParameterElement>.filled(count, null);
     for (int i = 0; i < count; i++) {
       types[i] = _parameters[i].declaredElement;
     }

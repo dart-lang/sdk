@@ -2182,7 +2182,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     if (concatenated.length > 1) {
       final List<Expression> expressions =
-          new List<Expression>(concatenated.length);
+          new List<Expression>.filled(concatenated.length, null);
       for (int i = 0; i < concatenated.length; i++) {
         Object value = concatenated[i];
         if (value is StringBuffer) {
@@ -2754,9 +2754,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Arguments unevaluatedArguments(List<Constant> positionalArgs,
       Map<String, Constant> namedArgs, List<DartType> types) {
     final List<Expression> positional =
-        new List<Expression>(positionalArgs.length);
+        new List<Expression>.filled(positionalArgs.length, null);
     final List<NamedExpression> named =
-        new List<NamedExpression>(namedArgs.length);
+        new List<NamedExpression>.filled(namedArgs.length, null);
     for (int i = 0; i < positionalArgs.length; ++i) {
       positional[i] = extract(positionalArgs[i]);
     }

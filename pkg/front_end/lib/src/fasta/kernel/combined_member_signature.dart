@@ -293,7 +293,7 @@ abstract class CombinedMemberSignatureBase<T> {
   /// Returns type of the [index]th member in [members] as inherited in
   /// [classBuilder].
   DartType getMemberType(int index) {
-    _memberTypes ??= new List<DartType>(members.length);
+    _memberTypes ??= new List<DartType>.filled(members.length, null);
     DartType candidateType = _memberTypes[index];
     if (candidateType == null) {
       Member target = _getMember(index);
@@ -412,7 +412,8 @@ abstract class CombinedMemberSignatureBase<T> {
       if (typeParameterCount == 0) {
         return type;
       }
-      List<DartType> types = new List<DartType>(typeParameterCount);
+      List<DartType> types =
+          new List<DartType>.filled(typeParameterCount, null);
       for (int i = 0; i < typeParameterCount; i++) {
         types[i] = new TypeParameterType.forAlphaRenaming(
             signatureTypeParameters[i], typeParameters[i]);
@@ -776,7 +777,7 @@ class CombinedMemberSignatureBuilder
 
   @override
   Covariance _getMemberCovariance(int index) {
-    _memberCovariances ??= new List<Covariance>(members.length);
+    _memberCovariances ??= new List<Covariance>.filled(members.length, null);
     Covariance covariance = _memberCovariances[index];
     if (covariance == null) {
       _memberCovariances[index] = covariance =

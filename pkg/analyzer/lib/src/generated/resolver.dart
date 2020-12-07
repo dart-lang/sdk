@@ -2208,7 +2208,7 @@ class ResolverVisitor extends ScopedVisitor {
     NodeList<Expression> arguments = argumentList.arguments;
     int argumentCount = arguments.length;
     List<ParameterElement> resolvedParameters =
-        List<ParameterElement>(argumentCount);
+        List<ParameterElement>.filled(argumentCount, null);
     int positionalArgumentCount = 0;
     HashSet<String> usedNames;
     bool noBlankArguments = true;

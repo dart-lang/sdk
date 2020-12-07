@@ -28,7 +28,7 @@ SpellingResult spellcheckString(String s,
   List<List<String>> wrongWordsAlternatives;
   List<int> wrongWordsOffset;
   List<bool> wrongWordDenylisted;
-  List<int> wordOffsets = new List<int>();
+  List<int> wordOffsets = <int>[];
   List<String> words =
       splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
   List<Set<String>> dictionariesUnpacked = [];
@@ -51,13 +51,13 @@ SpellingResult spellcheckString(String s,
       }
     }
     if (!found) {
-      wrongWords ??= new List<String>();
+      wrongWords ??= <String>[];
       wrongWords.add(word);
-      wrongWordsAlternatives ??= new List<List<String>>();
+      wrongWordsAlternatives ??= <List<String>>[];
       wrongWordsAlternatives.add(findAlternatives(word, dictionariesUnpacked));
-      wrongWordsOffset ??= new List<int>();
+      wrongWordsOffset ??= <int>[];
       wrongWordsOffset.add(offset);
-      wrongWordDenylisted ??= new List<bool>();
+      wrongWordDenylisted ??= <bool>[];
       wrongWordDenylisted
           .add(loadedDictionaries[Dictionaries.denylist].contains(word));
     }
@@ -79,7 +79,7 @@ List<String> findAlternatives(String word, List<Set<String>> dictionaries) {
   }
 
   void ok(String w) {
-    result ??= new List<String>();
+    result ??= <String>[];
     result.add(w);
   }
 
@@ -185,7 +185,7 @@ Uri dictionaryToUri(Dictionaries dictionaryType) {
 
 List<String> splitStringIntoWords(String s, List<int> splitOffsets,
     {bool splitAsCode: false}) {
-  List<String> result = new List<String>();
+  List<String> result = <String>[];
   // Match whitespace and the characters "-", "=", "|", "/", ",".
   String regExpStringInner = r"\s-=\|\/,";
   if (splitAsCode) {
@@ -204,8 +204,8 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
   Iterator<RegExpMatch> matchesIterator =
       new RegExp(regExp).allMatches(s).iterator;
   int latestMatch = 0;
-  List<String> split = new List<String>();
-  List<int> splitOffset = new List<int>();
+  List<String> split = <String>[];
+  List<int> splitOffset = <int>[];
   while (matchesIterator.moveNext()) {
     RegExpMatch match = matchesIterator.current;
     if (match.start > latestMatch) {
@@ -385,7 +385,7 @@ void spellSummarizeAndInteractiveMode(
     }
 
     if (interactive && dictionaryToUse != null) {
-      List<String> addedWords = new List<String>();
+      List<String> addedWords = <String>[];
       for (String s in reportedWords) {
         print("- $s");
         String answer;
@@ -420,8 +420,8 @@ void spellSummarizeAndInteractiveMode(
         File dictionaryFile =
             new File.fromUri(dictionaryToUri(dictionaryToUse));
         List<String> lines = dictionaryFile.readAsLinesSync();
-        List<String> header = new List<String>();
-        List<String> sortThis = new List<String>();
+        List<String> header = <String>[];
+        List<String> sortThis = <String>[];
         for (String line in lines) {
           if (line.startsWith("#")) {
             header.add(line);
@@ -433,7 +433,7 @@ void spellSummarizeAndInteractiveMode(
         }
         sortThis.addAll(addedWords);
         sortThis.sort();
-        lines = new List<String>();
+        lines = <String>[];
         lines.addAll(header);
         if (header.isEmpty || header.last.isNotEmpty) {
           lines.add("");

@@ -126,7 +126,8 @@ class ElementFactory {
     constructor.isConst = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
-      List<ParameterElement> parameters = List<ParameterElement>(count);
+      List<ParameterElement> parameters =
+          List<ParameterElement>.filled(count, null);
       for (int i = 0; i < count; i++) {
         ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
         parameter.type = argumentTypes[i];
@@ -320,7 +321,8 @@ class ElementFactory {
       method.parameters = const <ParameterElement>[];
     } else {
       int count = argumentTypes.length;
-      List<ParameterElement> parameters = List<ParameterElement>(count);
+      List<ParameterElement> parameters =
+          List<ParameterElement>.filled(count, null);
       for (int i = 0; i < count; i++) {
         ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
         parameter.type = argumentTypes[i];
@@ -487,7 +489,7 @@ class ElementFactory {
       return const <TypeParameterElement>[];
     }
     List<TypeParameterElementImpl> typeParameters =
-        List<TypeParameterElementImpl>(count);
+        List<TypeParameterElementImpl>.filled(count, null);
     for (int i = 0; i < count; i++) {
       typeParameters[i] = typeParameterWithType(names[i]);
     }

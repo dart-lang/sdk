@@ -121,8 +121,9 @@ class ReferenceCollector {
       }
     }
 
-    var importPrefixes = List<String>(importPrefixCount);
-    var importPrefixedReferencedNames = List<List<String>>(importPrefixCount);
+    var importPrefixes = List<String>.filled(importPrefixCount, null);
+    var importPrefixedReferencedNames =
+        List<List<String>>.filled(importPrefixCount, null);
     var importIndex = 0;
     for (var i = 0; i < _importPrefixedReferences.length; i++) {
       var import = _importPrefixedReferences[i];
