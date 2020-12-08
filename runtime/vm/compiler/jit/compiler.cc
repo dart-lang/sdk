@@ -211,17 +211,15 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  Object& result = Object::Handle(zone);
-  ASSERT(!function.HasCode());
 
-  result = Compiler::CompileFunction(thread, function);
-  if (result.IsError()) {
-    if (result.IsLanguageError()) {
-      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
-      UNREACHABLE();
-    }
-    Exceptions::PropagateError(Error::Cast(result));
-  }
+  // In single-isolate scenarios the lazy compile stub is only invoked if
+  // there's no existing code. In multi-isolate scenarios with shared JITed code
+  // we can end up in the lazy compile runtime entry here with code being
+  // installed.
+  ASSERT(!function.HasCode() || FLAG_enable_isolate_groups);
+
+  // Will throw if compilation failed (e.g. with compile-time error).
+  function.EnsureHasCode();
 }
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
