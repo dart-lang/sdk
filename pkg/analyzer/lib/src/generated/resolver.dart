@@ -583,11 +583,44 @@ class ResolverVisitor extends ScopedVisitor {
     _enclosingFunction = enclosingExecutableElement;
   }
 
-  /// A client is about to resolve a member in the given class declaration.
-  void prepareToResolveMembersInClass(ClassDeclaration node) {
-    _enclosingClassDeclaration = node;
-    enclosingClass = node.declaredElement;
-    _thisType = enclosingClass?.thisType;
+  /// We are going to resolve [node], without visiting its parent.
+  /// Do necessary preparations - set enclosing elements, scopes, etc.
+  /// This [ResolverVisitor] instance is fresh, just created.
+  ///
+  /// Return `true` if we were able to do this, or `false` if it is not
+  /// possible to resolve only [node].
+  bool prepareForResolving(AstNode node) {
+    var parent = node.parent;
+
+    if (parent is CompilationUnit) {
+      return node is ClassDeclaration ||
+          node is ExtensionDeclaration ||
+          node is FunctionDeclaration;
+    }
+
+    void forClassElement(ClassElement parentElement) {
+      enclosingClass = parentElement;
+      nameScope = ClassScope(
+        TypeParameterScope(
+          nameScope,
+          parentElement.typeParameters,
+        ),
+        parentElement,
+      );
+      _thisType = parentElement.thisType;
+    }
+
+    if (parent is ClassDeclaration) {
+      forClassElement(parent.declaredElement);
+      return true;
+    }
+
+    if (parent is MixinDeclaration) {
+      forClassElement(parent.declaredElement);
+      return true;
+    }
+
+    return false;
   }
 
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
