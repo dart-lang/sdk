@@ -58,6 +58,16 @@ class A {
 ''');
   }
 
+  Future<void> test_extension_hasType() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+extension E on int {
+  int test = 42;
+}
+''');
+    await assertNoAssistAt('test = 42');
+  }
+
   Future<void> test_final() async {
     await resolveTestCode('''
 class A {
@@ -90,6 +100,25 @@ class A {
 }
 main(A a) {
   print(a.test);
+}
+''');
+  }
+
+  Future<void> test_mixin_hasType() async {
+    await resolveTestCode('''
+mixin M {
+  int test = 42;
+}
+''');
+    await assertHasAssistAt('test = 42', '''
+mixin M {
+  int _test = 42;
+
+  int get test => _test;
+
+  set test(int test) {
+    _test = test;
+  }
 }
 ''');
   }
