@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/src/commands/fix.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -34,6 +35,18 @@ void defineFix() {
     return p.runSync(['fix', ...args], workingDir: workingDir);
   }
 
+  test('help', () {
+    p = project(mainSrc: 'int get foo => 1;\n');
+
+    var result = runFix([p.dirPath, '--help']);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(FixCommand.disclaimer));
+    expect(
+        result.stdout, contains('Apply automated fixes to Dart source code.'));
+  });
+
   test('none', () {
     p = project(mainSrc: 'int get foo => 1;\n');
 
@@ -41,7 +54,9 @@ void defineFix() {
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Fix Dart source code.'));
+    expect(result.stdout, contains(FixCommand.disclaimer));
+    expect(
+        result.stdout, contains('Apply automated fixes to Dart source code.'));
   });
 
   test('--apply (none)', () {
@@ -51,6 +66,7 @@ void defineFix() {
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(FixCommand.disclaimer));
     expect(result.stdout, contains('Nothing to fix!'));
   });
 
