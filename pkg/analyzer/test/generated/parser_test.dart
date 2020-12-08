@@ -2354,8 +2354,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('abstract C f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 0, 8)]);
+    assertNoErrors();
   }
 
   void test_abstractClassMember_getter() {
@@ -3342,10 +3341,8 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.EXTERNAL_FIELD, 0, 8),
-        expectedError(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 17, 1)
-      ]);
+      listener.assertErrors(
+          [expectedError(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 17, 1)]);
     } else {
       listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_FIELD]);
     }
@@ -3355,32 +3352,28 @@ class Foo {
     createParser('external final A f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXTERNAL_FIELD, 0, 8)]);
+    assertNoErrors();
   }
 
   void test_externalField_static() {
     createParser('external static A f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXTERNAL_FIELD, 0, 8)]);
+    assertNoErrors();
   }
 
   void test_externalField_typed() {
     createParser('external A f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXTERNAL_FIELD, 0, 8)]);
+    assertNoErrors();
   }
 
   void test_externalField_untyped() {
     createParser('external var f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXTERNAL_FIELD, 0, 8)]);
+    assertNoErrors();
   }
 
   void test_externalGetterWithBody() {

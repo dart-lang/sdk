@@ -367,6 +367,8 @@ class CompletionHandler
                     // https://github.com/microsoft/vscode-languageserver-node/issues/673
                     includeCommitCharacters:
                         server.clientConfiguration.previewCommitCharacters,
+                    completeFunctionCalls:
+                        server.clientConfiguration.completeFunctionCalls,
                   ));
           results.addAll(setResults);
         });

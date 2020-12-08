@@ -964,6 +964,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _annotatedNode(node);
+    _token(node.lateKeyword);
     _token(node.keyword);
     node.type?.accept(this);
     _nodeList(node.variables, node.endToken.next);
@@ -1042,6 +1043,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void _normalFormalParameter(NormalFormalParameter node) {
     node.documentationComment?.accept(this);
     _nodeList(node.metadata);
+    _token(node.requiredKeyword);
     _token(node.covariantKeyword);
   }
 

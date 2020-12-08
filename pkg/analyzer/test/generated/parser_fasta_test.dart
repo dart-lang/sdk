@@ -1142,8 +1142,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
-    assertErrors(
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 9, 1)]);
+    assertNoErrors();
   }
 
   void test_conditionalExpression_precedence_nullableType_as3() {
@@ -1158,8 +1157,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
-    assertErrors(
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1)]);
+    assertNoErrors();
   }
 
   void test_conditionalExpression_precedence_nullableType_is2() {
@@ -1173,8 +1171,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
-    assertErrors(
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 1)]);
+    assertNoErrors();
   }
 
   void test_conditionalExpression_precedence_nullableType_is3() {
@@ -1189,8 +1186,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
-    assertErrors(
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 12, 1)]);
+    assertNoErrors();
   }
 }
 
@@ -1877,17 +1873,16 @@ class FastaParserTestCase
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
 
-  final controlFlow = FeatureSet.forTesting(
-      sdkVersion: '2.0.0',
-      additionalFeatures: [Feature.control_flow_collections]);
+  final controlFlow = FeatureSet.latestLanguageVersion();
 
-  final spread = FeatureSet.forTesting(
-      sdkVersion: '2.0.0', additionalFeatures: [Feature.spread_collections]);
+  final spread = FeatureSet.latestLanguageVersion();
 
-  final nonNullable = FeatureSet.forTesting(
-      sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+  final nonNullable = FeatureSet.latestLanguageVersion();
 
-  final preNonNullable = FeatureSet.forTesting(sdkVersion: '2.2.2');
+  final preNonNullable = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.9.0'),
+    flags: [],
+  );
 
   ParserProxy _parserProxy;
 
@@ -2169,7 +2164,8 @@ class FastaParserTestCase
 
   @override
   FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
+      {List<ErrorCode> errorCodes = const <ErrorCode>[],
+      FeatureSet featureSet}) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
       parametersCode = '($code)';
@@ -2181,7 +2177,7 @@ class FastaParserTestCase
       fail('$kind');
     }
     FormalParameterList list = parseFormalParameterList(parametersCode,
-        inFunctionType: false, errorCodes: errorCodes);
+        inFunctionType: false, errorCodes: errorCodes, featureSet: featureSet);
     return list.parameters.single;
   }
 
@@ -2189,8 +2185,9 @@ class FastaParserTestCase
   FormalParameterList parseFormalParameterList(String code,
       {bool inFunctionType = false,
       List<ErrorCode> errorCodes = const <ErrorCode>[],
-      List<ExpectedError> errors}) {
-    createParser(code);
+      List<ExpectedError> errors,
+      FeatureSet featureSet}) {
+    createParser(code, featureSet: featureSet);
     FormalParameterList result =
         _parserProxy.parseFormalParameterList(inFunctionType: inFunctionType);
     assertErrors(codes: errors != null ? null : errorCodes, errors: errors);
@@ -2456,6 +2453,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_functionTyped_named_nullable_disabled() {
     ParameterKind kind = ParameterKind.NAMED;
     var defaultParameter = parseFormalParameter('a()? : null', kind,
+            featureSet: preNonNullable,
             errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
         as DefaultFormalParameter;
     var functionParameter =
@@ -2474,6 +2472,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_functionTyped_positional_nullable_disabled() {
     ParameterKind kind = ParameterKind.POSITIONAL;
     var defaultParameter = parseFormalParameter('a()? = null', kind,
+            featureSet: preNonNullable,
             errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
         as DefaultFormalParameter;
     var functionParameter =
@@ -2492,6 +2491,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_functionTyped_required_nullable_disabled() {
     ParameterKind kind = ParameterKind.REQUIRED;
     var functionParameter = parseFormalParameter('a()?', kind,
+            featureSet: preNonNullable,
             errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
         as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNull);
@@ -2676,7 +2676,9 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
           List<ExpectedError> errors,
           FeatureSet featureSet}) =>
       super.parseCompilationUnit(content,
-          codes: codes, errors: errors, featureSet: featureSet ?? nonNullable);
+          codes: codes,
+          errors: errors,
+          featureSet: featureSet ?? FeatureSet.latestLanguageVersion());
 
   void test_assignment_complex() {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');

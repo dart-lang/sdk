@@ -435,11 +435,12 @@ static InstancePtr CreateLibraryDependencyMirror(Thread* thread,
                                                  const LibraryPrefix& prefix,
                                                  const bool is_import,
                                                  const bool is_deferred) {
-  const Library& importee = Library::Handle(ns.library());
+  const Library& importee = Library::Handle(ns.target());
   const Array& show_names = Array::Handle(ns.show_names());
   const Array& hide_names = Array::Handle(ns.hide_names());
 
-  Object& metadata = Object::Handle(ns.GetMetadata());
+  const Library& owner = Library::Handle(ns.owner());
+  Object& metadata = Object::Handle(owner.GetMetadata(ns));
   if (metadata.IsError()) {
     Exceptions::PropagateError(Error::Cast(metadata));
     UNREACHABLE();

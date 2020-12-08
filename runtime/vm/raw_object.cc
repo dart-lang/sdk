@@ -145,7 +145,8 @@ intptr_t ObjectLayout::HeapSizeFromClass(uword tags) const {
     case kArrayCid:
     case kImmutableArrayCid: {
       const ArrayPtr raw_array = static_cast<const ArrayPtr>(this);
-      intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
+      intptr_t array_length =
+          Smi::Value(raw_array->ptr()->length<std::memory_order_acquire>());
       instance_size = Array::InstanceSize(array_length);
       break;
     }
@@ -539,7 +540,7 @@ VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_VISITOR(LocalVarDescriptors, raw_obj->ptr()->num_entries_)
 VARIABLE_VISITOR(ExceptionHandlers, raw_obj->ptr()->num_entries_)
 VARIABLE_VISITOR(Context, raw_obj->ptr()->num_variables_)
-VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->ptr()->length_))
+VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->ptr()->length()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *

@@ -177,6 +177,43 @@ main() {
     expect(item.textEdit.newText, equals(item.insertText));
   }
 
+  Future<void> test_completeFunctionCalls_suggestionSets() async {
+    final content = '''
+    main() {
+      [[pri]]^
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withConfigurationSupport(
+            withApplyEditSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'print(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'print(${0:object})'));
+    expect(item.textEdit, isNull);
+
+    // Ensure the item can be resolved and gets a proper TextEdit.
+    final resolved = await resolveCompletion(item);
+    expect(resolved.textEdit, isNotNull);
+    expect(resolved.textEdit.newText, equals(item.insertText));
+    expect(
+      resolved.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
+  }
+
   Future<void> test_completionKinds_default() async {
     newFile(join(projectFolderPath, 'file.dart'));
     newFolder(join(projectFolderPath, 'folder'));

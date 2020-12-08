@@ -290,10 +290,6 @@ class Object {
   ObjectPtr raw() const { return raw_; }
   void operator=(ObjectPtr value) { initializeHandle(this, value); }
 
-  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
-    raw()->ptr()->tags_.StrongCAS(old_tags, new_tags);
-    return old_tags;
-  }
   bool IsCanonical() const { return raw()->ptr()->IsCanonical(); }
   void SetCanonical() const { raw()->ptr()->SetCanonical(); }
   void ClearCanonical() const { raw()->ptr()->ClearCanonical(); }
@@ -644,9 +640,6 @@ class Object {
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(SmiPtr const* addr, SmiPtr value) const {
     raw()->ptr()->StoreSmi(addr, value);
-  }
-  void StoreSmiIgnoreRace(SmiPtr const* addr, SmiPtr value) const {
-    raw()->ptr()->StoreSmiIgnoreRace(addr, value);
   }
 
   template <typename FieldType>
@@ -4738,22 +4731,8 @@ class Library : public Object {
 
   void AddExport(const Namespace& ns) const;
 
-  void AddClassMetadata(const Class& cls,
-                        const Object& tl_owner,
-                        TokenPosition token_pos,
-                        intptr_t kernel_offset) const;
-  void AddFieldMetadata(const Field& field,
-                        TokenPosition token_pos,
-                        intptr_t kernel_offset) const;
-  void AddFunctionMetadata(const Function& func,
-                           TokenPosition token_pos,
-                           intptr_t kernel_offset) const;
-  void AddLibraryMetadata(const Object& tl_owner,
-                          TokenPosition token_pos,
-                          intptr_t kernel_offset) const;
-  void AddTypeParameterMetadata(const TypeParameter& param,
-                                TokenPosition token_pos) const;
-  ObjectPtr GetMetadata(const Object& obj) const;
+  void AddMetadata(const Object& declaration, intptr_t kernel_offset) const;
+  ObjectPtr GetMetadata(const Object& declaration) const;
 
   // Tries to finds a @pragma annotation on [object].
   //
@@ -4978,8 +4957,8 @@ class Library : public Object {
   void set_flags(uint8_t flags) const;
   bool HasExports() const;
   ArrayPtr loaded_scripts() const { return raw_ptr()->loaded_scripts(); }
-  GrowableObjectArrayPtr metadata() const { return raw_ptr()->metadata(); }
-  void set_metadata(const GrowableObjectArray& value) const;
+  ArrayPtr metadata() const { return raw_ptr()->metadata(); }
+  void set_metadata(const Array& value) const;
   ArrayPtr dictionary() const { return raw_ptr()->dictionary(); }
   void InitClassDictionary() const;
 
@@ -5007,13 +4986,6 @@ class Library : public Object {
 
   void AllocatePrivateKey() const;
 
-  StringPtr MakeMetadataName(const Object& obj) const;
-  FieldPtr GetMetadataField(const String& metaname) const;
-  void AddMetadata(const Object& owner,
-                   const String& name,
-                   TokenPosition token_pos,
-                   intptr_t kernel_offset) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
   friend class Bootstrap;
@@ -5031,14 +5003,10 @@ class Library : public Object {
 // the show/hide combinators.
 class Namespace : public Object {
  public:
-  LibraryPtr library() const { return raw_ptr()->library(); }
+  LibraryPtr target() const { return raw_ptr()->target(); }
   ArrayPtr show_names() const { return raw_ptr()->show_names(); }
   ArrayPtr hide_names() const { return raw_ptr()->hide_names(); }
-
-  void AddMetadata(const Object& owner,
-                   TokenPosition token_pos,
-                   intptr_t kernel_offset = 0);
-  ObjectPtr GetMetadata() const;
+  LibraryPtr owner() const { return raw_ptr()->owner(); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(NamespaceLayout));
@@ -5050,13 +5018,11 @@ class Namespace : public Object {
 
   static NamespacePtr New(const Library& library,
                           const Array& show_names,
-                          const Array& hide_names);
+                          const Array& hide_names,
+                          const Library& owner);
 
  private:
   static NamespacePtr New();
-
-  FieldPtr metadata_field() const { return raw_ptr()->metadata_field(); }
-  void set_metadata_field(const Field& value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
@@ -8265,6 +8231,13 @@ class TypeParameter : public AbstractType {
   bool IsFunctionTypeParameter() const {
     return parameterized_function() != Function::null();
   }
+  ObjectPtr Owner() const {
+    if (IsClassTypeParameter()) {
+      return parameterized_class();
+    } else {
+      return parameterized_function();
+    }
+  }
 
   static intptr_t parameterized_class_id_offset() {
     return OFFSET_OF(TypeParameterLayout, parameterized_class_id_);
@@ -9640,8 +9613,8 @@ class Array : public Instance {
   void SetLength(intptr_t value) const {
     raw_ptr()->set_length(Smi::New(value));
   }
-  void SetLengthIgnoreRace(intptr_t value) const {
-    raw_ptr()->set_length_ignore_race(Smi::New(value));
+  void SetLengthRelease(intptr_t value) const {
+    raw_ptr()->set_length<std::memory_order_release>(Smi::New(value));
   }
 
   template <typename type, std::memory_order order = std::memory_order_relaxed>

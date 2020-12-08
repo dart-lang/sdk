@@ -1503,7 +1503,7 @@ class CidRewriteVisitor : public ObjectVisitor {
       if (old_cid != new_cid) {
         // Don't touch objects that are unchanged. In particular, Instructions,
         // which are write-protected.
-        obj->ptr()->SetClassId(new_cid);
+        obj->ptr()->SetClassIdUnsynchronized(new_cid);
       }
     }
   }

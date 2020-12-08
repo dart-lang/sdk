@@ -226,14 +226,12 @@ class ObjectLayout {
       return tags;
     }
 
-    bool StrongCAS(uword old_tags, uword new_tags) {
-      return tags_.compare_exchange_strong(old_tags, new_tags,
-                                           std::memory_order_relaxed);
-    }
+    uword load(std::memory_order order) const { return tags_.load(order); }
 
-    bool WeakCAS(uword old_tags, uword new_tags) {
-      return tags_.compare_exchange_weak(old_tags, new_tags,
-                                         std::memory_order_relaxed);
+    bool compare_exchange_weak(uword old_tags,
+                               uword new_tags,
+                               std::memory_order order) {
+      return tags_.compare_exchange_weak(old_tags, new_tags, order);
     }
 
     template <class TagBitField>
@@ -304,6 +302,7 @@ class ObjectLayout {
 
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
+  static bool IsMarked(uword tags) { return !OldAndNotMarkedBit::decode(tags); }
   bool IsMarked() const {
     ASSERT(IsOldObject());
     return !tags_.Read<OldAndNotMarkedBit>();
@@ -529,7 +528,8 @@ class ObjectLayout {
 
   intptr_t HeapSizeFromClass(uword tags) const;
 
-  void SetClassId(intptr_t new_cid) {
+  void SetClassId(intptr_t new_cid) { tags_.Update<ClassIdTag>(new_cid); }
+  void SetClassIdUnsynchronized(intptr_t new_cid) {
     tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
   }
 
@@ -665,12 +665,6 @@ class ObjectLayout {
     reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
         ->store(value, order);
   }
-  NO_SANITIZE_THREAD
-  void StoreSmiIgnoreRace(SmiPtr const* addr, SmiPtr value) {
-    // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= ObjectLayout::ToAddr(this));
-    *const_cast<SmiPtr*>(addr) = value;
-  }
 
   friend class StoreBufferUpdateVisitor;  // RememberCard
   void RememberCard(ObjectPtr const* slot);
@@ -688,6 +682,7 @@ class ObjectLayout {
   friend class FreeListElement;
   friend class Function;
   friend class GCMarker;
+  friend class GCSweeper;
   friend class ExternalTypedData;
   friend class ForwardList;
   friend class GrowableObjectArray;  // StorePointer
@@ -784,10 +779,6 @@ inline intptr_t ObjectPtr::GetClassId() const {
   void set_##name(type value) {                                                \
     ASSERT(!value.IsHeapObject());                                             \
     StoreSmi<order>(&name##_, value);                                          \
-  }                                                                            \
-  void set_##name##_ignore_race(type value) {                                  \
-    ASSERT(!value.IsHeapObject());                                             \
-    StoreSmiIgnoreRace(&name##_, value);                                       \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -1409,8 +1400,7 @@ class LibraryLayout : public ObjectLayout {
   POINTER_FIELD(StringPtr, url)
   POINTER_FIELD(StringPtr, private_key)
   POINTER_FIELD(ArrayPtr, dictionary)  // Top-level names in this library.
-  POINTER_FIELD(GrowableObjectArrayPtr,
-                metadata)  // Metadata on classes, methods etc.
+  POINTER_FIELD(ArrayPtr, metadata)    // Metadata on classes, methods etc.
   POINTER_FIELD(ClassPtr,
                 toplevel_class)  // Class containing top-level elements.
   POINTER_FIELD(GrowableObjectArrayPtr, used_scripts)
@@ -1462,14 +1452,12 @@ class LibraryLayout : public ObjectLayout {
 class NamespaceLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
-  VISIT_FROM(ObjectPtr, library)
-  POINTER_FIELD(LibraryPtr, library)   // library with name dictionary.
+  VISIT_FROM(ObjectPtr, target)
+  POINTER_FIELD(LibraryPtr, target)    // library with name dictionary.
   POINTER_FIELD(ArrayPtr, show_names)  // list of names that are exported.
   POINTER_FIELD(ArrayPtr, hide_names)  // list of names that are hidden.
-  POINTER_FIELD(FieldPtr,
-                metadata_field)  // remembers the token pos of metadata if any,
-                                 // and the metadata values if computed.
-  VISIT_TO(ObjectPtr, metadata_field)
+  POINTER_FIELD(LibraryPtr, owner)
+  VISIT_TO(ObjectPtr, owner)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 

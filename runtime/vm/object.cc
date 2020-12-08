@@ -1467,14 +1467,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
-      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
-      do {
-        old_tags = tags;
-        // We can't use obj.CompareAndSwapTags here because we don't have a
-        // handle for the new object.
-      } while (!raw->ptr()->tags_.WeakCAS(old_tags, new_tags));
+      raw->ptr()->tags_ = new_tags;
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
@@ -1496,14 +1489,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // new array length, and so treat it as a pointer. Ensure it is a Smi so
       // the marker won't dereference it.
       ASSERT((new_tags & kSmiTagMask) == kSmiTag);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
-      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
-      do {
-        old_tags = tags;
-        // We can't use obj.CompareAndSwapTags here because we don't have a
-        // handle for the new object.
-      } while (!raw->ptr()->tags_.WeakCAS(old_tags, new_tags));
+      raw->ptr()->tags_ = new_tags;
     }
   }
 }
@@ -11609,175 +11595,25 @@ void Library::SetLoaded() const {
   StoreNonPointer(&raw_ptr()->load_state_, LibraryLayout::kLoaded);
 }
 
-static StringPtr MakeClassMetaName(Thread* thread,
-                                   Zone* zone,
-                                   const Class& cls) {
-  return Symbols::FromConcat(thread, Symbols::At(),
-                             String::Handle(zone, cls.Name()));
-}
-
-static StringPtr MakeFieldMetaName(Thread* thread,
-                                   Zone* zone,
-                                   const Field& field) {
-  const String& cname = String::Handle(
-      zone,
-      MakeClassMetaName(thread, zone, Class::Handle(zone, field.Origin())));
-  GrowableHandlePtrArray<const String> pieces(zone, 3);
-  pieces.Add(cname);
-  pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(zone, field.name()));
-  return Symbols::FromConcatAll(thread, pieces);
-}
-
-static StringPtr MakeFunctionMetaName(Thread* thread,
-                                      Zone* zone,
-                                      const Function& func) {
-  const String& cname = String::Handle(
-      zone,
-      MakeClassMetaName(thread, zone, Class::Handle(zone, func.origin())));
-  GrowableHandlePtrArray<const String> pieces(zone, 3);
-  pieces.Add(cname);
-  pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(zone, func.name()));
-  return Symbols::FromConcatAll(thread, pieces);
-}
-
-static StringPtr MakeTypeParameterMetaName(Thread* thread,
-                                           Zone* zone,
-                                           const TypeParameter& param) {
-  const String& cname = String::Handle(
-      zone,
-      MakeClassMetaName(thread, zone,
-                        Class::Handle(zone, param.parameterized_class())));
-  GrowableHandlePtrArray<const String> pieces(zone, 3);
-  pieces.Add(cname);
-  pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(zone, param.name()));
-  return Symbols::FromConcatAll(thread, pieces);
-}
-
-void Library::AddMetadata(const Object& owner,
-                          const String& name,
-                          TokenPosition token_pos,
+void Library::AddMetadata(const Object& declaration,
                           intptr_t kernel_offset) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  Zone* zone = thread->zone();
-  const String& metaname = String::Handle(zone, Symbols::New(thread, name));
-  const Field& field =
-      Field::Handle(zone, Field::NewTopLevel(metaname,
-                                             false,  // is_final
-                                             false,  // is_const
-                                             false,  // is_late
-                                             owner, token_pos, token_pos));
-  field.SetFieldType(Object::dynamic_type());
-  field.set_is_reflectable(false);
-  field.set_kernel_offset(kernel_offset);
-  thread->isolate_group()->RegisterStaticField(field, Array::empty_array());
-
-  GrowableObjectArray& metadata =
-      GrowableObjectArray::Handle(zone, this->metadata());
-  metadata.Add(field, Heap::kOld);
+  MetadataMap map(metadata());
+  map.UpdateOrInsert(declaration, Smi::Handle(Smi::New(kernel_offset)));
+  set_metadata(map.Release());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void Library::AddClassMetadata(const Class& cls,
-                               const Object& tl_owner,
-                               TokenPosition token_pos,
-                               intptr_t kernel_offset) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  // We use the toplevel class as the owner of a class's metadata field because
-  // a class's metadata is in scope of the library, not the class.
-  AddMetadata(tl_owner,
-              String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_offset);
-}
-
-void Library::AddFieldMetadata(const Field& field,
-                               TokenPosition token_pos,
-                               intptr_t kernel_offset) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const auto& owner = Object::Handle(zone, field.RawOwner());
-  const auto& name =
-      String::Handle(zone, MakeFieldMetaName(thread, zone, field));
-  AddMetadata(owner, name, token_pos, kernel_offset);
-}
-
-void Library::AddFunctionMetadata(const Function& func,
-                                  TokenPosition token_pos,
-                                  intptr_t kernel_offset) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const auto& owner = Object::Handle(zone, func.RawOwner());
-  const auto& name =
-      String::Handle(zone, MakeFunctionMetaName(thread, zone, func));
-  AddMetadata(owner, name, token_pos, kernel_offset);
-}
-
-void Library::AddTypeParameterMetadata(const TypeParameter& param,
-                                       TokenPosition token_pos) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const auto& owner = Class::Handle(zone, param.parameterized_class());
-  const auto& name =
-      String::Handle(zone, MakeTypeParameterMetaName(thread, zone, param));
-  AddMetadata(owner, name, token_pos, 0);
-}
-
-void Library::AddLibraryMetadata(const Object& tl_owner,
-                                 TokenPosition token_pos,
-                                 intptr_t kernel_offset) const {
-  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset);
-}
-
-StringPtr Library::MakeMetadataName(const Object& obj) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  if (obj.IsClass()) {
-    return MakeClassMetaName(thread, zone, Class::Cast(obj));
-  } else if (obj.IsField()) {
-    return MakeFieldMetaName(thread, zone, Field::Cast(obj));
-  } else if (obj.IsFunction()) {
-    return MakeFunctionMetaName(thread, zone, Function::Cast(obj));
-  } else if (obj.IsLibrary()) {
-    return Symbols::TopLevel().raw();
-  } else if (obj.IsTypeParameter()) {
-    return MakeTypeParameterMetaName(thread, zone, TypeParameter::Cast(obj));
-  }
-  UNIMPLEMENTED();
-  return String::null();
-}
-
-FieldPtr Library::GetMetadataField(const String& metaname) const {
-  const GrowableObjectArray& metadata =
-      GrowableObjectArray::Handle(this->metadata());
-  Field& entry = Field::Handle();
-  String& entryname = String::Handle();
-  intptr_t num_entries = metadata.Length();
-  for (intptr_t i = 0; i < num_entries; i++) {
-    entry ^= metadata.At(i);
-    entryname = entry.name();
-    if (entryname.Equals(metaname)) {
-      return entry.raw();
-    }
-  }
-  return Field::null();
-}
-
-ObjectPtr Library::GetMetadata(const Object& obj) const {
+ObjectPtr Library::GetMetadata(const Object& declaration) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Object::empty_array().raw();
 #else
-  if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
-      !obj.IsLibrary() && !obj.IsTypeParameter()) {
-    UNREACHABLE();
-  }
-  if (obj.IsLibrary()) {
+  RELEASE_ASSERT(declaration.IsClass() || declaration.IsField() ||
+                 declaration.IsFunction() || declaration.IsLibrary() ||
+                 declaration.IsTypeParameter() || declaration.IsNamespace());
+  if (declaration.IsLibrary()) {
     // Ensure top-level class is loaded as it may contain annotations of
     // a library.
     const auto& cls = Class::Handle(toplevel_class());
@@ -11785,31 +11621,36 @@ ObjectPtr Library::GetMetadata(const Object& obj) const {
       cls.EnsureDeclarationLoaded();
     }
   }
-  const String& metaname = String::Handle(MakeMetadataName(obj));
-  Field& field = Field::Handle(GetMetadataField(metaname));
-  if (field.IsNull()) {
+  Object& value = Object::Handle();
+  {
+    MetadataMap map(metadata());
+    value = map.GetOrNull(declaration);
+    set_metadata(map.Release());
+  }
+  if (value.IsNull()) {
     // There is no metadata for this object.
     return Object::empty_array().raw();
   }
-  Object& metadata = Object::Handle(field.StaticValue());
-  if (metadata.raw() == Object::empty_array().raw()) {
-    ASSERT(field.kernel_offset() > 0);
-    metadata = kernel::EvaluateMetadata(
-        field, /* is_annotations_offset = */ obj.IsLibrary());
-    if (metadata.IsArray() || metadata.IsNull()) {
-      ASSERT(metadata.raw() != Object::empty_array().raw());
-      if (!Compiler::IsBackgroundCompilation()) {
-        field.SetStaticValue(
-            metadata.IsNull() ? Object::null_array() : Array::Cast(metadata),
-            true);
-      }
+  if (!value.IsSmi()) {
+    // Metadata is already evaluated.
+    ASSERT(value.IsArray());
+    return value.raw();
+  }
+  intptr_t kernel_offset = Smi::Cast(value).Value();
+  ASSERT(kernel_offset > 0);
+  value = kernel::EvaluateMetadata(
+      *this, kernel_offset,
+      /* is_annotations_offset = */ declaration.IsLibrary() ||
+          declaration.IsNamespace());
+  if (value.IsArray() || value.IsNull()) {
+    ASSERT(value.raw() != Object::empty_array().raw());
+    if (!Compiler::IsBackgroundCompilation()) {
+      MetadataMap map(metadata());
+      map.UpdateOrInsert(declaration, value);
+      set_metadata(map.Release());
     }
   }
-  if (metadata.IsNull()) {
-    // Metadata field exists in order to reference extended metadata.
-    return Object::empty_array().raw();
-  }
-  return metadata.raw();
+  return value.raw();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -12356,7 +12197,7 @@ ObjectPtr Library::LookupImportedObject(const String& name) const {
     import = ImportAt(i);
     obj = import.Lookup(name);
     if (!obj.IsNull()) {
-      import_lib = import.library();
+      import_lib = import.target();
       import_lib_url = import_lib.url();
       if (found_obj.raw() != obj.raw()) {
         if (first_import_lib_url.IsNull() ||
@@ -12480,7 +12321,7 @@ void Library::set_dependencies(const Array& deps) const {
   raw_ptr()->set_dependencies(deps.raw());
 }
 
-void Library::set_metadata(const GrowableObjectArray& value) const {
+void Library::set_metadata(const Array& value) const {
   raw_ptr()->set_metadata(value.raw());
 }
 
@@ -12489,7 +12330,7 @@ LibraryPtr Library::ImportLibraryAt(intptr_t index) const {
   if (import.IsNull()) {
     return Library::null();
   }
-  return import.library();
+  return import.target();
 }
 
 NamespacePtr Library::ImportAt(intptr_t index) const {
@@ -12511,7 +12352,7 @@ void Library::DropDependenciesAndCaches() const {
   for (int i = 0; i < imports.Length(); ++i) {
     ns = Namespace::RawCast(imports.At(i));
     if (ns.IsNull()) continue;
-    lib = ns.library();
+    lib = ns.target();
     url = lib.url();
     if (url.StartsWith(Symbols::DartExtensionScheme())) {
       native_import_count++;
@@ -12522,7 +12363,7 @@ void Library::DropDependenciesAndCaches() const {
   for (int i = 0, j = 0; i < imports.Length(); ++i) {
     ns = Namespace::RawCast(imports.At(i));
     if (ns.IsNull()) continue;
-    lib = ns.library();
+    lib = ns.target();
     url = lib.url();
     if (url.StartsWith(Symbols::DartExtensionScheme())) {
       new_imports.SetAt(j++, ns);
@@ -12640,10 +12481,11 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.raw_ptr()->set_resolved_names(Array::null());
   result.raw_ptr()->set_exported_names(Array::null());
   result.raw_ptr()->set_dictionary(Object::empty_array().raw());
-  GrowableObjectArray& list = GrowableObjectArray::Handle(zone);
-  list = GrowableObjectArray::New(4, Heap::kOld);
-  result.raw_ptr()->set_metadata(list.raw());
+  Array& array = Array::Handle(zone);
+  array = HashTables::New<MetadataMap>(4, Heap::kOld);
+  result.raw_ptr()->set_metadata(array.raw());
   result.raw_ptr()->set_toplevel_class(Class::null());
+  GrowableObjectArray& list = GrowableObjectArray::Handle(zone);
   list = GrowableObjectArray::New(Object::empty_array(), Heap::kOld);
   result.raw_ptr()->set_used_scripts(list.raw());
   result.raw_ptr()->set_imports(Object::empty_array().raw());
@@ -12673,9 +12515,9 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   if (import_core_lib) {
     const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
-    const Namespace& ns = Namespace::Handle(
-        zone,
-        Namespace::New(core_lib, Object::null_array(), Object::null_array()));
+    const Namespace& ns =
+        Namespace::Handle(zone, Namespace::New(core_lib, Object::null_array(),
+                                               Object::null_array(), result));
     result.AddImport(ns);
   }
   return result.raw();
@@ -13300,7 +13142,7 @@ LibraryPtr LibraryPrefix::GetLibrary(int index) const {
     const Array& imports = Array::Handle(this->imports());
     Namespace& import = Namespace::Handle();
     import ^= imports.At(index);
-    return import.library();
+    return import.target();
   }
   return Library::null();
 }
@@ -13370,59 +13212,8 @@ const char* LibraryPrefix::ToCString() const {
   return prefix.ToCString();
 }
 
-void Namespace::set_metadata_field(const Field& value) const {
-  raw_ptr()->set_metadata_field(value.raw());
-}
-
-void Namespace::AddMetadata(const Object& owner,
-                            TokenPosition token_pos,
-                            intptr_t kernel_offset) {
-  auto thread = Thread::Current();
-  auto zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  ASSERT(Field::Handle(zone, metadata_field()).IsNull());
-  Field& field =
-      Field::Handle(zone, Field::NewTopLevel(Symbols::TopLevel(),
-                                             false,  // is_final
-                                             false,  // is_const
-                                             false,  // is_late
-                                             owner, token_pos, token_pos));
-  field.set_is_reflectable(false);
-  field.SetFieldType(Object::dynamic_type());
-  field.set_kernel_offset(kernel_offset);
-  isolate_group->RegisterStaticField(field, Array::empty_array());
-  set_metadata_field(field);
-}
-
-ObjectPtr Namespace::GetMetadata() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Object::empty_array().raw();
-#else
-  Field& field = Field::Handle(metadata_field());
-  if (field.IsNull()) {
-    // There is no metadata for this object.
-    return Object::empty_array().raw();
-  }
-  Object& metadata = Object::Handle();
-  metadata = field.StaticValue();
-  if (field.StaticValue() == Object::empty_array().raw()) {
-    if (field.kernel_offset() > 0) {
-      metadata =
-          kernel::EvaluateMetadata(field, /* is_annotations_offset = */ true);
-    } else {
-      UNREACHABLE();
-    }
-    if (metadata.IsArray()) {
-      ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
-      field.SetStaticValue(Array::Cast(metadata), true);
-    }
-  }
-  return metadata.raw();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
 const char* Namespace::ToCString() const {
-  const Library& lib = Library::Handle(library());
+  const Library& lib = Library::Handle(target());
   return OS::SCreate(Thread::Current()->zone(), "Namespace for library '%s'",
                      lib.ToCString());
 }
@@ -13476,7 +13267,7 @@ bool Namespace::HidesName(const String& name) const {
 ObjectPtr Namespace::Lookup(const String& name,
                             ZoneGrowableArray<intptr_t>* trail) const {
   Zone* zone = Thread::Current()->zone();
-  const Library& lib = Library::Handle(zone, library());
+  const Library& lib = Library::Handle(zone, target());
 
   if (trail != NULL) {
     // Look for cycle in reexport graph.
@@ -13537,15 +13328,17 @@ NamespacePtr Namespace::New() {
   return static_cast<NamespacePtr>(raw);
 }
 
-NamespacePtr Namespace::New(const Library& library,
+NamespacePtr Namespace::New(const Library& target,
                             const Array& show_names,
-                            const Array& hide_names) {
+                            const Array& hide_names,
+                            const Library& owner) {
   ASSERT(show_names.IsNull() || (show_names.Length() > 0));
   ASSERT(hide_names.IsNull() || (hide_names.Length() > 0));
   const Namespace& result = Namespace::Handle(Namespace::New());
-  result.raw_ptr()->set_library(library.raw());
+  result.raw_ptr()->set_target(target.raw());
   result.raw_ptr()->set_show_names(show_names.raw());
   result.raw_ptr()->set_hide_names(hide_names.raw());
+  result.raw_ptr()->set_owner(owner.raw());
   return result.raw();
 }
 
@@ -23228,15 +23021,7 @@ ArrayPtr Array::Slice(intptr_t start,
 void Array::MakeImmutable() const {
   if (IsImmutable()) return;
   ASSERT(!IsCanonical());
-  NoSafepointScope no_safepoint;
-  uword tags = raw_ptr()->tags_;
-  uword old_tags;
-  do {
-    old_tags = tags;
-    uword new_tags =
-        ObjectLayout::ClassIdTag::update(kImmutableArrayCid, old_tags);
-    tags = CompareAndSwapTags(old_tags, new_tags);
-  } while (tags != old_tags);
+  raw_ptr()->SetClassId(kImmutableArrayCid);
 }
 
 const char* Array::ToCString() const {
@@ -23293,25 +23078,22 @@ void Array::Truncate(intptr_t new_len) const {
   // that it can be traversed over successfully during garbage collection.
   Object::MakeUnusedSpaceTraversable(array, old_size, new_size);
 
-  // For the heap to remain walkable by the sweeper, it must observe the
-  // creation of the filler object no later than the new length of the array.
-  std::atomic_thread_fence(std::memory_order_release);
-
   // Update the size in the header field and length of the array object.
-  uword tags = array.raw_ptr()->tags_;
-  ASSERT(kArrayCid == ObjectLayout::ClassIdTag::decode(tags));
-  uword old_tags;
+  // These release operations are balanced by acquire operations in the
+  // concurrent sweeper.
+  uword old_tags = array.raw_ptr()->tags_;
+  uword new_tags;
+  ASSERT(kArrayCid == ObjectLayout::ClassIdTag::decode(old_tags));
   do {
-    old_tags = tags;
-    uword new_tags = ObjectLayout::SizeTag::update(new_size, old_tags);
-    tags = CompareAndSwapTags(old_tags, new_tags);
-  } while (tags != old_tags);
+    new_tags = ObjectLayout::SizeTag::update(new_size, old_tags);
+  } while (!array.raw_ptr()->tags_.compare_exchange_weak(
+      old_tags, new_tags, std::memory_order_release));
 
   // Between the CAS of the header above and the SetLength below, the array is
   // temporarily in an inconsistent state. The header is considered the
   // overriding source of object size by ObjectLayout::Size, but the ASSERTs in
-  // ObjectLayout::SizeFromClass must handle this special case.
-  array.SetLengthIgnoreRace(new_len);
+  // ObjectLayout::HeapSizeFromClass must handle this special case.
+  array.SetLengthRelease(new_len);
 }
 
 ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
@@ -25089,9 +24871,13 @@ ErrorPtr Function::VerifyClosurizedEntryPoint() const {
   const Library& lib = Library::Handle(cls.library());
   switch (kind()) {
     case FunctionLayout::kRegularFunction:
-    case FunctionLayout::kImplicitClosureFunction:
       return dart::VerifyEntryPoint(lib, *this, *this,
                                     {EntryPointPragma::kGetterOnly});
+    case FunctionLayout::kImplicitClosureFunction: {
+      const Function& parent = Function::Handle(parent_function());
+      return dart::VerifyEntryPoint(lib, parent, parent,
+                                    {EntryPointPragma::kGetterOnly});
+    }
     default:
       UNREACHABLE();
   }
