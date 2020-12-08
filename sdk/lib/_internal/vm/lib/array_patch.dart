@@ -74,11 +74,8 @@ class List<E> {
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   @pragma("vm:entry-point", "call")
-  factory List._fromLiteral(List elements) {
-    if (elements.isEmpty) {
-      return new _GrowableList<E>(0);
-    }
-    final result = new _GrowableList<E>._withData(unsafeCast<_List>(elements));
+  factory List._fromLiteral(_List elements) {
+    final result = new _GrowableList<E>._withData(elements);
     result._setLength(elements.length);
     return result;
   }

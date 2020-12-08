@@ -1521,11 +1521,6 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       rightBracket: Tokens.CLOSE_CURLY_BRACKET,
     ) as SetOrMapLiteralImpl;
-    if (AstBinaryFlags.isMap(flags)) {
-      node.becomeMap();
-    } else if (AstBinaryFlags.isSet(flags)) {
-      node.becomeSet();
-    }
     return node;
   }
 

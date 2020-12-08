@@ -79,6 +79,25 @@ extension E on Object {
 ''');
   }
 
+  test_extensionOverrideInAnnotationContext_importedWithPrefix() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+extension E on Object {
+  int f() => 0;
+}
+''');
+    await _assertCanBeAnalyzed('''
+import 'a.dart' as prefix;
+
+class A {
+  const A(int x);
+}
+
+@R(prefix.E(null).f())
+void g() {}
+}
+''');
+  }
+
   test_extensionOverrideInConstContext() async {
     await _assertCanBeAnalyzed('''
 extension E on Object {

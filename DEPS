@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "8740182c0547c1b26b79a5f96e28a0d5cd27b0c9",
+  "co19_rev": "d8e25398102add0ac1e732850928bd44c78f2447",
   "co19_2_rev": "e48b3090826cf40b8037648f19d211e8eab1b4b6",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
@@ -133,7 +133,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
-  "pub_rev": "a7e448b2b4743cebfc464b7973019c57f0a3b5a1",
+  "pub_rev": "228e69e53862879c283c42b98086aa7536012a66",
   "pub_semver_rev": "10569a1e867e909cf5db201f73118020453e5db8",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
@@ -141,7 +141,7 @@ vars = {
   "shelf_static_rev": "a6168f162df88b0eef7e328629bf020122d5039e",
   "shelf_packages_handler_tag": "2.0.0",
   "shelf_proxy_tag": "0.1.0+7",
-  "shelf_rev": "289309adc6c39aab0a63db676d550c517fc1cc2d",
+  "shelf_rev": "5a77d25861db91db4343b19dfe213b8992e0a837",
   "shelf_web_socket_rev": "8050a55b16faa5052a3e5d7dcdc170c59b6644f2",
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",

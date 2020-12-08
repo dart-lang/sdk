@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
@@ -16,7 +18,6 @@ import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
@@ -125,23 +126,19 @@ class LibraryContext {
         (e) => loadBundle(e, '$debugPrefix  '),
       );
 
-      String astKey;
-      {
-        var signature = ApiSignature();
-        for (var library in cycle.libraries) {
-          for (var file in library.libraryFiles) {
-            signature.addBytes(file.unlinkedSignature);
-          }
+      var uriToLibrary_uriToUnitAstBytes = <String, Map<String, Uint8List>>{};
+      for (var library in cycle.libraries) {
+        var uriToUnitAstBytes = <String, Uint8List>{};
+        uriToLibrary_uriToUnitAstBytes[library.uriStr] = uriToUnitAstBytes;
+        for (var file in library.libraryFiles) {
+          uriToUnitAstBytes[file.uriStr] = file.getAstBytes();
         }
-        astKey = '${signature.toHex()}.ast';
       }
 
       var resolutionKey = cycle.transitiveSignature + '.linked_bundle';
-
-      var astBytes = byteStore.get(astKey);
       var resolutionBytes = byteStore.get(resolutionKey);
 
-      if (astBytes == null || resolutionBytes == null) {
+      if (resolutionBytes == null) {
         librariesLinkedTimer.start();
 
         testView.linkedCycles.add(
@@ -235,29 +232,23 @@ class LibraryContext {
           _throwLibraryCycleLinkException(cycle, exception, stackTrace);
         }
 
-        astBytes = linkResult.astBytes;
         resolutionBytes = linkResult.resolutionBytes;
-
-        byteStore.put(astKey, astBytes);
         byteStore.put(resolutionKey, resolutionBytes);
-        bytesPut += astBytes.length;
         bytesPut += resolutionBytes.length;
-        counterUnlinkedLinkedBytes += astBytes.length;
         counterUnlinkedLinkedBytes += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
       } else {
         // TODO(scheglov) Take / clear parsed units in files.
-        bytesGet += astBytes.length;
         bytesGet += resolutionBytes.length;
         librariesLoaded += cycle.libraries.length;
       }
 
-      elementFactory.addBundle(
-        BundleReader(
+      elementFactory.addLibraries(
+        createLibraryReadersWithAstBytes(
           elementFactory: elementFactory,
-          astBytes: astBytes,
           resolutionBytes: resolutionBytes,
+          uriToLibrary_uriToUnitAstBytes: uriToLibrary_uriToUnitAstBytes,
         ),
       );
     }

@@ -6,8 +6,26 @@
 
 library main;
 
+import 'dart:_js_helper';
+import 'dart:_foreign_helper' show JS;
+
 import 'native_testing.dart';
-import 'native_library_same_name_used_lib1.dart';
+
+// 'I' is the name of an abstract class and the name of the native class.
+
+abstract class I {
+  I read();
+  write(I x);
+}
+
+// Native impl has same name as abstract class.
+@Native("I")
+class Impl implements I {
+  Impl read() native;
+  write(I x) native;
+}
+
+makeI() => JS('creates:Impl; returns:I;', 'makeI()');
 
 void setup() {
   JS('', r"""
@@ -25,13 +43,13 @@ void setup() {
 // A pure Dart implementation of I.
 
 class ProxyI implements I {
-  ProxyI b;
+  ProxyI? b;
   ProxyI read() {
-    return b;
+    return b!;
   }
 
-  write(ProxyI x) {
-    b = x;
+  write(I x) {
+    b = x as ProxyI;
   }
 }
 

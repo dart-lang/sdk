@@ -26,8 +26,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   final bool _withInformative;
   final BufferedSink _sink;
   final StringIndexer _stringIndexer;
-  final ResolutionUnit _resolutionUnit;
+  final int Function() _getNextResolutionIndex;
   final ResolutionSink _resolutionSink;
+  final bool _shouldWriteResolution;
 
   /// TODO(scheglov) Keep it private, and write here, similarly as we do
   /// for [_classMemberIndexItems]?
@@ -40,13 +41,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   int _nextUnnamedExtensionId = 0;
 
   AstBinaryWriter({
-    @required BundleWriterAst bundleWriterAst,
-    @required ResolutionUnit resolutionUnit,
-  })  : _withInformative = bundleWriterAst.withInformative,
-        _sink = bundleWriterAst.sink,
-        _stringIndexer = bundleWriterAst.stringIndexer,
-        _resolutionUnit = resolutionUnit,
-        _resolutionSink = resolutionUnit.library.sink;
+    @required bool withInformative,
+    @required BufferedSink sink,
+    @required StringIndexer stringIndexer,
+    @required int Function() getNextResolutionIndex,
+    @required ResolutionSink resolutionSink,
+  })  : _withInformative = withInformative,
+        _sink = sink,
+        _stringIndexer = stringIndexer,
+        _getNextResolutionIndex = getNextResolutionIndex,
+        _resolutionSink = resolutionSink,
+        _shouldWriteResolution = resolutionSink != null;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -69,7 +74,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     }
     _writeOptionalNode(arguments);
 
-    _resolutionSink.writeElement(node.element);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.element);
+    }
   }
 
   @override
@@ -104,11 +111,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
     _writeByte(binaryToken.index);
 
-    _resolutionSink.writeElement(node.staticElement);
-    _resolutionSink.writeElement(node.readElement);
-    _resolutionSink.writeType(node.readType);
-    _resolutionSink.writeElement(node.writeElement);
-    _resolutionSink.writeType(node.writeType);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      _resolutionSink.writeElement(node.readElement);
+      _resolutionSink.writeType(node.readType);
+      _resolutionSink.writeElement(node.writeElement);
+      _resolutionSink.writeType(node.writeType);
+    }
     _storeExpression(node);
   }
 
@@ -123,15 +132,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
     _writeByte(binaryToken.index);
 
-    _resolutionSink?.writeElement(node.staticElement);
-    _resolutionSink?.writeType(node.staticType);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
     _writeByte(Tag.BooleanLiteral);
     _writeByte(node.value ? 1 : 0);
-    _resolutionSink?.writeType(node.staticType);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   @override
@@ -144,7 +157,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     var classOffset = _sink.offset;
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _hasConstConstructor = false;
     for (var member in node.members) {
@@ -161,7 +174,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         isAbstract: node.abstractKeyword != null,
       ),
     );
-    _resolutionSink.writeByte(node.declaredElement.isSimplyBounded ? 1 : 0);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(node.declaredElement.isSimplyBounded ? 1 : 0);
+    }
 
     _writeInformativeUint30(node.offset);
     _writeInformativeUint30(node.length);
@@ -181,7 +196,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNodeList(node.members);
     _hasConstConstructor = false;
 
-    _resolutionSink.localElements.popScope();
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
 
     // TODO(scheglov) write member index
     var classIndexOffset = _sink.offset;
@@ -207,7 +224,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _writeByte(Tag.ClassTypeAlias);
     _writeByte(
@@ -215,7 +232,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         isAbstract: node.abstractKeyword != null,
       ),
     );
-    _resolutionSink.writeByte(node.declaredElement.isSimplyBounded ? 1 : 0);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(node.declaredElement.isSimplyBounded ? 1 : 0);
+    }
     _writeInformativeUint30(node.offset);
     _writeInformativeUint30(node.length);
     _pushScopeTypeParameters(node.typeParameters);
@@ -226,7 +245,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _storeTypeAlias(node);
     _writeDocumentationCommentString(node.documentationComment);
     _writeUInt30(resolutionIndex);
-    _resolutionSink.localElements.popScope();
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
   }
 
   @override
@@ -294,7 +315,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.length);
     _writeDocumentationCommentString(node.documentationComment);
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
     _writeNode(node.returnType);
     if (node.period != null) {
       _writeInformativeUint30(node.period.offset);
@@ -302,12 +323,24 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     }
     _writeNode(node.parameters);
 
-    _resolutionSink.localElements.pushScope();
-    for (var parameter in node.parameters.parameters) {
-      _resolutionSink.localElements.declare(parameter.declaredElement);
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.pushScope();
+      for (var parameter in node.parameters.parameters) {
+        _resolutionSink.localElements.declare(parameter.declaredElement);
+      }
     }
-    _writeNodeList(node.initializers);
-    _resolutionSink.localElements.popScope();
+
+    // TODO(scheglov) Not nice, we skip both resolution and AST.
+    // But eventually we want to store full AST, and partial resolution.
+    if (node.constKeyword != null) {
+      _writeNodeList(node.initializers);
+    } else {
+      _writeNodeList(const <ConstructorInitializer>[]);
+    }
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
 
     _writeOptionalNode(node.redirectedConstructor);
     _storeClassMember(node);
@@ -332,9 +365,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitConstructorName(ConstructorName node) {
     _writeByte(Tag.ConstructorName);
+
+    if (_shouldWriteResolution) {
+      // When we parse `C() = A.named` we don't know that `A` is a class name.
+      // We parse it as a `TypeName(PrefixedIdentifier)`.
+      // But when we resolve, we rewrite it.
+      // We need to inform the applier about the right shape of the AST.
+      _resolutionSink.writeByte(node.name != null ? 1 : 0);
+    }
+
     _writeNode(node.type);
     _writeOptionalNode(node.name);
-    _resolutionSink?.writeElement(node.staticElement);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
   }
 
   @override
@@ -402,7 +447,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
     unitMemberIndexItems.add(
       _UnitMemberIndexItem(
         offset: _sink.offset,
@@ -424,15 +469,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _writeByte(Tag.ExportDirective);
     _storeNamespaceDirective(node);
     _writeUInt30(resolutionIndex);
 
-    _resolutionSink?.writeElement(
-      (node.element as ExportElementImpl).exportedLibrary,
-    );
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(
+        (node.element as ExportElementImpl).exportedLibrary,
+      );
+    }
   }
 
   @override
@@ -444,7 +491,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var classOffset = _sink.offset;
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _writeByte(Tag.ExtensionDeclaration);
 
@@ -462,7 +509,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _classMemberIndexItems.clear();
     _writeNodeList(node.members);
 
-    _resolutionSink.localElements.popScope();
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
 
     // TODO(scheglov) write member index
     var classIndexOffset = _sink.offset;
@@ -485,6 +534,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     _writeByte(Tag.ExtensionOverride);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(MethodInvocationRewriteTag.extensionOverride);
+    }
+
     _writeNode(node.extensionName);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
@@ -515,7 +569,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeVariableCodeRanges(node.offset, node.fields);
     _writeDocumentationCommentString(node.documentationComment);
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _isConstField = node.fields.isConst;
     _isFinalField = node.fields.isFinal;
@@ -544,7 +598,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       node.keyword,
       hasQuestion: node.question != null,
     );
-    _resolutionSink.localElements.popScope();
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
   }
 
   @override
@@ -614,16 +671,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.length);
     _writeDocumentationCommentString(node.documentationComment);
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _pushScopeTypeParameters(node.functionExpression.typeParameters);
 
     _writeNode(node.functionExpression);
     _writeOptionalNode(node.returnType);
     _storeNamedCompilationUnitMember(node);
-    _writeActualReturnType(node.declaredElement.returnType);
 
-    _resolutionSink.localElements.popScope();
+    if (_shouldWriteResolution) {
+      _writeActualReturnType(node.declaredElement.returnType);
+      _resolutionSink.localElements.popScope();
+    }
 
     _writeUInt30(resolutionIndex);
   }
@@ -647,6 +706,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _writeByte(Tag.FunctionExpressionInvocation);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink
+          .writeByte(MethodInvocationRewriteTag.functionExpressionInvocation);
+    }
+
     _writeNode(node.function);
     _storeInvocationExpression(node);
   }
@@ -668,7 +733,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.length);
     _writeDocumentationCommentString(node.documentationComment);
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _pushScopeTypeParameters(node.typeParameters);
 
@@ -678,13 +743,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _storeTypeAlias(node);
 
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
-    _writeActualReturnType(element.function.returnType);
-    // TODO(scheglov) pack into one byte
-    _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
-    _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as FunctionTypeAliasElementImpl;
+      _writeActualReturnType(element.function.returnType);
+      // TODO(scheglov) pack into one byte
+      _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
+      _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
 
-    _resolutionSink.localElements.popScope();
+      _resolutionSink.localElements.popScope();
+    }
 
     _writeUInt30(resolutionIndex);
   }
@@ -698,7 +765,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.returnType);
     _writeNode(node.parameters);
     _storeNormalFormalParameter(node, null);
-    _resolutionSink.localElements.popScope();
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
   }
 
   @override
@@ -716,9 +786,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.typeParameters);
     _writeOptionalNode(node.returnType);
     _writeNode(node.parameters);
-    _resolutionSink?.writeType(node.type);
 
-    _resolutionSink.localElements.popScope();
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.type);
+      _resolutionSink.localElements.popScope();
+    }
   }
 
   @override
@@ -737,7 +809,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.length);
     _writeDocumentationCommentString(node.documentationComment);
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _pushScopeTypeParameters(node.typeParameters);
 
@@ -745,12 +817,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.type);
     _storeTypeAlias(node);
 
-    var element = node.declaredElement as TypeAliasElementImpl;
-    // TODO(scheglov) pack into one byte
-    _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
-    _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
-
-    _resolutionSink.localElements.popScope();
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as TypeAliasElementImpl;
+      // TODO(scheglov) pack into one byte
+      _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
+      _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
+      _resolutionSink.localElements.popScope();
+    }
 
     _writeUInt30(resolutionIndex);
   }
@@ -778,7 +851,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _writeByte(Tag.ImportDirective);
 
@@ -798,8 +871,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _storeNamespaceDirective(node);
     _writeUInt30(resolutionIndex);
 
-    var element = node.element as ImportElementImpl;
-    _resolutionSink?.writeElement(element.importedLibrary);
+    if (_shouldWriteResolution) {
+      var element = node.element as ImportElementImpl;
+      _resolutionSink.writeElement(element.importedLibrary);
+    }
   }
 
   @override
@@ -813,13 +888,27 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     );
     _writeOptionalNode(node.target);
     _writeNode(node.index);
-    _resolutionSink.writeElement(node.staticElement);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
     _storeExpression(node);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _writeByte(Tag.InstanceCreationExpression);
+
+    if (_shouldWriteResolution) {
+      if (node.constructorName.name != null) {
+        _resolutionSink.writeByte(
+          MethodInvocationRewriteTag.instanceCreationExpression_withName,
+        );
+      } else {
+        _resolutionSink.writeByte(
+          MethodInvocationRewriteTag.instanceCreationExpression_withoutName,
+        );
+      }
+    }
 
     _writeByte(
       AstBinaryFlags.encode(
@@ -862,8 +951,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       }
     }
 
-    // TODO(scheglov) Dont write type, AKA separate true `int` and `double`?
-    _resolutionSink?.writeType(node.staticType);
+    if (_shouldWriteResolution) {
+      // TODO(scheglov) Dont write type, AKA separate true `int` and `double`?
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   @override
@@ -970,7 +1061,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.length);
     _writeDocumentationCommentString(node.documentationComment);
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _pushScopeTypeParameters(node.typeParameters);
 
@@ -983,22 +1074,28 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeUInt30(resolutionIndex);
 
-    var element = node.declaredElement as ExecutableElementImpl;
-    _writeActualReturnType(element.returnType);
-    _writeTopLevelInferenceError(element);
-    // TODO(scheglov) move this flag into ClassElementImpl?
-    if (element is MethodElementImpl) {
-      _resolutionSink.writeByte(
-        element.isOperatorEqualWithParameterTypeFromObject ? 1 : 0,
-      );
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as ExecutableElementImpl;
+      _writeActualReturnType(element.returnType);
+      _writeTopLevelInferenceError(element);
+      // TODO(scheglov) move this flag into ClassElementImpl?
+      if (element is MethodElementImpl) {
+        _resolutionSink.writeByte(
+          element.isOperatorEqualWithParameterTypeFromObject ? 1 : 0,
+        );
+      }
+      _resolutionSink.localElements.popScope();
     }
-
-    _resolutionSink.localElements.popScope();
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _writeByte(Tag.MethodInvocation);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(MethodInvocationRewriteTag.none);
+    }
+
     _writeByte(
       AstBinaryFlags.encode(
         hasPeriod: node.operator?.type == TokenType.PERIOD,
@@ -1013,13 +1110,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     var classOffset = _sink.offset;
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _writeByte(Tag.MixinDeclaration);
 
-    var element = node.declaredElement as MixinElementImpl;
-    _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
-    _resolutionSink.writeStringList(element.superInvokedNames);
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as MixinElementImpl;
+      _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
+      _resolutionSink.writeStringList(element.superInvokedNames);
+    }
 
     _writeInformativeUint30(node.offset);
     _writeInformativeUint30(node.length);
@@ -1037,7 +1136,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNodeList(node.members);
     _hasConstConstructor = false;
 
-    _resolutionSink.localElements.popScope();
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
 
     // TODO(scheglov) write member index
     var classIndexOffset = _sink.offset;
@@ -1112,12 +1213,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
     _writeByte(binaryToken.index);
 
-    _resolutionSink.writeElement(node.staticElement);
-    if (operatorToken.isIncrementOperator) {
-      _resolutionSink.writeElement(node.readElement);
-      _resolutionSink.writeType(node.readType);
-      _resolutionSink.writeElement(node.writeElement);
-      _resolutionSink.writeType(node.writeType);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      if (operatorToken.isIncrementOperator) {
+        _resolutionSink.writeElement(node.readElement);
+        _resolutionSink.writeType(node.readType);
+        _resolutionSink.writeElement(node.writeElement);
+        _resolutionSink.writeType(node.writeType);
+      }
     }
     _storeExpression(node);
   }
@@ -1128,8 +1231,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNode(node.prefix);
     _writeNode(node.identifier);
 
-    // TODO(scheglov) In actual prefixed identifier, the type of the identifier.
-    _resolutionSink?.writeType(node.staticType);
+    if (_shouldWriteResolution) {
+      // TODO(scheglov) In actual prefixed identifier, the type of the identifier.
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   @override
@@ -1142,13 +1247,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeNode(node.operand);
 
-    _resolutionSink?.writeElement(node.staticElement);
-    if (operatorToken.isIncrementOperator) {
-      _resolutionSink.writeElement(node.readElement);
-      _resolutionSink.writeType(node.readType);
-      _resolutionSink.writeElement(node.writeElement);
-      _resolutionSink.writeType(node.writeType);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      if (operatorToken.isIncrementOperator) {
+        _resolutionSink.writeElement(node.readElement);
+        _resolutionSink.writeType(node.readType);
+        _resolutionSink.writeElement(node.writeElement);
+        _resolutionSink.writeType(node.writeType);
+      }
     }
+
     _storeExpression(node);
   }
 
@@ -1180,7 +1288,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeOptionalNode(node.constructorName);
     _writeNode(node.argumentList);
-    _resolutionSink?.writeElement(node.staticElement);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
     _storeConstructorInitializer(node);
   }
 
@@ -1188,14 +1298,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _writeByte(Tag.SetOrMapLiteral);
 
-    // TODO(scheglov) isMap/isSet is resolution data
     _writeByte(
       AstBinaryFlags.encode(
         isConst: node.constKeyword != null,
-        isMap: node.isMap,
-        isSet: node.isSet,
       ),
     );
+
+    if (_shouldWriteResolution) {
+      var isMapBit = node.isMap ? (1 << 0) : 0;
+      var isSetBit = node.isSet ? (1 << 1) : 0;
+      _resolutionSink.writeByte(isMapBit | isSetBit);
+    }
 
     _writeOptionalNode(node.typeArguments);
     _writeNodeList(node.elements);
@@ -1217,8 +1330,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.type);
     _storeNormalFormalParameter(node, node.keyword);
 
-    var element = node.declaredElement as ParameterElementImpl;
-    _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as ParameterElementImpl;
+      _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
+    }
   }
 
   @override
@@ -1226,9 +1341,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.SimpleIdentifier);
     _writeStringReference(node.name);
     _writeInformativeUint30(node.offset);
-    _resolutionSink?.writeElement(node.staticElement);
-    // TODO(scheglov) It is inefficient to write many null types.
-    _resolutionSink?.writeType(node.staticType);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      // TODO(scheglov) It is inefficient to write many null types.
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   @override
@@ -1262,7 +1379,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeOptionalNode(node.constructorName);
     _writeNode(node.argumentList);
-    _resolutionSink?.writeElement(node.staticElement);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
     _storeConstructorInitializer(node);
   }
 
@@ -1319,7 +1438,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeVariableCodeRanges(node.offset, node.variables);
     _writeDocumentationCommentString(node.documentationComment);
 
-    var resolutionIndex = _resolutionUnit.enterDeclaration();
+    var resolutionIndex = _getNextResolutionIndex();
 
     _isConstTopLevelVariable = node.variables.isConst;
     try {
@@ -1353,7 +1472,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNode(node.name);
     _writeOptionalNode(node.typeArguments);
 
-    _resolutionSink.writeType(node.type);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.type);
+    }
   }
 
   @override
@@ -1365,11 +1486,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.bound);
     _storeDeclaration(node);
 
-    var element = node.declaredElement as TypeParameterElementImpl;
-    _resolutionSink.writeByte(
-      _encodeVariance(element),
-    );
-    _resolutionSink.writeType(element.defaultType);
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as TypeParameterElementImpl;
+      _resolutionSink.writeByte(
+        _encodeVariance(element),
+      );
+      _resolutionSink.writeType(element.defaultType);
+    }
   }
 
   @override
@@ -1388,12 +1511,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     );
     _writeDeclarationName(node.name);
 
-    // TODO(scheglov) Enforce not null, remove `?` in `?.type` below.
-    var element = node.declaredElement as VariableElementImpl;
-    _writeActualType(element?.type);
-    _writeTopLevelInferenceError(element);
-    if (element is FieldElementImpl) {
-      _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
+    if (_shouldWriteResolution) {
+      // TODO(scheglov) Enforce not null, remove `?` in `?.type` below.
+      var element = node.declaredElement as VariableElementImpl;
+      _writeActualType(element?.type);
+      _writeTopLevelInferenceError(element);
+      if (element is FieldElementImpl) {
+        _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
+      }
     }
 
     Expression initializerToWrite;
@@ -1431,6 +1556,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _pushScopeTypeParameters(TypeParameterList node) {
+    if (!_shouldWriteResolution) {
+      return;
+    }
+
     _resolutionSink.localElements.pushScope();
 
     if (node == null) {
@@ -1466,7 +1595,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _storeExpression(Expression node) {
-    _resolutionSink?.writeType(node.staticType);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   void _storeForEachParts(ForEachParts node) {
@@ -1477,7 +1608,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void _storeForLoopParts(ForLoopParts node) {}
 
   void _storeFormalParameter(FormalParameter node) {
-    _writeActualType(node.declaredElement.type);
+    if (_shouldWriteResolution) {
+      _writeActualType(node.declaredElement.type);
+    }
   }
 
   void _storeForMixin(ForMixin node) {
@@ -1552,12 +1685,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   void _writeActualReturnType(DartType type) {
     // TODO(scheglov) Check for `null` when writing resolved AST.
-    _resolutionSink?.writeType(type);
+    _resolutionSink.writeType(type);
   }
 
   void _writeActualType(DartType type) {
     // TODO(scheglov) Check for `null` when writing resolved AST.
-    _resolutionSink?.writeType(type);
+    _resolutionSink.writeType(type);
   }
 
   void _writeByte(int byte) {

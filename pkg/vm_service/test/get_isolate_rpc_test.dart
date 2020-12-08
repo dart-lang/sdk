@@ -22,8 +22,6 @@ var tests = <VMTest>[
     expect(result.pauseOnExit, isFalse);
     expect(result.pauseEvent.type, 'Event');
     expect(result.error, isNull);
-    expect(result.json['_numZoneHandles'], isPositive);
-    expect(result.json['_numScopedHandles'], isPositive);
     expect(result.rootLib, isNotNull);
     expect(result.libraries.length, isPositive);
     expect(result.libraries[0], isNotNull);

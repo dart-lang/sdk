@@ -40,7 +40,11 @@ class LinkedElementFactory {
   }
 
   void addBundle(BundleReader bundle) {
-    libraryReaders.addAll(bundle.libraryMap);
+    addLibraries(bundle.libraryMap);
+  }
+
+  void addLibraries(Map<String, LibraryReader> libraries) {
+    libraryReaders.addAll(libraries);
   }
 
   Namespace buildExportNamespace(Uri uri) {

@@ -56,15 +56,12 @@ class ConstructorInitializerResolver {
   }
 
   void _initializers() {
-    var initializers = _constructorNode.initializers;
-
     var isConst = _constructorNode.constKeyword != null;
     if (!isConst) {
-      initializers.clear();
       return;
     }
 
-    for (var initializer in initializers) {
+    for (var initializer in _constructorNode.initializers) {
       _astResolver.resolve(
         initializer,
         () => initializer,

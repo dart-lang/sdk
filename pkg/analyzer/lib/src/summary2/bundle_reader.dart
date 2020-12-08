@@ -29,13 +29,64 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-class BundleReader {
-  final LinkedElementFactory elementFactory;
+Map<String, LibraryReader> createLibraryReadersWithAstBytes({
+  @required LinkedElementFactory elementFactory,
+  @required Uint8List resolutionBytes,
+  @required Map<String, Map<String, Uint8List>> uriToLibrary_uriToUnitAstBytes,
+}) {
+  var _resolutionReader = SummaryDataReader(resolutionBytes);
 
+  _resolutionReader.offset = _resolutionReader.bytes.length - 4 * 3;
+  var resolutionLibrariesOffset = _resolutionReader.readUint32();
+  var resolutionReferencesOffset = _resolutionReader.readUint32();
+  var resolutionStringsOffset = _resolutionReader.readUint32();
+  _resolutionReader.createStringTable(resolutionStringsOffset);
+
+  var referenceReader = _ReferenceReader(
+    elementFactory,
+    _resolutionReader,
+    resolutionReferencesOffset,
+  );
+
+  _resolutionReader.offset = resolutionLibrariesOffset;
+  var resolutionLibraryOffsets = _resolutionReader.readUint30List();
+
+  assert(
+    uriToLibrary_uriToUnitAstBytes.length == resolutionLibraryOffsets.length,
+  );
+
+  // TODO(scheglov) Don't read anything, we know URIs.
+  var libraryMap = <String, LibraryReader>{};
+  for (var i = 0; i < resolutionLibraryOffsets.length; i++) {
+    _resolutionReader.offset = resolutionLibraryOffsets[i];
+    var libraryUriStr = _resolutionReader.readStringReference();
+    var resolutionUnitOffsets = _resolutionReader.readUint30List();
+    var exportsIndexList = _resolutionReader.readUint30List();
+
+    var uriToUnitAstBytes = uriToLibrary_uriToUnitAstBytes[libraryUriStr];
+    assert(uriToUnitAstBytes != null, libraryUriStr);
+
+    var reference = elementFactory.rootReference.getChild(libraryUriStr);
+    var libraryReader = LibraryReaderForAstBytes._(
+      elementFactory,
+      uriToUnitAstBytes,
+      _resolutionReader,
+      referenceReader,
+      reference,
+      resolutionUnitOffsets,
+      exportsIndexList,
+    );
+    libraryMap[libraryUriStr] = libraryReader;
+  }
+
+  return libraryMap;
+}
+
+class BundleReader {
   final SummaryDataReader _astReader;
   final SummaryDataReader _resolutionReader;
 
-  bool withInformative = false;
+  bool _withInformative = false;
 
   final Map<String, LibraryReader> libraryMap = {};
 
@@ -43,11 +94,10 @@ class BundleReader {
     @required LinkedElementFactory elementFactory,
     @required Uint8List astBytes,
     @required Uint8List resolutionBytes,
-  })  : elementFactory = elementFactory,
-        _astReader = SummaryDataReader(astBytes),
+  })  : _astReader = SummaryDataReader(astBytes),
         _resolutionReader = SummaryDataReader(resolutionBytes) {
     _astReader.offset = 0;
-    withInformative = _astReader.readByte() == 1;
+    _withInformative = _astReader.readByte() == 1;
 
     _astReader.offset = _astReader.bytes.length - 4 * 2;
     var astLibrariesOffset = _astReader.readUint32();
@@ -89,9 +139,9 @@ class BundleReader {
       var exportsIndexList = _resolutionReader.readUint30List();
 
       var reference = elementFactory.rootReference.getChild(libraryUriStr);
-      var libraryReader = LibraryReader._(
+      var libraryReader = LibraryReaderFromBundle._(
         elementFactory,
-        withInformative,
+        _withInformative,
         _astReader,
         _resolutionReader,
         referenceReader,
@@ -119,95 +169,272 @@ class ClassReader {
   ClassReader(this.membersOffset);
 }
 
-class LibraryReader {
-  final LinkedElementFactory elementFactory;
-  final bool withInformative;
-  final SummaryDataReader astReader;
-  final SummaryDataReader resolutionReader;
-  final _ReferenceReader referenceReader;
+abstract class LibraryReader {
+  final LinkedElementFactory _elementFactory;
+  final SummaryDataReader _resolutionReader;
+  final _ReferenceReader _referenceReader;
   final Reference reference;
 
-  final String name;
-  final int nameOffset;
-  final int nameLength;
-
-  /// Is `true` if the defining unit has [PartOfDirective].
-  final bool hasPartOfDirective;
-
-  final Uint32List astUnitOffsets;
-  final Uint32List resolutionUnitOffsets;
-  final Uint32List exportsIndexList;
+  final Uint32List _resolutionUnitOffsets;
+  final Uint32List _exportsIndexList;
   List<Reference> _exports;
 
   List<UnitReader> _units;
 
   LibraryReader._(
-    this.elementFactory,
-    this.withInformative,
-    this.astReader,
-    this.resolutionReader,
-    this.referenceReader,
+    this._elementFactory,
+    this._resolutionReader,
+    this._referenceReader,
     this.reference,
-    this.name,
-    this.nameOffset,
-    this.nameLength,
-    this.hasPartOfDirective,
-    this.astUnitOffsets,
-    this.resolutionUnitOffsets,
-    this.exportsIndexList,
-  ) {
-    assert(astUnitOffsets.length == resolutionUnitOffsets.length);
-  }
+    this._resolutionUnitOffsets,
+    this._exportsIndexList,
+  );
 
   List<Reference> get exports {
     if (_exports == null) {
-      var length = exportsIndexList.length;
+      var length = _exportsIndexList.length;
       _exports = List.filled(length, null, growable: false);
       for (var i = 0; i < length; i++) {
-        var index = exportsIndexList[i];
-        var reference = referenceReader.referenceOfIndex(index);
+        var index = _exportsIndexList[i];
+        var reference = _referenceReader.referenceOfIndex(index);
         _exports[i] = reference;
       }
     }
     return _exports;
   }
 
+  /// Is `true` if the defining unit has [PartOfDirective].
+  bool get hasPartOfDirective;
+
+  String get name;
+
+  int get nameLength;
+
+  int get nameOffset;
+
+  List<UnitReader> get units;
+
+  bool get withInformative;
+}
+
+/// Implementation of [LibraryReader] that reads ASTs for units from separate
+/// byte buffers.
+class LibraryReaderForAstBytes extends LibraryReader {
+  final Map<String, Uint8List> _uriToUnitAstBytes;
+
+  bool _hasNameRead = false;
+  bool _withInformative;
+  String _name;
+  int _nameOffset;
+  int _nameLength;
+  bool _hasPartOfDirective;
+
+  LibraryReaderForAstBytes._(
+    LinkedElementFactory elementFactory,
+    Map<String, Uint8List> uriToUnitAstBytes,
+    SummaryDataReader resolutionReader,
+    _ReferenceReader referenceReader,
+    Reference reference,
+    Uint32List resolutionUnitOffsets,
+    Uint32List exportsIndexList,
+  )   : _uriToUnitAstBytes = uriToUnitAstBytes,
+        super._(
+          elementFactory,
+          resolutionReader,
+          referenceReader,
+          reference,
+          resolutionUnitOffsets,
+          exportsIndexList,
+        ) {
+    // TODO(scheglov) This fails when there are invalid URIs.
+    // assert(_uriToUnitAstBytes.length == _resolutionUnitOffsets.length);
+  }
+
+  @override
+  bool get hasPartOfDirective {
+    _readName();
+    return _hasPartOfDirective;
+  }
+
+  @override
+  String get name {
+    _readName();
+    return _name;
+  }
+
+  @override
+  int get nameLength {
+    _readName();
+    return _nameLength;
+  }
+
+  @override
+  int get nameOffset {
+    _readName();
+    return _nameOffset;
+  }
+
+  @override
   List<UnitReader> get units {
-    if (_units == null) {
-      _units = [];
-      for (var i = 0; i < astUnitOffsets.length; i++) {
-        var astUnitOffset = astUnitOffsets[i];
-        var resolutionUnitOffset = resolutionUnitOffsets[i];
+    if (_units != null) return _units;
+    _units = [];
 
-        astReader.offset = astUnitOffset;
-        var headerOffset = astReader.readUInt30();
-        var indexOffset = astReader.offset;
-
-        resolutionReader.offset = resolutionUnitOffset;
-        var unitUriStr = resolutionReader.readStringReference();
-        var isSynthetic = resolutionReader.readByte() != 0;
-        var isPart = resolutionReader.readByte() != 0;
-        var partUriStr = resolutionReader.readStringReference();
-        if (!isPart) {
-          partUriStr = null;
-        }
-        var resolutionDirectivesOffset = resolutionReader.readUInt30();
-        var resolutionDeclarationOffsets = resolutionReader.readUint30List();
-
-        _units.add(
-          UnitReader._(
-            this,
-            resolutionDirectivesOffset,
-            resolutionDeclarationOffsets,
-            reference.getChild('@unit').getChild(unitUriStr),
-            isSynthetic,
-            partUriStr,
-            headerOffset,
-            indexOffset,
-          ),
-        );
+    for (var i = 0; i < _resolutionUnitOffsets.length; i++) {
+      _resolutionReader.offset = _resolutionUnitOffsets[i];
+      var unitUriStr = _resolutionReader.readStringReference();
+      var isSynthetic = _resolutionReader.readByte() != 0;
+      var isPart = _resolutionReader.readByte() != 0;
+      var partUriStr = _resolutionReader.readStringReference();
+      if (!isPart) {
+        partUriStr = null;
       }
+      var resolutionDirectivesOffset = _resolutionReader.readUInt30();
+      var resolutionDeclarationOffsets = _resolutionReader.readUint30List();
+
+      // TODO(scheglov) Is this right?
+      if (unitUriStr.isEmpty) {
+        unitUriStr = 'null';
+      }
+
+      var astBytes = _uriToUnitAstBytes[unitUriStr];
+      var astReader = SummaryDataReader(astBytes);
+      astReader.offset = astBytes.length - 4 * 4;
+      var headerOffset = astReader.readUint32();
+      var indexOffset = astReader.readUint32();
+      astReader.readUint32(); // library data
+      var astStringsOffset = astReader.readUint32();
+      astReader.createStringTable(astStringsOffset);
+
+      _units.add(
+        UnitReader._(
+          this,
+          resolutionDirectivesOffset,
+          resolutionDeclarationOffsets,
+          reference.getChild('@unit').getChild(unitUriStr),
+          isSynthetic,
+          partUriStr,
+          astReader,
+          headerOffset,
+          indexOffset,
+        ),
+      );
     }
+
+    return _units;
+  }
+
+  @override
+  bool get withInformative {
+    _readName();
+    return _withInformative;
+  }
+
+  void _readName() {
+    if (_hasNameRead) return;
+    _hasNameRead = true;
+
+    var uriStr = reference.name;
+    var definingUnitBytes = _uriToUnitAstBytes[uriStr];
+    var reader = SummaryDataReader(definingUnitBytes);
+    reader.offset = definingUnitBytes.length - 4 * 2;
+    var libraryDataOffset = reader.readUint32();
+    var astStringsOffset = reader.readUint32();
+    reader.createStringTable(astStringsOffset);
+
+    reader.offset = libraryDataOffset;
+    _name = reader.readStringReference();
+    _nameOffset = reader.readUInt30() - 1;
+    _nameLength = reader.readUInt30();
+    _hasPartOfDirective = reader.readByte() != 0;
+    _withInformative = reader.readByte() != 0;
+  }
+}
+
+class LibraryReaderFromBundle extends LibraryReader {
+  final SummaryDataReader _astReader;
+  final Uint32List _astUnitOffsets;
+
+  @override
+  final String name;
+
+  @override
+  final int nameOffset;
+
+  @override
+  final int nameLength;
+
+  @override
+  final bool hasPartOfDirective;
+
+  @override
+  final bool withInformative;
+
+  LibraryReaderFromBundle._(
+    LinkedElementFactory elementFactory,
+    this.withInformative,
+    SummaryDataReader astReader,
+    SummaryDataReader resolutionReader,
+    _ReferenceReader referenceReader,
+    Reference reference,
+    this.name,
+    this.nameOffset,
+    this.nameLength,
+    this.hasPartOfDirective,
+    Uint32List astUnitOffsets,
+    Uint32List resolutionUnitOffsets,
+    Uint32List exportsIndexList,
+  )   : _astReader = astReader,
+        _astUnitOffsets = astUnitOffsets,
+        super._(
+          elementFactory,
+          resolutionReader,
+          referenceReader,
+          reference,
+          resolutionUnitOffsets,
+          exportsIndexList,
+        ) {
+    assert(_astUnitOffsets.length == _resolutionUnitOffsets.length);
+  }
+
+  @override
+  List<UnitReader> get units {
+    if (_units != null) return _units;
+    _units = [];
+
+    for (var i = 0; i < _astUnitOffsets.length; i++) {
+      var astUnitOffset = _astUnitOffsets[i];
+      var resolutionUnitOffset = _resolutionUnitOffsets[i];
+
+      _astReader.offset = astUnitOffset;
+      var headerOffset = _astReader.readUInt30();
+      var indexOffset = _astReader.offset;
+
+      _resolutionReader.offset = resolutionUnitOffset;
+      var unitUriStr = _resolutionReader.readStringReference();
+      var isSynthetic = _resolutionReader.readByte() != 0;
+      var isPart = _resolutionReader.readByte() != 0;
+      var partUriStr = _resolutionReader.readStringReference();
+      if (!isPart) {
+        partUriStr = null;
+      }
+      var resolutionDirectivesOffset = _resolutionReader.readUInt30();
+      var resolutionDeclarationOffsets = _resolutionReader.readUint30List();
+
+      _units.add(
+        UnitReader._(
+          this,
+          resolutionDirectivesOffset,
+          resolutionDeclarationOffsets,
+          reference.getChild('@unit').getChild(unitUriStr),
+          isSynthetic,
+          partUriStr,
+          _astReader,
+          headerOffset,
+          indexOffset,
+        ),
+      );
+    }
+
     return _units;
   }
 }
@@ -666,6 +893,7 @@ class SummaryDataForTypeParameter {
 
 class UnitReader implements ReferenceNodeAccessor {
   final LibraryReader libraryReader;
+
   final Reference reference;
 
   final bool isSynthetic;
@@ -678,6 +906,8 @@ class UnitReader implements ReferenceNodeAccessor {
   bool _isDirectivesResolutionApplied = false;
 
   final Uint32List _resolutionDeclarationsOffset;
+
+  final SummaryDataReader astReader;
 
   int _directivesOffset;
   final List<_UnitMemberReader> _memberReaders = [];
@@ -693,6 +923,7 @@ class UnitReader implements ReferenceNodeAccessor {
     this.reference,
     this.isSynthetic,
     this.partUriStr,
+    this.astReader,
     int headerOffset,
     int indexOffset,
   ) {
@@ -723,9 +954,7 @@ class UnitReader implements ReferenceNodeAccessor {
     _readIndex2();
   }
 
-  SummaryDataReader get astReader => libraryReader.astReader;
-
-  LinkedElementFactory get elementFactory => libraryReader.elementFactory;
+  LinkedElementFactory get elementFactory => libraryReader._elementFactory;
 
   /// TODO(scheglov)
   /// This methods breaks lazy loading, and loads everything eagerly.
@@ -745,9 +974,9 @@ class UnitReader implements ReferenceNodeAccessor {
 
   bool get withInformative => libraryReader.withInformative;
 
-  _ReferenceReader get _referenceReader => libraryReader.referenceReader;
+  _ReferenceReader get _referenceReader => libraryReader._referenceReader;
 
-  SummaryDataReader get _resolutionReader => libraryReader.resolutionReader;
+  SummaryDataReader get _resolutionReader => libraryReader._resolutionReader;
 
   /// Apply resolution to directives.
   void applyDirectivesResolution(LinkedUnitContext unitContext) {
