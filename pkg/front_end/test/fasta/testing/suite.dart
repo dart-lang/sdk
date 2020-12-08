@@ -838,13 +838,11 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
       EvaluationMode evaluationMode) {
     constantEvaluator = new ConstantEvaluator(
         backend, environmentDefines, typeEnvironment, this,
-        desugarSets: desugarSets,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
     constantEvaluatorWithEmptyEnvironment = new ConstantEvaluator(
         backend, {}, typeEnvironment, this,
-        desugarSets: desugarSets,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);

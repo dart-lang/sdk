@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart" as a;
+
+static const field core::Map<core::int*, core::String*>* map = #C4;
+static const field core::Set<core::int*>* set = #C10;
+static const field core::List<core::int*>* list = #C11;
+static method main() → dynamic {}
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static const field core::Map<core::int*, core::String*>* map = #C4;
+static const field core::Set<core::int*>* set = #C14;
+static const field core::List<core::int*>* list = #C15;
+
+constants  {
+  #C1 = 1
+  #C2 = "a"
+  #C3 = <dynamic>[#C1, #C2]
+  #C4 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C3}
+  #C5 = 2
+  #C6 = null
+  #C7 = 3
+  #C8 = <dynamic>[#C5, #C6, #C7, #C6]
+  #C9 = core::_ImmutableMap<core::int*, Null> {_kvPairs:#C8}
+  #C10 = col::_UnmodifiableSet<core::int*> {_map:#C9}
+  #C11 = <core::int*>[#C7, #C5]
+  #C12 = <dynamic>[#C5, #C6]
+  #C13 = core::_ImmutableMap<core::int*, Null> {_kvPairs:#C12}
+  #C14 = col::_UnmodifiableSet<core::int*> {_map:#C13}
+  #C15 = <core::int*>[#C7]
+}

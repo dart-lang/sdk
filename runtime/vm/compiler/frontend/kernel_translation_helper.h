@@ -1257,6 +1257,7 @@ class KernelReaderHelper {
   const String& GetSourceFor(intptr_t index);
   TypedDataPtr GetLineStartsFor(intptr_t index);
   String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
+  ExternalTypedDataPtr GetConstantCoverageFor(intptr_t index);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;
@@ -1295,6 +1296,8 @@ class KernelReaderHelper {
   friend class ObfuscationProhibitionsMetadataHelper;
   friend class LoadingUnitsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
+  friend ArrayPtr CollectConstConstructorCoverageFrom(
+      const Script& interesting_script);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(KernelReaderHelper);

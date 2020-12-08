@@ -301,7 +301,15 @@ abstract class CombinedMemberSignatureBase<T> {
           "No member computed for index ${index} in ${members}");
       candidateType = _computeMemberType(thisType, target);
       if (!classBuilder.library.isNonNullableByDefault) {
-        DartType legacyErasure = rawLegacyErasure(candidateType);
+        DartType legacyErasure;
+        if (target == hierarchy.coreTypes.objectEquals) {
+          // In legacy code we special case `Object.==` to infer `dynamic`
+          // instead `Object!`.
+          legacyErasure = new FunctionType([const DynamicType()],
+              hierarchy.coreTypes.boolLegacyRawType, Nullability.legacy);
+        } else {
+          legacyErasure = rawLegacyErasure(candidateType);
+        }
         if (legacyErasure != null) {
           _neededLegacyErasureIndices ??= {};
           _neededLegacyErasureIndices.add(index);
@@ -611,11 +619,6 @@ abstract class CombinedMemberSignatureBase<T> {
     for (int i = 0; i < function.positionalParameters.length; i++) {
       VariableDeclaration parameter = function.positionalParameters[i];
       DartType parameterType = functionType.positionalParameters[i];
-      if (i == 0 && procedure == hierarchy.coreTypes.objectEquals) {
-        // In legacy code we special case `Object.==` to infer `dynamic`
-        // instead `Object!`.
-        parameterType = const DynamicType();
-      }
       positionalParameters.add(new VariableDeclaration(parameter.name,
           type: parameterType, isCovariant: parameter.isCovariant)
         ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);

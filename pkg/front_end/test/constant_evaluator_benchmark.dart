@@ -99,7 +99,6 @@ void benchmark(Component component, List<Library> libraries) {
             new SilentErrorReporter(),
             evaluationMode,
             evaluateAnnotations: true,
-            desugarSets: !target.backendTarget.supportsSetLiterals,
             enableTripleShift: target
                 .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
             errorOnUnevaluatedConstant:

@@ -2807,6 +2807,33 @@ String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index,
   return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
 }
 
+ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
+    intptr_t index) {
+  AlternativeReadingScope alt(&reader_);
+  SetOffset(GetOffsetForSourceInfo(index));
+  SkipBytes(ReadUInt());                         // skip uri.
+  SkipBytes(ReadUInt());                         // skip source.
+  const intptr_t line_start_count = ReadUInt();  // read number of line start
+                                                 // entries.
+  for (intptr_t i = 0; i < line_start_count; ++i) {
+    ReadUInt();
+  }
+
+  SkipBytes(ReadUInt());  // skip import uri.
+
+  intptr_t start_offset = ReaderOffset();
+
+  // Read past "constant coverage constructors".
+  const intptr_t constant_coverage_constructors = ReadUInt();
+  for (intptr_t i = 0; i < constant_coverage_constructors; ++i) {
+    ReadUInt();
+  }
+
+  intptr_t end_offset = ReaderOffset();
+
+  return reader_.ExternalDataFromTo(start_offset, end_offset);
+}
+
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
   ASSERT(member != NULL);
   if (member->IsFactory()) {

@@ -112,6 +112,18 @@ class SourceReport {
     }
   };
 
+  void CollectAllScripts(
+      DirectChainedHashMap<ScriptTableTrait>* local_script_table,
+      GrowableArray<ScriptTableEntry*>* local_script_table_entries);
+
+  void CleanupCollectedScripts(
+      DirectChainedHashMap<ScriptTableTrait>* local_script_table,
+      GrowableArray<ScriptTableEntry*>* local_script_table_entries);
+
+  void CollectConstConstructorCoverageFromScripts(
+      GrowableArray<ScriptTableEntry*>* local_script_table_entries,
+      JSONArray* ranges);
+
   intptr_t report_set_;
   CompileMode compile_mode_;
   Thread* thread_;

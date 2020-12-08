@@ -11161,6 +11161,16 @@ void Script::set_line_starts(const TypedData& value) const {
   raw_ptr()->set_line_starts(value.raw());
 }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+void Script::set_constant_coverage(const ExternalTypedData& value) const {
+  raw_ptr()->set_constant_coverage(value.raw());
+}
+
+ExternalTypedDataPtr Script::constant_coverage() const {
+  return raw_ptr()->constant_coverage();
+}
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
 void Script::set_debug_positions(const Array& value) const {
   raw_ptr()->set_debug_positions(value.raw());
 }

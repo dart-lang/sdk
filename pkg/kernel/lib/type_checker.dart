@@ -706,7 +706,7 @@ class TypeCheckingVisitor
   @override
   DartType visitListConcatenation(ListConcatenation node) {
     DartType type =
-        environment.listType(node.typeArgument, currentLibrary.nonNullable);
+        environment.iterableType(node.typeArgument, currentLibrary.nonNullable);
     for (Expression part in node.lists) {
       DartType partType = visitExpression(part);
       checkAssignable(node, type, partType);
@@ -717,7 +717,7 @@ class TypeCheckingVisitor
   @override
   DartType visitSetConcatenation(SetConcatenation node) {
     DartType type =
-        environment.setType(node.typeArgument, currentLibrary.nonNullable);
+        environment.iterableType(node.typeArgument, currentLibrary.nonNullable);
     for (Expression part in node.sets) {
       DartType partType = visitExpression(part);
       checkAssignable(node, type, partType);

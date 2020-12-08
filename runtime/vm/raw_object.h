@@ -1315,7 +1315,7 @@ class FieldLayout : public ObjectLayout {
   friend class StoreInstanceFieldInstr;  // For sizeof(guarded_cid_/...)
 };
 
-class ScriptLayout : public ObjectLayout {
+class alignas(8) ScriptLayout : public ObjectLayout {
  public:
   enum {
     kLazyLookupSourceAndLineStartsPos = 0,
@@ -1330,6 +1330,9 @@ class ScriptLayout : public ObjectLayout {
   POINTER_FIELD(StringPtr, resolved_url)
   POINTER_FIELD(ArrayPtr, compile_time_constants)
   POINTER_FIELD(TypedDataPtr, line_starts)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  POINTER_FIELD(ExternalTypedDataPtr, constant_coverage)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   POINTER_FIELD(ArrayPtr, debug_positions)
   POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
   POINTER_FIELD(StringPtr, source)
@@ -1361,8 +1364,13 @@ class ScriptLayout : public ObjectLayout {
                kLazyLookupSourceAndLineStartsSize>;
   uint8_t flags_;
 
-  intptr_t kernel_script_index_;
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t load_timestamp_;
+  int32_t kernel_script_index_;
+#else
+  int32_t kernel_script_index_;
+  int64_t load_timestamp_;
+#endif
 };
 
 class LibraryLayout : public ObjectLayout {
