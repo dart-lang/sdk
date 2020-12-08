@@ -5,12 +5,12 @@ import "dart:_internal" as _in;
 
 static method main() → dynamic {
   core::bool b = false;
-  final core::int? lateLocal;
+  lowered final core::int? #lateLocal;
   function #lateLocal#get() → core::int
-    return let final core::int? #t1 = lateLocal in #t1.==(null) ?{core::int} throw new _in::LateError::localNI("lateLocal") : #t1{core::int};
+    return let final core::int? #t1 = #lateLocal in #t1.==(null) ?{core::int} throw new _in::LateError::localNI("lateLocal") : #t1{core::int};
   function #lateLocal#set(core::int #t2) → dynamic
-    if(lateLocal.==(null))
-      return lateLocal = #t2;
+    if(#lateLocal.==(null))
+      return #lateLocal = #t2;
     else
       throw new _in::LateError::localAI("lateLocal");
   if(b) {
@@ -23,16 +23,16 @@ static method main() → dynamic {
   }
   self::throws(() → core::int => #lateLocal#set.call(124), "Write value to initialized lateLocal");
   function local<T extends core::Object? = dynamic>(T% value) → Null {
-    final T? lateGenericLocal;
-    core::bool #lateGenericLocal#isSet = false;
+    lowered final T? #lateGenericLocal;
+    lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T%
-      return #lateGenericLocal#isSet ?{T%} lateGenericLocal{T%} : throw new _in::LateError::localNI("lateGenericLocal");
+      return #lateGenericLocal#isSet ?{T%} #lateGenericLocal{T%} : throw new _in::LateError::localNI("lateGenericLocal");
     function #lateGenericLocal#set(T% #t3) → dynamic
       if(#lateGenericLocal#isSet)
         throw new _in::LateError::localAI("lateGenericLocal");
       else {
         #lateGenericLocal#isSet = true;
-        return lateGenericLocal = #t3;
+        return #lateGenericLocal = #t3;
       }
     if(b) {
       #lateGenericLocal#set.call(value);

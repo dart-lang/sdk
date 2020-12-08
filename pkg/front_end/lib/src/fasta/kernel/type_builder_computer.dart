@@ -163,15 +163,25 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] =
-          new FormalParameterBuilder(null, 0, type, null, null, -1, null)
-            ..kind = kind;
+      formals[i] = new FormalParameterBuilder(
+          /* metadata = */ null,
+          /* modifiers = */ 0,
+          type,
+          /* name = */ null,
+          /* compilationUnit = */ null,
+          /* charOffset = */ TreeNode.noOffset)
+        ..kind = kind;
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
       TypeBuilder type = parameter.type.accept(this);
       formals[i + positionalParameters.length] = new FormalParameterBuilder(
-          null, 0, type, parameter.name, null, -1, null)
+          /* metadata = */ null,
+          /* modifiers = */ 0,
+          type,
+          parameter.name,
+          /* compilationUnit = */ null,
+          /* charOffset = */ TreeNode.noOffset)
         ..kind = FormalParameterKind.optionalNamed;
     }
     return new FunctionTypeBuilder(
@@ -180,7 +190,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         formals,
         new NullabilityBuilder.fromNullability(node.nullability),
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ TreeNode.noOffset);
   }
 
   TypeBuilder visitTypeParameterType(TypeParameterType node) {

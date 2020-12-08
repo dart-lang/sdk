@@ -1428,6 +1428,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isLocalFunction: false,
       bool isLate: false,
       bool isRequired: false,
+      bool isLowered: false,
       this.isStaticLate: false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
@@ -1439,7 +1440,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isFieldFormal: isFieldFormal,
             isCovariant: isCovariant,
             isLate: isLate,
-            isRequired: isRequired);
+            isRequired: isRequired,
+            isLowered: isLowered);
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,

@@ -8,43 +8,43 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
     : self::Class::field = field, super core::Object::•()
     ;
   method returnTypeVariable() → self::Class::E% {
-    self::Class::E? result;
-    core::bool #result#isSet = false;
+    lowered self::Class::E? #result;
+    lowered core::bool #result#isSet = false;
     function #result#get() → self::Class::E% {
       if(!#result#isSet) {
-        result = this.{self::Class::field};
+        #result = this.{self::Class::field};
         #result#isSet = true;
       }
-      return result{self::Class::E%};
+      return #result{self::Class::E%};
     }
     function #result#set(self::Class::E% #t1) → dynamic {
       #result#isSet = true;
-      return result = #t1;
+      return #result = #t1;
     }
     return #result#get.call();
   }
 }
 static method returnNonNullable(core::int value) → core::int {
-  core::int? result;
+  lowered core::int? #result;
   function #result#get() → core::int
-    return let final core::int? #t2 = result in #t2.==(null) ?{core::int} result = value : #t2{core::int};
+    return let final core::int? #t2 = #result in #t2.==(null) ?{core::int} #result = value : #t2{core::int};
   function #result#set(core::int #t3) → dynamic
-    return result = #t3;
+    return #result = #t3;
   return #result#get.call();
 }
 static method returnNullable(core::int? value) → core::int? {
-  core::int? result;
-  core::bool #result#isSet = false;
+  lowered core::int? #result;
+  lowered core::bool #result#isSet = false;
   function #result#get() → core::int? {
     if(!#result#isSet) {
-      result = value;
+      #result = value;
       #result#isSet = true;
     }
-    return result;
+    return #result;
   }
   function #result#set(core::int? #t4) → dynamic {
     #result#isSet = true;
-    return result = #t4;
+    return #result = #t4;
   }
   return #result#get.call();
 }

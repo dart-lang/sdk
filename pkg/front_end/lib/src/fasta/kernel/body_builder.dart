@@ -1394,7 +1394,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     for (int i = 0; i < parameters.positionalParameters.length; i++) {
       VariableDeclaration formal = parameters.positionalParameters[i];
       formals[i] = new FormalParameterBuilder(
-          null, 0, null, formal.name, libraryBuilder, formal.fileOffset, uri)
+          null, 0, null, formal.name, libraryBuilder, formal.fileOffset,
+          fileUri: uri)
         ..variable = formal;
     }
     enterLocalScope(
@@ -3567,7 +3568,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       parameter = new FormalParameterBuilder(null, modifiers, type?.builder,
-          name?.name, libraryBuilder, offsetForToken(nameToken), uri)
+          name?.name, libraryBuilder, offsetForToken(nameToken),
+          fileUri: uri)
         ..hasDeclaredInitializer = (initializerStart != null);
     }
     VariableDeclaration variable = parameter.build(

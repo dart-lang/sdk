@@ -751,10 +751,10 @@ const Map<int, String> variableDeclarationFlagToName = const {
   VariableDeclaration.FlagConst: "const",
   VariableDeclaration.FlagFieldFormal: "field-formal",
   VariableDeclaration.FlagCovariant: "covariant",
-  VariableDeclaration.FlagInScope: "in-scope",
   VariableDeclaration.FlagGenericCovariantImpl: "generic-covariant-impl",
   VariableDeclaration.FlagLate: "late",
   VariableDeclaration.FlagRequired: "required",
+  VariableDeclaration.FlagLowered: "lowered",
 };
 
 class VariableDeclarationFlagTagger implements Tagger<int> {

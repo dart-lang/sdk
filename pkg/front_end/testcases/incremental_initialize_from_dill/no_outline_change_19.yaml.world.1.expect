@@ -29,14 +29,14 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   static field dart.core::int* A2|staticField = 42;
   static final field dart.core::int* A2|staticFinalField = 42;
-  static method A2|method1(final main::A1* #this) → main::A1* {
+  static method A2|method1(lowered final main::A1* #this) → main::A1* {
     return #this;
   }
-  static method A2|get#method1(final main::A1* #this) → () →* main::A1*
+  static method A2|get#method1(lowered final main::A1* #this) → () →* main::A1*
     return () → main::A1* => main::A2|method1(#this);
-  static method A2|get#getter1(final main::A1* #this) → dart.core::String*
+  static method A2|get#getter1(lowered final main::A1* #this) → dart.core::String*
     return "42!";
-  static method A2|set#setter1(final main::A1* #this, dart.core::String* s) → void {}
+  static method A2|set#setter1(lowered final main::A1* #this, dart.core::String* s) → void {}
   static method A2|method2() → main::A1* {
     return null;
   }

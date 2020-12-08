@@ -80,6 +80,8 @@ import '../operator.dart'
 
 import '../problems.dart' show unhandled;
 
+import 'source_extension_builder.dart';
+
 import 'source_library_builder.dart'
     show
         TypeParameterScopeBuilder,
@@ -1170,7 +1172,8 @@ class OutlineBuilder extends StackListenerImpl {
         libraryBuilder.boundlessTypeVariables.addAll(unboundTypeVariables);
       }
       synthesizedFormals.add(new FormalParameterBuilder(
-          null, finalMask, thisType, "#this", null, charOffset, uri));
+          null, finalMask, thisType, extensionThisName, null, charOffset,
+          fileUri: uri, isExtensionThis: true));
       if (formals != null) {
         synthesizedFormals.addAll(formals);
       }

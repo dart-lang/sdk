@@ -10,7 +10,7 @@ class A extends core::Object {
 extension _extension#0 on self::A? {
   get text = self::_extension#0|get#text;
 }
-static method _extension#0|get#text(final self::A? #this) → core::String
+static method _extension#0|get#text(lowered final self::A? #this) → core::String
   ;
 static method main() → void
   ;

@@ -50,29 +50,29 @@ extension _extension#1 on self::Class2* {
   get property = self::_extension#1|get#property;
   set property = self::_extension#1|set#property;
 }
-static method _extension#0|method(final self::Class1* #this) → core::int*
+static method _extension#0|method(lowered final self::Class1* #this) → core::int*
   ;
-static method _extension#0|get#method(final self::Class1* #this) → () →* core::int*
+static method _extension#0|get#method(lowered final self::Class1* #this) → () →* core::int*
   return () → core::int* => self::_extension#0|method(#this);
-static method _extension#0|genericMethod<T extends core::num* = core::num*>(final self::Class1* #this, self::_extension#0|genericMethod::T* t) → core::int*
+static method _extension#0|genericMethod<T extends core::num* = core::num*>(lowered final self::Class1* #this, self::_extension#0|genericMethod::T* t) → core::int*
   ;
-static method _extension#0|get#genericMethod(final self::Class1* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
+static method _extension#0|get#genericMethod(lowered final self::Class1* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
   return <T extends core::num* = core::num*>(T* t) → core::int* => self::_extension#0|genericMethod<T*>(#this, t);
-static method _extension#0|get#property(final self::Class1* #this) → core::int*
+static method _extension#0|get#property(lowered final self::Class1* #this) → core::int*
   ;
-static method _extension#0|set#property(final self::Class1* #this, core::int* value) → void
+static method _extension#0|set#property(lowered final self::Class1* #this, core::int* value) → void
   ;
-static method _extension#1|method(final self::Class2* #this) → core::int*
+static method _extension#1|method(lowered final self::Class2* #this) → core::int*
   ;
-static method _extension#1|get#method(final self::Class2* #this) → () →* core::int*
+static method _extension#1|get#method(lowered final self::Class2* #this) → () →* core::int*
   return () → core::int* => self::_extension#1|method(#this);
-static method _extension#1|genericMethod<T extends core::num* = core::num*>(final self::Class2* #this, self::_extension#1|genericMethod::T* t) → core::int*
+static method _extension#1|genericMethod<T extends core::num* = core::num*>(lowered final self::Class2* #this, self::_extension#1|genericMethod::T* t) → core::int*
   ;
-static method _extension#1|get#genericMethod(final self::Class2* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
+static method _extension#1|get#genericMethod(lowered final self::Class2* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
   return <T extends core::num* = core::num*>(T* t) → core::int* => self::_extension#1|genericMethod<T*>(#this, t);
-static method _extension#1|get#property(final self::Class2* #this) → core::int*
+static method _extension#1|get#property(lowered final self::Class2* #this) → core::int*
   ;
-static method _extension#1|set#property(final self::Class2* #this, core::int* value) → void
+static method _extension#1|set#property(lowered final self::Class2* #this, core::int* value) → void
   ;
 static method main() → dynamic
   ;

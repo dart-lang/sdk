@@ -2051,6 +2051,7 @@ class Printer extends Visitor<Null> {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     if (showMetadata) writeMetadata(node);
     writeAnnotationList(node.annotations, separateLines: false);
+    writeModifier(node.isLowered, 'lowered');
     writeModifier(node.isLate, 'late');
     writeModifier(node.isRequired, 'required');
     writeModifier(node.isCovariant, 'covariant');

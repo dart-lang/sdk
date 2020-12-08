@@ -378,36 +378,36 @@ extension Extension<T extends core::num* = core::num*, S extends T* = core::num*
   static set property8b = set self::Extension|property8b;
   static set property9 = set self::Extension|property9;
 }
-static method Extension|get#property1<T extends core::num* = core::num*, S extends self::Extension|get#property1::T* = core::num*>(final core::int* #this) → core::int*
+static method Extension|get#property1<T extends core::num* = core::num*, S extends self::Extension|get#property1::T* = core::num*>(lowered final core::int* #this) → core::int*
   return 0;
-static method Extension|set#property1<T extends core::num* = core::num*, S extends self::Extension|set#property1::T* = core::num*>(final core::int* #this, core::int* i) → void {}
-static method Extension|get#property2a<T extends core::num* = core::num*, S extends self::Extension|get#property2a::T* = core::num*>(final core::int* #this) → core::num*
+static method Extension|set#property1<T extends core::num* = core::num*, S extends self::Extension|set#property1::T* = core::num*>(lowered final core::int* #this, core::int* i) → void {}
+static method Extension|get#property2a<T extends core::num* = core::num*, S extends self::Extension|get#property2a::T* = core::num*>(lowered final core::int* #this) → core::num*
   return 0;
-static method Extension|set#property2a<T extends core::num* = core::num*, S extends self::Extension|set#property2a::T* = core::num*>(final core::int* #this, core::int* i) → void {}
-static method Extension|get#property2b<T extends core::num* = core::num*, S extends self::Extension|get#property2b::T* = core::num*>(final core::int* #this) → core::int*
+static method Extension|set#property2a<T extends core::num* = core::num*, S extends self::Extension|set#property2a::T* = core::num*>(lowered final core::int* #this, core::int* i) → void {}
+static method Extension|get#property2b<T extends core::num* = core::num*, S extends self::Extension|get#property2b::T* = core::num*>(lowered final core::int* #this) → core::int*
   return 0;
-static method Extension|set#property2b<T extends core::num* = core::num*, S extends self::Extension|set#property2b::T* = core::num*>(final core::int* #this, core::num* i) → void {}
-static method Extension|get#property3<T extends core::num* = core::num*, S extends self::Extension|get#property3::T* = core::num*>(final core::int* #this) → core::String*
+static method Extension|set#property2b<T extends core::num* = core::num*, S extends self::Extension|set#property2b::T* = core::num*>(lowered final core::int* #this, core::num* i) → void {}
+static method Extension|get#property3<T extends core::num* = core::num*, S extends self::Extension|get#property3::T* = core::num*>(lowered final core::int* #this) → core::String*
   return "";
-static method Extension|set#property3<T extends core::num* = core::num*, S extends self::Extension|set#property3::T* = core::num*>(final core::int* #this, core::int* i) → void {}
-static method Extension|get#property4<T extends core::num* = core::num*, S extends self::Extension|get#property4::T* = core::num*>(final core::int* #this) → self::Extension|get#property4::S*
+static method Extension|set#property3<T extends core::num* = core::num*, S extends self::Extension|set#property3::T* = core::num*>(lowered final core::int* #this, core::int* i) → void {}
+static method Extension|get#property4<T extends core::num* = core::num*, S extends self::Extension|get#property4::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property4::S*
   return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:133:22: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
   S get property4 => 0; // ok
                      ^" in 0 as{TypeError} <BottomType>;
-static method Extension|set#property4<T extends core::num* = core::num*, S extends self::Extension|set#property4::T* = core::num*>(final core::int* #this, self::Extension|set#property4::S* i) → void {}
-static method Extension|get#property5a<T extends core::num* = core::num*, S extends self::Extension|get#property5a::T* = core::num*>(final core::int* #this) → self::Extension|get#property5a::S*
+static method Extension|set#property4<T extends core::num* = core::num*, S extends self::Extension|set#property4::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property4::S* i) → void {}
+static method Extension|get#property5a<T extends core::num* = core::num*, S extends self::Extension|get#property5a::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5a::S*
   return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:136:23: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
   S get property5a => 0; // ok
                       ^" in 0 as{TypeError} <BottomType>;
-static method Extension|set#property5a<T extends core::num* = core::num*, S extends self::Extension|set#property5a::T* = core::num*>(final core::int* #this, self::Extension|set#property5a::T* i) → void {}
-static method Extension|get#property5b<T extends core::num* = core::num*, S extends self::Extension|get#property5b::T* = core::num*>(final core::int* #this) → self::Extension|get#property5b::T*
+static method Extension|set#property5a<T extends core::num* = core::num*, S extends self::Extension|set#property5a::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5a::T* i) → void {}
+static method Extension|get#property5b<T extends core::num* = core::num*, S extends self::Extension|get#property5b::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5b::T*
   return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'T'.
   T get property5b => 0; // ok
                       ^" in 0 as{TypeError} <BottomType>;
-static method Extension|set#property5b<T extends core::num* = core::num*, S extends self::Extension|set#property5b::T* = core::num*>(final core::int* #this, self::Extension|set#property5b::S* i) → void {}
-static method Extension|get#property6<T extends core::num* = core::num*, S extends self::Extension|get#property6::T* = core::num*>(final core::int* #this) → core::String*
+static method Extension|set#property5b<T extends core::num* = core::num*, S extends self::Extension|set#property5b::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5b::S* i) → void {}
+static method Extension|get#property6<T extends core::num* = core::num*, S extends self::Extension|get#property6::T* = core::num*>(lowered final core::int* #this) → core::String*
   return "";
-static method Extension|set#property6<T extends core::num* = core::num*, S extends self::Extension|set#property6::T* = core::num*>(final core::int* #this, self::Extension|set#property6::S* i) → void {}
+static method Extension|set#property6<T extends core::num* = core::num*, S extends self::Extension|set#property6::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property6::S* i) → void {}
 static get Extension|property7() → core::int*
   return 0;
 static set Extension|property7(core::int* value) → void {}

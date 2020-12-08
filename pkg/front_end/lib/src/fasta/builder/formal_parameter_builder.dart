@@ -74,9 +74,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// True if the initializer was declared by the programmer.
   bool hasDeclaredInitializer = false;
 
+  final bool isExtensionThis;
+
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
       LibraryBuilder compilationUnit, int charOffset,
-      [Uri fileUri])
+      {Uri fileUri, this.isExtensionThis: false})
       : super(compilationUnit, charOffset, fileUri);
 
   String get debugName => "FormalParameterBuilder";
@@ -122,7 +124,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           isFieldFormal: isInitializingFormal,
           isCovariant: isCovariant,
           isRequired: isNamedRequired,
-          hasDeclaredInitializer: hasDeclaredInitializer)
+          hasDeclaredInitializer: hasDeclaredInitializer,
+          isLowered: isExtensionThis)
         ..fileOffset = charOffset;
     }
     return variable;
@@ -131,8 +134,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   FormalParameterBuilder clone(List<TypeBuilder> newTypes) {
     // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
     // how it should be cloned.  Consider cloning it instead of reusing it.
-    return new FormalParameterBuilder(metadata, modifiers,
-        type?.clone(newTypes), name, parent, charOffset, fileUri)
+    return new FormalParameterBuilder(
+        metadata, modifiers, type?.clone(newTypes), name, parent, charOffset,
+        fileUri: fileUri, isExtensionThis: isExtensionThis)
       ..kind = kind;
   }
 
@@ -147,7 +151,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             name,
             null,
             charOffset,
-            fileUri)
+            fileUri: fileUri,
+            isExtensionThis: isExtensionThis)
           ..parent = parent
           ..variable = variable);
   }

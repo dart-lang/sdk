@@ -137,25 +137,25 @@ static method hest() → dynamic async {
   return "hest";
 }
 static method fisk() → dynamic async {
-  core::String? s1;
+  lowered core::String? #s1;
   function #s1#get() → core::String
-    return let final core::String? #t8 = s1 in #t8.==(null) ?{core::String} s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
+    return let final core::String? #t8 = #s1 in #t8.==(null) ?{core::String} #s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest(); // Error.
                    ^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::String : #t8{core::String};
   function #s1#set(core::String #t9) → dynamic
-    return s1 = #t9;
-  core::String? s2;
+    return #s1 = #t9;
+  lowered core::String? #s2;
   function #s2#get() → core::String
-    return let final core::String? #t10 = s2 in #t10.==(null) ?{core::String} s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
+    return let final core::String? #t10 = #s2 in #t10.==(null) ?{core::String} #s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
   late String s2 = '\${fisk}\${await hest()}\${fisk}'; // Error.
                              ^^^^^"}${#C1}" : #t10{core::String};
   function #s2#set(core::String #t11) → dynamic
-    return s2 = #t11;
-  core::Function? f;
+    return #s2 = #t11;
+  lowered core::Function? #f;
   function #f#get() → core::Function
-    return let final core::Function? #t12 = f in #t12.==(null) ?{core::Function} f = () → asy::Future<dynamic> async => await self::hest() : #t12{core::Function};
+    return let final core::Function? #t12 = #f in #t12.==(null) ?{core::Function} #f = () → asy::Future<dynamic> async => await self::hest() : #t12{core::Function};
   function #f#set(core::Function #t13) → dynamic
-    return f = #t13;
+    return #f = #t13;
 }
 static method main() → dynamic {}
 

@@ -222,41 +222,41 @@ static method fisk() → dynamic /* originally async */ {
     try {
       #L3:
       {
-        core::String? s1;
-        core::bool #s1#isSet = false;
+        lowered core::String? #s1;
+        lowered core::bool #s1#isSet = false;
         function #s1#get() → core::String {
           if(!#s1#isSet) {
-            s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
+            #s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest(); // Error.
                    ^^^^^";
             #s1#isSet = true;
           }
-          return s1{core::String};
+          return #s1{core::String};
         }
         function #s1#set(core::String #t11) → dynamic {
           #s1#isSet = true;
-          return s1 = #t11;
+          return #s1 = #t11;
         }
-        core::String? s2;
-        core::bool #s2#isSet = false;
+        lowered core::String? #s2;
+        lowered core::bool #s2#isSet = false;
         function #s2#get() → core::String {
           if(!#s2#isSet) {
-            s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
+            #s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
   late String s2 = '\${fisk}\${await hest()}\${fisk}'; // Error.
                              ^^^^^"}${#C1}";
             #s2#isSet = true;
           }
-          return s2{core::String};
+          return #s2{core::String};
         }
         function #s2#set(core::String #t12) → dynamic {
           #s2#isSet = true;
-          return s2 = #t12;
+          return #s2 = #t12;
         }
-        core::Function? f;
-        core::bool #f#isSet = false;
+        lowered core::Function? #f;
+        lowered core::bool #f#isSet = false;
         function #f#get() → core::Function {
           if(!#f#isSet) {
-            f = () → asy::Future<dynamic> /* originally async */ {
+            #f = () → asy::Future<dynamic> /* originally async */ {
               final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
               core::bool* :is_sync = false;
               FutureOr<dynamic>? :return_value;
@@ -287,11 +287,11 @@ static method fisk() → dynamic /* originally async */ {
             };
             #f#isSet = true;
           }
-          return f{core::Function};
+          return #f{core::Function};
         }
         function #f#set(core::Function #t14) → dynamic {
           #f#isSet = true;
-          return f = #t14;
+          return #f = #t14;
         }
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);

@@ -27,8 +27,8 @@ extension Extension on self::Class* {
   static method extensionStaticMethod = self::Extension|extensionStaticMethod;
 }
 @#C3
-static method Extension|extensionInstanceMethod(final self::Class* #this) → dynamic {}
-static method Extension|get#extensionInstanceMethod(final self::Class* #this) → () →* dynamic
+static method Extension|extensionInstanceMethod(lowered final self::Class* #this) → dynamic {}
+static method Extension|get#extensionInstanceMethod(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|extensionInstanceMethod(#this);
 @#C3
 static method Extension|extensionStaticMethod() → dynamic {}

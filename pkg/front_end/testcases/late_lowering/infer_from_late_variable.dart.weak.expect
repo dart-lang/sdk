@@ -6,13 +6,13 @@ import "dart:_internal" as _in;
 static method f<T extends core::Object? = dynamic>(self::f::T% t) → self::f::T%
   return t;
 static method main() → dynamic {
-  core::int? local;
-  core::bool #local#isSet = false;
+  lowered core::int? #local;
+  lowered core::bool #local#isSet = false;
   function #local#get() → core::int
-    return #local#isSet ?{core::int} local{core::int} : throw new _in::LateError::localNI("local");
+    return #local#isSet ?{core::int} #local{core::int} : throw new _in::LateError::localNI("local");
   function #local#set(core::int #t1) → dynamic {
     #local#isSet = true;
-    return local = #t1;
+    return #local = #t1;
   }
   #local#set.call(self::f<core::int>(0));
 }
