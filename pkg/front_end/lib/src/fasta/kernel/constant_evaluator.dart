@@ -97,7 +97,6 @@ Component transformComponent(
 
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
-      desugarSets: desugarSets,
       enableTripleShift: enableTripleShift,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
@@ -112,18 +111,15 @@ ConstantCoverage transformLibraries(
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations,
-    bool desugarSets,
     bool enableTripleShift,
     bool errorOnUnevaluatedConstant}) {
   assert(evaluateAnnotations != null);
-  assert(desugarSets != null);
   assert(enableTripleShift != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
-      desugarSets,
       enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
@@ -143,18 +139,15 @@ void transformProcedure(
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations: true,
-    bool desugarSets: false,
     bool enableTripleShift: false,
     bool errorOnUnevaluatedConstant: false}) {
   assert(evaluateAnnotations != null);
-  assert(desugarSets != null);
   assert(enableTripleShift != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
-      desugarSets,
       enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
@@ -326,7 +319,6 @@ class ConstantsTransformer extends Transformer {
   StaticTypeContext _staticTypeContext;
 
   final bool evaluateAnnotations;
-  final bool desugarSets;
   final bool enableTripleShift;
   final bool errorOnUnevaluatedConstant;
 
@@ -334,7 +326,6 @@ class ConstantsTransformer extends Transformer {
       this.backend,
       Map<String, String> environmentDefines,
       this.evaluateAnnotations,
-      this.desugarSets,
       this.enableTripleShift,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
@@ -342,7 +333,6 @@ class ConstantsTransformer extends Transformer {
       EvaluationMode evaluationMode)
       : constantEvaluator = new ConstantEvaluator(
             backend, environmentDefines, typeEnvironment, errorReporter,
-            desugarSets: desugarSets,
             enableTripleShift: enableTripleShift,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode);
@@ -759,9 +749,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ErrorReporter errorReporter;
   final EvaluationMode evaluationMode;
 
-  final bool desugarSets;
-  final Field unmodifiableSetMap;
-
   final bool enableTripleShift;
 
   final bool Function(DartType) isInstantiated =
@@ -796,19 +783,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
-      {this.desugarSets = false,
-      this.enableTripleShift = false,
+      {this.enableTripleShift = false,
       this.errorOnUnevaluatedConstant = false,
       this.evaluationMode: EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{},
-        env = new EvaluationEnvironment(),
-        unmodifiableSetMap = desugarSets
-            ? typeEnvironment.coreTypes.index
-                .getMember('dart:collection', '_UnmodifiableSet', '_map')
-            : null {
+        env = new EvaluationEnvironment() {
     if (environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
           "No 'environmentDefines' passed to the constant evaluator but the "

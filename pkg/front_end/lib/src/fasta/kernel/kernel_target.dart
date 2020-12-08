@@ -1247,7 +1247,6 @@ class KernelTarget extends TargetImplementation {
         new KernelConstantErrorReporter(loader),
         evaluationMode,
         evaluateAnnotations: true,
-        desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
@@ -1297,7 +1296,6 @@ class KernelTarget extends TargetImplementation {
         new KernelConstantErrorReporter(loader),
         evaluationMode,
         evaluateAnnotations: true,
-        desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);

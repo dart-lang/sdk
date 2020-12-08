@@ -90,11 +90,41 @@ class ConstantsBackend {
   /// Lowering of a list constant to a backend-specific representation.
   Constant lowerListConstant(ListConstant constant) => constant;
 
+  /// Returns `true` if [constant] is lowered list constant created by
+  /// [lowerListConstant].
+  bool isLoweredListConstant(Constant constant) => false;
+
+  /// Calls `f` for each element in the lowered list [constant].
+  ///
+  /// This assumes that `isLoweredListConstant(constant)` is true.
+  void forEachLoweredListConstantElement(
+      Constant constant, void Function(Constant element) f) {}
+
   /// Lowering of a set constant to a backend-specific representation.
   Constant lowerSetConstant(SetConstant constant) => constant;
 
+  /// Returns `true` if [constant] is lowered set constant created by
+  /// [lowerSetConstant].
+  bool isLoweredSetConstant(Constant constant) => false;
+
+  /// Calls `f` for each element in the lowered set [constant].
+  ///
+  /// This assumes that `isLoweredSetConstant(constant)` is true.
+  void forEachLoweredSetConstantElement(
+      Constant constant, void Function(Constant element) f) {}
+
   /// Lowering of a map constant to a backend-specific representation.
   Constant lowerMapConstant(MapConstant constant) => constant;
+
+  /// Returns `true` if [constant] is lowered map constant created by
+  /// [lowerMapConstant].
+  bool isLoweredMapConstant(Constant constant) => false;
+
+  /// Calls `f` for each key/value pair in the lowered map [constant].
+  ///
+  /// This assumes that `lowerMapConstant(constant)` is true.
+  void forEachLoweredMapConstantEntry(
+      Constant constant, void Function(Constant key, Constant value) f) {}
 
   /// Number semantics to use for this backend.
   NumberSemantics get numberSemantics => NumberSemantics.vm;
