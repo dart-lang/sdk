@@ -313,6 +313,13 @@ C<int Function()> c;
 ''');
   }
 
+  test_invalidPart_withPart() async {
+    await _assertCanBeAnalyzed('''
+part of a;
+part 'test.dart';
+''');
+  }
+
   test_keywordInConstructorInitializer_assert() async {
     await _assertCanBeAnalyzed('''
 class C {

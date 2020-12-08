@@ -506,6 +506,19 @@ class D implements C {}
     _assertLibraryCycle(fb, [fb], [fa.libraryCycle]);
   }
 
+  test_libraryCycle_invalidPart_withPart() {
+    var pa = convertPath('/aaa/lib/a.dart');
+
+    newFile(pa, content: r'''
+part of lib;
+part 'a.dart';
+''');
+
+    var fa = fileSystemState.getFileForPath(pa);
+
+    _assertLibraryCycle(fa, [fa], []);
+  }
+
   test_referencedNames() {
     String path = convertPath('/aaa/lib/a.dart');
     newFile(path, content: r'''

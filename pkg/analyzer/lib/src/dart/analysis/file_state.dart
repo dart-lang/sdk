@@ -285,7 +285,7 @@ class FileState {
   LibraryCycle get libraryCycle {
     if (isPart) {
       var library = this.library;
-      if (library != null) {
+      if (library != null && !identical(library, this)) {
         return library.libraryCycle;
       }
     }
