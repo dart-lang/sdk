@@ -408,7 +408,7 @@
       "name": "mime",
       "rootUri": "../third_party/pkg/mime",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "mockito",
