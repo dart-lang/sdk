@@ -11610,6 +11610,9 @@ void Library::AddMetadata(const Object& declaration,
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
+  Thread* thread = Thread::Current();
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+
   MetadataMap map(metadata());
   map.UpdateOrInsert(declaration, Smi::Handle(Smi::New(kernel_offset)));
   set_metadata(map.Release());
@@ -11623,16 +11626,21 @@ ObjectPtr Library::GetMetadata(const Object& declaration) const {
   RELEASE_ASSERT(declaration.IsClass() || declaration.IsField() ||
                  declaration.IsFunction() || declaration.IsLibrary() ||
                  declaration.IsTypeParameter() || declaration.IsNamespace());
+
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+
   if (declaration.IsLibrary()) {
     // Ensure top-level class is loaded as it may contain annotations of
     // a library.
-    const auto& cls = Class::Handle(toplevel_class());
+    const auto& cls = Class::Handle(zone, toplevel_class());
     if (!cls.IsNull()) {
       cls.EnsureDeclarationLoaded();
     }
   }
-  Object& value = Object::Handle();
+  Object& value = Object::Handle(zone);
   {
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
     MetadataMap map(metadata());
     value = map.GetOrNull(declaration);
     set_metadata(map.Release());
@@ -11646,21 +11654,26 @@ ObjectPtr Library::GetMetadata(const Object& declaration) const {
     ASSERT(value.IsArray());
     return value.raw();
   }
-  intptr_t kernel_offset = Smi::Cast(value).Value();
+  const auto& smi_value = Smi::Cast(value);
+  intptr_t kernel_offset = smi_value.Value();
   ASSERT(kernel_offset > 0);
-  value = kernel::EvaluateMetadata(
-      *this, kernel_offset,
-      /* is_annotations_offset = */ declaration.IsLibrary() ||
-          declaration.IsNamespace());
-  if (value.IsArray() || value.IsNull()) {
-    ASSERT(value.raw() != Object::empty_array().raw());
-    if (!Compiler::IsBackgroundCompilation()) {
-      MetadataMap map(metadata());
-      map.UpdateOrInsert(declaration, value);
-      set_metadata(map.Release());
+  const auto& evaluated_value = Object::Handle(
+      zone, kernel::EvaluateMetadata(
+                *this, kernel_offset,
+                /* is_annotations_offset = */ declaration.IsLibrary() ||
+                    declaration.IsNamespace()));
+  if (evaluated_value.IsArray() || evaluated_value.IsNull()) {
+    ASSERT(evaluated_value.raw() != Object::empty_array().raw());
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    MetadataMap map(metadata());
+    if (map.GetOrNull(declaration) == smi_value.raw()) {
+      map.UpdateOrInsert(declaration, evaluated_value);
+    } else {
+      ASSERT(map.GetOrNull(declaration) == evaluated_value.raw());
     }
+    set_metadata(map.Release());
   }
-  return value.raw();
+  return evaluated_value.raw();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -12332,7 +12345,11 @@ void Library::set_dependencies(const Array& deps) const {
 }
 
 void Library::set_metadata(const Array& value) const {
-  raw_ptr()->set_metadata(value.raw());
+  if (raw_ptr()->metadata() != value.raw()) {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    raw_ptr()->set_metadata(value.raw());
+  }
 }
 
 LibraryPtr Library::ImportLibraryAt(intptr_t index) const {

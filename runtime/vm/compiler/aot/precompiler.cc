@@ -2116,6 +2116,8 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 }
 
 void Precompiler::DropMetadata() {
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
+
   Library& lib = Library::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
