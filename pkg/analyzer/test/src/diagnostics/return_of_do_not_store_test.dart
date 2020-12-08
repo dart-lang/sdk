@@ -21,6 +21,22 @@ class ReturnOfDoNotStoreTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_returnFromClosureInFunction() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String _v = '';
+
+String f() {
+  var v = () => _v;
+  return v();
+}
+''', [
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 92, 2),
+    ]);
+  }
+
   test_returnFromFunction() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
