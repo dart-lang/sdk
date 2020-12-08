@@ -85,7 +85,7 @@ LibTest/core/int/parse_A01_t02: SkipByDesign # big integers cannot be represente
 LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/html/Element/blur_A01_t01: Skip # Times out
 LibTest/html/Element/focus_A01_t01: Skip # Times out
-LibTest/html/HttpRequest/*: Skip # https://github.com/dart-lang/co19/issues/932
+LibTest/html/HttpRequest/responseText_A01_t02: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/html/HttpRequestUpload/*: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/html/IFrameElement/blur_A01_t01: Skip # Times out
 LibTest/html/IFrameElement/focus_A01_t01: Skip # Times out
