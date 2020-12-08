@@ -291,6 +291,61 @@ f(Never a) {}
 @reflectiveTest
 class TypeNameResolutionWithNonFunctionTypeAliasesTest
     extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_typeAlias_asInstanceCreation_explicitNew_typeArguments_interfaceType_none() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+typedef X<T> = A<T>;
+
+void f() {
+  new X<int>();
+}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<int>()'),
+      findElement.typeAlias('X'),
+      'A<int>',
+    );
+  }
+
+  @FailingTest(reason: 'We attempt to do type inference on A')
+  test_typeAlias_asInstanceCreation_implicitNew_toBounds_noTypeParameters_interfaceType_none() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+typedef X = A<int>;
+
+void f() {
+  X();
+}
+''');
+
+    assertTypeName(
+      findNode.typeName('X()'),
+      findElement.typeAlias('X'),
+      'A<int>',
+    );
+  }
+
+  test_typeAlias_asInstanceCreation_implicitNew_typeArguments_interfaceType_none() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+typedef X<T> = A<T>;
+
+void f() {
+  X<int>();
+}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<int>()'),
+      findElement.typeAlias('X'),
+      'A<int>',
+    );
+  }
+
   test_typeAlias_asParameter_Never_none() async {
     await assertNoErrorsInCode(r'''
 typedef X = Never;

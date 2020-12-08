@@ -400,12 +400,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertInstanceCreation(InstanceCreationExpression creation,
-      ClassElement expectedClassElement, String expectedType,
-      {String constructorName,
-      bool expectedConstructorMember = false,
-      Map<String, String> expectedSubstitution,
-      PrefixElement expectedPrefix}) {
+  void assertInstanceCreation(
+    InstanceCreationExpression creation,
+    ClassElement expectedClassElement,
+    String expectedType, {
+    String constructorName,
+    bool expectedConstructorMember = false,
+    Map<String, String> expectedSubstitution,
+    PrefixElement expectedPrefix,
+    Element expectedTypeNameElement,
+  }) {
     String expectedClassName = expectedClassElement.name;
 
     ConstructorElement expectedConstructorElement;
@@ -444,7 +448,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(creation, expectedType);
 
     var typeName = creation.constructorName.type;
-    assertTypeName(typeName, expectedClassElement, expectedType,
+    expectedTypeNameElement ??= expectedClassElement;
+    assertTypeName(typeName, expectedTypeNameElement, expectedType,
         expectedPrefix: expectedPrefix);
   }
 
