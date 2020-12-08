@@ -70,8 +70,8 @@ void main() {h^}''');
     await computeSuggestions();
 
     assertSuggestFunction('foo', 'bool',
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+        defaultArgListString: 'bar, baz: baz',
+        defaultArgumentListTextRanges: [0, 3, 10, 3]);
   }
 
   Future<void> test_ArgDefaults_inherited_method_with_required_named() async {
@@ -92,7 +92,7 @@ class B extends A {
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null');
+        defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_ArgDefaults_method_with_required_named() async {
@@ -109,8 +109,8 @@ class A {
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+        defaultArgListString: 'bar, baz: baz',
+        defaultArgumentListTextRanges: [0, 3, 10, 3]);
   }
 
   Future<void> test_ArgumentList() async {
@@ -4139,7 +4139,7 @@ class A {
   }
 }''');
     await computeSuggestions();
-    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_localConstructor2() async {
@@ -4194,7 +4194,7 @@ class A {
   }
 }''');
     await computeSuggestions();
-    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_localConstructor_shadowed() async {

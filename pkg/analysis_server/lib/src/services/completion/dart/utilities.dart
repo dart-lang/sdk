@@ -92,16 +92,16 @@ void addDefaultArgDetails(
   }
 
   for (var param in namedParams) {
-    if (param.hasRequired) {
+    if (param.hasRequired || param.isRequiredNamed) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }
       var name = param.name;
       sb.write('$name: ');
       offset = sb.length;
-      var defaultValue = _getDefaultValue(param);
-      sb.write(defaultValue);
-      ranges.addAll([offset, defaultValue.length]);
+      // TODO(pq): fix to use getDefaultStringParameterValue()
+      sb.write(name);
+      ranges.addAll([offset, name.length]);
     }
   }
 
@@ -274,9 +274,6 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   }
   return type.getDisplayString(withNullability: false);
 }
-
-/// TODO(pq): fix to use getDefaultStringParameterValue()
-String _getDefaultValue(ParameterElement param) => 'null';
 
 /// A tuple of text to insert and an (optional) location for the cursor.
 class DefaultArgument {

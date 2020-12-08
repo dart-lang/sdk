@@ -1398,10 +1398,7 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
   @override
   String get testPackageLanguageVersion => latestLanguageVersion;
 
-  @failingTest
   Future<void> test_completeFunctionCalls_requiredNamed() async {
-    // TODO(dantup): Find out how we can tell this parameter is required
-    // (in the completion mapping).
     final content = '''
     void myFunction(String a, int b, {required String c, String d = ''}) {}
 
@@ -1425,10 +1422,54 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     // Ensure the snippet comes through in the expected format with the expected
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, ${2:c})'));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
     expect(item.textEdit.newText, equals(item.insertText));
     expect(
       item.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
+  }
+
+  Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
+    final otherFile = join(projectFolderPath, 'lib', 'other.dart');
+    newFile(
+      otherFile,
+      content:
+          "void myFunction(String a, int b, {required String c, String d = ''}) {}",
+    );
+    final content = '''
+    main() {
+      [[myFu^]]
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withApplyEditSupport(
+            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    expect(item.textEdit, isNull);
+
+    // Ensure the item can be resolved and gets a proper TextEdit.
+    final resolved = await resolveCompletion(item);
+    expect(resolved.textEdit, isNotNull);
+    expect(resolved.textEdit.newText, equals(item.insertText));
+    expect(
+      resolved.textEdit.range,
       equals(rangeFromMarkers(content)),
     );
   }
