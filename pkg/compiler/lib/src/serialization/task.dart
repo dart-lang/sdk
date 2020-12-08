@@ -34,6 +34,20 @@ void serializeGlobalTypeInferenceResultsToSink(
   sink.close();
 }
 
+GlobalTypeInferenceResults deserializeGlobalAnalysisFromSource(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    Environment environment,
+    AbstractValueStrategy abstractValueStrategy,
+    ir.Component component,
+    JsClosedWorld newClosedWorld,
+    DataSource source) {
+  InferredData newInferredData =
+      InferredData.readFromDataSource(source, newClosedWorld);
+  return GlobalTypeInferenceResults.readFromDataSource(
+      source, newClosedWorld.elementMap, newClosedWorld, newInferredData);
+}
+
 GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
     CompilerOptions options,
     DiagnosticReporter reporter,
@@ -182,6 +196,21 @@ class SerializationTask extends CompilerTask {
       DataSource source = new BinarySourceImpl(dataInput.data);
       return deserializeGlobalTypeInferenceResultsFromSource(_options,
           _reporter, environment, abstractValueStrategy, component, source);
+    });
+  }
+
+  Future<GlobalTypeInferenceResults> deserializeGlobalAnalysis(
+      Environment environment,
+      AbstractValueStrategy abstractValueStrategy,
+      ir.Component component,
+      JsClosedWorld closedWorld) async {
+    return await measureIoSubtask('deserialize data', () async {
+      _reporter.log('Reading data from ${_options.readDataUri}');
+      api.Input<List<int>> dataInput = await _provider
+          .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
+      DataSource source = BinarySourceImpl(dataInput.data);
+      return deserializeGlobalAnalysisFromSource(_options, _reporter,
+          environment, abstractValueStrategy, component, closedWorld, source);
     });
   }
 
