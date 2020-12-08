@@ -122,51 +122,63 @@ class Class {
 }
 
 method() {
-  late int /*
+  late int
+      /*
    lateIsSetLocal,
+   lateLocal,
    lateLocalGetter,
    lateLocalSetter
   */
       localNonNullableWithoutInitializer;
   late final int
       /*
-   lateIsSetLocal,
-   lateLocalGetter,
-   lateLocalSetter
-  */
+       lateIsSetLocal,
+       lateLocal,
+       lateLocalGetter,
+       lateLocalSetter
+      */
       finalLocalNonNullableWithoutInitializer;
-  late int? /*
+  late int?
+      /*
    lateIsSetLocal,
+   lateLocal,
    lateLocalGetter,
    lateLocalSetter
   */
       localNullableWithoutInitializer;
   late final int?
       /*
-   lateIsSetLocal,
-   lateLocalGetter,
-   lateLocalSetter
-  */
+       lateIsSetLocal,
+       lateLocal,
+       lateLocalGetter,
+       lateLocalSetter
+      */
       finalLocalNullableWithoutInitializer;
-  late int /*
+  late int
+      /*
    lateIsSetLocal,
+   lateLocal,
    lateLocalGetter,
    lateLocalSetter
   */
       localNonNullableWithInitializer = 0;
   late final int /*
    lateIsSetLocal,
+   lateLocal,
    lateLocalGetter
   */
       finalLocalNonNullableWithInitializer = 0;
-  late int? /*
+  late int?
+      /*
    lateIsSetLocal,
+   lateLocal,
    lateLocalGetter,
    lateLocalSetter
   */
       localNullableWithInitializer = 0;
   late final int? /*
    lateIsSetLocal,
+   lateLocal,
    lateLocalGetter
   */
       finalLocalNullableWithInitializer = 0;

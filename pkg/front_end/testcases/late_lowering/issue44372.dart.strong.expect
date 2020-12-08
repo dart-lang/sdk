@@ -4,14 +4,14 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method main(core::List<core::String> args) → dynamic {
-  () →? core::int recursiveInitLocal;
+  lowered () →? core::int #recursiveInitLocal;
   function #recursiveInitLocal#get() → () → core::int
-    return let final () →? core::int #t1 = recursiveInitLocal in #t1.==(null) ?{() → core::int} throw new _in::LateError::localNI("recursiveInitLocal") : #t1{() → core::int};
+    return let final () →? core::int #t1 = #recursiveInitLocal in #t1.==(null) ?{() → core::int} throw new _in::LateError::localNI("recursiveInitLocal") : #t1{() → core::int};
   function #recursiveInitLocal#set(() → core::int #t2) → dynamic
-    return recursiveInitLocal = #t2;
-  final core::int? local;
+    return #recursiveInitLocal = #t2;
+  lowered final core::int? #local;
   function #local#get() → core::int
-    return let final core::int? #t3 = local in #t3.==(null) ?{core::int} let final core::int #t4 = #recursiveInitLocal#get.call().call() in local.==(null) ?{core::int} local = #t4 : throw new _in::LateError::localADI("local") : #t3{core::int};
+    return let final core::int? #t3 = #local in #t3.==(null) ?{core::int} let final core::int #t4 = #recursiveInitLocal#get.call().call() in #local.==(null) ?{core::int} #local = #t4 : throw new _in::LateError::localADI("local") : #t3{core::int};
   core::bool doRecursiveInitLocal = true;
   #recursiveInitLocal#set.call(() → core::int {
     core::print("Executing initializer");

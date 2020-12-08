@@ -8,7 +8,7 @@ import "org-dartlang-testcase:///nullable_extension_on_opt_out_lib.dart";
 extension _extension#0 on nul::A? {
   get text = self::_extension#0|get#text;
 }
-static method _extension#0|get#text(final nul::A? #this) → core::String
+static method _extension#0|get#text(lowered final nul::A? #this) → core::String
   return "Lily was here";
 static method main() → void {
   nul::A? a = null;

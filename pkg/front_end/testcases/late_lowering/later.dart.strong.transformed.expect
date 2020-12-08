@@ -202,23 +202,23 @@ static method fisk() → dynamic /* originally async */ {
     try {
       #L3:
       {
-        core::String? s1;
+        lowered core::String? #s1;
         function #s1#get() → core::String
-          return let final core::String? #t11 = s1 in #t11.==(null) ?{core::String} s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
+          return let final core::String? #t11 = #s1 in #t11.==(null) ?{core::String} #s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest(); // Error.
                    ^^^^^" : #t11{core::String};
         function #s1#set(core::String #t12) → dynamic
-          return s1 = #t12;
-        core::String? s2;
+          return #s1 = #t12;
+        lowered core::String? #s2;
         function #s2#get() → core::String
-          return let final core::String? #t13 = s2 in #t13.==(null) ?{core::String} s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
+          return let final core::String? #t13 = #s2 in #t13.==(null) ?{core::String} #s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
   late String s2 = '\${fisk}\${await hest()}\${fisk}'; // Error.
                              ^^^^^"}${#C1}" : #t13{core::String};
         function #s2#set(core::String #t14) → dynamic
-          return s2 = #t14;
-        core::Function? f;
+          return #s2 = #t14;
+        lowered core::Function? #f;
         function #f#get() → core::Function
-          return let final core::Function? #t15 = f in #t15.==(null) ?{core::Function} f = () → asy::Future<dynamic> /* originally async */ {
+          return let final core::Function? #t15 = #f in #t15.==(null) ?{core::Function} #f = () → asy::Future<dynamic> /* originally async */ {
             final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
             core::bool* :is_sync = false;
             FutureOr<dynamic>? :return_value;
@@ -248,7 +248,7 @@ static method fisk() → dynamic /* originally async */ {
             return :async_future;
           } : #t15{core::Function};
         function #f#set(core::Function #t17) → dynamic
-          return f = #t17;
+          return #f = #t17;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;

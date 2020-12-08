@@ -25,13 +25,13 @@ extension Extension on dynamic {
   method method = self::Extension|method;
   tearoff method = self::Extension|get#method;
 }
-static method ClassExtension|method(final self::Class* #this) → core::int*
+static method ClassExtension|method(lowered final self::Class* #this) → core::int*
   ;
-static method ClassExtension|get#method(final self::Class* #this) → () →* core::int*
+static method ClassExtension|get#method(lowered final self::Class* #this) → () →* core::int*
   return () → core::int* => self::ClassExtension|method(#this);
-static method Extension|method(final dynamic #this) → core::int*
+static method Extension|method(lowered final dynamic #this) → core::int*
   ;
-static method Extension|get#method(final dynamic #this) → () →* core::int*
+static method Extension|get#method(lowered final dynamic #this) → () →* core::int*
   return () → core::int* => self::Extension|method(#this);
 static method main() → dynamic
   ;

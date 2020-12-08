@@ -25,14 +25,14 @@ library from "org-dartlang-test:///main.dart" as main {
     set setter1 = main::_extension#0|set#setter1;
     static set setter2 = set main::_extension#0|setter2;
   }
-  static method _extension#0|method1(final main::A1* #this) → main::A1* {
+  static method _extension#0|method1(lowered final main::A1* #this) → main::A1* {
     return #this;
   }
-  static method _extension#0|get#method1(final main::A1* #this) → () →* main::A1*
+  static method _extension#0|get#method1(lowered final main::A1* #this) → () →* main::A1*
     return () → main::A1* => main::_extension#0|method1(#this);
-  static method _extension#0|get#getter1(final main::A1* #this) → dart.core::String*
+  static method _extension#0|get#getter1(lowered final main::A1* #this) → dart.core::String*
     return "42!";
-  static method _extension#0|set#setter1(final main::A1* #this, dart.core::String* s) → void {}
+  static method _extension#0|set#setter1(lowered final main::A1* #this, dart.core::String* s) → void {}
   static method _extension#0|method2() → main::A1* {
     return null;
   }

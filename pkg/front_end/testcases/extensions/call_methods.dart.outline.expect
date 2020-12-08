@@ -51,11 +51,11 @@ static field self::A* a;
 static field core::String* topLevel5;
 static field self::B* b;
 static field core::String* topLevel6;
-static method _extension#0|get#call(final core::int* #this) → core::String*
+static method _extension#0|get#call(lowered final core::int* #this) → core::String*
   ;
-static method _extension#1|get#call(final core::num* #this) → core::String*
+static method _extension#1|get#call(lowered final core::num* #this) → core::String*
   ;
-static method _extension#2|get#call(final core::String* #this) → () →* core::String*
+static method _extension#2|get#call(lowered final core::String* #this) → () →* core::String*
   ;
 static method main() → dynamic
   ;

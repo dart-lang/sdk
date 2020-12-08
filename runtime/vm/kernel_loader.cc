@@ -771,6 +771,9 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 }
 
 void KernelLoader::LoadLibrary(const Library& library) {
+  // This will be invoked by VM bootstrapping code.
+  SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
+
   ASSERT(!library.Loaded());
 
   const auto& uri = String::Handle(Z, library.url());

@@ -53,12 +53,13 @@ main(List<String> args) async {
         _options,
         new IOPipeline([
           SourceToDillStep(),
-          LegacyGlobalAnalysisStep(),
-          Dart2jsCodegenStep(codeId0),
-          Dart2jsCodegenStep(codeId1),
-          Dart2jsEmissionStep(),
+          ComputeClosedWorldStep(),
+          GlobalAnalysisStep(),
+          LegacyDart2jsCodegenStep(codeId0),
+          LegacyDart2jsCodegenStep(codeId1),
+          LegacyDart2jsEmissionStep(),
           RunD8(),
-        ], cacheSharedModules: true))
+        ], cacheSharedModules: true)),
   ]);
 }
 
@@ -326,22 +327,26 @@ class GlobalAnalysisStep implements IOModularStep {
   }
 }
 
-// Step that invokes the dart2js global analysis on the main module by providing
-// the .dill files of all transitive modules as inputs.
-// NOTE: This is the legacy combined closed world computation alongside global
-// inference.
-class LegacyGlobalAnalysisStep implements IOModularStep {
+// Step that invokes the dart2js code generation on the main module given the
+// results of the global analysis step and produces one shard of the codegen
+// output.
+class Dart2jsCodegenStep implements IOModularStep {
+  final ShardDataId codeId;
+
+  Dart2jsCodegenStep(this.codeId);
+
   @override
-  List<DataId> get resultData => const [globalDataId, updatedDillId];
+  List<DataId> get resultData => [codeId];
 
   @override
   bool get needsSources => false;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillId];
+  List<DataId> get dependencyDataNeeded => const [];
 
   @override
-  List<DataId> get moduleDataNeeded => const [dillId];
+  List<DataId> get moduleDataNeeded =>
+      const [updatedDillId, closedWorldId, globalDataId];
 
   @override
   bool get onlyOnMain => true;
@@ -349,20 +354,18 @@ class LegacyGlobalAnalysisStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: dart2js global analysis on $module");
-    Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    Iterable<String> dillDependencies =
-        transitiveDependencies.map((m) => '${toUri(m, dillId)}');
+    if (_options.verbose) print("\nstep: dart2js backend on $module");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
-      // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, dillId)}',
+      '${toUri(module, updatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      '${Flags.dillDependencies}=${dillDependencies.join(',')}',
-      '${Flags.writeData}=${toUri(module, globalDataId)}',
-      '--out=${toUri(module, updatedDillId)}',
+      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
+      '${Flags.readData}=${toUri(module, globalDataId)}',
+      '${Flags.writeCodegen}=${toUri(module, codeId.dataId)}',
+      '${Flags.codegenShard}=${codeId.shard}',
+      '${Flags.codegenShards}=${codeId.dataId.shards}',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -372,18 +375,65 @@ class LegacyGlobalAnalysisStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose)
-      print("\ncached step: dart2js global analysis on $module");
+    if (_options.verbose) print("cached step: dart2js backend on $module");
+  }
+}
+
+// Step that invokes the dart2js codegen enqueuer and emitter on the main module
+// given the results of the global analysis step and codegen shards.
+class Dart2jsEmissionStep implements IOModularStep {
+  @override
+  List<DataId> get resultData => const [jsId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [];
+
+  @override
+  List<DataId> get moduleDataNeeded =>
+      const [updatedDillId, closedWorldId, globalDataId, codeId0, codeId1];
+
+  @override
+  bool get onlyOnMain => true;
+
+  @override
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("step: dart2js backend on $module");
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      _dart2jsScript,
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      '${toUri(module, updatedDillId)}',
+      for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
+      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
+      '${Flags.readData}=${toUri(module, globalDataId)}',
+      '${Flags.readCodegen}=${toUri(module, codeId)}',
+      '${Flags.codegenShards}=${codeId.shards}',
+      '--out=${toUri(module, jsId)}',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("\ncached step: dart2js backend on $module");
   }
 }
 
 // Step that invokes the dart2js code generation on the main module given the
 // results of the global analysis step and produces one shard of the codegen
 // output.
-class Dart2jsCodegenStep implements IOModularStep {
+// Note: Legacy.
+class LegacyDart2jsCodegenStep implements IOModularStep {
   final ShardDataId codeId;
 
-  Dart2jsCodegenStep(this.codeId);
+  LegacyDart2jsCodegenStep(this.codeId);
 
   @override
   List<DataId> get resultData => [codeId];
@@ -429,7 +479,8 @@ class Dart2jsCodegenStep implements IOModularStep {
 
 // Step that invokes the dart2js codegen enqueuer and emitter on the main module
 // given the results of the global analysis step and codegen shards.
-class Dart2jsEmissionStep implements IOModularStep {
+// Note: Legacy.
+class LegacyDart2jsEmissionStep implements IOModularStep {
   @override
   List<DataId> get resultData => const [jsId];
 

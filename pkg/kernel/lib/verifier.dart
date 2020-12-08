@@ -49,6 +49,8 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
+  Set<VariableDeclaration> variableDeclarationsInScope =
+      new Set<VariableDeclaration>();
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
@@ -162,15 +164,15 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   void declareVariable(VariableDeclaration variable) {
-    if (variable.flags & VariableDeclaration.FlagInScope != 0) {
+    if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
-    variable.flags |= VariableDeclaration.FlagInScope;
+    variableDeclarationsInScope.add(variable);
     variableStack.add(variable);
   }
 
   void undeclareVariable(VariableDeclaration variable) {
-    variable.flags &= ~VariableDeclaration.FlagInScope;
+    variableDeclarationsInScope.remove(variable);
   }
 
   void declareTypeParameters(List<TypeParameter> parameters) {
@@ -195,7 +197,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
-    if (variable.flags & VariableDeclaration.FlagInScope == 0) {
+    if (!variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
   }

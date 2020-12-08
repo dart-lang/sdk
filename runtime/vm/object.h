@@ -4963,7 +4963,11 @@ class Library : public Object {
   void set_flags(uint8_t flags) const;
   bool HasExports() const;
   ArrayPtr loaded_scripts() const { return raw_ptr()->loaded_scripts(); }
-  ArrayPtr metadata() const { return raw_ptr()->metadata(); }
+  ArrayPtr metadata() const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+    return raw_ptr()->metadata();
+  }
   void set_metadata(const Array& value) const;
   ArrayPtr dictionary() const { return raw_ptr()->dictionary(); }
   void InitClassDictionary() const;

@@ -7138,7 +7138,8 @@ class VariableDeclaration extends Statement {
       bool isFieldFormal: false,
       bool isCovariant: false,
       bool isLate: false,
-      bool isRequired: false}) {
+      bool isRequired: false,
+      bool isLowered: false}) {
     assert(type != null);
     initializer?.parent = this;
     if (flags != -1) {
@@ -7150,6 +7151,7 @@ class VariableDeclaration extends Statement {
       this.isCovariant = isCovariant;
       this.isLate = isLate;
       this.isRequired = isRequired;
+      this.isLowered = isLowered;
     }
   }
 
@@ -7160,6 +7162,7 @@ class VariableDeclaration extends Statement {
       bool isFieldFormal: false,
       bool isLate: false,
       bool isRequired: false,
+      bool isLowered: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
@@ -7168,16 +7171,17 @@ class VariableDeclaration extends Statement {
     this.isFieldFormal = isFieldFormal;
     this.isLate = isLate;
     this.isRequired = isRequired;
+    this.isLowered = isLowered;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
   static const int FlagFieldFormal = 1 << 2;
   static const int FlagCovariant = 1 << 3;
-  static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
-  static const int FlagGenericCovariantImpl = 1 << 5;
-  static const int FlagLate = 1 << 6;
-  static const int FlagRequired = 1 << 7;
+  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagLate = 1 << 5;
+  static const int FlagRequired = 1 << 6;
+  static const int FlagLowered = 1 << 7;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -7209,6 +7213,16 @@ class VariableDeclaration extends Statement {
   /// The `required` modifier is only supported on named parameters and not on
   /// positional parameters and local variables.
   bool get isRequired => flags & FlagRequired != 0;
+
+  /// Whether the variable is part of a lowering.
+  ///
+  /// If a variable is part of a lowering its name may be synthesized so that it
+  /// doesn't reflect the name used in the source code and might not have a
+  /// one-to-one correspondence with the variable in the source.
+  ///
+  /// Lowering is used for instance of encoding of 'this' in extension instance
+  /// members and encoding of late locals.
+  bool get isLowered => flags & FlagLowered != 0;
 
   /// Whether the variable is assignable.
   ///
@@ -7252,6 +7266,10 @@ class VariableDeclaration extends Statement {
 
   void set isRequired(bool value) {
     flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
+  }
+
+  void set isLowered(bool value) {
+    flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
   }
 
   void clearAnnotations() {

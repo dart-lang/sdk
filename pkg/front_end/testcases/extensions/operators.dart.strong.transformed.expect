@@ -50,11 +50,11 @@ extension Operators on self::Complex* {
   operator - = self::Operators|-;
   operator unary- = self::Operators|unary-;
 }
-static method Operators|+(final self::Complex* #this, self::Complex* other) → self::Complex*
+static method Operators|+(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
   return #this.{self::Complex::add}(other);
-static method Operators|-(final self::Complex* #this, self::Complex* other) → self::Complex*
+static method Operators|-(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
   return #this.{self::Complex::sub}(other);
-static method Operators|unary-(final self::Complex* #this) → self::Complex*
+static method Operators|unary-(lowered final self::Complex* #this) → self::Complex*
   return #this.{self::Complex::negate}();
 static method main() → dynamic {
   self::implicit();

@@ -11,7 +11,7 @@ extension Extension on core::int* {
   method asyncStarMethod = self::Extension|asyncStarMethod;
   tearoff asyncStarMethod = self::Extension|get#asyncStarMethod;
 }
-static method Extension|syncStarMethod(final core::int* #this) → dynamic /* originally sync* */ {
+static method Extension|syncStarMethod(lowered final core::int* #this) → dynamic /* originally sync* */ {
   function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {
     core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
@@ -23,9 +23,9 @@ static method Extension|syncStarMethod(final core::int* #this) → dynamic /* or
   }
   return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
 }
-static method Extension|get#syncStarMethod(final core::int* #this) → () →* dynamic
+static method Extension|get#syncStarMethod(lowered final core::int* #this) → () →* dynamic
   return () → dynamic => self::Extension|syncStarMethod(#this);
-static method Extension|asyncMethod(final core::int* #this) → dynamic /* originally async */ {
+static method Extension|asyncMethod(lowered final core::int* #this) → dynamic /* originally async */ {
   final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   FutureOr<dynamic>* :return_value;
@@ -49,9 +49,9 @@ static method Extension|asyncMethod(final core::int* #this) → dynamic /* origi
   :is_sync = true;
   return :async_future;
 }
-static method Extension|get#asyncMethod(final core::int* #this) → () →* dynamic
+static method Extension|get#asyncMethod(lowered final core::int* #this) → () →* dynamic
   return () → dynamic => self::Extension|asyncMethod(#this);
-static method Extension|asyncStarMethod(final core::int* #this) → dynamic /* originally async* */ {
+static method Extension|asyncStarMethod(lowered final core::int* #this) → dynamic /* originally async* */ {
   asy::_AsyncStarStreamController<dynamic>* :controller;
   dynamic :controller_stream;
   (dynamic) →* dynamic :async_op_then;
@@ -77,7 +77,7 @@ static method Extension|asyncStarMethod(final core::int* #this) → dynamic /* o
   :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
   return :controller_stream;
 }
-static method Extension|get#asyncStarMethod(final core::int* #this) → () →* dynamic
+static method Extension|get#asyncStarMethod(lowered final core::int* #this) → () →* dynamic
   return () → dynamic => self::Extension|asyncStarMethod(#this);
 static method main() → dynamic {
   self::Extension|syncStarMethod(0);

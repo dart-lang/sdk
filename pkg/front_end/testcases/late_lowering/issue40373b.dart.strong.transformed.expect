@@ -42,16 +42,16 @@ static set g(dynamic #t3) → void
     self::_#g = #t3;
   }
 static method main() → dynamic {
-  final dynamic l;
-  core::bool #l#isSet = false;
+  lowered final dynamic #l;
+  lowered core::bool #l#isSet = false;
   function #l#get() → dynamic
-    return #l#isSet ?{dynamic} l : throw new _in::LateError::localNI("l");
+    return #l#isSet ?{dynamic} #l : throw new _in::LateError::localNI("l");
   function #l#set(dynamic #t4) → dynamic
     if(#l#isSet)
       throw new _in::LateError::localAI("l");
     else {
       #l#isSet = true;
-      return l = #t4;
+      return #l = #t4;
     }
   self::g = "Lily";
   self::C::s = "was";

@@ -29,9 +29,9 @@ extension Extension on self2::Class* {
   method method = self2::Extension|method;
   tearoff method = self2::Extension|get#method;
 }
-static method Extension|method(final self2::Class* #this) → dynamic
+static method Extension|method(lowered final self2::Class* #this) → dynamic
   ;
-static method Extension|get#method(final self2::Class* #this) → () →* dynamic
+static method Extension|get#method(lowered final self2::Class* #this) → () →* dynamic
   return () → dynamic => self2::Extension|method(#this);
 
 library;

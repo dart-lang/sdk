@@ -723,7 +723,28 @@ Future<api.CompilationResult> compile(List<String> argv,
       readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       break;
+    case ReadStrategy.fromDataAndClosedWorld:
+      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
+      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
+      break;
     case ReadStrategy.fromCodegen:
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
+      readCodegenUri ??= Uri.base.resolve('$scriptName.code');
+      options.add('${Flags.readCodegen}=${readCodegenUri}');
+      if (codegenShards == null) {
+        fail("Cannot write serialized codegen without setting "
+            "${Flags.codegenShards}.");
+      } else if (codegenShards <= 0) {
+        fail("${Flags.codegenShards} must be a positive integer.");
+      }
+      options.add('${Flags.codegenShards}=$codegenShards');
+      break;
+    case ReadStrategy.fromCodegenAndClosedWorld:
+      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
+      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
       readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       readCodegenUri ??= Uri.base.resolve('$scriptName.code');
@@ -784,6 +805,15 @@ Future<api.CompilationResult> compile(List<String> argv,
             fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
         summary = 'Data files $input and $dataInput ';
         break;
+      case ReadStrategy.fromDataAndClosedWorld:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String worldInput =
+            fe.relativizeUri(Uri.base, readClosedWorldUri, Platform.isWindows);
+        String dataInput =
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
+        summary = 'Data files $input, $worldInput, and $dataInput ';
+        break;
       case ReadStrategy.fromCodegen:
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
@@ -792,6 +822,18 @@ Future<api.CompilationResult> compile(List<String> argv,
         String codeInput =
             fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
         summary = 'Data files $input, $dataInput and '
+            '${codeInput}[0-${codegenShards - 1}] ';
+        break;
+      case ReadStrategy.fromCodegenAndClosedWorld:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String worldInput =
+            fe.relativizeUri(Uri.base, readClosedWorldUri, Platform.isWindows);
+        String dataInput =
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
+        String codeInput =
+            fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
+        summary = 'Data files $input, $worldInput, $dataInput and '
             '${codeInput}[0-${codegenShards - 1}] ';
         break;
     }
@@ -1314,5 +1356,12 @@ void batchMain(List<String> batchArguments) {
   });
 }
 
-enum ReadStrategy { fromDart, fromClosedWorld, fromData, fromCodegen }
+enum ReadStrategy {
+  fromDart,
+  fromClosedWorld,
+  fromData,
+  fromDataAndClosedWorld,
+  fromCodegen,
+  fromCodegenAndClosedWorld
+}
 enum WriteStrategy { toKernel, toClosedWorld, toData, toCodegen, toJs }

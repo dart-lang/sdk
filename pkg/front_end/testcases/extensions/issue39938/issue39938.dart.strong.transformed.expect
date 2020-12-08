@@ -27,5 +27,5 @@ import "dart:core" as core;
 extension Extension on core::bool* {
   operator + = iss::Extension|+;
 }
-static method Extension|+(final core::bool* #this, core::bool* other) → core::bool*
+static method Extension|+(lowered final core::bool* #this, core::bool* other) → core::bool*
   return #this.{core::bool::|}(other);

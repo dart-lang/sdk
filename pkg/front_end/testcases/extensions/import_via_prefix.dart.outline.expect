@@ -16,7 +16,7 @@ extension Extension on core::String* {
   method method = self2::Extension|method;
   tearoff method = self2::Extension|get#method;
 }
-static method Extension|method(final core::String* #this) → core::int*
+static method Extension|method(lowered final core::String* #this) → core::int*
   ;
-static method Extension|get#method(final core::String* #this) → () →* core::int*
+static method Extension|get#method(lowered final core::String* #this) → () →* core::int*
   return () → core::int* => self2::Extension|method(#this);

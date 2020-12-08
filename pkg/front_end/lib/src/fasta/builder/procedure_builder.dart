@@ -482,7 +482,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         VariableDeclaration parameter, DartType type,
         {bool isOptional}) {
       VariableDeclaration newParameter = new VariableDeclaration(parameter.name,
-          type: type, isFinal: parameter.isFinal)
+          type: type,
+          isFinal: parameter.isFinal,
+          isLowered: parameter.isLowered)
         ..fileOffset = parameter.fileOffset;
       _extensionTearOffParameterMap[parameter] = newParameter;
       return newParameter;

@@ -41,6 +41,8 @@ class Tags {
   static const String lateIsSetLocal = 'lateIsSetLocal';
   static const String lateLocalGetter = 'lateLocalGetter';
   static const String lateLocalSetter = 'lateLocalSetter';
+
+  static const String extensionThis = 'extensionThis';
 }
 
 class PredicateDataComputer extends DataComputer<Features> {
@@ -129,7 +131,10 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   void visitVariableDeclaration(VariableDeclaration node) {
     String name;
     String tag;
-    if (isLateLoweredIsSetLocal(node)) {
+    if (isLateLoweredLocal(node)) {
+      name = extractLocalNameFromLateLoweredLocal(node.name);
+      tag = Tags.lateLocal;
+    } else if (isLateLoweredIsSetLocal(node)) {
       name = extractLocalNameFromLateLoweredIsSet(node.name);
       tag = Tags.lateIsSetLocal;
     } else if (isLateLoweredLocalGetter(node)) {
@@ -138,6 +143,9 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
     } else if (isLateLoweredLocalSetter(node)) {
       name = extractLocalNameFromLateLoweredSetter(node.name);
       tag = Tags.lateLocalSetter;
+    } else if (isExtensionThis(node)) {
+      name = extractLocalNameForExtensionThis(node.name);
+      tag = Tags.extensionThis;
     } else if (node.name != null) {
       name = node.name;
     }
@@ -151,5 +159,17 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       }
     }
     super.visitVariableDeclaration(node);
+  }
+
+  @override
+  ActualData<Features> mergeData(
+      ActualData<Features> value1, ActualData<Features> value2) {
+    if ('${value1.value}' == '${value2.value}') {
+      // The extension this parameter is seen twice in the extension method
+      // and the corresponding tearoff. The features are identical, though, so
+      // we just use the first.
+      return value1;
+    }
+    return null;
   }
 }

@@ -69,7 +69,7 @@ extension IntClassExtension on self::IntClass* {
   tearoff testImplicitProperties = self::IntClassExtension|get#testImplicitProperties;
   set property = self::IntClassExtension|set#property;
 }
-static method NumberExtension|+(final self::Number* #this, core::Object* other) → self::Number* {
+static method NumberExtension|+(lowered final self::Number* #this, core::Object* other) → self::Number* {
   if(other is core::int*) {
     return new self::Number::•(#this.{self::Number::value}.{core::num::+}(other{core::int*}));
   }
@@ -81,7 +81,7 @@ static method NumberExtension|+(final self::Number* #this, core::Object* other) 
       throw new core::ArgumentError::•("${other}");
     }
 }
-static method NumberExtension|-(final self::Number* #this, core::Object* other) → self::Number* {
+static method NumberExtension|-(lowered final self::Number* #this, core::Object* other) → self::Number* {
   if(other is core::int*) {
     return new self::Number::•(#this.{self::Number::value}.{core::num::-}(other{core::int*}));
   }
@@ -93,12 +93,12 @@ static method NumberExtension|-(final self::Number* #this, core::Object* other) 
       throw new core::ArgumentError::•("${other}");
     }
 }
-static method ClassExtension|get#property(final self::Class* #this) → self::Number*
+static method ClassExtension|get#property(lowered final self::Class* #this) → self::Number*
   return #this.{self::Class::field};
-static method ClassExtension|set#property(final self::Class* #this, self::Number* value) → void {
+static method ClassExtension|set#property(lowered final self::Class* #this, self::Number* value) → void {
   #this.{self::Class::field} = value;
 }
-static method ClassExtension|testImplicitProperties(final self::Class* #this) → dynamic {
+static method ClassExtension|testImplicitProperties(lowered final self::Class* #this) → dynamic {
   self::Number* n0 = new self::Number::•(0);
   self::Number* n1 = new self::Number::•(1);
   self::Number* n2 = new self::Number::•(2);
@@ -133,14 +133,14 @@ static method ClassExtension|testImplicitProperties(final self::Class* #this) �
   self::ClassExtension|set#property(#this, self::NumberExtension|-(self::ClassExtension|get#property(#this), 1));
   self::expect(n0, self::ClassExtension|get#property(#this));
 }
-static method ClassExtension|get#testImplicitProperties(final self::Class* #this) → () →* dynamic
+static method ClassExtension|get#testImplicitProperties(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::ClassExtension|testImplicitProperties(#this);
-static method IntClassExtension|get#property(final self::IntClass* #this) → core::int*
+static method IntClassExtension|get#property(lowered final self::IntClass* #this) → core::int*
   return #this.{self::IntClass::field};
-static method IntClassExtension|set#property(final self::IntClass* #this, core::int* value) → void {
+static method IntClassExtension|set#property(lowered final self::IntClass* #this, core::int* value) → void {
   #this.{self::IntClass::field} = value;
 }
-static method IntClassExtension|testImplicitProperties(final self::IntClass* #this) → dynamic {
+static method IntClassExtension|testImplicitProperties(lowered final self::IntClass* #this) → dynamic {
   core::int* n0 = 0;
   core::int* n1 = 1;
   core::int* n2 = 2;
@@ -175,7 +175,7 @@ static method IntClassExtension|testImplicitProperties(final self::IntClass* #th
   self::IntClassExtension|set#property(#this, self::IntClassExtension|get#property(#this).{core::num::-}(1));
   self::expect(n0, self::IntClassExtension|get#property(#this));
 }
-static method IntClassExtension|get#testImplicitProperties(final self::IntClass* #this) → () →* dynamic
+static method IntClassExtension|get#testImplicitProperties(lowered final self::IntClass* #this) → () →* dynamic
   return () → dynamic => self::IntClassExtension|testImplicitProperties(#this);
 static method main() → dynamic {
   self::testLocals();

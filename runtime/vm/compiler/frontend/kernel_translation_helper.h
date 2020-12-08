@@ -387,9 +387,10 @@ class VariableDeclarationHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kCovariant = 1 << 3,
-    kIsGenericCovariantImpl = 1 << 5,
-    kLate = 1 << 6,
-    kRequired = 1 << 7,
+    kIsGenericCovariantImpl = 1 << 4,
+    kLate = 1 << 5,
+    kRequired = 1 << 6,
+    kLowered = 1 << 7,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)

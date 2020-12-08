@@ -351,7 +351,8 @@ TypeBuilder substituteRange(
               formal.name,
               formal.parent,
               formal.charOffset,
-              formal.fileUri);
+              fileUri: formal.fileUri,
+              isExtensionThis: formal.isExtensionThis);
           changed = true;
         } else {
           formals[i] = formal;

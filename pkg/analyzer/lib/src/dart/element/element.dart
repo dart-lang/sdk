@@ -138,28 +138,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);
 
   @override
-  ElementImpl getChild(String identifier) {
-    //
-    // The casts in this method are safe because the set methods would have
-    // thrown a CCE if any of the elements in the arrays were not of the
-    // expected types.
-    //
-    for (PropertyAccessorElement accessor in accessors) {
-      PropertyAccessorElementImpl accessorImpl = accessor;
-      if (accessorImpl.identifier == identifier) {
-        return accessorImpl;
-      }
-    }
-    for (FieldElement field in fields) {
-      FieldElementImpl fieldImpl = field;
-      if (fieldImpl.identifier == identifier) {
-        return fieldImpl;
-      }
-    }
-    return null;
-  }
-
-  @override
   FieldElement getField(String name) {
     for (FieldElement fieldElement in fields) {
       if (name == fieldElement.name) {
@@ -899,38 +877,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  ElementImpl getChild(String identifier) {
-    ElementImpl child = super.getChild(identifier);
-    if (child != null) {
-      return child;
-    }
-    //
-    // The casts in this method are safe because the set methods would have
-    // thrown a CCE if any of the elements in the arrays were not of the
-    // expected types.
-    //
-    for (ConstructorElement constructor in constructors) {
-      ConstructorElementImpl constructorImpl = constructor;
-      if (constructorImpl.identifier == identifier) {
-        return constructorImpl;
-      }
-    }
-    for (MethodElement method in methods) {
-      MethodElementImpl methodImpl = method;
-      if (methodImpl.identifier == identifier) {
-        return methodImpl;
-      }
-    }
-    for (TypeParameterElement typeParameter in typeParameters) {
-      TypeParameterElementImpl typeParameterImpl = typeParameter;
-      if (typeParameterImpl.identifier == identifier) {
-        return typeParameterImpl;
-      }
-    }
-    return null;
-  }
-
-  @override
   ConstructorElement getNamedConstructor(String name) =>
       getNamedConstructorFromList(name, constructors);
 
@@ -1560,51 +1506,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeCompilationUnitElement(this);
-  }
-
-  @override
-  ElementImpl getChild(String identifier) {
-    //
-    // The casts in this method are safe because the set methods would have
-    // thrown a CCE if any of the elements in the arrays were not of the
-    // expected types.
-    //
-    for (PropertyAccessorElement accessor in accessors) {
-      PropertyAccessorElementImpl accessorImpl = accessor;
-      if (accessorImpl.identifier == identifier) {
-        return accessorImpl;
-      }
-    }
-    for (TopLevelVariableElement variable in topLevelVariables) {
-      TopLevelVariableElementImpl variableImpl = variable;
-      if (variableImpl.identifier == identifier) {
-        return variableImpl;
-      }
-    }
-    for (FunctionElement function in functions) {
-      FunctionElementImpl functionImpl = function;
-      if (functionImpl.identifier == identifier) {
-        return functionImpl;
-      }
-    }
-    for (TypeAliasElementImpl typeAlias in typeAliases) {
-      if (typeAlias.identifier == identifier) {
-        return typeAlias;
-      }
-    }
-    for (ClassElement type in types) {
-      ClassElementImpl typeImpl = type;
-      if (typeImpl.name == identifier) {
-        return typeImpl;
-      }
-    }
-    for (ClassElement type in enums) {
-      EnumElementImpl typeImpl = type;
-      if (typeImpl.identifier == identifier) {
-        return typeImpl;
-      }
-    }
-    return null;
   }
 
   @override
@@ -3074,10 +2975,6 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  /// Return the child of this element that is uniquely identified by the given
-  /// [identifier], or `null` if there is no such child.
-  ElementImpl getChild(String identifier) => null;
-
   @override
   String getDisplayString({@required bool withNullability}) {
     var builder = ElementDisplayStringBuilder(
@@ -3782,17 +3679,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, displayName);
-  }
-
-  @override
-  ElementImpl getChild(String identifier) {
-    for (ParameterElement parameter in parameters) {
-      ParameterElementImpl parameterImpl = parameter;
-      if (parameterImpl.identifier == identifier) {
-        return parameterImpl;
-      }
-    }
-    return null;
   }
 
   @override
@@ -5391,33 +5277,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           ..enclosingElement = library
           ..isSynthetic = true
           ..returnType = typeProvider.futureDynamicType;
-  }
-
-  @override
-  ElementImpl getChild(String identifier) {
-    CompilationUnitElementImpl unitImpl = _definingCompilationUnit;
-    if (unitImpl.identifier == identifier) {
-      return unitImpl;
-    }
-    for (CompilationUnitElement part in _parts) {
-      CompilationUnitElementImpl partImpl = part;
-      if (partImpl.identifier == identifier) {
-        return partImpl;
-      }
-    }
-    for (ImportElement importElement in imports) {
-      ImportElementImpl importElementImpl = importElement;
-      if (importElementImpl.identifier == identifier) {
-        return importElementImpl;
-      }
-    }
-    for (ExportElement exportElement in exports) {
-      ExportElementImpl exportElementImpl = exportElement;
-      if (exportElementImpl.identifier == identifier) {
-        return exportElementImpl;
-      }
-    }
-    return null;
   }
 
   ClassElement getEnum(String name) {
@@ -7231,17 +7090,6 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeAliasElement(this);
-  }
-
-  @override
-  ElementImpl getChild(String identifier) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      TypeParameterElementImpl typeParameterImpl = typeParameter;
-      if (typeParameterImpl.identifier == identifier) {
-        return typeParameterImpl;
-      }
-    }
-    return null;
   }
 
   @override

@@ -8,17 +8,17 @@ static method main() → dynamic {
   function initLateLocal(core::int value) → core::int {
     return lateLocalInit = value;
   }
-  final core::int? lateLocal;
-  core::bool #lateLocal#isSet = false;
+  lowered final core::int? #lateLocal;
+  lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int {
     if(!#lateLocal#isSet) {
       final core::int #t1 = initLateLocal.call(123);
       if(#lateLocal#isSet)
         throw new _in::LateError::localADI("lateLocal");
-      lateLocal = #t1;
+      #lateLocal = #t1;
       #lateLocal#isSet = true;
     }
-    return lateLocal{core::int};
+    return #lateLocal{core::int};
   }
   self::expect(null, lateLocalInit);
   self::expect(123, #lateLocal#get.call());
@@ -28,17 +28,17 @@ static method main() → dynamic {
     function initLateGenericLocal(T% value) → T% {
       return lateGenericLocalInit = value;
     }
-    final T? lateGenericLocal;
-    core::bool #lateGenericLocal#isSet = false;
+    lowered final T? #lateGenericLocal;
+    lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T% {
       if(!#lateGenericLocal#isSet) {
         final T% #t2 = initLateGenericLocal.call(value);
         if(#lateGenericLocal#isSet)
           throw new _in::LateError::localADI("lateGenericLocal");
-        lateGenericLocal = #t2;
+        #lateGenericLocal = #t2;
         #lateGenericLocal#isSet = true;
       }
-      return lateGenericLocal{T%};
+      return #lateGenericLocal{T%};
     }
     self::expect(null, lateGenericLocalInit);
     self::expect(value, #lateGenericLocal#get.call());

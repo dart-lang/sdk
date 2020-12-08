@@ -248,6 +248,21 @@ class C {
     await assertNoFix();
   }
 
+  Future<void> test_missingReturn_method_notVoid_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<int> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_missingReturn_method_void() async {
     await resolveTestCode('''
 class C {
@@ -260,6 +275,31 @@ class C {
 class C {
   Future<void> m() async {
     print('');
+  }
+}
+''');
+  }
+
+  Future<void> test_missingReturn_method_void_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() async {
+  print('');
   }
 }
 ''');

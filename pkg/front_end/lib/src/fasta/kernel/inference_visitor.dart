@@ -5807,7 +5807,8 @@ class InferenceVisitor
         isSetVariable = new VariableDeclaration(
             late_lowering.computeLateLocalIsSetName(node.name),
             initializer: new BoolLiteral(false)..fileOffset = fileOffset,
-            type: inferrer.coreTypes.boolRawType(inferrer.library.nonNullable))
+            type: inferrer.coreTypes.boolRawType(inferrer.library.nonNullable),
+            isLowered: true)
           ..fileOffset = fileOffset;
         result.add(isSetVariable);
       }
@@ -5828,7 +5829,8 @@ class InferenceVisitor
           new VariableSet(isSetVariable, value);
 
       VariableDeclaration getVariable = new VariableDeclaration(
-          late_lowering.computeLateLocalGetterName(node.name))
+          late_lowering.computeLateLocalGetterName(node.name),
+          isLowered: true)
         ..fileOffset = fileOffset;
       FunctionDeclaration getter = new FunctionDeclaration(
           getVariable,
@@ -5875,7 +5877,8 @@ class InferenceVisitor
         node.isLateFinalWithoutInitializer =
             node.isFinal && node.initializer == null;
         VariableDeclaration setVariable = new VariableDeclaration(
-            late_lowering.computeLateLocalSetterName(node.name))
+            late_lowering.computeLateLocalSetterName(node.name),
+            isLowered: true)
           ..fileOffset = fileOffset;
         VariableDeclaration setterParameter =
             new VariableDeclaration(null, type: node.type)
@@ -5927,6 +5930,7 @@ class InferenceVisitor
       }
       node.type = inferrer.computeNullable(node.type);
       node.lateName = node.name;
+      node.isLowered = true;
       node.name = late_lowering.computeLateLocalName(node.name);
 
       return new StatementInferenceResult.multiple(node.fileOffset, result);
