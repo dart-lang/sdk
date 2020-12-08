@@ -20,6 +20,7 @@ import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
+import 'startup_emitter/fragment_merger.dart' as fragment_merger;
 
 import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
@@ -205,6 +206,8 @@ abstract class ModularEmitter {
 /// These methods are _not_ available during modular code generation.
 abstract class Emitter implements ModularEmitter {
   Program get programForTesting;
+
+  List<fragment_merger.PreFragment> get preDeferredFragmentsForTesting;
 
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.

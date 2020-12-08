@@ -24,6 +24,7 @@ import '../js_emitter.dart' show Emitter, ModularEmitter;
 import '../model.dart';
 import '../native_emitter.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
+import 'fragment_merger.dart';
 import 'model_emitter.dart';
 
 abstract class ModularEmitterBase implements ModularEmitter {
@@ -156,6 +157,9 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   @override
   Program programForTesting;
 
+  @override
+  List<PreFragment> preDeferredFragmentsForTesting;
+
   EmitterImpl(
       CompilerOptions options,
       this._reporter,
@@ -196,7 +200,12 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       programForTesting = program;
     }
     return _task.measureSubtask('emit program', () {
-      return _emitter.emitProgram(program, codegenWorld);
+      var size = _emitter.emitProgram(program, codegenWorld);
+      if (retainDataForTesting) {
+        preDeferredFragmentsForTesting =
+            _emitter.preDeferredFragmentsForTesting;
+      }
+      return size;
     });
   }
 
@@ -238,11 +247,9 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
 
   @override
   int generatedSize(OutputUnit unit) {
-    if (_emitter.omittedFragments.any((f) => f.outputUnit == unit)) {
+    if (_emitter.omittedOutputUnits.contains(unit)) {
       return 0;
     }
-    Fragment key = _emitter.outputBuffers.keys
-        .firstWhere((Fragment fragment) => fragment.outputUnit == unit);
-    return _emitter.outputBuffers[key].length;
+    return _emitter.emittedOutputBuffers[unit].length;
   }
 }

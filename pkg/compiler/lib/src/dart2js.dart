@@ -559,6 +559,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentUnreachableMethodsThrow, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
+    new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),

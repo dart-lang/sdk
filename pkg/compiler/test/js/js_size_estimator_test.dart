@@ -24,7 +24,7 @@ DebugSizeEstimator debugSizeEstimator(Node node) {
 
   // Always verify the actual results from the [SizeEstimator].
   // This is the actual test, though DebugSizeEstimator is pretty trivial.
-  int actualEstimate = EstimateSize(node);
+  int actualEstimate = estimateSize(node);
   Expect.equals(actualEstimate, debugSizeEstimator.charCount);
   return debugSizeEstimator;
 }
