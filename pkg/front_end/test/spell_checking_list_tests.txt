@@ -349,6 +349,7 @@ increments
 indents
 initializer2
 inlinable
+inlineable
 instance2
 insufficient
 intdiv
@@ -451,6 +452,7 @@ mf
 micro
 minimize
 minimizer
+minimizing
 mintty
 minutes
 mismatched
@@ -559,6 +561,7 @@ recompile
 recompiles
 redir
 redirections
+rediscover
 reducer
 referring
 reflectee
@@ -583,6 +586,7 @@ retaining
 retainingpath
 retains
 rev
+revealed
 risky
 rk
 row
@@ -702,6 +706,7 @@ unassignment
 unawaited
 unbreak
 unconverted
+uncover
 uncovers
 underline
 unpacked
