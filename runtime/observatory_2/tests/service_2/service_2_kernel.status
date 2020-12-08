@@ -109,6 +109,7 @@ field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_allocation_samples_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_isolate_after_language_error_test: CompileTimeError
 get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_stack_limit_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
