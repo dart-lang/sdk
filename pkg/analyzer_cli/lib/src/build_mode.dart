@@ -28,10 +28,10 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/link.dart' as summary2;
-import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
+import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
-import 'package:analyzer/src/summary2/reference.dart' as summary2;
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -174,7 +174,7 @@ class BuildMode with HasContextMixin {
   DeclaredVariables declaredVariables;
   AnalysisDriver analysisDriver;
 
-  summary2.LinkedElementFactory elementFactory;
+  LinkedElementFactory elementFactory;
 
   // May be null.
   final DependencyTracker dependencyTracker;
@@ -285,7 +285,7 @@ class BuildMode with HasContextMixin {
   /// in [explicitSources] to produce linked summary bytes.
   Uint8List _computeLinkedLibraries2() {
     return logger.run('Link output summary2', () {
-      var inputLibraries = <summary2.LinkInputLibrary>[];
+      var inputLibraries = <LinkInputLibrary>[];
 
       for (var librarySource in explicitSources) {
         var path = librarySource.fullName;
@@ -301,9 +301,9 @@ class BuildMode with HasContextMixin {
           continue;
         }
 
-        var inputUnits = <summary2.LinkInputUnit>[];
+        var inputUnits = <LinkInputUnit>[];
         inputUnits.add(
-          summary2.LinkInputUnit(null, librarySource, false, unit),
+          LinkInputUnit(null, librarySource, false, unit),
         );
 
         for (var directive in unit.directives) {
@@ -315,7 +315,7 @@ class BuildMode with HasContextMixin {
             if (partSource == null) {
               var unit = analysisDriver.fsState.unresolvedFile.parse();
               inputUnits.add(
-                summary2.LinkInputUnit(partUri, null, true, unit),
+                LinkInputUnit(partUri, null, true, unit),
               );
               continue;
             }
@@ -326,7 +326,7 @@ class BuildMode with HasContextMixin {
               throw ArgumentError('No parsed unit for part $partPath in $path');
             }
             inputUnits.add(
-              summary2.LinkInputUnit(
+              LinkInputUnit(
                 partUri,
                 partSource,
                 false,
@@ -337,11 +337,11 @@ class BuildMode with HasContextMixin {
         }
 
         inputLibraries.add(
-          summary2.LinkInputLibrary(librarySource, inputUnits),
+          LinkInputLibrary(librarySource, inputUnits),
         );
       }
 
-      var linkResult = summary2.link(elementFactory, inputLibraries, false);
+      var linkResult = link(elementFactory, inputLibraries, false);
 
       var bundleBuilder = PackageBundleBuilder();
       for (var library in inputLibraries) {
@@ -444,10 +444,10 @@ class BuildMode with HasContextMixin {
       sourceFactory,
     );
 
-    elementFactory = summary2.LinkedElementFactory(
+    elementFactory = LinkedElementFactory(
       analysisContext,
       AnalysisSessionImpl(null),
-      summary2.Reference.root(),
+      Reference.root(),
     );
 
     for (var bundle in summaryDataStore.bundles) {
