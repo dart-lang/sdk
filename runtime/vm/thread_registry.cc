@@ -95,45 +95,6 @@ void ThreadRegistry::ReleaseMarkingStacks() {
   }
 }
 
-#ifndef PRODUCT
-void ThreadRegistry::PrintJSON(JSONStream* stream) const {
-  MonitorLocker ml(threads_lock());
-  JSONArray threads(stream);
-  Thread* current = active_list_;
-  while (current != NULL) {
-    threads.AddValue(current);
-    current = current->next_;
-  }
-}
-#endif
-
-intptr_t ThreadRegistry::CountZoneHandles(Isolate* isolate_of_interest) const {
-  MonitorLocker ml(threads_lock());
-  intptr_t count = 0;
-  Thread* current = active_list_;
-  while (current != NULL) {
-    if (current->isolate() == isolate_of_interest) {
-      count += current->CountZoneHandles();
-    }
-    current = current->next_;
-  }
-  return count;
-}
-
-intptr_t ThreadRegistry::CountScopedHandles(
-    Isolate* isolate_of_interest) const {
-  MonitorLocker ml(threads_lock());
-  intptr_t count = 0;
-  Thread* current = active_list_;
-  while (current != NULL) {
-    if (current->isolate() == isolate_of_interest) {
-      count += current->CountScopedHandles();
-    }
-    current = current->next_;
-  }
-  return count;
-}
-
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());

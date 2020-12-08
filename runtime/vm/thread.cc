@@ -214,19 +214,6 @@ void Thread::InitVMConstants() {
 #undef REUSABLE_HANDLE_ALLOCATION
 }
 
-#ifndef PRODUCT
-// Collect information about each individual zone associated with this thread.
-void Thread::PrintJSON(JSONStream* stream) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "_Thread");
-  jsobj.AddPropertyF("id", "threads/%" Pd "",
-                     OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
-  jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
-  jsobj.AddPropertyF("_zoneHighWatermark", "%" Pu "", zone_high_watermark());
-  jsobj.AddPropertyF("_zoneCapacity", "%" Pu "", current_zone_capacity());
-}
-#endif
-
 GrowableObjectArrayPtr Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);

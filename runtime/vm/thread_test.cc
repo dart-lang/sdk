@@ -313,37 +313,6 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
     done_count = 0;
   }
 
-  // Get the information for the current isolate.
-  // We only need to check the current isolate since all tasks are spawned
-  // inside this single isolate.
-  JSONStream stream;
-  isolate->PrintJSON(&stream, false);
-  const char* json = stream.ToCString();
-
-  Thread* current_thread = Thread::Current();
-
-  // Confirm all expected entries are in the JSON output.
-  for (intptr_t i = 0; i < kTaskCount; i++) {
-    Thread* thread = threads[i];
-    StackZone stack_zone(current_thread);
-    Zone* current_zone = current_thread->zone();
-
-    // Check the thread exists and is the correct size.
-    char* thread_info_buf = OS::SCreate(
-        current_zone,
-        "\"type\":\"_Thread\","
-        "\"id\":\"threads\\/%" Pd
-        "\","
-        "\"kind\":\"%s\","
-        "\"_zoneHighWatermark\":\"%" Pu
-        "\","
-        "\"_zoneCapacity\":\"%" Pu "\"",
-        OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
-        Thread::TaskKindToCString(thread->task_kind()),
-        thread->zone_high_watermark(), thread->current_zone_capacity());
-    EXPECT_SUBSTRING(thread_info_buf, json);
-  }
-
   // Unblock the tasks so they can finish.
   {
     MonitorLocker sync_ml(&sync);

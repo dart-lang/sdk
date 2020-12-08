@@ -116,7 +116,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
   void render() {
     final uptime = new DateTime.now().difference(_isolate.startTime);
     final libraries = _isolate.libraries.toList();
-    final List<M.Thread> threads = _isolate.threads;
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,
@@ -261,26 +260,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
                 ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
-                    ..text = 'allocated zone handle count',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_isolate.numZoneHandles}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'allocated scoped handle count',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_isolate.numScopedHandles}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
                     ..text = 'object store',
                   new DivElement()
                     ..classes = ['memberValue']
@@ -288,19 +267,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
                       new AnchorElement(href: Uris.objectStore(_isolate))
                         ..text = 'object store'
                     ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'zone capacity high watermark'
-                    ..title = '''The maximum amount of native zone memory
-                    allocated by the isolate over it\'s life.''',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = Utils.formatSize(_isolate.zoneHighWatermark)
-                    ..title = '${_isolate.zoneHighWatermark}B'
                 ],
               new BRElement(),
               new DivElement()
@@ -324,21 +290,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
                           .element
                     ]
                 ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'threads (${threads.length})',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = <Element>[
-                      (new CurlyBlockElement(queue: _r.queue)
-                            ..content =
-                                threads.map<Element>(_populateThreadInfo))
-                          .element
-                    ]
-                ]
             ],
           new HRElement(),
           new EvalBoxElement(_isolate, _isolate.rootLibrary, _objects, _eval,
@@ -358,31 +309,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
           new ViewFooterElement(queue: _r.queue).element
         ]
     ];
-  }
-
-  DivElement _populateThreadInfo(M.Thread t) {
-    return new DivElement()
-      ..classes = ['indent']
-      ..children = <Element>[
-        new SpanElement()..text = '${t.id} ',
-        (new CurlyBlockElement(queue: _r.queue)
-              ..content = <Element>[
-                new DivElement()
-                  ..classes = ['indent']
-                  ..text = 'kind ${t.kindString}',
-                new DivElement()
-                  ..classes = ['indent']
-                  ..title = '${t.zoneHighWatermark}B'
-                  ..text = 'zone capacity high watermark '
-                      '${Utils.formatSize(t.zoneHighWatermark)}',
-                new DivElement()
-                  ..classes = ['indent']
-                  ..title = '${t.zoneCapacity}B'
-                  ..text = 'current zone capacity ' +
-                      '${Utils.formatSize(t.zoneCapacity)}',
-              ])
-            .element
-      ];
   }
 
   Future _loadExtraData() async {

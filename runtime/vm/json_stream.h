@@ -205,8 +205,6 @@ class JSONStream : ValueObject {
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
   void PrintValue(IsolateGroup* isolate, bool ref = true);
-  void PrintValue(ThreadRegistry* reg);
-  void PrintValue(Thread* thread);
   void PrintValue(const TimelineEvent* timeline_event);
   void PrintValue(const TimelineEventBlock* timeline_event_block);
   void PrintValueVM(bool ref = true);
@@ -261,8 +259,6 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
-  void PrintProperty(const char* name, ThreadRegistry* reg);
-  void PrintProperty(const char* name, Thread* thread);
   void PrintProperty(const char* name, Zone* zone);
   void PrintProperty(const char* name, const TimelineEvent* timeline_event);
   void PrintProperty(const char* name,
@@ -377,12 +373,6 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
   }
-  void AddProperty(const char* name, ThreadRegistry* reg) const {
-    stream_->PrintProperty(name, reg);
-  }
-  void AddProperty(const char* name, Thread* thread) const {
-    stream_->PrintProperty(name, thread);
-  }
   void AddProperty(const char* name, Zone* zone) const {
     stream_->PrintProperty(name, zone);
   }
@@ -443,8 +433,6 @@ class JSONArray : public ValueObject {
   void AddValue(IsolateGroup* isolate_group, bool ref = true) const {
     stream_->PrintValue(isolate_group, ref);
   }
-  void AddValue(ThreadRegistry* reg) const { stream_->PrintValue(reg); }
-  void AddValue(Thread* thread) const { stream_->PrintValue(thread); }
   void AddValue(Breakpoint* bpt) const { stream_->PrintValue(bpt); }
   void AddValue(TokenPosition tp) const { stream_->PrintValue(tp); }
   void AddValue(const ServiceEvent* event) const { stream_->PrintValue(event); }
