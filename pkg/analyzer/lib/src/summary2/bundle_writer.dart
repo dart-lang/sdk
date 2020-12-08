@@ -18,6 +18,81 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
 
+Uint8List writeUnitToBytes({@required CompilationUnit unit}) {
+  var byteSink = ByteSink();
+  var sink = BufferedSink(byteSink);
+  var stringIndexer = StringIndexer();
+
+  var headerOffset = sink.offset;
+  var nextResolutionIndex = 0;
+  var unitWriter = AstBinaryWriter(
+    withInformative: true,
+    sink: sink,
+    stringIndexer: stringIndexer,
+    getNextResolutionIndex: () => nextResolutionIndex++,
+    resolutionSink: null,
+  );
+  unit.accept(unitWriter);
+
+  void _writeStringReference(String string) {
+    var index = stringIndexer[string];
+    sink.writeUInt30(index);
+  }
+
+  var indexOffset = sink.offset;
+  sink.writeUInt30(unitWriter.unitMemberIndexItems.length);
+  for (var declaration in unitWriter.unitMemberIndexItems) {
+    sink.writeUInt30(declaration.offset);
+    sink.writeByte(declaration.tag);
+    if (declaration.name != null) {
+      _writeStringReference(declaration.name);
+    } else {
+      sink.writeList(declaration.variableNames, _writeStringReference);
+    }
+    if (declaration.classIndexOffset != 0) {
+      sink.writeUInt30(declaration.classIndexOffset);
+    }
+  }
+
+  var libraryDataOffset = sink.offset;
+  {
+    var name = '';
+    var nameOffset = -1;
+    var nameLength = 0;
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        name = directive.name.components.map((e) => e.name).join('.');
+        nameOffset = directive.name.offset;
+        nameLength = directive.name.length;
+        break;
+      }
+    }
+
+    var hasPartOfDirective = false;
+    for (var directive in unit.directives) {
+      if (directive is PartOfDirective) {
+        hasPartOfDirective = true;
+        break;
+      }
+    }
+    _writeStringReference(name);
+    sink.writeUInt30(nameOffset + 1);
+    sink.writeUInt30(nameLength);
+    sink.writeByte(hasPartOfDirective ? 1 : 0);
+    sink.writeByte(1); // withInformative
+  }
+
+  var stringTableOffset = stringIndexer.write(sink);
+
+  sink.writeUInt32(headerOffset);
+  sink.writeUInt32(indexOffset);
+  sink.writeUInt32(libraryDataOffset);
+  sink.writeUInt32(stringTableOffset);
+
+  sink.flushAndDestroy();
+  return byteSink.builder.takeBytes();
+}
+
 class BundleWriter {
   final bool withInformative;
   BundleWriterAst _astWriter;
@@ -28,17 +103,31 @@ class BundleWriter {
     _resolutionWriter = BundleWriterResolution(dynamicReference);
   }
 
-  void addLibrary(LibraryToWrite library) {
-    var resolutionLibrary = _resolutionWriter.enterLibrary(library);
-
+  void addLibraryAst(LibraryToWriteAst library) {
     var astUnitOffsets = <int>[];
     for (var unit in library.units) {
-      var resolutionUnit = resolutionLibrary.enterUnit(unit);
-      var offset = _astWriter.writeUnit(unit.node, resolutionUnit);
+      var offset = _astWriter.writeUnit(unit.node);
       astUnitOffsets.add(offset);
     }
-
     _astWriter.writeLibrary(library.units[0].node, astUnitOffsets);
+  }
+
+  void addLibraryResolution(LibraryToWriteResolution library) {
+    var resolutionLibrary = _resolutionWriter.enterLibrary(library);
+    for (var unit in library.units) {
+      var resolutionUnit = resolutionLibrary.enterUnit(unit);
+      // TODO(scheglov) Is it better to have a throwaway Object, or null?
+      var notUsedSink = BufferedSink(ByteSink());
+      var notUsedStringIndexer = StringIndexer();
+      var unitWriter = AstBinaryWriter(
+        withInformative: withInformative,
+        sink: notUsedSink,
+        stringIndexer: notUsedStringIndexer,
+        getNextResolutionIndex: resolutionUnit.enterDeclaration,
+        resolutionSink: resolutionUnit.library.sink,
+      );
+      unit.node.accept(unitWriter);
+    }
   }
 
   BundleWriterResult finish() {
@@ -109,15 +198,18 @@ class BundleWriterAst {
   }
 
   /// Write the [node] into the [sink].
-  /// While visiting AST, store the resolution into [resolutionUnit].
   ///
   /// Return the pointer at [AstUnitFormat.headerOffset].
-  int writeUnit(CompilationUnit node, ResolutionUnit resolutionUnit) {
+  int writeUnit(CompilationUnit node) {
     var headerOffset = sink.offset;
 
+    var nextResolutionIndex = 0;
     var unitWriter = AstBinaryWriter(
-      bundleWriterAst: this,
-      resolutionUnit: resolutionUnit,
+      withInformative: withInformative,
+      sink: sink,
+      stringIndexer: stringIndexer,
+      getNextResolutionIndex: () => nextResolutionIndex++,
+      resolutionSink: null,
     );
     node.accept(unitWriter);
 
@@ -168,7 +260,7 @@ class BundleWriterResolution {
     );
   }
 
-  _ResolutionLibrary enterLibrary(LibraryToWrite libraryToWrite) {
+  _ResolutionLibrary enterLibrary(LibraryToWriteResolution libraryToWrite) {
     var library = _ResolutionLibrary(
       sink: _resolutionSink,
       library: libraryToWrite,
@@ -249,12 +341,20 @@ class BundleWriterResult {
   });
 }
 
-class LibraryToWrite {
+class LibraryToWriteAst {
+  final List<UnitToWriteAst> units;
+
+  LibraryToWriteAst({
+    @required this.units,
+  });
+}
+
+class LibraryToWriteResolution {
   final String uriStr;
   final List<Reference> exports;
-  final List<UnitToWrite> units;
+  final List<UnitToWriteResolution> units;
 
-  LibraryToWrite({
+  LibraryToWriteResolution({
     @required this.uriStr,
     @required this.exports,
     @required this.units,
@@ -514,7 +614,7 @@ class ResolutionSink {
 
 class ResolutionUnit {
   final _ResolutionLibrary library;
-  final UnitToWrite unit;
+  final UnitToWriteResolution unit;
 
   /// The offset of the resolution data for directives.
   final int directivesOffset;
@@ -612,13 +712,21 @@ class StringIndexer {
   }
 }
 
-class UnitToWrite {
+class UnitToWriteAst {
+  final CompilationUnit node;
+
+  UnitToWriteAst({
+    @required this.node,
+  });
+}
+
+class UnitToWriteResolution {
   final String uriStr;
   final String partUriStr;
   final CompilationUnit node;
   final bool isSynthetic;
 
-  UnitToWrite({
+  UnitToWriteResolution({
     @required this.uriStr,
     @required this.partUriStr,
     @required this.node,
@@ -691,7 +799,7 @@ class _LocalElementIndexer {
 
 class _ResolutionLibrary {
   final ResolutionSink sink;
-  final LibraryToWrite library;
+  final LibraryToWriteResolution library;
   final List<ResolutionUnit> units = [];
 
   _ResolutionLibrary({
@@ -699,7 +807,7 @@ class _ResolutionLibrary {
     @required this.library,
   });
 
-  ResolutionUnit enterUnit(UnitToWrite unitToWrite) {
+  ResolutionUnit enterUnit(UnitToWriteResolution unitToWrite) {
     var unit = ResolutionUnit(
       library: this,
       unit: unitToWrite,

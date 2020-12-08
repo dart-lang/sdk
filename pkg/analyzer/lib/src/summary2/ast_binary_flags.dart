@@ -176,11 +176,6 @@ class AstBinaryFlags {
     VariableDeclarationList,
   );
 
-  static final _isMap = _checkBit(
-    1,
-    TypedLiteral,
-  );
-
   static final _isNative = _checkBit(
     8,
     MethodDeclaration,
@@ -273,7 +268,6 @@ class AstBinaryFlags {
     bool isGenerator = false,
     bool isGet = false,
     bool isLate = false,
-    bool isMap = false,
     bool isNative = false,
     bool isNew = false,
     bool isOperator = false,
@@ -370,9 +364,6 @@ class AstBinaryFlags {
     }
     if (isLate) {
       result |= _isLate;
-    }
-    if (isMap) {
-      result |= _isMap;
     }
     if (isNative) {
       result |= _isNative;
@@ -520,10 +511,6 @@ class AstBinaryFlags {
 
   static bool isLate(int flags) {
     return (flags & _isLate) != 0;
-  }
-
-  static bool isMap(int flags) {
-    return (flags & _isMap) != 0;
   }
 
   static bool isNative(int flags) {

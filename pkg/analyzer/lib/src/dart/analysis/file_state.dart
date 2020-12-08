@@ -35,6 +35,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -127,6 +128,7 @@ class FileState {
   Set<String> _referencedNames;
   List<int> _unlinkedSignature;
   String _unlinkedKey;
+  String _astKey;
   AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   List<int> _apiSignature;
 
@@ -368,6 +370,16 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
+  Uint8List getAstBytes({CompilationUnit unit}) {
+    var bytes = _fsState._byteStore.get(_astKey);
+    if (bytes == null) {
+      unit ??= parse();
+      bytes = writeUnitToBytes(unit: unit);
+      _fsState._byteStore.put(_astKey, bytes);
+    }
+    return bytes;
+  }
+
   void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
     if (cycle == null) {
       _libraryCycle = null;
@@ -426,7 +438,10 @@ class FileState {
       signature.addString(_contentHash);
       signature.addBool(_exists);
       _unlinkedSignature = signature.toByteList();
-      _unlinkedKey = '${hex.encode(_unlinkedSignature)}.unlinked2';
+      var signatureHex = hex.encode(_unlinkedSignature);
+      _unlinkedKey = '$signatureHex.unlinked2';
+      // TODO(scheglov) Use the path as the key, and store the signature.
+      _astKey = '$signatureHex.ast';
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.

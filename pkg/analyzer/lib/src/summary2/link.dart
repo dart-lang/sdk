@@ -46,6 +46,7 @@ class Linker {
 
   InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
+  BundleWriter bundleWriter;
   Uint8List astBytes;
   Uint8List resolutionBytes;
 
@@ -62,6 +63,12 @@ class Linker {
   Reference get rootReference => elementFactory.rootReference;
 
   void link(List<LinkInputLibrary> inputLibraries) {
+    bundleWriter = BundleWriter(
+      withInformative,
+      elementFactory.dynamicRef,
+    );
+    _writeAst(inputLibraries);
+
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
     }
@@ -69,7 +76,7 @@ class Linker {
     _buildOutlines();
 
     timerLinkingLinkingBundle.start();
-    _createLinkingBundle();
+    _writeResolution();
     timerLinkingLinkingBundle.stop();
 
     timerLinkingRemoveBundle.start();
@@ -164,45 +171,6 @@ class Linker {
     }
   }
 
-  void _createLinkingBundle() {
-    var bundleWriter2 = BundleWriter(
-      withInformative,
-      elementFactory.dynamicRef,
-    );
-    var bundleWriterTimer = Stopwatch();
-
-    for (var builder in builders.values) {
-      bundleWriterTimer.start();
-      bundleWriter2.addLibrary(
-        LibraryToWrite(
-          uriStr: '${builder.uri}',
-          exports: builder.exports,
-          units: builder.context.units.map((e) {
-            return UnitToWrite(
-              uriStr: e.uriStr,
-              partUriStr: e.partUriStr,
-              node: e.unit,
-              isSynthetic: e.isSynthetic,
-            );
-          }).toList(),
-        ),
-      );
-      bundleWriterTimer.stop();
-    }
-
-    bundleWriterTimer.start();
-    var writeWriterResult = bundleWriter2.finish();
-    astBytes = writeWriterResult.astBytes;
-    resolutionBytes = writeWriterResult.resolutionBytes;
-    bundleWriterTimer.stop();
-    // print(
-    //   '[bytes: ${astBytes.length + resolutionBytes.length}]'
-    //   '[astBytes: ${astBytes.length}]'
-    //   '[resolutionBytes: ${resolutionBytes.length}]'
-    //   '[time: ${bundleWriterTimer.elapsedMilliseconds} ms]',
-    // );
-  }
-
   void _createTypeSystem() {
     var coreLib = elementFactory.libraryOfUri('dart:core');
     var asyncLib = elementFactory.libraryOfUri('dart:async');
@@ -246,6 +214,43 @@ class Linker {
     computeSimplyBounded(builders.values);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder().build(nodesToBuildType);
+  }
+
+  void _writeAst(List<LinkInputLibrary> inputLibraries) {
+    for (var inputLibrary in inputLibraries) {
+      bundleWriter.addLibraryAst(
+        LibraryToWriteAst(
+          units: inputLibrary.units.map((e) {
+            return UnitToWriteAst(
+              node: e.unit,
+            );
+          }).toList(),
+        ),
+      );
+    }
+  }
+
+  void _writeResolution() {
+    for (var builder in builders.values) {
+      bundleWriter.addLibraryResolution(
+        LibraryToWriteResolution(
+          uriStr: '${builder.uri}',
+          exports: builder.exports,
+          units: builder.context.units.map((e) {
+            return UnitToWriteResolution(
+              uriStr: e.uriStr,
+              partUriStr: e.partUriStr,
+              node: e.unit,
+              isSynthetic: e.isSynthetic,
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    var writeWriterResult = bundleWriter.finish();
+    astBytes = writeWriterResult.astBytes;
+    resolutionBytes = writeWriterResult.resolutionBytes;
   }
 }
 

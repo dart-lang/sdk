@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/task/inference_error.dart';
@@ -213,6 +216,26 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
+    // Rewrite:
+    //   ConstructorName
+    //     type: TypeName
+    //       name: PrefixedIdentifier
+    //     name: null
+    // into:
+    //    ConstructorName
+    //      type: TypeName
+    //        name: SimpleIdentifier
+    //      name: SimpleIdentifier
+    var hasName = _resolution.readByte() != 0;
+    if (hasName && node.name == null) {
+      var typeName = node.type.name as PrefixedIdentifier;
+      NodeReplacer.replace(
+        node.type,
+        astFactory.typeName(typeName.prefix, null),
+      );
+      node.name = typeName.identifier;
+    }
+
     node.type.accept(this);
     node.name?.accept(this);
     node.staticElement = _nextElement();
@@ -302,7 +325,16 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
+  void visitExtensionOverride(
+    ExtensionOverride node, {
+    bool readRewrite = true,
+  }) {
+    // Read possible rewrite of `MethodInvocation`.
+    // If we are here, we don't need it.
+    if (readRewrite) {
+      _resolution.readByte();
+    }
+
     node.extensionName.accept(this);
     node.typeArguments?.accept(this);
     node.argumentList.accept(this);
@@ -391,7 +423,16 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(
+    FunctionExpressionInvocation node, {
+    bool readRewrite = true,
+  }) {
+    // Read possible rewrite of `MethodInvocation`.
+    // If we are here, we don't need it.
+    if (readRewrite) {
+      _resolution.readByte();
+    }
+
     node.function.accept(this);
     _invocationExpression(node);
   }
@@ -509,7 +550,16 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+    InstanceCreationExpression node, {
+    bool readRewrite = true,
+  }) {
+    // Read possible rewrite of `MethodInvocation`.
+    // If we are here, we don't need it.
+    if (readRewrite) {
+      _resolution.readByte();
+    }
+
     node.constructorName.accept(this);
     (node as InstanceCreationExpressionImpl).typeArguments?.accept(this);
     node.argumentList.accept(this);
@@ -593,6 +643,88 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    var rewriteTag = _resolution.readByte();
+    if (rewriteTag == MethodInvocationRewriteTag.none) {
+      // No rewrite necessary.
+    } else if (rewriteTag == MethodInvocationRewriteTag.extensionOverride) {
+      Identifier identifier;
+      if (node.target == null) {
+        identifier = node.methodName;
+      } else {
+        identifier = astFactory.prefixedIdentifier(
+          node.target as SimpleIdentifier,
+          node.operator,
+          node.methodName,
+        );
+      }
+      var replacement = astFactory.extensionOverride(
+        extensionName: identifier,
+        typeArguments: node.typeArguments,
+        argumentList: node.argumentList,
+      );
+      NodeReplacer.replace(node, replacement);
+      visitExtensionOverride(replacement, readRewrite: false);
+      return;
+    } else if (rewriteTag ==
+        MethodInvocationRewriteTag.functionExpressionInvocation) {
+      var target = node.target;
+      Expression expression;
+      if (target == null) {
+        expression = node.methodName;
+      } else {
+        expression = astFactory.propertyAccess(
+          target,
+          node.operator,
+          node.methodName,
+        );
+      }
+      var replacement = astFactory.functionExpressionInvocation(
+        expression,
+        node.typeArguments,
+        node.argumentList,
+      );
+      NodeReplacer.replace(node, replacement);
+      visitFunctionExpressionInvocation(replacement, readRewrite: false);
+      return;
+    } else if (rewriteTag ==
+        MethodInvocationRewriteTag.instanceCreationExpression_withName) {
+      var replacement = astFactory.instanceCreationExpression(
+        null,
+        astFactory.constructorName(
+          astFactory.typeName(node.target as Identifier, null),
+          node.operator,
+          node.methodName,
+        ),
+        node.argumentList,
+      );
+      NodeReplacer.replace(node, replacement);
+      visitInstanceCreationExpression(replacement, readRewrite: false);
+      return;
+    } else if (rewriteTag ==
+        MethodInvocationRewriteTag.instanceCreationExpression_withoutName) {
+      var typeNameName = node.target == null
+          ? node.methodName
+          : astFactory.prefixedIdentifier(
+              node.target as SimpleIdentifier,
+              node.operator,
+              node.methodName,
+            );
+      var replacement = astFactory.instanceCreationExpression(
+        null,
+        astFactory.constructorName(
+          astFactory.typeName(typeNameName, node.typeArguments),
+          null,
+          null,
+        ),
+        node.argumentList,
+      );
+      NodeReplacer.replace(node, replacement);
+      visitInstanceCreationExpression(replacement, readRewrite: false);
+      return;
+    } else {
+      throw StateError('[rewriteTag: $rewriteTag][node: $node]');
+    }
+
     node.target?.accept(this);
     node.methodName.accept(this);
     _invocationExpression(node);
@@ -705,6 +837,13 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    var mapOrSetBits = _resolution.readByte();
+    if ((mapOrSetBits & 0x01) != 0) {
+      (node as SetOrMapLiteralImpl).becomeMap();
+    } else if ((mapOrSetBits & 0x02) != 0) {
+      (node as SetOrMapLiteralImpl).becomeSet();
+    }
+
     node.typeArguments?.accept(this);
     node.elements.accept(this);
     node.staticType = _nextType();
