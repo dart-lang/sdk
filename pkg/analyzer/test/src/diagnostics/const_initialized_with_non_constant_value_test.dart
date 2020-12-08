@@ -10,6 +10,9 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstInitializedWithNonConstantValueTest);
+    defineReflectiveTests(
+      ConstInitializedWithNonConstantValueWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -101,5 +104,22 @@ const c = a.m;
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 72,
           1),
     ]);
+  }
+}
+
+@reflectiveTest
+class ConstInitializedWithNonConstantValueWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_typeLiteral_interfaceType() async {
+    await assertNoErrorsInCode(r'''
+const a = int;
+''');
+  }
+
+  test_typeLiteral_typeAlias_interfaceType() async {
+    await assertNoErrorsInCode(r'''
+typedef A = int;
+const a = A;
+''');
   }
 }
