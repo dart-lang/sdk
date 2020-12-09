@@ -32,9 +32,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       'subject to change before the next stable release. Feedback is welcome - '
       'please file at https://github.com/dart-lang/sdk/issues.';
 
-  // This command is hidden as it's currently experimental.
-  FixCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, hidden: true) {
+  FixCommand({bool verbose = false}) : super(cmdName, cmdDescription) {
     argParser.addFlag('dry-run',
         abbr: 'n',
         defaultsTo: false,
