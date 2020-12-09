@@ -18,14 +18,16 @@ void main([List<String> args]) {
   var options = parser.parse(args);
 
   registerLintRules();
+  var json = getMachineListing(Registry.ruleRegistry,
+      pretty: options['pretty'] == true);
+  print(json);
+}
 
-  var rules = List<LintRule>.from(Registry.ruleRegistry, growable: false)
-    ..sort();
-
-  var encoder =
-      options['pretty'] == true ? JsonEncoder.withIndent('  ') : JsonEncoder();
-
-  print(encoder.convert([
+String getMachineListing(Iterable<LintRule> ruleRegistry,
+    {bool pretty = true}) {
+  var rules = List<LintRule>.from(ruleRegistry, growable: false)..sort();
+  var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
+  var json = encoder.convert([
     for (var rule in rules)
       {
         'name': rule.name,
@@ -33,5 +35,7 @@ void main([List<String> args]) {
         'group': rule.group.name,
         'details': rule.details,
       }
-  ]));
+  ]);
+
+  return json;
 }
