@@ -14,19 +14,21 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 const _allPathSuffix = '/example/all.yaml';
-const _effectiveDartOptionsRootUrl =
-    'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib';
-const _effectiveDartOptionsUrl =
-    '$_effectiveDartOptionsRootUrl/analysis_options.yaml';
+final _effectiveDartOptionsRootUrl = Uri.https(
+    'raw.githubusercontent.com', '/tenhobi/effective_dart/master/lib/');
+final _effectiveDartOptionsUrl =
+    _effectiveDartOptionsRootUrl.resolve('analysis_options.yaml');
 
-const _flutterOptionsUrl =
-    'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml';
-const _flutterRepoOptionsUrl =
-    'https://raw.githubusercontent.com/flutter/flutter/master/analysis_options.yaml';
-const _repoPathPrefix = 'https://raw.githubusercontent.com/dart-lang/linter/';
-const _rulePathPrefix = 'https://raw.githubusercontent.com/dart-lang/linter';
-const _stagehandOptionsUrl =
-    'https://raw.githubusercontent.com/dart-lang/stagehand/master/templates/analysis_options.yaml';
+final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
+    '/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml');
+final _flutterRepoOptionsUrl = Uri.https('raw.githubusercontent.com',
+    '/flutter/flutter/master/analysis_options.yaml');
+final _repoPathPrefix =
+    Uri.https('raw.githubusercontent.com', '/dart-lang/linter/');
+final _rulePathPrefix =
+    Uri.https('raw.githubusercontent.com', '/dart-lang/linter/');
+final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
+    '/dart-lang/stagehand/master/templates/analysis_options.yaml');
 
 /// We don't care about SDKs previous to this bottom.
 final Version bottomDartSdk = Version(2, 0, 0);
@@ -88,7 +90,7 @@ Future<String> dartSdkForLinter(String version) async {
 }
 
 Future<List<String>> fetchRulesForVersion(String version) async =>
-    score_utils.fetchRules('$_repoPathPrefix$version$_allPathSuffix');
+    score_utils.fetchRules(_repoPathPrefix.resolve('$version$_allPathSuffix'));
 
 Future<String> findSinceDartSdk(String linterVersion) async =>
     await dartSdkForLinter(linterVersion);
@@ -131,8 +133,8 @@ Future<String> _crawlForVersion(String lint) async {
   var client = http.Client();
   for (var minor = 1; minor < 31; ++minor) {
     var version = '0.1.$minor';
-    var req =
-        await client.get('$_rulePathPrefix/$version/lib/src/rules/$lint.dart');
+    var req = await client
+        .get(_rulePathPrefix.resolve('$version/lib/src/rules/$lint.dart'));
     if (req.statusCode == 200) {
       return version;
     }
@@ -143,8 +145,8 @@ Future<String> _crawlForVersion(String lint) async {
 Future<String> _fetchDEPSforVersion(String version) async {
   var client = http.Client();
   //https://raw.githubusercontent.com/dart-lang/sdk/2.1.0-dev.1.0/DEPS
-  var req = await client
-      .get('https://raw.githubusercontent.com/dart-lang/sdk/$version/DEPS');
+  var req = await client.get(
+      Uri.https('raw.githubusercontent.com', '/dart-lang/sdk/$version/DEPS'));
   return req.body;
 }
 
@@ -154,7 +156,7 @@ Future<List<String>> _fetchEffectiveDartRules() async {
   var includedOptions =
       req.body.split('include: package:effective_dart/')[1].trim();
   return score_utils
-      .fetchRules('$_effectiveDartOptionsRootUrl/$includedOptions');
+      .fetchRules(_effectiveDartOptionsRootUrl.resolve(includedOptions));
 }
 
 Future<String> _fetchLinterForVersion(String version) async {

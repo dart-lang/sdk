@@ -5,16 +5,17 @@
 import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
 import 'package:http/http.dart' as http;
 
-const _pedanticOptionsRootUrl =
-    'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib';
-const _pedanticOptionsUrl = '$_pedanticOptionsRootUrl/analysis_options.yaml';
+final _pedanticOptionsRootUrl =
+    Uri.https('raw.githubusercontent.com', '/dart-lang/pedantic/master/lib/');
+final _pedanticOptionsUrl =
+    _pedanticOptionsRootUrl.resolve('analysis_options.yaml');
 
 List<String> _pedanticRules;
 
 Future<List<String>> get pedanticRules async =>
     _pedanticRules ??= await _fetchPedanticRules();
 
-Future<List<String>> fetchRules(String optionsUrl) async {
+Future<List<String>> fetchRules(Uri optionsUrl) async {
   final config = await _fetchConfig(optionsUrl);
   if (config == null) {
     print('no config found for: $optionsUrl (SKIPPED)');
@@ -27,18 +28,16 @@ Future<List<String>> fetchRules(String optionsUrl) async {
   return rules;
 }
 
-Future<LintConfig> _fetchConfig(String url) async {
+Future<LintConfig> _fetchConfig(Uri url) async {
   print('loading $url...');
-  final client = http.Client();
-  final req = await client.get(url);
+  final req = await http.get(url);
   return processAnalysisOptionsFile(req.body);
 }
 
 Future<List<String>> _fetchPedanticRules() async {
-  final client = http.Client();
   print('loading $_pedanticOptionsUrl...');
-  final req = await client.get(_pedanticOptionsUrl);
+  final req = await http.get(_pedanticOptionsUrl);
   final includedOptions =
       req.body.split('include: package:pedantic/')[1].trim();
-  return fetchRules('$_pedanticOptionsRootUrl/$includedOptions');
+  return fetchRules(_pedanticOptionsRootUrl.resolve(includedOptions));
 }
