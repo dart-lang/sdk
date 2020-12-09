@@ -1425,17 +1425,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-#if defined(TARGET_OS_FUCHSIA)
-  __ mov(R3, THR);
-#endif
-
-  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
+  __ PopNativeCalleeSavedRegisters();
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
@@ -3005,8 +2995,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kStackTraceObjectReg == R1);
   // TransitionGeneratedToNative might clobber LR if it takes the slow path.
   __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
-  __ mov(SP, R1);  // Stack pointer.
-  __ mov(FP, R2);  // Frame_pointer.
+  __ mov(SP, R1);                 // Stack pointer.
+  __ mov(FP, R2);                 // Frame_pointer.
   __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
 #if defined(TARGET_OS_FUCHSIA)
