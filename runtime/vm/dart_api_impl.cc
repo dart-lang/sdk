@@ -6095,8 +6095,9 @@ static Dart_Handle DeferredLoadComplete(intptr_t loading_unit_id,
 
   if (error) {
     CHECK_NULL(error_message);
-    unit.CompleteLoad(String::Handle(String::New(error_message)),
-                      transient_error);
+    return Api::NewHandle(
+        T, unit.CompleteLoad(String::Handle(String::New(error_message)),
+                             transient_error));
   } else {
 #if defined(SUPPORT_TIMELINE)
     TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
@@ -6120,10 +6121,8 @@ static Dart_Handle DeferredLoadComplete(intptr_t loading_unit_id,
       return Api::NewHandle(T, error.raw());
     }
 
-    unit.CompleteLoad(String::Handle(), false);
+    return Api::NewHandle(T, unit.CompleteLoad(String::Handle(), false));
   }
-
-  return Api::Success();
 }
 
 DART_EXPORT Dart_Handle

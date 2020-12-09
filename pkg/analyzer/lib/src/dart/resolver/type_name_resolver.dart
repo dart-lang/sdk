@@ -196,12 +196,6 @@ class TypeNameResolver {
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
-      } else if (_isInstanceCreation(node)) {
-        _ErrorHelper(errorReporter).reportNewWithNonType(node);
-        return dynamicType;
-      } else if (element is DynamicElementImpl) {
-        _buildTypeArguments(node, 0);
-        return DynamicTypeImpl.instance;
       } else if (element is TypeAliasElement) {
         var typeArguments = _buildTypeArguments(
           node,
@@ -212,7 +206,13 @@ class TypeNameResolver {
           nullabilitySuffix: nullability,
         );
         type = typeSystem.toLegacyType(type);
-        return type;
+        return _verifyTypeAliasForContext(node, type);
+      } else if (_isInstanceCreation(node)) {
+        _ErrorHelper(errorReporter).reportNewWithNonType(node);
+        return dynamicType;
+      } else if (element is DynamicElementImpl) {
+        _buildTypeArguments(node, 0);
+        return DynamicTypeImpl.instance;
       } else if (element is NeverElementImpl) {
         _buildTypeArguments(node, 0);
         return _instantiateElementNever(nullability);
@@ -244,16 +244,17 @@ class TypeNameResolver {
         classElement: element,
         nullabilitySuffix: nullability,
       );
+    } else if (element is TypeAliasElement) {
+      var type = typeSystem.instantiateToBounds2(
+        typeAliasElement: element,
+        nullabilitySuffix: nullability,
+      );
+      return _verifyTypeAliasForContext(node, type);
     } else if (_isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
       return dynamicType;
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
-    } else if (element is TypeAliasElement) {
-      return typeSystem.instantiateToBounds2(
-        typeAliasElement: element,
-        nullabilitySuffix: nullability,
-      );
     } else if (element is NeverElementImpl) {
       return _instantiateElementNever(nullability);
     } else if (element is TypeParameterElement) {
@@ -364,6 +365,14 @@ class TypeNameResolver {
         [typeIdentifier.name],
       );
     }
+  }
+
+  DartType _verifyTypeAliasForContext(TypeName node, DartType type) {
+    if (type is! InterfaceType && _isInstanceCreation(node)) {
+      _ErrorHelper(errorReporter).reportNewWithNonType(node);
+      return dynamicType;
+    }
+    return type;
   }
 
   static bool _isInstanceCreation(TypeName node) {

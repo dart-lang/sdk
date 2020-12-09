@@ -102,8 +102,8 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
     expect(fff.defaultArgumentListTextRanges, [0, 3, 5, 3]);
 
     var ggg = aSet.items.singleWhere((e) => e.label == 'ggg');
-    expect(ggg.defaultArgumentListString, 'bbb: null, ccc: null');
-    expect(ggg.defaultArgumentListTextRanges, [5, 4, 16, 4]);
+    expect(ggg.defaultArgumentListString, 'bbb: bbb, ccc: ccc');
+    expect(ggg.defaultArgumentListTextRanges, [5, 3, 15, 3]);
   }
 
   Future<void> test_displayUri_file() async {

@@ -6996,7 +6996,8 @@ class LoadingUnit : public Object {
   }
 
   ObjectPtr IssueLoad() const;
-  void CompleteLoad(const String& error_message, bool transient_error) const;
+  ObjectPtr CompleteLoad(const String& error_message,
+                         bool transient_error) const;
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit, Object);

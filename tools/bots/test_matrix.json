@@ -642,6 +642,18 @@
         "host-checked": true
       }
     },
+    "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-weak",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
+        ],
+        "timeout": 240,
+        "host-checked": true
+      }
+    },
     "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
@@ -664,6 +676,19 @@
         "host-checked": true
       }
     },
+    "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-strong",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
+        ],
+        "timeout": 240,
+        "host-checked": true
+      }
+    },
+
     "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-strong",
@@ -2469,6 +2494,16 @@
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
+          "name": "dart2js nnbd weak d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-max-fragments-linux-x64-d8",
+            "--dart2js-batch",
+            "dart2js/deferred/"
+          ],
+          "shards": 1,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
           "name": "dart2js nnbd weak chrome tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
@@ -2507,6 +2542,16 @@
             "corelib"
           ],
           "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-max-fragments-linux-x64-d8",
+            "--dart2js-batch",
+            "dart2js/deferred/"
+          ],
+          "shards": 1,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {

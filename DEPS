@@ -101,7 +101,7 @@ vars = {
 "dart_style_tag": "1.3.10",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "d79877d0764ce23ffea7055049f8da5dffce0308",
+  "dartdoc_rev" : "a1d86f2c992f4660ddcc09b27733396e92765d2a",
   "ffi_rev": "a5d4232cd38562c75a3ed847baa340e399538028",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
@@ -123,7 +123,7 @@ vars = {
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "6f89681d59541ddb1cf3a58efbdaa2304ffc3f51",
   "matcher_rev": "9cae8faa7868bf3a88a7ba45eb0bd128e66ac515",
-  "mime_rev": "07635f7774447503248fbc6afb3911e9000a477e",
+  "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_tag": "1.6.0",

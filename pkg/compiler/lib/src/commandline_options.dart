@@ -117,6 +117,7 @@ class Flags {
 
   static const String soundNullSafety = '--sound-null-safety';
   static const String noSoundNullSafety = '--no-sound-null-safety';
+  static const String mergeFragmentsThreshold = '--merge-fragments-threshold';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';

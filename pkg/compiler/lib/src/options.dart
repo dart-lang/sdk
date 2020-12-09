@@ -161,6 +161,15 @@ class CompilerOptions implements DiagnosticOptions {
   /// libraries are subdivided.
   Uri deferredMapUri;
 
+  /// The maximum number of deferred fragments to generate. If the number of
+  /// fragments exceeds this amount, then they may be merged.
+  /// Note: Currently, we only merge fragments in a single dependency chain. We
+  /// will not merge fragments with unrelated dependencies and thus we may
+  /// generate more fragments than the 'mergeFragmentsThreshold' under some
+  /// situations.
+  int mergeFragmentsThreshold = null; // default value, no max.
+  int _mergeFragmentsThreshold;
+
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
   bool disableInlining = false;
@@ -524,7 +533,9 @@ class CompilerOptions implements DiagnosticOptions {
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
       .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
-      .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety);
+      .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
+      .._mergeFragmentsThreshold =
+          _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=');
   }
 
   void validate() {
@@ -627,6 +638,10 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {
       nativeNullAssertions = false;
+    }
+
+    if (_mergeFragmentsThreshold != null) {
+      mergeFragmentsThreshold = _mergeFragmentsThreshold;
     }
   }
 

@@ -17481,8 +17481,8 @@ ObjectPtr LoadingUnit::IssueLoad() const {
   return Isolate::Current()->CallDeferredLoadHandler(id());
 }
 
-void LoadingUnit::CompleteLoad(const String& error_message,
-                               bool transient_error) const {
+ObjectPtr LoadingUnit::CompleteLoad(const String& error_message,
+                                    bool transient_error) const {
   ASSERT(!loaded());
   ASSERT(load_outstanding());
   set_loaded(error_message.IsNull());
@@ -17496,12 +17496,7 @@ void LoadingUnit::CompleteLoad(const String& error_message,
   args.SetAt(0, Smi::Handle(Smi::New(id())));
   args.SetAt(1, error_message);
   args.SetAt(2, Bool::Get(transient_error));
-  const Object& result = Object::Handle(DartEntry::InvokeFunction(func, args));
-  if (result.IsUnwindError()) {
-    Thread::Current()->set_sticky_error(Error::Cast(result));
-  } else if (result.IsError()) {
-    UNREACHABLE();
-  }
+  return DartEntry::InvokeFunction(func, args);
 }
 
 const char* Error::ToErrorCString() const {

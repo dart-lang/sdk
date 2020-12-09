@@ -42,6 +42,10 @@ class Program {
     assert(outputContainsConstantList != null);
   }
 
+  void mergeOutputUnitMetadata(OutputUnit target, OutputUnit source) {
+    _metadataCollector.mergeOutputUnitMetadata(target, source);
+  }
+
   /// Accessor for the list of metadata entries for a given [OutputUnit].
   ///
   /// There is one list for each output unit. The list belonging to the main

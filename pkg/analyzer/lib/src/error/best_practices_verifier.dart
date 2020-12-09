@@ -1295,6 +1295,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (expressionMap.isNotEmpty) {
       Declaration parent = expression.thisOrAncestorMatching(
           (e) => e is FunctionDeclaration || e is MethodDeclaration);
+      if (parent == null) {
+        return;
+      }
       for (var entry in expressionMap.entries) {
         _errorReporter.reportErrorForNode(
           HintCode.RETURN_OF_DO_NOT_STORE,
@@ -1480,6 +1483,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           addTo: expressions);
       _getSubExpressionsMarkedDoNotStore(expression.rightOperand,
           addTo: expressions);
+    } else if (expression is FunctionExpression) {
+      var body = expression.body;
+      if (body is ExpressionFunctionBody) {
+        _getSubExpressionsMarkedDoNotStore(body.expression, addTo: expressions);
+      }
     }
     if (element is PropertyAccessorElement && element.isSynthetic) {
       element = (element as PropertyAccessorElement).variable;

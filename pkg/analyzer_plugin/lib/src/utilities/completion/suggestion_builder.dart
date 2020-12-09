@@ -46,16 +46,15 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     }
 
     for (var param in namedParams) {
-      if (param.hasRequired) {
+      if (param.hasRequired || param.isRequiredNamed) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
         var name = param.name;
         buffer.write('$name: ');
         offset = buffer.length;
-        var defaultValue = 'null'; // originally _getDefaultValue(param)
-        buffer.write(defaultValue);
-        ranges.addAll([offset, defaultValue.length]);
+        buffer.write(name);
+        ranges.addAll([offset, name.length]);
       }
     }
 
