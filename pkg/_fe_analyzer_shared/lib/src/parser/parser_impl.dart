@@ -1395,6 +1395,42 @@ class Parser {
     return codes.messageMissingFunctionParameters;
   }
 
+  /// Check if [token] is the usage of 'required' in a formal parameter in a
+  /// context where it's not legal (i.e. in non-nnbd-mode).
+  bool _isUseOfRequiredInNonNNBD(Token token) {
+    if (token.next is StringToken && token.next.value() == "required") {
+      // Possible recovery: Figure out if we're in a situation like
+      // required covariant? <type> name
+      // (in non-nnbd-mode) where the required modifier is not legal and thus
+      // would normally be parsed as the type.
+      token = token.next;
+      Token next = token.next;
+      // Skip modifiers.
+      while (next.isModifier) {
+        token = next;
+        next = next.next;
+      }
+      // Parse the (potential) new type.
+      TypeInfo typeInfoAlternative = computeType(
+          token,
+          /* required = */ false,
+          /* inDeclaration = */ true);
+      token = typeInfoAlternative.skipType(token);
+      next = token.next;
+
+      // We've essentially ignored the 'required' at this point.
+      // `token` is (in the good state) the last token of the type,
+      // `next` is (in the good state) the name;
+      // Are we in a 'good' state?
+      if (typeInfoAlternative != noType &&
+          next.isIdentifier &&
+          (optional(',', next.next) || optional('}', next.next))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// ```
   /// normalFormalParameter:
   ///   functionFormalParameter |
@@ -1418,6 +1454,15 @@ class Parser {
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     assert(parameterKind != null);
     token = parseMetadataStar(token);
+
+    Token skippedNonRequiredRequired;
+    if (_isUseOfRequiredInNonNNBD(token)) {
+      skippedNonRequiredRequired = token.next;
+      reportRecoverableErrorWithToken(skippedNonRequiredRequired,
+          codes.templateUnexpectedModifierInNonNnbd);
+      token = token.next;
+    }
+
     Token next = token.next;
     Token start = next;
 
@@ -1476,6 +1521,13 @@ class Parser {
           }
         }
       }
+    }
+
+    if (requiredToken == null) {
+      // `required` was used as a modifier in non-nnbd mode. An error has been
+      // emitted. Still use it as a required token for the remainder in an
+      // attempt to avoid cascading errors (and for passing to the listener).
+      requiredToken = skippedNonRequiredRequired;
     }
 
     listener.beginFormalParameter(
@@ -2387,8 +2439,8 @@ class Parser {
       next = token.next;
 
       // We've essentially ignored the 'late' at this point.
-      // `skippingLateToken` is (in the good state) the last token of the type,
-      // `skippingLateNext` is (in the good state) the name;
+      // `token` is (in the good state) the last token of the type,
+      // `next` is (in the good state) the name;
       // Are we in a 'good' state?
       if (typeInfoAlternative != noType &&
           next.isIdentifier &&
