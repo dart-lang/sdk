@@ -38,7 +38,11 @@ void main() {
           "This will apply the changes you've previewed to your working "
           'directory. It is recommended you commit any changes you made before '
           'doing this.')) {
-        doPost('/apply-migration').then((xhr) {
+        var navigationTreeJson = [
+          for (var entity in navigationTree) entity.toJson()
+        ];
+        doPost('/apply-migration', {'navigationTree': navigationTreeJson})
+            .then((xhr) {
           document.body.classes
             ..remove('proposed')
             ..add('applied');

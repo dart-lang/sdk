@@ -96,6 +96,10 @@ class MigrationInfo {
   /// The path of the Roboto Mono font.
   String get robotoMonoFont => PreviewSite.robotoMonoFontPath;
 
+  /// Returns the absolute path of [path], as relative to [includedRoot].
+  String absolutePathFromRoot(String path) =>
+      pathContext.join(includedRoot, path);
+
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
   String computeName(UnitInfo unit) =>
