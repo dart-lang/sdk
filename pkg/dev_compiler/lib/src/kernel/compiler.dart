@@ -376,7 +376,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Visit each library and emit its code.
     //
-    // NOTE: clases are not necessarily emitted in this order.
+    // NOTE: classes are not necessarily emitted in this order.
     // Order will be changed as needed so the resulting code can execute.
     // This is done by forward declaring items.
     libraries.forEach(_emitLibrary);
@@ -408,6 +408,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Declare imports and extension symbols
     emitImportsAndExtensionSymbols(items);
+
+    // Insert a check that runs when loading this module to verify that the null
+    // safety mode it was compiled in matches the mode used when compiling the
+    // dart sdk module.
+    //
+    // This serves as a sanity check at runtime that we don't have an
+    // infrastructure issue that loaded js files compiled with different modes
+    // into the same application.
+    js_ast.LiteralBool soundNullSafety;
+    switch (component.mode) {
+      case NonNullableByDefaultCompiledMode.Strong:
+        soundNullSafety = js_ast.LiteralBool(true);
+        break;
+      case NonNullableByDefaultCompiledMode.Weak:
+        soundNullSafety = js_ast.LiteralBool(false);
+        break;
+      default:
+        throw StateError('Unsupported Null Safety mode ${component.mode}, '
+            'in ${component?.location?.file}.');
+    }
+    if (!isBuildingSdk) {
+      items.add(
+          runtimeStatement('_checkModuleNullSafetyMode(#)', [soundNullSafety]));
+    }
 
     // Emit the hoisted type table cache variables
     items.addAll(_typeTable.dischargeBoundTypes());
