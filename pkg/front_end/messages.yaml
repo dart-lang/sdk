@@ -4906,3 +4906,10 @@ MainWrongParameterTypeExported:
 ExportedMain:
   template: "This is exported 'main' declaration."
   severity: CONTEXT
+
+UnexpectedModifierInNonNnbd:
+  template: "The modifier '#lexeme' is only available in null safe libraries."
+  exampleAllowMoreCodes: true
+  analyzerCode: UNEXPECTED_TOKEN
+  script:
+    - "late int x;"

@@ -1,4 +1,4 @@
-late ;
+late
 final int? lateTopLevelField;
 class Class<T> {
   static late ;
@@ -6,9 +6,9 @@ class Class<T> {
   static late ;
   final int? lateStaticField2;
   static staticMethod() {}
-  late ;
+  late
   final int? lateInstanceField;
-  late ;
+  late
   final T? lateGenericInstanceField;
   instanceMethod(T value) {}
 }

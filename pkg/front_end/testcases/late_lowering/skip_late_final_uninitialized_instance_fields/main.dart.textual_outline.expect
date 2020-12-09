@@ -1,12 +1,12 @@
 main() {}
 method() {}
-late int ;
-uninitializedNonFinalTopLevelField;
-late ;
+late
+int uninitializedNonFinalTopLevelField;
+late
 final int uninitializedFinalTopLevelField;
-late int ;
-initializedNonFinalTopLevelField = 0;
-late ;
+late
+int initializedNonFinalTopLevelField = 0;
+late
 final int initializedFinalTopLevelField = 0;
 class Class {
   static late int ;
@@ -17,12 +17,12 @@ class Class {
   initializedNonFinalStaticField = 0;
   static late ;
   final int initializedFinalStaticField = 0;
-  late int ;
-  uninitializedNonFinalInstanceField;
-  late ;
+  late
+  int uninitializedNonFinalInstanceField;
+  late
   final int uninitializedFinalInstanceField;
-  late int ;
-  initializedNonFinalInstanceField = 0;
-  late ;
+  late
+  int initializedNonFinalInstanceField = 0;
+  late
   final int initializedFinalInstanceField = 0;
 }

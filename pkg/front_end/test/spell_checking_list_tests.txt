@@ -153,6 +153,7 @@ ct4b
 ctrl
 cumulative
 cursor
+cuts
 cx
 dacoharkes
 dadd
@@ -347,9 +348,11 @@ increased
 incrementally
 increments
 indents
+ing
 initializer2
 inlinable
 inlineable
+inlines
 instance2
 insufficient
 intdiv

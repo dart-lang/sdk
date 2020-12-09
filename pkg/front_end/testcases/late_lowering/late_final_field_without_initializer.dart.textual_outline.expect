@@ -1,4 +1,4 @@
-late ;
+late
 final int lateTopLevelField;
 class Class {
   static late ;
@@ -6,7 +6,7 @@ class Class {
   static late ;
   final int lateStaticField2;
   static staticMethod() {}
-  late ;
+  late
   final int lateInstanceField;
   instanceMethod() {}
 }

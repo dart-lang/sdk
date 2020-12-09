@@ -154,6 +154,13 @@ class TestMinimizerSettings {
   }
 }
 
+// TODO(jensj): The different cuts and inlines in this file aren't tested.
+// The probably should be. So they should probably be factored out so they can
+// be tested and then tested.
+// Similarly the whole +/- 1 thing to cut out what we want is weird and should
+// be factored out into helpers too, or we should have some sort of visitor
+// that can include the "real" numbers (which should then also be tested).
+
 class TestMinimizer {
   final TestMinimizerSettings _settings;
   _FakeFileSystem get _fs => _settings._fs;
@@ -177,7 +184,8 @@ class TestMinimizer {
       stdin.echoMode = false;
       stdin.lineMode = false;
     } catch (e) {
-      print("error setting settings on stdin");
+      print("Trying to setup 'stdin' failed. Continuing anyway, "
+          "but 'q', 'i' etc might not work.");
     }
     _stdinSubscription = stdin.listen((List<int> event) {
       if (event.length == 1 && event.single == "q".codeUnits.single) {
@@ -544,6 +552,10 @@ class TestMinimizer {
           _replaceRange(replacements, originalBytes);
 
       // Step 2: Find the last import/export.
+      // TODO(jensj): This doesn't work if
+      // * The file we're inlining into doesn't have any imports/exports but do
+      //   have a `library` declaration.
+      // * The file we're inlining has a library declaration.
       int offsetOfLast = 0;
       ast = getAST(withoutInlineable,
           includeBody: false,
@@ -1423,6 +1435,10 @@ class TestMinimizer {
             }
 
             // Try to remove "extends", "implements" etc.
+            // TODO(jensj): The below removes from the "extends" (etc) until
+            // (but excluding) the "{". This should be improved so it can remove
+            // _one_ part at a time. E:g. if it says "class A implements B, C {"
+            // we could try to remove "B, " or ", C" etc.
             if (decl.getClassExtends().extendsKeyword != null) {
               helper.replacements.add(new _Replacement(
                   decl.getClassExtends().extendsKeyword.offset - 1,
@@ -1758,6 +1774,8 @@ class TestMinimizer {
     try {
       _latestComponent = await incrementalCompiler.computeDelta();
       if (_settings.serialize) {
+        // We're asked to serialize, probably because it crashes in
+        // serialization.
         ByteSink sink = new ByteSink();
         BinaryPrinter printer = new BinaryPrinter(sink);
         printer.writeComponentFile(_latestComponent);
@@ -1767,6 +1785,8 @@ class TestMinimizer {
         incrementalCompiler.invalidate(uri);
         Component delta = await incrementalCompiler.computeDelta();
         if (_settings.serialize) {
+          // We're asked to serialize, probably because it crashes in
+          // serialization.
           ByteSink sink = new ByteSink();
           BinaryPrinter printer = new BinaryPrinter(sink);
           printer.writeComponentFile(delta);

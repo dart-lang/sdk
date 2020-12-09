@@ -20,6 +20,7 @@ import '../scanner/token.dart'
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
+        StringToken,
         SyntheticBeginToken,
         SyntheticKeywordToken,
         SyntheticStringToken,
@@ -1394,6 +1395,42 @@ class Parser {
     return codes.messageMissingFunctionParameters;
   }
 
+  /// Check if [token] is the usage of 'required' in a formal parameter in a
+  /// context where it's not legal (i.e. in non-nnbd-mode).
+  bool _isUseOfRequiredInNonNNBD(Token token) {
+    if (token.next is StringToken && token.next.value() == "required") {
+      // Possible recovery: Figure out if we're in a situation like
+      // required covariant? <type> name
+      // (in non-nnbd-mode) where the required modifier is not legal and thus
+      // would normally be parsed as the type.
+      token = token.next;
+      Token next = token.next;
+      // Skip modifiers.
+      while (next.isModifier) {
+        token = next;
+        next = next.next;
+      }
+      // Parse the (potential) new type.
+      TypeInfo typeInfoAlternative = computeType(
+          token,
+          /* required = */ false,
+          /* inDeclaration = */ true);
+      token = typeInfoAlternative.skipType(token);
+      next = token.next;
+
+      // We've essentially ignored the 'required' at this point.
+      // `token` is (in the good state) the last token of the type,
+      // `next` is (in the good state) the name;
+      // Are we in a 'good' state?
+      if (typeInfoAlternative != noType &&
+          next.isIdentifier &&
+          (optional(',', next.next) || optional('}', next.next))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// ```
   /// normalFormalParameter:
   ///   functionFormalParameter |
@@ -1417,6 +1454,15 @@ class Parser {
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     assert(parameterKind != null);
     token = parseMetadataStar(token);
+
+    Token skippedNonRequiredRequired;
+    if (_isUseOfRequiredInNonNNBD(token)) {
+      skippedNonRequiredRequired = token.next;
+      reportRecoverableErrorWithToken(skippedNonRequiredRequired,
+          codes.templateUnexpectedModifierInNonNnbd);
+      token = token.next;
+    }
+
     Token next = token.next;
     Token start = next;
 
@@ -1475,6 +1521,13 @@ class Parser {
           }
         }
       }
+    }
+
+    if (requiredToken == null) {
+      // `required` was used as a modifier in non-nnbd mode. An error has been
+      // emitted. Still use it as a required token for the remainder in an
+      // attempt to avoid cascading errors (and for passing to the listener).
+      requiredToken = skippedNonRequiredRequired;
     }
 
     listener.beginFormalParameter(
@@ -2363,10 +2416,56 @@ class Parser {
     return parseTopLevelMemberImpl(token).next;
   }
 
+  /// Check if [token] is the usage of 'late' before a field declaration in a
+  /// context where it's not legal (i.e. in non-nnbd-mode).
+  bool _isUseOfLateInNonNNBD(Token token) {
+    if (token is StringToken && token.value() == "late") {
+      // Possible recovery: Figure out if we're in a situation like
+      // late final? <type>/var/const name [...]
+      // (in non-nnbd-mode) where the late modifier is not legal and thus would
+      // normally be parsed as the type.
+      Token next = token.next;
+      // Skip modifiers.
+      while (next.isModifier) {
+        token = next;
+        next = next.next;
+      }
+      // Parse the (potential) new type.
+      TypeInfo typeInfoAlternative = computeType(
+          token,
+          /* required = */ false,
+          /* inDeclaration = */ true);
+      token = typeInfoAlternative.skipType(token);
+      next = token.next;
+
+      // We've essentially ignored the 'late' at this point.
+      // `token` is (in the good state) the last token of the type,
+      // `next` is (in the good state) the name;
+      // Are we in a 'good' state?
+      if (typeInfoAlternative != noType &&
+          next.isIdentifier &&
+          indicatesMethodOrField(next.next)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Token parseTopLevelMemberImpl(Token token) {
     Token beforeStart = token;
     Token next = token.next;
     listener.beginTopLevelMember(next);
+
+    Token skippedNonLateLate;
+
+    if (_isUseOfLateInNonNNBD(next)) {
+      skippedNonLateLate = next;
+      reportRecoverableErrorWithToken(
+          skippedNonLateLate, codes.templateUnexpectedModifierInNonNnbd);
+      token = token.next;
+      beforeStart = token;
+      next = token.next;
+    }
 
     Token externalToken;
     Token lateToken;
@@ -2420,6 +2519,12 @@ class Parser {
           }
         }
       }
+    }
+    if (lateToken == null) {
+      // `late` was used as a modifier in non-nnbd mode. An error has been
+      // emitted. Still use it as a late token for the remainder in an attempt
+      // to avoid cascading errors (and for passing to the listener).
+      lateToken = skippedNonLateLate;
     }
 
     Token beforeType = token;
@@ -3307,6 +3412,16 @@ class Parser {
       Token token, DeclarationKind kind, String enclosingDeclarationName) {
     Token beforeStart = token = parseMetadataStar(token);
 
+    Token skippedNonLateLate;
+
+    if (_isUseOfLateInNonNNBD(token.next)) {
+      skippedNonLateLate = token.next;
+      reportRecoverableErrorWithToken(
+          skippedNonLateLate, codes.templateUnexpectedModifierInNonNnbd);
+      token = token.next;
+      beforeStart = token;
+    }
+
     Token covariantToken;
     Token abstractToken;
     Token externalToken;
@@ -3372,6 +3487,13 @@ class Parser {
           }
         }
       }
+    }
+
+    if (lateToken == null) {
+      // `late` was used as a modifier in non-nnbd mode. An error has been
+      // emitted. Still use it as a late token for the remainder in an attempt
+      // to avoid cascading errors (and for passing to the listener).
+      lateToken = skippedNonLateLate;
     }
 
     listener.beginMember();
@@ -6079,12 +6201,30 @@ class Parser {
 
   /// See [parseExpressionStatementOrDeclaration]
   Token parseExpressionStatementOrDeclarationAfterModifiers(
-      final Token beforeType,
-      final Token start,
-      final Token lateToken,
+      Token beforeType,
+      Token start,
+      Token lateToken,
       Token varFinalOrConst,
       TypeInfo typeInfo,
       bool onlyParseVariableDeclarationStart) {
+    // In simple cases check for bad 'late' modifier in non-nnbd-mode.
+    if (typeInfo == null &&
+        lateToken == null &&
+        varFinalOrConst == null &&
+        beforeType == start &&
+        _isUseOfLateInNonNNBD(beforeType.next)) {
+      lateToken = beforeType.next;
+      reportRecoverableErrorWithToken(
+          lateToken, codes.templateUnexpectedModifierInNonNnbd);
+      beforeType = start = beforeType.next;
+
+      // The below doesn't parse modifiers, so we need to do it here.
+      ModifierRecoveryContext context = new ModifierRecoveryContext(this);
+      beforeType =
+          start = context.parseVariableDeclarationModifiers(beforeType);
+      varFinalOrConst = context.varFinalOrConst;
+      context = null;
+    }
     typeInfo ??= computeType(beforeType, /* required = */ false);
 
     Token token = typeInfo.skipType(beforeType);
