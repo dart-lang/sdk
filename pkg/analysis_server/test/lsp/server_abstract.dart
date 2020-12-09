@@ -565,13 +565,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     });
   }
 
-  String applyTextEdit(String content, TextEdit change) {
-    final startPos = change.range.start;
-    final endPos = change.range.end;
+  String applyTextEdit(
+      String content, Either2<TextEdit, AnnotatedTextEdit> change) {
+    // Both sites of the union can cast to TextEdit.
+    final edit = change.map((e) => e, (e) => e);
+    final startPos = edit.range.start;
+    final endPos = edit.range.end;
     final lineInfo = LineInfo.fromContent(content);
     final start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
     final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
-    return content.replaceRange(start, end, change.newText);
+    return content.replaceRange(start, end, edit.newText);
   }
 
   String applyTextEdits(String oldContent, List<TextEdit> changes) {
@@ -626,7 +629,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       );
 
     for (final change in sortedChanges) {
-      newContent = applyTextEdit(newContent, change);
+      newContent = applyTextEdit(
+          newContent, Either2<TextEdit, AnnotatedTextEdit>.t1(change));
     }
 
     return newContent;
@@ -702,7 +706,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final path = Uri.parse(edit.textDocument.uri).toFilePath();
     final expectedVersion = expectedVersions[path];
 
-    if (edit.textDocument is VersionedTextDocumentIdentifier) {
+    if (edit.textDocument is OptionalVersionedTextDocumentIdentifier) {
       expect(edit.textDocument.version, equals(expectedVersion));
     } else {
       throw 'Document identifier for $path was not versioned (expected version $expectedVersion)';
@@ -901,7 +905,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<DartDiagnosticServer> getDiagnosticServer() {
     final request = makeRequest(
-      CustomMethods.DiagnosticServer,
+      CustomMethods.diagnosticServer,
       null,
     );
     return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
@@ -1009,7 +1013,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Position pos,
   ) {
     final request = makeRequest(
-      CustomMethods.Super,
+      CustomMethods.super_,
       TextDocumentPositionParams(
         textDocument: TextDocumentIdentifier(uri: uri.toString()),
         position: pos,
@@ -1428,10 +1432,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<void> waitForAnalysisStatus(bool analyzing) async {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage) {
-        if (message.method == CustomMethods.AnalyzerStatus) {
+        if (message.method == CustomMethods.analyzerStatus) {
           if (_clientCapabilities.window?.workDoneProgress == true) {
             throw Exception(
-                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'Recieved ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1440,7 +1444,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         } else if (message.method == Method.progress) {
           if (_clientCapabilities.window?.workDoneProgress != true) {
             throw Exception(
-                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'Recieved ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1473,7 +1477,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     PublishClosingLabelsParams closingLabelsParams;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == CustomMethods.PublishClosingLabels) {
+          message.method == CustomMethods.publishClosingLabels) {
         closingLabelsParams =
             PublishClosingLabelsParams.fromJson(message.params);
 
@@ -1501,7 +1505,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     PublishFlutterOutlineParams outlineParams;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == CustomMethods.PublishFlutterOutline) {
+          message.method == CustomMethods.publishFlutterOutline) {
         outlineParams = PublishFlutterOutlineParams.fromJson(message.params);
 
         return outlineParams.uri == uri.toString();
@@ -1515,7 +1519,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     PublishOutlineParams outlineParams;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == CustomMethods.PublishOutline) {
+          message.method == CustomMethods.publishOutline) {
         outlineParams = PublishOutlineParams.fromJson(message.params);
 
         return outlineParams.uri == uri.toString();

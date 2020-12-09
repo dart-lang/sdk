@@ -1211,7 +1211,10 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
 lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
   return lsp.TextDocumentEdit(
     textDocument: edit.doc,
-    edits: edit.edits.map((e) => toTextEdit(edit.lineInfo, e)).toList(),
+    edits: edit.edits
+        .map((e) => Either2<TextEdit, AnnotatedTextEdit>.t1(
+            toTextEdit(edit.lineInfo, e)))
+        .toList(),
   );
 }
 

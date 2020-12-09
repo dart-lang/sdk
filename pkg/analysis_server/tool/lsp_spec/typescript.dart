@@ -76,6 +76,7 @@ String getImprovedType(String interfaceName, String fieldName) {
     'Diagnostic': {
       'severity': 'DiagnosticSeverity',
       'code': 'String',
+      'data': 'object',
     },
     'TextDocumentSyncOptions': {
       'change': 'TextDocumentSyncKind',
@@ -89,6 +90,10 @@ String getImprovedType(String interfaceName, String fieldName) {
     'CompletionItem': {
       'kind': 'CompletionItemKind',
       'data': 'CompletionItemResolutionInfo',
+      'textEdit': 'TextEdit',
+    },
+    'CallHierarchyItem': {
+      'data': 'object',
     },
     'DocumentHighlight': {
       'kind': 'DocumentHighlightKind',

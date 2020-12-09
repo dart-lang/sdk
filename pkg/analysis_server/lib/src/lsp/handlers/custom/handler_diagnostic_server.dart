@@ -13,7 +13,7 @@ class DiagnosticServerHandler
     extends MessageHandler<void, DartDiagnosticServer> {
   DiagnosticServerHandler(LspAnalysisServer server) : super(server);
   @override
-  Method get handlesMessage => CustomMethods.DiagnosticServer;
+  Method get handlesMessage => CustomMethods.diagnosticServer;
 
   @override
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;
