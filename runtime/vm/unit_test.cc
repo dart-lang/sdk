@@ -164,13 +164,8 @@ Dart_Isolate TestCase::CreateTestIsolateInGroup(const char* name,
                                                 void* group_data,
                                                 void* isolate_data) {
   char* error;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  Isolate* result = CreateWithinExistingIsolateGroupAOT(
-      reinterpret_cast<Isolate*>(parent)->group(), name, &error);
-#else
   Isolate* result = CreateWithinExistingIsolateGroup(
       reinterpret_cast<Isolate*>(parent)->group(), name, &error);
-#endif
   if (error != nullptr) {
     OS::PrintErr("CreateTestIsolateInGroup failed: %s\n", error);
     free(error);

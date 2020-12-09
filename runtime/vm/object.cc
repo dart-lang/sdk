@@ -10731,16 +10731,23 @@ static bool FindInstantiationOf(const Type& type,
 
 void Field::SetStaticValue(const Instance& value,
                            bool save_initial_value) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  auto thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
 
   ASSERT(is_static());  // Valid only for static dart fields.
-  Isolate* isolate = Isolate::Current();
   const intptr_t id = field_id();
   ASSERT(id >= 0);
-  isolate->field_table()->SetAt(id, value.raw());
+
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  thread->isolate()->field_table()->SetAt(id, value.raw());
   if (save_initial_value) {
+    // TODO(https://dartbug.com/36097): We should re-visit call-sites where
+    // `save_initial_value == true` and try to have a different path. This
+    // method should only modify the isolate-local field state and not modify
+    // the initial field table.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    isolate->group()->initial_field_table()->SetAt(field_id(), value.raw());
+    thread->isolate_group()->initial_field_table()->SetAt(field_id(),
+                                                          value.raw());
 #endif
   }
 }

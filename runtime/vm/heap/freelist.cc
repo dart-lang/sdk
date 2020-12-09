@@ -373,41 +373,4 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
   return NULL;
 }
 
-void FreeList::MergeFrom(FreeList* donor, bool is_protected) {
-  // The [other] free list is from a dying isolate. There are no other threads
-  // accessing it, so there is no need to lock here.
-  MutexLocker ml(&mutex_);
-  for (intptr_t i = 0; i < (kNumLists + 1); ++i) {
-    FreeListElement* donor_head = donor->free_lists_[i];
-    if (donor_head != nullptr) {
-      // If we didn't have a freelist element before we have to set the bit now,
-      // since we will get 1+ elements from [other].
-      FreeListElement* old_head = free_lists_[i];
-      if (old_head == nullptr && i != kNumLists) {
-        free_map_.Set(i, true);
-      }
-
-      // Chain other's list in.
-      FreeListElement* last = donor_head;
-      while (last->next() != nullptr) {
-        last = last->next();
-      }
-
-      if (is_protected) {
-        VirtualMemory::Protect(reinterpret_cast<void*>(last), sizeof(*last),
-                               VirtualMemory::kReadWrite);
-      }
-      last->set_next(old_head);
-      if (is_protected) {
-        VirtualMemory::Protect(reinterpret_cast<void*>(last), sizeof(*last),
-                               VirtualMemory::kReadExecute);
-      }
-      free_lists_[i] = donor_head;
-    }
-  }
-
-  last_free_small_size_ =
-      Utils::Maximum(last_free_small_size_, donor->last_free_small_size_);
-}
-
 }  // namespace dart

@@ -345,11 +345,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       safepoint_handler_(new SafepointHandler(this)),
       shared_class_table_(new SharedClassTable()),
       object_store_(object_store),
-#if defined(DART_PRECOMPILED_RUNTIME)
       class_table_(new ClassTable(shared_class_table_.get())),
-#else
-      class_table_(nullptr),
-#endif
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
@@ -393,14 +389,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data)
-    : IsolateGroup(source,
-                   embedder_data,
-#if !defined(DART_PRECOMPILED_RUNTIME)
-                   // in JIT, with --enable_isolate_groups keep object store
-                   // on isolate, rather than on isolate group
-                   FLAG_enable_isolate_groups ? nullptr :
-#endif
-                                              new ObjectStore()) {
+    : IsolateGroup(source, embedder_data, new ObjectStore()) {
   if (object_store() != nullptr) {
     object_store()->InitStubs();
   }
@@ -908,15 +897,31 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   ASSERT(program_lock()->IsCurrentThreadWriter());
 
   ASSERT(field.is_static());
-  initial_field_table()->Register(field);
-  initial_field_table()->SetAt(field.field_id(), initial_value.raw());
+  const bool need_to_grow_backing_store =
+      initial_field_table()->Register(field);
+  const intptr_t field_id = field.field_id();
+  initial_field_table()->SetAt(field_id, initial_value.raw());
 
-  // TODO(dartbug.com/36097): When we start sharing the object stores (and
-  // therefore libraries, classes, fields) we'll have to register the initial
-  // static field value in all isolates.
-  auto current = Isolate::Current();
-  current->field_table()->AllocateIndex(field.field_id());
-  current->field_table()->SetAt(field.field_id(), initial_value.raw());
+  if (need_to_grow_backing_store) {
+    // We have to stop other isolates from accessing their field state, since
+    // we'll have to grow the backing store.
+    SafepointOperationScope ops(Thread::Current());
+    for (auto isolate : isolates_) {
+      auto field_table = isolate->field_table();
+      if (field_table->IsReadyToUse()) {
+        field_table->Register(field, field_id);
+        field_table->SetAt(field_id, initial_value.raw());
+      }
+    }
+  } else {
+    for (auto isolate : isolates_) {
+      auto field_table = isolate->field_table();
+      if (field_table->IsReadyToUse()) {
+        field_table->Register(field, field_id);
+        field_table->SetAt(field_id, initial_value.raw());
+      }
+    }
+  }
 }
 
 void Isolate::RehashConstants() {
@@ -1636,11 +1641,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       isolate_object_store_(
           new IsolateObjectStore(isolate_group->object_store())),
       object_store_shared_ptr_(isolate_group->object_store_shared_ptr()),
-#if defined(DART_PRECOMPILED_RUNTIME)
       class_table_(isolate_group->class_table_shared_ptr()),
-#else
-      class_table_(new ClassTable(shared_class_table_)),
-#endif
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
@@ -1773,12 +1774,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
     // Non-vm isolates need to have isolate object store initialized is that
     // exit_listeners have to be null-initialized as they will be used if
     // we fail to create isolate below, have to do low level shutdown.
-    if (result->object_store() == nullptr) {
-      // in JIT with --enable-isolate-groups each isolate still
-      // has to have its own object store
-      result->set_object_store(new ObjectStore());
-      result->object_store()->InitStubs();
-    }
+    ASSERT(result->object_store() != nullptr);
     result->isolate_object_store()->Init();
   }
 

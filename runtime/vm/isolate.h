@@ -718,8 +718,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   uint64_t id_ = 0;
 
   std::unique_ptr<SharedClassTable> shared_class_table_;
-  std::shared_ptr<ObjectStore> object_store_;  // nullptr in JIT mode
-  std::shared_ptr<ClassTable> class_table_;    // nullptr in JIT mode
+  std::shared_ptr<ObjectStore> object_store_;
+  std::shared_ptr<ClassTable> class_table_;
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;

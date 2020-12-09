@@ -22,6 +22,25 @@ FieldTable::~FieldTable() {
   free(table_);        // Allocated in FieldTable::Grow()
 }
 
+bool FieldTable::IsReadyToUse() const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+  return is_ready_to_use_;
+}
+
+void FieldTable::MarkReadyToUse() {
+  // The isolate will mark it's field table ready-to-use upon initialization of
+  // the isolate. Only after it was marked as ready-to-use will it participate
+  // in new static field registrations.
+  //
+  // By requiring a read lock here we ensure no other thread is is registering a
+  // new static field at this moment (it would need exlusive writer lock).
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+  ASSERT(!is_ready_to_use_);
+  is_ready_to_use_ = true;
+}
+
 void FieldTable::FreeOldTables() {
   while (old_tables_->length() > 0) {
     free(old_tables_->RemoveLast());
@@ -32,21 +51,27 @@ intptr_t FieldTable::FieldOffsetFor(intptr_t field_id) {
   return field_id * sizeof(InstancePtr);  // NOLINT
 }
 
-void FieldTable::Register(const Field& field) {
+bool FieldTable::Register(const Field& field, intptr_t expected_field_id) {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(is_ready_to_use_);
+
   if (free_head_ < 0) {
+    bool grown_backing_store = false;
     if (top_ == capacity_) {
       const intptr_t new_capacity = capacity_ + kCapacityIncrement;
       Grow(new_capacity);
+      grown_backing_store = true;
     }
 
     ASSERT(top_ < capacity_);
-
+    ASSERT(expected_field_id == -1 || expected_field_id == top_);
     field.set_field_id(top_);
     table_[top_] = Object::sentinel().raw();
 
     ++top_;
-    return;
+    return grown_backing_store;
   }
 
   // Reuse existing free element. This is "slow path" that should only be
@@ -55,6 +80,7 @@ void FieldTable::Register(const Field& field) {
   free_head_ = Smi::Value(Smi::RawCast(table_[free_head_]));
   field.set_field_id(reused_free);
   table_[reused_free] = Object::sentinel().raw();
+  return false;
 }
 
 void FieldTable::Free(intptr_t field_id) {
@@ -104,6 +130,9 @@ void FieldTable::Grow(intptr_t new_capacity) {
 }
 
 FieldTable* FieldTable::Clone(Isolate* for_isolate) {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+
   FieldTable* clone = new FieldTable(for_isolate);
   auto new_table = static_cast<InstancePtr*>(
       malloc(capacity_ * sizeof(InstancePtr)));  // NOLINT
