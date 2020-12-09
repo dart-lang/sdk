@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bazel_changes_test.dart' as bazel_changes;
 import 'get_errors_test.dart' as get_errors;
 import 'get_hover_test.dart' as get_hover;
 import 'get_navigation_test.dart' as get_navigation;
@@ -26,6 +27,7 @@ import 'update_content_test.dart' as update_content;
 
 void main() {
   defineReflectiveSuite(() {
+    bazel_changes.main();
     get_errors.main();
     get_hover.main();
     get_navigation.main();
