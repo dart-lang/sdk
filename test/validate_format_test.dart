@@ -8,22 +8,18 @@ import 'package:test/test.dart';
 
 void main() {
   test('validate source formatting', () async {
-    try {
-      final result = await Process.run(
-          'dartfmt', ['--dry-run', '--set-exit-if-changed', '.']);
-      final violations = result.stdout.toString().split('\n')
-        ..removeWhere(formattingIgnored);
-      expect(violations, isEmpty, reason: '''Some files need formatting. 
+    final result = await Process.run(
+        'dart', ['format', '-o', 'none', '--set-exit-if-changed', '.']);
+    final violations = result.stdout.toString().split('\n')
+      ..removeWhere(lineIgnored);
+    expect(violations, isEmpty, reason: '''Some files need formatting. 
   
-Run `dartfmt` and (re)commit.''');
-    } on ProcessException {
-      // This occurs, notably, on appveyor.
-      print('[WARNING] format validation skipped -- `dartfmt` not on PATH');
-    }
+Run `dart format` and (re)commit.''');
   });
 }
 
-bool formattingIgnored(String location) =>
-    location.isEmpty ||
-    location.startsWith('test/_data/') ||
-    location.startsWith('test/rules/');
+bool lineIgnored(String line) =>
+    line.isEmpty ||
+    line.startsWith('Changed test/_data/') ||
+    line.startsWith('Changed test/rules/') ||
+    line.startsWith('Formatted ');
