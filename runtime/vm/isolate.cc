@@ -742,16 +742,9 @@ void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
 }
 
 void IsolateGroup::PrintMemoryUsageJSON(JSONStream* stream) {
-  int64_t used = 0;
-  int64_t capacity = 0;
-  int64_t external_used = 0;
-
-  for (auto it = isolates_.Begin(); it != isolates_.End(); ++it) {
-    Isolate* isolate = *it;
-    used += isolate->heap()->TotalUsedInWords();
-    capacity += isolate->heap()->TotalCapacityInWords();
-    external_used += isolate->heap()->TotalExternalInWords();
-  }
+  int64_t used = heap()->TotalUsedInWords();
+  int64_t capacity = heap()->TotalCapacityInWords();
+  int64_t external_used = heap()->TotalExternalInWords();
 
   JSONObject jsobj(stream);
   // This is the same "MemoryUsage" that the isolate-specific "getMemoryUsage"
