@@ -286,6 +286,11 @@
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM_X64/",
       "out/ReleaseAndroidARM64/",
+      "out/ReleaseASANX64/",
+      "out/ReleaseLSANX64/",
+      "out/ReleaseMSANX64/",
+      "out/ReleaseTSANX64/",
+      "out/ReleaseUBSANX64/",
       "out/ReleaseXARM64/",
       "out/ProductIA32/",
       "out/ProductX64/",
@@ -1461,8 +1466,11 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
-            "vm/cc"
-          ]
+            "vm",
+            "standalone_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -1515,8 +1523,11 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
-            "vm/cc"
-          ]
+            "vm",
+            "standalone_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
