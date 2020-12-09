@@ -13,6 +13,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentDriverResolutionTest);
     defineReflectiveTests(AssignmentDriverResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      AssignmentDriverResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -2568,6 +2571,49 @@ void f(int a) {
       writeElement: null,
       type: 'int',
     );
+  }
+}
+
+@reflectiveTest
+class AssignmentDriverResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_prefixedIdentifier_typeAlias_static_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get x => 0;
+  static set x(int _) {}
+}
+
+typedef B = A;
+
+void f() {
+  B.x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
   }
 }
 
