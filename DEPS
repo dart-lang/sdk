@@ -138,7 +138,7 @@ vars = {
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_static_rev": "a6168f162df88b0eef7e328629bf020122d5039e",
+  "shelf_static_rev": "779a6e99b320ce9ed4ff6b88bd0cdc40ea5c62c4",
   "shelf_packages_handler_tag": "2.0.0",
   "shelf_proxy_tag": "0.1.0+7",
   "shelf_rev": "5a77d25861db91db4343b19dfe213b8992e0a837",
