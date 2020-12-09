@@ -69,8 +69,10 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.126`, which includes:
+Updated the Linter to `0.1.127`, which includes:
 
+* fixed crash in `prefer_collection_literals` when there is no static parameter
+  element.
 * fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
   LinkedHashMap instantiation is passed as the argument to a function in any
   position other than the first.
