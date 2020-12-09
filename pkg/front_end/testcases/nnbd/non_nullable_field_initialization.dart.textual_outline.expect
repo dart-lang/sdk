@@ -23,8 +23,8 @@ mixin N<X extends Object?, Y extends Object> {
 extension P ;
 on Foo (){}
 int? nullableTopLevelField;
-late int ;
-lateTopLevelField;
+late
+int lateTopLevelField;
 int topLevelFieldWithInitializer = 42;
 class C<X extends Object?, Y extends Object> {
   static int? staticFieldOfX;
@@ -37,12 +37,12 @@ class C<X extends Object?, Y extends Object> {
   Y? fieldOfX6;
   static late int ;
   lateStaticFieldOfC;
-  late int ;
-  fieldOfC7;
-  late X ;
-  fieldOfC8;
-  late Y ;
-  fieldOfC9;
+  late
+  int fieldOfC7;
+  late
+  X fieldOfC8;
+  late
+  Y fieldOfC9;
   int fieldOfC10;
   C.foo(this.fieldOfC10);
   C.bar(this.fieldOfC10);
@@ -58,12 +58,12 @@ mixin L<X extends Object?, Y extends Object> {
   Y? fieldOfL6;
   static late int ;
   lateStaticFieldOfM;
-  late int ;
-  fieldOfM7;
-  late X ;
-  fieldOfM8;
-  late Y ;
-  fieldOfM9;
+  late
+  int fieldOfM7;
+  late
+  X fieldOfM8;
+  late
+  Y fieldOfM9;
 }
 extension Q ;
 on Foo (){}

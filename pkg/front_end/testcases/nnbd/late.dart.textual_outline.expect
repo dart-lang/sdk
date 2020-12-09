@@ -1,21 +1,21 @@
-late int ;
-lateTopLevelField;
-late ;
+late
+int lateTopLevelField;
+late
 final int lateFinalTopLevelField;
-late ;
+late
 final int lateFinalTopLevelFieldWithInit = 0;
 class Class {
-  late int ;
-  lateInstanceField;
-  late ;
+  late
+  int lateInstanceField;
+  late
   final int lateFinalInstanceField1;
-  late ;
+  late
   final int lateFinalInstanceField2;
-  late ;
+  late
   final int lateFinalInstanceFieldWithInit = 0;
-  late Class ;
-  lateInstanceFieldThis = this;
-  late ;
+  late
+  Class lateInstanceFieldThis = this;
+  late
   final Class lateFinalInstanceFieldThis = this;
   static late int ;
   lateStaticField;

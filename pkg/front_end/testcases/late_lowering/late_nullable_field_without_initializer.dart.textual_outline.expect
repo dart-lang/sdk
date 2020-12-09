@@ -1,6 +1,5 @@
-late int;
-?
-lateTopLevelField;
+late
+int? lateTopLevelField;
 class Class<T> {
   static late int;
   operator? (){}
@@ -9,12 +8,10 @@ class Class<T> {
   operator? (){}
   lateStaticField2;
   static staticMethod() {}
-  late int;
-  operator? (){}
-  lateInstanceField;
-  late T;
-  operator? (){}
-  lateGenericInstanceField;
+  late
+  int? lateInstanceField;
+  late
+  T? lateGenericInstanceField;
   instanceMethod(T? value) {}
 }
 extension Extension<T> (){}

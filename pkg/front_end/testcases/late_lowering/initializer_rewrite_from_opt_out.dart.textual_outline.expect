@@ -1,9 +1,9 @@
 import 'initializer_rewrite_from_opt_out_lib.dart';
 int nonNullableTopLevelFieldReads = 0;
-late ;
+late
 final int nonNullableTopLevelField = nonNullableTopLevelFieldReads++ == 0 ? nonNullableTopLevelField : computeInitialValue();
 int nullableTopLevelFieldReads = 0;
-late ;
+late
 final int? nullableTopLevelField = nullableTopLevelFieldReads++ == 0 ? nullableTopLevelField : computeInitialValue();
 class Class {
   static int nonNullableStaticFieldReads = 0;
@@ -13,10 +13,10 @@ class Class {
   static late ;
   final int? nullableStaticField = nullableStaticFieldReads++ == 0 ? nullableStaticField : computeInitialValue();
   int nonNullableInstanceFieldReads = 0;
-  late ;
+  late
   final int nonNullableInstanceField = nonNullableInstanceFieldReads++ == 0 ? nonNullableInstanceField : computeInitialValue();
   int nullableInstanceFieldReads = 0;
-  late ;
+  late
   final int? nullableInstanceField = nullableInstanceFieldReads++ == 0 ? nullableInstanceField : computeInitialValue();
 }
 void main() {}

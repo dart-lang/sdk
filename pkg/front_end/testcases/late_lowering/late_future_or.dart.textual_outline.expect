@@ -18,18 +18,16 @@ var field5 = method5();
 late ;
 var field6 = method6();
 class C<T> {
-  late FutureOr ;
-  field1;
-  late FutureOr;
-  operator? (){}
-  field2;
-  late FutureOr<T> (){}
-  field3;
-  late FutureOr<T?> (){}
-  field4;
-  late FutureOr<T?>(){}
-  operator? (){}
-  field5;
+  late
+  FutureOr field1;
+  late
+  FutureOr? field2;
+  late
+  FutureOr<T> field3;
+  late
+  FutureOr<T?> field4;
+  late
+  FutureOr<T?>? field5;
   method() {}
 }
 main() {}

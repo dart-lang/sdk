@@ -1,0 +1,27 @@
+class A {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int x;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int? y;
+}
+class B extends A {
+  int? get y => 1;
+  int get x => 1;
+}
+class C extends A {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int x = 2;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int? y = 2;
+}
+expect(expected, actual) {}
+main() {}
+throws(f(), String message) {}

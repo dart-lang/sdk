@@ -138,7 +138,6 @@ general_nnbd_opt_out/var_as_type_name: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: FormatterCrash
 late_lowering/covariant_late_field: FormatterCrash
-late_lowering/definitely_unassigned: FormatterCrash
 late_lowering/getter_vs_setter_type: FormatterCrash
 late_lowering/infer_late_field_type: FormatterCrash
 late_lowering/initializer_rewrite: FormatterCrash
@@ -172,10 +171,8 @@ late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
-late_lowering_sentinel/late_fields: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
-nnbd/definitely_unassigned: FormatterCrash
 nnbd/extension_bounds: FormatterCrash
 nnbd/extension_never: FormatterCrash
 nnbd/extension_type_variable_bound: FormatterCrash
@@ -195,7 +192,6 @@ nnbd/issue43211: FormatterCrash
 nnbd/issue43278: FormatterCrash
 nnbd/issue43354: FormatterCrash
 nnbd/issue43591: FormatterCrash
-nnbd/issue43689: FormatterCrash
 nnbd/language_issue1182: FormatterCrash
 nnbd/late: FormatterCrash
 nnbd/later: FormatterCrash
@@ -219,7 +215,6 @@ nnbd_mixed/no_null_shorting_explicit_extension: FormatterCrash
 nnbd_mixed/no_null_shorting_extension: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nnbd_mixed/nullable_extension_on_opt_out: FormatterCrash
-nnbd_mixed/opt_out: FormatterCrash
 nnbd_mixed/unsound_checks: FormatterCrash
 nonfunction_type_aliases/issue41501: FormatterCrash
 rasta/bad_redirection: FormatterCrash

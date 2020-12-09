@@ -1,8 +1,9 @@
 abstract class A {
-  late int ;
-  x;
+  late int x;
 }
+
 class _B implements A {
   int x = 3;
 }
+
 main() {}

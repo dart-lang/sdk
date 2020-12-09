@@ -9451,6 +9451,31 @@ const MessageCode messageUnexpectedDollarInString = const MessageCode(
     tip: r"""Try adding a backslash (\) to escape the '$'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateUnexpectedModifierInNonNnbd = const Template<
+        Message Function(Token token)>(
+    messageTemplate:
+        r"""The modifier '#lexeme' is only available in null safe libraries.""",
+    withArguments: _withArgumentsUnexpectedModifierInNonNnbd);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeUnexpectedModifierInNonNnbd =
+    const Code<Message Function(Token token)>(
+        "UnexpectedModifierInNonNnbd", templateUnexpectedModifierInNonNnbd,
+        analyzerCodes: <String>["UNEXPECTED_TOKEN"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeUnexpectedModifierInNonNnbd,
+      message:
+          """The modifier '${lexeme}' is only available in null safe libraries.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnexpectedToken =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Unexpected token '#lexeme'.""",
