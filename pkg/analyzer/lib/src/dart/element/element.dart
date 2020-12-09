@@ -4357,10 +4357,15 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
     List<DartType> typeArguments,
     NullabilitySuffix nullabilitySuffix,
   }) {
-    return super.instantiate(
+    var type = super.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
-    ) as FunctionType;
+    );
+    if (type is FunctionType) {
+      return type;
+    } else {
+      return _errorFunctionType(nullabilitySuffix);
+    }
   }
 }
 

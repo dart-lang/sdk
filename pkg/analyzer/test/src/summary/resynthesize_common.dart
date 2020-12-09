@@ -10690,7 +10690,7 @@ notSimplyBounded typedef F = List<dynamic Function()> Function();
 typedef F<T extends F> = void Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends void Function()> = void Function();
+notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
 ''');
   }
 
