@@ -282,12 +282,24 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
   }
 
   void addAll(Iterable<E> collection) {
-    int i = this.length;
     checkGrowable('addAll');
+    if (collection is JSArray) {
+      _addAllFromArray(JS('', '#', collection));
+      return;
+    }
+    int i = this.length;
     for (E e in collection) {
-      assert(
-          i++ == this.length || (throw new ConcurrentModificationError(this)));
+      assert(i++ == this.length || (throw ConcurrentModificationError(this)));
       JS('void', r'#.push(#)', this, e);
+    }
+  }
+
+  void _addAllFromArray(JSArray array) {
+    int len = array.length;
+    if (len == 0) return;
+    if (identical(this, array)) throw ConcurrentModificationError(this);
+    for (int i = 0; i < len; i++) {
+      JS('', '#.push(#[#])', this, array, i);
     }
   }
 

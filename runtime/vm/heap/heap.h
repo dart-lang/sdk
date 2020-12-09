@@ -322,8 +322,6 @@ class Heap {
 
   void CollectOnNthAllocation(intptr_t num_allocations);
 
-  void MergeFrom(Heap* donor);
-
  private:
   class GCStats : public ValueObject {
    public:

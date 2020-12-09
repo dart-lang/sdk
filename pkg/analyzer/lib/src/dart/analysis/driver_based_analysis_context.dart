@@ -29,7 +29,9 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   /// to access the file system and that is based on the given analysis
   /// [driver].
   DriverBasedAnalysisContext(
-      this.resourceProvider, this.contextRoot, this.driver) {
+      this.resourceProvider, this.contextRoot, this.driver,
+      {Workspace workspace})
+      : _workspace = workspace {
     driver.analysisContext = this;
   }
 

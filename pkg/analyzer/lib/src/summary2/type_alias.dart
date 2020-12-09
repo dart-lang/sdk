@@ -43,12 +43,8 @@ class _Finder {
   }
 
   void genericTypeAlias(GenericTypeAlias node) {
-    var functionType = node.functionType;
-    if (functionType != null) {
-      _typeParameterList(functionType.typeParameters);
-      _formalParameterList(functionType.parameters);
-      _visit(functionType.returnType);
-    }
+    _typeParameterList(node.typeParameters);
+    _visit(node.type);
   }
 
   void _argumentList(TypeArgumentList node) {

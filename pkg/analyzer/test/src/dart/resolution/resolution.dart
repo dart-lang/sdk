@@ -760,6 +760,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  /// Assert that the given [identifier] is a reference to a type alias, in the
+  /// form that is not a separate expression, e.g. in a static method
+  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
+  void assertTypeAliasRef(
+      SimpleIdentifier identifier, TypeAliasElement expected) {
+    assertElement(identifier, expected);
+    assertTypeNull(identifier);
+  }
+
   void assertTypeArgumentTypes(
     InvocationExpression node,
     List<String> expected,

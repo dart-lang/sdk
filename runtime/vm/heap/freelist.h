@@ -154,8 +154,6 @@ class FreeList {
   void set_end(uword value) { end_ = value; }
   void AddUnaccountedSize(intptr_t size) { unaccounted_size_ += size; }
 
-  void MergeFrom(FreeList* donor, bool is_protected);
-
  private:
   static const int kNumLists = 128;
   static const intptr_t kInitialFreeListSearchBudget = 1000;

@@ -132,6 +132,13 @@ class MethodInvocationResolver {
           name,
           _resolver.typeProvider.typeType.element,
         );
+      } else if (element is TypeAliasElement) {
+        var aliasedType = element.aliasedType;
+        if (aliasedType is InterfaceType) {
+          _resolveReceiverTypeLiteral(
+              node, aliasedType.element, nameNode, name);
+          return;
+        }
       }
     }
 

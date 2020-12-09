@@ -723,9 +723,14 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// returned.
   static ClassElement getTypeReference(Expression expression) {
     if (expression is Identifier) {
-      Element staticElement = expression.staticElement;
-      if (staticElement is ClassElement) {
-        return staticElement;
+      var element = expression.staticElement;
+      if (element is ClassElement) {
+        return element;
+      } else if (element is TypeAliasElement) {
+        var aliasedType = element.aliasedType;
+        if (aliasedType is InterfaceType) {
+          return aliasedType.element;
+        }
       }
     }
     return null;

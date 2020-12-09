@@ -15,6 +15,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
     defineReflectiveTests(MethodInvocationResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      MethodInvocationResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -2338,6 +2341,60 @@ main() {
 //      'dynamic',
 //      expectedType: 'dynamic',
 //    );
+  }
+}
+
+@reflectiveTest
+class MethodInvocationResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_hasReceiver_typeAlias_staticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static void foo(int _) {}
+}
+
+typedef B = A;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+  }
+
+  test_hasReceiver_typeAlias_staticMethod_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  static void foo(int _) {}
+}
+
+typedef B<T> = A<T>;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
   }
 }
 

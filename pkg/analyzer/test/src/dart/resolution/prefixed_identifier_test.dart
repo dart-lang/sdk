@@ -12,6 +12,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedIdentifierResolutionTest);
     defineReflectiveTests(PrefixedIdentifierResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -267,6 +270,42 @@ void f(A a) {
         type: 'int',
       );
     }
+  }
+}
+
+@reflectiveTest
+class PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_hasReceiver_typeAlias_staticGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get foo => 0;
+}
+
+typedef B = A;
+
+void f() {
+  B.foo;
+}
+''');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('B.foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+
+    assertSimpleIdentifier(
+      findNode.simple('foo;'),
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
   }
 }
 
