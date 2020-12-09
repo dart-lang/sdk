@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+// dart2jsOptions=--no-minify
+
 import "package:expect/expect.dart";
 
 typedef T Func<T>(T x);

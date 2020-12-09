@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart = 2.7
+// dart2jsOptions=--no-minify
 
 import "package:expect/expect.dart";
 
