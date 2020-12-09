@@ -23,7 +23,7 @@ if (complicated.expression.foo());
   bar();
 ```
 
-Formatted with `dartfmt` the bug becomes obvious:
+Formatted with `dart format` the bug becomes obvious:
 
 ```
 if (complicated.expression.foo()) ;

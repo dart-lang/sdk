@@ -50,7 +50,7 @@ To start working on a patch:
 
  * `git fetch upstream`
  * `git checkout upstream/master -b name_of_your_branch`
- * Hack away.  (Before committing, please be sure and run `dartfmt` on modified files; our build will fail if you don't!)
+ * Hack away.  (Before committing, please be sure and run `dart format` on modified files; our build will fail if you don't!)
  * `git commit -a -m "<your informative commit message>"`
  * `git push origin name_of_your_branch`
 
