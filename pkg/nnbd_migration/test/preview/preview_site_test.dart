@@ -10,8 +10,10 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
+import 'package:nnbd_migration/src/front_end/navigation_tree_renderer.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -38,7 +40,8 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
   void setUp() {
     dartfixListener = DartFixListener(null, ListenerClient());
     resourceProvider = MemoryResourceProvider();
-    final migrationInfo = MigrationInfo({}, {}, null, null);
+    final migrationInfo =
+        MigrationInfo({}, {}, resourceProvider.pathContext, null);
     state = MigrationState(null, null, dartfixListener, null, {});
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
@@ -64,7 +67,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
           SourceEdit(9, 0, '\n  enable-experiment:\n  - non-nullable')
         ]));
     // This should not crash.
-    site.performApply();
+    site.performApply([]);
     expect(analysisOptions.readAsStringSync(), '''
 analyzer:
   enable-experiment:
@@ -75,14 +78,14 @@ analyzer:
   void test_applyChangesEmpty() {
     final file = getFile('/test.dart');
     file.writeAsStringSync('void main() {}');
-    site.performApply();
+    site.performApply([]);
     expect(file.readAsStringSync(), 'void main() {}');
     expect(state.hasBeenApplied, true);
   }
 
   void test_applyChangesTwiceThrows() {
-    site.performApply();
-    expect(site.performApply, throwsA(isA<StateError>()));
+    site.performApply([]);
+    expect(() => site.performApply([]), throwsA(isA<StateError>()));
   }
 
   void test_applyMigration_sanityCheck_dontApply() async {
@@ -96,7 +99,7 @@ analyzer:
         'test change',
         Location(path, 10, 0, 1, 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
-    expect(() => site.performApply(), throwsA(isA<StateError>()));
+    expect(() => site.performApply([]), throwsA(isA<StateError>()));
     expect(file.readAsStringSync(), currentContent);
     expect(state.hasBeenApplied, false);
   }
@@ -114,7 +117,7 @@ analyzer:
           SourceEdit(10, 0, 'List args'),
           SourceEdit(13, 0, '\n  print(args);\n')
         ]));
-    site.performApply();
+    site.performApply([]);
     expect(file.readAsStringSync(), '''
 void main(List args) {
   print(args);
@@ -132,9 +135,54 @@ void main(List args) {
         'test change',
         Location(path, 10, 0, 1, 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
-    site.performApply();
+    site.performApply([]);
     expect(file.readAsStringSync(), 'void main(List args) {}');
     expect(state.hasBeenApplied, true);
+  }
+
+  void test_optOutOfNullSafety_blankLines() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('  \n  \n'),
+        equals('// @dart=2.9\n\n  \n  \n'));
+  }
+
+  void test_optOutOfNullSafety_commentThenCode() {
+    expect(
+        IncrementalPlan.optCodeOutOfNullSafety('// comment\n\nvoid main() {}'),
+        equals('// comment\n\n\n// @dart=2.9\n\nvoid main() {}'));
+  }
+
+  void test_optOutOfNullSafety_empty() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety(''), equals('// @dart=2.9'));
+  }
+
+  void test_optOutOfNullSafety_singleComment_multiLine() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('// line 1\n// line 2'),
+        equals('// line 1\n// line 2\n\n// @dart=2.9\n'));
+  }
+
+  void test_optOutOfNullSafety_singleComment_multiLine_indented() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('  // line 1\n  // line 2'),
+        equals('  // line 1\n  // line 2\n\n// @dart=2.9\n'));
+  }
+
+  void test_optOutOfNullSafety_singleComment_singleLine() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('// comment'),
+        equals('// comment\n\n// @dart=2.9\n'));
+  }
+
+  void test_optOutOfNullSafety_singleComment_singleLine_trailingNewline() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('// comment\n'),
+        equals('// comment\n\n\n// @dart=2.9\n'));
+  }
+
+  void test_optOutOfNullSafety_singleLine() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('void main() {}'),
+        equals('// @dart=2.9\n\nvoid main() {}'));
+  }
+
+  void test_optOutOfNullSafety_singleLine_afterBlankLines() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('\n\nvoid main() {}'),
+        equals('// @dart=2.9\n\n\n\nvoid main() {}'));
   }
 
   void test_performEdit() {
@@ -183,11 +231,13 @@ mixin PreviewSiteTestMixin {
 @reflectiveTest
 class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
     with ResourceProviderMixin, PreviewSiteTestMixin {
-  @override
-  void setUp() {
-    super.setUp();
+  MigrationInfo migrationInfo;
+
+  Future<void> setUpMigrationInfo(Map<String, String> files) async {
+    await buildInfoForTestFiles(files, includedRoot: projectPath);
     dartfixListener = DartFixListener(null, ListenerClient());
-    final migrationInfo = MigrationInfo({}, {}, null, null);
+    migrationInfo =
+        MigrationInfo(infos, {}, resourceProvider.pathContext, projectPath);
     state = MigrationState(null, null, dartfixListener, null, {});
     nodeMapper = state.nodeMapper;
     state.pathMapper = PathMapper(resourceProvider);
@@ -198,7 +248,8 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
   }
 
   void test_applyHintAction() async {
-    final path = convertPath('/home/tests/bin/test.dart');
+    await setUpMigrationInfo({});
+    final path = convertPath('$projectPath/bin/test.dart');
     final file = getFile(path);
     final content = r'''
 int x;
@@ -247,7 +298,8 @@ int/*?*/? y = x;
   }
 
   void test_applyHintAction_removeHint() async {
-    final path = convertPath('/home/tests/bin/test.dart');
+    await setUpMigrationInfo({});
+    final path = convertPath('$projectPath/bin/test.dart');
     final file = getFile(path);
     final content = r'''
 int/*!*/ x;
@@ -285,7 +337,142 @@ int  y = x;
     expect(state.needsRerun, true);
   }
 
+  void test_applyMigration_migratePreviouslyOptedOutFile() async {
+    final path = convertPath('$projectPath/lib/a.dart');
+    final content = '''
+// @dart=2.9
+
+void main() {}''';
+    await setUpMigrationInfo({path: content});
+    site.unitInfoMap[path] = UnitInfo(path)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = true;
+    dartfixListener.addSourceFileEdit(
+        'remove DLV comment',
+        Location(path, 0, 14, 1, 1),
+        SourceFileEdit(path, 0, edits: [SourceEdit(0, 14, '')]));
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    site.performApply(navigationTree);
+    expect(getFile(path).readAsStringSync(), 'void main() {}');
+  }
+
+  void test_applyMigration_optOutEmptyFile() async {
+    final path = convertPath('$projectPath/lib/a.dart');
+    final content = '';
+    await setUpMigrationInfo({path: content});
+    site.unitInfoMap[path] = UnitInfo(path)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false;
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    var libDir = navigationTree.single as NavigationTreeDirectoryNode;
+    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    site.performApply(navigationTree);
+    expect(getFile(path).readAsStringSync(), '// @dart=2.9');
+  }
+
+  void test_applyMigration_optOutOne_migrateAnother() async {
+    final pathA = convertPath('$projectPath/lib/a.dart');
+    final pathB = convertPath('$projectPath/lib/b.dart');
+    final content = 'void main() {}';
+    await setUpMigrationInfo({pathA: content, pathB: content});
+    site.unitInfoMap[pathA] = UnitInfo(pathA)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false;
+    site.unitInfoMap[pathB] = UnitInfo(pathB)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false;
+    dartfixListener.addSourceFileEdit(
+        'test change',
+        Location(pathA, 10, 0, 1, 10),
+        SourceFileEdit(pathA, 0, edits: [SourceEdit(10, 0, 'List args')]));
+    dartfixListener.addSourceFileEdit(
+        'test change',
+        Location(pathB, 10, 0, 1, 10),
+        SourceFileEdit(pathB, 0, edits: [SourceEdit(10, 0, 'List args')]));
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    var libDir = navigationTree.single as NavigationTreeDirectoryNode;
+    (libDir.subtree[0] as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    site.performApply(navigationTree);
+    expect(getFile(pathA).readAsStringSync(), '''
+// @dart=2.9
+
+void main() {}''');
+    expect(getFile(pathB).readAsStringSync(), '''
+void main(List args) {}''');
+  }
+
+  void test_applyMigration_optOutFileWithEdits() async {
+    final path = convertPath('$projectPath/lib/a.dart');
+    final content = 'void main() {}';
+    await setUpMigrationInfo({path: content});
+    site.unitInfoMap[path] = UnitInfo(path)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false;
+    dartfixListener.addSourceFileEdit(
+        'test change',
+        Location(path, 10, 0, 1, 10),
+        SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    var libDir = navigationTree.single as NavigationTreeDirectoryNode;
+    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    site.performApply(navigationTree);
+    expect(getFile(path).readAsStringSync(), '''
+// @dart=2.9
+
+void main() {}''');
+  }
+
+  void test_applyMigration_optOutFileWithoutEdits() async {
+    final path = convertPath('$projectPath/lib/a.dart');
+    final content = 'void main() {}';
+    await setUpMigrationInfo({path: content});
+    site.unitInfoMap[path] = UnitInfo(path)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false;
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    var libDir = navigationTree.single as NavigationTreeDirectoryNode;
+    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    site.performApply(navigationTree);
+    expect(getFile(path).readAsStringSync(), '''
+// @dart=2.9
+
+void main() {}''');
+  }
+
+  void test_applyMigration_optOutPreviouslyOptedOutFile() async {
+    final path = convertPath('$projectPath/lib/a.dart');
+    final content = '''
+// @dart=2.9
+
+int a;''';
+    await setUpMigrationInfo({path: content});
+    site.unitInfoMap[path] = UnitInfo(path)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = true;
+    dartfixListener.addSourceFileEdit(
+        'remove DLV comment',
+        Location(path, 0, 14, 1, 1),
+        SourceFileEdit(path, 0, edits: [SourceEdit(0, 14, '')]));
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    var libDir = navigationTree.single as NavigationTreeDirectoryNode;
+    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    site.performApply(navigationTree);
+    expect(getFile(path).readAsStringSync(), content);
+  }
+
   void test_performEdit_multiple() async {
+    await setUpMigrationInfo({});
     final path = convertPath('/test.dart');
     final file = getFile(path);
     final content = r'''

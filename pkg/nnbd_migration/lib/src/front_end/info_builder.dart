@@ -355,6 +355,9 @@ class InfoBuilder {
     unitInfo.wasExplicitlyOptedOut = result.unit.languageVersionToken != null;
     unitInfo.migrationStatus = alreadyMigrated
         ? UnitMigrationStatus.alreadyMigrated
+        // Whether or not a file is explicitly opted out, its initial status for
+        // this migration is "migrating." It must be again explicitly opted out
+        // in the preview app in order to keep the unit opted out.
         : UnitMigrationStatus.migrating;
     var regions = unitInfo.regions;
 

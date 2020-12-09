@@ -170,8 +170,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
         if (type != overriddenType) {
           String name = fieldBuilder.fullNameForErrors;
           fieldBuilder.classBuilder.addProblem(
-              templateCantInferTypeDueToInconsistentOverrides
-                  .withArguments(name),
+              templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
               fieldBuilder.charOffset,
               name.length,
               wasHandled: true);

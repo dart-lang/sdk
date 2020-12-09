@@ -2127,7 +2127,8 @@ environment:
         uri.replace(
             path: PreviewSite.applyMigrationPath,
             queryParameters: {'authToken': authToken}),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'});
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({'navigationTree': []}));
     assertHttpSuccess(response);
   }
 }

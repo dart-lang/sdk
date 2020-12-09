@@ -8,10 +8,13 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:nnbd_migration/src/preview/dart_file_page.dart';
 import 'package:nnbd_migration/src/preview/dart_logo_page.dart';
 import 'package:nnbd_migration/src/preview/exception_page.dart';
@@ -38,6 +41,163 @@ String _makeAuthToken() {
     bytes[i] = random.nextInt(256);
   }
   return base64Url.encode(bytes);
+}
+
+/// A plan for an incremental migration.
+///
+/// This plan uses [UnitMigrationStatus]es from [NavigationTreeNode]s to apply
+/// different edits to different files:
+///
+/// * migrating files will be edited according to a [SourceFileEdit],
+/// * newly opted out files will be prepended with a Dart Language Version
+///   comment specifying "2.9",
+/// * already opted out files will remain unchanged.
+class IncrementalPlan {
+  static final _nonWhitespaceChar = RegExp(r'\S');
+  final MigrationInfo migrationInfo;
+  final Map<String, UnitInfo> unitInfoMap;
+  final PathMapper pathMapper;
+  final List<SourceFileEdit> edits;
+
+  /// The set of units which are to be opted out in this migration.
+  final Set<String> optOutUnitPaths;
+
+  /// Creates a new [IncrementalPlan], extracting all of the paths which are
+  /// "opting out" from [navigationTree].
+  factory IncrementalPlan(
+      MigrationInfo migrationInfo,
+      Map<String, UnitInfo> unitInfoMap,
+      PathMapper pathMapper,
+      List<SourceFileEdit> edits,
+      Iterable<NavigationTreeNode> navigationTree) {
+    var optOutUnitPaths = <String>{};
+    void addUnitsToOptOut(NavigationTreeNode entity) {
+      if (entity is NavigationTreeDirectoryNode) {
+        for (var child in entity.subtree) {
+          addUnitsToOptOut(child);
+        }
+      } else {
+        if (entity.migrationStatus == UnitMigrationStatus.optingOut) {
+          optOutUnitPaths.add(entity.path);
+        }
+      }
+    }
+
+    for (var entity in navigationTree) {
+      addUnitsToOptOut(entity);
+    }
+
+    return IncrementalPlan._(
+        migrationInfo, unitInfoMap, pathMapper, edits, optOutUnitPaths);
+  }
+
+  IncrementalPlan._(this.migrationInfo, this.unitInfoMap, this.pathMapper,
+      this.edits, this.optOutUnitPaths);
+
+  /// Applies this migration to disk.
+  void apply() {
+    for (final fileEdit in edits) {
+      var unit = unitInfoMap[fileEdit.file];
+      // Decide whether to opt out; default to `false` files not included in
+      // [edits], like [pubspec.yaml].
+      var unitIsOptOut = unit != null
+          ? optOutUnitPaths.contains(migrationInfo.computeName(unit))
+          : false;
+      if (!unitIsOptOut) {
+        final file = pathMapper.provider.getFile(fileEdit.file);
+        var code = file.exists ? file.readAsStringSync() : '';
+        code = SourceEdit.applySequence(code, fileEdit.edits);
+        file.writeAsStringSync(code);
+      }
+    }
+
+    // A file which is to be opted out may not be found in [edits], if all types
+    // were to be made non-nullable, etc. Iterate over [optOutUnitPaths] instead
+    // of [edits] to opt files out.
+    for (var optOutUnitPath in optOutUnitPaths) {
+      var absolutePath = migrationInfo.absolutePathFromRoot(optOutUnitPath);
+      var unit = unitInfoMap[absolutePath];
+      if (unit.wasExplicitlyOptedOut) {
+        // This unit was explicitly opted out of null safety with a Dart
+        // Language version comment. Leave the unit be.
+      } else {
+        // This unit was not yet migrated at the start, was not explicitly
+        // opted out at the start, and is being opted out now. Add a Dart
+        // Language version comment.
+        final file = pathMapper.provider.getFile(absolutePath);
+        var code = file.exists ? file.readAsStringSync() : '';
+        file.writeAsStringSync(optCodeOutOfNullSafety(code));
+      }
+    }
+  }
+
+  @visibleForTesting
+  static String optCodeOutOfNullSafety(String code) {
+    var length = code.length;
+
+    if (length == 0) {
+      return '// @dart=2.9';
+    }
+
+    var index = 0;
+
+    String getLine() {
+      var nextIndex = code.indexOf('\n', index);
+      if (nextIndex < 0) {
+        // Last line.
+        var line = code.substring(index);
+        index = length;
+        return line;
+      }
+      var line = code.substring(index, nextIndex);
+      index = nextIndex + 1;
+      return line;
+    }
+
+    // Skip past blank lines.
+    var line = getLine();
+    var lineStart = line.indexOf(_nonWhitespaceChar);
+    while (lineStart < 0) {
+      line = getLine();
+      if (index == length) {
+        // [code] consists _only_ of blank lines.
+        return '// @dart=2.9\n\n$code';
+      }
+      lineStart = line.indexOf(_nonWhitespaceChar);
+    }
+
+    // [line] is the first non-blank line.
+    if (line.length > lineStart + 1 &&
+        line.codeUnitAt(lineStart) == $slash &&
+        line.codeUnitAt(lineStart + 1) == $slash) {
+      // Comment.
+      if (index == length) {
+        // [code] consists _only_ of one comment line.
+        return '$code\n\n// @dart=2.9\n';
+      }
+      line = getLine();
+      lineStart = line.indexOf(_nonWhitespaceChar);
+      while (lineStart >= 0 &&
+          line.length > lineStart + 1 &&
+          line.codeUnitAt(lineStart) == $slash &&
+          line.codeUnitAt(lineStart + 1) == $slash) {
+        // Another comment line.
+        line = getLine();
+        if (index == length) {
+          // [code] consists _only_ of this block comment.
+          return '$code\n\n// @dart=2.9\n';
+        }
+        lineStart = line.indexOf(_nonWhitespaceChar);
+      }
+      // [index] points to the start of [line], which is the first
+      // non-comment line following the first comment.
+      return '${code.substring(0, index)}\n// @dart=2.9\n\n'
+          '${code.substring(index)}';
+    } else {
+      // [code] does not start with a block comment.
+      return '// @dart=2.9\n\n$code';
+    }
+  }
 }
 
 /// The site used to serve pages for the preview tool.
@@ -212,7 +372,10 @@ class PreviewSite extends Site
         return _respondUnauthorized(request);
       }
       if (path == applyMigrationPath) {
-        performApply();
+        var navigationTree =
+            ((await requestBodyJson(request))['navigationTree'] as List)
+                .map((encoded) => NavigationTreeNode.fromJson(encoded));
+        performApply(navigationTree);
 
         respondOk(request);
         return;
@@ -248,7 +411,7 @@ class PreviewSite extends Site
   }
 
   /// Perform the migration.
-  void performApply() {
+  void performApply(Iterable<NavigationTreeNode> navigationTree) {
     if (migrationState.hasBeenApplied) {
       throw StateError(
           'It looks like this migration has already been applied. Try'
@@ -273,12 +436,9 @@ class PreviewSite extends Site
 
     // Eagerly mark the migration applied. If this throws, we cannot go back.
     migrationState.markApplied();
-    for (final fileEdit in edits) {
-      final file = pathMapper.provider.getFile(fileEdit.file);
-      var code = file.exists ? file.readAsStringSync() : '';
-      code = SourceEdit.applySequence(code, fileEdit.edits);
-      file.writeAsStringSync(code);
-    }
+    IncrementalPlan(
+            migrationInfo, unitInfoMap, pathMapper, edits, navigationTree)
+        .apply();
     applyHook();
   }
 

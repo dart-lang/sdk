@@ -3563,6 +3563,21 @@ DillOutlineSummary:
     #num2%12.3 bytes/ms, and
     #num3%12.3 ms/libraries.
 
+CantInferTypesDueToNoCombinedSignature:
+  template: "Can't infer types for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding explicit types."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  script: |
+    class A {
+      void method(int a, String b) {}
+    }
+    class B {
+      void method(String a, int b) {}
+    }
+    class C implements A, B {
+      void method(a, b) {}
+    }
+
 CantInferTypeDueToNoCombinedSignature:
   template: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
   tip: "Try adding an explicit type."
@@ -3594,18 +3609,6 @@ CantInferReturnTypeDueToNoCombinedSignature:
     abstract class C implements A, B {
       get getter;
     }
-
-CantInferTypeDueToInconsistentOverrides:
-  template: "Can't infer a type for '#name' as some of the overridden members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
-
-CantInferReturnTypeDueToInconsistentOverrides:
-  template: "Can't infer a return type for '#name' as some of the overridden members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."

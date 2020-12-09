@@ -690,9 +690,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         try {
           socket.port;
         } catch (e) {
-          if (error == null) {
-            error = createError(e, "Connection failed", address, port);
-          }
+          error ??= createError(e, "Connection failed", address, port);
           connectNext(); // Try again after failure to connect.
           return;
         }

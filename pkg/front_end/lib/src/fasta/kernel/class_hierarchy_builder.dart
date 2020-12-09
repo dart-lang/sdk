@@ -48,9 +48,8 @@ import '../messages.dart'
         messageInheritedMembersConflictCause2,
         messageStaticAndInstanceConflict,
         messageStaticAndInstanceConflictCause,
-        templateCantInferReturnTypeDueToInconsistentOverrides,
+        templateCantInferTypesDueToNoCombinedSignature,
         templateCantInferReturnTypeDueToNoCombinedSignature,
-        templateCantInferTypeDueToInconsistentOverrides,
         templateCantInferTypeDueToNoCombinedSignature,
         templateCombinedMemberSignatureFailed,
         templateDuplicatedDeclaration,
@@ -85,8 +84,6 @@ import 'combined_member_signature.dart';
 import 'member_covariance.dart';
 
 import 'forwarding_node.dart' show ForwardingNode;
-
-import 'kernel_builder.dart' show ImplicitFieldType;
 
 const DebugLogger debug =
     const bool.fromEnvironment("debug.hierarchy") ? const DebugLogger() : null;
@@ -694,257 +691,85 @@ class ClassHierarchyNodeBuilder {
 
       Set<ClassMember> overriddenMemberSet =
           toSet(declaredMember.classBuilder, overriddenMembers);
-      if (classBuilder.library.isNonNullableByDefault) {
-        CombinedClassMemberSignature combinedMemberSignature =
-            new CombinedClassMemberSignature(
-                hierarchy, classBuilder, overriddenMemberSet.toList(),
-                forSetter: false);
-        FunctionType combinedMemberSignatureType = combinedMemberSignature
-            .getCombinedSignatureTypeInContext(declaredTypeParameters);
-        if (declaredMember.returnType == null) {
-          if (combinedMemberSignatureType == null) {
-            inferredReturnType = const InvalidType();
-            reportCantInferReturnType(
-                classBuilder, declaredMember, hierarchy, overriddenMembers);
-          } else {
-            inferredReturnType = combinedMemberSignatureType.returnType;
-          }
-        }
-        if (declaredMember.formals != null) {
-          for (int i = 0; i < declaredPositional.length; i++) {
-            FormalParameterBuilder declaredParameter =
-                declaredMember.formals[i];
-            if (declaredParameter.type != null) {
-              continue;
-            }
+      CombinedClassMemberSignature combinedMemberSignature =
+          new CombinedClassMemberSignature(
+              hierarchy, classBuilder, overriddenMemberSet.toList(),
+              forSetter: false);
+      FunctionType combinedMemberSignatureType = combinedMemberSignature
+          .getCombinedSignatureTypeInContext(declaredTypeParameters);
 
-            DartType inferredParameterType;
-            if (combinedMemberSignatureType == null) {
-              inferredParameterType = const InvalidType();
-              reportCantInferParameterType(classBuilder, declaredParameter,
-                  hierarchy, overriddenMembers);
-            } else if (i <
-                combinedMemberSignatureType.positionalParameters.length) {
-              inferredParameterType =
-                  combinedMemberSignatureType.positionalParameters[i];
-            }
-            inferredParameterTypes[declaredParameter] = inferredParameterType;
-          }
+      bool cantInferReturnType = false;
+      List<FormalParameterBuilder> cantInferParameterTypes;
 
-          Map<String, DartType> namedParameterTypes;
-          for (int i = declaredPositional.length;
-              i < declaredMember.formals.length;
-              i++) {
-            FormalParameterBuilder declaredParameter =
-                declaredMember.formals[i];
-            if (declaredParameter.type != null) {
-              continue;
-            }
-
-            DartType inferredParameterType;
-            if (combinedMemberSignatureType == null) {
-              inferredParameterType = const InvalidType();
-              reportCantInferParameterType(classBuilder, declaredParameter,
-                  hierarchy, overriddenMembers);
-            } else {
-              if (namedParameterTypes == null) {
-                namedParameterTypes = {};
-                for (NamedType namedType
-                    in combinedMemberSignatureType.namedParameters) {
-                  namedParameterTypes[namedType.name] = namedType.type;
-                }
-              }
-              inferredParameterType =
-                  namedParameterTypes[declaredParameter.name];
-            }
-            inferredParameterTypes[declaredParameter] = inferredParameterType;
-          }
-        }
-      } else {
-        for (ClassMember classMember in overriddenMemberSet) {
-          Member overriddenMember = classMember.getMember(hierarchy);
-          Substitution classSubstitution;
-          if (classBuilder.cls != overriddenMember.enclosingClass) {
-            assert(
-                substitutions.containsKey(overriddenMember.enclosingClass),
-                "No substitution found for '${classBuilder.fullNameForErrors}' "
-                "as instance of '${overriddenMember.enclosingClass.name}'. "
-                "Substitutions available for: ${substitutions.keys}");
-            classSubstitution = substitutions[overriddenMember.enclosingClass];
-            debug?.log("${classBuilder.fullNameForErrors} -> "
-                "${overriddenMember.enclosingClass.name} $classSubstitution");
-          }
-          if (overriddenMember is! Procedure) {
-            debug?.log("Giving up 1");
-            continue;
-          }
-          Procedure overriddenProcedure = overriddenMember;
-          FunctionNode overriddenFunction = overriddenProcedure.function;
-
-          List<TypeParameter> overriddenTypeParameters =
-              overriddenFunction.typeParameters;
-          int typeParameterCount = declaredTypeParameters.length;
-          if (typeParameterCount != overriddenTypeParameters.length) {
-            debug?.log("Giving up 2");
-            continue;
-          }
-          Substitution methodSubstitution;
-          if (typeParameterCount != 0) {
-            List<DartType> types =
-                new List<DartType>.filled(typeParameterCount, null);
-            for (int i = 0; i < typeParameterCount; i++) {
-              types[i] = new TypeParameterType.forAlphaRenaming(
-                  overriddenTypeParameters[i], declaredTypeParameters[i]);
-            }
-            methodSubstitution =
-                Substitution.fromPairs(overriddenTypeParameters, types);
-            for (int i = 0; i < typeParameterCount; i++) {
-              DartType declaredBound = declaredTypeParameters[i].bound;
-              DartType overriddenBound = methodSubstitution
-                  .substituteType(overriddenTypeParameters[i].bound);
-              if (!hierarchy.types
-                  .performNullabilityAwareMutualSubtypesCheck(
-                      declaredBound, overriddenBound)
-                  .isSubtypeWhenUsingNullabilities()) {
-                debug?.log("Giving up 3");
-                continue;
-              }
-            }
-          }
-
-          DartType inheritedReturnType = overriddenFunction.returnType;
-          if (classSubstitution != null) {
-            inheritedReturnType =
-                classSubstitution.substituteType(inheritedReturnType);
-          }
-          if (methodSubstitution != null) {
-            inheritedReturnType =
-                methodSubstitution.substituteType(inheritedReturnType);
-          }
-          if (declaredMember.returnType == null &&
-              inferredReturnType is! InvalidType) {
-            inferredReturnType = mergeTypeInLibrary(hierarchy, classBuilder,
-                inferredReturnType, inheritedReturnType);
-            if (inferredReturnType == null) {
-              // A different type has already been inferred.
-              inferredReturnType = const InvalidType();
-              reportCantInferReturnType(
-                  classBuilder, declaredMember, hierarchy, overriddenMembers);
-            }
-          }
-          if (declaredFunction.requiredParameterCount >
-              overriddenFunction.requiredParameterCount) {
-            debug?.log("Giving up 4");
-            continue;
-          }
-          List<VariableDeclaration> overriddenPositional =
-              overriddenFunction.positionalParameters;
-          if (declaredPositional.length < overriddenPositional.length) {
-            debug?.log("Giving up 5");
-            continue;
-          }
-
-          for (int i = 0; i < overriddenPositional.length; i++) {
-            FormalParameterBuilder declaredParameter =
-                declaredMember.formals[i];
-            if (declaredParameter.type != null) continue;
-
-            VariableDeclaration overriddenParameter = overriddenPositional[i];
-            DartType inheritedParameterType = overriddenParameter.type;
-            if (classSubstitution != null) {
-              inheritedParameterType =
-                  classSubstitution.substituteType(inheritedParameterType);
-            }
-            if (methodSubstitution != null) {
-              inheritedParameterType =
-                  methodSubstitution.substituteType(inheritedParameterType);
-            }
-            if (hierarchy.coreTypes.objectClass.enclosingLibrary
-                    .isNonNullableByDefault &&
-                !declaredMember.classBuilder.library.isNonNullableByDefault &&
-                overriddenProcedure == hierarchy.coreTypes.objectEquals) {
-              // In legacy code we special case `Object.==` to infer `dynamic`
-              // instead `Object!`.
-              inheritedParameterType = const DynamicType();
-            }
-            DartType inferredParameterType =
-                inferredParameterTypes[declaredParameter];
-            inferredParameterType = mergeTypeInLibrary(hierarchy, classBuilder,
-                inferredParameterType, inheritedParameterType);
-            if (inferredParameterType == null) {
-              // A different type has already been inferred.
-              inferredParameterType = const InvalidType();
-              reportCantInferParameterType(classBuilder, declaredParameter,
-                  hierarchy, overriddenMembers);
-            }
-            inferredParameterTypes[declaredParameter] = inferredParameterType;
-          }
-
-          List<VariableDeclaration> overriddenNamed =
-              overriddenFunction.namedParameters;
-          named:
-          if (declaredNamed.isNotEmpty || overriddenNamed.isNotEmpty) {
-            if (declaredPositional.length != overriddenPositional.length) {
-              debug?.log("Giving up 9");
-              break named;
-            }
-            if (declaredFunction.requiredParameterCount !=
-                overriddenFunction.requiredParameterCount) {
-              debug?.log("Giving up 10");
-              break named;
-            }
-
-            overriddenNamed = overriddenNamed.toList()
-              ..sort(compareNamedParameters);
-            int declaredIndex = 0;
-            for (int overriddenIndex = 0;
-                overriddenIndex < overriddenNamed.length;
-                overriddenIndex++) {
-              String name = overriddenNamed[overriddenIndex].name;
-              for (; declaredIndex < declaredNamed.length; declaredIndex++) {
-                if (declaredNamed[declaredIndex].name == name) break;
-              }
-              if (declaredIndex == declaredNamed.length) {
-                debug?.log("Giving up 11");
-                break named;
-              }
-              FormalParameterBuilder declaredParameter;
-              for (int i = declaredPositional.length;
-                  i < declaredMember.formals.length;
-                  ++i) {
-                if (declaredMember.formals[i].name == name) {
-                  declaredParameter = declaredMember.formals[i];
-                  break;
-                }
-              }
-              if (declaredParameter.type != null) continue;
-              VariableDeclaration overriddenParameter =
-                  overriddenNamed[overriddenIndex];
-
-              DartType inheritedParameterType = overriddenParameter.type;
-              if (classSubstitution != null) {
-                inheritedParameterType =
-                    classSubstitution.substituteType(inheritedParameterType);
-              }
-              if (methodSubstitution != null) {
-                inheritedParameterType =
-                    methodSubstitution.substituteType(inheritedParameterType);
-              }
-              DartType inferredParameterType =
-                  inferredParameterTypes[declaredParameter];
-              inferredParameterType = mergeTypeInLibrary(hierarchy,
-                  classBuilder, inferredParameterType, inheritedParameterType);
-              if (inferredParameterType == null) {
-                // A different type has already been inferred.
-                inferredParameterType = const InvalidType();
-                reportCantInferParameterType(classBuilder, declaredParameter,
-                    hierarchy, overriddenMembers);
-              }
-              inferredParameterTypes[declaredParameter] = inferredParameterType;
-            }
-          }
+      if (declaredMember.returnType == null) {
+        if (combinedMemberSignatureType == null) {
+          inferredReturnType = const InvalidType();
+          cantInferReturnType = true;
+        } else {
+          inferredReturnType = combinedMemberSignatureType.returnType;
         }
       }
+      if (declaredMember.formals != null) {
+        for (int i = 0; i < declaredPositional.length; i++) {
+          FormalParameterBuilder declaredParameter = declaredMember.formals[i];
+          if (declaredParameter.type != null) {
+            continue;
+          }
+
+          DartType inferredParameterType;
+          if (combinedMemberSignatureType == null) {
+            inferredParameterType = const InvalidType();
+            cantInferParameterTypes ??= [];
+            cantInferParameterTypes.add(declaredParameter);
+          } else if (i <
+              combinedMemberSignatureType.positionalParameters.length) {
+            inferredParameterType =
+                combinedMemberSignatureType.positionalParameters[i];
+          }
+          inferredParameterTypes[declaredParameter] = inferredParameterType;
+        }
+
+        Map<String, DartType> namedParameterTypes;
+        for (int i = declaredPositional.length;
+            i < declaredMember.formals.length;
+            i++) {
+          FormalParameterBuilder declaredParameter = declaredMember.formals[i];
+          if (declaredParameter.type != null) {
+            continue;
+          }
+
+          DartType inferredParameterType;
+          if (combinedMemberSignatureType == null) {
+            inferredParameterType = const InvalidType();
+            cantInferParameterTypes ??= [];
+            cantInferParameterTypes.add(declaredParameter);
+          } else {
+            if (namedParameterTypes == null) {
+              namedParameterTypes = {};
+              for (NamedType namedType
+                  in combinedMemberSignatureType.namedParameters) {
+                namedParameterTypes[namedType.name] = namedType.type;
+              }
+            }
+            inferredParameterType = namedParameterTypes[declaredParameter.name];
+          }
+          inferredParameterTypes[declaredParameter] = inferredParameterType;
+        }
+      }
+
+      if ((cantInferReturnType && cantInferParameterTypes != null) ||
+          (cantInferParameterTypes != null &&
+              cantInferParameterTypes.length > 1)) {
+        reportCantInferTypes(
+            classBuilder, declaredMember, hierarchy, overriddenMembers);
+      } else if (cantInferReturnType) {
+        reportCantInferReturnType(
+            classBuilder, declaredMember, hierarchy, overriddenMembers);
+      } else if (cantInferParameterTypes != null) {
+        reportCantInferParameterType(classBuilder,
+            cantInferParameterTypes.single, hierarchy, overriddenMembers);
+      }
+
       if (declaredMember.returnType == null) {
         inferredReturnType ??= const DynamicType();
         declaredFunction.returnType = inferredReturnType;
@@ -1006,114 +831,50 @@ class ClassHierarchyNodeBuilder {
         declaredMember.returnType == null) {
       DartType inferredType;
       overriddenMembers = toSet(classBuilder, overriddenMembers);
-      if (classBuilder.library.isNonNullableByDefault) {
-        List<ClassMember> overriddenGetters = [];
-        List<ClassMember> overriddenSetters = [];
-        for (ClassMember overriddenMember in overriddenMembers) {
-          if (overriddenMember.forSetter) {
-            overriddenSetters.add(overriddenMember);
-          } else {
-            overriddenGetters.add(overriddenMember);
-          }
-        }
 
-        void inferFrom(List<ClassMember> members, {bool forSetter}) {
-          assert(forSetter != null);
-          CombinedClassMemberSignature combinedMemberSignature =
-              new CombinedClassMemberSignature(hierarchy, classBuilder, members,
-                  forSetter: forSetter);
-          DartType combinedMemberSignatureType =
-              combinedMemberSignature.combinedMemberSignatureType;
-          if (combinedMemberSignatureType == null) {
-            inferredType = const InvalidType();
-            reportCantInferReturnType(
-                classBuilder, declaredMember, hierarchy, members);
-          } else {
-            inferredType = combinedMemberSignatureType;
-          }
-        }
-
-        if (overriddenGetters.isNotEmpty) {
-          // 1) The return type of a getter, parameter type of a setter or type
-          // of a field which overrides/implements only one or more getters is
-          // inferred to be the return type of the combined member signature of
-          // said getter in the direct superinterfaces.
-
-          // 2) The return type of a getter which overrides/implements both a
-          // setter and a getter is inferred to be the return type of the
-          // combined member signature of said getter in the direct
-          // superinterfaces.
-          inferFrom(overriddenGetters, forSetter: false);
+      List<ClassMember> overriddenGetters = [];
+      List<ClassMember> overriddenSetters = [];
+      for (ClassMember overriddenMember in overriddenMembers) {
+        if (overriddenMember.forSetter) {
+          overriddenSetters.add(overriddenMember);
         } else {
-          // The return type of a getter, parameter type of a setter or type of
-          // a field which overrides/implements only one or more setters is
-          // inferred to be the parameter type of the combined member signature
-          // of said setter in the direct superinterfaces.
-          inferFrom(overriddenSetters, forSetter: true);
+          overriddenGetters.add(overriddenMember);
         }
+      }
+
+      void inferFrom(List<ClassMember> members, {bool forSetter}) {
+        assert(forSetter != null);
+        CombinedClassMemberSignature combinedMemberSignature =
+            new CombinedClassMemberSignature(hierarchy, classBuilder, members,
+                forSetter: forSetter);
+        DartType combinedMemberSignatureType =
+            combinedMemberSignature.combinedMemberSignatureType;
+        if (combinedMemberSignatureType == null) {
+          inferredType = const InvalidType();
+          reportCantInferReturnType(
+              classBuilder, declaredMember, hierarchy, members);
+        } else {
+          inferredType = combinedMemberSignatureType;
+        }
+      }
+
+      if (overriddenGetters.isNotEmpty) {
+        // 1) The return type of a getter, parameter type of a setter or type
+        // of a field which overrides/implements only one or more getters is
+        // inferred to be the return type of the combined member signature of
+        // said getter in the direct superinterfaces.
+
+        // 2) The return type of a getter which overrides/implements both a
+        // setter and a getter is inferred to be the return type of the
+        // combined member signature of said getter in the direct
+        // superinterfaces.
+        inferFrom(overriddenGetters, forSetter: false);
       } else {
-        void inferFrom(ClassMember classMember) {
-          if (inferredType is InvalidType) return;
-
-          Member overriddenMember = classMember.getMember(hierarchy);
-          Substitution substitution;
-          if (classBuilder.cls != overriddenMember.enclosingClass) {
-            assert(
-                substitutions.containsKey(overriddenMember.enclosingClass),
-                "No substitution found for '${classBuilder.fullNameForErrors}' "
-                "as instance of '${overriddenMember.enclosingClass.name}'. "
-                "Substitutions available for: ${substitutions.keys}");
-            substitution = substitutions[overriddenMember.enclosingClass];
-          }
-          DartType inheritedType;
-          if (overriddenMember is Field) {
-            inheritedType = overriddenMember.type;
-            assert(inheritedType is! ImplicitFieldType);
-          } else if (overriddenMember is Procedure) {
-            if (overriddenMember.kind == ProcedureKind.Setter) {
-              VariableDeclaration bParameter =
-                  overriddenMember.function.positionalParameters.single;
-              inheritedType = bParameter.type;
-            } else if (overriddenMember.kind == ProcedureKind.Getter) {
-              inheritedType = overriddenMember.function.returnType;
-            } else {
-              debug?.log("Giving up (not accessor: ${overriddenMember.kind})");
-              return;
-            }
-          } else {
-            debug?.log("Giving up (not field/procedure: "
-                "${overriddenMember.runtimeType})");
-            return;
-          }
-          if (substitution != null) {
-            inheritedType = substitution.substituteType(inheritedType);
-          }
-          inferredType = mergeTypeInLibrary(
-              hierarchy, classBuilder, inferredType, inheritedType);
-
-          if (inferredType == null) {
-            // A different type has already been inferred.
-            inferredType = const InvalidType();
-            reportCantInferReturnType(
-                classBuilder, declaredMember, hierarchy, overriddenMembers);
-          }
-        }
-
-        // The getter type must be inferred from getters first.
-        for (ClassMember overriddenMember in overriddenMembers) {
-          if (!overriddenMember.forSetter) {
-            inferFrom(overriddenMember);
-          }
-        }
-        if (inferredType == null) {
-          // The getter type must be inferred from setters if no type was
-          // inferred from getters.
-          for (ClassMember overriddenMember in overriddenMembers) {
-            if (overriddenMember.forSetter) {
-              inferFrom(overriddenMember);
-            }
-          }
-        }
+        // The return type of a getter, parameter type of a setter or type of
+        // a field which overrides/implements only one or more setters is
+        // inferred to be the parameter type of the combined member signature
+        // of said setter in the direct superinterfaces.
+        inferFrom(overriddenSetters, forSetter: true);
       }
 
       inferredType ??= const DynamicType();
@@ -1133,113 +894,50 @@ class ClassHierarchyNodeBuilder {
       DartType inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
-      if (classBuilder.library.isNonNullableByDefault) {
-        List<ClassMember> overriddenGetters = [];
-        List<ClassMember> overriddenSetters = [];
-        for (ClassMember overriddenMember in overriddenMembers) {
-          if (overriddenMember.forSetter) {
-            overriddenSetters.add(overriddenMember);
-          } else {
-            overriddenGetters.add(overriddenMember);
-          }
-        }
 
-        void inferFrom(List<ClassMember> members, {bool forSetter}) {
-          assert(forSetter != null);
-          CombinedClassMemberSignature combinedMemberSignature =
-              new CombinedClassMemberSignature(hierarchy, classBuilder, members,
-                  forSetter: forSetter);
-          DartType combinedMemberSignatureType =
-              combinedMemberSignature.combinedMemberSignatureType;
-          if (combinedMemberSignatureType == null) {
-            inferredType = const InvalidType();
-            reportCantInferReturnType(
-                classBuilder, declaredMember, hierarchy, members);
-          } else {
-            inferredType = combinedMemberSignatureType;
-          }
-        }
-
-        if (overriddenSetters.isNotEmpty) {
-          // 1) The return type of a getter, parameter type of a setter or type
-          // of a field which overrides/implements only one or more setters is
-          // inferred to be the parameter type of the combined member signature
-          // of said setter in the direct superinterfaces.
-          //
-          // 2) The parameter type of a setter which overrides/implements both a
-          // setter and a getter is inferred to be the parameter type of the
-          // combined member signature of said setter in the direct
-          // superinterfaces.
-          inferFrom(overriddenSetters, forSetter: true);
+      List<ClassMember> overriddenGetters = [];
+      List<ClassMember> overriddenSetters = [];
+      for (ClassMember overriddenMember in overriddenMembers) {
+        if (overriddenMember.forSetter) {
+          overriddenSetters.add(overriddenMember);
         } else {
-          // The return type of a getter, parameter type of a setter or type of
-          // a field which overrides/implements only one or more getters is
-          // inferred to be the return type of the combined member signature of
-          // said getter in the direct superinterfaces.
-          inferFrom(overriddenGetters, forSetter: false);
+          overriddenGetters.add(overriddenMember);
         }
+      }
+
+      void inferFrom(List<ClassMember> members, {bool forSetter}) {
+        assert(forSetter != null);
+        CombinedClassMemberSignature combinedMemberSignature =
+            new CombinedClassMemberSignature(hierarchy, classBuilder, members,
+                forSetter: forSetter);
+        DartType combinedMemberSignatureType =
+            combinedMemberSignature.combinedMemberSignatureType;
+        if (combinedMemberSignatureType == null) {
+          inferredType = const InvalidType();
+          reportCantInferReturnType(
+              classBuilder, declaredMember, hierarchy, members);
+        } else {
+          inferredType = combinedMemberSignatureType;
+        }
+      }
+
+      if (overriddenSetters.isNotEmpty) {
+        // 1) The return type of a getter, parameter type of a setter or type
+        // of a field which overrides/implements only one or more setters is
+        // inferred to be the parameter type of the combined member signature
+        // of said setter in the direct superinterfaces.
+        //
+        // 2) The parameter type of a setter which overrides/implements both a
+        // setter and a getter is inferred to be the parameter type of the
+        // combined member signature of said setter in the direct
+        // superinterfaces.
+        inferFrom(overriddenSetters, forSetter: true);
       } else {
-        void inferFrom(ClassMember classMember) {
-          if (inferredType is InvalidType) return;
-
-          Member overriddenMember = classMember.getMember(hierarchy);
-          Substitution substitution;
-          if (classBuilder.cls != overriddenMember.enclosingClass) {
-            assert(
-                substitutions.containsKey(overriddenMember.enclosingClass),
-                "No substitution found for '${classBuilder.fullNameForErrors}' "
-                "as instance of '${overriddenMember.enclosingClass.name}'. "
-                "Substitutions available for: ${substitutions.keys}");
-            substitution = substitutions[overriddenMember.enclosingClass];
-          }
-          DartType inheritedType;
-          if (overriddenMember is Field) {
-            inheritedType = overriddenMember.type;
-            assert(inheritedType is! ImplicitFieldType);
-          } else if (overriddenMember is Procedure) {
-            if (classMember.isSetter) {
-              VariableDeclaration bParameter =
-                  overriddenMember.function.positionalParameters.single;
-              inheritedType = bParameter.type;
-            } else if (classMember.isGetter) {
-              inheritedType = overriddenMember.function.returnType;
-            } else {
-              debug?.log("Giving up (not accessor: ${overriddenMember.kind})");
-              return;
-            }
-          } else {
-            debug?.log("Giving up (not field/procedure: "
-                "${overriddenMember.runtimeType})");
-            return;
-          }
-          if (substitution != null) {
-            inheritedType = substitution.substituteType(inheritedType);
-          }
-          inferredType = mergeTypeInLibrary(
-              hierarchy, classBuilder, inferredType, inheritedType);
-          if (inferredType == null) {
-            // A different type has already been inferred.
-            inferredType = const InvalidType();
-            reportCantInferParameterType(
-                classBuilder, parameter, hierarchy, overriddenMembers);
-          }
-        }
-
-        // The setter type must be inferred from setters first.
-        for (ClassMember overriddenMember in overriddenMembers) {
-          if (overriddenMember.forSetter) {
-            inferFrom(overriddenMember);
-          }
-        }
-        if (inferredType == null) {
-          // The setter type must be inferred from getters if no type was
-          // inferred from setters.
-          for (ClassMember overriddenMember in overriddenMembers) {
-            if (!overriddenMember.forSetter) {
-              inferFrom(overriddenMember);
-            }
-          }
-        }
+        // The return type of a getter, parameter type of a setter or type of
+        // a field which overrides/implements only one or more getters is
+        // inferred to be the return type of the combined member signature of
+        // said getter in the direct superinterfaces.
+        inferFrom(overriddenGetters, forSetter: false);
       }
 
       inferredType ??= const DynamicType();
@@ -1297,137 +995,66 @@ class ClassHierarchyNodeBuilder {
       DartType inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
-      if (classBuilder.library.isNonNullableByDefault) {
-        List<ClassMember> overriddenGetters = [];
-        List<ClassMember> overriddenSetters = [];
-        for (ClassMember overriddenMember in overriddenMembers) {
-          if (overriddenMember.forSetter) {
-            overriddenSetters.add(overriddenMember);
-          } else {
-            overriddenGetters.add(overriddenMember);
-          }
-        }
-
-        DartType inferFrom(List<ClassMember> members, {bool forSetter}) {
-          assert(forSetter != null);
-          CombinedClassMemberSignature combinedMemberSignature =
-              new CombinedClassMemberSignature(hierarchy, classBuilder, members,
-                  forSetter: forSetter);
-          return combinedMemberSignature.combinedMemberSignatureType;
-        }
-
-        DartType combinedMemberSignatureType;
-        if (fieldBuilder.isAssignable &&
-            overriddenGetters.isNotEmpty &&
-            overriddenSetters.isNotEmpty) {
-          // The type of a non-final field which overrides/implements both a
-          // setter and a getter is inferred to be the parameter type of the
-          // combined member signature of said setter in the direct
-          // superinterfaces, if this type is the same as the return type of the
-          // combined member signature of said getter in the direct
-          // superinterfaces. If the types are not the same then inference fails
-          // with an error.
-          DartType getterType = inferFrom(overriddenGetters, forSetter: false);
-          DartType setterType = inferFrom(overriddenSetters, forSetter: true);
-          if (getterType == setterType) {
-            combinedMemberSignatureType = getterType;
-          }
-        } else if (overriddenGetters.isNotEmpty) {
-          // 1) The return type of a getter, parameter type of a setter or type
-          // of a field which overrides/implements only one or more getters is
-          // inferred to be the return type of the combined member signature of
-          // said getter in the direct superinterfaces.
-          //
-          // 2) The type of a final field which overrides/implements both a
-          // setter and a getter is inferred to be the return type of the
-          // combined member signature of said getter in the direct
-          // superinterfaces.
-          combinedMemberSignatureType =
-              inferFrom(overriddenGetters, forSetter: false);
+      List<ClassMember> overriddenGetters = [];
+      List<ClassMember> overriddenSetters = [];
+      for (ClassMember overriddenMember in overriddenMembers) {
+        if (overriddenMember.forSetter) {
+          overriddenSetters.add(overriddenMember);
         } else {
-          // The return type of a getter, parameter type of a setter or type of
-          // a field which overrides/implements only one or more setters is
-          // inferred to be the parameter type of the combined member signature
-          // of said setter in the direct superinterfaces.
-          combinedMemberSignatureType =
-              inferFrom(overriddenSetters, forSetter: true);
+          overriddenGetters.add(overriddenMember);
         }
+      }
 
-        if (combinedMemberSignatureType == null) {
-          inferredType = const InvalidType();
-          reportCantInferFieldType(
-              classBuilder, fieldBuilder, overriddenMembers);
-        } else {
-          inferredType = combinedMemberSignatureType;
+      DartType inferFrom(List<ClassMember> members, {bool forSetter}) {
+        assert(forSetter != null);
+        CombinedClassMemberSignature combinedMemberSignature =
+            new CombinedClassMemberSignature(hierarchy, classBuilder, members,
+                forSetter: forSetter);
+        return combinedMemberSignature.combinedMemberSignatureType;
+      }
+
+      DartType combinedMemberSignatureType;
+      if (fieldBuilder.isAssignable &&
+          overriddenGetters.isNotEmpty &&
+          overriddenSetters.isNotEmpty) {
+        // The type of a non-final field which overrides/implements both a
+        // setter and a getter is inferred to be the parameter type of the
+        // combined member signature of said setter in the direct
+        // superinterfaces, if this type is the same as the return type of the
+        // combined member signature of said getter in the direct
+        // superinterfaces. If the types are not the same then inference fails
+        // with an error.
+        DartType getterType = inferFrom(overriddenGetters, forSetter: false);
+        DartType setterType = inferFrom(overriddenSetters, forSetter: true);
+        if (getterType == setterType) {
+          combinedMemberSignatureType = getterType;
         }
+      } else if (overriddenGetters.isNotEmpty) {
+        // 1) The return type of a getter, parameter type of a setter or type
+        // of a field which overrides/implements only one or more getters is
+        // inferred to be the return type of the combined member signature of
+        // said getter in the direct superinterfaces.
+        //
+        // 2) The type of a final field which overrides/implements both a
+        // setter and a getter is inferred to be the return type of the
+        // combined member signature of said getter in the direct
+        // superinterfaces.
+        combinedMemberSignatureType =
+            inferFrom(overriddenGetters, forSetter: false);
       } else {
-        void inferFrom(ClassMember classMember) {
-          if (inferredType is InvalidType) return;
+        // The return type of a getter, parameter type of a setter or type of
+        // a field which overrides/implements only one or more setters is
+        // inferred to be the parameter type of the combined member signature
+        // of said setter in the direct superinterfaces.
+        combinedMemberSignatureType =
+            inferFrom(overriddenSetters, forSetter: true);
+      }
 
-          Member overriddenMember = classMember.getMember(hierarchy);
-          DartType inheritedType;
-          if (overriddenMember is Procedure) {
-            if (overriddenMember.isSetter) {
-              VariableDeclaration parameter =
-                  overriddenMember.function.positionalParameters.single;
-              inheritedType = parameter.type;
-            } else if (overriddenMember.isGetter) {
-              inheritedType = overriddenMember.function.returnType;
-            }
-          } else if (overriddenMember is Field) {
-            inheritedType = overriddenMember.type;
-          }
-          if (inheritedType == null) {
-            debug?.log(
-                "Giving up (inheritedType == null)\n${StackTrace.current}");
-            return;
-          }
-          Substitution substitution;
-          if (classBuilder.cls != overriddenMember.enclosingClass) {
-            assert(
-                substitutions.containsKey(overriddenMember.enclosingClass),
-                "${classBuilder.fullNameForErrors} "
-                "${overriddenMember.enclosingClass.name}");
-            substitution = substitutions[overriddenMember.enclosingClass];
-            debug?.log("${classBuilder.fullNameForErrors} -> "
-                "${overriddenMember.enclosingClass.name} $substitution");
-          }
-          assert(inheritedType is! ImplicitFieldType);
-          if (substitution != null) {
-            inheritedType = substitution.substituteType(inheritedType);
-          }
-          inferredType = mergeTypeInLibrary(
-              hierarchy, classBuilder, inferredType, inheritedType);
-          if (inferredType == null) {
-            // A different type has already been inferred.
-            inferredType = const InvalidType();
-            reportCantInferFieldType(
-                classBuilder, fieldBuilder, overriddenMembers);
-          }
-        }
-
-        if (fieldBuilder.isAssignable) {
-          // The field type must be inferred from both getters and setters.
-          for (ClassMember overriddenMember in overriddenMembers) {
-            inferFrom(overriddenMember);
-          }
-        } else {
-          // The field type must be inferred from getters first.
-          for (ClassMember overriddenMember in overriddenMembers) {
-            if (!overriddenMember.forSetter) {
-              inferFrom(overriddenMember);
-            }
-          }
-          if (inferredType == null) {
-            // The field type must be inferred from setters if no type was
-            // inferred from getters.
-            for (ClassMember overriddenMember in overriddenMembers) {
-              if (overriddenMember.forSetter) {
-                inferFrom(overriddenMember);
-              }
-            }
-          }
-        }
+      if (combinedMemberSignatureType == null) {
+        inferredType = const InvalidType();
+        reportCantInferFieldType(classBuilder, fieldBuilder, overriddenMembers);
+      } else {
+        inferredType = combinedMemberSignatureType;
       }
 
       inferredType ??= const DynamicType();
@@ -3396,10 +3023,29 @@ void reportCantInferParameterType(
       .toSet()
       .toList();
   cls.addProblem(
-      cls.library.isNonNullableByDefault
-          ? templateCantInferTypeDueToNoCombinedSignature.withArguments(name)
-          : templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
+      templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
       parameter.charOffset,
+      name.length,
+      wasHandled: true,
+      context: context);
+}
+
+void reportCantInferTypes(ClassBuilder cls, SourceProcedureBuilder member,
+    ClassHierarchyBuilder hierarchy, Iterable<ClassMember> overriddenMembers) {
+  String name = member.fullNameForErrors;
+  List<LocatedMessage> context = overriddenMembers
+      .map((ClassMember overriddenMember) {
+        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
+                overriddenMember.fullNameForErrors.length);
+      })
+      // Call toSet to avoid duplicate context for instance of fields that are
+      // overridden both as getters and setters.
+      .toSet()
+      .toList();
+  cls.addProblem(
+      templateCantInferTypesDueToNoCombinedSignature.withArguments(name),
+      member.charOffset,
       name.length,
       wasHandled: true,
       context: context);
@@ -3466,11 +3112,7 @@ void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
   //   }
   // }
   cls.addProblem(
-      cls.library.isNonNullableByDefault
-          ? templateCantInferReturnTypeDueToNoCombinedSignature
-              .withArguments(name)
-          : templateCantInferReturnTypeDueToInconsistentOverrides
-              .withArguments(name),
+      templateCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
       member.charOffset,
       name.length,
       wasHandled: true,
@@ -3491,9 +3133,7 @@ void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
       .toList();
   String name = member.fullNameForErrors;
   cls.addProblem(
-      cls.library.isNonNullableByDefault
-          ? templateCantInferTypeDueToNoCombinedSignature.withArguments(name)
-          : templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
+      templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
       member.charOffset,
       name.length,
       wasHandled: true,

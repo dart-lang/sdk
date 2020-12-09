@@ -2,7 +2,7 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:34:7: Error: Can't infer a return type for 'a' as some of the overridden members have different types.
+// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:34:7: Error: Can't infer a return type for 'a' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   get a => null;
 //       ^

@@ -695,36 +695,6 @@ const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-    templateCantInferReturnTypeDueToInconsistentOverrides =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Can't infer a return type for '#name' as some of the overridden members have different types.""",
-        tipTemplate: r"""Try adding an explicit type.""",
-        withArguments:
-            _withArgumentsCantInferReturnTypeDueToInconsistentOverrides);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeCantInferReturnTypeDueToInconsistentOverrides =
-    const Code<Message Function(String name)>(
-        "CantInferReturnTypeDueToInconsistentOverrides",
-        templateCantInferReturnTypeDueToInconsistentOverrides,
-        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferReturnTypeDueToInconsistentOverrides(
-    String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeCantInferReturnTypeDueToInconsistentOverrides,
-      message:
-          """Can't infer a return type for '${name}' as some of the overridden members have different types.""",
-      tip: """Try adding an explicit type.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
     templateCantInferReturnTypeDueToNoCombinedSignature =
     const Template<Message Function(String name)>(
         messageTemplate:
@@ -782,34 +752,6 @@ Message _withArgumentsCantInferTypeDueToCircularity(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateCantInferTypeDueToInconsistentOverrides =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Can't infer a type for '#name' as some of the overridden members have different types.""",
-        tipTemplate: r"""Try adding an explicit type.""",
-        withArguments: _withArgumentsCantInferTypeDueToInconsistentOverrides);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeCantInferTypeDueToInconsistentOverrides =
-    const Code<Message Function(String name)>(
-        "CantInferTypeDueToInconsistentOverrides",
-        templateCantInferTypeDueToInconsistentOverrides,
-        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeCantInferTypeDueToInconsistentOverrides,
-      message:
-          """Can't infer a type for '${name}' as some of the overridden members have different types.""",
-      tip: """Try adding an explicit type.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -838,6 +780,38 @@ Message _withArgumentsCantInferTypeDueToNoCombinedSignature(String name) {
       message:
           """Can't infer a type for '${name}' as the overridden members don't have a combined signature.""",
       tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateCantInferTypesDueToNoCombinedSignature = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Can't infer types for '#name' as the overridden members don't have a combined signature.""",
+    tipTemplate: r"""Try adding explicit types.""",
+    withArguments: _withArgumentsCantInferTypesDueToNoCombinedSignature);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCantInferTypesDueToNoCombinedSignature =
+    const Code<Message Function(String name)>(
+        "CantInferTypesDueToNoCombinedSignature",
+        templateCantInferTypesDueToNoCombinedSignature,
+        analyzerCodes: <String>[
+      "COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferTypesDueToNoCombinedSignature(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantInferTypesDueToNoCombinedSignature,
+      message:
+          """Can't infer types for '${name}' as the overridden members don't have a combined signature.""",
+      tip: """Try adding explicit types.""",
       arguments: {'name': name});
 }
 
