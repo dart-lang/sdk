@@ -572,15 +572,13 @@ class Operators7 {
   operator ==<T>(a) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-  // [cfe] Can't infer a return type for '==' as the overridden members don't have a combined signature.
+  // [cfe] Can't infer types for '==' as the overridden members don't have a combined signature.
   //       ^
   // [cfe] Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
   //         ^^^
   // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
-  //             ^
-  // [cfe] Can't infer a type for 'a' as the overridden members don't have a combined signature.
   operator ><T>(a) => true;
   //        ^^^
   // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR

@@ -2,15 +2,15 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Can't infer types for 'm' as the overridden members don't have a combined signature.
+// Try adding explicit types.
 //   m(x) => x;
 //   ^
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is one of the overridden members.
 //   T m<T>(T x) => x;
 //     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type, 'T', of the overridden method, 'C.m'.
-// Change to a subtype of 'T'.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
 //   m(x) => x;
 //   ^
 // pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
@@ -39,7 +39,7 @@ class C extends core::Object {
 class D extends self::C {
   synthetic constructor •() → self::D*
     ;
-  method m(dynamic x) → dynamic
+  method m(invalid-type x) → invalid-type
     ;
 }
 static method main() → dynamic

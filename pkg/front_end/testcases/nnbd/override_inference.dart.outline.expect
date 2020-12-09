@@ -24,21 +24,10 @@ library /*isNonNullableByDefault*/;
 //   int method1d();
 //       ^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/override_inference.dart:122:17: Error: Can't infer a type for 'x' as the overridden members don't have a combined signature.
-// Try adding an explicit type.
+// pkg/front_end/testcases/nnbd/override_inference.dart:122:8: Error: Can't infer types for 'method5a' as the overridden members don't have a combined signature.
+// Try adding explicit types.
 //   void method5a(x, y); // error
-//                 ^
-// pkg/front_end/testcases/nnbd/override_inference.dart:18:8: Context: This is one of the overridden members.
-//   void method5a(int x, num y);
 //        ^^^^^^^^
-// pkg/front_end/testcases/nnbd/override_inference.dart:70:8: Context: This is one of the overridden members.
-//   void method5a(num x, int y);
-//        ^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/override_inference.dart:122:20: Error: Can't infer a type for 'y' as the overridden members don't have a combined signature.
-// Try adding an explicit type.
-//   void method5a(x, y); // error
-//                    ^
 // pkg/front_end/testcases/nnbd/override_inference.dart:18:8: Context: This is one of the overridden members.
 //   void method5a(int x, num y);
 //        ^^^^^^^^
