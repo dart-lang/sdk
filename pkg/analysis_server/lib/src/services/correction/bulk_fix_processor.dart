@@ -327,7 +327,13 @@ class BulkFixProcessor {
     HintCode.DEPRECATED_MEMBER_USE: [
       DataDriven.newInstance,
     ],
+    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [
+      DataDriven.newInstance,
+    ],
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+      DataDriven.newInstance,
+    ],
+    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
       DataDriven.newInstance,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
