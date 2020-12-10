@@ -341,6 +341,7 @@ static const RegisterSet kCalleeSaveRegistersSet(
     CallingConventions::kCalleeSaveCpuRegisters,
     CallingConventions::kCalleeSaveXmmRegisters);
 
+// Keep in sync with NativeEntryInstr::EmitNativeCode.
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
@@ -1122,6 +1123,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(TMP);
 }
 
+// Keep in sync with NativeReturnInstr::EmitNativeCode.
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
 

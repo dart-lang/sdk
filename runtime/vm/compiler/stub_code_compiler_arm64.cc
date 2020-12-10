@@ -194,7 +194,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
 
   // To make the stack map calculation architecture independent we do the same
   // as on intel.
-  __ Push(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));
   __ PushRegisters(all_registers);
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
   __ EnterStubFrame();
@@ -206,7 +206,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
   __ LeaveStubFrame();
   __ PopRegisters(all_registers);
   __ Drop(1);  // We use the LR restored via LeaveStubFrame.
-  __ ret(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
 }
 
 void StubCodeCompiler::GenerateSharedStub(
@@ -302,7 +302,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
   COMPILE_ASSERT(IsAbiPreservedRegister(R19));
 
-  __ mov(R19, LR);
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(R19, LR));
   __ LoadImmediate(R10, target::Thread::exit_through_ffi());
   __ TransitionGeneratedToNative(R9, FPREG, R10 /*volatile*/,
                                  /*enter_safepoint=*/true);
@@ -368,7 +368,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
   // aligned.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
-  __ stp(THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  SPILLS_LR_TO_FRAME(__ stp(
+      THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
 
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
@@ -442,7 +443,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ EnterSafepoint(/*scratch=*/R9);
 
   // Pop LR and THR from the real stack (CSP).
-  __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+  RESTORES_LR_FROM_FRAME(__ ldp(
+      THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
 
   __ ret();
 
@@ -674,8 +676,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(R1, R5);  // Pass the function entrypoint to call.
 
   // Call native function invocation wrapper or redirection via simulator.
-  __ ldr(LR, wrapper);
-  __ blr(LR);
+  __ Call(wrapper);
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
@@ -1020,7 +1021,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
   __ LoadImmediate(TMP, kZapCodeReg);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
@@ -1035,7 +1036,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub(
   __ LoadImmediate(TMP, kZapCodeReg);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
@@ -1241,13 +1242,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Pop(R1);
   __ Pop(R2);
   __ Pop(R0);
+  __ LeaveStubFrame();
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
   EnsureIsNewOrRemembered(assembler);
 
-  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1307,7 +1308,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // from over-writing Dart frames.
   __ mov(SP, CSP);
   __ SetupCSPFromThread(R3);
-  __ Push(LR);  // Marker for the profiler.
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1652,15 +1653,13 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
     Register reg = static_cast<Register>(i);
     intptr_t start = __ CodeSize();
-    __ Push(LR);
+    SPILLS_LR_TO_FRAME(__ Push(LR));
     __ Push(kWriteBarrierObjectReg);
     __ mov(kWriteBarrierObjectReg, reg);
-    __ ldr(LR,
-           Address(THR, target::Thread::write_barrier_entry_point_offset()));
-    __ blr(LR);
+    __ Call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
     __ Pop(kWriteBarrierObjectReg);
-    __ Pop(LR);
-    __ ret(LR);
+    RESTORES_LR_FROM_FRAME(__ Pop(LR));
+    READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
     intptr_t end = __ CodeSize();
 
     RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
@@ -2993,7 +2992,7 @@ void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
-  // TransitionGeneratedToNative might clobber LR if it takes the slow path.
+  __ set_lr_state(compiler::LRState::Clobbered());
   __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
   __ mov(SP, R1);                 // Stack pointer.
   __ mov(FP, R2);                 // Frame_pointer.
@@ -3038,7 +3037,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 // The arguments are stored in the Thread object.
 // Does not return.
 void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
 
   word offset_from_thread = 0;
   bool ok = target::CanLoadFromThread(NullObject(), &offset_from_thread);
@@ -3065,7 +3065,8 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ Push(TMP);
 
   // Load the deopt pc into LR.
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 
   // After we have deoptimized, jump to the correct frame.

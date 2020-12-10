@@ -198,10 +198,8 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-  __ ldr(LR, compiler::Address(
-                 THR, compiler::target::Thread::deoptimize_entry_offset()));
-  __ blx(LR);
-  ASSERT(kReservedCpuRegisters & (1 << LR));
+  __ Call(compiler::Address(
+      THR, compiler::target::Thread::deoptimize_entry_offset()));
   set_pc_offset(assembler->CodeSize());
 #undef __
 }
@@ -526,8 +524,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
       entry_kind == Code::EntryKind::kNormal
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
           : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
-  __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset));
-  __ blx(LR);
+  __ Call(compiler::FieldAddress(CODE_REG, entry_point_offset));
   EmitCallsiteMetadata(token_pos, deopt_id, PcDescriptorsLayout::kIcCall, locs);
   __ Drop(ic_data.SizeWithTypeArgs());
 }
@@ -556,23 +553,22 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     if (FLAG_use_bare_instructions) {
       // The AOT runtime will replace the slot in the object pool with the
       // entrypoint address - see clustered_snapshot.cc.
-      __ LoadUniqueObject(LR, StubCode::MegamorphicCall());
+      CLOBBERS_LR(__ LoadUniqueObject(LR, StubCode::MegamorphicCall()));
     } else {
       __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-      __ ldr(LR, compiler::FieldAddress(
-                     CODE_REG, compiler::target::Code::entry_point_offset(
-                                   Code::EntryKind::kMonomorphic)));
+      CLOBBERS_LR(
+          __ ldr(LR, compiler::FieldAddress(
+                         CODE_REG, compiler::target::Code::entry_point_offset(
+                                       Code::EntryKind::kMonomorphic))));
     }
     __ LoadUniqueObject(R9, cache);
-    __ blx(LR);
+    CLOBBERS_LR(__ blx(LR));
 
   } else {
     __ LoadUniqueObject(R9, cache);
     __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-    __ ldr(LR, compiler::FieldAddress(
-                   CODE_REG,
-                   Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
-    __ blx(LR);
+    __ Call(compiler::FieldAddress(
+        CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
   }
 
   RecordSafepoint(locs, slow_path_argument_count);
@@ -627,7 +623,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see clustered_snapshot.cc.
-    __ LoadUniqueObject(LR, initial_stub);
+    CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub));
   } else {
     __ LoadUniqueObject(CODE_REG, initial_stub);
     const intptr_t entry_point_offset =
@@ -636,10 +632,11 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                   Code::EntryKind::kMonomorphic)
             : compiler::target::Code::entry_point_offset(
                   Code::EntryKind::kMonomorphicUnchecked);
-    __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset));
+    CLOBBERS_LR(
+        __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset)));
   }
   __ LoadUniqueObject(R9, data);
-  __ blx(LR);
+  CLOBBERS_LR(__ blx(LR));
 
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, PcDescriptorsLayout::kOther,
                        locs);
@@ -696,20 +693,22 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   }
   intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
                     compiler::target::kWordSize;
-  if (offset == 0) {
-    __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, LSL,
-                                 compiler::target::kWordSizeLog2));
-  } else {
-    __ add(LR, DISPATCH_TABLE_REG,
-           compiler::Operand(cid_reg, LSL, compiler::target::kWordSizeLog2));
-    if (!Utils::IsAbsoluteUint(12, offset)) {
-      const intptr_t adjust = offset & -(1 << 12);
-      __ AddImmediate(LR, LR, adjust);
-      offset -= adjust;
+  CLOBBERS_LR({
+    if (offset == 0) {
+      __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, LSL,
+                                   compiler::target::kWordSizeLog2));
+    } else {
+      __ add(LR, DISPATCH_TABLE_REG,
+             compiler::Operand(cid_reg, LSL, compiler::target::kWordSizeLog2));
+      if (!Utils::IsAbsoluteUint(12, offset)) {
+        const intptr_t adjust = offset & -(1 << 12);
+        __ AddImmediate(LR, LR, adjust);
+        offset -= adjust;
+      }
+      __ ldr(LR, compiler::Address(LR, offset));
     }
-    __ ldr(LR, compiler::Address(LR, offset));
-  }
-  __ blx(LR);
+    __ blx(LR);
+  });
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
@@ -874,16 +873,17 @@ void FlowGraphCompiler::EmitMove(Location destination,
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
 
-      // LR not used by register allocator.
-      ASSERT(((1 << LR) & kDartAvailableCpuRegs) == 0);
+      CLOBBERS_LR({
+        // LR not used by register allocator.
+        COMPILE_ASSERT(((1 << LR) & kDartAvailableCpuRegs) == 0);
+        // StoreToOffset uses TMP in the case where dest_offset is too large or
+        // small in order to calculate a new base. We fall back to using LR as a
+        // temporary as we know we're in a ParallelMove.
+        const Register temp_reg = LR;
 
-      // StoreToOffset uses TMP in the case where dest_offset is too large or
-      // small in order to calculate a new base. We fall back to using LR as a
-      // temporary as we know we're in a ParallelMove.
-      const Register temp_reg = LR;
-
-      __ LoadFromOffset(temp_reg, source.base_reg(), source_offset);
-      __ StoreToOffset(temp_reg, destination.base_reg(), dest_offset);
+        __ LoadFromOffset(temp_reg, source.base_reg(), source_offset);
+        __ StoreToOffset(temp_reg, destination.base_reg(), dest_offset);
+      });
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {

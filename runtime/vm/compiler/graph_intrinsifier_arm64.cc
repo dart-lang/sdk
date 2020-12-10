@@ -27,15 +27,15 @@ void GraphIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
   COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
   COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
 
-  assembler->Comment("IntrinsicCallPrologue");
-  assembler->mov(CALLEE_SAVED_TEMP, LR);
-  assembler->mov(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
+  __ Comment("IntrinsicCallPrologue");
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(CALLEE_SAVED_TEMP, LR));
+  __ mov(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
 }
 
 void GraphIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
-  assembler->Comment("IntrinsicCallEpilogue");
-  assembler->mov(LR, CALLEE_SAVED_TEMP);
-  assembler->mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
+  __ Comment("IntrinsicCallEpilogue");
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ mov(LR, CALLEE_SAVED_TEMP));
+  __ mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
 }
 
 #undef __

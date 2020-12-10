@@ -19,6 +19,9 @@
 #error ARM cross-compile only supported on Linux, Android, iOS, and Mac
 #endif
 
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#define __ this->
+
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
@@ -34,16 +37,13 @@ Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
       use_far_branches_(use_far_branches),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Condition cond, Register reg) {
-    ldr(LR,
+    Call(
         Address(THR, target::Thread::write_barrier_wrappers_thread_offset(reg)),
         cond);
-    blx(LR, cond);
   };
   generate_invoke_array_write_barrier_ = [&](Condition cond) {
-    ldr(LR,
-        Address(THR, target::Thread::array_write_barrier_entry_point_offset()),
-        cond);
-    blx(LR, cond);
+    Call(Address(THR, target::Thread::array_write_barrier_entry_point_offset()),
+         cond);
   };
 }
 
@@ -1625,10 +1625,7 @@ void Assembler::LoadObjectHelper(Register rd,
       return;
     }
   }
-  if (!CanLoadFromObjectPool(object)) {
-    UNREACHABLE();
-    return;
-  }
+  RELEASE_ASSERT(CanLoadFromObjectPool(object));
   // Make sure that class CallPattern is able to decode this load from the
   // object pool.
   const auto index = is_unique ? object_pool_builder().AddObject(object)
@@ -1726,12 +1723,11 @@ Register AllocateRegister(RegList* used) {
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi,
-                                bool lr_reserved) {
+                                CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-  ASSERT(object != LR);
-  ASSERT(value != LR);
+  ASSERT(object != LINK_REGISTER);
+  ASSERT(value != LINK_REGISTER);
   ASSERT(object != TMP);
   ASSERT(value != TMP);
 
@@ -1748,12 +1744,18 @@ void Assembler::StoreIntoObject(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  if (!lr_reserved) Push(LR);
-  ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
-  and_(TMP, LR, Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
-  ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
-  tst(TMP, Operand(LR));
+  const bool preserve_lr = lr_state().LRContainsReturnAddress();
+  if (preserve_lr) {
+    SPILLS_LR_TO_FRAME(Push(LR));
+  }
+  CLOBBERS_LR({
+    ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
+    ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
+    and_(TMP, LR,
+         Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
+    ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
+    tst(TMP, Operand(LR));
+  });
   if (value != kWriteBarrierValueReg) {
     // Unlikely. Only non-graph intrinsics.
     // TODO(rmacnak): Shuffle registers in intrinsics.
@@ -1781,20 +1783,21 @@ void Assembler::StoreIntoObject(Register object,
   } else {
     generate_invoke_write_barrier_wrapper_(NE, object);
   }
-  if (!lr_reserved) Pop(LR);
+  if (preserve_lr) {
+    RESTORES_LR_FROM_FRAME(Pop(LR));
+  }
   Bind(&done);
 }
 
 void Assembler::StoreIntoArray(Register object,
                                Register slot,
                                Register value,
-                               CanBeSmi can_be_smi,
-                               bool lr_reserved) {
+                               CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-  ASSERT(object != LR);
-  ASSERT(value != LR);
-  ASSERT(slot != LR);
+  ASSERT(object != LINK_REGISTER);
+  ASSERT(value != LINK_REGISTER);
+  ASSERT(slot != LINK_REGISTER);
   ASSERT(object != TMP);
   ASSERT(value != TMP);
   ASSERT(slot != TMP);
@@ -1812,12 +1815,19 @@ void Assembler::StoreIntoArray(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  if (!lr_reserved) Push(LR);
-  ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
-  and_(TMP, LR, Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
-  ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
-  tst(TMP, Operand(LR));
+  const bool preserve_lr = lr_state().LRContainsReturnAddress();
+  if (preserve_lr) {
+    SPILLS_LR_TO_FRAME(Push(LR));
+  }
+
+  CLOBBERS_LR({
+    ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
+    ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
+    and_(TMP, LR,
+         Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
+    ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
+    tst(TMP, Operand(LR));
+  });
 
   if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
       (slot != kWriteBarrierSlotReg)) {
@@ -1827,23 +1837,24 @@ void Assembler::StoreIntoArray(Register object,
     UNIMPLEMENTED();
   }
   generate_invoke_array_write_barrier_(NE);
-  if (!lr_reserved) Pop(LR);
+  if (preserve_lr) {
+    RESTORES_LR_FROM_FRAME(Pop(LR));
+  }
   Bind(&done);
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
-                                      CanBeSmi can_value_be_smi,
-                                      bool lr_reserved) {
+                                      CanBeSmi can_value_be_smi) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
                                   &ignored)) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
-                    can_value_be_smi, lr_reserved);
+                    can_value_be_smi);
   } else {
     AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(IP), value, can_value_be_smi, lr_reserved);
+    StoreIntoObject(object, Address(IP), value, can_value_be_smi);
   }
 }
 
@@ -2122,6 +2133,7 @@ void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
     } else {
       EmitType5(cond, dest, link);
     }
+    label->UpdateLRState(lr_state());
   } else {
     const intptr_t position = buffer_.Size();
     if (use_far_branches()) {
@@ -2131,7 +2143,7 @@ void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
       // Use the offset field of the branch instruction for linking the sites.
       EmitType5(cond, label->position_, link);
     }
-    label->LinkTo(position);
+    label->LinkTo(position, lr_state());
   }
 }
 
@@ -2199,7 +2211,7 @@ void Assembler::BindARMv7(Label* label) {
       label->position_ = Assembler::DecodeBranchOffset(next);
     }
   }
-  label->BindTo(bound_pc);
+  label->BindTo(bound_pc, lr_state());
 }
 
 void Assembler::Bind(Label* label) {
@@ -2604,8 +2616,7 @@ void Assembler::BranchLink(const Code& target,
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), patchable);
   LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  ldr(LR, FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
-  blx(LR);  // Use blx instruction so that the return branch prediction works.
+  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::BranchLinkPatchable(const Code& target,
@@ -2628,13 +2639,14 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
   LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  ldr(LR, FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
-  blx(LR);  // Use blx instruction so that the return branch prediction works.
+  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::BranchLink(const ExternalLabel* label) {
-  LoadImmediate(LR, label->address());  // Target address is never patched.
-  blx(LR);  // Use blx instruction so that the return branch prediction works.
+  CLOBBERS_LR({
+    LoadImmediate(LR, label->address());  // Target address is never patched.
+    blx(LR);  // Use blx instruction so that the return branch prediction works.
+  });
 }
 
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
@@ -3117,8 +3129,8 @@ void Assembler::LeaveFrame(RegList regs, bool allow_pop_pc) {
   PopList(regs);
 }
 
-void Assembler::Ret() {
-  bx(LR);
+void Assembler::Ret(Condition cond /* = AL */) {
+  READS_RETURN_ADDRESS_FROM_LR(bx(LR, cond));
 }
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
@@ -3149,7 +3161,8 @@ void Assembler::EmitEntryFrameVerification(Register scratch) {
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
   // Preserve volatile CPU registers and PP.
-  EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0);
+  SPILLS_LR_TO_FRAME(
+      EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR), 0));
   COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
 
   // Preserve all volatile FPU registers.
@@ -3199,7 +3212,8 @@ void Assembler::LeaveCallRuntimeFrame() {
   }
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR));
+  RESTORES_LR_FROM_FRAME(
+      LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP) | (1 << LR)));
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
@@ -3213,15 +3227,16 @@ void Assembler::EnterDartFrame(intptr_t frame_size, bool load_pool_pointer) {
   // Registers are pushed in descending order: R5 | R6 | R7/R11 | R14.
   COMPILE_ASSERT(PP < CODE_REG);
   COMPILE_ASSERT(CODE_REG < FP);
-  COMPILE_ASSERT(FP < LR);
+  COMPILE_ASSERT(FP < LINK_REGISTER.code);
 
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
+    SPILLS_LR_TO_FRAME(
+        EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0));
 
     // Setup pool pointer for this dart function.
     if (load_pool_pointer) LoadPoolPointer();
   } else {
-    EnterFrame((1 << FP) | (1 << LR), 0);
+    SPILLS_LR_TO_FRAME(EnterFrame((1 << FP) | (1 << LR), 0));
   }
   set_constant_pool_allowed(true);
 
@@ -3252,7 +3267,7 @@ void Assembler::LeaveDartFrame() {
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP
   // first.
-  LeaveFrame((1 << FP) | (1 << LR));
+  RESTORES_LR_FROM_FRAME(LeaveFrame((1 << FP) | (1 << LR)));
 }
 
 void Assembler::LeaveDartFrameAndReturn() {

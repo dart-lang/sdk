@@ -67,6 +67,27 @@ DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(int, gc_every);
 DECLARE_FLAG(bool, trace_compiler);
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
+  auto entry = flow_graph.graph_entry();
+  bool has_native_entries = false;
+  for (intptr_t i = 0; i < entry->SuccessorCount(); i++) {
+    if (entry->SuccessorAt(i)->IsNativeEntry()) {
+      has_native_entries = true;
+      break;
+    }
+  }
+
+  if (has_native_entries) {
+    // We will setup three (3) frames on the stack when entering through
+    // native entry. Keep in sync with NativeEntry/NativeReturn.
+    return compiler::LRState::OnEntry().EnterFrame().EnterFrame().EnterFrame();
+  }
+
+  return compiler::LRState::OnEntry().EnterFrame();
+}
+#endif
+
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
 // environment.
@@ -563,6 +584,16 @@ void FlowGraphCompiler::VisitBlocks() {
       continue;
     }
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    // At the start of every non-entry block we expect return address either
+    // to be  spilled into the frame or to be in the LR register.
+    if (entry->IsFunctionEntry() || entry->IsNativeEntry()) {
+      assembler()->set_lr_state(compiler::LRState::OnEntry());
+    } else {
+      assembler()->set_lr_state(ComputeInnerLRState(flow_graph()));
+    }
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+
 #if defined(DEBUG)
     if (!is_optimizing()) {
       FrameStateClear();
@@ -701,11 +732,18 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 }
 
 void FlowGraphCompiler::GenerateDeferredCode() {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  const auto lr_state = ComputeInnerLRState(flow_graph());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
     SlowPathCode* const slow_path = slow_path_code_[i];
     const CombinedCodeStatistics::EntryCounter stats_tag =
         CombinedCodeStatistics::SlowPathCounterFor(
             slow_path->instruction()->tag());
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    assembler()->set_lr_state(lr_state);
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     set_current_instruction(slow_path->instruction());
     SpecialStatsBegin(stats_tag);
     BeginCodeSourceRange();
@@ -718,6 +756,9 @@ void FlowGraphCompiler::GenerateDeferredCode() {
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     BeginCodeSourceRange();
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    assembler()->set_lr_state(lr_state);
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     deopt_infos_[i]->GenerateCode(this, i);
     EndCodeSourceRange(TokenPosition::kDeferredDeoptInfo);
   }

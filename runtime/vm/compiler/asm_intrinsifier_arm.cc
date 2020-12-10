@@ -34,14 +34,16 @@ void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
   COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
 
   // Save LR by moving it to a callee saved temporary register.
-  assembler->Comment("IntrinsicCallPrologue");
-  assembler->mov(CALLEE_SAVED_TEMP, Operand(LR));
+  __ Comment("IntrinsicCallPrologue");
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(
+      __ mov(CALLEE_SAVED_TEMP, Operand(LR)));
 }
 
 void AsmIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   // Restore LR.
-  assembler->Comment("IntrinsicCallEpilogue");
-  assembler->mov(LR, Operand(CALLEE_SAVED_TEMP));
+  __ Comment("IntrinsicCallEpilogue");
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(
+      __ mov(LR, Operand(CALLEE_SAVED_TEMP)));
 }
 
 // Allocate a GrowableObjectArray:: using the backing array specified.
@@ -93,7 +95,7 @@ void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
                                              Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);  // Checks two smis.
   __ adds(R0, R0, Operand(R1));                      // Adds.
-  __ bx(LR, VC);                                     // Return if no overflow.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, VC));       // Return if no overflow.
   // Otherwise fall through.
   __ Bind(normal_ir_body);
 }
@@ -106,7 +108,7 @@ void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
                                              Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   __ subs(R0, R0, Operand(R1));  // Subtract.
-  __ bx(LR, VC);                 // Return if no overflow.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, VC));  // Return if no overflow.
   // Otherwise fall through.
   __ Bind(normal_ir_body);
 }
@@ -114,7 +116,7 @@ void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
 void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   __ subs(R0, R1, Operand(R0));  // Subtract.
-  __ bx(LR, VC);                 // Return if no overflow.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, VC));  // Return if no overflow.
   // Otherwise fall through.
   __ Bind(normal_ir_body);
 }
@@ -125,7 +127,7 @@ void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
   __ SmiUntag(R0);           // Untags R0. We only want result shifted by one.
   __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
   __ cmp(IP, Operand(R0, ASR, 31));
-  __ bx(LR, EQ);
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, EQ));
   __ Bind(normal_ir_body);  // Fall through on overflow.
 }
 
@@ -155,10 +157,10 @@ static void EmitRemainderOperation(Assembler* assembler) {
   // Check for quick zero results.
   __ cmp(left, Operand(0));
   __ mov(R0, Operand(0), EQ);
-  __ bx(LR, EQ);  // left is 0? Return 0.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, EQ));  // left is 0? Return 0.
   __ cmp(left, Operand(right));
   __ mov(R0, Operand(0), EQ);
-  __ bx(LR, EQ);  // left == right? Return 0.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, EQ));  // left == right? Return 0.
 
   // Check if result should be left.
   __ cmp(left, Operand(0));
@@ -167,8 +169,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
   __ cmp(left, Operand(right));
   // left is less than right, result is left.
   __ mov(R0, Operand(left), LT);
-  __ bx(LR, LT);
-
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, LT));
   __ Bind(&modulo);
   // result <- left - right * (left / right)
   __ SmiUntag(left);
@@ -209,8 +210,7 @@ void AsmIntrinsifier::Integer_moduloFromInteger(Assembler* assembler,
 
   __ cmp(R1, Operand(0));
   __ mov(R0, Operand(R1, LSL, 1), GE);  // Tag and move result to R0.
-  __ bx(LR, GE);
-
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, GE));
   // Result is negative, adjust it.
   __ cmp(R0, Operand(0));
   __ sub(R0, R1, Operand(R0), LT);
@@ -241,7 +241,7 @@ void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
   // cannot tag the result.
   __ CompareImmediate(R0, 0x40000000);
   __ SmiTag(R0, NE);  // Not equal. Okay to tag and return.
-  __ bx(LR, NE);      // Return.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));
   __ Bind(normal_ir_body);
 }
 
@@ -251,7 +251,8 @@ void AsmIntrinsifier::Integer_negate(Assembler* assembler,
   __ tst(R0, Operand(kSmiTagMask));                 // Test for Smi.
   __ b(normal_ir_body, NE);
   __ rsbs(R0, R0, Operand(0));  // R0 is a Smi. R0 <- 0 - R0.
-  __ bx(LR, VC);  // Return if there wasn't overflow, fall through otherwise.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(
+      LR, VC));  // Return if there wasn't overflow, fall through otherwise.
   // R0 is not a Smi. Fall through.
   __ Bind(normal_ir_body);
 }
@@ -314,8 +315,7 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
 
   // No overflow, result in R0.
   __ mov(R0, Operand(R1, LSL, R0), EQ);
-  __ bx(LR, EQ);
-
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, EQ));
   // Arguments are Smi but the shift produced an overflow to Mint.
   __ CompareImmediate(R1, 0);
   __ b(normal_ir_body, LT);
@@ -500,8 +500,8 @@ void AsmIntrinsifier::Integer_equalToInteger(Assembler* assembler,
   // Receiver is Mint, return false if right is Smi.
   __ tst(R0, Operand(kSmiTagMask));
   __ LoadObject(R0, CastHandle<Object>(FalseObject()), EQ);
-  __ bx(LR, EQ);
-  // TODO(srdjan): Implement Mint == Mint comparison.
+  READS_RETURN_ADDRESS_FROM_LR(
+      __ bx(LR, EQ));  // TODO(srdjan): Implement Mint == Mint comparison.
 
   __ Bind(normal_ir_body);
 }
@@ -1047,7 +1047,7 @@ static void CompareDoubles(Assembler* assembler,
     __ vmstat();
     __ LoadObject(R0, CastHandle<Object>(FalseObject()));
     // Return false if D0 or D1 was NaN before checking true condition.
-    __ bx(LR, VS);
+    READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, VS));
     __ LoadObject(R0, CastHandle<Object>(TrueObject()), true_condition);
     __ Ret();
 
@@ -1216,15 +1216,14 @@ void AsmIntrinsifier::Double_getIsInfinite(Assembler* assembler,
     // If the low word isn't 0, then it isn't infinity.
     __ cmp(R1, Operand(0));
     __ LoadObject(R0, CastHandle<Object>(FalseObject()), NE);
-    __ bx(LR, NE);  // Return if NE.
+    READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));  // Return if NE.
 
     // Mask off the sign bit.
     __ AndImmediate(R2, R2, 0x7FFFFFFF);
     // Compare with +infinity.
     __ CompareImmediate(R2, 0x7FF00000);
     __ LoadObject(R0, CastHandle<Object>(FalseObject()), NE);
-    __ bx(LR, NE);
-
+    READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));
     __ LoadObject(R0, CastHandle<Object>(TrueObject()));
     __ Ret();
   }
@@ -1280,7 +1279,7 @@ void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
     // Check for overflow and that it fits into Smi.
     __ CompareImmediate(R0, 0xC0000000);
     __ SmiTag(R0, PL);
-    __ bx(LR, PL);
+    READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, PL));
     __ Bind(normal_ir_body);
   }
 }
@@ -1317,8 +1316,7 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ vcvtdi(D1, S2);
   __ vcmpd(D0, D1);
   __ vmstat();
-  __ bx(LR, EQ);
-
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, EQ));
   // Convert the double bits to a hash code that fits in a Smi.
   __ Bind(&double_hash);
   __ ldr(R0, FieldAddress(R1, target::Double::value_offset()));
@@ -1579,8 +1577,7 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ ldr(R0, FieldAddress(R0, target::String::hash_offset()));
   __ cmp(R0, Operand(0));
-  __ bx(LR, NE);
-  // Hash not yet computed.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));  // Hash not yet computed.
   __ Bind(normal_ir_body);
 }
 
@@ -1589,8 +1586,7 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ ldr(R0, FieldAddress(R0, target::Type::hash_offset()));
   __ cmp(R0, Operand(0));
-  __ bx(LR, NE);
-  // Hash not yet computed.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));  // Hash not yet computed.
   __ Bind(normal_ir_body);
 }
 
@@ -1831,7 +1827,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ldr(R1, Address(SP, 0 * target::kWordSize));
   __ ldr(R0, FieldAddress(R1, target::String::hash_offset()));
   __ cmp(R0, Operand(0));
-  __ bx(LR, NE);  // Return if already computed.
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, NE));  // Return if already computed.
 
   __ ldr(R2, FieldAddress(R1, target::String::length_offset()));
 

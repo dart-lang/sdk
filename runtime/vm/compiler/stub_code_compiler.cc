@@ -118,6 +118,11 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   __ Ret();
 
   if (is_final) {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    // We are jumping over LeaveStubFrame so restore LR state to match one
+    // at the jump point.
+    __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     __ Bind(&throw_exception);
     __ PushObject(NullObject());  // Make room for (unused) result.
     __ PushRegister(kFieldReg);

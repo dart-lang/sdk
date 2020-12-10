@@ -449,7 +449,7 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
   InstructionPattern::DecodeLoadDoubleWordFromPool(
       pc - Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
   ASSERT(ic_data_reg == R5);
-  ASSERT(code_reg == LR);
+  ASSERT(code_reg == LINK_REGISTER);
 
   data_pool_index_ = pool_index;
   target_pool_index_ = pool_index + 1;
@@ -479,7 +479,7 @@ ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}
 
 bool ReturnPattern::IsValid() const {
   Instr* bx_lr = Instr::At(pc_);
-  const Register crn = ConcreteRegister(LR);
+  const Register crn = ConcreteRegister(LINK_REGISTER);
   const int32_t instruction = RET | (static_cast<int32_t>(crn) << kRnShift);
   return bx_lr->InstructionBits() == instruction;
 }

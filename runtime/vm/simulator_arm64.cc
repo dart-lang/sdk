@@ -22,6 +22,11 @@
 
 namespace dart {
 
+// constants_arm64.h does not define LR constant to prevent accidental direct
+// use of it during code generation. However using LR directly is okay in this
+// file because it is a simulator.
+constexpr Register LR = LR_DO_NOT_USE_DIRECTLY;
+
 DEFINE_FLAG(uint64_t,
             trace_sim_after,
             ULLONG_MAX,
