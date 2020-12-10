@@ -445,12 +445,12 @@ class CallingConventions {
 
   COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
 
-  static constexpr Register kFirstCalleeSavedCpuReg = RBX;
+  static constexpr Register kFfiAnyNonAbiRegister = RBX;
   static constexpr Register kFirstNonArgumentRegister = RAX;
   static constexpr Register kSecondNonArgumentRegister = RBX;
   static constexpr Register kStackPointerRegister = SPREG;
 
-  COMPILE_ASSERT(((R(kFirstCalleeSavedCpuReg)) & kCalleeSaveCpuRegisters) != 0);
+  COMPILE_ASSERT(((R(kFfiAnyNonAbiRegister)) & kCalleeSaveCpuRegisters) != 0);
 
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &

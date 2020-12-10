@@ -1227,12 +1227,6 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PopNativeCalleeSavedRegisters();
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
   // Leave the entry frame.
   __ LeaveFrame();
 
@@ -1273,12 +1267,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save a space for the code object.
   __ PushImmediate(0);
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
   __ PushNativeCalleeSavedRegisters();
 
   // Load the thread object. If we were called by a trampoline, the thread is
@@ -1309,6 +1297,14 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Now that we have THR, we can set CSP.
   __ SetupCSPFromThread(THR);
+
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18,
+         compiler::Address(
+             THR, compiler::target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Refresh pinned registers values (inc. write barrier mask and null object).
   __ RestorePinnedRegisters();

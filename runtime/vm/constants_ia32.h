@@ -272,7 +272,7 @@ class CallingConventions {
   // NativeReturnInstr::EmitNativeCode.
   static constexpr XmmRegister kReturnFpuReg = XMM0;
 
-  static constexpr Register kFirstCalleeSavedCpuReg = EBX;
+  static constexpr Register kFfiAnyNonAbiRegister = EBX;
   static constexpr Register kFirstNonArgumentRegister = EAX;
   static constexpr Register kSecondNonArgumentRegister = ECX;
   static constexpr Register kStackPointerRegister = SPREG;

@@ -3973,7 +3973,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// name.
   void pushQualifiedReference(Token start, Token periodBeforeName) {
     assert(checkState(start, [
-      /*suffix*/ if (periodBeforeName != null) ValueKinds.Identifier,
+      /*suffix*/ if (periodBeforeName != null)
+        unionOfKinds([ValueKinds.Identifier, ValueKinds.ParserRecovery]),
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*type*/ unionOfKinds([
         ValueKinds.Generator,
@@ -3982,7 +3983,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ValueKinds.ParserRecovery
       ])
     ]));
-    Identifier suffix = popIfNotNull(periodBeforeName);
+    Object suffixObject = popIfNotNull(periodBeforeName);
+    Identifier suffix;
+    if (suffixObject is Identifier) {
+      suffix = suffixObject;
+    } else {
+      assert(
+          suffixObject == null || suffixObject is ParserRecovery,
+          "Unexpected qualified name suffix $suffixObject "
+          "(${suffixObject.runtimeType})");
+      // There was a `.` without a suffix.
+    }
+
     Identifier identifier;
     List<UnresolvedType> typeArguments = pop();
     Object type = pop();

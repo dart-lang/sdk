@@ -97,6 +97,19 @@ class A {
 ''');
   }
 
+  Future<void> test_indexExpression() async {
+    await resolveTestCode('''
+void f (List<String>? args) {
+  print(args[0]);
+}
+''');
+    await assertHasFix('''
+void f (List<String>? args) {
+  print(args![0]);
+}
+''');
+  }
+
   Future<void> test_initializer() async {
     await resolveTestCode('''
 void f(int? x) {

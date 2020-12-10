@@ -6213,7 +6213,7 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
   // The temporary register needs to be callee-saved and not an argument
   // register.
-  ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
+  ASSERT(((1 << CallingConventions::kFfiAnyNonAbiRegister) &
           CallingConventions::kArgumentRegisters) == 0);
 
   constexpr intptr_t kNumTemps = 2;
@@ -6227,8 +6227,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                       CallingConventions::kFirstNonArgumentRegister));
   summary->set_temp(0, Location::RegisterLocation(
                            CallingConventions::kSecondNonArgumentRegister));
-  summary->set_temp(1, Location::RegisterLocation(
-                           CallingConventions::kFirstCalleeSavedCpuReg));
+  summary->set_temp(
+      1, Location::RegisterLocation(CallingConventions::kFfiAnyNonAbiRegister));
   summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
 
   for (intptr_t i = 0, n = marshaller_.num_args(); i < n; ++i) {

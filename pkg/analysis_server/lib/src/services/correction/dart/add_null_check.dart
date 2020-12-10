@@ -41,6 +41,8 @@ class AddNullCheck extends CorrectionProducer {
       toType = parent.declaredElement.type;
     } else if (parent is ArgumentList) {
       toType = target.staticParameterElement.type;
+    } else if (parent is IndexExpression) {
+      toType = parent.realTarget.staticType;
     } else {
       return;
     }
