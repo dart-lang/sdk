@@ -240,18 +240,13 @@ class LazyJSType extends DartType {
   Object rawJSTypeForCheck() => _getRawJSType() ?? jsobject;
 
   @notNull
-  bool isRawJSType(obj) {
-    var raw = _getRawJSType();
-    if (raw != null) return JS('!', '# instanceof #', obj, raw);
-    return _isJsObject(obj);
-  }
-
-  @notNull
   @JSExportName('is')
-  bool is_T(obj) => isRawJSType(obj) || instanceOf(obj, this);
+  bool is_T(obj) =>
+      obj != null &&
+      (_isJsObject(obj) || isSubtypeOf(getReifiedType(obj), this));
 
   @JSExportName('as')
-  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this);
+  as_T(obj) => is_T(obj) ? obj : castError(obj, this);
 }
 
 /// An anonymous JS type
@@ -263,10 +258,12 @@ class AnonymousJSType extends DartType {
   toString() => _dartName;
 
   @JSExportName('is')
-  bool is_T(obj) => _isJsObject(obj) || instanceOf(obj, this);
+  bool is_T(obj) =>
+      obj != null &&
+      (_isJsObject(obj) || isSubtypeOf(getReifiedType(obj), this));
 
   @JSExportName('as')
-  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this);
+  as_T(obj) => is_T(obj) ? obj : castError(obj, this);
 }
 
 void _warn(arg) {
