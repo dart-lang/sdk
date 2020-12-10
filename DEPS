@@ -82,7 +82,7 @@ vars = {
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "e4bb038ce2d8e66fb15818aa40685c68d53692ab",
   "convert_rev": "6513985a1b1ea8a0b987fbef699250ce2cdc3cca",
-  "crypto_rev": "a5ec902dda5a635a35c6b363ec64458cf84c5872",
+  "crypto_rev": "c89a5be0375875fe7ff71625fa2b79f5a421f06d",
   "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
   "dart2js_info_rev" : "e0acfeb5affdf94c53067e68bd836adf589628fd",
 
