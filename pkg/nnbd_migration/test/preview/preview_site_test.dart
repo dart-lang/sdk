@@ -145,10 +145,22 @@ void main(List args) {
         equals('// @dart=2.9\n\n  \n  \n'));
   }
 
+  void test_optOutOfNullSafety_blankLines_windows() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('  \r\n  \r\n'),
+        equals('// @dart=2.9\r\n\r\n  \r\n  \r\n'));
+  }
+
   void test_optOutOfNullSafety_commentThenCode() {
     expect(
         IncrementalPlan.optCodeOutOfNullSafety('// comment\n\nvoid main() {}'),
         equals('// comment\n\n\n// @dart=2.9\n\nvoid main() {}'));
+  }
+
+  void test_optOutOfNullSafety_commentThenCode_windows() {
+    expect(
+        IncrementalPlan.optCodeOutOfNullSafety(
+            '// comment\r\n\r\nvoid main() {}'),
+        equals('// comment\r\n\r\n\r\n// @dart=2.9\r\n\r\nvoid main() {}'));
   }
 
   void test_optOutOfNullSafety_empty() {
@@ -183,6 +195,11 @@ void main(List args) {
   void test_optOutOfNullSafety_singleLine_afterBlankLines() {
     expect(IncrementalPlan.optCodeOutOfNullSafety('\n\nvoid main() {}'),
         equals('// @dart=2.9\n\n\n\nvoid main() {}'));
+  }
+
+  void test_optOutOfNullSafety_singleLine_windows() {
+    expect(IncrementalPlan.optCodeOutOfNullSafety('void main() {}\r\n'),
+        equals('// @dart=2.9\r\n\r\nvoid main() {}\r\n'));
   }
 
   void test_performEdit() {
@@ -373,39 +390,6 @@ void main() {}''';
     expect(getFile(path).readAsStringSync(), '// @dart=2.9');
   }
 
-  void test_applyMigration_optOutOne_migrateAnother() async {
-    final pathA = convertPath('$projectPath/lib/a.dart');
-    final pathB = convertPath('$projectPath/lib/b.dart');
-    final content = 'void main() {}';
-    await setUpMigrationInfo({pathA: content, pathB: content});
-    site.unitInfoMap[pathA] = UnitInfo(pathA)
-      ..diskContent = content
-      ..wasExplicitlyOptedOut = false;
-    site.unitInfoMap[pathB] = UnitInfo(pathB)
-      ..diskContent = content
-      ..wasExplicitlyOptedOut = false;
-    dartfixListener.addSourceFileEdit(
-        'test change',
-        Location(pathA, 10, 0, 1, 10),
-        SourceFileEdit(pathA, 0, edits: [SourceEdit(10, 0, 'List args')]));
-    dartfixListener.addSourceFileEdit(
-        'test change',
-        Location(pathB, 10, 0, 1, 10),
-        SourceFileEdit(pathB, 0, edits: [SourceEdit(10, 0, 'List args')]));
-    var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
-    var libDir = navigationTree.single as NavigationTreeDirectoryNode;
-    (libDir.subtree[0] as NavigationTreeFileNode).migrationStatus =
-        UnitMigrationStatus.optingOut;
-    site.performApply(navigationTree);
-    expect(getFile(pathA).readAsStringSync(), '''
-// @dart=2.9
-
-void main() {}''');
-    expect(getFile(pathB).readAsStringSync(), '''
-void main(List args) {}''');
-  }
-
   void test_applyMigration_optOutFileWithEdits() async {
     final path = convertPath('$projectPath/lib/a.dart');
     final content = 'void main() {}';
@@ -446,6 +430,39 @@ void main() {}''');
 // @dart=2.9
 
 void main() {}''');
+  }
+
+  void test_applyMigration_optOutOne_migrateAnother() async {
+    final pathA = convertPath('$projectPath/lib/a.dart');
+    final pathB = convertPath('$projectPath/lib/b.dart');
+    final content = 'void main() {}';
+    await setUpMigrationInfo({pathA: content, pathB: content});
+    site.unitInfoMap[pathA] = UnitInfo(pathA)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false;
+    site.unitInfoMap[pathB] = UnitInfo(pathB)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false;
+    dartfixListener.addSourceFileEdit(
+        'test change',
+        Location(pathA, 10, 0, 1, 10),
+        SourceFileEdit(pathA, 0, edits: [SourceEdit(10, 0, 'List args')]));
+    dartfixListener.addSourceFileEdit(
+        'test change',
+        Location(pathB, 10, 0, 1, 10),
+        SourceFileEdit(pathB, 0, edits: [SourceEdit(10, 0, 'List args')]));
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    var libDir = navigationTree.single as NavigationTreeDirectoryNode;
+    (libDir.subtree[0] as NavigationTreeFileNode).migrationStatus =
+        UnitMigrationStatus.optingOut;
+    site.performApply(navigationTree);
+    expect(getFile(pathA).readAsStringSync(), '''
+// @dart=2.9
+
+void main() {}''');
+    expect(getFile(pathB).readAsStringSync(), '''
+void main(List args) {}''');
   }
 
   void test_applyMigration_optOutPreviouslyOptedOutFile() async {
