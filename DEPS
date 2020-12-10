@@ -565,7 +565,7 @@ deps = {
     "packages": [
       {
       "package": "fuchsia/sdk/gn/linux-amd64",
-      "version": "git_revision:8d5242d4f6ff8b7634b492700e60b0fd09abefa3"
+      "version": "git_revision:e0a61431eb6e28d31d293cbb0c12f6b3a089bba4"
       }
     ],
     "condition": 'host_os == "linux" and host_cpu == "x64"',
