@@ -230,8 +230,6 @@ class ScoreCard {
     return collector.lintNames;
   }
 
-  // todo (pq): remove when fixed: https://github.com/dart-lang/linter/issues/2330
-  // ignore: prefer_constructors_over_static_methods
   static Future<List<Issue>> _getIssues() async {
     var github = GitHub();
     var slug = RepositorySlug('dart-lang', 'linter');
