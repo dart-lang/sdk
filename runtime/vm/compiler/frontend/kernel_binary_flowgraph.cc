@@ -4886,86 +4886,100 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   // function and token position.
   Function& function = Function::ZoneHandle(Z);
 
-  // NOTE: This is not TokenPosition in the general sense!
-  function = I->LookupClosureFunction(parsed_function()->function(), position);
+  {
+    SafepointReadRwLocker ml(thread(),
+                             thread()->isolate_group()->program_lock());
+    // NOTE: This is not TokenPosition in the general sense!
+    function =
+        I->LookupClosureFunction(parsed_function()->function(), position);
+  }
+
   if (function.IsNull()) {
-    for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
-      if (scopes()->function_scopes[i].kernel_offset != offset) {
-        continue;
-      }
-
-      const String* name;
-      if (declaration) {
-        name = &H.DartSymbolObfuscate(name_index);
-      } else {
-        name = &Symbols::AnonymousClosure();
-      }
-      // NOTE: This is not TokenPosition in the general sense!
-      if (!closure_owner_.IsNull()) {
-        function = Function::NewClosureFunctionWithKind(
-            FunctionLayout::kClosureFunction, *name,
-            parsed_function()->function(), position, closure_owner_);
-      } else {
-        function = Function::NewClosureFunction(
-            *name, parsed_function()->function(), position);
-      }
-
-      function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                                 FunctionNodeHelper::kSync);
-      switch (function_node_helper.dart_async_marker_) {
-        case FunctionNodeHelper::kSyncStar:
-          function.set_modifier(FunctionLayout::kSyncGen);
-          break;
-        case FunctionNodeHelper::kAsync:
-          function.set_modifier(FunctionLayout::kAsync);
-          function.set_is_inlinable(!FLAG_causal_async_stacks);
-          break;
-        case FunctionNodeHelper::kAsyncStar:
-          function.set_modifier(FunctionLayout::kAsyncGen);
-          function.set_is_inlinable(!FLAG_causal_async_stacks);
-          break;
-        default:
-          // no special modifier
-          break;
-      }
-      function.set_is_generated_body(function_node_helper.async_marker_ ==
-                                     FunctionNodeHelper::kSyncYielding);
-      // sync* functions contain two nested synthetic functions, the first of
-      // which (sync_op_gen) is a regular sync function so we need to manually
-      // label it generated:
-      if (function.parent_function() != Function::null()) {
-        const auto& parent = Function::Handle(function.parent_function());
-        if (parent.IsSyncGenerator()) {
-          function.set_is_generated_body(true);
+    SafepointWriteRwLocker ml(thread(),
+                              thread()->isolate_group()->program_lock());
+    // NOTE: This is not TokenPosition in the general sense!
+    function =
+        I->LookupClosureFunction(parsed_function()->function(), position);
+    if (function.IsNull()) {
+      for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
+        if (scopes()->function_scopes[i].kernel_offset != offset) {
+          continue;
         }
+
+        const String* name;
+        if (declaration) {
+          name = &H.DartSymbolObfuscate(name_index);
+        } else {
+          name = &Symbols::AnonymousClosure();
+        }
+        // NOTE: This is not TokenPosition in the general sense!
+        if (!closure_owner_.IsNull()) {
+          function = Function::NewClosureFunctionWithKind(
+              FunctionLayout::kClosureFunction, *name,
+              parsed_function()->function(), position, closure_owner_);
+        } else {
+          function = Function::NewClosureFunction(
+              *name, parsed_function()->function(), position);
+        }
+
+        function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                                   FunctionNodeHelper::kSync);
+        switch (function_node_helper.dart_async_marker_) {
+          case FunctionNodeHelper::kSyncStar:
+            function.set_modifier(FunctionLayout::kSyncGen);
+            break;
+          case FunctionNodeHelper::kAsync:
+            function.set_modifier(FunctionLayout::kAsync);
+            function.set_is_inlinable(!FLAG_causal_async_stacks);
+            break;
+          case FunctionNodeHelper::kAsyncStar:
+            function.set_modifier(FunctionLayout::kAsyncGen);
+            function.set_is_inlinable(!FLAG_causal_async_stacks);
+            break;
+          default:
+            // no special modifier
+            break;
+        }
+        function.set_is_generated_body(function_node_helper.async_marker_ ==
+                                       FunctionNodeHelper::kSyncYielding);
+        // sync* functions contain two nested synthetic functions, the first of
+        // which (sync_op_gen) is a regular sync function so we need to manually
+        // label it generated:
+        if (function.parent_function() != Function::null()) {
+          const auto& parent = Function::Handle(function.parent_function());
+          if (parent.IsSyncGenerator()) {
+            function.set_is_generated_body(true);
+          }
+        }
+        // Note: Is..() methods use the modifiers set above, so order matters.
+        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+          function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                    !FLAG_lazy_async_stacks);
+        }
+
+        function.set_end_token_pos(function_node_helper.end_position_);
+        LocalScope* scope = scopes()->function_scopes[i].scope;
+        const ContextScope& context_scope = ContextScope::Handle(
+            Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
+        function.set_context_scope(context_scope);
+        function.set_kernel_offset(offset);
+        type_translator_.SetupFunctionParameters(Class::Handle(Z), function,
+                                                 false,  // is_method
+                                                 true,   // is_closure
+                                                 &function_node_helper);
+        // type_translator_.SetupUnboxingInfoMetadata is not called here at the
+        // moment because closures do not have unboxed parameters and return
+        // value
+        function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
+
+        // Finalize function type.
+        Type& signature_type = Type::Handle(Z, function.SignatureType());
+        signature_type ^= ClassFinalizer::FinalizeType(signature_type);
+        function.SetSignatureType(signature_type);
+
+        I->AddClosureFunction(function);
+        break;
       }
-      // Note: Is..() methods use the modifiers set above, so order matters.
-      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                  !FLAG_lazy_async_stacks);
-      }
-
-      function.set_end_token_pos(function_node_helper.end_position_);
-      LocalScope* scope = scopes()->function_scopes[i].scope;
-      const ContextScope& context_scope = ContextScope::Handle(
-          Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
-      function.set_context_scope(context_scope);
-      function.set_kernel_offset(offset);
-      type_translator_.SetupFunctionParameters(Class::Handle(Z), function,
-                                               false,  // is_method
-                                               true,   // is_closure
-                                               &function_node_helper);
-      // type_translator_.SetupUnboxingInfoMetadata is not called here at the
-      // moment because closures do not have unboxed parameters and return value
-      function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
-
-      // Finalize function type.
-      Type& signature_type = Type::Handle(Z, function.SignatureType());
-      signature_type ^= ClassFinalizer::FinalizeType(signature_type);
-      function.SetSignatureType(signature_type);
-
-      I->AddClosureFunction(function);
-      break;
     }
   }
 
