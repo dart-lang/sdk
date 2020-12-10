@@ -532,7 +532,7 @@ class CallingConventions {
   // We choose these to avoid overlap between themselves and reserved registers.
   static constexpr Register kFirstNonArgumentRegister = R8;
   static constexpr Register kSecondNonArgumentRegister = R9;
-  static constexpr Register kFirstCalleeSavedCpuReg = R4;
+  static constexpr Register kFfiAnyNonAbiRegister = R4;
   static constexpr Register kStackPointerRegister = SPREG;
 
   COMPILE_ASSERT(

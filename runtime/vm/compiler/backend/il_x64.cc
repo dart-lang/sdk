@@ -375,9 +375,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(kCalleeSaveRegistersSet);
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
+#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1131,9 +1129,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NativeReturnInstr::EmitNativeCode.
   __ EnterFrame(0);
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
+#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 

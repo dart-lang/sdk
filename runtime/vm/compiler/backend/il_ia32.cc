@@ -331,9 +331,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(ESI);
   __ popl(EBX);
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
+#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1068,9 +1066,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorl(EAX, EAX);
   __ pushl(EAX);
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
+#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
