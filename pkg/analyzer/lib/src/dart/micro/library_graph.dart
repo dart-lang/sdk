@@ -177,8 +177,6 @@ class FileState {
   }
 
   CompilationUnit parse(AnalysisErrorListener errorListener, String content) {
-    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
@@ -190,7 +188,6 @@ class FileState {
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    bool useFasta = analysisOptions.useFastaParser;
     // Pass the feature set from the scanner to the parser
     // because the scanner may have detected a language version comment
     // and downgraded the feature set it holds.
@@ -198,7 +195,6 @@ class FileState {
       source,
       errorListener,
       featureSet: scanner.featureSet,
-      useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
@@ -460,7 +456,6 @@ class FileSystemState {
   final CiderByteStore _byteStore;
   final SourceFactory _sourceFactory;
   final Workspace _workspace;
-  final AnalysisOptions _analysisOptions;
   final Uint32List _linkedSalt;
 
   /// A function that returns the digest for a file as a String. The function
@@ -486,7 +481,8 @@ class FileSystemState {
     this._byteStore,
     this._sourceFactory,
     this._workspace,
-    this._analysisOptions,
+    @Deprecated('No longer used; will be removed')
+        AnalysisOptions analysisOptions,
     this._linkedSalt,
     this.featureSetProvider,
     this.getFileDigest,

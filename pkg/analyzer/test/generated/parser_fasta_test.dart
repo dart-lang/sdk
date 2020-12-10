@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
-import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
-    show ErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration, ScannerResult, scanString;
@@ -17,11 +15,9 @@ import 'package:analyzer/dart/ast/token.dart'
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
-import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:pub_semver/src/version.dart';
@@ -29,12 +25,13 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
-import 'parser_fasta_listener.dart';
 import 'parser_test.dart';
 import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    // TODO(srawlins): Move each of these test classes into [parser_test.dart];
+    // merge with mixins, as each mixin is only used once now; remove this file.
     defineReflectiveTests(ClassMemberParserTest_Fasta);
     defineReflectiveTests(ExtensionMethodsParserTest_Fasta);
     defineReflectiveTests(CollectionLiteralParserTest);
@@ -1190,7 +1187,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/// Tests of the fasta parser based on [ErrorParserTest].
 @reflectiveTest
 class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
@@ -1905,13 +1901,10 @@ class FastaParserTestCase
   }
 
   @override
-  GatheringErrorListener get listener => _parserProxy._errorListener;
+  GatheringErrorListener get listener => _parserProxy.errorListener;
 
   @override
-  analyzer.Parser get parser => _parserProxy;
-
-  @override
-  bool get usingFastaParser => true;
+  ParserProxy get parser => _parserProxy;
 
   void assertErrors({List<ErrorCode> codes, List<ExpectedError> errors}) {
     if (codes != null) {
@@ -1927,13 +1920,13 @@ class FastaParserTestCase
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    _parserProxy._errorListener.assertErrorsWithCodes(
+    _parserProxy.errorListener.assertErrorsWithCodes(
         _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
   }
 
   @override
   void assertNoErrors() {
-    _parserProxy._errorListener.assertNoErrors();
+    _parserProxy.errorListener.assertNoErrors();
   }
 
   @override
@@ -3505,214 +3498,6 @@ class Foo {
     parseCompilationUnit('int? x;',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 3, 1)],
         featureSet: preNonNullable);
-  }
-}
-
-/// Proxy implementation of the analyzer parser, implemented in terms of the
-/// Fasta parser.
-///
-/// This allows many of the analyzer parser tests to be run on Fasta, even if
-/// they call into the analyzer parser class directly.
-class ParserProxy extends analyzer.ParserAdapter {
-  /// The error listener to which scanner and parser errors will be reported.
-  final GatheringErrorListener _errorListener;
-
-  ForwardingTestListener _eventListener;
-
-  final int expectedEndOffset;
-
-  /// Creates a [ParserProxy] which is prepared to begin parsing at the given
-  /// Fasta token.
-  factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
-      {bool allowNativeClause = false, int expectedEndOffset}) {
-    TestSource source = TestSource();
-    var errorListener = GatheringErrorListener(checkRanges: true);
-    var errorReporter = ErrorReporter(
-      errorListener,
-      source,
-      isNonNullableByDefault: false,
-    );
-    return ParserProxy._(
-        firstToken, errorReporter, null, errorListener, featureSet,
-        allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset);
-  }
-
-  ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
-      Uri fileUri, this._errorListener, FeatureSet featureSet,
-      {bool allowNativeClause = false, this.expectedEndOffset})
-      : super(firstToken, errorReporter, fileUri, featureSet,
-            allowNativeClause: allowNativeClause) {
-    _eventListener = ForwardingTestListener(astBuilder);
-    fastaParser.listener = _eventListener;
-  }
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  Annotation parseAnnotation() {
-    return _run('MetadataStar', () => super.parseAnnotation());
-  }
-
-  @override
-  ArgumentList parseArgumentList() {
-    return _run('unspecified', () => super.parseArgumentList());
-  }
-
-  @override
-  ClassMember parseClassMember(String className) {
-    return _run('ClassOrMixinBody', () => super.parseClassMember(className));
-  }
-
-  @override
-  List<Combinator> parseCombinators() {
-    return _run('Import', () => super.parseCombinators());
-  }
-
-  @override
-  List<CommentReference> parseCommentReferences(
-      List<DocumentationCommentToken> tokens) {
-    for (int index = 0; index < tokens.length - 1; ++index) {
-      analyzer.Token next = tokens[index].next;
-      if (next == null) {
-        tokens[index].setNext(tokens[index + 1]);
-      } else {
-        expect(next, tokens[index + 1]);
-      }
-    }
-    expect(tokens[tokens.length - 1].next, isNull);
-    List<CommentReference> references =
-        astBuilder.parseCommentReferences(tokens.first);
-    if (astBuilder.stack.isNotEmpty) {
-      throw 'Expected empty stack, but found:'
-          '\n  ${astBuilder.stack.values.join('\n  ')}';
-    }
-    return references;
-  }
-
-  @override
-  CompilationUnit parseCompilationUnit2() {
-    CompilationUnit result = super.parseCompilationUnit2();
-    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
-    expect(astBuilder.stack, hasLength(0));
-    _eventListener.expectEmpty();
-    return result;
-  }
-
-  @override
-  Configuration parseConfiguration() {
-    return _run('ConditionalUris', () => super.parseConfiguration());
-  }
-
-  @override
-  DottedName parseDottedName() {
-    return _run('unspecified', () => super.parseDottedName());
-  }
-
-  @override
-  Expression parseExpression2() {
-    return _run('unspecified', () => super.parseExpression2());
-  }
-
-  @override
-  FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
-    return _run('unspecified',
-        () => super.parseFormalParameterList(inFunctionType: inFunctionType));
-  }
-
-  @override
-  FunctionBody parseFunctionBody(
-      bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
-    Token lastToken;
-    FunctionBody body = _run('unspecified', () {
-      FunctionBody body =
-          super.parseFunctionBody(mayBeEmpty, emptyErrorCode, inExpression);
-      lastToken = currentToken;
-      currentToken = currentToken.next;
-      return body;
-    });
-    if (!inExpression) {
-      if (![';', '}'].contains(lastToken.lexeme)) {
-        fail('Expected ";" or "}", but found: ${lastToken.lexeme}');
-      }
-    }
-    return body;
-  }
-
-  @override
-  Expression parsePrimaryExpression() {
-    return _run('unspecified', () => super.parsePrimaryExpression());
-  }
-
-  @override
-  Statement parseStatement(Token token) {
-    return _run('unspecified', () => super.parseStatement(token));
-  }
-
-  @override
-  Statement parseStatement2() {
-    return _run('unspecified', () => super.parseStatement2());
-  }
-
-  @override
-  AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
-    return _run(
-        'CompilationUnit', () => super.parseTopLevelDeclaration(isDirective));
-  }
-
-  @override
-  TypeAnnotation parseTypeAnnotation(bool inExpression) {
-    return _run('unspecified', () => super.parseTypeAnnotation(inExpression));
-  }
-
-  @override
-  TypeArgumentList parseTypeArgumentList() {
-    return _run('unspecified', () => super.parseTypeArgumentList());
-  }
-
-  @override
-  TypeName parseTypeName(bool inExpression) {
-    return _run('unspecified', () => super.parseTypeName(inExpression));
-  }
-
-  @override
-  TypeParameter parseTypeParameter() {
-    return _run('unspecified', () => super.parseTypeParameter());
-  }
-
-  @override
-  TypeParameterList parseTypeParameterList() {
-    return _run('unspecified', () => super.parseTypeParameterList());
-  }
-
-  /// Runs the specified function and returns the result. It checks the
-  /// enclosing listener events, that the parse consumed all of the tokens, and
-  /// that the result stack is empty.
-  _run(String enclosingEvent, Function() f) {
-    _eventListener.begin(enclosingEvent);
-
-    // Simulate error handling of parseUnit by skipping error tokens
-    // before parsing and reporting them after parsing is complete.
-    Token errorToken = currentToken;
-    currentToken = fastaParser.skipErrorTokens(currentToken);
-    var result = f();
-    fastaParser.reportAllErrorTokens(errorToken);
-
-    _eventListener.end(enclosingEvent);
-
-    String lexeme = currentToken is ErrorToken
-        ? currentToken.runtimeType.toString()
-        : currentToken.lexeme;
-    if (expectedEndOffset == null) {
-      expect(currentToken.isEof, isTrue, reason: lexeme);
-    } else {
-      expect(currentToken.offset, expectedEndOffset, reason: lexeme);
-    }
-    expect(astBuilder.stack, hasLength(0));
-    expect(astBuilder.directives, hasLength(0));
-    expect(astBuilder.declarations, hasLength(0));
-    return result;
   }
 }
 

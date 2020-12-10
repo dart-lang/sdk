@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -96,7 +95,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   /// where there is no `new` or `const` keyword.
   bool get suggestConstructorsWithoutNew => true;
 
-  bool get usingFastaParser => analyzer.Parser.useFasta;
+  bool get usingFastaParser => true;
 
   void addTestSource(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');

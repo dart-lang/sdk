@@ -592,7 +592,6 @@ class FileState {
   }
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
-    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
     if (source == null) {
       return _createEmptyCompilationUnit();
     }
@@ -608,12 +607,10 @@ class FileState {
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    bool useFasta = analysisOptions.useFastaParser;
     Parser parser = Parser(
       source,
       errorListener,
       featureSet: scanner.featureSet,
-      useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
 
@@ -755,7 +752,6 @@ class FileSystemState {
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final Workspace _workspace;
-  final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final Uint32List _saltForUnlinked;
   final Uint32List _saltForElements;
@@ -820,7 +816,8 @@ class FileSystemState {
     this.contextName,
     this._sourceFactory,
     this._workspace,
-    this._analysisOptions,
+    @Deprecated('No longer used; will be removed')
+        AnalysisOptions analysisOptions,
     this._declaredVariables,
     this._saltForUnlinked,
     this._saltForElements,

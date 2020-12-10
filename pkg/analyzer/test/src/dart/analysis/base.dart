@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -125,7 +124,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..useFastaParser = analyzer.Parser.useFasta
+    ..useFastaParser = true
     ..contextFeatures = FeatureSet.fromEnableFlags2(
       sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
       flags: enabledExperiments,
