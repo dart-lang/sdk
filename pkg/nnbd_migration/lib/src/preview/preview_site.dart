@@ -133,6 +133,7 @@ class IncrementalPlan {
 
   @visibleForTesting
   static String optCodeOutOfNullSafety(String code) {
+    var newline = '\n';
     var length = code.length;
 
     if (length == 0) {
@@ -156,12 +157,19 @@ class IncrementalPlan {
 
     // Skip past blank lines.
     var line = getLine();
+    if (code.codeUnitAt(index - 1) == $lf) {
+      if (index - 2 >= 0 && code.codeUnitAt(index - 2) == $cr) {
+        // Looks like Windows-style line endings ("\r\n"). Use "\r\n" for all
+        // inserted line endings.
+        newline = '\r\n';
+      }
+    }
     var lineStart = line.indexOf(_nonWhitespaceChar);
     while (lineStart < 0) {
       line = getLine();
       if (index == length) {
         // [code] consists _only_ of blank lines.
-        return '// @dart=2.9\n\n$code';
+        return '// @dart=2.9$newline$newline$code';
       }
       lineStart = line.indexOf(_nonWhitespaceChar);
     }
@@ -173,7 +181,7 @@ class IncrementalPlan {
       // Comment.
       if (index == length) {
         // [code] consists _only_ of one comment line.
-        return '$code\n\n// @dart=2.9\n';
+        return '$code$newline$newline// @dart=2.9$newline';
       }
       line = getLine();
       lineStart = line.indexOf(_nonWhitespaceChar);
@@ -185,17 +193,17 @@ class IncrementalPlan {
         line = getLine();
         if (index == length) {
           // [code] consists _only_ of this block comment.
-          return '$code\n\n// @dart=2.9\n';
+          return '$code$newline$newline// @dart=2.9$newline';
         }
         lineStart = line.indexOf(_nonWhitespaceChar);
       }
       // [index] points to the start of [line], which is the first
       // non-comment line following the first comment.
-      return '${code.substring(0, index)}\n// @dart=2.9\n\n'
+      return '${code.substring(0, index)}$newline// @dart=2.9$newline$newline'
           '${code.substring(index)}';
     } else {
       // [code] does not start with a block comment.
-      return '// @dart=2.9\n\n$code';
+      return '// @dart=2.9$newline$newline$code';
     }
   }
 }

@@ -136,12 +136,21 @@ void main() {
   expect(() => (a as DartClass), throws);
 
   // Test that nullability is still respected with JS types.
+  expect(foo is Foo?, isTrue);
+  expect(() => (foo as Foo?), returnsNormally);
   Foo? nullableFoo = null;
-  expect(nullableFoo is Foo, false);
+  expect(nullableFoo is Foo?, isTrue);
+  expect(() => (nullableFoo as Foo?), returnsNormally);
+  expect(nullableFoo is Foo, isFalse);
   expect(() => (nullableFoo as Foo),
       hasUnsoundNullSafety ? returnsNormally : throws);
+
+  expect(a is LiteralA?, isTrue);
+  expect(() => (a as LiteralA?), returnsNormally);
   LiteralA? nullableA = null;
-  expect(nullableA is LiteralA, false);
+  expect(nullableA is LiteralA?, isTrue);
+  expect(() => (nullableA as LiteralA?), returnsNormally);
+  expect(nullableA is LiteralA, isFalse);
   expect(() => (nullableA as LiteralA),
       hasUnsoundNullSafety ? returnsNormally : throws);
 }
