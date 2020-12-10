@@ -814,6 +814,9 @@ class FixProcessor extends BaseProcessor {
       CreateClass.newInstance,
       CreateMixin.newInstance,
     ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
       ChangeTo.annotation,
       CreateClass.newInstance,
