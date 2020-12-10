@@ -14,6 +14,16 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 ### Core libraries
 
+#### `dart:collection`
+
+* Added `UnmodifiableSetView` class, which allows users to guarantee that
+  methods that could change underlying `Set` instance can not be invoked.
+
+#### `dart:core`
+
+* Added `unmodifiable` constructor to class `Set`, which allows users to create
+  unmodifiable `Set` instances.
+
 #### `dart:io`
 
 * `HttpRequest` will now correctly follow HTTP 308 redirects

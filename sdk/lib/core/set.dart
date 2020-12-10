@@ -91,6 +91,15 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
 
   /**
+   * Creates an unmodifiable [Set] from [elements].
+   *
+   * The new set behaves like the result of [Set.of],
+   * except that the set returned by this constructor is not modifiable.
+   */
+  factory Set.unmodifiable(Iterable<E> elements) =>
+      UnmodifiableSetView<E>(<E>{...elements});
+
+  /**
    * Adapts [source] to be a `Set<T>`.
    *
    * If [newSet] is provided, it is used to create the new sets returned
