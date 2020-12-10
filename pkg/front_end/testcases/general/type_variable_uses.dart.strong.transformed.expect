@@ -116,3 +116,9 @@ constants  {
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///type_variable_uses.dart:8:11 -> TypeLiteralConstant(<invalid>)
 Extra constant evaluation: evaluated: 4, effectively constant: 1
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///type_variable_uses.dart:
+- C. (from org-dartlang-testcase:///type_variable_uses.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

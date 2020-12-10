@@ -37,3 +37,8 @@ static method main() → dynamic {}
 constants  {
   #C1 = ffi::Double {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_sample.dart:
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:116:9)

@@ -99,3 +99,12 @@ constants  {
   #C6 = 123
   #C7 = self::D {foo:#C6}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///switch_redesign_types.dart:
+- D. (from org-dartlang-testcase:///switch_redesign_types.dart:23:9)
+- B. (from org-dartlang-testcase:///switch_redesign_types.dart:15:9)
+- A. (from org-dartlang-testcase:///switch_redesign_types.dart:11:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- C. (from org-dartlang-testcase:///switch_redesign_types.dart:19:9)

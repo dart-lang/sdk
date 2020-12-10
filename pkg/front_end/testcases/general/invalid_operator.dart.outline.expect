@@ -564,9 +564,9 @@ library;
 // Try adding explicit types.
 //   operator ==<T>(a) => true;
 //            ^^
-// sdk/lib/core/object.dart:18:15: Context: This is one of the overridden members.
-//  * section of the [library
-//               ^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:21:17: Context: This is one of the overridden members.
+//   bool operator ==(Object other) native "Object_equals";
+//                 ^^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:6:12: Error: The method 'Operators1.==' has fewer positional arguments than those of overridden method 'Object.=='.
 //   operator ==() => true;

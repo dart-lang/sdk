@@ -59,3 +59,10 @@ constants  {
   #C11 = 42
   #C12 = self::Fisk<core::int*> {x:#C11}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotation_on_enum_values.dart:
+- Foo. (from org-dartlang-testcase:///annotation_on_enum_values.dart:15:6)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Fisk.fisk (from org-dartlang-testcase:///annotation_on_enum_values.dart:12:9)

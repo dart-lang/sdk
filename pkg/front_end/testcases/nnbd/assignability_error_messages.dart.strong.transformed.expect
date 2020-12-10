@@ -467,3 +467,9 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///assignability_error_messa
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:77:14 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:77:14 -> NullConstant(null)
 Extra constant evaluation: evaluated: 210, effectively constant: 12
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///assignability_error_messages.dart:
+- A. (from org-dartlang-testcase:///assignability_error_messages.dart:11:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

@@ -86,3 +86,16 @@ constants  {
   #C6 = opt::M {list:#C5}
   #C7 = <opt::P<core::Object*>*>[]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- CP._ (from org-dartlang-testcase:///opt_in_lib.dart:14:9)
+- XToken. (from org-dartlang-testcase:///main.dart:12:9)
+- Token. (from org-dartlang-testcase:///opt_in_lib.dart:18:9)
+- VP._ (from org-dartlang-testcase:///opt_in_lib.dart:27:9)
+- M. (from org-dartlang-testcase:///opt_in_lib.dart:36:9)
+
+org-dartlang-testcase:///opt_in_lib.dart:
+- P._ (from org-dartlang-testcase:///opt_in_lib.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

@@ -50,3 +50,8 @@ static method main() → dynamic {}
 constants  {
   #C1 = true
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_43431.dart:
+- Foo. (from org-dartlang-testcase:///issue_43431.dart:6:9)

@@ -98,10 +98,10 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   MemberDataForTesting dataForTesting;
 
-  MemberBuilderImpl(this.parent, int charOffset)
+  MemberBuilderImpl(this.parent, int charOffset, [Uri fileUri])
       : dataForTesting =
             retainDataForTesting ? new MemberDataForTesting() : null,
-        super(parent, charOffset);
+        super(parent, charOffset, fileUri);
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
