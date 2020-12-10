@@ -1293,8 +1293,8 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
 
 #elif defined(TARGET_ARCH_ARM64)
-  COMPILE_ASSERT(FP == R29);
-  COMPILE_ASSERT(LR == R30);
+  COMPILE_ASSERT(R29 == FP);
+  COMPILE_ASSERT(R30 == LINK_REGISTER);
   assembly_stream_->WriteString(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
   assembly_stream_->WriteString(
       ".cfi_offset x29, 0\n");  // saved fp is *(CFA+0)

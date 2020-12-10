@@ -46,8 +46,6 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
   // `compiler->is_optimizing()` is set to true during EmitNativeCode.
   GraphInstrinsicCodeGenScope optimizing_scope(compiler);
 
-  // The FlowGraph here is constructed by the intrinsics builder methods, and
-  // is different from compiler->flow_graph(), the original method's flow graph.
   compiler->assembler()->Comment("Graph intrinsic begin");
   for (intptr_t i = 0; i < graph->reverse_postorder().length(); i++) {
     BlockEntryInstr* block = graph->reverse_postorder()[i];
@@ -95,6 +93,8 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
 
   FlowGraph* graph =
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
+  compiler->set_intrinsic_flow_graph(*graph);
+
   const Function& function = parsed_function.function();
 
   switch (function.recognized_kind()) {

@@ -16,6 +16,20 @@
 
 namespace dart {
 
+// LR register should not be used directly in handwritten assembly patterns,
+// because it might contain return address. Instead use macross CLOBBERS_LR,
+// SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER,
+// RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR, SPILLS_LR_TO_FRAME,
+// RESTORES_LR_FROM_FRAME, READS_RETURN_ADDRESS_FROM_LR,
+// WRITES_RETURN_ADDRESS_TO_LR to get access to LR constant in a checked way.
+//
+// To prevent accidental use of LR constant we rename it to
+// LR_DO_NOT_USE_DIRECTLY (while keeping the code in this file and other files
+// which are permitted to access LR constant the same by defining LR as
+// LR_DO_NOT_USE_DIRECTLY). You can also use LINK_REGISTER if you need
+// to compare LR register code.
+#define LR LR_DO_NOT_USE_DIRECTLY
+
 enum Register {
   R0 = 0,
   R1 = 1,
@@ -51,6 +65,7 @@ enum Register {
   R31 = 31,  // ZR, CSP
   kNumberOfCpuRegisters = 32,
   kNoRegister = -1,
+  kNoRegister2 = -2,
 
   // These registers both use the encoding R31, but to avoid mistakes we give
   // them different values, and then translate before encoding.
@@ -62,7 +77,7 @@ enum Register {
   IP1 = R17,
   SP = R15,
   FP = R29,
-  LR = R30,
+  LR = R30,  // Note: direct access to this constant is not allowed. See above.
 };
 
 enum VRegister {
@@ -122,7 +137,6 @@ const Register DISPATCH_TABLE_REG = R21;  // Dispatch table register.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
-const Register LRREG = LR;          // Link register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
@@ -1372,6 +1386,24 @@ class Instr {
 };
 
 const uint64_t kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+
+struct LinkRegister {};
+
+constexpr bool operator==(Register r, LinkRegister) {
+  return r == LR;
+}
+
+constexpr bool operator!=(Register r, LinkRegister lr) {
+  return !(r == lr);
+}
+
+inline Register ConcreteRegister(LinkRegister) {
+  return LR;
+}
+
+#undef LR
+
+#define LINK_REGISTER (LinkRegister())
 
 }  // namespace dart
 

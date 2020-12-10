@@ -16,6 +16,20 @@
 
 namespace dart {
 
+// LR register should not be used directly in handwritten assembly patterns,
+// because it might contain return address. Instead use macross CLOBBERS_LR,
+// SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER,
+// RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR, SPILLS_LR_TO_FRAME,
+// RESTORES_LR_FROM_FRAME, READS_RETURN_ADDRESS_FROM_LR,
+// WRITES_RETURN_ADDRESS_TO_LR to get access to LR constant in a checked way.
+//
+// To prevent accidental use of LR constant we rename it to
+// LR_DO_NOT_USE_DIRECTLY (while keeping the code in this file and other files
+// which are permitted to access LR constant the same by defining LR as
+// LR_DO_NOT_USE_DIRECTLY). You can also use LINK_REGISTER if you need
+// to compare LR register code.
+#define LR LR_DO_NOT_USE_DIRECTLY
+
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
 #if defined(__ARM_ARCH_7A__)
@@ -94,7 +108,7 @@ enum Register {
 #endif
   IP = R12,
   SP = R13,
-  LR = R14,
+  LR = R14,  // Note: direct access to this constant is not allowed. See above.
   PC = R15,
 };
 
@@ -289,7 +303,6 @@ const Register PP = R5;  // Caches object pool pointer in generated code.
 const Register DISPATCH_TABLE_REG = NOTFP;  // Dispatch table register.
 const Register SPREG = SP;                  // Stack pointer register.
 const Register FPREG = FP;                  // Frame pointer register.
-const Register LRREG = LR;                  // Link register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.
@@ -1034,6 +1047,22 @@ float ReciprocalSqrtStep(float op1, float op2);
 
 constexpr uword kBreakInstructionFiller = 0xE1200070;   // bkpt #0
 constexpr uword kDataMemoryBarrier = 0xf57ff050 | 0xb;  // dmb ish
+
+struct LinkRegister {
+  const int32_t code = LR;
+};
+
+constexpr bool operator==(Register r, LinkRegister) {
+  return r == LR;
+}
+
+constexpr bool operator!=(Register r, LinkRegister lr) {
+  return !(r == lr);
+}
+
+#undef LR
+
+#define LINK_REGISTER (LinkRegister())
 
 }  // namespace dart
 

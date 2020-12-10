@@ -24,7 +24,7 @@
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
 
-#define __ compiler->assembler()->
+#define __ (compiler->assembler())->
 #define Z (compiler->zone())
 
 namespace dart {
@@ -303,14 +303,16 @@ class ArgumentsPusher : public ValueObject {
   }
 
   // Returns free temp register to hold argument value.
-  Register GetFreeTempRegister() {
-    // While pushing arguments only Push, PushPair, LoadObject and
-    // LoadFromOffset are used. They do not clobber TMP or LR.
-    static_assert(((1 << LR) & kDartAvailableCpuRegs) == 0,
-                  "LR should not be allocatable");
-    static_assert(((1 << TMP) & kDartAvailableCpuRegs) == 0,
-                  "TMP should not be allocatable");
-    return (pending_register_ == TMP) ? LR : TMP;
+  Register GetFreeTempRegister(FlowGraphCompiler* compiler) {
+    CLOBBERS_LR({
+      // While pushing arguments only Push, PushPair, LoadObject and
+      // LoadFromOffset are used. They do not clobber TMP or LR.
+      static_assert(((1 << LR) & kDartAvailableCpuRegs) == 0,
+                    "LR should not be allocatable");
+      static_assert(((1 << TMP) & kDartAvailableCpuRegs) == 0,
+                    "TMP should not be allocatable");
+      return (pending_register_ == TMP) ? LR : TMP;
+    });
   }
 
  private:
@@ -336,7 +338,7 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (compiler::IsSameObject(compiler::NullObject(), value.constant())) {
           reg = NULL_REG;
         } else {
-          reg = pusher.GetFreeTempRegister();
+          reg = pusher.GetFreeTempRegister(compiler);
           __ LoadObject(reg, value.constant());
         }
       } else if (value.IsFpuRegister()) {
@@ -346,7 +348,7 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       } else {
         ASSERT(value.IsStackSlot());
         const intptr_t value_offset = value.ToStackSlotOffset();
-        reg = pusher.GetFreeTempRegister();
+        reg = pusher.GetFreeTempRegister(compiler);
         __ LoadFromOffset(reg, value.base_reg(), value_offset);
       }
       pusher.PushRegister(compiler, reg);
@@ -390,8 +392,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(result == CallingConventions::kReturnFpuReg);
   }
 
-  if (compiler->intrinsic_mode()) {
-    // Intrinsics don't have a frame.
+  if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ ret();
     return;
   }
@@ -1197,6 +1198,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
+// Keep in sync with NativeEntryInstr::EmitNativeCode.
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
@@ -1242,6 +1244,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
+// Keep in sync with NativeReturnInstr::EmitNativeCode and ComputeInnerLRState.
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
@@ -1363,9 +1366,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
-  __ LoadFromOffset(LR, THR,
-                    compiler::target::Thread::invoke_dart_code_stub_offset());
-  __ LoadFieldFromOffset(LR, LR, compiler::target::Code::entry_point_offset());
+  CLOBBERS_LR({
+    __ LoadFromOffset(LR, THR,
+                      compiler::target::Thread::invoke_dart_code_stub_offset());
+    __ LoadFieldFromOffset(LR, LR,
+                           compiler::target::Code::entry_point_offset());
+  });
 
   FunctionEntryInstr::EmitNativeCode(compiler);
 }
@@ -1904,8 +1910,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                           Smi::Cast(index.constant()).Value());
     }
     const Register value = locs()->in(2).reg();
-    __ StoreIntoArray(array, temp, value, CanValueBeSmi(),
-                      /*lr_reserved=*/!compiler->intrinsic_mode());
+    __ StoreIntoArray(array, temp, value, CanValueBeSmi());
     return;
   }
 
@@ -2347,8 +2352,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
   __ MoveRegister(temp, box_reg);
   __ StoreIntoObjectOffset(instance_reg, offset, temp,
-                           compiler::Assembler::kValueIsNotSmi,
-                           /*lr_reserved=*/!compiler->intrinsic_mode());
+                           compiler::Assembler::kValueIsNotSmi);
   __ Bind(&done);
 }
 
@@ -2454,8 +2458,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ MoveRegister(temp2, temp);
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, temp2,
-                               compiler::Assembler::kValueIsNotSmi,
-                               /*lr_reserved=*/!compiler->intrinsic_mode());
+                               compiler::Assembler::kValueIsNotSmi);
     } else {
       __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes);
     }
@@ -2562,13 +2565,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(1).reg();
-    // In intrinsic mode, there is no stack frame and the function will return
-    // by executing 'ret LR' directly. Therefore we cannot overwrite LR. (see
-    // ReturnInstr::EmitNativeCode).
-    ASSERT((kDartAvailableCpuRegs & (1 << LR)) == 0);
     __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                             CanValueBeSmi(),
-                             /*lr_reserved=*/!compiler->intrinsic_mode());
+                             CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
@@ -3226,7 +3224,6 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
   const bool using_shared_stub = UseSharedSlowPathStub(opt);
-  ASSERT((kReservedCpuRegisters & (1 << LR)) != 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       using_shared_stub ? LocationSummary::kCallOnSharedSlowPath
@@ -3282,8 +3279,7 @@ class CheckStackOverflowSlowPath
         const uword entry_point_offset =
             Thread::stack_overflow_shared_stub_entry_point_offset(
                 locs->live_registers()->FpuRegisterCount() > 0);
-        __ ldr(LR, compiler::Address(THR, entry_point_offset));
-        __ blr(LR);
+        __ Call(compiler::Address(THR, entry_point_offset));
       }
       compiler->RecordSafepoint(locs, kNumSlowPathArgs);
       compiler->RecordCatchEntryMoves();

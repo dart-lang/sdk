@@ -192,8 +192,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-  __ ldr(LR, compiler::Address(THR, Thread::deoptimize_entry_offset()));
-  __ blr(LR);
+  __ Call(compiler::Address(THR, Thread::deoptimize_entry_offset()));
   set_pc_offset(assembler->CodeSize());
 #undef __
 }
@@ -300,14 +299,19 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ br(TMP);
     __ Bind(&dont_optimize);
   }
-  __ Comment("Enter frame");
-  if (flow_graph().IsCompiledForOsr()) {
-    const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
-    ASSERT(extra_slots >= 0);
-    __ EnterOsrFrame(extra_slots * kWordSize);
-  } else {
-    ASSERT(StackSize() >= 0);
-    __ EnterDartFrame(StackSize() * kWordSize);
+
+  if (flow_graph().graph_entry()->NeedsFrame()) {
+    __ Comment("Enter frame");
+    if (flow_graph().IsCompiledForOsr()) {
+      const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
+      ASSERT(extra_slots >= 0);
+      __ EnterOsrFrame(extra_slots * kWordSize);
+    } else {
+      ASSERT(StackSize() >= 0);
+      __ EnterDartFrame(StackSize() * kWordSize);
+    }
+  } else if (FLAG_use_bare_instructions) {
+    assembler()->set_constant_pool_allowed(true);
   }
 }
 
@@ -515,8 +519,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
       entry_kind == Code::EntryKind::kNormal
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
           : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
-  __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset));
-  __ blr(LR);
+  __ Call(compiler::FieldAddress(CODE_REG, entry_point_offset));
   EmitCallsiteMetadata(token_pos, deopt_id, PcDescriptorsLayout::kIcCall, locs);
   __ Drop(ic_data.SizeWithTypeArgs());
 }
@@ -550,14 +553,14 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see clustered_snapshot.cc.
-    __ LoadDoubleWordFromPoolIndex(R5, LR, data_index);
+    CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
   } else {
     __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, data_index);
-    __ ldr(LR, compiler::FieldAddress(
-                   CODE_REG,
-                   Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
+    CLOBBERS_LR(__ ldr(LR, compiler::FieldAddress(
+                               CODE_REG, Code::entry_point_offset(
+                                             Code::EntryKind::kMonomorphic))));
   }
-  __ blr(LR);
+  CLOBBERS_LR(__ blr(LR));
 
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
@@ -619,7 +622,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see clustered_snapshot.cc.
-    __ LoadDoubleWordFromPoolIndex(R5, LR, data_index);
+    CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
   } else {
     __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, data_index);
     const intptr_t entry_point_offset =
@@ -628,9 +631,10 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                   Code::EntryKind::kMonomorphic)
             : compiler::target::Code::entry_point_offset(
                   Code::EntryKind::kMonomorphicUnchecked);
-    __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset));
+    CLOBBERS_LR(
+        __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset)));
   }
-  __ blr(LR);
+  CLOBBERS_LR(__ blr(LR));
 
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, PcDescriptorsLayout::kOther,
                        locs);
@@ -687,9 +691,8 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   }
   const intptr_t offset = selector_offset - DispatchTable::OriginElement();
   __ AddImmediate(cid_reg, cid_reg, offset);
-  __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, UXTX,
-                               compiler::Address::Scaled));
-  __ blr(LR);
+  __ Call(compiler::Address(DISPATCH_TABLE_REG, cid_reg, UXTX,
+                            compiler::Address::Scaled));
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(

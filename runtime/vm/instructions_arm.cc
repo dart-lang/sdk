@@ -310,7 +310,7 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
 
   InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
                                              &target_pool_index_);
-  ASSERT(reg == LR);
+  ASSERT(reg == LINK_REGISTER);
 }
 
 CodePtr BareSwitchableCallPattern::target() const {
@@ -342,7 +342,7 @@ bool ReturnPattern::IsValid() const {
   const int32_t B24 = 1 << 24;
   int32_t instruction = (static_cast<int32_t>(AL) << kConditionShift) | B24 |
                         B21 | (0xfff << 8) | B4 |
-                        (static_cast<int32_t>(LR) << kRmShift);
+                        (LINK_REGISTER.code << kRmShift);
   return bx_lr->InstructionBits() == instruction;
 }
 

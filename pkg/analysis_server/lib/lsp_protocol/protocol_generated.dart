@@ -14592,6 +14592,98 @@ class FileEvent implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A filter to describe in which file operation requests or notifications the
+/// server is interested in.
+///  @since 3.16.0
+class FileOperationFilter implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+      FileOperationFilter.canParse, FileOperationFilter.fromJson);
+
+  FileOperationFilter({this.scheme, @required this.pattern}) {
+    if (pattern == null) {
+      throw 'pattern is required but was not provided';
+    }
+  }
+  static FileOperationFilter fromJson(Map<String, dynamic> json) {
+    final scheme = json['scheme'];
+    final pattern = json['pattern'] != null
+        ? FileOperationPattern.fromJson(json['pattern'])
+        : null;
+    return FileOperationFilter(scheme: scheme, pattern: pattern);
+  }
+
+  /// The actual file operation pattern.
+  final FileOperationPattern pattern;
+
+  /// A Uri like `file` or `untitled`.
+  final String scheme;
+
+  Map<String, dynamic> toJson() {
+    var __result = <String, dynamic>{};
+    if (scheme != null) {
+      __result['scheme'] = scheme;
+    }
+    __result['pattern'] =
+        pattern?.toJson() ?? (throw 'pattern is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('scheme');
+      try {
+        if (obj['scheme'] != null && !(obj['scheme'] is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('pattern');
+      try {
+        if (!obj.containsKey('pattern')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['pattern'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(FileOperationPattern.canParse(obj['pattern'], reporter))) {
+          reporter.reportError('must be of type FileOperationPattern');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type FileOperationFilter');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is FileOperationFilter &&
+        other.runtimeType == FileOperationFilter) {
+      return scheme == other.scheme && pattern == other.pattern && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, scheme.hashCode);
+    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 /// A pattern to describe in which file operation requests or notifications the
 /// server is interested in.
 ///  @since 3.16.0 - proposed state
@@ -14818,45 +14910,46 @@ class FileOperationRegistrationOptions implements ToJsonable {
       FileOperationRegistrationOptions.canParse,
       FileOperationRegistrationOptions.fromJson);
 
-  FileOperationRegistrationOptions({@required this.patterns}) {
-    if (patterns == null) {
-      throw 'patterns is required but was not provided';
+  FileOperationRegistrationOptions({@required this.filters}) {
+    if (filters == null) {
+      throw 'filters is required but was not provided';
     }
   }
   static FileOperationRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final patterns = json['patterns']
+    final filters = json['filters']
         ?.map(
-            (item) => item != null ? FileOperationPattern.fromJson(item) : null)
-        ?.cast<FileOperationPattern>()
+            (item) => item != null ? FileOperationFilter.fromJson(item) : null)
+        ?.cast<FileOperationFilter>()
         ?.toList();
-    return FileOperationRegistrationOptions(patterns: patterns);
+    return FileOperationRegistrationOptions(filters: filters);
   }
 
-  final List<FileOperationPattern> patterns;
+  /// The actual filters.
+  final List<FileOperationFilter> filters;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['patterns'] =
-        patterns ?? (throw 'patterns is required but was not set');
+    __result['filters'] =
+        filters ?? (throw 'filters is required but was not set');
     return __result;
   }
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
-      reporter.push('patterns');
+      reporter.push('filters');
       try {
-        if (!obj.containsKey('patterns')) {
+        if (!obj.containsKey('filters')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['patterns'] == null) {
+        if (obj['filters'] == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['patterns'] is List &&
-            (obj['patterns'].every(
-                (item) => FileOperationPattern.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<FileOperationPattern>');
+        if (!((obj['filters'] is List &&
+            (obj['filters'].every(
+                (item) => FileOperationFilter.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<FileOperationFilter>');
           return false;
         }
       } finally {
@@ -14873,8 +14966,8 @@ class FileOperationRegistrationOptions implements ToJsonable {
   bool operator ==(Object other) {
     if (other is FileOperationRegistrationOptions &&
         other.runtimeType == FileOperationRegistrationOptions) {
-      return listEqual(patterns, other.patterns,
-              (FileOperationPattern a, FileOperationPattern b) => a == b) &&
+      return listEqual(filters, other.filters,
+              (FileOperationFilter a, FileOperationFilter b) => a == b) &&
           true;
     }
     return false;
@@ -14883,7 +14976,7 @@ class FileOperationRegistrationOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, lspHashCode(patterns));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(filters));
     return JenkinsSmiHash.finish(hash);
   }
 

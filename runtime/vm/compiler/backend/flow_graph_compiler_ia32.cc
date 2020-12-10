@@ -439,6 +439,8 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 // NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
+  RELEASE_ASSERT(flow_graph().graph_entry()->NeedsFrame());
+
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() && function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {

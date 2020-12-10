@@ -1100,7 +1100,12 @@ class Assembler : public AssemblerBase {
   }
 
   void b(int32_t offset) { EmitUnconditionalBranchOp(B, offset); }
-  void bl(int32_t offset) { EmitUnconditionalBranchOp(BL, offset); }
+  void bl(int32_t offset) {
+    // CLOBBERS_LR uses __ to access the assembler.
+#define __ this->
+    CLOBBERS_LR(EmitUnconditionalBranchOp(BL, offset));
+#undef __
+  }
 
   // Branches to the given label if the condition holds.
   // [distance] is ignored on ARM.
@@ -1138,8 +1143,21 @@ class Assembler : public AssemblerBase {
 
   // Branch, link, return.
   void br(Register rn) { EmitUnconditionalBranchRegOp(BR, rn); }
-  void blr(Register rn) { EmitUnconditionalBranchRegOp(BLR, rn); }
-  void ret(Register rn = R30) { EmitUnconditionalBranchRegOp(RET, rn); }
+  void blr(Register rn) {
+    // CLOBBERS_LR uses __ to access the assembler.
+#define __ this->
+    CLOBBERS_LR(EmitUnconditionalBranchRegOp(BLR, rn));
+#undef __
+  }
+  void ret(Register rn = kNoRegister2) {
+    if (rn == kNoRegister2) {
+      // READS_RETURN_ADDRESS_FROM_LR uses __ to access the assembler.
+#define __ this->
+      READS_RETURN_ADDRESS_FROM_LR(rn = LR);
+#undef __
+    }
+    EmitUnconditionalBranchRegOp(RET, rn);
+  }
 
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
@@ -1529,8 +1547,13 @@ class Assembler : public AssemblerBase {
       CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   void Call(Address target) {
-    ldr(LR, target);
-    blr(LR);
+    // CLOBBERS_LR uses __ to access the assembler.
+#define __ this->
+    CLOBBERS_LR({
+      ldr(LR, target);
+      blr(LR);
+    });
+#undef __
   }
   void Call(const Code& code) { BranchLink(code); }
 
@@ -1632,19 +1655,16 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       bool lr_reserved = false);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                      bool lr_reserved = false);
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                             bool lr_reserved = false);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
@@ -1668,6 +1688,9 @@ class Assembler : public AssemblerBase {
 
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
+
+  compiler::LRState lr_state() const { return lr_state_; }
+  void set_lr_state(compiler::LRState state) { lr_state_ = state; }
 
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
@@ -1728,7 +1751,7 @@ class Assembler : public AssemblerBase {
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
-  void Ret() { ret(LR); }
+  void Ret() { ret(); }
 
   // Emit code to transition between generated mode and native mode.
   //
@@ -1930,6 +1953,8 @@ class Assembler : public AssemblerBase {
   bool use_far_branches_;
 
   bool constant_pool_allowed_;
+
+  compiler::LRState lr_state_ = compiler::LRState::OnEntry();
 
   void LoadWordFromPoolIndexFixed(Register dst, intptr_t index);
 
@@ -2212,6 +2237,7 @@ class Assembler : public AssemblerBase {
       } else {
         EmitConditionalBranchOp(op, cond, dest);
       }
+      label->UpdateLRState(lr_state());
     } else {
       const int64_t position = buffer_.Size();
       if (use_far_branches()) {
@@ -2224,7 +2250,7 @@ class Assembler : public AssemblerBase {
       } else {
         EmitConditionalBranchOp(op, cond, label->position_);
       }
-      label->LinkTo(position);
+      label->LinkTo(position, lr_state());
     }
   }
 
@@ -2244,6 +2270,7 @@ class Assembler : public AssemblerBase {
       } else {
         EmitCompareAndBranchOp(op, rt, dest, sz);
       }
+      label->UpdateLRState(lr_state());
     } else {
       const int64_t position = buffer_.Size();
       if (use_far_branches()) {
@@ -2253,7 +2280,7 @@ class Assembler : public AssemblerBase {
       } else {
         EmitCompareAndBranchOp(op, rt, label->position_, sz);
       }
-      label->LinkTo(position);
+      label->LinkTo(position, lr_state());
     }
   }
 
@@ -2273,6 +2300,7 @@ class Assembler : public AssemblerBase {
       } else {
         EmitTestAndBranchOp(op, rt, bit_number, dest);
       }
+      label->UpdateLRState(lr_state());
     } else {
       int64_t position = buffer_.Size();
       if (use_far_branches()) {
@@ -2282,7 +2310,7 @@ class Assembler : public AssemblerBase {
       } else {
         EmitTestAndBranchOp(op, rt, bit_number, label->position_);
       }
-      label->LinkTo(position);
+      label->LinkTo(position, lr_state());
     }
   }
 

@@ -352,6 +352,12 @@ Many of the interfaces contain fields that correspond to the URI of a document. 
 type DocumentUri = string;
 ```
 
+There is also a tagging interface for normal non document URIs. It maps to a `string` as well.
+
+```typescript
+type URI = string;
+```
+
 #### <a href="#regExp" name="regExp" class="anchor"> Regular Expressions </a>
 
 Regular expression are a powerful tool and there are actual use cases for them in the language server protocol. However the downside with them is that almost every programming language has its own set of regular expression features so the specification can not simply refer to them as a regular expression. So the LSP uses a two step approach to support regular expressions:
@@ -3422,7 +3428,10 @@ _Server Capability_:
  * @since 3.16.0 - proposed state
  */
 interface FileOperationRegistrationOptions {
-	patterns: FileOperationPattern[];
+	/**
+	 * The actual filters.
+	 */
+	filters: FileOperationFilter[];
 }
 
 /**
@@ -3491,6 +3500,25 @@ interface FileOperationPattern {
 	 * Additional options used during matching.
 	 */
 	options?: FileOperationPatternOptions;
+}
+
+/**
+ * A filter to describe in which file operation requests or notifications
+ * the server is interested in.
+ *
+ * @since 3.16.0
+ */
+export interface FileOperationFilter {
+
+	/**
+	 * A Uri like `file` or `untitled`.
+	 */
+	scheme?: string;
+
+	/**
+	 * The actual file operation pattern.
+	 */
+	pattern: FileOperationPattern;
 }
 ```
 

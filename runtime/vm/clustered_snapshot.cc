@@ -6593,39 +6593,49 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
              num_base_objects_, next_ref_index_ - kFirstReference);
     }
 
-    for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
-      canonical_clusters_[i] = ReadCluster();
-      canonical_clusters_[i]->ReadAlloc(this, /*is_canonical*/ true);
+    {
+      TIMELINE_DURATION(thread(), Isolate, "ReadAlloc");
+      for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
+        canonical_clusters_[i] = ReadCluster();
+        TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
+        canonical_clusters_[i]->ReadAlloc(this, /*is_canonical*/ true);
 #if defined(DEBUG)
-      intptr_t serializers_next_ref_index_ = Read<int32_t>();
-      ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
+        intptr_t serializers_next_ref_index_ = Read<int32_t>();
+        ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
 #endif
-    }
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i] = ReadCluster();
-      clusters_[i]->ReadAlloc(this, /*is_canonical*/ false);
+      }
+      for (intptr_t i = 0; i < num_clusters_; i++) {
+        clusters_[i] = ReadCluster();
+        TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
+        clusters_[i]->ReadAlloc(this, /*is_canonical*/ false);
 #if defined(DEBUG)
-      intptr_t serializers_next_ref_index_ = Read<int32_t>();
-      ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
+        intptr_t serializers_next_ref_index_ = Read<int32_t>();
+        ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
 #endif
+      }
     }
 
     // We should have completely filled the ref array.
     ASSERT_EQUAL(next_ref_index_ - kFirstReference, num_objects_);
 
-    for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
-      canonical_clusters_[i]->ReadFill(this, /*is_canonical*/ true);
+    {
+      TIMELINE_DURATION(thread(), Isolate, "ReadFill");
+      for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
+        TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
+        canonical_clusters_[i]->ReadFill(this, /*is_canonical*/ true);
 #if defined(DEBUG)
-      int32_t section_marker = Read<int32_t>();
-      ASSERT(section_marker == kSectionMarker);
+        int32_t section_marker = Read<int32_t>();
+        ASSERT(section_marker == kSectionMarker);
 #endif
-    }
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i]->ReadFill(this, /*is_canonical*/ false);
+      }
+      for (intptr_t i = 0; i < num_clusters_; i++) {
+        TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
+        clusters_[i]->ReadFill(this, /*is_canonical*/ false);
 #if defined(DEBUG)
-      int32_t section_marker = Read<int32_t>();
-      ASSERT(section_marker == kSectionMarker);
+        int32_t section_marker = Read<int32_t>();
+        ASSERT(section_marker == kSectionMarker);
 #endif
+      }
     }
 
     roots->ReadRoots(this);
@@ -6653,12 +6663,16 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   // canonicalization first, canonicalize and update the ref array, the load
   // the remaining clusters to avoid a full heap walk to update references to
   // the losers of any canonicalization races.
-  for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
-    canonical_clusters_[i]->PostLoad(this, refs, /*is_canonical*/ true);
-  }
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->PostLoad(this, refs, /*is_canonical*/ false);
+  {
+    TIMELINE_DURATION(thread(), Isolate, "PostLoad");
+    for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
+      TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
+      canonical_clusters_[i]->PostLoad(this, refs, /*is_canonical*/ true);
+    }
+    for (intptr_t i = 0; i < num_clusters_; i++) {
+      TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
+      clusters_[i]->PostLoad(this, refs, /*is_canonical*/ false);
+    }
   }
 }
 

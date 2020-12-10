@@ -51,6 +51,7 @@ class FlowGraph;
 class FlowGraphCompiler;
 class FlowGraphSerializer;
 class FlowGraphVisitor;
+class ForwardInstructionIterator;
 class Instruction;
 class LocalVariable;
 class LoopInfo;
@@ -60,6 +61,7 @@ class RangeAnalysis;
 class RangeBoundary;
 class SExpList;
 class SExpression;
+class SuccessorsIterable;
 class TypeUsageInfo;
 class UnboxIntegerInstr;
 
@@ -903,6 +905,8 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
+  inline SuccessorsIterable successors() const;
+
   void Goto(JoinEntryInstr* entry);
 
   virtual const char* DebugName() const = 0;
@@ -1487,6 +1491,19 @@ class BlockEntryInstr : public Instruction {
   // environment) from their definition's use lists for all instructions.
   void ClearAllInstructions();
 
+  class InstructionsIterable {
+   public:
+    explicit InstructionsIterable(BlockEntryInstr* block) : block_(block) {}
+
+    inline ForwardInstructionIterator begin() const;
+    inline ForwardInstructionIterator end() const;
+
+   private:
+    BlockEntryInstr* block_;
+  };
+
+  InstructionsIterable instructions() { return InstructionsIterable(this); }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
 
   TO_S_EXPRESSION_SUPPORT
@@ -1551,8 +1568,14 @@ class BlockEntryInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
 
-class ForwardInstructionIterator : public ValueObject {
+class ForwardInstructionIterator {
  public:
+  ForwardInstructionIterator(const ForwardInstructionIterator& other) = default;
+  ForwardInstructionIterator& operator=(
+      const ForwardInstructionIterator& other) = default;
+
+  ForwardInstructionIterator() : current_(nullptr) {}
+
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
       : current_(block_entry) {
     Advance();
@@ -1570,8 +1593,14 @@ class ForwardInstructionIterator : public ValueObject {
 
   Instruction* Current() const { return current_; }
 
+  Instruction* operator*() const { return Current(); }
+
   bool operator==(const ForwardInstructionIterator& other) const {
     return current_ == other.current_;
+  }
+
+  bool operator!=(const ForwardInstructionIterator& other) const {
+    return !(*this == other);
   }
 
   ForwardInstructionIterator& operator++() {
@@ -1582,6 +1611,15 @@ class ForwardInstructionIterator : public ValueObject {
  private:
   Instruction* current_;
 };
+
+ForwardInstructionIterator BlockEntryInstr::InstructionsIterable::begin()
+    const {
+  return ForwardInstructionIterator(block_);
+}
+
+ForwardInstructionIterator BlockEntryInstr::InstructionsIterable::end() const {
+  return ForwardInstructionIterator();
+}
 
 class BackwardInstructionIterator : public ValueObject {
  public:
@@ -1677,6 +1715,10 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
     spill_slot_count_ = count;
   }
 
+  // Returns true if this flow graph needs a stack frame.
+  bool NeedsFrame() const { return needs_frame_; }
+  void MarkFrameless() { needs_frame_ = false; }
+
   // Number of stack slots reserved for compiling try-catch. For functions
   // without try-catch, this is 0. Otherwise, it is the number of local
   // variables.
@@ -1731,6 +1773,7 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   intptr_t entry_count_;
   intptr_t spill_slot_count_;
   intptr_t fixed_slot_count_;  // For try-catch in optimized code.
+  bool needs_frame_ = true;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -9525,6 +9568,38 @@ StringPtr TemplateDartCall<kExtraInputs>::Selector() {
 inline bool Value::CanBe(const Object& value) {
   ConstantInstr* constant = definition()->AsConstant();
   return (constant == nullptr) || constant->value().raw() == value.raw();
+}
+
+class SuccessorsIterable {
+ public:
+  struct Iterator {
+    const Instruction* instr;
+    intptr_t index;
+
+    BlockEntryInstr* operator*() const { return instr->SuccessorAt(index); }
+    Iterator& operator++() {
+      index++;
+      return *this;
+    }
+
+    bool operator==(const Iterator& other) {
+      return instr == other.instr && index == other.index;
+    }
+
+    bool operator!=(const Iterator& other) { return !(*this == other); }
+  };
+
+  explicit SuccessorsIterable(const Instruction* instr) : instr_(instr) {}
+
+  Iterator begin() const { return {instr_, 0}; }
+  Iterator end() const { return {instr_, instr_->SuccessorCount()}; }
+
+ private:
+  const Instruction* instr_;
+};
+
+SuccessorsIterable Instruction::successors() const {
+  return SuccessorsIterable(this);
 }
 
 }  // namespace dart

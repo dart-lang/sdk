@@ -260,7 +260,6 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return false;
   }
 
-  ASSERT(!compiler->flow_graph().IsCompiledForOsr());
   if (GraphIntrinsifier::GraphIntrinsify(parsed_function, compiler)) {
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }

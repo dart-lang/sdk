@@ -40,11 +40,13 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const ICData& ic_data = ICData::ZoneHandle(ICData::New(
       function, target_name, args_descriptor, 15, 1, ICData::kInstance));
 
-  // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
-  __ set_constant_pool_allowed(true);
+  // Code is generated, but not executed. Just parsed with CodePatcher.
+  __ set_constant_pool_allowed(true);  // Uninitialized pp is OK.
+  SPILLS_LR_TO_FRAME({});              // Clobbered LR is OK.
 
   __ LoadObject(R9, ic_data);
   __ BranchLinkPatchable(StubCode::OneArgCheckInlineCache());
+  RESTORES_LR_FROM_FRAME({});  // Clobbered LR is OK.
   __ Ret();
 }
 

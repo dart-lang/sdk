@@ -16,8 +16,8 @@ class PoolPointerCall : public ValueObject {
  public:
   PoolPointerCall(uword pc, const Code& code)
       : end_(pc), object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
-    // Last instruction: blr ip0.
-    ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
+    // Last instruction: blr lr.
+    ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f03c0);
     InstructionPattern::DecodeLoadWordFromPool(end_ - 2 * Instr::kInstrSize,
                                                &reg_, &index_);
   }

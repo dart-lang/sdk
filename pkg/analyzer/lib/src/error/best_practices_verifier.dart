@@ -421,8 +421,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _inDoNotStoreMember = true;
     }
     try {
-      _checkForMissingReturn(
-          node.returnType, node.functionExpression.body, element, node);
+      _checkForMissingReturn(node.functionExpression.body, node);
 
       // Return types are inferred only on non-recursive local functions.
       if (node.parent is CompilationUnit && !node.isSetter) {
@@ -447,7 +446,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      _checkForMissingReturn(null, node.body, node.declaredElement, node);
+      _checkForMissingReturn(node.body, node);
     }
     DartType functionType = InferenceContext.getContext(node);
     if (functionType is! FunctionType) {
@@ -557,7 +556,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       // This was determined to not be a good hint, see: dartbug.com/16029
       //checkForOverridingPrivateMember(node);
-      _checkForMissingReturn(node.returnType, node.body, element, node);
+      _checkForMissingReturn(node.body, node);
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
 
@@ -1153,8 +1152,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// function has a return type that Future<Null> is not assignable to.
   ///
   /// See [HintCode.MISSING_RETURN].
-  void _checkForMissingReturn(TypeAnnotation returnNode, FunctionBody body,
-      ExecutableElement element, AstNode functionNode) {
+  void _checkForMissingReturn(FunctionBody body, AstNode functionNode) {
     if (_isNonNullableByDefault) {
       return;
     }
@@ -1436,8 +1434,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// In "strict-inference" mode, check that [returnNode]'s return type is
-  /// specified.
+  /// In "strict-inference" mode, check that [returnType] is specified.
   void _checkStrictInferenceReturnType(
       AstNode returnType, AstNode reportNode, String displayName) {
     if (!_strictInference) {

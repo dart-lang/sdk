@@ -379,9 +379,11 @@ class ArgumentsPusher : public ValueObject {
     // At this point there are no pending buffered registers.
     // Use LR as it's the highest free register, it is not allocatable and
     // it is clobbered by the call.
-    static_assert(((1 << LR) & kDartAvailableCpuRegs) == 0,
-                  "LR should not be allocatable");
-    return LR;
+    CLOBBERS_LR({
+      static_assert(((1 << LR) & kDartAvailableCpuRegs) == 0,
+                    "LR should not be allocatable");
+      return LR;
+    });
   }
 
  private:
@@ -482,8 +484,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(result == CallingConventions::kReturnFpuReg);
   }
 
-  if (compiler->intrinsic_mode()) {
-    // Intrinsics don't have a frame.
+  if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ Ret();
     return;
   }
@@ -1359,6 +1360,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PopRegister(TMP);
 }
 
+// Keep in sync with NativeEntryInstr::EmitNativeCode.
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
@@ -1395,10 +1397,10 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
   // Leave the entry frame.
-  __ LeaveFrame(1 << LR | 1 << FP);
+  RESTORES_LR_FROM_FRAME(__ LeaveFrame(1 << LR | 1 << FP));
 
   // Leave the dummy frame holding the pushed arguments.
-  __ LeaveFrame(1 << LR | 1 << FP);
+  RESTORES_LR_FROM_FRAME(__ LeaveFrame(1 << LR | 1 << FP));
 
   __ Ret();
 
@@ -1406,6 +1408,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
+// Keep in sync with NativeReturnInstr::EmitNativeCode and ComputeInnerLRState.
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
@@ -1414,13 +1417,13 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Create a dummy frame holding the pushed arguments. This simplifies
   // NativeReturnInstr::EmitNativeCode.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
 
   // Save the argument registers, in reverse order.
   SaveArguments(compiler);
 
   // Enter the entry frame.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
 
   // Save a space for the code object.
   __ PushImmediate(0);
@@ -1515,9 +1518,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
-  __ LoadFromOffset(LR, THR,
-                    compiler::target::Thread::invoke_dart_code_stub_offset());
-  __ LoadFieldFromOffset(LR, LR, compiler::target::Code::entry_point_offset());
+  CLOBBERS_LR({
+    __ LoadFromOffset(LR, THR,
+                      compiler::target::Thread::invoke_dart_code_stub_offset());
+    __ LoadFieldFromOffset(LR, LR,
+                           compiler::target::Code::entry_point_offset());
+  });
 
   FunctionEntryInstr::EmitNativeCode(compiler);
 }
@@ -2189,8 +2195,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kArrayCid:
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoArray(array, temp, value, CanValueBeSmi(),
-                          /*lr_reserved=*/!compiler->intrinsic_mode());
+        __ StoreIntoArray(array, temp, value, CanValueBeSmi());
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, compiler::Address(temp), constant);
@@ -3012,13 +3017,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(1).reg();
-    // In intrinsic mode, there is no stack frame and the function will return
-    // by executing 'ret LR' directly. Therefore we cannot overwrite LR. (see
-    // ReturnInstr::EmitNativeCode).
-    ASSERT(!locs()->live_registers()->Contains(Location::RegisterLocation(LR)));
     __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                             CanValueBeSmi(),
-                             /*lr_reserved=*/!compiler->intrinsic_mode());
+                             CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreIntoObjectNoBarrierOffset(instance_reg, offset_in_bytes,
@@ -3710,7 +3710,6 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 2;
   const bool using_shared_stub = UseSharedSlowPathStub(opt);
-  ASSERT((kReservedCpuRegisters & (1 << LR)) != 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       using_shared_stub ? LocationSummary::kCallOnSharedSlowPath
@@ -3756,8 +3755,7 @@ class CheckStackOverflowSlowPath
       const uword entry_point_offset = compiler::target::Thread::
           stack_overflow_shared_stub_entry_point_offset(
               instruction()->locs()->live_registers()->FpuRegisterCount() > 0);
-      __ ldr(LR, compiler::Address(THR, entry_point_offset));
-      __ blx(LR);
+      __ Call(compiler::Address(THR, entry_point_offset));
       compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
       compiler->RecordCatchEntryMoves();
       compiler->AddDescriptor(
