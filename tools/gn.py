@@ -68,9 +68,7 @@ def ToCommandLine(gn_args):
 
 
 def HostCpuForArch(arch):
-    if arch in [
-            'ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64'
-    ]:
+    if arch in ['ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64']:
         return 'x86'
     if arch in ['x64', 'arm64', 'simarm64', 'arm_x64']:
         return 'x64'
@@ -118,6 +116,7 @@ def ParseStringMap(key, string_map):
         if l[0] == key:
             return l[1]
     return None
+
 
 def UseSysroot(args, gn_args):
     # Don't try to use a Linux sysroot if we aren't on Linux.
@@ -319,22 +318,22 @@ def ProcessOptions(args):
             return False
         if os_name == 'android':
             if not HOST_OS in ['linux', 'macos']:
-                print("Cross-compilation to %s is not supported on host os %s."
-                      % (os_name, HOST_OS))
+                print(
+                    "Cross-compilation to %s is not supported on host os %s." %
+                    (os_name, HOST_OS))
                 return False
-            if not arch in [
-                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64'
-            ]:
+            if not arch in ['ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64']:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
                 return False
         elif os_name == 'fuchsia':
             if HOST_OS != 'linux':
-                print("Cross-compilation to %s is not supported on host os %s."
-                      % (os_name, HOST_OS))
+                print(
+                    "Cross-compilation to %s is not supported on host os %s." %
+                    (os_name, HOST_OS))
                 return False
-            if arch != 'x64':
+            if arch != 'x64' and arch != 'arm64':
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))

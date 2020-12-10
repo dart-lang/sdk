@@ -693,7 +693,6 @@
         "host-checked": true
       }
     },
-
     "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-strong",
@@ -1743,8 +1742,10 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
+            "--arch=x64,arm64",
             "runtime",
-            "create_sdk"
+            "create_sdk",
+            "fuchsia_test_package"
           ]
         }
       ]
