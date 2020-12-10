@@ -282,3 +282,17 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:128:33 -> BoolConstant(true)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:130:33 -> NullConstant(null)
 Extra constant evaluation: evaluated: 66, effectively constant: 24
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///various.dart:
+- C. (from org-dartlang-testcase:///various.dart:92:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Class.redirect (from org-dartlang-testcase:///various.dart:99:9)
+- Class. (from org-dartlang-testcase:///various.dart:98:9)
+- A. (from org-dartlang-testcase:///various.dart:80:9)
+- Class.method (from org-dartlang-testcase:///various.dart:100:9)
+- Subclass. (from org-dartlang-testcase:///various.dart:104:9)
+- B. (from org-dartlang-testcase:///various.dart:86:9)
+- Foo. (from org-dartlang-testcase:///various.dart:31:9)
+- ConstClassWithF. (from org-dartlang-testcase:///various.dart:120:9)

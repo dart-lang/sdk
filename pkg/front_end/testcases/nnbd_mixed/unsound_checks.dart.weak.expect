@@ -619,3 +619,9 @@ constants  {
   #C7 = null
   #C8 = <uns::E*>[#C3, #C6]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///unsound_checks_lib.dart:
+- E. (from org-dartlang-testcase:///unsound_checks_lib.dart:145:6)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

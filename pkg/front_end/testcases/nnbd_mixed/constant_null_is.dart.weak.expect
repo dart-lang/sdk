@@ -123,3 +123,18 @@ constants  {
   #C6 = self::Class<core::int*> {field:#C2}
   #C7 = self::Class<Null> {field:#C3}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_null_is.dart:
+- Class.constructor1 (from org-dartlang-testcase:///constant_null_is.dart:39:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Class.constructor2 (from org-dartlang-testcase:///constant_null_is.dart:40:9)
+- Class.constructor3 (from org-dartlang-testcase:///constant_null_is.dart:41:9)
+- Class.constructor4 (from org-dartlang-testcase:///constant_null_is.dart:42:9)
+
+org-dartlang-testcase:///constant_null_is_lib.dart:
+- Class.constructor1 (from org-dartlang-testcase:///constant_null_is.dart:39:9)
+- Class.constructor2 (from org-dartlang-testcase:///constant_null_is.dart:40:9)
+- Class.constructor3 (from org-dartlang-testcase:///constant_null_is.dart:41:9)
+- Class.constructor4 (from org-dartlang-testcase:///constant_null_is.dart:42:9)

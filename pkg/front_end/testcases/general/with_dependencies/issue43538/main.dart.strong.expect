@@ -57,3 +57,13 @@ constants  {
   #C3 = con::B {d:#C1, s:#C2}
   #C4 = 3.14
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_lib.dart:
+- _B&A&M. (from org-dartlang-testcase:///const_lib.dart:15:7)
+- A. (from org-dartlang-testcase:///const_lib.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+
+org-dartlang-testcase:///main.dart:
+- B. (from org-dartlang-testcase:///const_lib.dart:16:9)

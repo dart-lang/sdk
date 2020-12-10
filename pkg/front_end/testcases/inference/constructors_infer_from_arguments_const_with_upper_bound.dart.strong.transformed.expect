@@ -41,3 +41,10 @@ constants  {
   #C1 = 0
   #C2 = self::C<core::int*> {x:#C1}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:
+- C. (from org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- D. (from org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:14:9)

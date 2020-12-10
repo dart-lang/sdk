@@ -1113,16 +1113,16 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
             await instrumentation.fixSource(description.uri, false);
           } else {
             return new Result<ComponentResult>(
-                new ComponentResult(description, p, userLibraries, options,
-                    sourceTarget, sourceTarget.constantCoverageForTesting),
+                new ComponentResult(
+                    description, p, userLibraries, options, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
                 autoFixCommand: '${UPDATE_COMMENTS}=true');
           }
         }
       }
-      return pass(new ComponentResult(description, p, userLibraries, options,
-          sourceTarget, sourceTarget.constantCoverageForTesting));
+      return pass(new ComponentResult(
+          description, p, userLibraries, options, sourceTarget));
     });
   }
 

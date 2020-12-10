@@ -77,3 +77,12 @@ import "error_location_03_lib1.dart" as err;
 import "org-dartlang-testcase:///error_location_03_lib1.dart";
 
 static const field err::Foo* fooField2 = invalid-expression "This assertion failed.";
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///error_location_03_lib2.dart:
+- Foo. (from org-dartlang-testcase:///error_location_03_lib1.dart:8:9)
+
+org-dartlang-testcase:///error_location_03_lib3.dart:
+- Foo. (from org-dartlang-testcase:///error_location_03_lib1.dart:8:9)

@@ -130,10 +130,6 @@ class KernelTarget extends TargetImplementation {
 
   Component component;
 
-  /// Temporary field meant for testing only. Follow-up CLs should get rid of
-  /// this and integrate coverage properly.
-  constants.ConstantCoverage constantCoverageForTesting;
-
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final TypeBuilder dynamicType = new NamedTypeBuilder(
@@ -1251,7 +1247,6 @@ class KernelTarget extends TargetImplementation {
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
-    constantCoverageForTesting = coverage;
 
     coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
       Source source = uriToSource[fileUri];

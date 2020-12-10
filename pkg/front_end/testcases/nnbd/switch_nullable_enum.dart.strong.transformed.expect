@@ -110,3 +110,9 @@ constants  {
   #C7 = <self::Enum>[#C3, #C6]
   #C8 = null
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///switch_nullable_enum.dart:
+- Enum. (from org-dartlang-testcase:///switch_nullable_enum.dart:5:6)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

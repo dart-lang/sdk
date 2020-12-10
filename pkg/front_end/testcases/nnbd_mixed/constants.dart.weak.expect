@@ -96,3 +96,12 @@ constants  {
   #C13 = true
   #C14 = tearoff core::identical
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constants.dart:
+- Class. (from org-dartlang-testcase:///constants_lib.dart:10:9)
+
+org-dartlang-testcase:///constants_lib.dart:
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Class. (from org-dartlang-testcase:///constants_lib.dart:10:9)

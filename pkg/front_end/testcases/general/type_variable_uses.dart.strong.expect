@@ -112,3 +112,9 @@ constants  {
   #C5 = <core::Object*>[#C4]
   #C6 = <core::Object*>[#C1]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///type_variable_uses.dart:
+- C. (from org-dartlang-testcase:///type_variable_uses.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

@@ -68,3 +68,8 @@ constants  {
   #C16 = 16
   #C17 = <core::int*>[#C16, #C16, #C16]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_sample.dart:
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:116:9)

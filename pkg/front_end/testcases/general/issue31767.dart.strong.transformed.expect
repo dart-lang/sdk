@@ -123,3 +123,12 @@ constants  {
   #C3 = 5
   #C4 = iss::_A {field:#C3}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue31767.dart:
+- _A. (from org-dartlang-testcase:///issue31767_lib.dart:20:9)
+
+org-dartlang-testcase:///issue31767_lib.dart:
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- _A. (from org-dartlang-testcase:///issue31767_lib.dart:20:9)

@@ -37,3 +37,9 @@ static method main() → dynamic {
   const B() : super();
                    ^";
 }
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bad_explicit_super_constructor.dart:
+- B. (from org-dartlang-testcase:///bad_explicit_super_constructor.dart:10:9)

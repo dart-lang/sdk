@@ -82,3 +82,9 @@ constants  {
   #C1 = self::_FailingTest {}
   #C2 = #foo
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bug33099.dart:
+- _FailingTest. (from org-dartlang-testcase:///bug33099.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

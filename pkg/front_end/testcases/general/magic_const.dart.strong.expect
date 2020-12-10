@@ -69,3 +69,9 @@ static method main() → dynamic {}
 constants  {
   #C1 = self::Constant {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///magic_const.dart:
+- Constant. (from org-dartlang-testcase:///magic_const.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

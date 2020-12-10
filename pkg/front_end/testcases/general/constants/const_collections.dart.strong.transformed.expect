@@ -513,3 +513,12 @@ constants  {
   #C25 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C24}
   #C26 = col::_UnmodifiableSet<core::String*> {_map:#C25}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_collections.dart:
+- CustomIterable. (from org-dartlang-testcase:///const_collections.dart:79:9)
+- IterableBase. (from org-dartlang-sdk:///sdk/lib/collection/iterable.dart:218:9)
+- WithEquals. (from org-dartlang-testcase:///const_collections.dart:72:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- CustomMap. (from org-dartlang-testcase:///const_collections.dart:84:9)
