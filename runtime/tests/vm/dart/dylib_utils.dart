@@ -6,7 +6,7 @@ import 'dart:ffi' as ffi;
 import 'dart:io' show Platform;
 
 String _platformPath(String name, {String path = ""}) {
-  if (Platform.isLinux || Platform.isAndroid)
+  if (Platform.isLinux || Platform.isAndroid || Platform.isFuchsia)
     return path + "lib" + name + ".so";
   if (Platform.isMacOS) return path + "lib" + name + ".dylib";
   if (Platform.isWindows) return path + name + ".dll";
