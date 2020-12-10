@@ -70,6 +70,8 @@ DECLARE_FLAG(bool, trace_compiler);
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
   auto entry = flow_graph.graph_entry();
+  const bool frameless = !entry->NeedsFrame();
+
   bool has_native_entries = false;
   for (intptr_t i = 0; i < entry->SuccessorCount(); i++) {
     if (entry->SuccessorAt(i)->IsNativeEntry()) {
@@ -78,13 +80,18 @@ compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
     }
   }
 
+  auto state = compiler::LRState::OnEntry();
   if (has_native_entries) {
     // We will setup three (3) frames on the stack when entering through
     // native entry. Keep in sync with NativeEntry/NativeReturn.
-    return compiler::LRState::OnEntry().EnterFrame().EnterFrame().EnterFrame();
+    state = state.EnterFrame().EnterFrame();
   }
 
-  return compiler::LRState::OnEntry().EnterFrame();
+  if (!frameless) {
+    state = state.EnterFrame();
+  }
+
+  return state;
 }
 #endif
 
@@ -574,6 +581,10 @@ void FlowGraphCompiler::VisitBlocks() {
     ASSERT(block_order()[1] == flow_graph().graph_entry()->normal_entry());
   }
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  const auto inner_lr_state = ComputeInnerLRState(flow_graph());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
@@ -590,7 +601,7 @@ void FlowGraphCompiler::VisitBlocks() {
     if (entry->IsFunctionEntry() || entry->IsNativeEntry()) {
       assembler()->set_lr_state(compiler::LRState::OnEntry());
     } else {
-      assembler()->set_lr_state(ComputeInnerLRState(flow_graph()));
+      assembler()->set_lr_state(inner_lr_state);
     }
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 
@@ -1318,6 +1329,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 bool FlowGraphCompiler::TryIntrinsifyHelper() {
+  ASSERT(!flow_graph().IsCompiledForOsr());
+
   compiler::Label exit;
   set_intrinsic_slow_path_label(&exit);
 

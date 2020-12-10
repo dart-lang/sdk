@@ -484,8 +484,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(result == CallingConventions::kReturnFpuReg);
   }
 
-  if (compiler->intrinsic_mode()) {
-    // Intrinsics don't have a frame.
+  if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ Ret();
     return;
   }

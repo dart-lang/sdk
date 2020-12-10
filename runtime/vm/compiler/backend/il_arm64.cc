@@ -24,7 +24,7 @@
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
 
-#define __ compiler->assembler()->
+#define __ (compiler->assembler())->
 #define Z (compiler->zone())
 
 namespace dart {
@@ -392,8 +392,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(result == CallingConventions::kReturnFpuReg);
   }
 
-  if (compiler->intrinsic_mode()) {
-    // Intrinsics don't have a frame.
+  if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ ret();
     return;
   }

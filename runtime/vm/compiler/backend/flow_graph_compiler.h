@@ -461,7 +461,9 @@ class FlowGraphCompiler : public ValueObject {
   // speculative optimizations and call patching are disabled.
   bool ForcedOptimization() const { return function().ForceOptimize(); }
 
-  const FlowGraph& flow_graph() const { return flow_graph_; }
+  const FlowGraph& flow_graph() const {
+    return intrinsic_mode() ? *intrinsic_flow_graph_ : flow_graph_;
+  }
 
   BlockEntryInstr* current_block() const { return current_block_; }
   void set_current_block(BlockEntryInstr* value) { current_block_ = value; }
@@ -485,6 +487,10 @@ class FlowGraphCompiler : public ValueObject {
   void EnterIntrinsicMode();
   void ExitIntrinsicMode();
   bool intrinsic_mode() const { return intrinsic_mode_; }
+
+  void set_intrinsic_flow_graph(const FlowGraph& flow_graph) {
+    intrinsic_flow_graph_ = &flow_graph;
+  }
 
   void set_intrinsic_slow_path_label(compiler::Label* label) {
     ASSERT(intrinsic_slow_path_label_ == nullptr || label == nullptr);
@@ -1195,6 +1201,7 @@ class FlowGraphCompiler : public ValueObject {
   compiler::Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;
+  const FlowGraph* intrinsic_flow_graph_ = nullptr;
   const GrowableArray<BlockEntryInstr*>& block_order_;
 
 #if defined(DEBUG)

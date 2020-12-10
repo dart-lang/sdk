@@ -283,6 +283,13 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
 // NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
+  if (!flow_graph().graph_entry()->NeedsFrame()) {
+    if (FLAG_use_bare_instructions) {
+      assembler()->set_constant_pool_allowed(true);
+    }
+    return;
+  }
+
   if (flow_graph().IsCompiledForOsr()) {
     const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
     ASSERT(extra_slots >= 0);

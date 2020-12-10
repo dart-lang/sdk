@@ -234,8 +234,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
   ASSERT(result == EAX);
 
-  if (compiler->intrinsic_mode()) {
-    // Intrinsics don't have a frame.
+  if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ ret();
     return;
   }
