@@ -13,7 +13,7 @@ class ClientDynamicRegistrations {
   /// All dynamic registrations supported by the Dart LSP server.
   ///
   /// Anything listed here and supported by the client will not send a static
-  /// registration but intead dynamically register (usually only for a subset of
+  /// registration but instead dynamically register (usually only for a subset of
   /// files such as for .dart/pubspec.yaml/etc).
   ///
   /// When adding new capabilities that will be registered dynamically, the
@@ -124,7 +124,8 @@ class ServerCapabilitiesComputer {
     return ServerCapabilities(
       textDocumentSync: dynamicRegistrations.textSync
           ? null
-          : Either2<TextDocumentSyncOptions, num>.t1(TextDocumentSyncOptions(
+          : Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
+              TextDocumentSyncOptions(
               // The open/close and sync kind flags are registered dynamically if the
               // client supports them, so these static registrations are based on whether
               // the client supports dynamic registration.

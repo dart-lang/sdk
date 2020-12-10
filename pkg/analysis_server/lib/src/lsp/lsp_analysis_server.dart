@@ -248,11 +248,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /// Gets the version of a document known to the server, returning a
-  /// [VersionedTextDocumentIdentifier] with a version of `null` if the document
+  /// [OptionalVersionedTextDocumentIdentifier] with a version of `null` if the document
   /// version is not known.
-  VersionedTextDocumentIdentifier getVersionedDocumentIdentifier(String path) {
-    return documentVersions[path] ??
-        VersionedTextDocumentIdentifier(uri: Uri.file(path).toString());
+  OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
+      String path) {
+    return OptionalVersionedTextDocumentIdentifier(
+        uri: Uri.file(path).toString(),
+        version: documentVersions[path]?.version);
   }
 
   void handleClientConnection(
@@ -424,7 +426,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params = PublishClosingLabelsParams(
         uri: Uri.file(path).toString(), labels: labels);
     final message = NotificationMessage(
-      method: CustomMethods.PublishClosingLabels,
+      method: CustomMethods.publishClosingLabels,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -446,7 +448,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params = PublishFlutterOutlineParams(
         uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      method: CustomMethods.PublishFlutterOutline,
+      method: CustomMethods.publishFlutterOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -457,7 +459,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params =
         PublishOutlineParams(uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      method: CustomMethods.PublishOutline,
+      method: CustomMethods.publishOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -552,7 +554,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // it's unlikely to be in use by any clients.
     if (clientCapabilities.window?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
-        method: CustomMethods.AnalyzerStatus,
+        method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
         jsonrpc: jsonRpcVersion,
       ));

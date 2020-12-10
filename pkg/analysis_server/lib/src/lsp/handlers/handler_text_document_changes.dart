@@ -118,7 +118,7 @@ class TextDocumentOpenHandler
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
     return path.mapResult((path) {
-      // We don't get a VersionedTextDocumentIdentifier with a didOpen but we
+      // We don't get a OptionalVersionedTextDocumentIdentifier with a didOpen but we
       // do get the necessary info to create one.
       server.documentVersions[path] = VersionedTextDocumentIdentifier(
         version: params.textDocument.version,

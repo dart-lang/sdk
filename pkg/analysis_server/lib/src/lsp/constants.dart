@@ -78,17 +78,18 @@ abstract class Commands {
 }
 
 abstract class CustomMethods {
-  static const DiagnosticServer = Method('dart/diagnosticServer');
-  static const Reanalyze = Method('dart/reanalyze');
-  static const PublishClosingLabels =
+  static const diagnosticServer = Method('dart/diagnosticServer');
+  static const reanalyze = Method('dart/reanalyze');
+  static const publishClosingLabels =
       Method('dart/textDocument/publishClosingLabels');
-  static const PublishOutline = Method('dart/textDocument/publishOutline');
-  static const PublishFlutterOutline =
+  static const publishOutline = Method('dart/textDocument/publishOutline');
+  static const publishFlutterOutline =
       Method('dart/textDocument/publishFlutterOutline');
-  static const Super = Method('dart/textDocument/super');
+  static const super_ = Method('dart/textDocument/super');
+
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
   // should be relying on it and we now support proper $/progress events.
-  static const AnalyzerStatus = Method(r'$/analyzerStatus');
+  static const analyzerStatus = Method(r'$/analyzerStatus');
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.

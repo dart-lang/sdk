@@ -24,6 +24,21 @@ assertFailed(String? message,
   throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
+/// Throws if [isModuleSound] does not match the null safety mode of this SDK.
+///
+/// The call to this method is inserted into every module at compile time when
+/// the compile time null safety mode for the module is known.
+void _checkModuleNullSafetyMode(@notNull bool isModuleSound) {
+  if (isModuleSound != compileTimeFlag('soundNullSafety')) {
+    var sdkMode = compileTimeFlag('soundNullSafety') ? 'sound' : 'unsound';
+    var moduleMode = isModuleSound ? 'sound' : 'unsound';
+
+    throw AssertionError('The null safety mode of the Dart SDK module '
+        '($sdkMode) does not match the null safety mode of this module '
+        '($moduleMode).');
+  }
+}
+
 final _nullFailedSet = JS('!', 'new Set()');
 
 String _nullFailedMessage(variableName) =>

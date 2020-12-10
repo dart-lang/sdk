@@ -28,13 +28,18 @@ abstract class C {
 
   C(): v12 = T();
   C.name1(this.v10, this.v12);
-  factory C.name2(T arg1, T arg2) = C.name1;
+  factory C.name2(T arg1, T arg2) = C1.name1;
 
   T operator +(T other);
   T get g;
   set g(T value);
   Map<T, T> m1(covariant T arg1, [Set<Set<T>> arg2]);
   void m2({T arg1, T arg2(T arg21, T arg22)});
+}
+
+class C1 implements C {
+  C1.name1(T arg1, T arg2);
+  noSuchMethod(Invocation invocation) => throw 0;
 }
 
 class D1 extends T {}
