@@ -568,6 +568,38 @@ class ObjectLayout {
     }
   }
 
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  void StoreArrayPointer(type const* addr, type value) {
+    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->store(value, order);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+
+  template <typename type>
+  void StoreArrayPointer(type const* addr, type value, Thread* thread) {
+    *const_cast<type*>(addr) = value;
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, thread);
+    }
+  }
+
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  type LoadSmi(type const* addr) const {
+    return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->load(order);
+  }
+  // Use for storing into an explicitly Smi-typed field of an object
+  // (i.e., both the previous and new value are Smis).
+  template <std::memory_order order = std::memory_order_relaxed>
+  void StoreSmi(SmiPtr const* addr, SmiPtr value) {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= ObjectLayout::ToAddr(this));
+    reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
+        ->store(value, order);
+  }
+
  private:
   DART_FORCE_INLINE
   void CheckHeapPointerStore(ObjectPtr value, Thread* thread) {
@@ -594,23 +626,6 @@ class ObjectLayout {
           thread->MarkingStackAddObject(value);
         }
       }
-    }
-  }
-
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
-  void StoreArrayPointer(type const* addr, type value) {
-    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(value, order);
-    if (value->IsHeapObject()) {
-      CheckArrayPointerStore(addr, value, Thread::Current());
-    }
-  }
-
-  template <typename type>
-  void StoreArrayPointer(type const* addr, type value, Thread* thread) {
-    *const_cast<type*>(addr) = value;
-    if (value->IsHeapObject()) {
-      CheckArrayPointerStore(addr, value, thread);
     }
   }
 
@@ -650,26 +665,9 @@ class ObjectLayout {
     }
   }
 
- protected:
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
-  type LoadSmi(type const* addr) const {
-    return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->load(order);
-  }
-  // Use for storing into an explicitly Smi-typed field of an object
-  // (i.e., both the previous and new value are Smis).
-  template <std::memory_order order = std::memory_order_relaxed>
-  void StoreSmi(SmiPtr const* addr, SmiPtr value) {
-    // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= ObjectLayout::ToAddr(this));
-    reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
-        ->store(value, order);
-  }
-
   friend class StoreBufferUpdateVisitor;  // RememberCard
   void RememberCard(ObjectPtr const* slot);
 
- private:
   friend class Array;
   friend class ByteBuffer;
   friend class CidRewriteVisitor;

@@ -634,13 +634,6 @@ void SourceReport::CollectConstConstructorCoverageFromScripts(
   // Now output the wanted constant coverage.
   for (intptr_t i = 0; i < local_script_table_entries->length(); i++) {
     const Script* script = local_script_table_entries->At(i)->script;
-    bool script_ok = true;
-    if (script_ != NULL && !script_->IsNull()) {
-      if (script->raw() != script_->raw()) {
-        // This is the wrong script.
-        script_ok = false;
-      }
-    }
 
     // Whether we want *this* script or not we need to look at the constant
     // constructor coverage. Any of those could be in a script we *do* want.
