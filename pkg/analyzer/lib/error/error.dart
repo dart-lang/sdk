@@ -828,7 +828,7 @@ const List<ErrorCode> errorCodeValues = [
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
 /// instance.
-HashMap<String, ErrorCode> _uniqueNameToCodeMap;
+/*late final*/ HashMap<String, ErrorCode> _uniqueNameToCodeMap;
 
 /// Return the [ErrorCode] with the given [uniqueName], or `null` if not
 /// found.
