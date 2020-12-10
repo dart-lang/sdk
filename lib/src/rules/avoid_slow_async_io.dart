@@ -32,8 +32,8 @@ much slower than their synchronous counterparts.
 import 'dart:io';
 
 Future<Null> someFunction() async {
-  var file = new File('/path/to/my/file');
-  var now = new DateTime.now();
+  var file = File('/path/to/my/file');
+  var now = DateTime.now();
   if ((await file.lastModified()).isBefore(now)) print('before'); // LINT
 }
 ```
@@ -43,8 +43,8 @@ Future<Null> someFunction() async {
 import 'dart:io';
 
 Future<Null> someFunction() async {
-  var file = new File('/path/to/my/file');
-  var now = new DateTime.now();
+  var file = File('/path/to/my/file');
+  var now = DateTime.now();
   if (file.lastModifiedSync().isBefore(now)) print('before'); // OK
 }
 ```

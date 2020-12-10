@@ -25,7 +25,7 @@ class Point {
   num x, y;
   Point(this.x, this.y);
   static Point polar(num theta, num radius) {
-    return new Point(radius * math.cos(theta),
+    return Point(radius * math.cos(theta),
         radius * math.sin(theta));
   }
 }

@@ -79,7 +79,7 @@ import 'size.dart';
 
 void main() {
   test('should not throw on a size >1Kb', () {
-    expect(() => someFunction(new Size(1001)), returnsNormally);
+    expect(() => someFunction(Size(1001)), returnsNormally);
   });
 }
 ```

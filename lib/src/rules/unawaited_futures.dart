@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     return enclosingFunctionBody?.isAsynchronous == true;
   }
 
-  /// Detects `new Future.delayed(duration, [computation])` creations with a
+  /// Detects `Future.delayed(duration, [computation])` creations with a
   /// computation.
   bool _isFutureDelayedInstanceCreationWithComputation(Expression expr) =>
       expr is InstanceCreationExpression &&

@@ -23,10 +23,10 @@ continue to use all caps to stay consistent.
 ```
 const pi = 3.14;
 const defaultTimeout = 1000;
-final urlScheme = new RegExp('^([a-z]+):');
+final urlScheme = RegExp('^([a-z]+):');
 
 class Dice {
-  static final numberGenerator = new Random();
+  static final numberGenerator = Random();
 }
 ```
 
@@ -34,10 +34,10 @@ class Dice {
 ```
 const PI = 3.14;
 const kDefaultTimeout = 1000;
-final URL_SCHEME = new RegExp('^([a-z]+):');
+final URL_SCHEME = RegExp('^([a-z]+):');
 
 class Dice {
-  static final NUMBER_GENERATOR = new Random();
+  static final NUMBER_GENERATOR = Random();
 }
 
 ```

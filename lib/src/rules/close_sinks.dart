@@ -21,7 +21,7 @@ Closing instances of Sink prevents memory leaks and unexpected behavior.
 class A {
   IOSink _sinkA;
   void init(filename) {
-    _sinkA = new File(filename).openWrite(); // LINT
+    _sinkA = File(filename).openWrite(); // LINT
   }
 }
 ```
@@ -38,7 +38,7 @@ void someFunction() {
 class B {
   IOSink _sinkB;
   void init(filename) {
-    _sinkB = new File(filename).openWrite(); // OK
+    _sinkB = File(filename).openWrite(); // OK
   }
 
   void dispose(filename) {

@@ -19,7 +19,7 @@ const _details = r'''
 class A {
   B _lazyInstance;
   static B get instance {
-    _lazyInstance ??= new B(); // LINT
+    _lazyInstance ??= B(); // LINT
     return _lazyInstance;
   }
 }
@@ -29,7 +29,7 @@ class A {
 ```
 class A {
   B _lazyInstance;
-  static B get instance => _lazyInstance ??= new B();
+  static B get instance => _lazyInstance ??= B();
 }
 ```
 

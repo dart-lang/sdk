@@ -17,11 +17,11 @@ const _details = r'''
 
 **BAD:**
 ```
-var points = new List();
-var addresses = new Map();
-var uniqueNames = new Set();
-var ids = new LinkedHashSet();
-var coordinates = new LinkedHashMap();
+var points = List();
+var addresses = Map();
+var uniqueNames = Set();
+var ids = LinkedHashSet();
+var coordinates = LinkedHashMap();
 ```
 
 **GOOD:**

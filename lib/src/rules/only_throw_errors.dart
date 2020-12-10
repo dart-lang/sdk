@@ -33,7 +33,7 @@ void throwString() {
 **GOOD:**
 ```
 void throwArgumentError() {
-  Error error = new ArgumentError('oh!');
+  Error error = ArgumentError('oh!');
   throw error; // OK
 }
 ```

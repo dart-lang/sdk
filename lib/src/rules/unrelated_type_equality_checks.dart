@@ -42,7 +42,7 @@ void someFunction1() {
 **BAD:**
 ```
 void someFunction13(DerivedClass2 instance) {
-  var other = new DerivedClass3();
+  var other = DerivedClass3();
 
   if (other == instance) print('someFunction13'); // LINT
 }
@@ -115,7 +115,7 @@ void someFunction10(unknown) {
 **GOOD:**
 ```
 void someFunction11(Mixin instance) {
-  var other = new DerivedClass2();
+  var other = DerivedClass2();
 
   if (other == instance) print('someFunction11'); // OK
   if (other != instance) print('!someFunction11'); // OK
