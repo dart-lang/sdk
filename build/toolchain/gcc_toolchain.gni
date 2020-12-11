@@ -204,7 +204,13 @@ template("gcc_toolchain") {
         command += " && " + strip_command
       } else if (defined(invoker.llvm_objcopy)) {
         strip = invoker.llvm_objcopy
-        strip_command = "${strip} --strip-all $outfile $stripped_outfile"
+        if (defined(invoker.llvm_objcopy_extra_args)) {
+          extra_args = invoker.llvm_objcopy_extra_args
+        } else {
+          extra_args = ""
+        }
+        strip_command =
+            "${strip} --strip-all ${extra_args} $outfile $stripped_outfile"
         command += " && " + strip_command
       }
       if (defined(invoker.postlink)) {

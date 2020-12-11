@@ -563,6 +563,8 @@ class BinaryBuilder {
   }
 
   /// Deserializes the source and stores it in [component].
+  /// Note that the _coverage_ normally included in the source in the
+  /// uri-to-source mapping is _not_ included.
   ///
   /// The input bytes may contain multiple files concatenated.
   void readComponentSource(Component component) {
@@ -724,7 +726,7 @@ class BinaryBuilder {
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ false);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
@@ -773,7 +775,7 @@ class BinaryBuilder {
     _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ true);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -821,7 +823,14 @@ class BinaryBuilder {
     return strings;
   }
 
-  Map<Uri, Source> readUriToSource() {
+  /// Read the uri-to-source part of the binary.
+  /// Note that this can include coverage, but that it is only included if
+  /// [readCoverage] is true, otherwise coverage will be skipped. Note also that
+  /// if [readCoverage] is true, references are read and that the link table
+  /// thus has to be read first.
+  Map<Uri, Source> readUriToSource(bool readCoverage) {
+    assert(!readCoverage || (readCoverage && _linkTable != null));
+
     int length = readUint32();
 
     // Read data.
@@ -847,10 +856,16 @@ class BinaryBuilder {
       Set<Reference> coverageConstructors;
       {
         int constructorCoverageCount = readUInt30();
-        coverageConstructors =
-            constructorCoverageCount == 0 ? null : new Set<Reference>();
-        for (int j = 0; j < constructorCoverageCount; ++j) {
-          coverageConstructors.add(readMemberReference());
+        if (readCoverage) {
+          coverageConstructors =
+              constructorCoverageCount == 0 ? null : new Set<Reference>();
+          for (int j = 0; j < constructorCoverageCount; ++j) {
+            coverageConstructors.add(readMemberReference());
+          }
+        } else {
+          for (int j = 0; j < constructorCoverageCount; ++j) {
+            skipMemberReference();
+          }
         }
       }
 
@@ -906,6 +921,10 @@ class BinaryBuilder {
     }
   }
 
+  void skipCanonicalNameReference() {
+    readUInt30();
+  }
+
   CanonicalName readCanonicalNameReference() {
     int index = readUInt30();
     if (index == 0) return null;
@@ -935,6 +954,10 @@ class BinaryBuilder {
       throw 'Expected a class reference to be valid but was `null`.';
     }
     return name?.getReference();
+  }
+
+  void skipMemberReference() {
+    skipCanonicalNameReference();
   }
 
   Reference readMemberReference({bool allowNull: false}) {
