@@ -103,6 +103,16 @@ abc""");
 ''');
   }
 
+  Future<void> test_doubleQuoted_unterminated() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+void f() {
+  "
+}
+''');
+    await assertNoAssistAt('"');
+  }
+
   Future<void> test_singleQuoted() async {
     await resolveTestCode('''
 main() {
@@ -176,5 +186,15 @@ main() {
 abc''');
 }
 """);
+  }
+
+  Future<void> test_singleQuoted_unterminated() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+void f() {
+  '
+}
+''');
+    await assertNoAssistAt("'");
   }
 }

@@ -27,8 +27,8 @@ abstract class ConvertQuotes extends CorrectionProducer {
             ? (_fromDouble ? "'''" : '"""')
             : (_fromDouble ? "'" : '"');
         var quoteLength = literal.isMultiline ? 3 : 1;
-        var lexeme = literal.literal.lexeme;
-        if (!lexeme.contains(newQuote)) {
+        var token = literal.literal;
+        if (!token.isSynthetic && !token.lexeme.contains(newQuote)) {
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(
                 SourceRange(
@@ -53,8 +53,8 @@ abstract class ConvertQuotes extends CorrectionProducer {
         for (var i = 0; i < elements.length; i++) {
           var element = elements[i];
           if (element is InterpolationString) {
-            var lexeme = element.contents.lexeme;
-            if (lexeme.contains(newQuote)) {
+            var token = element.contents;
+            if (token.isSynthetic || token.lexeme.contains(newQuote)) {
               return null;
             }
           }
