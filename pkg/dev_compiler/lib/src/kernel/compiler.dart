@@ -364,6 +364,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _pendingClasses.addAll(l.classes);
     }
 
+    // Insert a circular reference so neither the constant table or its cache
+    // are optimized away by V8. Required for expression evaluation.
+    var constTableDeclaration =
+        js.statement('const # = Object.create({# : () => (#, #)});', [
+      _constTable,
+      js_ast.LiteralString('_'),
+      _constTableCache.containerId,
+      _constTable
+    ]);
+    moduleItems.add(constTableDeclaration);
+
     // Record a safe index after the declaration of type generators and
     // top-level symbols but before the declaration of any functions.
     // Various preliminary data structures must be inserted here prior before
@@ -384,19 +395,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit hoisted assert strings
     moduleItems.insertAll(safeDeclarationIndex, _uriContainer.emit());
 
-    if (_constTableCache.isNotEmpty) {
-      moduleItems.insertAll(safeDeclarationIndex, _constTableCache.emit());
-    }
+    moduleItems.insertAll(safeDeclarationIndex, _constTableCache.emit());
 
-    // This can cause problems if it's ever true during the SDK build, as it's
-    // emitted before dart.defineLazy.
     if (_constLazyAccessors.isNotEmpty) {
-      var constTableDeclaration =
-          js.statement('const # = Object.create(null);', [_constTable]);
       var constTableBody = runtimeStatement(
           'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]);
-      moduleItems.insertAll(
-          _constTableInsertionIndex, [constTableDeclaration, constTableBody]);
+      moduleItems.insert(_constTableInsertionIndex, constTableBody);
       _constLazyAccessors.clear();
     }
 
@@ -3093,8 +3097,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
 
-    var types = _typeTable?.dischargeFreeTypes();
+    var types = _typeTable?.dischargeBoundTypes(incremental: true);
     var constants = _dischargeConstTable();
+
     var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
     return js_ast.Fun(fun.params, body);
   }
