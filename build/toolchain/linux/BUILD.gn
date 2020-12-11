@@ -52,6 +52,17 @@ gcc_toolchain("clang_arm") {
   ld = cxx
   llvm_objcopy = "${prefix}/llvm-objcopy"
 
+  # When producing ARM builds we drop .ARM.exidx/extab sections. These sections
+  # don't contain any useful information (we don't use exceptions or
+  # unwind C++ frames and most of the dart binary is in fact not covered by
+  # them), however they have been seen to break dynamic linker in older glibc
+  # versions (pre 2.23) because .ARM.exidx ends up being positioned between
+  # .rel.dyn and .rel.plt sections while older versions of dynamic linker
+  # expect these two sections to appear one after another in the ELF file.
+  # See https://github.com/dart-lang/sdk/issues/41644.
+  llvm_objcopy_extra_args =
+      "--remove-section .ARM.exidx --remove-section .ARM.extab"
+
   toolchain_cpu = "arm"
   toolchain_os = "linux"
   is_clang = true
