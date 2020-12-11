@@ -4440,13 +4440,30 @@ const List<int?> b = [
   a?.length,
 ];
 ''');
-    // TODO(scheglov) include fully resolved AST, when types with suffixes
-    checkElementText(library, r'''
-const String? a = '';
-const List<int?> b = [
-        a/*location: test.dart;a?*/.
-        length/*location: dart:core;String;length?*/];
-''');
+    checkElementText(
+        library,
+        r'''
+const String? a;
+  constantInitializer
+    SimpleStringLiteral
+      literal: ''
+const List<int?> b;
+  constantInitializer
+    ListLiteral
+      elements
+        PropertyAccess
+          propertyName: SimpleIdentifier
+            staticElement: dart:core::@class::String::@getter::length
+            staticType: int
+            token: length
+          staticType: int?
+          target: SimpleIdentifier
+            staticElement: self::@getter::a
+            staticType: String?
+            token: a
+      staticType: List<int?>
+''',
+        withFullyResolvedAst: true);
   }
 
   test_const_topLevel_parenthesis() async {
