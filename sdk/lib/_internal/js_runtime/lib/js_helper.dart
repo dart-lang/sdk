@@ -2960,24 +2960,20 @@ Future<Null> _loadHunk(String hunkName) {
   return completer.future;
 }
 
-class MainError extends Error implements NoSuchMethodError {
-  final String _message;
-
-  MainError(this._message);
-
-  String toString() => 'NoSuchMethodError: $_message';
-}
-
-void missingMain() {
-  throw new MainError("No top-level function named 'main'.");
-}
-
-void badMain() {
-  throw new MainError("'main' is not a function.");
-}
-
-void mainHasTooManyParameters() {
-  throw new MainError("'main' expects too many parameters.");
+/// Converts a raw JavaScript array into a `List<String>`.
+/// Called from generated code.
+List<String> convertMainArgumentList(Object? args) {
+  List<String> result = [];
+  if (args == null) return result;
+  if (args is JSArray) {
+    for (int i = 0; i < args.length; i++) {
+      JS('', '#.push(String(#[#]))', result, args, i);
+    }
+    return result;
+  }
+  // Single non-Array element. Convert to a String.
+  JS('', '#.push(String(#))', result, args);
+  return result;
 }
 
 class _AssertionError extends AssertionError {

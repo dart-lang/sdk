@@ -4,7 +4,7 @@
 
 // Javascript preamble, that lets the output of dart2js run on JSShell.
 
-(function(self) {
+(function(self, scriptArguments) {
   // Using strict mode to avoid accidentally defining global variables.
   "use strict"; // Should be first statement of this function.
 
@@ -262,9 +262,9 @@
     }
   }
 
-  self.dartMainRunner = function(main, args) {
+  self.dartMainRunner = function(main, ignored_args) {
     // Initialize.
-    var action = function() { main(args); }
+    var action = function() { main(scriptArguments, null); }
     eventLoop(action);
   };
   self.setTimeout = addTimer;
@@ -329,7 +329,7 @@
       array[i] = Math.random() * 256;
     }
   }};
-})(this)
+})(this, typeof scriptArgs == "undefined" ? [] : scriptArgs)
 
 var getKeys = function(obj){
    var keys = [];
