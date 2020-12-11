@@ -381,6 +381,10 @@ class LinkedElementFactory {
     return library.exports;
   }
 
+  bool hasLibrary(String uriStr) {
+    return libraryReaders[uriStr] != null;
+  }
+
   bool isLibraryUri(String uriStr) {
     var libraryContext = libraryReaders[uriStr];
     return !libraryContext.hasPartOfDirective;
