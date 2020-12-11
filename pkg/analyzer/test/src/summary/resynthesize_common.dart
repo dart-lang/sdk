@@ -11974,7 +11974,6 @@ dynamic Function() f;
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
@@ -11991,24 +11990,95 @@ class B implements A<int, String> {
 ''');
   }
 
-  @failingTest
   test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<T>?;
 class A<T> {}
-class B implements X<int> {}
+class B {}
+class C {}
+class D implements B, X<int>, C {}
 ''');
     checkElementText(library, r'''
-typedef X<T> = A<int, T>;
-class A<T, U> {
+typedef X<T> = A<T>?;
+class A<T> {
 }
-class B implements A<int, String> {
+class B {
+}
+class C {
+}
+class D implements B, C {
 }
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_asInterfaceType_interfaceType_question2() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X<T> = A<T?>;
+class A<T> {}
+class B {}
+class C {}
+class D implements B, X<int>, C {}
+''');
+    checkElementText(library, r'''
+typedef X<T> = A<T?>;
+class A<T> {
+}
+class B {
+}
+class C {
+}
+class D implements B, A<int?>, C {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asInterfaceType_Never_none() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = Never;
+class A implements X {}
+''');
+    checkElementText(library, r'''
+typedef X = Never;
+class A {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asInterfaceType_Null_none() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = Null;
+class A implements X {}
+''');
+    checkElementText(library, r'''
+typedef X = Null;
+class A {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asInterfaceType_typeParameterType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X<T> = T;
+class A {}
+class B {}
+class C<U> implements A, X<U>, B {}
+''');
+    checkElementText(library, r'''
+typedef X<T> = T;
+class A {
+}
+class B {
+}
+class C<U> implements A, B {
+}
+''');
+  }
+
   test_typedef_nonFunction_asInterfaceType_void() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
@@ -12028,8 +12098,7 @@ class C implements A, B {
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
-  test_typedef_nonFunction_asMixinType() async {
+  test_typedef_nonFunction_asMixinType_none() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
@@ -12046,8 +12115,66 @@ class B extends Object with A<int> {
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
-  test_typedef_nonFunction_asSuperType_interfaceType() async {
+  test_typedef_nonFunction_asMixinType_question() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = A<int>?;
+class A<T> {}
+mixin M1 {}
+mixin M2 {}
+class B with M1, X, M2 {}
+''');
+    checkElementText(library, r'''
+typedef X = A<int>?;
+class A<T> {
+}
+class B extends Object with M1, M2 {
+  synthetic B();
+}
+mixin M1 on Object {
+}
+mixin M2 on Object {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asMixinType_question2() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = A<int?>;
+class A<T> {}
+mixin M1 {}
+mixin M2 {}
+class B with M1, X, M2 {}
+''');
+    checkElementText(library, r'''
+typedef X = A<int?>;
+class A<T> {
+}
+class B extends Object with M1, A<int?>, M2 {
+  synthetic B();
+}
+mixin M1 on Object {
+}
+mixin M2 on Object {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asSuperType_interfaceType_Never_none() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = Never;
+class A extends X {}
+''');
+    checkElementText(library, r'''
+typedef X = Never;
+class A {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asSuperType_interfaceType_none() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
@@ -12063,7 +12190,93 @@ class B extends A<int> {
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_asSuperType_interfaceType_none_viaTypeParameter() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X<T> = T;
+class A<T> {}
+class B extends X<A<int>> {}
+''');
+    checkElementText(library, r'''
+typedef X<T> = T;
+class A<T> {
+}
+class B extends A<int> {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asSuperType_interfaceType_Null_none() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = Null;
+class A extends X {}
+''');
+    checkElementText(library, r'''
+typedef X = Null;
+class A {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asSuperType_interfaceType_question() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = A<int>?;
+class A<T> {}
+class D extends X {}
+''');
+    checkElementText(library, r'''
+typedef X = A<int>?;
+class A<T> {
+}
+class D {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asSuperType_interfaceType_question2() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = A<int?>;
+class A<T> {}
+class D extends X {}
+''');
+    checkElementText(library, r'''
+typedef X = A<int?>;
+class A<T> {
+}
+class D extends A<int?> {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asSuperType_Never_none() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = Never;
+class A extends X {}
+''');
+    checkElementText(library, r'''
+typedef X = Never;
+class A {
+}
+''');
+  }
+
+  test_typedef_nonFunction_asSuperType_Null_none() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef X = Null;
+class A extends X {}
+''');
+    checkElementText(library, r'''
+typedef X = Null;
+class A {
+}
+''');
+  }
+
   test_typedef_nonFunction_using_dynamic() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
@@ -12103,6 +12316,18 @@ void f(int a) {}
 ''');
   }
 
+  test_typedef_nonFunction_using_interface_noTypeParameters_question() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = int?;
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+typedef A = int?;
+void f(int? a) {}
+''');
+  }
+
   test_typedef_nonFunction_using_interface_withTypeParameters() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
@@ -12115,8 +12340,7 @@ void f(Map<int, String> a) {}
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
-  test_typedef_nonFunction_using_Never() async {
+  test_typedef_nonFunction_using_Never_none() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = Never;
@@ -12128,8 +12352,19 @@ void f(Never a) {}
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
-  test_typedef_nonFunction_using_typeParameter() async {
+  test_typedef_nonFunction_using_Never_question() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = Never?;
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+typedef A = Never?;
+void f(Never? a) {}
+''');
+  }
+
+  test_typedef_nonFunction_using_typeParameter_none() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T;
@@ -12143,7 +12378,20 @@ void f2(int a) {}
 ''');
   }
 
-  /// TODO(scheglov) add `?` cases.
+  test_typedef_nonFunction_using_typeParameter_question() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = T?;
+void f1(A a) {}
+void f2(A<int> a) {}
+''');
+    checkElementText(library, r'''
+typedef A<T> = T?;
+void f1(dynamic a) {}
+void f2(int? a) {}
+''');
+  }
+
   test_typedef_nonFunction_using_void() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''

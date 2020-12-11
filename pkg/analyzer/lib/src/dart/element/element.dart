@@ -1065,7 +1065,10 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (element.isEnum || element.isMixin) {
         return false;
       }
-      if (type.isDartCoreFunction) {
+      if (type.isDartCoreFunction || type.isDartCoreNull) {
+        return false;
+      }
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
         return false;
       }
       return true;
@@ -1076,9 +1079,19 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Return `true` if the given [type] is an [InterfaceType] that can be used
   /// as an interface or a mixin.
   bool _isInterfaceTypeInterface(DartType type) {
-    return type is InterfaceType &&
-        !type.element.isEnum &&
-        !type.isDartCoreFunction;
+    if (type is InterfaceType) {
+      if (type.element.isEnum) {
+        return false;
+      }
+      if (type.isDartCoreFunction || type.isDartCoreNull) {
+        return false;
+      }
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
