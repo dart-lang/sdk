@@ -7594,6 +7594,35 @@ typedef F2<covariant T> = void Function(void Function(T) );
         withTypeParameterVariance: true);
   }
 
+  test_genericTypeAlias_typeParameters_variance_invalid() async {
+    var library = await checkLibrary(r'''
+class A {}
+typedef F<T> = void Function(A<int>);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<unrelated T> = void Function(A );
+class A {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_genericTypeAlias_typeParameters_variance_invalid2() async {
+    var library = await checkLibrary(r'''
+typedef F = void Function();
+typedef G<T> = void Function(F<int>);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function();
+typedef G<unrelated T> = void Function(void Function() );
+''',
+        withTypeParameterVariance: true);
+  }
+
   test_genericTypeAlias_typeParameters_variance_invariant() async {
     var library = await checkLibrary(r'''
 typedef F<T> = T Function(T);
