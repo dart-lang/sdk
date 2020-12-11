@@ -84,12 +84,18 @@ bool canRead(File dill) {
     int libs = component.libraries.length;
 
     component = new Component();
+    new BinaryBuilderWithMetadata(bytes).readComponentSource(component);
+
+    component = new Component();
     new BinaryBuilder(bytes).readComponent(component);
     if (libs != component.libraries.length) {
       throw "Didn't get the same number of libraries: $libs when reading with "
           "BinaryBuilderWithMetadata and ${component.libraries.length} "
           "when reading with BinaryBuilder";
     }
+
+    component = new Component();
+    new BinaryBuilder(bytes).readComponentSource(component);
 
     return true;
   } catch (e, st) {
