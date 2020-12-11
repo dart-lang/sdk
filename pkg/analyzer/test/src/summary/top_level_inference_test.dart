@@ -2176,13 +2176,13 @@ abstract class C implements A, B {
 ''');
     checkElementText(library, r'''
 abstract class A {
-  int foo(int x);
+  int* foo(int* x);
 }
 abstract class B {
-  double foo(int x);
+  double* foo(int* x);
 }
-abstract class C implements A, B {
-  Null foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
+abstract class C implements A*, B* {
+  Null* foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
 }
 ''');
   }

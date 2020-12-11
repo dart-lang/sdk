@@ -13,7 +13,7 @@ dependencies:
   collection: ^1.10.1
   convert: ^2.0.0
   crypto: ^2.0.0
-  glob: ^1.0.3
+  glob: '>=1.0.3 <3.0.0'
   meta: ^1.2.3
   package_config: ^1.0.0
   path: ^1.0.0

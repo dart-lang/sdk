@@ -55,8 +55,6 @@ class LibraryContext {
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
 
-  Set<LibraryCycle> loadedBundles = Set<LibraryCycle>.identity();
-
   LibraryContext({
     @required this.testView,
     @required AnalysisSessionImpl session,
@@ -112,7 +110,10 @@ class LibraryContext {
     var thisLoadLogBuffer = StringBuffer();
 
     void loadBundle(LibraryCycle cycle, String debugPrefix) {
-      if (!loadedBundles.add(cycle)) return;
+      if (cycle.libraries.isEmpty ||
+          elementFactory.hasLibrary(cycle.libraries.first.uriStr)) {
+        return;
+      }
 
       thisLoadLogBuffer.writeln('$debugPrefix$cycle');
 
@@ -191,9 +192,6 @@ class LibraryContext {
                   buffer.writeln('[newUri: ${libraryFile.uriStr}]');
                   buffer.writeln('[newPath: ${libraryFile.path}]');
                   buffer.writeln('[cycle: $cycle]');
-                  buffer.writeln();
-
-                  buffer.writeln('[loadedBundles: ${loadedBundles.toList()}]');
                   buffer.writeln();
 
                   buffer.writeln('Bundles loaded in this load2() invocation:');
