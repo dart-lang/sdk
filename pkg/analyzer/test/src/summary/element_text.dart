@@ -57,7 +57,6 @@ void checkElementText(
   bool withSyntheticFields = false,
   bool withTypes = false,
   bool withTypeParameterVariance = false,
-  bool annotateNullability = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
@@ -70,7 +69,6 @@ void checkElementText(
     withSyntheticFields: withSyntheticFields,
     withTypes: withTypes,
     withTypeParameterVariance: withTypeParameterVariance,
-    annotateNullability: annotateNullability,
   );
   writer.writeLibraryElement(library);
 
@@ -140,7 +138,6 @@ class _ElementWriter {
   final bool withSyntheticFields;
   final bool withTypes;
   final bool withTypeParameterVariance;
-  final bool annotateNullability;
   final StringBuffer buffer = StringBuffer();
 
   String indent = '';
@@ -156,7 +153,6 @@ class _ElementWriter {
     this.withSyntheticFields = false,
     this.withTypes = false,
     this.withTypeParameterVariance,
-    this.annotateNullability = false,
   });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
@@ -1176,7 +1172,7 @@ class _ElementWriter {
 
   String _typeStr(DartType type) {
     return type?.getDisplayString(
-      withNullability: annotateNullability,
+      withNullability: true,
     );
   }
 
@@ -1216,7 +1212,7 @@ class _ElementWriter {
         selfUriStr: selfUriStr,
         sink: buffer,
         indent: indent,
-        withNullability: annotateNullability,
+        withNullability: true,
       ),
     );
   }
