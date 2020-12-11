@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -11,6 +13,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -143,12 +146,25 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
     element.isSimplyBounded = _resolution.readByte() != 0;
     _enclosingElements.add(element);
 
-    node.typeParameters?.accept(this);
-    node.extendsClause?.accept(this);
-    node.nativeClause?.accept(this);
-    node.withClause?.accept(this);
-    node.implementsClause?.accept(this);
-    _namedCompilationUnitMember(node);
+    try {
+      node.typeParameters?.accept(this);
+      node.extendsClause?.accept(this);
+      node.nativeClause?.accept(this);
+      node.withClause?.accept(this);
+      node.implementsClause?.accept(this);
+      _namedCompilationUnitMember(node);
+    } catch (e, stackTrace) {
+      // TODO(scheglov) Remove after fixing http://dartbug.com/44449
+      var headerStr = _astCodeBeforeMarkerOrMaxLength(node, '{', 1000);
+      throw CaughtExceptionWithFiles(e, stackTrace, {
+        'state': '''
+element: ${element.reference}
+header: $headerStr
+resolution.bytes.length: ${_resolution.bytes.length}
+resolution.byteOffset: ${_resolution.byteOffset}
+''',
+      });
+    }
 
     _enclosingElements.removeLast();
   }
@@ -625,16 +641,29 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
     _enclosingElements.add(element.enclosingElement);
     _enclosingElements.add(element);
 
-    node.typeParameters?.accept(this);
-    node.returnType?.accept(this);
-    node.parameters?.accept(this);
-    node.metadata?.accept(this);
+    try {
+      node.typeParameters?.accept(this);
+      node.returnType?.accept(this);
+      node.parameters?.accept(this);
+      node.metadata?.accept(this);
 
-    element.returnType = _nextType();
-    _setTopLevelInferenceError(element);
-    if (element is MethodElementImpl) {
-      element.isOperatorEqualWithParameterTypeFromObject =
-          _resolution.readByte() != 0;
+      element.returnType = _nextType();
+      _setTopLevelInferenceError(element);
+      if (element is MethodElementImpl) {
+        element.isOperatorEqualWithParameterTypeFromObject =
+            _resolution.readByte() != 0;
+      }
+    } catch (e, stackTrace) {
+      // TODO(scheglov) Remove after fixing http://dartbug.com/44449
+      var headerStr = _astCodeBeforeMarkerOrMaxLength(node, '{', 1000);
+      throw CaughtExceptionWithFiles(e, stackTrace, {
+        'state': '''
+element: ${element.reference}
+header: $headerStr
+resolution.bytes.length: ${_resolution.bytes.length}
+resolution.byteOffset: ${_resolution.byteOffset}
+''',
+      });
     }
 
     _enclosingElements.removeLast();
@@ -1178,6 +1207,17 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   void _uriBasedDirective(UriBasedDirective node) {
     _directive(node);
     node.uri.accept(this);
+  }
+
+  /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
+  static String _astCodeBeforeMarkerOrMaxLength(
+      AstNode node, String marker, int maxLength) {
+    var nodeStr = '$node';
+    var indexOfBody = nodeStr.indexOf(marker);
+    if (indexOfBody == -1) {
+      indexOfBody = min(maxLength, nodeStr.length);
+    }
+    return nodeStr.substring(0, indexOfBody);
   }
 
   static Variance _decodeVariance(int encoding) {

@@ -9,15 +9,57 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../common_elements.dart';
 
 import 'code_emitter_task.dart' show Emitter;
 
 class MainCallStubGenerator {
   static jsAst.Statement generateInvokeMain(
-      Emitter emitter, FunctionEntity main) {
-    jsAst.Expression mainCallClosure = emitter.staticFunctionAccess(main);
+      CommonElements commonElements, Emitter emitter, FunctionEntity main) {
+    jsAst.Expression mainAccess = emitter.staticFunctionAccess(main);
     jsAst.Expression currentScriptAccess =
         emitter.generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
+
+    // TODO(https://github.com/dart-lang/language/issues/1120#issuecomment-670802088):
+    // Validate constraints on `main()` in resolution for dart2js, and in DDC.
+
+    final parameterStructure = main.parameterStructure;
+
+    // The forwarding stub passes all arguments, i.e. both required and optional
+    // positional arguments. We ignore named arguments, assuming the `main()`
+    // has been validated earlier.
+    int positionalParameters = parameterStructure.positionalParameters;
+
+    jsAst.Expression mainCallClosure;
+    if (positionalParameters == 0) {
+      if (parameterStructure.namedParameters.isEmpty) {
+        // e.g. `void main()`.
+        // No parameters. The compiled Dart `main` has no parameters and will
+        // ignore any extra parameters passed in, so it can be used directly.
+        mainCallClosure = mainAccess;
+      } else {
+        // e.g. `void main({arg})`.  We should not get here. Drop the named
+        // arguments as we don't know how to convert them.
+        mainCallClosure = js(r'''function() { return #(); }''', mainAccess);
+      }
+    } else {
+      jsAst.Expression convertArgumentList =
+          emitter.staticFunctionAccess(commonElements.convertMainArgumentList);
+      if (positionalParameters == 1) {
+        // e.g. `void main(List<String> args)`,  `main([args])`.
+        mainCallClosure = js(
+          r'''function(args) { return #(#(args)); }''',
+          [mainAccess, convertArgumentList],
+        );
+      } else {
+        // positionalParameters == 2.
+        // e.g. `void main(List<String> args, Object? extra)`
+        mainCallClosure = js(
+          r'''function(args, extra) { return #(#(args), extra); }''',
+          [mainAccess, convertArgumentList],
+        );
+      }
+    }
 
     // This code finds the currently executing script by listening to the
     // onload event of all script tags and getting the first script which
@@ -48,11 +90,11 @@ class MainCallStubGenerator {
         }
       })(function(currentScript) {
         #currentScript = currentScript;
-
+        var callMain = #mainCallClosure;
         if (typeof dartMainRunner === "function") {
-          dartMainRunner(#mainCallClosure, []);
+          dartMainRunner(callMain, []);
         } else {
-          #mainCallClosure([]);
+          callMain([]);
         }
       })''', {
       'currentScript': currentScriptAccess,

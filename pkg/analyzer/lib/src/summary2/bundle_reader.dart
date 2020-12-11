@@ -585,6 +585,12 @@ class LinkedResolutionReader {
     this._byteOffset,
   );
 
+  /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
+  int get byteOffset => _byteOffset;
+
+  /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
+  Uint8List get bytes => _unitReader._resolutionReader.bytes;
+
   Element nextElement() {
     var memberFlags = readByte();
     var element = _readRawElement();

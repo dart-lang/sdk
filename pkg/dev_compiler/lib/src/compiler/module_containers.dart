@@ -35,11 +35,11 @@ class ModuleItemData {
 ///   ...
 /// };
 /// ```
-class ModuleItemContainer<K> {
+abstract class ModuleItemContainer<K> {
   /// Name of the container in the emitted JS.
   String name;
 
-  /// If null, this container will be automatically renamed based on [name].
+  /// Refers to the latest container if this container is sharded.
   js_ast.Identifier containerId;
 
   final Map<K, ModuleItemData> moduleItems = {};
@@ -66,43 +66,15 @@ class ModuleItemContainer<K> {
 
   int get length => moduleItems.keys.length;
 
+  bool get isEmpty => moduleItems.isEmpty;
+
   js_ast.Expression operator [](K key) => moduleItems[key]?.jsValue;
 
-  void operator []=(K key, js_ast.Expression value) {
-    if (moduleItems.containsKey(key)) {
-      moduleItems[key].jsValue = value;
-      return;
-    }
-    var fieldString = '$key';
-    // Avoid shadowing common JS properties.
-    if (js_ast.objectProperties.contains(fieldString)) {
-      fieldString += '\$';
-    }
-    moduleItems[key] = ModuleItemData(
-        containerId, js_ast.LiteralString("'$fieldString'"), value);
-  }
+  void operator []=(K key, js_ast.Expression value);
 
   /// Returns the expression that retrieves [key]'s corresponding JS value via
   /// a property access through its container.
-  js_ast.Expression access(K key) {
-    return js.call('#.#', [containerId, moduleItems[key].jsKey]);
-  }
-
-  /// Emit the container declaration/initializer.
-  ///
-  /// May be multiple statements if the container is automatically sharded.
-  List<js_ast.Statement> emit() {
-    var properties = <js_ast.Property>[];
-    moduleItems.forEach((k, v) {
-      if (!_noEmit.contains(k)) return;
-      properties.add(js_ast.Property(v.jsKey, v.jsValue));
-    });
-    var containerObject =
-        js_ast.ObjectInitializer(properties, multiline: properties.length > 1);
-    return [
-      js.statement('var # = Object.create(#)', [containerId, containerObject])
-    ];
-  }
+  js_ast.Expression access(K key);
 
   bool contains(K key) => moduleItems.containsKey(key);
 
@@ -115,6 +87,16 @@ class ModuleItemContainer<K> {
   void setNoEmit(K key) {
     _noEmit.add(key);
   }
+
+  /// Emit the container declaration/initializer, using multiple statements if
+  /// necessary.
+  List<js_ast.Statement> emit();
+
+  /// Emit the container declaration/initializer incrementally.
+  ///
+  /// Used during expression evaluation. Appends all newly added types to the
+  /// most recent container.
+  List<js_ast.Statement> emitIncremental();
 }
 
 /// Associates a [K] with a container-unique JS key and arbitrary JS value.
@@ -129,9 +111,6 @@ class ModuleItemContainer<K> {
 /// var C$1 = { ... };
 /// ```
 class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
-  /// Holds the TemporaryId for the current container shard.
-  js_ast.Identifier _currentContainerId;
-
   /// Tracks how often JS emitted field names appear.
   ///
   /// [keyToString] may resolve multiple unique keys to the same JS string.
@@ -144,7 +123,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
   String Function(K) keyToString;
 
   ModuleItemObjectContainer(String name, this.keyToString)
-      : super._(name, null);
+      : super._(name, js_ast.TemporaryId(name));
 
   @override
   void operator []=(K key, js_ast.Expression value) {
@@ -152,7 +131,6 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
       moduleItems[key].jsValue = value;
       return;
     }
-    if (length % 500 == 0) _currentContainerId = js_ast.TemporaryId(name);
     // Create a unique name for K when emitted as a JS field.
     var fieldString = keyToString(key);
     _nameFrequencies.update(fieldString, (v) {
@@ -166,7 +144,8 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
       return 0;
     });
     moduleItems[key] = ModuleItemData(
-        _currentContainerId, js_ast.LiteralString("'$fieldString'"), value);
+        containerId, js_ast.LiteralString("'$fieldString'"), value);
+    if (length % 500 == 0) containerId = js_ast.TemporaryId(name);
   }
 
   @override
@@ -185,12 +164,32 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
       containersToProperties[v.id].add(js_ast.Property(v.jsKey, v.jsValue));
     });
 
+    // Emit a self-reference for the next container so V8 does not optimize it
+    // away. Required for expression evaluation.
+    if (containersToProperties[containerId] == null) {
+      containersToProperties[containerId] = [
+        js_ast.Property(
+            js_ast.LiteralString('_'), js.call('() => #', [containerId]))
+      ];
+    }
     var statements = <js_ast.Statement>[];
     containersToProperties.forEach((containerId, properties) {
       var containerObject = js_ast.ObjectInitializer(properties,
           multiline: properties.length > 1);
       statements.add(js.statement(
           'var # = Object.create(#)', [containerId, containerObject]));
+    });
+    return statements;
+  }
+
+  /// Appends all newly added types to the most recent container.
+  @override
+  List<js_ast.Statement> emitIncremental() {
+    var statements = <js_ast.Statement>[];
+    moduleItems.forEach((k, v) {
+      if (_noEmit.contains(k)) return;
+      statements
+          .add(js.statement('#[#] = #', [containerId, v.jsKey, v.jsValue]));
     });
     return statements;
   }
@@ -226,7 +225,6 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
 
   @override
   List<js_ast.Statement> emit() {
-    if (moduleItems.isEmpty) return [];
     var properties = List<js_ast.Expression>.filled(length, null);
 
     // If the entire array holds just one value, generate a short initializer.
@@ -255,5 +253,16 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
         js_ast.ArrayInitializer(properties, multiline: properties.length > 1)
       ])
     ];
+  }
+
+  @override
+  List<js_ast.Statement> emitIncremental() {
+    var statements = <js_ast.Statement>[];
+    moduleItems.forEach((k, v) {
+      if (_noEmit.contains(k)) return;
+      statements
+          .add(js.statement('#[#] = #', [containerId, v.jsKey, v.jsValue]));
+    });
+    return statements;
   }
 }

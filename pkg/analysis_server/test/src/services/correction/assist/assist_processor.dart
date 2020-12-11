@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -193,7 +194,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   Future<List<Assist>> _computeAssists() async {
     var context = DartAssistContextImpl(
-      InstrumentationService.NULL_SERVICE,
+      _TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       _offset,
@@ -210,5 +211,21 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       positions.add(Position(testFile, offset));
     }
     return positions;
+  }
+}
+
+class _TestInstrumentationService implements InstrumentationService {
+  @override
+  void logException(
+    exception, [
+    StackTrace stackTrace,
+    List<InstrumentationServiceAttachment> attachments,
+  ]) {
+    throw CaughtException(exception, stackTrace);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
   }
 }

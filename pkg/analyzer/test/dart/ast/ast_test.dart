@@ -943,7 +943,6 @@ E f() => g;
         source,
         listener,
         featureSet: featureSet,
-        useFasta: true,
       ).parseCompilationUnit(tokens);
     }
     return _unit;

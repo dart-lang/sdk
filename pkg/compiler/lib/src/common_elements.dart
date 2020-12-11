@@ -449,6 +449,8 @@ abstract class CommonElements {
 
   FunctionEntity getInstantiateFunction(int typeArgumentCount);
 
+  FunctionEntity get convertMainArgumentList;
+
   // From dart:_rti
 
   FunctionEntity get setRuntimeTypeInfo;
@@ -1833,6 +1835,10 @@ class CommonElementsImpl
         cls.name != 'Instantiation' &&
         cls.name.startsWith('Instantiation');
   }
+
+  @override
+  FunctionEntity get convertMainArgumentList =>
+      _findHelperFunction('convertMainArgumentList');
 
   // From dart:_rti
 

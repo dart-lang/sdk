@@ -9,7 +9,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
@@ -119,7 +118,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   final Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
 
   /// Initialize a newly created error listener to collect errors.
-  GatheringErrorListener({this.checkRanges = Parser.useFasta});
+  GatheringErrorListener({this.checkRanges = true});
 
   /// Return the errors that were collected.
   List<AnalysisError> get errors => _errors;

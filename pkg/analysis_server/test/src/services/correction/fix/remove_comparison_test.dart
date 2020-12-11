@@ -146,12 +146,39 @@ void f(String s) {
 ''');
   }
 
-  Future<void> test_ifStatement() async {
+  Future<void> test_ifStatement_thenBlock() async {
     await resolveTestCode('''
 void f(String s) {
   if (s != null) {
     print(s);
   }
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  print(s);
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenBlock_empty() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null) {
+  }
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+}
+''');
+  }
+
+  Future<void> test_ifStatement_thenStatement() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null)
+    print(s);
 }
 ''');
     await assertHasFix('''

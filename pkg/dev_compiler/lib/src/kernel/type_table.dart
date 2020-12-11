@@ -122,12 +122,20 @@ class TypeTable {
 
   /// Emit the initializer statements for the type container, which contains
   /// all named types with fully bound type parameters.
-  List<js_ast.Statement> dischargeBoundTypes() {
+  ///
+  /// [incremental] is only used for expression evaluation.
+  List<js_ast.Statement> dischargeBoundTypes({bool incremental = false}) {
     for (var t in typeContainer.keys) {
       typeContainer[t] = js.call('() => ((# = #.constFn(#))())',
           [typeContainer.access(t), _runtimeModule, typeContainer[t]]);
     }
-    return typeContainer.emit();
+    var boundTypes =
+        incremental ? typeContainer.emitIncremental() : typeContainer.emit();
+    // Bound types should only be emitted once (even across multiple evals).
+    for (var t in typeContainer.keys) {
+      typeContainer.setNoEmit(t);
+    }
+    return boundTypes;
   }
 
   js_ast.Statement _dischargeFreeType(DartType type) {
