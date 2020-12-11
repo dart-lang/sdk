@@ -337,6 +337,24 @@ struct InstantiationABI {
   static const Register kResultTypeReg = R0;
 };
 
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of type testing stubs that are _not_ preserved.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = R4;
+  static const Register kScratchReg = R9;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of subtype test cache stubs that are _not_ preserved.
+struct STCInternalRegs {
+  static const Register kInstanceCidOrFunctionReg = R9;
+
+  static const intptr_t kInternalRegisters = (1 << kInstanceCidOrFunctionReg);
+};
+
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
 struct TypeTestABI {
   static const Register kInstanceReg = R0;
@@ -356,10 +374,17 @@ struct TypeTestABI {
   static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
       1 << kSubtypeTestCacheReg;
 
-  static const intptr_t kAbiRegisters =
+  static const intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
-      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg);
+
+  static const intptr_t kNonPreservedAbiRegisters =
+      TTSInternalRegs::kInternalRegisters |
+      STCInternalRegs::kInternalRegisters | (1 << kSubtypeTestCacheReg) |
+      (1 << kScratchReg) | (1 << kSubtypeTestCacheResultReg) | (1 << CODE_REG);
+
+  static const intptr_t kAbiRegisters =
+      kPreservedAbiRegisters | kNonPreservedAbiRegisters;
 };
 
 // Calling convention when calling AssertSubtypeStub.
@@ -377,15 +402,6 @@ struct AssertSubtypeABI {
 
   // No result register, as AssertSubtype is only run for side effect
   // (throws if the subtype check fails).
-};
-
-// Registers used inside the implementation of type testing stubs.
-struct TTSInternalRegs {
-  static const Register kInstanceTypeArgumentsReg = R4;
-  static const Register kScratchReg = R9;
-
-  static const intptr_t kInternalRegisters =
-      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
 };
 
 // ABI for InitStaticFieldStub.

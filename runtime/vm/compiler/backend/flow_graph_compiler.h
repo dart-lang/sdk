@@ -606,8 +606,9 @@ class FlowGraphCompiler : public ValueObject {
                        const String& dst_name,
                        LocationSummary* locs);
 
-  void GenerateIndirectTTSCall(Register reg_with_type,
-                               intptr_t sub_type_cache_index);
+  static void GenerateIndirectTTSCall(compiler::Assembler* assembler,
+                                      Register reg_with_type,
+                                      intptr_t sub_type_cache_index);
 #endif
 
   void GenerateRuntimeCall(TokenPosition token_pos,
