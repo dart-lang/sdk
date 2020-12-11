@@ -204,7 +204,25 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #undef __
 }
 
+#define __ assembler->
+// Static methods of FlowGraphCompiler that take an assembler.
+
+void FlowGraphCompiler::GenerateIndirectTTSCall(compiler::Assembler* assembler,
+                                                Register reg_to_call,
+                                                intptr_t sub_type_cache_index) {
+  __ LoadField(
+      TTSInternalRegs::kScratchReg,
+      compiler::FieldAddress(
+          reg_to_call,
+          compiler::target::AbstractType::type_test_stub_entry_point_offset()));
+  __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
+                           sub_type_cache_index);
+  __ blx(TTSInternalRegs::kScratchReg);
+}
+
+#undef __
 #define __ assembler()->
+// Instance methods of FlowGraphCompiler.
 
 // Fall through if bool_register contains null.
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
@@ -220,18 +238,6 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   __ b(is_true, true_condition);
   __ b(is_false);
   __ Bind(&fall_through);
-}
-
-void FlowGraphCompiler::GenerateIndirectTTSCall(Register reg_to_call,
-                                                intptr_t sub_type_cache_index) {
-  __ LoadField(
-      R9,
-      compiler::FieldAddress(
-          reg_to_call,
-          compiler::target::AbstractType::type_test_stub_entry_point_offset()));
-  __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
-                           sub_type_cache_index);
-  __ blx(R9);
 }
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {

@@ -2798,10 +2798,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
   const Register kScratchReg = TypeTestABI::kScratchReg;
-  const Register kInstanceCidOrFunction = R6;
-  const Register kInstanceInstantiatorTypeArgumentsReg = R5;
-  const Register kInstanceParentFunctionTypeArgumentsReg = R9;
-  const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
 
   // All of these must be distinct from TypeTestABI::kSubtypeTestCacheResultReg
   // since it is used for kNullReg as well.
@@ -2819,29 +2815,30 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction,
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
                            TypeTestABI::TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+                   TypeTestABI::kInstanceReg);
   }
-  __ CompareImmediate(kInstanceCidOrFunction, kClosureCid);
+  __ CompareImmediate(STCInternalRegs::kInstanceCidOrFunctionReg, kClosureCid);
   __ b(&not_closure, NE);
 
   // Closure handling.
   {
-    __ ldr(kInstanceCidOrFunction,
+    __ ldr(STCInternalRegs::kInstanceCidOrFunctionReg,
            FieldAddress(TypeTestABI::kInstanceReg,
                         target::Closure::function_offset()));
     if (n >= 3) {
       __ ldr(
-          kInstanceInstantiatorTypeArgumentsReg,
+          STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
       if (n >= 7) {
-        __ ldr(kInstanceParentFunctionTypeArgumentsReg,
+        __ ldr(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
                FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::function_type_arguments_offset()));
-        __ ldr(kInstanceDelayedFunctionTypeArgumentsReg,
+        __ ldr(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
                FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::delayed_type_arguments_offset()));
       }
@@ -2854,8 +2851,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
-      __ mov(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
+      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+      __ mov(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ LoadFieldFromOffset(
           kScratchReg, kScratchReg,
           target::Class::host_type_arguments_field_offset_in_words_offset(),
@@ -2864,16 +2861,18 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ b(&has_no_type_arguments, EQ);
       __ add(kScratchReg, TypeTestABI::kInstanceReg,
              Operand(kScratchReg, LSL, 3));
-      __ ldr(kInstanceInstantiatorTypeArgumentsReg,
+      __ ldr(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
              FieldAddress(kScratchReg, 0));
       __ Bind(&has_no_type_arguments);
 
       if (n >= 7) {
-        __ mov(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
-        __ mov(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
+        __ mov(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
+               kNullReg);
+        __ mov(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
+               kNullReg);
       }
     }
-    __ SmiTag(kInstanceCidOrFunction);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
   }
 
   Label found, done, next_iteration;
@@ -2886,7 +2885,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmp(kScratchReg, Operand(kNullReg));
   __ b(&done, EQ);
-  __ cmp(kScratchReg, Operand(kInstanceCidOrFunction));
+  __ cmp(kScratchReg, Operand(STCInternalRegs::kInstanceCidOrFunctionReg));
   if (n == 1) {
     __ b(&found, EQ);
   } else {
@@ -2901,7 +2900,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
            Address(kCacheArrayReg,
                    target::kWordSize *
                        target::SubtypeTestCache::kInstanceTypeArguments));
-    __ cmp(kScratchReg, Operand(kInstanceInstantiatorTypeArgumentsReg));
+    __ cmp(kScratchReg,
+           Operand(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg));
     if (n == 3) {
       __ b(&found, EQ);
     } else {
@@ -2928,7 +2928,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                        target::kWordSize *
                            target::SubtypeTestCache::
                                kInstanceParentFunctionTypeArguments));
-        __ cmp(kScratchReg, Operand(kInstanceParentFunctionTypeArgumentsReg));
+        __ cmp(
+            kScratchReg,
+            Operand(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg));
         __ b(&next_iteration, NE);
 
         __ ldr(kScratchReg,
@@ -2936,7 +2938,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                        target::kWordSize *
                            target::SubtypeTestCache::
                                kInstanceDelayedFunctionTypeArguments));
-        __ cmp(kScratchReg, Operand(kInstanceDelayedFunctionTypeArgumentsReg));
+        __ cmp(
+            kScratchReg,
+            Operand(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg));
         __ b(&found, EQ);
       }
     }

@@ -114,15 +114,6 @@ void Assembler::pushq(const Immediate& imm) {
   }
 }
 
-void Assembler::PushImmediate(const Immediate& imm) {
-  if (imm.is_int32()) {
-    pushq(imm);
-  } else {
-    LoadImmediate(TMP, imm);
-    pushq(TMP);
-  }
-}
-
 void Assembler::popq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);

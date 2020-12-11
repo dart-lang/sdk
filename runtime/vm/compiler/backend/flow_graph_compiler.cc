@@ -2903,7 +2903,7 @@ void FlowGraphCompiler::GenerateTTSCall(TokenPosition token_pos,
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeTTSCallTypeTarget(dst_type);
   } else {
-    GenerateIndirectTTSCall(reg_with_type, sub_type_cache_index);
+    GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
   }
   EmitCallsiteMetadata(token_pos, deopt_id, PcDescriptorsLayout::kOther, locs);
 }
