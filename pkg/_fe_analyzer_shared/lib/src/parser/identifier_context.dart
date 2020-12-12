@@ -276,7 +276,7 @@ abstract class IdentifierContext {
       this.isContinuation: false,
       this.isScopeReference: false,
       this.isBuiltInIdentifierAllowed: true,
-      bool allowedInConstantExpression,
+      bool? allowedInConstantExpression,
       this.recoveryTemplate: templateExpectedIdentifier})
       : this.allowedInConstantExpression =
             // Generally, declarations are legal in constant expressions.  A

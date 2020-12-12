@@ -968,7 +968,7 @@ main() {
     });
 
     void _checkIs(String declaredType, String tryPromoteType,
-        String expectedPromotedTypeThen, String expectedPromotedTypeElse,
+        String? expectedPromotedTypeThen, String? expectedPromotedTypeElse,
         {bool inverted = false}) {
       var h = Harness();
       var x = Var('x', declaredType);
@@ -2016,21 +2016,21 @@ main() {
     group('unsplitTo', () {
       test('no change', () {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
-        var result = s1.unsplitTo(s1.reachable.parent);
+        var result = s1.unsplitTo(s1.reachable.parent!);
         expect(result, same(s1));
       });
 
       test('unsplit once, reachable', () {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split();
-        var result = s2.unsplitTo(s1.reachable.parent);
+        var result = s2.unsplitTo(s1.reachable.parent!);
         expect(result.reachable, same(s1.reachable));
       });
 
       test('unsplit once, unreachable', () {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split().setUnreachable();
-        var result = s2.unsplitTo(s1.reachable.parent);
+        var result = s2.unsplitTo(s1.reachable.parent!);
         expect(result.reachable.locallyReachable, false);
         expect(result.reachable.parent, same(s1.reachable.parent));
       });
@@ -2039,7 +2039,7 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split();
         var s3 = s2.split();
-        var result = s3.unsplitTo(s1.reachable.parent);
+        var result = s3.unsplitTo(s1.reachable.parent!);
         expect(result.reachable, same(s1.reachable));
       });
 
@@ -2047,7 +2047,7 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split();
         var s3 = s2.split().setUnreachable();
-        var result = s3.unsplitTo(s1.reachable.parent);
+        var result = s3.unsplitTo(s1.reachable.parent!);
         expect(result.reachable.locallyReachable, false);
         expect(result.reachable.parent, same(s1.reachable.parent));
       });
@@ -2056,7 +2056,7 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split().setUnreachable();
         var s3 = s2.split();
-        var result = s3.unsplitTo(s1.reachable.parent);
+        var result = s3.unsplitTo(s1.reachable.parent!);
         expect(result.reachable.locallyReachable, false);
         expect(result.reachable.parent, same(s1.reachable.parent));
       });
@@ -2409,7 +2409,7 @@ main() {
 
       group('Multiple candidate types of interest', () {
         group('; choose most specific', () {
-          Harness h;
+          late Harness h;
 
           setUp(() {
             h = Harness();
@@ -2782,8 +2782,8 @@ main() {
       });
 
       test('promotion', () {
-        void _check(String thisType, String otherType, bool unsafe,
-            List<String> expectedChain) {
+        void _check(String? thisType, String? otherType, bool unsafe,
+            List<String>? expectedChain) {
           var h = Harness();
           var x = Var('x', 'Object?');
           var s0 = FlowModel<Var, Type>(Reachability.initial).declare(x, true);
@@ -2798,7 +2798,7 @@ main() {
             expect(result.variableInfo, contains(x));
             expect(result.infoFor(x).promotedTypes, isNull);
           } else {
-            expect(result.infoFor(x).promotedTypes.map((t) => t.type).toList(),
+            expect(result.infoFor(x).promotedTypes!.map((t) => t.type).toList(),
                 expectedChain);
           }
         }
@@ -2820,7 +2820,7 @@ main() {
       test('promotion chains', () {
         // Verify that the given promotion chain matches the expected list of
         // strings.
-        void _checkChain(List<Type> chain, List<String> expected) {
+        void _checkChain(List<Type>? chain, List<String> expected) {
           var strings = (chain ?? <Type>[]).map((t) => t.type).toList();
           expect(strings, expected);
         }
@@ -3072,8 +3072,8 @@ main() {
     var stringType = Type('String');
     const emptyMap = const <Var, VariableModel<Var, Type>>{};
 
-    VariableModel<Var, Type> model(List<Type> promotionChain,
-            {List<Type> typesOfInterest, bool assigned = false}) =>
+    VariableModel<Var, Type> model(List<Type>? promotionChain,
+            {List<Type>? typesOfInterest, bool assigned = false}) =>
         VariableModel<Var, Type>(
           promotionChain,
           typesOfInterest ?? promotionChain ?? [],
@@ -3257,7 +3257,7 @@ main() {
     var stringType = Type('String');
     const emptyMap = const <Var, VariableModel<Var, Type>>{};
 
-    VariableModel<Var, Type> varModel(List<Type> promotionChain,
+    VariableModel<Var, Type> varModel(List<Type>? promotionChain,
             {bool assigned = false}) =>
         VariableModel<Var, Type>(
           promotionChain,
@@ -3269,7 +3269,8 @@ main() {
 
     test('first is null', () {
       var h = Harness();
-      var s1 = FlowModel.withInfo(Reachability.initial.split(), {});
+      var s1 = FlowModel.withInfo(
+          Reachability.initial.split(), emptyMap);
       var result = FlowModel.merge(h, null, s1, emptyMap);
       expect(result.reachable, same(Reachability.initial));
     });
@@ -3278,7 +3279,7 @@ main() {
       var h = Harness();
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
-      var s1 = FlowModel.withInfo(afterSplit, {});
+      var s1 = FlowModel.withInfo(afterSplit, emptyMap);
       var result = FlowModel.merge(h, s1, null, emptyMap);
       expect(result.reachable, same(splitPoint));
     });
@@ -3295,7 +3296,7 @@ main() {
       });
       var result = FlowModel.merge(h, s1, s2, emptyMap);
       expect(result.reachable, same(splitPoint));
-      expect(result.variableInfo[x].promotedTypes, isNull);
+      expect(result.variableInfo[x]!.promotedTypes, isNull);
     });
 
     test('first is unreachable', () {
@@ -3341,7 +3342,7 @@ main() {
       var result = FlowModel.merge(h, s1, s2, emptyMap);
       expect(result.reachable.locallyReachable, false);
       expect(result.reachable.parent, same(splitPoint.parent));
-      expect(result.variableInfo[x].promotedTypes, isNull);
+      expect(result.variableInfo[x]!.promotedTypes, isNull);
     });
   });
 
@@ -3362,7 +3363,7 @@ main() {
       var m2 = FlowModel.withInfo(Reachability.initial, {
         x: model([stringType])
       });
-      expect(m1.inheritTested(h, m2).variableInfo[x].tested,
+      expect(m1.inheritTested(h, m2).variableInfo[x]!.tested,
           _matchOfInterestSet(['int', 'String']));
     });
 
@@ -3413,7 +3414,7 @@ Matcher _matchOfInterestSet(List<String> expectedTypes) {
       'interest set $expectedTypes');
 }
 
-Matcher _matchPromotionChain(List<String> expectedTypes) {
+Matcher _matchPromotionChain(List<String>? expectedTypes) {
   if (expectedTypes == null) return isNull;
   return predicate(
       (List<Type> x) =>
@@ -3422,11 +3423,16 @@ Matcher _matchPromotionChain(List<String> expectedTypes) {
 }
 
 Matcher _matchVariableModel(
-    {Object chain = anything,
-    Object ofInterest = anything,
-    Object assigned = anything,
-    Object unassigned = anything,
-    Object writeCaptured = anything}) {
+    {Object? chain,
+    Object? ofInterest,
+    Object? assigned,
+    Object? unassigned,
+    Object? writeCaptured}) {
+  chain ??= anything;
+  ofInterest ??= anything;
+  assigned ??= anything;
+  unassigned ??= anything;
+  writeCaptured ??= anything;
   Matcher chainMatcher =
       chain is List<String> ? _matchPromotionChain(chain) : wrapMatcher(chain);
   Matcher ofInterestMatcher = ofInterest is List<String>

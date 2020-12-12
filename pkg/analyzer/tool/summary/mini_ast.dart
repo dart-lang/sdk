@@ -576,7 +576,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+  internalProblem(Message message, int charOffset, Uri uri) {
     throw UnsupportedError(message.message);
   }
 

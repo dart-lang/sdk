@@ -534,6 +534,7 @@ Message _withArgumentsConstEvalInvalidBinaryOperandType(
     DartType _type,
     DartType _type2,
     bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
   if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
@@ -616,6 +617,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidMethodInvocation(
     String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
   if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
@@ -651,6 +653,7 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidPropertyGet(
     String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
   if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);

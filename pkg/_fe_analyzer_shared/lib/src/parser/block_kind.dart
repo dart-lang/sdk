@@ -13,7 +13,7 @@ class BlockKind {
   /// [templateExpectedClassOrMixinBody].
   ///
   /// If `null` the generic [templateExpectedButGot] is used instead.
-  String get missingBlockName => useNameForMissingBlock ? name : null;
+  String? get missingBlockName => useNameForMissingBlock ? name : null;
 
   String toString() => 'BlockKind($name)';
 

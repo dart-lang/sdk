@@ -9,12 +9,12 @@ import 'dart:collection' show IterableBase;
 import 'link.dart' show Link, LinkBuilder;
 
 class LinkIterator<T> implements Iterator<T> {
-  T _current;
+  T? _current;
   Link<T> _link;
 
   LinkIterator(this._link);
 
-  T get current => _current;
+  T get current => _current!;
 
   bool moveNext() {
     if (_link.isEmpty) {
@@ -22,7 +22,7 @@ class LinkIterator<T> implements Iterator<T> {
       return false;
     }
     _current = _link.head;
-    _link = _link.tail;
+    _link = _link.tail!;
     return true;
   }
 }
@@ -32,11 +32,11 @@ typedef T Transformation<S, T>(S input);
 class MappedLinkIterator<S, T> extends Iterator<T> {
   Transformation<S, T> _transformation;
   Link<S> _link;
-  T _current;
+  T? _current;
 
   MappedLinkIterator(this._link, this._transformation);
 
-  T get current => _current;
+  T get current => _current!;
 
   bool moveNext() {
     if (_link.isEmpty) {
@@ -44,7 +44,7 @@ class MappedLinkIterator<S, T> extends Iterator<T> {
       return false;
     }
     _current = _transformation(_link.head);
-    _link = _link.tail;
+    _link = _link.tail!;
     return true;
   }
 }
@@ -64,7 +64,7 @@ class LinkEntry<T> extends Link<T> {
   final T head;
   Link<T> tail;
 
-  LinkEntry(this.head, [Link<T> tail]) : tail = tail ?? const Link<Null>();
+  LinkEntry(this.head, [Link<T>? tail]) : tail = tail ?? const Link<Never>();
 
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
@@ -74,7 +74,7 @@ class LinkEntry<T> extends Link<T> {
   void printOn(StringBuffer buffer, [separatedBy]) {
     buffer.write(head);
     if (separatedBy == null) separatedBy = '';
-    for (Link<T> link = tail; link.isNotEmpty; link = link.tail) {
+    for (Link<T> link = tail; link.isNotEmpty; link = link.tail!) {
       buffer.write(separatedBy);
       buffer.write(link.head);
     }
@@ -91,7 +91,7 @@ class LinkEntry<T> extends Link<T> {
   @override
   Link<T> reverse(Link<T> tail) {
     Link<T> result = tail;
-    for (Link<T> link = this; link.isNotEmpty; link = link.tail) {
+    for (Link<T> link = this; link.isNotEmpty; link = link.tail!) {
       result = result.prepend(link.head);
     }
     return result;
@@ -99,7 +99,7 @@ class LinkEntry<T> extends Link<T> {
 
   Link<T> reversePrependAll(Link<T> from) {
     Link<T> result;
-    for (result = this; from.isNotEmpty; from = from.tail) {
+    for (result = this; from.isNotEmpty; from = from.tail!) {
       result = result.prepend(from.head);
     }
     return result;
@@ -111,7 +111,7 @@ class LinkEntry<T> extends Link<T> {
       if (link.isEmpty) {
         throw new RangeError('Index $n out of range');
       }
-      link = link.tail;
+      link = link.tail!;
     }
     return link;
   }
@@ -120,7 +120,7 @@ class LinkEntry<T> extends Link<T> {
   bool get isNotEmpty => true;
 
   void forEach(void f(T element)) {
-    for (Link<T> link = this; link.isNotEmpty; link = link.tail) {
+    for (Link<T> link = this; link.isNotEmpty; link = link.tail!) {
       f(link.head);
     }
   }
@@ -128,21 +128,22 @@ class LinkEntry<T> extends Link<T> {
   bool operator ==(other) {
     if (other is! Link<T>) return false;
     Link<T> myElements = this;
-    while (myElements.isNotEmpty && other.isNotEmpty) {
-      if (myElements.head != other.head) {
+    Link<T> otherElements = other;
+    while (myElements.isNotEmpty && otherElements.isNotEmpty) {
+      if (myElements.head != otherElements.head) {
         return false;
       }
-      myElements = myElements.tail;
-      other = other.tail;
+      myElements = myElements.tail!;
+      otherElements = otherElements.tail!;
     }
-    return myElements.isEmpty && other.isEmpty;
+    return myElements.isEmpty && otherElements.isEmpty;
   }
 
   int get hashCode => throw new UnsupportedError('LinkEntry.hashCode');
 
   int slowLength() {
     int length = 0;
-    for (Link<T> current = this; current.isNotEmpty; current = current.tail) {
+    for (Link<T> current = this; current.isNotEmpty; current = current.tail!) {
       ++length;
     }
     return length;
@@ -150,8 +151,8 @@ class LinkEntry<T> extends Link<T> {
 }
 
 class LinkBuilderImplementation<T> implements LinkBuilder<T> {
-  LinkEntry<T> head = null;
-  LinkEntry<T> lastLink = null;
+  LinkEntry<T>? head = null;
+  LinkEntry<T>? lastLink = null;
   int length = 0;
 
   LinkBuilderImplementation();
@@ -159,8 +160,8 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   @override
   Link<T> toLink(Link<T> tail) {
     if (head == null) return tail;
-    lastLink.tail = tail;
-    Link<T> link = head;
+    lastLink!.tail = tail;
+    Link<T> link = head!;
     lastLink = null;
     head = null;
     length = 0;
@@ -168,14 +169,13 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   }
 
   List<T> toList() {
-    if (length == 0) return new List<T>.filled(0, null);
-    List<T> list = new List<T>.filled(length, null);
-    int index = 0;
-    Link<T> link = head;
+    if (length == 0) return <T>[];
+
+    List<T> list = <T>[];
+    Link<T> link = head!;
     while (link.isNotEmpty) {
-      list[index] = link.head;
-      link = link.tail;
-      index++;
+      list.add(link.head);
+      link = link.tail!;
     }
     lastLink = null;
     head = null;
@@ -189,7 +189,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     if (head == null) {
       head = entry;
     } else {
-      lastLink.tail = entry;
+      lastLink!.tail = entry;
     }
     lastLink = entry;
     return entry;
@@ -199,7 +199,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
 
   T get first {
     if (head != null) {
-      return head.head;
+      return head!.head;
     }
     throw new StateError("no elements");
   }

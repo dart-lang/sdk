@@ -4,8 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
-
 /// Parse the given [jsonText] into the [AllowedExperiments].
 ///
 /// Throw [FormatException] is any format issues are found.
@@ -28,14 +26,14 @@ class AllowedExperiments {
   final Map<String, List<String>> packageExperiments;
 
   AllowedExperiments({
-    @required this.sdkDefaultExperiments,
-    @required this.sdkLibraryExperiments,
-    @required this.packageExperiments,
+    required this.sdkDefaultExperiments,
+    required this.sdkLibraryExperiments,
+    required this.packageExperiments,
   });
 
   /// Return the set of enabled experiments for the package with the [name],
   /// e.g. "path", possibly `null`.
-  List<String> forPackage(String name) {
+  List<String>? forPackage(String name) {
     return packageExperiments[name];
   }
 
@@ -55,14 +53,14 @@ class _AllowedExperimentsParser {
 
   AllowedExperiments parse() {
     Object rootObject = json.decode(_jsonText);
-    Map<String, Object> map = _mustBeMap(rootObject);
+    Map<String, Object?> map = _mustBeMap(rootObject);
 
     _ensureVersion(map);
 
     _withParsePath('experimentSets', () {
-      Map<String, Object> experimentSetMap =
+      Map<String, Object?> experimentSetMap =
           _requiredMap(map, 'experimentSets');
-      for (MapEntry<String, Object> entry in experimentSetMap.entries) {
+      for (MapEntry<String, Object?> entry in experimentSetMap.entries) {
         String setName = entry.key;
         _withParsePath(setName, () {
           _experimentSets[setName] = _mustBeListOfStrings(entry.value);
@@ -73,7 +71,7 @@ class _AllowedExperimentsParser {
     List<String> sdkDefaultExperimentSet = <String>[];
     Map<String, List<String>> sdkLibraryExperiments = <String, List<String>>{};
     _withParsePath('sdk', () {
-      Map<String, Object> sdkMap = _requiredMap(map, 'sdk');
+      Map<String, Object?> sdkMap = _requiredMap(map, 'sdk');
 
       _withParsePath('default', () {
         sdkDefaultExperimentSet = _experimentList(
@@ -82,14 +80,14 @@ class _AllowedExperimentsParser {
       });
 
       _withParsePath('libraries', () {
-        Map<String, Object> sdkLibraryExperimentsMap =
+        Map<String, Object?>? sdkLibraryExperimentsMap =
             _optionalMap(sdkMap, 'libraries');
         if (sdkLibraryExperimentsMap != null) {
-          for (MapEntry<String, Object> entry
+          for (MapEntry<String, Object?> entry
               in sdkLibraryExperimentsMap.entries) {
             String libraryName = entry.key;
             _withParsePath(libraryName, () {
-              Map<String, Object> libraryMap = _mustBeMap(entry.value);
+              Map<String, Object?> libraryMap = _mustBeMap(entry.value);
               List<String> experimentList = _experimentList(libraryMap);
               sdkLibraryExperiments[libraryName] = experimentList;
             });
@@ -100,12 +98,13 @@ class _AllowedExperimentsParser {
 
     Map<String, List<String>> packageExperiments = <String, List<String>>{};
     _withParsePath('packages', () {
-      Map<String, Object> packageExperimentsMap = _optionalMap(map, 'packages');
+      Map<String, Object?>? packageExperimentsMap =
+          _optionalMap(map, 'packages');
       if (packageExperimentsMap != null) {
-        for (MapEntry<String, Object> entry in packageExperimentsMap.entries) {
+        for (MapEntry<String, Object?> entry in packageExperimentsMap.entries) {
           String packageName = entry.key;
           _withParsePath(packageName, () {
-            Map<String, Object> libraryMap = _mustBeMap(entry.value);
+            Map<String, Object?> libraryMap = _mustBeMap(entry.value);
             List<String> experimentList = _experimentList(libraryMap);
             packageExperiments[packageName] = experimentList;
           });
@@ -120,8 +119,8 @@ class _AllowedExperimentsParser {
     );
   }
 
-  void _ensureVersion(Map<String, Object> map) {
-    Object versionObject = map['version'];
+  void _ensureVersion(Map<String, Object?> map) {
+    Object? versionObject = map['version'];
     if (versionObject is! int || versionObject != 1) {
       throw new FormatException(
         "Expected field 'version' with value '1'; "
@@ -131,9 +130,9 @@ class _AllowedExperimentsParser {
     }
   }
 
-  List<String> _experimentList(Map<String, Object> map) {
+  List<String> _experimentList(Map<String, Object?> map) {
     String experimentSetName = _requiredString(map, 'experimentSet');
-    List<String> result = _experimentSets[experimentSetName];
+    List<String>? result = _experimentSets[experimentSetName];
     if (result != null) {
       return result;
     }
@@ -144,8 +143,8 @@ class _AllowedExperimentsParser {
     );
   }
 
-  List<String> _mustBeListOfStrings(Object object) {
-    if (object is List<Object> && object.every((e) => e is String)) {
+  List<String> _mustBeListOfStrings(Object? object) {
+    if (object is List<Object?> && object.every((e) => e is String)) {
       return List.castFrom(object);
     }
 
@@ -157,8 +156,8 @@ class _AllowedExperimentsParser {
     );
   }
 
-  Map<String, Object> _mustBeMap(Object object) {
-    if (object is Map<String, Object>) {
+  Map<String, Object?> _mustBeMap(Object? object) {
+    if (object is Map<String, Object?>) {
       return object;
     }
 
@@ -170,9 +169,9 @@ class _AllowedExperimentsParser {
     );
   }
 
-  Map<String, Object> _optionalMap(Map<String, Object> map, String name) {
-    Object result = map[name];
-    if (result == null || result is Map<String, Object>) {
+  Map<String, Object?>? _optionalMap(Map<String, Object?> map, String name) {
+    Object? result = map[name];
+    if (result is Map<String, Object?>?) {
       return result;
     }
 
@@ -183,9 +182,9 @@ class _AllowedExperimentsParser {
     );
   }
 
-  Map<String, Object> _requiredMap(Map<String, Object> map, String name) {
-    Object result = map[name];
-    if (result is Map<String, Object>) {
+  Map<String, Object?> _requiredMap(Map<String, Object?> map, String name) {
+    Object? result = map[name];
+    if (result is Map<String, Object?>) {
       return result;
     }
 
@@ -196,8 +195,8 @@ class _AllowedExperimentsParser {
     );
   }
 
-  String _requiredString(Map<String, Object> map, String name) {
-    Object result = map[name];
+  String _requiredString(Map<String, Object?> map, String name) {
+    Object? result = map[name];
     if (result is String) {
       return result;
     }

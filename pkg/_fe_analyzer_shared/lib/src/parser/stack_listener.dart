@@ -75,7 +75,7 @@ abstract class StackListener extends Listener {
   final Stack stack = debugStack ? new DebugStack() : new StackImpl();
 
   /// Used to report an internal error encountered in the stack listener.
-  dynamic internalProblem(Message message, int charOffset, Uri uri);
+  Never internalProblem(Message message, int charOffset, Uri uri);
 
   /// Checks that [value] matches the expected [kind].
   ///
@@ -84,15 +84,18 @@ abstract class StackListener extends Listener {
   ///     assert(checkValue(token, ValueKind.Token, value));
   ///
   /// to document and validate the expected value kind.
-  bool checkValue(Token token, ValueKind kind, Object value) {
+  bool checkValue(Token? token, ValueKind kind, Object value) {
     if (!kind.check(value)) {
       String message = 'Unexpected value `${value}` (${value.runtimeType}). '
           'Expected ${kind}.';
       if (token != null) {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
-        throw internalProblem(new Message(/* code = */ null, message: message),
-            token.charOffset, uri);
+        throw internalProblem(
+            new Message(const Code<String>('Internal error', null),
+                message: message),
+            token.charOffset,
+            uri);
       } else {
         throw message;
       }
@@ -110,12 +113,12 @@ abstract class StackListener extends Listener {
   ///
   /// to document the expected stack and get earlier errors on unexpected stack
   /// content.
-  bool checkState(Token token, List<ValueKind> kinds) {
+  bool checkState(Token? token, List<ValueKind> kinds) {
     bool success = true;
     for (int kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
       ValueKind kind = kinds[kindIndex];
       if (kindIndex < stack.length) {
-        Object value = stack[kindIndex];
+        Object? value = stack[kindIndex];
         if (!kind.check(value)) {
           success = false;
         }
@@ -126,7 +129,7 @@ abstract class StackListener extends Listener {
     if (!success) {
       StringBuffer sb = new StringBuffer();
 
-      String safeToString(Object object) {
+      String safeToString(Object? object) {
         try {
           return '$object';
         } catch (e) {
@@ -160,7 +163,7 @@ abstract class StackListener extends Listener {
         }
         sb.write(padLeft(kindIndex, 4));
         sb.write(': ');
-        ValueKind kind;
+        ValueKind? kind;
         if (kindIndex < kinds.length) {
           kind = kinds[kindIndex];
           sb.write(padRight(kind, 60));
@@ -168,7 +171,7 @@ abstract class StackListener extends Listener {
           sb.write(padRight('---', 60));
         }
         if (kindIndex < stack.length) {
-          Object value = stack[kindIndex];
+          Object? value = stack[kindIndex];
           if (kind == null || kind.check(value)) {
             sb.write(' ');
           } else {
@@ -191,8 +194,11 @@ abstract class StackListener extends Listener {
       if (token != null) {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
-        throw internalProblem(new Message(/* code = */ null, message: message),
-            token.charOffset, uri);
+        throw internalProblem(
+            new Message(const Code<String>('Internal error', null),
+                message: message),
+            token.charOffset,
+            uri);
       } else {
         throw message;
       }
@@ -209,7 +215,7 @@ abstract class StackListener extends Listener {
     }
   }
 
-  void push(Object node) {
+  void push(Object? node) {
     if (node == null) {
       internalProblem(
           templateInternalProblemUnhandled.withArguments("null", "push"),
@@ -219,17 +225,17 @@ abstract class StackListener extends Listener {
     stack.push(node);
   }
 
-  void pushIfNull(Token tokenOrNull, NullValue nullValue) {
+  void pushIfNull(Token? tokenOrNull, NullValue nullValue) {
     if (tokenOrNull == null) stack.push(nullValue);
   }
 
-  Object peek() => stack.isNotEmpty ? stack.last : null;
+  Object? peek() => stack.isNotEmpty ? stack.last : null;
 
-  Object pop([NullValue nullValue]) {
+  Object? pop([NullValue? nullValue]) {
     return stack.pop(nullValue);
   }
 
-  Object popIfNotNull(Object value) {
+  Object? popIfNotNull(Object? value) {
     return value == null ? null : pop();
   }
 
@@ -239,7 +245,7 @@ abstract class StackListener extends Listener {
 
   void printEvent(String name) {
     print('\n------------------');
-    for (Object o in stack.values) {
+    for (Object? o in stack.values) {
       String s = "  $o";
       int index = s.indexOf("\n");
       if (index != -1) {
@@ -306,17 +312,17 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword, int typeCount) {
+  void handleClassExtends(Token? extendsKeyword, int typeCount) {
     debugEvent("ClassExtends");
   }
 
   @override
-  void handleMixinOn(Token onKeyword, int typeCount) {
+  void handleMixinOn(Token? onKeyword, int typeCount) {
     debugEvent("MixinOn");
   }
 
   @override
-  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+  void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     debugEvent("ClassHeader");
   }
 
@@ -337,7 +343,7 @@ abstract class StackListener extends Listener {
 
   @override
   void handleClassOrMixinImplements(
-      Token implementsKeyword, int interfacesCount) {
+      Token? implementsKeyword, int interfacesCount) {
     debugEvent("ClassImplements");
   }
 
@@ -424,7 +430,7 @@ abstract class StackListener extends Listener {
   void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
-      Token token = pop();
+      Token token = pop() as Token;
       push(unescapeString(token.lexeme, token, this));
     } else {
       internalProblem(
@@ -498,39 +504,39 @@ abstract class StackListener extends Listener {
 abstract class Stack {
   /// Pops [count] elements from the stack and puts it into [list].
   /// Returns [null] if a [ParserRecovery] value is found, or [list] otherwise.
-  List<Object> popList(int count, List<Object> list, NullValue nullValue);
+  List<T?>? popList<T>(int count, List<T?> list, NullValue? nullValue);
 
   void push(Object value);
 
   /// Will return [null] instead of [NullValue].
-  Object get last;
+  Object? get last;
 
   bool get isNotEmpty;
 
-  List<Object> get values;
+  List<Object?> get values;
 
-  Object pop(NullValue nullValue);
+  Object? pop(NullValue? nullValue);
 
   int get length;
 
   /// Raw, i.e. [NullValue]s will be returned instead of [null].
-  Object operator [](int index);
+  Object? operator [](int index);
 }
 
 class StackImpl implements Stack {
-  List<Object> array = new List<Object>.filled(/* length = */ 8, null);
+  List<Object?> array = new List<Object?>.filled(/* length = */ 8, null);
   int arrayLength = 0;
 
   bool get isNotEmpty => arrayLength > 0;
 
   int get length => arrayLength;
 
-  Object get last {
-    final Object value = array[arrayLength - 1];
+  Object? get last {
+    final Object? value = array[arrayLength - 1];
     return value is NullValue ? null : value;
   }
 
-  Object operator [](int index) {
+  Object? operator [](int index) {
     return array[arrayLength - 1 - index];
   }
 
@@ -541,9 +547,9 @@ class StackImpl implements Stack {
     }
   }
 
-  Object pop(NullValue nullValue) {
+  Object? pop(NullValue? nullValue) {
     assert(arrayLength > 0);
-    final Object value = array[--arrayLength];
+    final Object? value = array[--arrayLength];
     array[arrayLength] = null;
     if (value is! NullValue) {
       return value;
@@ -554,15 +560,15 @@ class StackImpl implements Stack {
     }
   }
 
-  List<Object> popList(int count, List<Object> list, NullValue nullValue) {
+  List<T?>? popList<T>(int count, List<T?> list, NullValue? nullValue) {
     assert(arrayLength >= count);
-    final List<Object> array = this.array;
+    final List<Object?> array = this.array;
     final int length = arrayLength;
     final int startIndex = length - count;
     bool isParserRecovery = false;
     for (int i = 0; i < count; i++) {
       int arrayIndex = startIndex + i;
-      final Object value = array[arrayIndex];
+      final Object? value = array[arrayIndex];
       array[arrayIndex] = null;
       if (value is NullValue && nullValue == null ||
           identical(value, nullValue)) {
@@ -571,7 +577,7 @@ class StackImpl implements Stack {
         isParserRecovery = true;
       } else {
         assert(value is! NullValue);
-        list[i] = value;
+        list[i] = value as T;
       }
     }
     arrayLength -= count;
@@ -579,16 +585,16 @@ class StackImpl implements Stack {
     return isParserRecovery ? null : list;
   }
 
-  List<Object> get values {
+  List<Object?> get values {
     final int length = arrayLength;
-    final List<Object> list = new List<Object>.filled(length, null);
+    final List<Object?> list = new List<Object?>.filled(length, null);
     list.setRange(/* start = */ 0, length, array);
     return list;
   }
 
   void _grow() {
     final int length = array.length;
-    final List<Object> newArray = new List<Object>.filled(length * 2, null);
+    final List<Object?> newArray = new List<Object?>.filled(length * 2, null);
     newArray.setRange(/* start = */ 0, length, array, /* skipCount = */ 0);
     array = newArray;
   }
@@ -600,10 +606,10 @@ class DebugStack implements Stack {
   List<StackTrace> latestStacktraces = <StackTrace>[];
 
   @override
-  Object operator [](int index) {
-    Object result = realStack[index];
+  Object? operator [](int index) {
+    Object? result = realStack[index];
     latestStacktraces.clear();
-    latestStacktraces.add(stackTraceStack[index]);
+    latestStacktraces.add(stackTraceStack[index] as StackTrace);
     return result;
   }
 
@@ -611,8 +617,8 @@ class DebugStack implements Stack {
   bool get isNotEmpty => realStack.isNotEmpty;
 
   @override
-  Object get last {
-    Object result = this[0];
+  Object? get last {
+    Object? result = this[0];
     if (result is NullValue) return null;
     return result;
   }
@@ -621,16 +627,17 @@ class DebugStack implements Stack {
   int get length => realStack.length;
 
   @override
-  Object pop(NullValue nullValue) {
-    Object result = realStack.pop(nullValue);
+  Object? pop(NullValue? nullValue) {
+    Object? result = realStack.pop(nullValue);
     latestStacktraces.clear();
-    latestStacktraces.add(stackTraceStack.pop(/* nullValue = */ null));
+    latestStacktraces
+        .add(stackTraceStack.pop(/* nullValue = */ null) as StackTrace);
     return result;
   }
 
   @override
-  List<Object> popList(int count, List<Object> list, NullValue nullValue) {
-    List<Object> result = realStack.popList(count, list, nullValue);
+  List<T?>? popList<T>(int count, List<T?> list, NullValue? nullValue) {
+    List<T?>? result = realStack.popList(count, list, nullValue);
     latestStacktraces.length = count;
     stackTraceStack.popList(count, latestStacktraces, /* nullValue = */ null);
     return result;
@@ -643,7 +650,7 @@ class DebugStack implements Stack {
   }
 
   @override
-  List<Object> get values => realStack.values;
+  List<Object?> get values => realStack.values;
 }
 
 /// Helper constant for popping a list of the top of a [Stack].  This helper
@@ -652,16 +659,16 @@ class DebugStack implements Stack {
 class FixedNullableList<T> {
   const FixedNullableList();
 
-  List<T> pop(Stack stack, int count, [NullValue nullValue]) {
+  List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     if (count == 0) return null;
-    return stack.popList(count, new List<T>.filled(count, null), nullValue);
+    return stack.popList(count, new List<T?>.filled(count, null), nullValue);
   }
 
-  List<T> popPadded(Stack stack, int count, int padding,
-      [NullValue nullValue]) {
+  List<T?>? popPadded(Stack stack, int count, int padding,
+      [NullValue? nullValue]) {
     if (count + padding == 0) return null;
     return stack.popList(
-        count, new List<T>.filled(count + padding, null), nullValue);
+        count, new List<T?>.filled(count + padding, null), nullValue);
   }
 }
 
@@ -670,10 +677,10 @@ class FixedNullableList<T> {
 class GrowableList<T> {
   const GrowableList();
 
-  List<T> pop(Stack stack, int count, [NullValue nullValue]) {
+  List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     return stack.popList(
         count,
-        new List<T>.filled(count, /* fill = */ null, growable: true),
+        new List<T?>.filled(count, /* fill = */ null, growable: true),
         nullValue);
   }
 }

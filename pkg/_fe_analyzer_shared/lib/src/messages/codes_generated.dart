@@ -829,7 +829,7 @@ const Code<Message Function(Uri uri_, String string)> codeCantReadFile =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantReadFile(Uri uri_, String string) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeCantReadFile,
       message: """Error when reading '${uri}': ${string}""",
@@ -1284,6 +1284,7 @@ const Code<Message Function(String nameOKEmpty)> codeConstEvalDeferredLibrary =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalDeferredLibrary(String nameOKEmpty) {
+  // ignore: unnecessary_null_comparison
   if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalDeferredLibrary,
       message:
@@ -1331,6 +1332,7 @@ const Code<Message Function(String stringOKEmpty)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalFailedAssertionWithMessage(
     String stringOKEmpty) {
+  // ignore: unnecessary_null_comparison
   if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   return new Message(codeConstEvalFailedAssertionWithMessage,
       message: """This assertion failed with message: ${stringOKEmpty}""",
@@ -1355,6 +1357,7 @@ const Code<Message Function(String nameOKEmpty)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidStaticInvocation(String nameOKEmpty) {
+  // ignore: unnecessary_null_comparison
   if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalInvalidStaticInvocation,
       message:
@@ -1414,6 +1417,7 @@ const Code<Message Function(String nameOKEmpty)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalNonConstantVariableGet(String nameOKEmpty) {
+  // ignore: unnecessary_null_comparison
   if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalNonConstantVariableGet,
       message:
@@ -2142,12 +2146,17 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDillOutlineSummary(
     int count, int count2, num _num1, num _num2, num _num3) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (count2 == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
+  // ignore: unnecessary_null_comparison
   if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
+  // ignore: unnecessary_null_comparison
   if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeDillOutlineSummary,
@@ -2361,8 +2370,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedExport,
       message: """'${name}' is exported from both '${uri}' and '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
@@ -2388,8 +2397,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedExportInType,
       message: """'${name}' is exported from both '${uri}' and '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
@@ -2414,8 +2423,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedImport,
       message: """'${name}' is imported from both '${uri}' and '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
@@ -2440,8 +2449,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedImportInType,
       message: """'${name}' is imported from both '${uri}' and '${uri2}'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
@@ -2692,7 +2701,7 @@ const Code<Message Function(Uri uri_, String string)> codeExceptionReadingFile =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExceptionReadingFile(Uri uri_, String string) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeExceptionReadingFile,
       message: """Exception when reading '${uri}': ${string}""",
@@ -3257,6 +3266,7 @@ Message _withArgumentsExplicitExtensionTypeArgumentMismatch(
     String name, int count) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
   return new Message(codeExplicitExtensionTypeArgumentMismatch,
       message:
@@ -3292,8 +3302,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   return new Message(codeExportHidesExport,
       message:
           """Export of '${name}' (from '${uri}') hides export from '${uri2}'.""",
@@ -4520,6 +4530,7 @@ const Code<Message Function(String name, int count)> codeImplementsRepeated =
 Message _withArgumentsImplementsRepeated(String name, int count) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
   return new Message(codeImplementsRepeated,
       message: """'${name}' can only be implemented once.""",
@@ -4625,8 +4636,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   return new Message(codeImportHidesImport,
       message:
           """Import of '${name}' (from '${uri}') hides import from '${uri2}'.""",
@@ -4709,7 +4720,7 @@ const Code<Message Function(Uri uri_)> codeInferredPackageUri =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInferredPackageUri(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeInferredPackageUri,
       message: """Interpreting this as package URI, '${uri}'.""",
       arguments: {'uri': uri_});
@@ -4771,7 +4782,7 @@ const Code<Message Function(String string, Uri uri_)>
 Message _withArgumentsInitializeFromDillNotSelfContained(
     String string, Uri uri_) {
   if (string.isEmpty) throw 'No string provided';
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeInitializeFromDillNotSelfContained,
       message:
           """Tried to initialize from a previous compilation (${string}), but the file was not self-contained. This might be a bug.
@@ -4849,7 +4860,7 @@ Message _withArgumentsInitializeFromDillUnknownProblem(
   if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
   if (string3.isEmpty) throw 'No string provided';
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeInitializeFromDillUnknownProblem,
       message:
           """Tried to initialize from a previous compilation (${string}), but couldn't.
@@ -4965,7 +4976,7 @@ const Code<Message Function(Uri uri_)> codeInputFileNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInputFileNotFound(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeInputFileNotFound,
       message: """Input file not found: ${uri}.""", arguments: {'uri': uri_});
 }
@@ -5069,7 +5080,7 @@ Message _withArgumentsInternalProblemConstructorNotFound(
     String name, Uri uri_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeInternalProblemConstructorNotFound,
       message: """No constructor named '${name}' in '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
@@ -5316,7 +5327,7 @@ Message _withArgumentsInternalProblemUnfinishedTypeVariable(
     String name, Uri uri_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeInternalProblemUnfinishedTypeVariable,
       message:
           """Unfinished type variable '${name}' found in non-source library '${uri}'.""",
@@ -5403,7 +5414,7 @@ const Code<Message Function(Uri uri_)> codeInternalProblemUriMissingScheme =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeInternalProblemUriMissingScheme,
       message: """The URI '${uri}' has no scheme.""", arguments: {'uri': uri_});
 }
@@ -5661,7 +5672,7 @@ const Code<Message Function(Uri uri_, String string)> codeInvalidPackageUri =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeInvalidPackageUri,
       message: """Invalid package URI '${uri}':
@@ -6145,7 +6156,9 @@ const Code<Message Function(int count, int count2)> codeLanguageVersionTooHigh =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (count2 == null) throw 'No count provided';
   return new Message(codeLanguageVersionTooHigh,
       message:
@@ -6242,7 +6255,7 @@ const Code<Message Function(Uri uri_)> codeLoadLibraryHidesMember =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLoadLibraryHidesMember(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeLoadLibraryHidesMember,
       message:
           """The library '${uri}' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading.""",
@@ -6279,7 +6292,7 @@ const Code<Message Function(String name, Uri uri_)>
 Message _withArgumentsLocalDefinitionHidesExport(String name, Uri uri_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeLocalDefinitionHidesExport,
       message: """Local definition of '${name}' hides export from '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
@@ -6304,7 +6317,7 @@ const Code<Message Function(String name, Uri uri_)>
 Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeLocalDefinitionHidesImport,
       message: """Local definition of '${name}' hides import from '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
@@ -6486,6 +6499,7 @@ const Code<Message Function(int count)> codeMissingExplicitTypeArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingExplicitTypeArguments(int count) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
   return new Message(codeMissingExplicitTypeArguments,
       message: """No type arguments provided, ${count} possible.""",
@@ -6645,7 +6659,7 @@ const Code<Message Function(Uri uri_)> codeMissingPartOf =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingPartOf(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeMissingPartOf,
       message:
           """Can't use '${uri}' as a part, because it has no 'part of' declaration.""",
@@ -7817,7 +7831,7 @@ const Code<Message Function(String name, Uri uri_)> codePackageNotFound =
 Message _withArgumentsPackageNotFound(String name, Uri uri_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codePackageNotFound,
       message: """Could not resolve the package '${name}' in '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
@@ -7898,7 +7912,7 @@ const Code<Message Function(Uri uri_)> codePartOfInLibrary =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfInLibrary(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codePartOfInLibrary,
       message:
           """Can't import '${uri}', because it has a 'part of' declaration.""",
@@ -7929,7 +7943,7 @@ const Code<Message Function(Uri uri_, String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfLibraryNameMismatch(
     Uri uri_, String name, String name2) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
@@ -7999,9 +8013,9 @@ const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUriMismatch(Uri uri_, Uri uri2_, Uri uri3_) {
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
-  String uri3 = relativizeUri(uri3_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
+  String? uri3 = relativizeUri(uri3_);
   return new Message(codePartOfUriMismatch,
       message:
           """Using '${uri}' as part of '${uri2}' but its 'part of' declaration says '${uri3}'.""",
@@ -8031,8 +8045,8 @@ const Code<Message Function(Uri uri_, Uri uri2_, String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codePartOfUseUri,
@@ -8063,7 +8077,7 @@ const Code<Message Function(Uri uri_)> codePartTwice =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartTwice(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codePartTwice,
       message: """Can't use '${uri}' as a part more than once.""",
       arguments: {'uri': uri_});
@@ -8124,7 +8138,7 @@ const Code<Message Function(String name, Uri uri_)> codePatchInjectionFailed =
 Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codePatchInjectionFailed,
       message: """Can't inject '${name}' into '${uri}'.""",
       tip: """Try adding '@patch'.""",
@@ -8385,7 +8399,7 @@ const Code<Message Function(Uri uri_)> codeSdkRootNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSdkRootNotFound(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeSdkRootNotFound,
       message: """SDK root directory not found: ${uri}.""",
       arguments: {'uri': uri_});
@@ -8411,7 +8425,7 @@ const Code<Message Function(Uri uri_)> codeSdkSpecificationNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSdkSpecificationNotFound(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeSdkSpecificationNotFound,
       message: """SDK libraries specification not found: ${uri}.""",
       tip:
@@ -8434,7 +8448,7 @@ const Code<Message Function(Uri uri_)> codeSdkSummaryNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeSdkSummaryNotFound,
       message: """SDK summary not found: ${uri}.""", arguments: {'uri': uri_});
 }
@@ -8535,12 +8549,17 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceBodySummary(
     int count, int count2, num _num1, num _num2, num _num3) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (count2 == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
+  // ignore: unnecessary_null_comparison
   if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
+  // ignore: unnecessary_null_comparison
   if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeSourceBodySummary,
@@ -8586,12 +8605,17 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceOutlineSummary(
     int count, int count2, num _num1, num _num2, num _num3) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (count2 == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
+  // ignore: unnecessary_null_comparison
   if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
+  // ignore: unnecessary_null_comparison
   if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeSourceOutlineSummary,
@@ -9096,7 +9120,9 @@ const Code<Message Function(int count, int count2)> codeTooFewArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooFewArguments(int count, int count2) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (count2 == null) throw 'No count provided';
   return new Message(codeTooFewArguments,
       message:
@@ -9124,7 +9150,9 @@ const Code<Message Function(int count, int count2)> codeTooManyArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooManyArguments(int count, int count2) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
   if (count2 == null) throw 'No count provided';
   return new Message(codeTooManyArguments,
       message:
@@ -9168,6 +9196,7 @@ const Code<Message Function(int count)> codeTypeArgumentMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentMismatch(int count) {
+  // ignore: unnecessary_null_comparison
   if (count == null) throw 'No count provided';
   return new Message(codeTypeArgumentMismatch,
       message: """Expected ${count} type arguments.""",
@@ -9246,7 +9275,7 @@ const Code<Message Function(String name, Uri uri_)> codeTypeOrigin =
 Message _withArgumentsTypeOrigin(String name, Uri uri_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeTypeOrigin,
       message: """'${name}' is from '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
@@ -9271,8 +9300,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
 Message _withArgumentsTypeOriginWithFileUri(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  String uri = relativizeUri(uri_);
-  String uri2 = relativizeUri(uri2_);
+  String? uri = relativizeUri(uri_);
+  String? uri2 = relativizeUri(uri2_);
   return new Message(codeTypeOriginWithFileUri,
       message: """'${name}' is from '${uri}' ('${uri2}').""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
@@ -9627,7 +9656,7 @@ const Code<Message Function(Uri uri_)> codeUntranslatableUri =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUntranslatableUri(Uri uri_) {
-  String uri = relativizeUri(uri_);
+  String? uri = relativizeUri(uri_);
   return new Message(codeUntranslatableUri,
       message: """Not found: '${uri}'""", arguments: {'uri': uri_});
 }

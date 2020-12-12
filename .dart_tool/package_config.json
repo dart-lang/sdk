@@ -18,7 +18,7 @@
       "name": "_fe_analyzer_shared",
       "rootUri": "../pkg/_fe_analyzer_shared",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "_fe_analyzer_shared_assigned_variables",

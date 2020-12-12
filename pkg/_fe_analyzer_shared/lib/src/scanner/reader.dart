@@ -60,12 +60,12 @@ class CharSequenceReader implements CharacterReader {
   /**
    * The number of characters in the string.
    */
-  int _stringLength;
+  late int _stringLength;
 
   /**
    * The index, relative to the string, of the next character to be read.
    */
-  int _charOffset;
+  late int _charOffset;
 
   /**
    * Initialize a newly created reader to read the characters in the given

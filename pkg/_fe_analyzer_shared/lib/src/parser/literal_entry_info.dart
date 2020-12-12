@@ -50,16 +50,16 @@ class LiteralEntryInfo {
   }
 
   /// Returns the next step when parsing an entry or `null` if none.
-  LiteralEntryInfo computeNext(Token token) => null;
+  LiteralEntryInfo? computeNext(Token token) => null;
 }
 
 /// Compute the [LiteralEntryInfo] for the literal list, map, or set entry.
 LiteralEntryInfo computeLiteralEntry(Token token) {
-  Token next = token.next;
+  Token next = token.next!;
   if (optional('if', next)) {
     return ifCondition;
   } else if (optional('for', next) ||
-      (optional('await', next) && optional('for', next.next))) {
+      (optional('await', next) && optional('for', next.next!))) {
     return new ForCondition();
   } else if (optional('...', next) || optional('...?', next)) {
     return spreadOperator;
@@ -75,4 +75,4 @@ bool looksLikeLiteralEntry(Token token) =>
     optional('...?', token) ||
     optional('if', token) ||
     optional('for', token) ||
-    (optional('await', token) && optional('for', token.next));
+    (optional('await', token) && optional('for', token.next!));

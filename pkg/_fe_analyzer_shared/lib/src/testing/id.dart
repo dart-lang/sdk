@@ -83,10 +83,10 @@ class IdValue {
   static String idToString(Id id, String value) {
     switch (id.kind) {
       case IdKind.member:
-        MemberId elementId = id;
+        MemberId elementId = id as MemberId;
         return '$memberPrefix${elementId.name}:$value';
       case IdKind.cls:
-        ClassId classId = id;
+        ClassId classId = id as ClassId;
         return '$classPrefix${classId.name}:$value';
       case IdKind.library:
         return '$libraryPrefix$value';
@@ -109,7 +109,6 @@ class IdValue {
       case IdKind.error:
         return '$errorPrefix$value';
     }
-    throw new UnsupportedError("Unexpected id kind: ${id.kind}");
   }
 
   static const String globalPrefix = "global#";
@@ -199,7 +198,7 @@ class IdValue {
 
 /// Id for an member element.
 class MemberId implements Id {
-  final String className;
+  final String? className;
   final String memberName;
   @override
   final bool isGlobal;
@@ -307,7 +306,9 @@ class NodeId implements Id {
   final IdKind kind;
 
   const NodeId(this.value, this.kind)
-      : assert(value != null),
+      :
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
         assert(value >= 0);
 
   @override
@@ -341,7 +342,7 @@ class ActualData<T> {
 
   int get offset {
     if (id is NodeId) {
-      NodeId nodeId = id;
+      NodeId nodeId = id as NodeId;
       return nodeId.value;
     } else {
       return _offset;
@@ -367,8 +368,8 @@ abstract class DataRegistry<T> {
     if (value != null) {
       ActualData<T> newData = new ActualData<T>(id, value, uri, offset, object);
       if (actualMap.containsKey(id)) {
-        ActualData<T> existingData = actualMap[id];
-        ActualData<T> mergedData = mergeData(existingData, newData);
+        ActualData<T> existingData = actualMap[id]!;
+        ActualData<T>? mergedData = mergeData(existingData, newData);
         if (mergedData != null) {
           actualMap[id] = mergedData;
         } else {
@@ -391,7 +392,7 @@ abstract class DataRegistry<T> {
     }
   }
 
-  ActualData<T> mergeData(ActualData<T> value1, ActualData<T> value2) => null;
+  ActualData<T>? mergeData(ActualData<T> value1, ActualData<T> value2) => null;
 
   /// Called to report duplicate errors.
   void report(Uri uri, int offset, String message);

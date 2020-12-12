@@ -22,15 +22,15 @@ import 'error_token.dart' show ErrorToken;
  */
 class StringScanner extends AbstractScanner {
   /** The file content. */
-  String string;
+  late String string;
 
   /** The current offset in [string]. */
-  int scanOffset = -1;
+  late int scanOffset = -1;
 
   StringScanner(String string,
-      {ScannerConfiguration configuration,
+      {ScannerConfiguration? configuration,
       bool includeComments: false,
-      LanguageVersionChanged languageVersionChanged})
+      LanguageVersionChanged? languageVersionChanged})
       : string = ensureZeroTermination(string),
         super(configuration, includeComments, languageVersionChanged);
 
@@ -54,7 +54,7 @@ class StringScanner extends AbstractScanner {
   static bool isLegalIdentifier(String identifier) {
     StringScanner scanner = new StringScanner(identifier);
     Token startToken = scanner.tokenize();
-    return startToken is! ErrorToken && startToken.next.isEof;
+    return startToken is! ErrorToken && startToken.next!.isEof;
   }
 
   int advance() => string.codeUnitAt(++scanOffset);

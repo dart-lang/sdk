@@ -16,7 +16,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   int charOffset = token.charOffset;
   // TODO(paulberry,ahe): why is endOffset sometimes null?
   int endOffset = token.endOffset ?? charOffset;
-  void _makeError(ScannerErrorCode errorCode, List<Object> arguments) {
+  void _makeError(ScannerErrorCode errorCode, List<Object?>? arguments) {
     if (_isAtEnd(token, charOffset)) {
       // Analyzer never generates an error message past the end of the input,
       // since such an error would not be visible in an editor.
@@ -64,8 +64,8 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
 
     default:
       if (errorCode == codeUnmatchedToken) {
-        charOffset = token.begin.endToken.charOffset;
-        TokenType type = token.begin?.type;
+        charOffset = token.begin!.endToken!.charOffset;
+        TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['}']);
@@ -94,7 +94,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
 bool _isAtEnd(Token token, int charOffset) {
   while (true) {
     // Skip to the next token.
-    token = token.next;
+    token = token.next!;
     // If we've found an EOF token, its charOffset indicates where the end of
     // the input is.
     if (token.isEof) return token.charOffset == charOffset;
@@ -111,7 +111,7 @@ bool _isAtEnd(Token token, int charOffset) {
  * The [arguments] are any arguments needed to complete the error message.
  */
 typedef ReportError(
-    ScannerErrorCode errorCode, int offset, List<Object> arguments);
+    ScannerErrorCode errorCode, int offset, List<Object?>? arguments);
 
 /**
  * The error codes used for errors detected by the scanner.
@@ -181,7 +181,7 @@ class ScannerErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ScannerErrorCode(String name, String message, {String correction})
+  const ScannerErrorCode(String name, String message, {String? correction})
       : super(
           correction: correction,
           message: message,
