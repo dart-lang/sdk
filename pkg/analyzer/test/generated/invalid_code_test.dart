@@ -389,6 +389,12 @@ class B {
 @reflectiveTest
 class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_functionExpression_emptyBody() async {
+    await _assertCanBeAnalyzed(r'''
+var v = <T>();
+''');
+  }
+
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''
 class A {

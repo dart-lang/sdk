@@ -69,7 +69,7 @@ class FunctionExpressionResolver {
       if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
         var bodyContext = BodyInferenceContext.of(node.body);
         _resolver.checkForBodyMayCompleteNormally(
-          returnType: bodyContext.contextType,
+          returnType: bodyContext?.contextType,
           body: body,
           errorNode: body,
         );

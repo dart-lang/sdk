@@ -1166,8 +1166,8 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitConstructorDeclaration(node);
 
     if (_flowAnalysis != null) {
-      var bodyContext = BodyInferenceContext.of(node.body);
       if (node.factoryKeyword != null) {
+        var bodyContext = BodyInferenceContext.of(node.body);
         checkForBodyMayCompleteNormally(
           returnType: bodyContext?.contextType,
           body: node.body,
