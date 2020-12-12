@@ -1718,6 +1718,20 @@ void f({a = b?.foo()}) {}
     );
   }
 
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode('''
+typedef void F({a = b?.foo()});
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
   test_namedArgument() async {
     var question = typeToStringWithNullability ? '?' : '';
     await assertNoErrorsInCode('''

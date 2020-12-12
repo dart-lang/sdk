@@ -771,26 +771,29 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void startNullAwareIndexExpression(IndexExpression node) {
-    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
-        _flowAnalysis != null) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(
-          node.target, node.realTarget.staticType ?? typeProvider.dynamicType);
-      _unfinishedNullShorts.add(node.nullShortingTermination);
+    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        flow.nullAwareAccess_rightBegin(node.target,
+            node.realTarget.staticType ?? typeProvider.dynamicType);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
     }
   }
 
-  void startNullAwarePropertyAccess(
-    PropertyAccess node,
-  ) {
-    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
-        _flowAnalysis != null) {
-      var target = node.target;
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(
-            target, node.realTarget.staticType ?? typeProvider.dynamicType);
-        _unfinishedNullShorts.add(node.nullShortingTermination);
+  void startNullAwarePropertyAccess(PropertyAccess node) {
+    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        var target = node.target;
+        if (target is SimpleIdentifier &&
+            target.staticElement is ClassElement) {
+          // `?.` to access static methods is equivalent to `.`, so do nothing.
+        } else {
+          flow.nullAwareAccess_rightBegin(
+              target, node.realTarget.staticType ?? typeProvider.dynamicType);
+          _unfinishedNullShorts.add(node.nullShortingTermination);
+        }
       }
     }
   }
@@ -1684,14 +1687,17 @@ class ResolverVisitor extends ScopedVisitor {
     var target = node.target;
     target?.accept(this);
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _flowAnalysis != null) {
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(
-            target, node.realTarget.staticType ?? typeProvider.dynamicType);
-        _unfinishedNullShorts.add(node.nullShortingTermination);
+    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        if (target is SimpleIdentifier &&
+            target.staticElement is ClassElement) {
+          // `?.` to access static methods is equivalent to `.`, so do nothing.
+        } else {
+          flow.nullAwareAccess_rightBegin(
+              target, node.realTarget.staticType ?? typeProvider.dynamicType);
+          _unfinishedNullShorts.add(node.nullShortingTermination);
+        }
       }
     }
 

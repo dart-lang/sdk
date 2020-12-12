@@ -250,6 +250,18 @@ void f({a = b?.foo}) {}
     );
   }
 
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode('''
+typedef void F({a = b?.foo});
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
   test_invalid_inDefaultValue_nullAware_cascade() async {
     await assertInvalidTestCode('''
 void f({a = b?..foo}) {}
