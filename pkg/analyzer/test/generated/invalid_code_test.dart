@@ -395,6 +395,18 @@ var v = <T>();
 ''');
   }
 
+  test_inDefaultValue_noFlow_ifExpression() async {
+    await _assertCanBeAnalyzed('''
+typedef void F({a = [if (true) 0]});
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifStatement() async {
+    await _assertCanBeAnalyzed('''
+typedef void F([a = () { if (true) 0; }]);
+''');
+  }
+
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''
 class A {
