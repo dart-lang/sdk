@@ -21,11 +21,37 @@ const runFromSource = false;
 void defineFix() {
   TestProject p;
 
+  ProcessResult result;
+
   final bullet = Logger.standard().ansi.bullet;
 
   setUp(() => p = null);
 
   tearDown(() => p?.dispose());
+
+  void assertResult({int exitCode = 0}) {
+    String message;
+    if (result.exitCode != exitCode) {
+      if (result.stderr.isNotEmpty) {
+        message = 'Error code was ${result.exitCode} and stderr was not empty';
+      } else {
+        message = 'Error code was ${result.exitCode}';
+      }
+    } else if (result.stderr.isNotEmpty) {
+      message = 'stderr was not empty';
+    } else {
+      return;
+    }
+    fail('''
+$message
+
+stdout:
+${result.stdout}
+
+stderr:
+${result.stderr}
+''');
+  }
 
   ProcessResult runFix(List<String> args, {String workingDir}) {
     if (runFromSource) {
@@ -188,7 +214,7 @@ linter:
   });
 
   group('compare-to-golden', () {
-    test('different', () {
+    test('applied fixes do not match expected', () {
       p = project(
         mainSrc: '''
 class A {
@@ -215,12 +241,11 @@ class B extends A {
   String a() => '';
 }
 ''');
-      var result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
-      expect(result.exitCode, 1);
-      expect(result.stderr, isEmpty);
+      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      assertResult(exitCode: 1);
     });
 
-    test('same', () {
+    test('applied fixes match expected', () {
       p = project(
         mainSrc: '''
 class A {
@@ -248,9 +273,66 @@ class B extends A {
   String a() => '';
 }
 ''');
-      var result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
-      expect(result.exitCode, 0);
-      expect(result.stderr, isEmpty);
+      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      assertResult();
+    });
+
+    test('missing expect', () {
+      p = project(
+        mainSrc: '''
+class A {
+  String a() => "";
+}
+
+class B extends A {
+  String a() => "";
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - annotate_overrides
+    - prefer_single_quotes
+''',
+      );
+      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      assertResult(exitCode: 1);
+    });
+
+    test('missing original', () {
+      p = project(mainSrc: '''
+class C {}
+''');
+      p.file('lib/main.dart.expect', '''
+class C {}
+''');
+      p.file('lib/secondary.dart.expect', '''
+class A {}
+''');
+      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      assertResult(exitCode: 1);
+    });
+
+    test('no fixes to apply does not match expected', () {
+      p = project(
+        mainSrc: '''
+class A {
+  String a() => "";
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - annotate_overrides
+''',
+      );
+      p.file('lib/main.dart.expect', '''
+class A {
+  String a() => '';
+}
+''');
+      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      assertResult(exitCode: 1);
     });
   });
 }
