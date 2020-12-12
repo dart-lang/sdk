@@ -1468,12 +1468,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// search should include the target type. The [visitedInterfaces] is a set
   /// containing all of the interfaces that have been examined, used to prevent
   /// infinite recursion and to optimize the search.
-  static ExecutableElement _lookUpMemberInInterfaces(
+  static T _lookUpMemberInInterfaces<T extends ExecutableElement>(
       InterfaceType targetType,
       bool includeTargetType,
       LibraryElement library,
       HashSet<ClassElement> visitedInterfaces,
-      ExecutableElement Function(InterfaceType type) getMember) {
+      T Function(InterfaceType type) getMember) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
     // specification (titled "Inheritance and Overriding" under "Interfaces")
     // describes a much more complex scheme for finding the inherited member.

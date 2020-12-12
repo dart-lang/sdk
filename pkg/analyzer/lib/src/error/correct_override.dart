@@ -189,7 +189,7 @@ class CovariantParametersVerifier {
   /// Return the [Substitution] to convert types of [superMember] to types of
   /// [_thisMember].
   Substitution _superSubstitution(_SuperMember superMember) {
-    var result = Substitution.fromInterfaceType(superMember.interface);
+    Substitution result = Substitution.fromInterfaceType(superMember.interface);
 
     // If the executable has type parameters, ensure that super uses the same.
     var thisTypeParameters = _thisMember.typeParameters;

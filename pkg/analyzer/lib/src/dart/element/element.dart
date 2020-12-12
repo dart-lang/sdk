@@ -267,7 +267,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticGetter(String name, LibraryElement library) {
+  PropertyAccessorElement lookupStaticGetter(
+      String name, LibraryElement library) {
     return _first(_implementationsOfGetter(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -278,7 +279,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticMethod(String name, LibraryElement library) {
+  MethodElement lookupStaticMethod(String name, LibraryElement library) {
     return _first(_implementationsOfMethod(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -289,7 +290,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticSetter(String name, LibraryElement library) {
+  PropertyAccessorElement lookupStaticSetter(
+      String name, LibraryElement library) {
     return _first(_implementationsOfSetter(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -631,7 +633,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool get hasNoSuchMethod {
     MethodElement method = lookUpConcreteMethod(
         FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
-    ClassElement definingClass = method?.enclosingElement;
+    var definingClass = method?.enclosingElement as ClassElement;
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
@@ -902,7 +904,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       return <ConstructorElement>[];
     }
 
-    ClassElementImpl superElement = supertype.element;
+    var superElement = supertype.element as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -7275,7 +7277,7 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      TypeParameter node = linkedNode;
+      var node = linkedNode as TypeParameter;
       return node.name.name;
     }
     return super.name;

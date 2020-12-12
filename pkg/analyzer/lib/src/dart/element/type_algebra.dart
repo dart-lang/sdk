@@ -160,7 +160,7 @@ abstract class Substitution {
 
   /// Substitutes the type parameters on the class of [type] with the
   /// type arguments provided in [type].
-  static Substitution fromInterfaceType(InterfaceType type) {
+  static MapSubstitution fromInterfaceType(InterfaceType type) {
     if (type.typeArguments.isEmpty) {
       return _NullSubstitution.instance;
     }
