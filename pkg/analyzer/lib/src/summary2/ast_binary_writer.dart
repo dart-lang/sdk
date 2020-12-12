@@ -34,9 +34,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   /// for [_classMemberIndexItems]?
   final List<_UnitMemberIndexItem> unitMemberIndexItems = [];
   final List<_ClassMemberIndexItem> _classMemberIndexItems = [];
-  bool _isConstField = false;
-  bool _isFinalField = false;
-  bool _isConstTopLevelVariable = false;
+  bool _shouldStoreVariableInitializers = false;
   bool _hasConstConstructor = false;
   int _nextUnnamedExtensionId = 0;
 
@@ -571,13 +569,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     var resolutionIndex = _getNextResolutionIndex();
 
-    _isConstField = node.fields.isConst;
-    _isFinalField = node.fields.isFinal;
+    _shouldStoreVariableInitializers = node.fields.isConst ||
+        _hasConstConstructor && node.fields.isFinal && !node.isStatic;
     try {
       _writeNode(node.fields);
     } finally {
-      _isConstField = false;
-      _isFinalField = false;
+      _shouldStoreVariableInitializers = false;
     }
 
     _storeClassMember(node);
@@ -1440,11 +1437,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     var resolutionIndex = _getNextResolutionIndex();
 
-    _isConstTopLevelVariable = node.variables.isConst;
+    _shouldStoreVariableInitializers = node.variables.isConst;
     try {
       _writeNode(node.variables);
     } finally {
-      _isConstTopLevelVariable = false;
+      _shouldStoreVariableInitializers = false;
     }
 
     _storeCompilationUnitMember(node);
@@ -1522,9 +1519,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     }
 
     Expression initializerToWrite;
-    if (_isConstField ||
-        _hasConstConstructor && _isFinalField ||
-        _isConstTopLevelVariable) {
+    if (_shouldStoreVariableInitializers) {
       var initializer = node.initializer;
       if (_isSerializableExpression(initializer)) {
         initializerToWrite = initializer;
