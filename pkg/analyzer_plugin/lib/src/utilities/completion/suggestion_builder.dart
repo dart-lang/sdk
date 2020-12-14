@@ -139,9 +139,14 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       return type != null
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
-    } else if (element is FunctionTypeAliasElement) {
-      var returnType = element.function.returnType;
-      return returnType.getDisplayString(withNullability: false);
+    } else if (element is TypeAliasElement) {
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        var returnType = aliasedElement.returnType;
+        return returnType.getDisplayString(withNullability: false);
+      } else {
+        return null;
+      }
     } else {
       return null;
     }

@@ -1169,6 +1169,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 abstract class FunctionTypeAliasElement implements TypeAliasElement {
   /// Return the generic function type element representing the generic function
   /// type on the right side of the equals.
+  @Deprecated('Use aliasedElement instead')
   GenericFunctionTypeElement get function;
 
   @override

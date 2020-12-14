@@ -7199,7 +7199,7 @@ typedef void F<T>(int a);
     expect(T.name, 'T');
     expect(T.enclosingElement, same(F));
 
-    var function = F.function;
+    var function = F.aliasedElement as GenericFunctionTypeElement;
     expect(function.enclosingElement, same(F));
 
     var a = function.parameters[0];
@@ -7523,7 +7523,7 @@ typedef F<T> = void Function<U>(int a);
     expect(T.name, 'T');
     expect(T.enclosingElement, same(F));
 
-    var function = F.function;
+    var function = F.aliasedElement as GenericFunctionTypeElement;
     expect(function.enclosingElement, same(F));
 
     var U = function.typeParameters[0];

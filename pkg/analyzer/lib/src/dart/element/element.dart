@@ -6964,7 +6964,7 @@ class TypeAliasElementImpl extends ElementImpl
   /// from anywhere except a class element or type parameter bounds.
   bool hasSelfReference = false;
 
-  bool _isRawElementReady = false;
+  bool _isAliasedElementReady = false;
   ElementImpl _aliasedElement;
   DartType _aliasedType;
 
@@ -7150,8 +7150,8 @@ class TypeAliasElementImpl extends ElementImpl
   }
 
   void _ensureAliasedElement() {
-    if (_isRawElementReady) return;
-    _isRawElementReady = true;
+    if (_isAliasedElementReady) return;
+    _isAliasedElementReady = true;
 
     var linkedNode = this.linkedNode;
     if (linkedNode != null) {

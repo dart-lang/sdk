@@ -147,8 +147,11 @@ class FindElement extends _FindElementBase {
     findInExecutables(unitElement.accessors);
     findInExecutables(unitElement.functions);
 
-    for (var function in unitElement.functionTypeAliases) {
-      findIn(function.function.parameters);
+    for (var alias in unitElement.typeAliases) {
+      var aliasedElement = alias.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        findIn(aliasedElement.parameters);
+      }
     }
 
     for (var extension_ in unitElement.extensions) {
@@ -218,9 +221,13 @@ class FindElement extends _FindElementBase {
       findIn(type.typeParameters);
     }
 
-    for (var type in unitElement.functionTypeAliases) {
-      findIn(type.typeParameters);
-      findIn(type.function.typeParameters);
+    for (var alias in unitElement.typeAliases) {
+      findIn(alias.typeParameters);
+
+      var aliasedElement = alias.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        findIn(aliasedElement.typeParameters);
+      }
     }
 
     for (var class_ in unitElement.types) {

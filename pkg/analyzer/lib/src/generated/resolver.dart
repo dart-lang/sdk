@@ -2733,9 +2733,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         parent.declaredElement.parameters,
       );
     } else if (parent is FunctionTypeAlias) {
+      var aliasedElement = parent.declaredElement.aliasedElement;
+      var functionElement = aliasedElement as GenericFunctionTypeElement;
       nameScope = FormalParameterScope(
         nameScope,
-        parent.declaredElement.function.parameters,
+        functionElement.parameters,
       );
     } else if (parent is MethodDeclaration) {
       nameScope = FormalParameterScope(

@@ -343,7 +343,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     @required FunctionTypeAliasElement element,
     @required List<String> typeArguments,
   }) {
-    assertElement2(type.element, declaration: element.function);
+    assertElement2(
+      type.element,
+      declaration: element.aliasedElement as GenericFunctionTypeElement,
+    );
     assertElementTypeStrings(type.typeArguments, typeArguments);
   }
 
