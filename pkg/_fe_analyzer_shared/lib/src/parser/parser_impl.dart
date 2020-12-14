@@ -297,7 +297,8 @@ class Parser {
     return cachedRewriter ??= new TokenStreamRewriterImpl();
   }
 
-  Parser(this.listener);
+  Parser(this.listener)
+      : assert(listener != null); // ignore:unnecessary_null_comparison
 
   bool get inGenerator {
     return asyncState == AsyncModifier.AsyncStar ||

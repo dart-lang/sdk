@@ -117,7 +117,7 @@ class Parser {
   Token currentToken;
 
   /// The fasta parser being wrapped.
-  final fasta.Parser fastaParser;
+  /*late final*/ fasta.Parser fastaParser;
 
   /// The builder which creates the analyzer AST data structures
   /// based on the Fasta parser.
@@ -125,8 +125,7 @@ class Parser {
 
   Parser(Source source, AnalysisErrorListener errorListener,
       {@required FeatureSet featureSet, bool allowNativeClause = true})
-      : fastaParser = fasta.Parser(null),
-        astBuilder = AstBuilder(
+      : astBuilder = AstBuilder(
             ErrorReporter(
               errorListener,
               source,
@@ -136,7 +135,7 @@ class Parser {
             source.uri,
             true,
             featureSet) {
-    fastaParser.listener = astBuilder;
+    fastaParser = fasta.Parser(astBuilder);
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
   }
