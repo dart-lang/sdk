@@ -338,6 +338,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Leave the entry frame.
   __ LeaveFrame();
 
+  // We deal with `ret 4` for structs in the JIT callback trampolines.
   __ ret();
 }
 
@@ -998,7 +999,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // We need to create a dummy "exit frame". It will have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
-  __ EnterDartFrame(marshaller_.StackTopInBytes());
+  __ EnterDartFrame(marshaller_.RequiredStackSpaceInBytes());
 
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {
@@ -1034,6 +1035,16 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Calls EAX within a safepoint and clobbers EBX.
   ASSERT(temp == EBX && branch == EAX);
   __ call(temp);
+
+  // Restore the stack when a struct by value is returned into memory pointed
+  // to by a pointer that is passed into the function.
+  if (CallingConventions::kUsesRet4 &&
+      marshaller_.Location(compiler::ffi::kResultIndex).IsPointerToMemory()) {
+    // Callee uses `ret 4` instead of `ret` to return.
+    // See: https://c9x.me/x86/html/file_module_x86_id_280.html
+    // Caller does `sub esp, 4` immediately after return to balance stack.
+    __ subl(SPREG, compiler::Immediate(compiler::target::kWordSize));
+  }
 
   // The x86 calling convention requires floating point values to be returned on
   // the "floating-point stack" (aka. register ST0). We don't use the

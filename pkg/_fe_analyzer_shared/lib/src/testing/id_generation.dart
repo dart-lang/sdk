@@ -12,14 +12,14 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Uri mainUri,
     Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
     DataInterpreter<T> dataInterpreter,
-    {Annotation Function(Annotation expected, Annotation actual) createDiff,
+    {Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
     bool forceUpdate: false}) {
   Set<Uri> uriSet = {};
   Set<String> actualMarkers = actualData.keys.toSet();
   Map<Uri, Map<Id, Map<String, IdValue>>> idValuePerUri = {};
   Map<Uri, Map<Id, Map<String, ActualData<T>>>> actualDataPerUri = {};
 
-  void addData(String marker, Uri uri, Map<Id, IdValue> data) {
+  void addData(String marker, Uri? uri, Map<Id, IdValue> data) {
     if (uri == null) {
       // TODO(johnniwinther): Avoid `null` URIs.
       assert(data.isEmpty, "Non-empty data without uri: $data");
@@ -43,6 +43,7 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
   actualData
       .forEach((String marker, Map<Uri, Map<Id, ActualData<T>>> dataPerUri) {
     dataPerUri.forEach((Uri uri, Map<Id, ActualData<T>> dataMap) {
+      // ignore: unnecessary_null_comparison
       if (uri == null) {
         // TODO(johnniwinther): Avoid `null` URIs.
         assert(dataMap.isEmpty, "Non-empty data for `null` uri: $dataMap");
@@ -64,8 +65,9 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<Id, Map<String, IdValue>> idValuePerId = idValuePerUri[uri] ?? {};
     Map<Id, Map<String, ActualData<T>>> actualDataPerId =
         actualDataPerUri[uri] ?? {};
-    AnnotatedCode code = annotatedCode[uri];
+    AnnotatedCode code = annotatedCode[uri]!;
     assert(
+        // ignore: unnecessary_null_comparison
         code != null, "No annotated code for ${uri} in ${annotatedCode.keys}");
     result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
         idValuePerId, actualDataPerId, dataInterpreter,
@@ -84,12 +86,13 @@ List<Annotation> _computeAnnotations<T>(
     {String defaultPrefix: '/*',
     String defaultSuffix: '*/',
     bool sortMarkers: true,
-    Annotation Function(Annotation expected, Annotation actual) createDiff,
+    Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
     bool forceUpdate: false}) {
+  // ignore: unnecessary_null_comparison
   assert(annotatedCode != null);
 
   Annotation createAnnotationFromData(
-      ActualData<T> actualData, Annotation annotation) {
+      ActualData<T> actualData, Annotation? annotation) {
     String getIndentationFromOffset(int offset) {
       int lineIndex = annotatedCode.getLineIndex(offset);
       String line = annotatedCode.getLine(lineIndex);
@@ -161,10 +164,10 @@ List<Annotation> _computeAnnotations<T>(
 
     Map<String, Annotation> newAnnotationsPerMarker = {};
     for (String marker in supportedMarkers) {
-      IdValue idValue = idValuePerMarker[marker];
-      ActualData<T> actualData = actualDataPerMarker[marker];
-      Annotation expectedAnnotation;
-      Annotation actualAnnotation;
+      IdValue? idValue = idValuePerMarker[marker];
+      ActualData<T>? actualData = actualDataPerMarker[marker];
+      Annotation? expectedAnnotation;
+      Annotation? actualAnnotation;
       if (idValue != null && actualData != null) {
         if (dataInterpreter.isAsExpected(actualData.value, idValue.value) ==
                 null &&
@@ -187,7 +190,7 @@ List<Annotation> _computeAnnotations<T>(
           actualAnnotation = createAnnotationFromData(actualData, null);
         }
       }
-      Annotation annotation = createDiff != null
+      Annotation? annotation = createDiff != null
           ? createDiff(expectedAnnotation, actualAnnotation)
           : actualAnnotation;
       if (annotation != null) {

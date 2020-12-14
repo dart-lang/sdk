@@ -64,5 +64,5 @@ library from "org-dartlang-test:///main_lib2.dart" as mai {
       ;
   }
   static method method() → dynamic
-    return new mai::SubClass::•().{mai2::_Class&SuperClass&Mixin::method}(0);
+    return new mai::SubClass::•().{mai2::_Class&SuperClass&Mixin::method}(0){(dart.core::num*) →* void};
 }

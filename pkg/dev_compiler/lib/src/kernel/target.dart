@@ -48,6 +48,9 @@ class DevCompilerTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
+  bool get supportsNewMethodInvocationEncoding => true;
+
+  @override
   String get name => 'dartdevc';
 
   @override
@@ -400,14 +403,44 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   }
 
   @override
+  void visitInstanceGet(InstanceGet node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceGet(node);
+  }
+
+  @override
   void visitPropertySet(PropertySet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitPropertySet(node);
   }
 
   @override
+  void visitInstanceSet(InstanceSet node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceSet(node);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitEqualsCall(EqualsCall node) {
+    _checkTarget(node.left, node.interfaceTarget);
+    super.visitEqualsCall(node);
   }
 }

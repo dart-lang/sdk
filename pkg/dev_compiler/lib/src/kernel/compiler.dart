@@ -4354,9 +4354,37 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           .toAssignExpression(_emitVariableRef(node.variable));
 
   @override
+  js_ast.Expression visitDynamicGet(DynamicGet node) {
+    return _emitPropertyGet(node.receiver, null, node.name.name);
+  }
+
+  @override
+  js_ast.Expression visitInstanceGet(InstanceGet node) {
+    return _emitPropertyGet(
+        node.receiver, node.interfaceTarget, node.name.name);
+  }
+
+  @override
+  js_ast.Expression visitInstanceTearOff(InstanceTearOff node) {
+    return _emitPropertyGet(
+        node.receiver, node.interfaceTarget, node.name.name);
+  }
+
+  @override
   js_ast.Expression visitPropertyGet(PropertyGet node) {
     return _emitPropertyGet(
         node.receiver, node.interfaceTarget, node.name.text);
+  }
+
+  @override
+  js_ast.Expression visitDynamicSet(DynamicSet node) {
+    return _emitPropertySet(node.receiver, null, node.value, node.name.text);
+  }
+
+  @override
+  js_ast.Expression visitInstanceSet(InstanceSet node) {
+    return _emitPropertySet(
+        node.receiver, node.interfaceTarget, node.value, node.name.text);
   }
 
   @override
@@ -4469,6 +4497,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitStaticGet(StaticGet node) =>
       _emitStaticGet(node.target);
 
+  @override
+  js_ast.Expression visitStaticTearOff(StaticTearOff node) =>
+      _emitStaticGet(node.target);
+
   js_ast.Expression _emitStaticGet(Member target) {
     var result = _emitStaticTarget(target);
     if (_reifyTearoff(target)) {
@@ -4489,6 +4521,43 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var value = isJsMember(target) ? _assertInterop(node.value) : node.value;
     return _visitExpression(value)
         .toAssignExpression(_emitStaticTarget(target));
+  }
+
+  @override
+  js_ast.Expression visitDynamicInvocation(DynamicInvocation node) {
+    return _emitMethodCall(node.receiver, null, node.arguments, node);
+  }
+
+  @override
+  js_ast.Expression visitFunctionInvocation(FunctionInvocation node) {
+    return _emitMethodCall(node.receiver, null, node.arguments, node);
+  }
+
+  @override
+  js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
+    return _emitMethodCall(
+        node.receiver, node.interfaceTarget, node.arguments, node);
+  }
+
+  @override
+  js_ast.Expression visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    return _emitMethodCall(
+        VariableGet(node.variable)..fileOffset = node.fileOffset,
+        null,
+        node.arguments,
+        node);
+  }
+
+  @override
+  js_ast.Expression visitEqualsCall(EqualsCall node) {
+    return _emitEqualityOperator(node.left, node.interfaceTarget, node.right,
+        negated: node.isNot);
+  }
+
+  @override
+  js_ast.Expression visitEqualsNull(EqualsNull node) {
+    return _emitCoreIdenticalCall([node.expression, NullLiteral()],
+        negated: node.isNot);
   }
 
   @override
@@ -4680,16 +4749,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // If the consumer of the expression is '==' or '!=' with a constant that
     // fits in 31 bits, adding a coercion does not change the result of the
     // comparison, e.g.  `a & ~b == 0`.
+    Expression left;
+    Expression right;
+    String op;
     if (parent is InvocationExpression &&
         parent.arguments.positional.length == 1) {
-      var op = parent.name.text;
-      var left = getInvocationReceiver(parent);
-      var right = parent.arguments.positional[0];
-      if (left != null && op == '==') {
+      op = parent.name.text;
+      left = getInvocationReceiver(parent);
+      right = parent.arguments.positional[0];
+    } else if (parent is EqualsCall) {
+      left = parent.left;
+      right = parent.right;
+      op = '==';
+    } else if (parent is EqualsNull) {
+      left = parent.expression;
+      right = NullLiteral();
+      op = '==';
+    }
+    if (left != null) {
+      if (op == '==') {
         const MAX = 0x7fffffff;
         if (_asIntInRange(right, 0, MAX) != null) return uncoerced;
         if (_asIntInRange(left, 0, MAX) != null) return uncoerced;
-      } else if (left != null && op == '>>') {
+      } else if (op == '>>') {
         if (_isDefinitelyNonNegative(left) &&
             _asIntInRange(right, 0, 31) != null) {
           // Parent will generate `# >>> n`.
@@ -6071,6 +6153,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitUnevaluatedConstant(UnevaluatedConstant node) =>
       throw UnsupportedError('Encountered an unevaluated constant: $node');
+
+  @override
+  js_ast.Expression visitFunctionTearOff(FunctionTearOff node) {
+    return _emitPropertyGet(node.receiver, null, 'call');
+  }
 }
 
 bool _isInlineJSFunction(Statement body) {

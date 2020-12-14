@@ -101,10 +101,10 @@ analyzer:
 
 @reflectiveTest
 class AnalysisOptionsProviderTest {
-  TestPathTranslator pathTranslator;
-  ResourceProvider resourceProvider;
+  /*late*/ TestPathTranslator pathTranslator;
+  /*late*/ ResourceProvider resourceProvider;
 
-  AnalysisOptionsProvider provider;
+  /*late*/ AnalysisOptionsProvider provider;
 
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
@@ -132,7 +132,7 @@ analyzer:
     YamlMap options = _getOptions('/foo/bar', crawlUp: true);
     expect(options, hasLength(1));
     {
-      YamlMap analyzer = getValue(options, 'analyzer');
+      var analyzer = getValue(options, 'analyzer') as YamlMap;
       expect(analyzer, isNotNull);
       expect(getValue(analyzer, 'ignore'), unorderedEquals(['bar']));
     }
@@ -153,7 +153,7 @@ analyzer:
     YamlMap options = _getOptions('/foo/bar/baz', crawlUp: true);
     expect(options, hasLength(1));
     {
-      YamlMap analyzer = getValue(options, 'analyzer');
+      var analyzer = getValue(options, 'analyzer') as YamlMap;
       expect(analyzer, isNotNull);
       expect(getValue(analyzer, 'ignore'), unorderedEquals(['bar']));
     }
@@ -185,10 +185,10 @@ include: foo.include
     YamlMap options = _getOptions('/');
     expect(options, hasLength(2));
     {
-      YamlMap analyzer = getValue(options, 'analyzer');
+      var analyzer = getValue(options, 'analyzer') as YamlMap;
       expect(analyzer, hasLength(1));
       {
-        YamlList ignore = getValue(analyzer, 'ignore');
+        var ignore = getValue(analyzer, 'ignore') as YamlList;
         expect(ignore, hasLength(2));
         expect(ignore[0], 'ignoreme.dart');
         expect(ignore[1], 'sdk_ext/**');
@@ -220,10 +220,10 @@ analyzer:
     YamlMap options = _getOptions('/');
     expect(options, hasLength(1));
     {
-      YamlMap analyzer = getValue(options, 'analyzer');
+      var analyzer = getValue(options, 'analyzer') as YamlMap;
       expect(analyzer, hasLength(1));
       {
-        YamlList ignore = getValue(analyzer, 'ignore');
+        var ignore = getValue(analyzer, 'ignore') as YamlList;
         expect(ignore, hasLength(2));
         expect(ignore[0], 'ignoreme.dart');
         expect(ignore[1], 'sdk_ext/**');

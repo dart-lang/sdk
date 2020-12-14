@@ -557,7 +557,7 @@ Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
     dispatch += Constant(offsets);
     dispatch += LoadLocal(scopes()->switch_variable);
 
-    // Ideally this would just be LoadIndexedTypedData(kTypedDataInt32ArrayCid),
+    // Ideally this would just be LoadIndexed(kTypedDataInt32ArrayCid),
     // but that doesn't work in unoptimised code.
     // The optimiser will turn this into that in any case.
     dispatch += InstanceCall(TokenPosition::kNoSource, Symbols::IndexToken(),
@@ -2662,7 +2662,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
-  ReadFlags();                                    // read flags.
+
+  const uint8_t flags = ReadFlags();  // read flags.
+  const bool is_invariant = (flags & kMethodInvocationFlagInvariant) != 0;
+
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
@@ -2676,7 +2679,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
 
   bool is_unchecked_closure_call = false;
-  bool is_unchecked_call = result_type.IsSkipCheck();
+  bool is_unchecked_call = is_invariant || result_type.IsSkipCheck();
   if (call_site_attributes.receiver_type != nullptr) {
     if (call_site_attributes.receiver_type->IsFunctionType()) {
       AlternativeReadingScope alt(&reader_);

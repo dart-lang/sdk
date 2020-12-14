@@ -40,7 +40,7 @@ import 'package:kernel/ast.dart'
         Visitor;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
-  return Message(Code<String>('Expression Compiler Internal error', null),
+  return Message(Code<String>('Expression Compiler Internal error'),
           message: msg)
       .withLocation(uri, 0, 0)
       .withFormatting(

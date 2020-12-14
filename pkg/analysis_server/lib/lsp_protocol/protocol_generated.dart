@@ -27,7 +27,7 @@ import 'package:meta/meta.dart';
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
 /// A special text edit with an additional change annotation.
-///  @since 3.16.0 - proposed state.
+///  @since 3.16.0.
 class AnnotatedTextEdit implements TextEdit, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(AnnotatedTextEdit.canParse, AnnotatedTextEdit.fromJson);
@@ -1551,7 +1551,7 @@ class CancelParams implements ToJsonable {
 }
 
 /// Additional information that describes document changes.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class ChangeAnnotation implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ChangeAnnotation.canParse, ChangeAnnotation.fromJson);
@@ -1701,7 +1701,7 @@ class ClientCapabilities implements ToJsonable {
   final dynamic experimental;
 
   /// General client capabilities.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final ClientCapabilitiesGeneral general;
 
   /// Text document specific client capabilities.
@@ -2026,11 +2026,11 @@ class ClientCapabilitiesGeneral implements ToJsonable {
   }
 
   /// Client capabilities specific to the client's markdown parser.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final MarkdownClientCapabilities markdown;
 
   /// Client capabilities specific to regular expressions.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final RegularExpressionsClientCapabilities regularExpressions;
 
   Map<String, dynamic> toJson() {
@@ -2119,11 +2119,11 @@ class ClientCapabilitiesWindow implements ToJsonable {
   }
 
   /// Client capabilities for the show document request.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final ShowDocumentClientCapabilities showDocument;
 
   /// Capabilities specific to the showMessage request
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final ShowMessageRequestClientCapabilities showMessage;
 
   /// Whether client supports handling progress notifications. If set servers
@@ -2281,7 +2281,7 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
   final bool applyEdit;
 
   /// Capabilities specific to the code lens requests scoped to the workspace.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final CodeLensWorkspaceClientCapabilities codeLens;
 
   /// The client supports `workspace/configuration` requests.
@@ -2300,12 +2300,12 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
   final ExecuteCommandClientCapabilities executeCommand;
 
   /// The client has support for file requests/notifications.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final ClientCapabilitiesFileOperations fileOperations;
 
   /// Capabilities specific to the semantic token requests scoped to the
   /// workspace.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final SemanticTokensWorkspaceClientCapabilities semanticTokens;
 
   /// Capabilities specific to the `workspace/symbol` request.
@@ -2586,7 +2586,7 @@ class CodeAction implements ToJsonable {
 
   /// A data entry field that is preserved on a code action between a
   /// `textDocument/codeAction` and a `codeAction/resolve` request.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final dynamic data;
 
   /// The diagnostics that this code action resolves.
@@ -2833,11 +2833,11 @@ class CodeActionClientCapabilities implements ToJsonable {
 
   /// Whether code action supports the `data` property which is preserved
   /// between a `textDocument/codeAction` and a `codeAction/resolve` request.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool dataSupport;
 
   /// Whether code action supports the `disabled` property.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool disabledSupport;
 
   /// Whether code action supports dynamic registration.
@@ -2847,7 +2847,7 @@ class CodeActionClientCapabilities implements ToJsonable {
   /// operations returned via the `CodeAction#edit` property by for example
   /// presenting the workspace edit in the user interface and asking for
   /// confirmation.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool honorsChangeAnnotations;
 
   /// Whether code action supports the `isPreferred` property.
@@ -2856,7 +2856,7 @@ class CodeActionClientCapabilities implements ToJsonable {
 
   /// Whether the client supports resolving additional code action properties
   /// via a separate `codeAction/resolve` request.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final CodeActionClientCapabilitiesResolveSupport resolveSupport;
 
   Map<String, dynamic> toJson() {
@@ -3951,7 +3951,7 @@ class CodeActionRegistrationOptions
 }
 
 /// Structure to capture a description for an error code.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class CodeDescription implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeDescription.canParse, CodeDescription.fromJson);
@@ -5470,13 +5470,13 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
 
   /// Client supports insert replace edit to control different behavior if a
   /// completion item is inserted in the text or should replace text.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool insertReplaceSupport;
 
   /// The client supports the `insertTextMode` property on a completion item to
   /// override the whitespace handling mode as defined by the client (see
   /// `insertTextMode`).
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final CompletionClientCapabilitiesInsertTextModeSupport insertTextModeSupport;
 
   /// Client supports the preselect property on a completion item.
@@ -5485,7 +5485,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   /// Indicates which properties a client can resolve lazily on a completion
   /// item. Before version 3.16.0 only the predefined properties `documentation`
   /// and `details` could be resolved lazily.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final CompletionClientCapabilitiesResolveSupport resolveSupport;
 
   /// Client supports snippets as insert text.
@@ -6235,7 +6235,7 @@ class CompletionItem implements ToJsonable {
   /// How whitespace and indentation is handled during completion item
   /// insertion. If not provided the client's default value depends on the
   /// `textDocument.completion.insertTextMode` client capability.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final InsertTextMode insertTextMode;
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
@@ -6281,7 +6281,7 @@ class CompletionItem implements ToJsonable {
   /// *Note 2:* If an `InsertReplaceEdit` is returned the edit's insert range
   /// must be a prefix of the edit's replace range, that means it must be
   /// contained and starting at the same position.
-  ///  @since 3.16.0 additional type `InsertReplaceEdit` - proposed state
+  ///  @since 3.16.0 additional type `InsertReplaceEdit`
   final TextEdit textEdit;
 
   Map<String, dynamic> toJson() {
@@ -7510,7 +7510,7 @@ class CreateFile implements ToJsonable {
   }
 
   /// An optional annotation identifer describing the operation.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final String annotationId;
 
   /// A create
@@ -7704,7 +7704,7 @@ class CreateFileOptions implements ToJsonable {
 
 /// The parameters sent in notifications/requests for user-initiated creation of
 /// files.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class CreateFilesParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CreateFilesParams.canParse, CreateFilesParams.fromJson);
@@ -8637,7 +8637,7 @@ class DeleteFile implements ToJsonable {
   }
 
   /// An optional annotation identifer describing the operation.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final String annotationId;
 
   /// A delete
@@ -8832,7 +8832,7 @@ class DeleteFileOptions implements ToJsonable {
 
 /// The parameters sent in notifications/requests for user-initiated deletes of
 /// files.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class DeleteFilesParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DeleteFilesParams.canParse, DeleteFilesParams.fromJson);
@@ -8966,13 +8966,13 @@ class Diagnostic implements ToJsonable {
   final String code;
 
   /// An optional property to describe the error code.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final CodeDescription codeDescription;
 
   /// A data entry field that is preserved between a
   /// `textDocument/publishDiagnostics` notification and
   /// `textDocument/codeAction` request.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final dynamic data;
 
   /// The diagnostic's message.
@@ -13537,7 +13537,7 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final String label;
   final bool workDoneProgress;
 
@@ -13766,7 +13766,7 @@ class DocumentSymbolRegistrationOptions
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final String label;
   final bool workDoneProgress;
 
@@ -14358,7 +14358,7 @@ class FileChangeType {
 }
 
 /// Represents information on a file/folder create.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class FileCreate implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileCreate.canParse, FileCreate.fromJson);
@@ -14428,7 +14428,7 @@ class FileCreate implements ToJsonable {
 }
 
 /// Represents information on a file/folder delete.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class FileDelete implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileDelete.canParse, FileDelete.fromJson);
@@ -14686,7 +14686,7 @@ class FileOperationFilter implements ToJsonable {
 
 /// A pattern to describe in which file operation requests or notifications the
 /// server is interested in.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class FileOperationPattern implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FileOperationPattern.canParse, FileOperationPattern.fromJson);
@@ -14812,7 +14812,7 @@ class FileOperationPattern implements ToJsonable {
 }
 
 /// A pattern kind describing if a glob pattern matches a file a folder or both.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class FileOperationPatternKind {
   const FileOperationPatternKind(this._value);
   const FileOperationPatternKind.fromJson(this._value);
@@ -14842,7 +14842,7 @@ class FileOperationPatternKind {
 }
 
 /// Matching options for the file operation pattern.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class FileOperationPatternOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FileOperationPatternOptions.canParse,
@@ -14904,7 +14904,7 @@ class FileOperationPatternOptions implements ToJsonable {
 }
 
 /// The options to register for file operations.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class FileOperationRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FileOperationRegistrationOptions.canParse,
@@ -14985,7 +14985,7 @@ class FileOperationRegistrationOptions implements ToJsonable {
 }
 
 /// Represents information on a file/folder rename.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class FileRename implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileRename.canParse, FileRename.fromJson);
@@ -16950,7 +16950,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   ///
   /// Uses IETF language tags as the value's syntax (See
   /// https://en.wikipedia.org/wiki/IETF_language_tag)
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final String locale;
 
   /// The process Id of the parent process that started the server. Is null if
@@ -17483,7 +17483,7 @@ class InitializedParams implements ToJsonable {
 }
 
 /// A special text edit to provide an insert and a replace operation.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class InsertReplaceEdit implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(InsertReplaceEdit.canParse, InsertReplaceEdit.fromJson);
@@ -17654,7 +17654,7 @@ class InsertTextFormat {
 }
 
 /// How whitespace and indentation is handled during completion item insertion.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class InsertTextMode {
   const InsertTextMode(this._value);
   const InsertTextMode.fromJson(this._value);
@@ -18613,7 +18613,7 @@ class LogTraceParams implements ToJsonable {
 }
 
 /// Client capabilities specific to the used markdown parser.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class MarkdownClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       MarkdownClientCapabilities.canParse, MarkdownClientCapabilities.fromJson);
@@ -20689,13 +20689,13 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   }
 
   /// Client supports a codeDescription property
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool codeDescriptionSupport;
 
   /// Whether code action supports the `data` property which is preserved
   /// between a `textDocument/publishDiagnostics` and `textDocument/codeAction`
   /// request.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool dataSupport;
 
   /// Whether the clients accepts diagnostics with related information.
@@ -22013,7 +22013,7 @@ class RenameClientCapabilities implements ToJsonable {
   /// operations returned via the rename request's workspace edit by for example
   /// presenting the workspace edit in the user interface and asking for
   /// confirmation.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool honorsChangeAnnotations;
 
   /// Client supports testing for validity of rename operations before
@@ -22161,7 +22161,7 @@ class RenameFile implements ToJsonable {
   }
 
   /// An optional annotation identifer describing the operation.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final String annotationId;
 
   /// A rename
@@ -22378,7 +22378,7 @@ class RenameFileOptions implements ToJsonable {
 
 /// The parameters sent in notifications/requests for user-initiated renames of
 /// files.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class RenameFilesParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RenameFilesParams.canParse, RenameFilesParams.fromJson);
@@ -24049,7 +24049,14 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// Whether the client supports tokens that can overlap each other.
   final bool overlappingTokenSupport;
 
-  /// Which requests the client supports and might send to the server.
+  /// Which requests the client supports and might send to the server depending
+  /// on the server's capability. Please note that clients might not show
+  /// semantic tokens or degrade some of the user experience if a range or full
+  /// request is advertised by the client but not provided by the server. If for
+  /// example the client capability `requests.full` and `request.range` are both
+  /// set to true but the server only provides a range provider the client might
+  /// not render a minimap correctly or might even decide to not show any
+  /// semantic tokens at all.
   final SemanticTokensClientCapabilitiesRequests requests;
 
   /// The token modifiers that the client supports.
@@ -26388,12 +26395,12 @@ class ServerCapabilities implements ToJsonable {
       implementationProvider;
 
   /// The server provides linked editing range support.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final Either3<bool, LinkedEditingRangeOptions,
       LinkedEditingRangeRegistrationOptions> linkedEditingRangeProvider;
 
   /// Whether server provides moniker support.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final Either3<bool, MonikerOptions, MonikerRegistrationOptions>
       monikerProvider;
 
@@ -27203,7 +27210,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   }
 
   /// The server is interested in file notifications/requests.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final ServerCapabilitiesFileOperations fileOperations;
 
   /// The server supports workspace folder.
@@ -27350,7 +27357,7 @@ class SetTraceParams implements ToJsonable {
 }
 
 /// Client capabilities for the show document request.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class ShowDocumentClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ShowDocumentClientCapabilities.canParse,
@@ -27423,7 +27430,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
 }
 
 /// Params to show a document.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class ShowDocumentParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ShowDocumentParams.canParse, ShowDocumentParams.fromJson);
@@ -27562,7 +27569,7 @@ class ShowDocumentParams implements ToJsonable {
 }
 
 /// The result of an show document request.
-///  @since 3.16.0 - proposed state
+///  @since 3.16.0
 class ShowDocumentResult implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ShowDocumentResult.canParse, ShowDocumentResult.fromJson);
@@ -28345,7 +28352,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
 
   /// The client supports the `activeParameter` property on
   /// `SignatureInformation` literal.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool activeParameterSupport;
 
   /// Client supports the follow content formats for the documentation property.
@@ -29115,7 +29122,7 @@ class SignatureInformation implements ToJsonable {
   /// The index of the active parameter.
   ///
   /// If provided, this is used in place of `SignatureHelp.activeParameter`.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final num activeParameter;
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
@@ -33611,7 +33618,7 @@ class WorkspaceEdit implements ToJsonable {
   ///
   /// Whether clients honor this property depends on the client capability
   /// `workspace.changeAnnotationSupport`.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final Map<String, ChangeAnnotation> changeAnnotations;
 
   /// Holds changes to existing resources.
@@ -33770,7 +33777,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
 
   /// Whether the client in general supports change annotations on text edits,
   /// create file, rename file and delete file changes.
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final WorkspaceEditClientCapabilitiesChangeAnnotationSupport
       changeAnnotationSupport;
 
@@ -33785,7 +33792,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
   /// Whether the client normalizes line endings to the client specific setting.
   /// If set to `true` the client will normalize line ending characters in a
   /// workspace edit to the client specific new line character(s).
-  ///  @since 3.16.0 - proposed state
+  ///  @since 3.16.0
   final bool normalizesLineEndings;
 
   /// The resource operations the client supports. Clients should at least

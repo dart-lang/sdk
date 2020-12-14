@@ -2075,10 +2075,9 @@ class FastaParserTestCase
       source,
       isNonNullableByDefault: false,
     );
-    fasta.Parser parser = fasta.Parser(null);
     AstBuilder astBuilder =
         AstBuilder(errorReporter, source.uri, true, featureSet);
-    parser.listener = astBuilder;
+    fasta.Parser parser = fasta.Parser(astBuilder);
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
     parser.parseUnit(_fastaTokens);

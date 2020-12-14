@@ -2846,6 +2846,29 @@ class CompoundIndexSet extends InternalExpression {
   String toString() {
     return "CompoundIndexSet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('[');
+    printer.writeExpression(index);
+    printer.write(']');
+    if (forPostIncDec &&
+        (binaryName.text == '+' || binaryName.text == '-') &&
+        rhs is IntLiteral &&
+        (rhs as IntLiteral).value == 1) {
+      if (binaryName.text == '+') {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    } else {
+      printer.write(' ');
+      printer.write(binaryName.text);
+      printer.write('= ');
+      printer.writeExpression(rhs);
+    }
+  }
 }
 
 /// Internal expression representing a null-aware compound assignment.
@@ -3747,20 +3770,6 @@ VariableDeclaration createVariableForResult(ExpressionInferenceResult result) {
 /// code.
 VariableGet createVariableGet(VariableDeclaration variable) {
   return new VariableGet(variable)..fileOffset = variable.fileOffset;
-}
-
-/// Creates a `e == null` test for the expression [left] using the [fileOffset]
-/// as file offset for the created nodes and [equalsMember] as the interface
-/// target of the created method invocation.
-MethodInvocation createEqualsNull(
-    int fileOffset, Expression left, Member equalsMember) {
-  return new MethodInvocation(
-      left,
-      equalsName,
-      new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset])
-        ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset
-    ..interfaceTarget = equalsMember;
 }
 
 ExpressionStatement createExpressionStatement(Expression expression) {

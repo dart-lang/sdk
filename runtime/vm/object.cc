@@ -7145,6 +7145,14 @@ bool Function::FfiCSignatureContainsHandles() const {
          kFfiHandleCid;
 }
 
+bool Function::FfiCSignatureReturnsStruct() const {
+  ASSERT(IsFfiTrampoline());
+  const Function& c_signature = Function::Handle(FfiCSignature());
+  const auto& return_type = AbstractType::Handle(c_signature.result_type());
+  const bool predefined = IsFfiTypeClassId(return_type.type_class_id());
+  return !predefined;
+}
+
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(raw_ptr()->data());

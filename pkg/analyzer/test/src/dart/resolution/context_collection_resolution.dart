@@ -39,12 +39,12 @@ class AnalysisOptionsFileConfig {
   final bool strictRawTypes;
 
   AnalysisOptionsFileConfig({
-    this.experiments,
-    this.implicitCasts,
-    this.implicitDynamic,
-    this.lints,
-    this.strictInference,
-    this.strictRawTypes,
+    this.experiments = const [],
+    this.implicitCasts = true,
+    this.implicitDynamic = true,
+    this.lints = const [],
+    this.strictInference = false,
+    this.strictRawTypes = false,
   });
 
   String toContent() {

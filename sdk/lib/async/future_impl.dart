@@ -173,6 +173,11 @@ class _FutureListener<S, T> {
     assert(!handlesError);
     return _zone.run(_whenCompleteAction);
   }
+
+  // Whether the [value] future should be awaited and the [future] completed
+  // with its result, rather than just completing the [future] directly
+  // with the [value].
+  bool shouldChain(Future<dynamic> value) => value is Future<T> || value is! T;
 }
 
 class _Future<T> implements Future<T> {
@@ -457,27 +462,28 @@ class _Future<T> implements Future<T> {
     return prev;
   }
 
-  // Take the value (when completed) of source and complete target with that
+  // Take the value (when completed) of source and complete this future with that
   // value (or error). This function could chain all Futures, but is slower
   // for _Future than _chainCoreFuture, so you must use _chainCoreFuture
   // in that case.
-  static void _chainForeignFuture(Future source, _Future target) {
-    assert(!target._isComplete);
+  void _chainForeignFuture(Future source) {
+    assert(!_isComplete);
     assert(source is! _Future);
 
     // Mark the target as chained (and as such half-completed).
-    target._setPendingComplete();
+    _setPendingComplete();
     try {
       source.then((value) {
-        assert(target._isPendingComplete);
-        // The "value" may be another future if the foreign future
-        // implementation is mis-behaving,
-        // so use _complete instead of _completeWithValue.
-        target._clearPendingComplete(); // Clear this first, it's set again.
-        target._complete(value);
+        assert(_isPendingComplete);
+        _clearPendingComplete(); // Clear this first, it's set again.
+        try {
+          _completeWithValue(value as T);
+        } catch (error, stackTrace) {
+          _completeError(error, stackTrace);
+        }
       }, onError: (Object error, StackTrace stackTrace) {
-        assert(target._isPendingComplete);
-        target._completeError(error, stackTrace);
+        assert(_isPendingComplete);
+        _completeError(error, stackTrace);
       });
     } catch (e, s) {
       // This only happens if the `then` call threw synchronously when given
@@ -485,7 +491,7 @@ class _Future<T> implements Future<T> {
       // That requires a non-conforming implementation of the Future interface,
       // which should, hopefully, never happen.
       scheduleMicrotask(() {
-        target._completeError(e, s);
+        _completeError(e, s);
       });
     }
   }
@@ -514,7 +520,7 @@ class _Future<T> implements Future<T> {
       if (value is _Future<T>) {
         _chainCoreFuture(value, this);
       } else {
-        _chainForeignFuture(value, this);
+        _chainForeignFuture(value);
       }
     } else {
       _FutureListener? listeners = _removeListeners();
@@ -529,7 +535,6 @@ class _Future<T> implements Future<T> {
 
   void _completeWithValue(T value) {
     assert(!_isComplete);
-    assert(value is! Future<T>);
 
     _FutureListener? listeners = _removeListeners();
     _setValue(value);
@@ -589,7 +594,7 @@ class _Future<T> implements Future<T> {
       return;
     }
     // Just listen on the foreign future. This guarantees an async delay.
-    _chainForeignFuture(value, this);
+    _chainForeignFuture(value);
   }
 
   void _asyncCompleteError(Object error, StackTrace stackTrace) {
@@ -630,7 +635,7 @@ class _Future<T> implements Future<T> {
         nextListener = listener._nextListener;
       }
 
-      final sourceResult = source._resultOrListeners;
+      final dynamic sourceResult = source._resultOrListeners;
       // Do the actual propagation.
       // Set initial state of listenerHasError and listenerValueOrError. These
       // variables are updated with the outcome of potential callbacks.
@@ -740,9 +745,10 @@ class _Future<T> implements Future<T> {
         // If we changed zone, oldZone will not be null.
         if (oldZone != null) Zone._leave(oldZone);
 
-        // If the listener's value is a future we need to chain it. Note that
+        // If the listener's value is a future we *might* need to chain it. Note that
         // this can only happen if there is a callback.
-        if (listenerValueOrError is Future) {
+        if (listenerValueOrError is Future &&
+            listener.shouldChain(listenerValueOrError)) {
           Future chainSource = listenerValueOrError;
           // Shortcut if the chain-source is already completed. Just continue
           // the loop.
@@ -757,7 +763,7 @@ class _Future<T> implements Future<T> {
               _chainCoreFuture(chainSource, result);
             }
           } else {
-            _chainForeignFuture(chainSource, result);
+            result._chainForeignFuture(chainSource);
           }
           return;
         }

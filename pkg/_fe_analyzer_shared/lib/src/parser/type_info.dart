@@ -117,7 +117,7 @@ const TypeInfo voidType = const VoidType();
 
 bool isGeneralizedFunctionType(Token token) {
   return optional('Function', token) &&
-      (optional('<', token.next) || optional('(', token.next));
+      (optional('<', token.next!) || optional('(', token.next!));
 }
 
 bool isValidTypeReference(Token token) {
@@ -127,7 +127,7 @@ bool isValidTypeReference(Token token) {
     TokenType type = token.type;
     String value = type.lexeme;
     return type.isPseudo ||
-        (type.isBuiltIn && optional('.', token.next)) ||
+        (type.isBuiltIn && optional('.', token.next!)) ||
         (identical(value, 'dynamic')) ||
         (identical(value, 'void'));
   }
@@ -141,24 +141,24 @@ bool isValidTypeReference(Token token) {
 /// given unbalanced `<` `>` and invalid parameters or arguments.
 TypeInfo computeType(final Token token, bool required,
     [bool inDeclaration = false]) {
-  Token next = token.next;
+  Token next = token.next!;
   if (!isValidTypeReference(next)) {
     if (next.type.isBuiltIn) {
       TypeParamOrArgInfo typeParamOrArg =
           computeTypeParamOrArg(next, inDeclaration);
       if (typeParamOrArg != noTypeParamOrArg) {
         // Recovery: built-in `<` ... `>`
-        if (required || looksLikeName(typeParamOrArg.skip(next).next)) {
+        if (required || looksLikeName(typeParamOrArg.skip(next).next!)) {
           return new ComplexTypeInfo(token, typeParamOrArg)
               .computeBuiltinOrVarAsType(required);
         }
-      } else if (required || isGeneralizedFunctionType(next.next)) {
-        String value = next.stringValue;
+      } else if (required || isGeneralizedFunctionType(next.next!)) {
+        String? value = next.stringValue;
         if ((!identical('get', value) &&
             !identical('set', value) &&
             !identical('factory', value) &&
             !identical('operator', value) &&
-            !(identical('typedef', value) && next.next.isIdentifier))) {
+            !(identical('typedef', value) && next.next!.isIdentifier))) {
           return new ComplexTypeInfo(token, typeParamOrArg)
               .computeBuiltinOrVarAsType(required);
         }
@@ -171,7 +171,7 @@ TypeInfo computeType(final Token token, bool required,
                 token, computeTypeParamOrArg(next, inDeclaration))
             .computePrefixedType(required);
       } else if (optional('var', next) &&
-          isOneOf(next.next, const ['<', ',', '>'])) {
+          isOneOf(next.next!, const ['<', ',', '>'])) {
         return new ComplexTypeInfo(
                 token, computeTypeParamOrArg(next, inDeclaration))
             .computeBuiltinOrVarAsType(required);
@@ -181,7 +181,7 @@ TypeInfo computeType(final Token token, bool required,
   }
 
   if (optional('void', next)) {
-    next = next.next;
+    next = next.next!;
     if (isGeneralizedFunctionType(next)) {
       // `void` `Function` ...
       return new ComplexTypeInfo(token, noTypeParamOrArg)
@@ -204,9 +204,9 @@ TypeInfo computeType(final Token token, bool required,
   if (typeParamOrArg != noTypeParamOrArg) {
     if (typeParamOrArg.isSimpleTypeArgument) {
       // We've seen identifier `<` identifier `>`
-      next = typeParamOrArg.skip(next).next;
+      next = typeParamOrArg.skip(next).next!;
       if (optional('?', next)) {
-        next = next.next;
+        next = next.next!;
         if (!isGeneralizedFunctionType(next)) {
           if ((required || looksLikeName(next)) &&
               typeParamOrArg == simpleTypeArgument1) {
@@ -235,16 +235,16 @@ TypeInfo computeType(final Token token, bool required,
   }
 
   assert(typeParamOrArg == noTypeParamOrArg);
-  next = next.next;
+  next = next.next!;
   if (optional('.', next)) {
-    next = next.next;
+    next = next.next!;
     if (isValidTypeReference(next)) {
       // We've seen identifier `.` identifier
       typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
-      next = next.next;
+      next = next.next!;
       if (typeParamOrArg == noTypeParamOrArg) {
         if (optional('?', next)) {
-          next = next.next;
+          next = next.next!;
           if (!isGeneralizedFunctionType(next)) {
             if (required || looksLikeName(next)) {
               // identifier `.` identifier `?` identifier
@@ -273,7 +273,7 @@ TypeInfo computeType(final Token token, bool required,
     }
     // identifier `.` non-identifier
     if (required) {
-      typeParamOrArg = computeTypeParamOrArg(token.next.next, inDeclaration);
+      typeParamOrArg = computeTypeParamOrArg(token.next!.next!, inDeclaration);
       return new ComplexTypeInfo(token, typeParamOrArg)
           .computePrefixedType(required);
     }
@@ -288,7 +288,7 @@ TypeInfo computeType(final Token token, bool required,
   }
 
   if (optional('?', next)) {
-    next = next.next;
+    next = next.next!;
     if (isGeneralizedFunctionType(next)) {
       // identifier `?` Function `(`
       return new ComplexTypeInfo(token, noTypeParamOrArg)
@@ -312,20 +312,20 @@ TypeInfo computeType(final Token token, bool required,
 /// given unbalanced `<` `>` and invalid parameters or arguments.
 TypeParamOrArgInfo computeTypeParamOrArg(Token token,
     [bool inDeclaration = false, bool allowsVariance = false]) {
-  Token beginGroup = token.next;
+  Token beginGroup = token.next!;
   if (!optional('<', beginGroup)) {
     return noTypeParamOrArg;
   }
 
   // identifier `<` `void` `>` and `<` `dynamic` `>`
   // are handled by ComplexTypeInfo.
-  Token next = beginGroup.next;
+  Token next = beginGroup.next!;
   if ((next.kind == IDENTIFIER_TOKEN || next.type.isPseudo)) {
-    if (optional('>', next.next)) {
+    if (optional('>', next.next!)) {
       return simpleTypeArgument1;
-    } else if (optional('>>', next.next)) {
+    } else if (optional('>>', next.next!)) {
       return simpleTypeArgument1GtGt;
-    } else if (optional('>=', next.next)) {
+    } else if (optional('>=', next.next!)) {
       return simpleTypeArgument1GtEq;
     }
   } else if (optional('(', next)) {
@@ -346,5 +346,5 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
 /// possible other constructs will pass (e.g., 'a < C, D > 3').
 TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
   TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
-  return optional('(', typeArg.skip(token).next) ? typeArg : noTypeParamOrArg;
+  return optional('(', typeArg.skip(token).next!) ? typeArg : noTypeParamOrArg;
 }

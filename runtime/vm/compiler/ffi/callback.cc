@@ -50,9 +50,6 @@ FunctionPtr NativeCallbackFunction(const Function& c_signature,
   //
   // Exceptional return values currently cannot be pointers because we don't
   // have constant pointers.
-  //
-  // TODO(36730): We'll need to extend this when we support passing/returning
-  // structs by value.
   ASSERT(exceptional_return.IsNull() || exceptional_return.IsNumber());
   if (!exceptional_return.IsSmi() && exceptional_return.IsNew()) {
     function.SetFfiCallbackExceptionalReturn(Instance::Handle(

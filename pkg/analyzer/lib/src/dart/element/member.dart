@@ -7,7 +7,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -220,7 +219,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       return null;
     }
 
-    TypeProvider typeProvider;
+    TypeProviderImpl typeProvider;
     var isLegacy = false;
     var combined = substitution;
     if (element is ExecutableMember) {
@@ -237,7 +236,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       map.addAll(substitution.map);
       combined = Substitution.fromMap(map);
     } else {
-      typeProvider = element.library.typeProvider;
+      typeProvider = element.library.typeProvider as TypeProviderImpl;
     }
 
     if (!isLegacy && combined.map.isEmpty) {

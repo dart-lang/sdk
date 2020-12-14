@@ -296,7 +296,7 @@ mixin ElementsTypesMixin {
     ) as InterfaceTypeImpl;
   }
 
-  DartType futureType(DartType T) {
+  InterfaceType futureType(DartType T) {
     var futureElement = typeProvider.futureElement;
     return interfaceTypeStar(futureElement, typeArguments: [T]);
   }
@@ -378,8 +378,8 @@ mixin ElementsTypesMixin {
   LibraryElementImpl library_({
     @required String uriStr,
     @required TypeSystemImpl typeSystem,
-    AnalysisContext analysisContext,
-    AnalysisSessionImpl analysisSession,
+    @required AnalysisContext analysisContext,
+    @required AnalysisSessionImpl analysisSession,
   }) {
     var library = LibraryElementImpl(
       analysisContext,

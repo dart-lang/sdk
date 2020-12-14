@@ -34,8 +34,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
   Future<void> test_commitCharacter_completionItem() async {
     await provideConfig(
       () => initialize(
-        textDocumentCapabilities: withAllSupportedDynamicRegistrations(
-            emptyTextDocumentClientCapabilities),
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
         workspaceCapabilities:
             withConfigurationSupport(emptyWorkspaceClientCapabilities),
       ),
@@ -63,8 +64,9 @@ main() {
       () => monitorDynamicRegistrations(
         registrations,
         () => initialize(
-            textDocumentCapabilities: withAllSupportedDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
+            textDocumentCapabilities:
+                withAllSupportedTextDocumentDynamicRegistrations(
+                    emptyTextDocumentClientCapabilities),
             workspaceCapabilities:
                 withDidChangeConfigurationDynamicRegistration(
                     withConfigurationSupport(

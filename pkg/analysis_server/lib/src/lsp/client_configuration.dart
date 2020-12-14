@@ -31,6 +31,9 @@ class LspClientConfiguration {
   bool get previewCommitCharacters =>
       _settings['previewCommitCharacters'] ?? false;
 
+  /// Whether diagnostics should be generated for TODO comments.
+  bool get showTodos => _settings['showTodos'] ?? false;
+
   /// Returns whether or not the provided new configuration changes any values
   /// that would require analysis roots to be updated.
   bool affectsAnalysisRoots(Map<String, dynamic> newConfig) {

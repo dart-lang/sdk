@@ -156,7 +156,7 @@ vars = {
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
-  "test_reflective_loader_tag": "0.1.9",
+  "test_reflective_loader_rev": "b76ae201ab9c6f3b90643958965e7cc215a38e9b",
   "test_rev": "e37a93bbeae23b215972d1659ac865d71287ff6a",
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
   "usage_tag": "16fbfd90c58f16e016a295a880bc722d2547d2c9",
@@ -440,7 +440,7 @@ deps = {
       Var("dart_git") + "test_process.git" + "@" + Var("test_process_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
-      "@" + Var("test_reflective_loader_tag"),
+      "@" + Var("test_reflective_loader_rev"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":

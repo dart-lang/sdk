@@ -25,17 +25,17 @@ static const field core::bool* isItDouble7 = self::actualDouble2 is core::double
 static const field core::bool* zeroPointZeroIdentical = core::identical(0.0, 0.0);
 static const field core::bool* zeroPointZeroIdenticalToZero = core::identical(0.0, 0);
 static const field core::bool* zeroIdenticalToZeroPointZero = core::identical(0, 0.0);
-static const field core::bool* nanIdentical = core::identical(0.{core::num::/}(0), 0.{core::num::/}(0));
+static const field core::bool* nanIdentical = core::identical(0.{core::num::/}(0){(core::num) →* core::double*}, 0.{core::num::/}(0){(core::num) →* core::double*});
 static const field core::bool* stringIdentical = core::identical("hello", "hello");
 static const field core::bool* string2Identical = core::identical("hello", "world");
-static const field core::bool* zeroPointZeroEqual = 0.0.{core::num::==}(0.0);
-static const field core::bool* zeroPointZeroEqualToZero = 0.0.{core::num::==}(0);
-static const field core::bool* zeroEqualToZeroPointZero = 0.{core::num::==}(0.0);
-static const field core::bool* nanEqual = 0.{core::num::/}(0).{core::num::==}(0.{core::num::/}(0));
-static const field core::bool* stringEqual = "hello".{core::String::==}("hello");
-static const field core::bool* string2Equal = "hello".{core::String::==}("world");
+static const field core::bool* zeroPointZeroEqual = 0.0 =={core::num::==}{(core::Object) → core::bool} 0.0;
+static const field core::bool* zeroPointZeroEqualToZero = 0.0 =={core::num::==}{(core::Object) → core::bool} 0;
+static const field core::bool* zeroEqualToZeroPointZero = 0 =={core::num::==}{(core::Object) → core::bool} 0.0;
+static const field core::bool* nanEqual = 0.{core::num::/}(0){(core::num) →* core::double*} =={core::num::==}{(core::Object) → core::bool} 0.{core::num::/}(0){(core::num) →* core::double*};
+static const field core::bool* stringEqual = "hello" =={core::String::==}{(core::Object) → core::bool} "hello";
+static const field core::bool* string2Equal = "hello" =={core::String::==}{(core::Object) → core::bool} "world";
 static const field core::int* intFortyTwo = 42;
-static const field core::String* intStringConcat = "hello${self::intFortyTwo.{core::num::*}(self::intFortyTwo)}";
+static const field core::String* intStringConcat = "hello${self::intFortyTwo.{core::num::*}(self::intFortyTwo){(core::num) →* core::int*}}";
 
 
 Extra constant evaluation status:
@@ -61,11 +61,11 @@ Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:34:38 -> Boo
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:35:22 -> BoolConstant(false)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:36:25 -> BoolConstant(true)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:37:26 -> BoolConstant(false)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:39:32 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:40:38 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:41:36 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:42:24 -> BoolConstant(false)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:43:29 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:44:30 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:39:32 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:40:38 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:41:36 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:42:24 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:43:29 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:44:30 -> BoolConstant(false)
 Evaluated: StringConcatenation @ org-dartlang-testcase:///various.dart:47:30 -> StringConstant("hello1764")
 Extra constant evaluation: evaluated: 29, effectively constant: 29

@@ -77,7 +77,7 @@ abstract class StackListenerImpl extends StackListener {
   }
 
   /// Used to report an internal error encountered in the stack listener.
-  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+  internalProblem(Message message, int charOffset, Uri uri) {
     return problems.internalProblem(message, charOffset, uri);
   }
 

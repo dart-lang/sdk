@@ -461,7 +461,7 @@ class CallingConventions {
 
   COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
 
-  static constexpr Register kFfiAnyNonAbiRegister = RBX;
+  static constexpr Register kFfiAnyNonAbiRegister = R12;
   static constexpr Register kFirstNonArgumentRegister = RAX;
   static constexpr Register kSecondNonArgumentRegister = RBX;
   static constexpr Register kStackPointerRegister = SPREG;

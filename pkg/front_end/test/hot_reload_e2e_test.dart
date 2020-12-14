@@ -37,6 +37,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;
+import 'package:kernel/target/targets.dart';
+import 'package:vm/target/vm.dart';
 
 import 'tool/reload.dart' show RemoteVm;
 
@@ -304,7 +306,9 @@ IncrementalKernelGenerator createIncrementalCompiler(
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..fileSystem = fs;
+    ..fileSystem = fs
+    ..target = new VmTarget(new TargetFlags())
+    ..environmentDefines = {};
   return new IncrementalKernelGenerator(options, entryUri);
 }
 

@@ -49,7 +49,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// A flag indicating whether a surrounding member is annotated as
   /// `@doNotStore`.
-  bool _inDoNotStoreMember;
+  bool _inDoNotStoreMember = false;
 
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
@@ -297,7 +297,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    ClassElementImpl element = node.declaredElement;
+    var element = node.declaredElement as ClassElementImpl;
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 
@@ -691,8 +691,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   bool _checkAllTypeChecks(IsExpression node) {
     Expression expression = node.expression;
     TypeAnnotation typeName = node.type;
-    TypeImpl lhsType = expression.staticType;
-    TypeImpl rhsType = typeName.type;
+    var lhsType = expression.staticType as TypeImpl;
+    var rhsType = typeName.type as TypeImpl;
     if (lhsType == null || rhsType == null) {
       return false;
     }
@@ -910,7 +910,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return nonFinalFields;
     }
 
-    ClassElement element = node.declaredElement;
+    var element = node.declaredElement as ClassElement;
     if (isOrInheritsImmutable(element, HashSet<ClassElement>())) {
       Iterable<String> nonFinalFields =
           definedOrInheritedNonFinalInstanceFields(

@@ -1,0 +1,163 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the class 'String'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
+//   string - 42;
+//          ^
+//
+// pkg/front_end/testcases/none/operator.dart:66:12: Error: Too few positional arguments: 1 required, 0 given.
+//   -c.method();
+//            ^
+//
+// pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the class 'String'.
+// Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+//   -string;
+//   ^
+//
+// pkg/front_end/testcases/none/operator.dart:86:11: Error: Too few positional arguments: 1 required, 0 given.
+//   c.method()[0];
+//           ^
+//
+// pkg/front_end/testcases/none/operator.dart:109:3: Error: Getter not found: 'string'.
+//   string[0] = 42;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/none/operator.dart:106:11: Error: Too few positional arguments: 1 required, 0 given.
+//   c.method()[0] = 42;
+//           ^
+//
+// pkg/front_end/testcases/none/operator.dart:129:3: Error: Getter not found: 'string'.
+//   string[0] += 42;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/none/operator.dart:116:14: Error: Operator '+' cannot be called on 'double?' because it is potentially null.
+//   map['foo'] += 0.5;
+//              ^
+//
+// pkg/front_end/testcases/none/operator.dart:126:11: Error: Too few positional arguments: 1 required, 0 given.
+//   c.method()[0] += 42;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+  operator +(generic-covariant-impl self::Class<self::Class::T%> other) → self::Class<self::Class::T%>
+    return other;
+  operator unary-() → self::Class<self::Class::T%>
+    return this;
+  operator [](core::int index) → self::Class<self::Class::T%>
+    return this;
+  operator []=(core::int index, generic-covariant-impl self::Class<self::Class::T%> value) → void {}
+  method method(core::double o) → core::int
+    return 42;
+}
+static method add(core::num n, core::int i, core::double d, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic {
+  core::print("InstanceInvocation");
+  n.{core::num::+}(n){(core::num) → core::num};
+  n.{core::num::+}(i){(core::num) → core::num};
+  n.{core::num::+}(d){(core::num) → core::double};
+  n.{core::num::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::print("InstanceInvocation");
+  i.{core::num::+}(n){(core::num) → core::num};
+  i.{core::num::+}(i){(core::num) → core::int};
+  i.{core::num::+}(d){(core::num) → core::double};
+  i.{core::num::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::print("InstanceInvocation");
+  d.{core::double::+}(n){(core::num) → core::double};
+  d.{core::double::+}(i){(core::num) → core::double};
+  d.{core::double::+}(d){(core::num) → core::double};
+  i.{core::num::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::print("InstanceInvocation");
+  c.{self::Class::+}(c){(self::Class<core::String>) → self::Class<core::String>};
+  c.{self::Class::+}(dyn as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class<core::String>){(self::Class<core::String>) → self::Class<core::String>};
+  core::print("DynamicInvocation");
+  dyn{dynamic}.+(n);
+  core::print("DynamicInvocation (Never)");
+  never{Never}.+(n);
+  core::print("DynamicInvocation (Invalid)");
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the class 'String'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
+  string - 42;
+         ^";
+}
+static method unaryMinus(core::num n, core::int i, core::double d, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic {
+  core::print("InstanceInvocation");
+  n.{core::num::unary-}(){() → core::num};
+  i.{core::int::unary-}(){() → core::int};
+  d.{core::double::unary-}(){() → core::double};
+  c.{self::Class::unary-}(){() → self::Class<core::String>};
+  core::print("DynamicInvocation");
+  dyn{dynamic}.unary-();
+  core::print("DynamicInvocation (Never)");
+  never{Never}.unary-();
+  core::print("DynamicInvocation (Invalid)");
+  (let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/none/operator.dart:66:12: Error: Too few positional arguments: 1 required, 0 given.
+  -c.method();
+           ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}){<invalid>}.unary-();
+  core::print("DynamicInvocation (Unresolved)");
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the class 'String'.
+Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+  -string;
+  ^";
+}
+static method indexGet(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic {
+  core::print("InstanceInvocation");
+  list.{core::List::[]}(0){(core::int) → core::int};
+  map.{core::Map::[]}("foo"){(core::Object?) → core::double?};
+  c.{self::Class::[]}(0){(core::int) → self::Class<core::String>};
+  core::print("DynamicInvocation");
+  dyn{dynamic}.[](0);
+  core::print("DynamicInvocation (Never)");
+  never{Never}.[](0);
+  core::print("DynamicInvocation (Invalid)");
+  (let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/none/operator.dart:86:11: Error: Too few positional arguments: 1 required, 0 given.
+  c.method()[0];
+          ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}){<invalid>}.[](0);
+  core::print("DynamicInvocation (Unresolved)");
+  string.{core::String::[]}(0){(core::int) → core::String};
+}
+static method indexSet(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never) → dynamic {
+  core::print("InstanceInvocation");
+  list.{core::List::[]=}(0, 42){(core::int, core::int) → void};
+  map.{core::Map::[]=}("foo", 0.5){(core::String, core::double) → void};
+  c.{self::Class::[]=}(0, c){(core::int, self::Class<core::String>) → void};
+  core::print("DynamicInvocation");
+  dyn{dynamic}.[]=(0, 42);
+  core::print("DynamicInvocation (Never)");
+  never{Never}.[]=(0, 42);
+  core::print("DynamicInvocation (Invalid)");
+  (let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/none/operator.dart:106:11: Error: Too few positional arguments: 1 required, 0 given.
+  c.method()[0] = 42;
+          ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}){<invalid>}.[]=(0, 42);
+  core::print("DynamicInvocation (Unresolved)");
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:109:3: Error: Getter not found: 'string'.
+  string[0] = 42;
+  ^^^^^^"{dynamic}.[]=(0, 42);
+}
+static method compound(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never) → dynamic {
+  core::print("InstanceInvocation");
+  let final core::List<core::int> #t4 = list in let final core::int #t5 = 0 in #t4.{core::List::[]=}(#t5, #t4.{core::List::[]}(#t5){(core::int) → core::int}.{core::num::+}(42){(core::num) → core::int}){(core::int, core::int) → void};
+  let final core::Map<core::String, core::double> #t6 = map in let final core::String #t7 = "foo" in #t6.{core::Map::[]=}(#t7, let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/none/operator.dart:116:14: Error: Operator '+' cannot be called on 'double?' because it is potentially null.
+  map['foo'] += 0.5;
+             ^" in #t6.{core::Map::[]}(#t7){(core::Object?) → core::double?}.{core::double::+}(0.5){(core::num) → core::double}){(core::String, core::double) → void};
+  let final self::Class<core::String> #t9 = c in let final core::int #t10 = 0 in #t9.{self::Class::[]=}(#t10, #t9.{self::Class::[]}(#t10){(core::int) → self::Class<core::String>}.{self::Class::+}(c){(self::Class<core::String>) → self::Class<core::String>}){(core::int, self::Class<core::String>) → void};
+  core::print("DynamicInvocation");
+  let final dynamic #t11 = dyn in let final core::int #t12 = 0 in #t11{dynamic}.[]=(#t12, #t11{dynamic}.[](#t12){dynamic}.+(42));
+  core::print("DynamicInvocation (Never)");
+  let final Never #t13 = never in let final core::int #t14 = 0 in #t13{Never}.[]=(#t14, #t13{Never}.[](#t14){Never}.+(42));
+  core::print("DynamicInvocation (Invalid)");
+  let final invalid-type #t15 = let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/none/operator.dart:126:11: Error: Too few positional arguments: 1 required, 0 given.
+  c.method()[0] += 42;
+          ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type} in let final core::int #t17 = 0 in #t15{<invalid>}.[]=(#t17, #t15{<invalid>}.[](#t17){<invalid>}.+(42));
+  core::print("DynamicInvocation (Unresolved)");
+  let final dynamic #t18 = invalid-expression "pkg/front_end/testcases/none/operator.dart:129:3: Error: Getter not found: 'string'.
+  string[0] += 42;
+  ^^^^^^" in let final core::int #t19 = 0 in #t18{dynamic}.[]=(#t19, #t18{dynamic}.[](#t19){dynamic}.+(42));
+}
+static method main() → dynamic {}

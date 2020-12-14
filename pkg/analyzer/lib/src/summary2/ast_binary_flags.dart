@@ -4,6 +4,17 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
+/// When this option enabled, when we write AST and resolution, we write
+/// into markers into the resolution stream, so when we apply resolution
+/// to AST, we can be more confident that we are reading resolution data
+/// that is expected to the AST node to which resolution is applied.
+///
+/// This might help us to track if we have a bug and think that some resolution
+/// data can be applied (because its signature is the same), when actually
+/// AST changed in ways that should make resolution incompatible (and so
+/// the resolution signature should have been different).
+bool enableDebugResolutionMarkers = false;
+
 class AstBinaryFlags {
   static final Map<Type, int> _typeBits = {};
 

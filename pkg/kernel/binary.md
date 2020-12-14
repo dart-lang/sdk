@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 52;
+  UInt32 formatVersion = 53;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -615,8 +615,82 @@ type SuperPropertySet extends Expression {
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
+/*
+enum InstanceAccessKind {
+  Instance,
+  Object,
+  Inapplicable,
+  Nullable,
+}
+*/
+
+type InstanceGet extends Expression {
+  Byte tag = 118;
+  Byte kind; // Index into InstanceAccessKind above.
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  DartType resultType;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type InstanceSet extends Expression {
+  Byte tag = 119;
+  Byte kind; // Index into InstanceAccessKind above.
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  Expression value;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type InstanceTearOff extends Expression {
+  Byte tag = 121;
+  Byte kind; // Index into InstanceAccessKind above.
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  DartType resultType;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+/*
+enum DynamicAccessKind {
+  Dynamic,
+  Never,
+  Invalid,
+  Unresolved,
+}
+*/
+
+type DynamicGet extends Expression {
+  Byte tag = 122;
+  Byte kind; // Index into DynamicAccessKind above.
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+}
+
+type DynamicSet extends Expression {
+  Byte tag = 123;
+  Byte kind; // Index into DynamicAccessKind above.
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  Expression value;
+}
+
 type StaticGet extends Expression {
   Byte tag = 26;
+  FileOffset fileOffset;
+  MemberReference target;
+}
+
+type StaticTearOff extends Expression {
+  Byte tag = 17;
   FileOffset fileOffset;
   MemberReference target;
 }
@@ -644,12 +718,87 @@ type NamedExpression {
 
 type MethodInvocation extends Expression {
   Byte tag = 28;
-  Byte flags;
+  Byte flags (isInvariant, isBoundsSafe);
   FileOffset fileOffset;
   Expression receiver;
   Name name;
   Arguments arguments;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type InstanceInvocation extends Expression {
+  Byte tag = 120;
+  Byte kind; // Index into InstanceAccessKind above.
+  Byte flags (isInvariant, isBoundsSafe);
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+  DartType functionType;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type DynamicInvocation extends Expression {
+  Byte tag = 124;
+  Byte kind; // Index into DynamicAccessKind above.
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+}
+
+/*
+enum FunctionAccessKind {
+  Function,
+  FunctionType,
+  Inapplicable,
+  Nullable,
+}
+*/
+
+type FunctionInvocation extends Expression {
+  Byte tag = 125;
+  Byte kind; // Index into FunctionAccessKind above.
+  FileOffset fileOffset;
+  Expression receiver;
+  Arguments arguments;
+  DartType functionType; // Use `const DynamicType()` as `null`.
+}
+
+type FunctionTearOff extends Expression {
+  Byte tag = 126;
+  FileOffset fileOffset;
+  Expression receiver;
+  DartType functionType;
+}
+
+type LocalFunctionInvocation extends Expression {
+  Byte tag = 127;
+  FileOffset fileOffset;
+  // Byte offset in the binary for the variable declaration (without tag).
+  UInt variableDeclarationPosition;
+  VariableReference variable;
+  Arguments arguments;
+  DartType functionType;
+}
+
+type EqualsNull extends Expression {
+  Byte tag = 15;
+  FileOffset fileOffset;
+  Expression expression;
+  Byte isNot;
+}
+
+type EqualsCall extends Expression {
+  Byte tag = 16;
+  FileOffset fileOffset;
+  Expression left;
+  Expression right;
+  Byte isNot;
+  DartType functionType;
+  MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 

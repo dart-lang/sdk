@@ -267,7 +267,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticGetter(String name, LibraryElement library) {
+  PropertyAccessorElement lookupStaticGetter(
+      String name, LibraryElement library) {
     return _first(_implementationsOfGetter(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -278,7 +279,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticMethod(String name, LibraryElement library) {
+  MethodElement lookupStaticMethod(String name, LibraryElement library) {
     return _first(_implementationsOfMethod(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -289,7 +290,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticSetter(String name, LibraryElement library) {
+  PropertyAccessorElement lookupStaticSetter(
+      String name, LibraryElement library) {
     return _first(_implementationsOfSetter(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -631,7 +633,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool get hasNoSuchMethod {
     MethodElement method = lookUpConcreteMethod(
         FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
-    ClassElement definingClass = method?.enclosingElement;
+    var definingClass = method?.enclosingElement as ClassElement;
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
@@ -902,7 +904,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       return <ConstructorElement>[];
     }
 
-    ClassElementImpl superElement = supertype.element;
+    var superElement = supertype.element as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -954,9 +956,13 @@ class ClassElementImpl extends AbstractClassElementImpl
     // substituting type parameters as appropriate.
     return constructorsToForward
         .map((ConstructorElement superclassConstructor) {
-      ConstructorElementImpl implicitConstructor =
-          ConstructorElementImpl(superclassConstructor.name, -1);
+      var containerRef = reference.getChild('@constructor');
+      var name = superclassConstructor.name;
+      var implicitConstructor = ConstructorElementImpl.forLinkedNode(
+          this, containerRef.getChild(name), null);
       implicitConstructor.isSynthetic = true;
+      implicitConstructor.name = name;
+      implicitConstructor.nameOffset = -1;
       implicitConstructor.redirectedConstructor = superclassConstructor;
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =
@@ -1065,7 +1071,10 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (element.isEnum || element.isMixin) {
         return false;
       }
-      if (type.isDartCoreFunction) {
+      if (type.isDartCoreFunction || type.isDartCoreNull) {
+        return false;
+      }
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
         return false;
       }
       return true;
@@ -1076,9 +1085,19 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Return `true` if the given [type] is an [InterfaceType] that can be used
   /// as an interface or a mixin.
   bool _isInterfaceTypeInterface(DartType type) {
-    return type is InterfaceType &&
-        !type.element.isEnum &&
-        !type.isDartCoreFunction;
+    if (type is InterfaceType) {
+      if (type.element.isEnum) {
+        return false;
+      }
+      if (type.isDartCoreFunction || type.isDartCoreNull) {
+        return false;
+      }
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
@@ -7262,7 +7281,7 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      TypeParameter node = linkedNode;
+      var node = linkedNode as TypeParameter;
       return node.name.name;
     }
     return super.name;

@@ -34,7 +34,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    * is canonicalized before the token is created.
    */
   StringToken.fromString(TokenType type, String value, int charOffset,
-      {bool canonicalize: false, analyzer.CommentToken precedingComments})
+      {bool canonicalize: false, analyzer.CommentToken? precedingComments})
       : valueOrLazySubstring = canonicalizedString(
             value, /* start = */ 0, value.length, canonicalize),
         super(type, charOffset, precedingComments);
@@ -45,7 +45,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    */
   StringToken.fromSubstring(
       TokenType type, String data, int start, int end, int charOffset,
-      {bool canonicalize: false, analyzer.CommentToken precedingComments})
+      {bool canonicalize: false, analyzer.CommentToken? precedingComments})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
@@ -63,7 +63,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    */
   StringToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
       bool asciiOnly, int charOffset,
-      {analyzer.CommentToken precedingComments})
+      {analyzer.CommentToken? precedingComments})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
@@ -74,7 +74,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
   }
 
   StringToken._(TokenType type, this.valueOrLazySubstring, int charOffset,
-      [analyzer.CommentToken precedingComments])
+      [analyzer.CommentToken? precedingComments])
       : super(type, charOffset, precedingComments);
 
   @override
@@ -85,7 +85,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
       assert(valueOrLazySubstring is _LazySubstring);
       dynamic data = valueOrLazySubstring.data;
       int start = valueOrLazySubstring.start;
-      int end = start + valueOrLazySubstring.length;
+      int end = start + (valueOrLazySubstring as _LazySubstring).length;
       if (data is String) {
         valueOrLazySubstring = canonicalizedString(
             data, start, end, valueOrLazySubstring.boolValue);
@@ -129,7 +129,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
 class SyntheticStringToken extends StringToken
     implements analyzer.SyntheticStringToken {
   SyntheticStringToken(TokenType type, String value, int offset,
-      [analyzer.CommentToken precedingComments])
+      [analyzer.CommentToken? precedingComments])
       : super._(type, value, offset, precedingComments);
 
   @override
@@ -142,7 +142,7 @@ class SyntheticStringToken extends StringToken
 
 class CommentToken extends StringToken implements analyzer.CommentToken {
   @override
-  analyzer.SimpleToken parent;
+  analyzer.SimpleToken? parent;
 
   /**
    * Creates a lazy comment token. If [canonicalize] is true, the string
@@ -178,11 +178,11 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
   @override
   void remove() {
     if (previous != null) {
-      previous.setNextWithoutSettingPrevious(next);
+      previous!.setNextWithoutSettingPrevious(next);
       next?.previous = previous;
     } else {
-      assert(parent.precedingComments == this);
-      parent.precedingComments = next as CommentToken;
+      assert(parent!.precedingComments == this);
+      parent!.precedingComments = next as CommentToken;
     }
   }
 }
@@ -200,7 +200,7 @@ class LanguageVersionToken extends CommentToken
 
   LanguageVersionToken.fromSubstring(
       String string, int start, int end, int tokenStart, this.major, this.minor,
-      {bool canonicalize})
+      {bool canonicalize: false})
       : super.fromSubstring(
             TokenType.SINGLE_LINE_COMMENT, string, start, end, tokenStart,
             canonicalize: canonicalize);

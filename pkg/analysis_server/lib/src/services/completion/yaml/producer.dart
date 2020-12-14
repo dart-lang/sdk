@@ -90,13 +90,8 @@ class FilePathProducer extends Producer {
       try {
         for (var child in dir.getChildren()) {
           var name = child.shortName;
-          if (child is Folder) {
-            if (!name.startsWith('.')) {
-              yield identifier(name);
-            }
-          } else if (child is File) {
-            yield identifier(name);
-          }
+          var relevance = name.startsWith('.') ? 500 : 1000;
+          yield identifier(name, relevance: relevance);
         }
       } on FileSystemException {
         // Guard against I/O exceptions.
@@ -171,14 +166,9 @@ abstract class Producer {
   const Producer();
 
   /// A utility method used to create a suggestion for the [identifier].
-  CompletionSuggestion identifier(String identifier) => CompletionSuggestion(
-      CompletionSuggestionKind.IDENTIFIER,
-      1000,
-      identifier,
-      identifier.length,
-      0,
-      false,
-      false);
+  CompletionSuggestion identifier(String identifier, {int relevance = 1000}) =>
+      CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, relevance,
+          identifier, identifier.length, 0, false, false);
 
   /// Return the completion suggestions appropriate to this location.
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request);

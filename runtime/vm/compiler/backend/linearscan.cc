@@ -1370,7 +1370,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
   }
 
-// Block all allocatable registers for calls.
+  // Block all allocatable registers for calls.
   if (locs->always_calls() && !locs->callee_safe_call()) {
     // Expected shape of live range:
     //
@@ -1407,7 +1407,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                pair->At(1).policy() == Location::kAny);
       } else {
         ASSERT(!locs->in(j).IsUnallocated() ||
-               locs->in(j).policy() == Location::kAny);
+               locs->in(j).policy() == Location::kAny ||
+               locs->in(j).policy() == Location::kRequiresStackSlot);
       }
     }
 

@@ -17,12 +17,26 @@ abstract class ExpressionVisitor<R> {
   R visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
   R visitVariableGet(VariableGet node) => defaultExpression(node);
   R visitVariableSet(VariableSet node) => defaultExpression(node);
+  R visitDynamicGet(DynamicGet node) => defaultExpression(node);
+  R visitDynamicSet(DynamicSet node) => defaultExpression(node);
+  R visitFunctionTearOff(FunctionTearOff node) => defaultExpression(node);
+  R visitInstanceGet(InstanceGet node) => defaultExpression(node);
+  R visitInstanceSet(InstanceSet node) => defaultExpression(node);
+  R visitInstanceTearOff(InstanceTearOff node) => defaultExpression(node);
   R visitPropertyGet(PropertyGet node) => defaultExpression(node);
   R visitPropertySet(PropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
   R visitStaticSet(StaticSet node) => defaultExpression(node);
+  R visitStaticTearOff(StaticTearOff node) => defaultExpression(node);
+  R visitLocalFunctionInvocation(LocalFunctionInvocation node) =>
+      defaultExpression(node);
+  R visitDynamicInvocation(DynamicInvocation node) => defaultExpression(node);
+  R visitFunctionInvocation(FunctionInvocation node) => defaultExpression(node);
+  R visitInstanceInvocation(InstanceInvocation node) => defaultExpression(node);
+  R visitEqualsNull(EqualsNull node) => defaultExpression(node);
+  R visitEqualsCall(EqualsCall node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
@@ -142,12 +156,26 @@ class TreeVisitor<R>
   R visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
   R visitVariableGet(VariableGet node) => defaultExpression(node);
   R visitVariableSet(VariableSet node) => defaultExpression(node);
+  R visitDynamicGet(DynamicGet node) => defaultExpression(node);
+  R visitDynamicSet(DynamicSet node) => defaultExpression(node);
+  R visitFunctionTearOff(FunctionTearOff node) => defaultExpression(node);
+  R visitInstanceGet(InstanceGet node) => defaultExpression(node);
+  R visitInstanceSet(InstanceSet node) => defaultExpression(node);
+  R visitInstanceTearOff(InstanceTearOff node) => defaultExpression(node);
   R visitPropertyGet(PropertyGet node) => defaultExpression(node);
   R visitPropertySet(PropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
   R visitStaticSet(StaticSet node) => defaultExpression(node);
+  R visitStaticTearOff(StaticTearOff node) => defaultExpression(node);
+  R visitLocalFunctionInvocation(LocalFunctionInvocation node) =>
+      defaultExpression(node);
+  R visitDynamicInvocation(DynamicInvocation node) => defaultExpression(node);
+  R visitFunctionInvocation(FunctionInvocation node) => defaultExpression(node);
+  R visitInstanceInvocation(InstanceInvocation node) => defaultExpression(node);
+  R visitEqualsNull(EqualsNull node) => defaultExpression(node);
+  R visitEqualsCall(EqualsCall node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
@@ -661,6 +689,14 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitVariableGet(VariableGet node, T arg) => defaultExpression(node, arg);
   R visitVariableSet(VariableSet node, T arg) => defaultExpression(node, arg);
+  R visitDynamicGet(DynamicGet node, T arg) => defaultExpression(node, arg);
+  R visitDynamicSet(DynamicSet node, T arg) => defaultExpression(node, arg);
+  R visitFunctionTearOff(FunctionTearOff node, T arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceGet(InstanceGet node, T arg) => defaultExpression(node, arg);
+  R visitInstanceSet(InstanceSet node, T arg) => defaultExpression(node, arg);
+  R visitInstanceTearOff(InstanceTearOff node, T arg) =>
+      defaultExpression(node, arg);
   R visitPropertyGet(PropertyGet node, T arg) => defaultExpression(node, arg);
   R visitPropertySet(PropertySet node, T arg) => defaultExpression(node, arg);
   R visitSuperPropertyGet(SuperPropertyGet node, T arg) =>
@@ -669,6 +705,18 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitStaticGet(StaticGet node, T arg) => defaultExpression(node, arg);
   R visitStaticSet(StaticSet node, T arg) => defaultExpression(node, arg);
+  R visitStaticTearOff(StaticTearOff node, T arg) =>
+      defaultExpression(node, arg);
+  R visitLocalFunctionInvocation(LocalFunctionInvocation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitDynamicInvocation(DynamicInvocation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitFunctionInvocation(FunctionInvocation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceInvocation(InstanceInvocation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitEqualsNull(EqualsNull node, T arg) => defaultExpression(node, arg);
+  R visitEqualsCall(EqualsCall node, T arg) => defaultExpression(node, arg);
   R visitMethodInvocation(MethodInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitSuperMethodInvocation(SuperMethodInvocation node, T arg) =>

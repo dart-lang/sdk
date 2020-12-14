@@ -285,16 +285,63 @@ version: latest
 
   Future<void> test_todos() async {
     // TODOs only show up if there's also some code in the file.
-    const initialContents = '''
+    const contents = '''
     // TODO: This
     String a = "";
     ''';
-    newFile(mainFilePath, content: initialContents);
+    newFile(mainFilePath, content: contents);
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      {'showTodos': true},
+    );
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+  }
+
+  Future<void> test_todos_disabled() async {
+    const contents = '''
+    // TODO: This
+    String a = "";
+    ''';
+    newFile(mainFilePath, content: contents);
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    // TODOs are disabled by default so we don't need to send any config.
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
-    // TODOs should not be sent by LSP.
     expect(initialDiagnostics, hasLength(0));
+  }
+
+  Future<void> test_todos_enabledAfterAnalysis() async {
+    const contents = '''
+    // TODO: This
+    String a = "";
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      {},
+    );
+    await openFile(mainFileUri, contents);
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(0));
+
+    // Ensure initial analysis completely finished before we continue.
+    await initialAnalysis;
+
+    // Enable showTodos and update the file to ensure TODOs now come through.
+    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await updateConfig({'showTodos': true});
+    await replaceFile(222, mainFileUri, contents);
+    final updatedDiagnostics = await secondDiagnosticsUpdate;
+    expect(updatedDiagnostics, hasLength(1));
   }
 }

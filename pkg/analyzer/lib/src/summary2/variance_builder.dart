@@ -59,15 +59,16 @@ class VarianceBuilder {
       }
     } else if (type is NamedTypeBuilder) {
       var element = type.element;
+      var arguments = type.arguments;
       if (element is ClassElement) {
         var result = Variance.unrelated;
-        if (type.arguments.isNotEmpty) {
+        if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;
-          for (int i = 0; i < type.arguments.length; ++i) {
+          for (var i = 0; i < arguments.length && i < parameters.length; i++) {
             var parameter = parameters[i] as TypeParameterElementImpl;
             result = result.meet(
               parameter.variance.combine(
-                _compute(variable, type.arguments[i]),
+                _compute(variable, arguments[i]),
               ),
             );
           }
@@ -78,14 +79,14 @@ class VarianceBuilder {
 
         var result = Variance.unrelated;
 
-        if (type.arguments.isNotEmpty) {
+        if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;
-          for (var i = 0; i < type.arguments.length; ++i) {
+          for (var i = 0; i < arguments.length && i < parameters.length; i++) {
             var parameter = parameters[i] as TypeParameterElementImpl;
             var parameterVariance = parameter.variance;
             result = result.meet(
               parameterVariance.combine(
-                _compute(variable, type.arguments[i]),
+                _compute(variable, arguments[i]),
               ),
             );
           }

@@ -310,8 +310,8 @@ class FfiTransformer extends Transformer {
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
-  DartType convertNativeTypeToDartType(
-      DartType nativeType, bool allowStructs, bool allowHandle) {
+  DartType convertNativeTypeToDartType(DartType nativeType,
+      {bool allowStructs = false, bool allowHandle = false}) {
     if (nativeType is! InterfaceType) {
       return null;
     }
@@ -352,13 +352,13 @@ class FfiTransformer extends Transformer {
       return null;
     }
     if (fun.typeParameters.length != 0) return null;
-    // TODO(36730): Structs cannot appear in native function signatures.
-    final DartType returnType = convertNativeTypeToDartType(
-        fun.returnType, /*allowStructs=*/ false, /*allowHandle=*/ true);
+
+    final DartType returnType = convertNativeTypeToDartType(fun.returnType,
+        allowStructs: allowStructs, allowHandle: true);
     if (returnType == null) return null;
     final List<DartType> argumentTypes = fun.positionalParameters
-        .map((t) => convertNativeTypeToDartType(
-            t, /*allowStructs=*/ false, /*allowHandle=*/ true))
+        .map((t) => convertNativeTypeToDartType(t,
+            allowStructs: allowStructs, allowHandle: true))
         .toList();
     if (argumentTypes.contains(null)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
@@ -373,12 +373,12 @@ class FfiTransformer extends Transformer {
   }
 }
 
-/// Contains replaced members, of which all the call sites need to be replaced.
-///
-/// [ReplacedMembers] is populated by _FfiDefinitionTransformer and consumed by
-/// _FfiUseSiteTransformer.
-class ReplacedMembers {
+/// Contains all information collected by _FfiDefinitionTransformer that is
+/// needed in _FfiUseSiteTransformer.
+class FfiTransformerData {
   final Map<Field, Procedure> replacedGetters;
   final Map<Field, Procedure> replacedSetters;
-  ReplacedMembers(this.replacedGetters, this.replacedSetters);
+  final Set<Class> emptyStructs;
+  FfiTransformerData(
+      this.replacedGetters, this.replacedSetters, this.emptyStructs);
 }

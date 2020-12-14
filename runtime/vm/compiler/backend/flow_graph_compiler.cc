@@ -1673,6 +1673,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         result_location = locs->in(0);
         break;
       case Location::kRequiresFpuRegister:
+      case Location::kRequiresStackSlot:
         UNREACHABLE();
         break;
     }
@@ -3393,8 +3394,6 @@ void FlowGraphCompiler::EmitNativeMove(
   EmitNativeMoveArchitecture(destination, source);
 }
 
-// TODO(dartbug.com/36730): Remove this if PairLocations can be converted
-// into NativeLocations.
 void FlowGraphCompiler::EmitMoveToNative(
     const compiler::ffi::NativeLocation& dst,
     Location src_loc,
@@ -3413,8 +3412,6 @@ void FlowGraphCompiler::EmitMoveToNative(
   }
 }
 
-// TODO(dartbug.com/36730): Remove this if PairLocations can be converted
-// into NativeLocations.
 void FlowGraphCompiler::EmitMoveFromNative(
     Location dst_loc,
     Representation dst_type,

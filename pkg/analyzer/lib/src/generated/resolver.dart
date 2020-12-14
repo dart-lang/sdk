@@ -771,26 +771,29 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void startNullAwareIndexExpression(IndexExpression node) {
-    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
-        _flowAnalysis != null) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(
-          node.target, node.realTarget.staticType ?? typeProvider.dynamicType);
-      _unfinishedNullShorts.add(node.nullShortingTermination);
+    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        flow.nullAwareAccess_rightBegin(node.target,
+            node.realTarget.staticType ?? typeProvider.dynamicType);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
     }
   }
 
-  void startNullAwarePropertyAccess(
-    PropertyAccess node,
-  ) {
-    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
-        _flowAnalysis != null) {
-      var target = node.target;
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(
-            target, node.realTarget.staticType ?? typeProvider.dynamicType);
-        _unfinishedNullShorts.add(node.nullShortingTermination);
+  void startNullAwarePropertyAccess(PropertyAccess node) {
+    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        var target = node.target;
+        if (target is SimpleIdentifier &&
+            target.staticElement is ClassElement) {
+          // `?.` to access static methods is equivalent to `.`, so do nothing.
+        } else {
+          flow.nullAwareAccess_rightBegin(
+              target, node.realTarget.staticType ?? typeProvider.dynamicType);
+          _unfinishedNullShorts.add(node.nullShortingTermination);
+        }
       }
     }
   }
@@ -1163,8 +1166,8 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitConstructorDeclaration(node);
 
     if (_flowAnalysis != null) {
-      var bodyContext = BodyInferenceContext.of(node.body);
       if (node.factoryKeyword != null) {
+        var bodyContext = BodyInferenceContext.of(node.body);
         checkForBodyMayCompleteNormally(
           returnType: bodyContext?.contextType,
           body: node.body,
@@ -1468,6 +1471,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.function?.accept(this);
     _functionExpressionInvocationResolver
         .resolve(node as FunctionExpressionInvocationImpl);
+    nullShortingTermination(node);
   }
 
   @override
@@ -1513,7 +1517,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     CollectionElement thenElement = node.thenElement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition);
       thenElement.accept(this);
     } else {
       _promoteManager.visitIfElement_thenElement(
@@ -1553,7 +1557,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition);
       visitStatementInScope(thenStatement);
       nullSafetyDeadCodeVerifier?.flowEnd(thenStatement);
     } else {
@@ -1684,14 +1688,17 @@ class ResolverVisitor extends ScopedVisitor {
     var target = node.target;
     target?.accept(this);
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _flowAnalysis != null) {
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(
-            target, node.realTarget.staticType ?? typeProvider.dynamicType);
-        _unfinishedNullShorts.add(node.nullShortingTermination);
+    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        if (target is SimpleIdentifier &&
+            target.staticElement is ClassElement) {
+          // `?.` to access static methods is equivalent to `.`, so do nothing.
+        } else {
+          flow.nullAwareAccess_rightBegin(
+              target, node.realTarget.staticType ?? typeProvider.dynamicType);
+          _unfinishedNullShorts.add(node.nullShortingTermination);
+        }
       }
     }
 

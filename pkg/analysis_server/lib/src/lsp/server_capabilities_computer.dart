@@ -35,6 +35,9 @@ class ClientDynamicRegistrations {
     Method.textDocument_codeAction,
     Method.textDocument_rename,
     Method.textDocument_foldingRange,
+    // workspace.fileOperations covers all file operation methods but we only
+    // support this one.
+    Method.workspace_willRenameFiles,
   ];
   final ClientCapabilities _capabilities;
 
@@ -59,6 +62,9 @@ class ClientDynamicRegistrations {
 
   bool get documentSymbol =>
       _capabilities.textDocument?.documentSymbol?.dynamicRegistration ?? false;
+
+  bool get fileOperations =>
+      _capabilities.workspace?.fileOperations?.dynamicRegistration ?? false;
 
   bool get folding =>
       _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
@@ -93,6 +99,19 @@ class ClientDynamicRegistrations {
 }
 
 class ServerCapabilitiesComputer {
+  static final fileOperationRegistrationOptions =
+      FileOperationRegistrationOptions(
+    filters: [
+      FileOperationFilter(
+        scheme: 'file',
+        pattern: FileOperationPattern(
+          glob: '**/*.dart',
+          matches: FileOperationPatternKind.file,
+        ),
+      )
+    ],
+  );
+
   final LspAnalysisServer _server;
 
   /// Map from method name to current registration data.
@@ -213,10 +232,16 @@ class ServerCapabilitiesComputer {
       ),
       workspaceSymbolProvider: Either2<bool, WorkspaceSymbolOptions>.t1(true),
       workspace: ServerCapabilitiesWorkspace(
-          workspaceFolders: WorkspaceFoldersServerCapabilities(
-        supported: true,
-        changeNotifications: Either2<String, bool>.t2(true),
-      )),
+        workspaceFolders: WorkspaceFoldersServerCapabilities(
+          supported: true,
+          changeNotifications: Either2<String, bool>.t2(true),
+        ),
+        fileOperations: dynamicRegistrations.fileOperations
+            ? null
+            : ServerCapabilitiesFileOperations(
+                willRename: fileOperationRegistrationOptions,
+              ),
+      ),
     );
   }
 
@@ -392,6 +417,11 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.folding,
       Method.textDocument_foldingRange,
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
+    );
+    register(
+      dynamicRegistrations.fileOperations,
+      Method.workspace_willRenameFiles,
+      fileOperationRegistrationOptions,
     );
     register(
       dynamicRegistrations.didChangeConfiguration,

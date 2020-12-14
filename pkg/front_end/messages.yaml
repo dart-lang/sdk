@@ -1914,7 +1914,7 @@ InternalProblemUnsupportedNullability:
 
 IncrementalCompilerIllegalParameter:
   template: "Illegal parameter name '#string' found during expression compilation."
-  
+
 IncrementalCompilerIllegalTypeParameter:
   template: "Illegal type parameter name '#string' found during expression compilation."
 
@@ -4231,6 +4231,11 @@ StaticAndInstanceConflictCause:
 FfiTypeMismatch:
   # Used by dart:ffi
   template: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
+  external: test/ffi_test.dart
+
+FfiEmptyStruct:
+  # Used by dart:ffi
+  template: "Struct '#name' is empty. Empty structs are undefined behavior."
   external: test/ffi_test.dart
 
 FfiTypeInvalid:

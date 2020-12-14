@@ -1672,7 +1672,8 @@ class BinaryBuilder {
   VariableDeclaration readVariableReference() {
     int index = readUInt30();
     if (index >= variableStack.length) {
-      throw fail('unexpected variable index: $index');
+      throw fail('Unexpected variable index: $index. '
+          'Current variable count: ${variableStack.length}.');
     }
     return variableStack[index];
   }
@@ -1742,10 +1743,43 @@ class BinaryBuilder {
         return new PropertyGet.byReference(readExpression(), readName(),
             readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
+      case Tag.InstanceGet:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceGet.byReference(kind, readExpression(), readName(),
+            resultType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.InstanceTearOff:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceTearOff.byReference(
+            kind, readExpression(), readName(),
+            resultType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.DynamicGet:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicGet(kind, readExpression(), readName())
+          ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
         return new PropertySet.byReference(readExpression(), readName(),
             readExpression(), readInstanceMemberReference(allowNull: true))
+          ..fileOffset = offset;
+      case Tag.InstanceSet:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceSet.byReference(
+            kind, readExpression(), readName(), readExpression(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.DynamicSet:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicSet(
+            kind, readExpression(), readName(), readExpression())
           ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         int offset = readOffset();
@@ -1763,6 +1797,10 @@ class BinaryBuilder {
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
           ..fileOffset = offset;
+      case Tag.StaticTearOff:
+        int offset = readOffset();
+        return new StaticTearOff.byReference(readMemberReference())
+          ..fileOffset = offset;
       case Tag.StaticSet:
         int offset = readOffset();
         return new StaticSet.byReference(
@@ -1775,6 +1813,55 @@ class BinaryBuilder {
             readArguments(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset
           ..flags = flags;
+      case Tag.InstanceInvocation:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int flags = readByte();
+        int offset = readOffset();
+        return new InstanceInvocation.byReference(
+            kind, readExpression(), readName(), readArguments(),
+            functionType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset
+          ..flags = flags;
+      case Tag.DynamicInvocation:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicInvocation(
+            kind, readExpression(), readName(), readArguments())
+          ..fileOffset = offset;
+      case Tag.FunctionInvocation:
+        FunctionAccessKind kind = FunctionAccessKind.values[readByte()];
+        int offset = readOffset();
+        Expression receiver = readExpression();
+        Arguments arguments = readArguments();
+        DartType functionType = readDartType();
+        // `const DynamicType()` is used to encode a missing function type.
+        assert(functionType is FunctionType || functionType is DynamicType,
+            "Unexpected function type $functionType for FunctionInvocation");
+        return new FunctionInvocation(kind, receiver, arguments,
+            functionType: functionType is FunctionType ? functionType : null)
+          ..fileOffset = offset;
+      case Tag.FunctionTearOff:
+        int offset = readOffset();
+        return new FunctionTearOff(readExpression())..fileOffset = offset;
+      case Tag.LocalFunctionInvocation:
+        int offset = readOffset();
+        readUInt30(); // offset of the variable declaration in the binary.
+        return new LocalFunctionInvocation(
+            readVariableReference(), readArguments(),
+            functionType: readDartType())
+          ..fileOffset = offset;
+      case Tag.EqualsNull:
+        int offset = readOffset();
+        return new EqualsNull(readExpression(), isNot: readByte() == 1)
+          ..fileOffset = offset;
+      case Tag.EqualsCall:
+        int offset = readOffset();
+        return new EqualsCall.byReference(readExpression(), readExpression(),
+            isNot: readByte() == 1,
+            functionType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);

@@ -566,6 +566,7 @@ class JSNumber extends Interceptor implements int, double {
   // Returns gcd of abs(this) and abs(other).
   @notNull
   int gcd(@nullCheck int other) {
+    if (this is! int) throwArgumentErrorValue(this);
     int x = this.abs();
     int y = other.abs();
     if (x == 0) return y;

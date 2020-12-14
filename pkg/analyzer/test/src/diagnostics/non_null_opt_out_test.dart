@@ -375,7 +375,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.topGet('foo'));
   }
 
@@ -400,7 +400,7 @@ main(A a) {
     var identifier = invocation.function;
     assertType(identifier, 'A*');
 
-    MethodElement element = invocation.staticElement;
+    var element = invocation.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('call'));
   }
 
@@ -425,7 +425,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -512,7 +512,7 @@ main(void Function() a) {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -537,7 +537,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -565,7 +565,7 @@ class B extends A {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -590,7 +590,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -615,7 +615,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -638,7 +638,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    FunctionElement element = identifier.staticElement;
+    var element = identifier.staticElement as FunctionElement;
     _assertLegacyMember(element, _import_a.topFunction('foo'));
   }
 
@@ -661,7 +661,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    FunctionElement element = identifier.staticElement;
+    var element = identifier.staticElement as FunctionElement;
     _assertLegacyMember(element, _import_a.topFunction('foo'));
   }
 
@@ -686,7 +686,7 @@ main(A a) {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     assertType(element.type, 'int* Function(int*, int*)*');
   }
 
@@ -711,7 +711,7 @@ main(A a) {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     assertType(element.type, 'int* Function(int*, int*)*');
   }
 
@@ -738,7 +738,7 @@ class B extends A {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     assertType(element.type, 'int* Function(int*, int*)*');
   }
 
@@ -763,7 +763,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     assertType(element.type, 'int* Function(int*, int*)*');
   }
 
@@ -790,7 +790,7 @@ class B extends A {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*, int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     assertType(element.type, 'int* Function(int*, int*)*');
   }
 
@@ -904,7 +904,7 @@ main(A a) {
     var identifier = prefixedIdentifier.identifier;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -929,7 +929,7 @@ main(A a) {
     var identifier = prefixedIdentifier.identifier;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -953,7 +953,7 @@ main() {
     var identifier = prefixedIdentifier.identifier;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -977,7 +977,7 @@ main() {
     var identifier = prefixedIdentifier.identifier;
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -1001,7 +1001,7 @@ main() {
     var identifier = prefixedIdentifier.identifier;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -1025,7 +1025,7 @@ main() {
     var identifier = prefixedIdentifier.identifier;
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -1047,7 +1047,7 @@ main() {
     var identifier = prefixedIdentifier.identifier;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.topGet('foo'));
   }
 
@@ -1071,7 +1071,7 @@ main() {
     var identifier = propertyAccess.propertyName;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -1095,7 +1095,7 @@ main() {
     var identifier = propertyAccess.propertyName;
     assertType(identifier, 'int* Function()*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -1120,7 +1120,7 @@ main(A a) {
     var identifier = propertyAccess.propertyName;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -1146,7 +1146,7 @@ class B extends A {
     var identifier = propertyAccess.propertyName;
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -1169,7 +1169,7 @@ class B extends A {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -1192,7 +1192,7 @@ class B extends A {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -1216,7 +1216,7 @@ class B extends A {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.getter('foo'));
   }
 
@@ -1240,7 +1240,7 @@ class B extends A {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int* Function(int*)*');
 
-    MethodElement element = identifier.staticElement;
+    var element = identifier.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('foo'));
   }
 
@@ -1259,7 +1259,7 @@ main() {
     var identifier = findNode.simple('foo');
     assertType(identifier, 'int*');
 
-    PropertyAccessorElement element = identifier.staticElement;
+    var element = identifier.staticElement as PropertyAccessorElement;
     _assertLegacyMember(element, _import_a.topGet('foo'));
   }
 

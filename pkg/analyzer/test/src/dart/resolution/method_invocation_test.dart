@@ -1622,7 +1622,7 @@ main() {
     assertElement(foo.propertyName, import.class_('C').getGetter('foo'));
     assertType(foo.propertyName, 'double Function(int)');
 
-    PrefixedIdentifier target = foo.target;
+    var target = foo.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
@@ -1651,7 +1651,7 @@ main() {
       'void Function(int)',
     );
 
-    PrefixedIdentifier target = invocation.target;
+    var target = invocation.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
@@ -1707,6 +1707,20 @@ class B extends A {
   test_invalid_inDefaultValue_nullAware() async {
     await assertInvalidTestCode('''
 void f({a = b?.foo()}) {}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode('''
+typedef void F({a = b?.foo()});
 ''');
 
     assertMethodInvocation2(

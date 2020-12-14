@@ -773,9 +773,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
-            result.errors
-                .where((e) => e.errorCode.type != ErrorType.TODO)
-                .toList(),
+            result.errors.where(_shouldSendDiagnostic).toList(),
             (result, error, [severity]) => toDiagnostic(
                   result,
                   error,
@@ -876,4 +874,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
     driver.dispose();
   }
+
+  bool _shouldSendDiagnostic(AnalysisError error) =>
+      error.errorCode.type != ErrorType.TODO ||
+      analysisServer.clientConfiguration.showTodos;
 }

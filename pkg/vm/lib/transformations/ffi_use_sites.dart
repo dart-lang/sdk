@@ -9,6 +9,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         templateFfiDartTypeMismatch,
+        templateFfiEmptyStruct,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
@@ -25,7 +26,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
-    show ReplacedMembers, NativeType, FfiTransformer, optimizedTypes;
+    show FfiTransformerData, NativeType, FfiTransformer, optimizedTypes;
 
 /// Checks and replaces calls to dart:ffi struct fields and methods.
 void transformLibraries(
@@ -34,7 +35,7 @@ void transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
-    ReplacedMembers replacedFields,
+    FfiTransformerData ffiTransformerData,
     ReferenceFromIndex referenceFromIndex) {
   final index = new LibraryIndex(component, ["dart:ffi"]);
   if (!index.containsLibrary("dart:ffi")) {
@@ -53,8 +54,9 @@ void transformLibraries(
       hierarchy,
       diagnosticReporter,
       referenceFromIndex,
-      replacedFields.replacedGetters,
-      replacedFields.replacedSetters);
+      ffiTransformerData.replacedGetters,
+      ffiTransformerData.replacedSetters,
+      ffiTransformerData.emptyStructs);
   libraries.forEach(transformer.visitLibrary);
 }
 
@@ -62,6 +64,7 @@ void transformLibraries(
 class _FfiUseSiteTransformer extends FfiTransformer {
   final Map<Field, Procedure> replacedGetters;
   final Map<Field, Procedure> replacedSetters;
+  final Set<Class> emptyStructs;
   StaticTypeContext _staticTypeContext;
 
   Library currentLibrary;
@@ -79,7 +82,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
       this.replacedGetters,
-      this.replacedSetters)
+      this.replacedSetters,
+      this.emptyStructs)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex) {}
 
@@ -171,18 +175,18 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
-        _ensureNativeTypeValid(nativeType, node, allowStructs: false);
-        _ensureNativeTypeToDartType(nativeType, dartType, node,
-            allowStructs: false);
+        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureNoEmptyStructs(dartType, node);
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final DartType dartType = node.arguments.types[1];
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
 
-        _ensureNativeTypeValid(nativeType, node, allowStructs: false);
-        _ensureNativeTypeToDartType(nativeType, dartType, node,
-            allowStructs: false);
+        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureNoEmptyStructs(dartType, node);
 
         final DartType nativeSignature =
             (nativeType as InterfaceType).typeArguments[0];
@@ -199,9 +203,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureIsStaticFunction(func);
 
-        _ensureNativeTypeValid(nativeType, node, allowStructs: false);
-        _ensureNativeTypeToDartType(nativeType, dartType, node,
-            allowStructs: false);
+        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureNoEmptyStructs(dartType, node);
 
         // Check `exceptionalReturn`'s type.
         final FunctionType funcType = dartType;
@@ -394,9 +398,11 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   void _ensureNativeTypeToDartType(
       DartType nativeType, DartType dartType, Expression node,
-      {bool allowStructs: false, bool allowHandle: false}) {
-    final DartType correspondingDartType =
-        convertNativeTypeToDartType(nativeType, allowStructs, allowHandle);
+      {bool allowHandle: false}) {
+    final DartType correspondingDartType = convertNativeTypeToDartType(
+        nativeType,
+        allowStructs: true,
+        allowHandle: allowHandle);
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
@@ -412,9 +418,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowStructs: false, bool allowHandle: false}) {
+      {bool allowHandle: false}) {
     if (!_nativeTypeValid(nativeType,
-        allowStructs: allowStructs, allowHandle: allowHandle)) {
+        allowStructs: true, allowHandle: allowHandle)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
@@ -425,11 +431,35 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     }
   }
 
+  void _ensureNoEmptyStructs(DartType nativeType, Expression node) {
+    // Error on structs with no fields.
+    if (nativeType is InterfaceType) {
+      final Class nativeClass = nativeType.classNode;
+      if (hierarchy.isSubclassOf(nativeClass, structClass)) {
+        if (emptyStructs.contains(nativeClass)) {
+          diagnosticReporter.report(
+              templateFfiEmptyStruct.withArguments(nativeClass.name),
+              node.fileOffset,
+              1,
+              node.location.file);
+        }
+      }
+    }
+
+    // Recurse when seeing a function type.
+    if (nativeType is FunctionType) {
+      nativeType.positionalParameters
+          .forEach((e) => _ensureNoEmptyStructs(e, node));
+      _ensureNoEmptyStructs(nativeType.returnType, node);
+    }
+  }
+
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(DartType nativeType,
       {bool allowStructs: false, allowHandle: false}) {
-    return convertNativeTypeToDartType(nativeType, allowStructs, allowHandle) !=
+    return convertNativeTypeToDartType(nativeType,
+            allowStructs: allowStructs, allowHandle: allowHandle) !=
         null;
   }
 

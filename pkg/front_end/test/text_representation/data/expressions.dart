@@ -421,12 +421,12 @@ exprGenericFunctionExpressionBlock() => <T>(T t) {
       return t;
     };
 
-/*normal|limited.member: exprNullAware:let final Class? #0 = variable in #0.{Object.==}(null) ?{dynamic} null : #0{Class}.{Class.field}*/
-/*verbose.member: exprNullAware:let final expressions::Class? #0 = variable in #0.{dart.core::Object.==}(null) ?{dynamic} null : #0{expressions::Class}.{expressions::Class.field}*/
+/*normal|limited.member: exprNullAware:let final Class? #0 = variable in #0 == null ?{dynamic} null : #0{Class}.{Class.field}*/
+/*verbose.member: exprNullAware:let final expressions::Class? #0 = variable in #0 == null ?{dynamic} null : #0{expressions::Class}.{expressions::Class.field}*/
 exprNullAware(Class? variable) => variable?.field;
 
-/*normal|limited.member: exprIfNull:let final int? #0 = i in #0.{num.==}(null) ?{int} 42 : #0{int}*/
-/*verbose.member: exprIfNull:let final dart.core::int? #0 = i in #0.{dart.core::num.==}(null) ?{dart.core::int} 42 : #0{dart.core::int}*/
+/*normal|limited.member: exprIfNull:let final int? #0 = i in #0 == null ?{int} 42 : #0{int}*/
+/*verbose.member: exprIfNull:let final dart.core::int? #0 = i in #0 == null ?{dart.core::int} 42 : #0{dart.core::int}*/
 exprIfNull(int? i) => i ?? 42;
 
 /*normal|limited.member: exprNestedDeep:<Object>[1, <Object>[2, <Object>[3, <int>[4]]]]*/
@@ -483,3 +483,21 @@ exprPrecedence3(bool b) => b ? 0 : 1 + 2;
 /*normal|limited.member: exprPrecedence4:(b ?{int} 0 : 1).{num.+}(2)*/
 /*verbose.member: exprPrecedence4:(b ?{dart.core::int} 0 : 1).{dart.core::num.+}(2)*/
 exprPrecedence4(bool b) => (b ? 0 : 1) + 2;
+
+/*member: exprAssignmentEqualsNull1:(a = b) == null*/
+exprAssignmentEqualsNull1(String a, String b) => (a = b) == null;
+
+/*member: exprAssignmentEqualsNull2:a = b == null*/
+exprAssignmentEqualsNull2(bool a, String b) => a = b == null;
+
+/*member: exprAssignmentEqualsNull3:a = b == null*/
+exprAssignmentEqualsNull3(bool a, String b) => a = (b == null);
+
+/*member: exprAssignmentEquals1:(a = b) == c*/
+exprAssignmentEquals1(String a, String b, String c) => (a = b) == c;
+
+/*member: exprAssignmentEquals2:a = b == c*/
+exprAssignmentEquals2(bool a, String b, String c) => a = b == c;
+
+/*member: exprAssignmentEquals3:a = b == c*/
+exprAssignmentEquals3(bool a, String b, String c) => a = (b == c);

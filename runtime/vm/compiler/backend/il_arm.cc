@@ -1298,7 +1298,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterDartFrame(0, /*load_pool_pointer=*/false);
 
   // Reserve space for arguments and align frame before entering C++ world.
-  __ ReserveAlignedFrameSpace(marshaller_.StackTopInBytes());
+  __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
   EmitParamMoves(compiler);
 

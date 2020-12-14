@@ -18,7 +18,7 @@
       "name": "_fe_analyzer_shared",
       "rootUri": "../pkg/_fe_analyzer_shared",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "_fe_analyzer_shared_assigned_variables",
@@ -680,7 +680,7 @@
       "name": "test_reflective_loader",
       "rootUri": "../third_party/pkg/test_reflective_loader",
       "packageUri": "lib/",
-      "languageVersion": "1.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_runner",
