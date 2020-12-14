@@ -956,9 +956,13 @@ class ClassElementImpl extends AbstractClassElementImpl
     // substituting type parameters as appropriate.
     return constructorsToForward
         .map((ConstructorElement superclassConstructor) {
-      ConstructorElementImpl implicitConstructor =
-          ConstructorElementImpl(superclassConstructor.name, -1);
+      var containerRef = reference.getChild('@constructor');
+      var name = superclassConstructor.name;
+      var implicitConstructor = ConstructorElementImpl.forLinkedNode(
+          this, containerRef.getChild(name), null);
       implicitConstructor.isSynthetic = true;
+      implicitConstructor.name = name;
+      implicitConstructor.nameOffset = -1;
       implicitConstructor.redirectedConstructor = superclassConstructor;
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =

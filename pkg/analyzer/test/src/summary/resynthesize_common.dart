@@ -9547,6 +9547,62 @@ class C {
 ''');
   }
 
+  test_metadata_constructor_call_named_synthetic_ofClassAlias_generic() async {
+    var library = await checkLibrary('''
+class A {
+  const A.named();
+}
+
+mixin B {}
+
+class C<T> = A with B; 
+
+@C.named()
+class D {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A.named();
+}
+class alias C extends A with B {
+  synthetic const C.named() = A.named;
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+class D {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: self::@class::C::@constructor::named
+        substitution: {T: dynamic}
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: ConstructorMember
+            base: self::@class::C::@constructor::named
+            substitution: {T: dynamic}
+          staticType: null
+          token: named
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@class::C
+          staticType: null
+          token: C
+        staticElement: ConstructorMember
+          base: self::@class::C::@constructor::named
+          substitution: {T: dynamic}
+        staticType: null
+mixin B on Object {
+}
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_metadata_constructor_call_unnamed() async {
     var library = await checkLibrary('class A { const A(); } @A() class C {}');
     checkElementText(library, r'''
@@ -9572,6 +9628,50 @@ import 'foo.dart' as foo;
 class C {
 }
 ''');
+  }
+
+  test_metadata_constructor_call_unnamed_synthetic_ofClassAlias_generic() async {
+    var library = await checkLibrary('''
+class A {
+  const A();
+}
+
+mixin B {}
+
+class C<T> = A with B; 
+
+@C()
+class D {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+class alias C extends A with B {
+  synthetic const C() = A;
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+class D {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: self::@class::C::@constructor::•
+        substitution: {T: dynamic}
+      name: SimpleIdentifier
+        staticElement: self::@class::C
+        staticType: null
+        token: C
+mixin B on Object {
+}
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_constructor_call_with_args() async {
