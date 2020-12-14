@@ -30,7 +30,7 @@ index: 2
 ---
 # Language Server Protocol Specification - 3.16
 
-This document describes the upcoming 3.16.x version of the language server protocol. An implementation for node of the 3.16.x version of the protocol can be found [here](https://github.com/Microsoft/vscode-languageserver-node).
+This document describes the 3.16.x version of the language server protocol. An implementation for node of the 3.16.x version of the protocol can be found [here](https://github.com/Microsoft/vscode-languageserver-node).
 
 **Note:** edits to this specification can be made via a pull request against this markdown [document](https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-16.md).
 
@@ -38,12 +38,14 @@ This document describes the upcoming 3.16.x version of the language server proto
 
 All new 3.16 features are tagged with a corresponding since version 3.16 text or in JSDoc using `@since 3.16.0` annotation. Major new feature are:
 
-- Call Hierarchy support
 - Semantic Token support
-- Better trace logging support
+- Call Hierarchy support
+- Linked Editing support
 - Moniker support
-- Code Action disabled support
-- Code Action resolve support
+- Events for file operations (create, rename, delete)
+- Change annotation support for text edits and file operations (create, rename, delete)
+
+A detailed list of the changes can be found in the [change log](#version_3_16_0)
 
 The version of the specification is used to group features into a new specification release and to refer to their first appearance. Features in the spec are kept compatible using so called capability flags which are exchanged between the client and the server during initialization.
 
@@ -330,10 +332,6 @@ The protocol currently assumes that one server serves one tool. There is current
 
 URI's are transferred as strings. The URI's format is defined in [http://tools.ietf.org/html/rfc3986](http://tools.ietf.org/html/rfc3986)
 
-```typescript
-type URI = string;
-```
-
 ```
   foo://example.com:8042/over/there?name=ferret#nose
   \_/   \______________/\_________/ \_________/ \__/
@@ -534,7 +532,7 @@ export interface Diagnostic {
 	/**
 	 * An optional property to describe the error code.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	codeDescription?: CodeDescription;
 
@@ -567,7 +565,7 @@ export interface Diagnostic {
 	 * `textDocument/publishDiagnostics` notification and
 	 * `textDocument/codeAction` request.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	data?: unknown;
 }
@@ -648,7 +646,7 @@ export interface DiagnosticRelatedInformation {
 /**
  * Structure to capture a description for an error code.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface CodeDescription {
 	/**
@@ -708,7 +706,7 @@ Since 3.16.0 there is also the concept of an annotated text edit which supports 
 /**
  * Additional information that describes document changes.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface ChangeAnnotation {
 	/**
@@ -739,7 +737,7 @@ Usually clients provide options to group the changes along the annotations they 
  * An identifier referring to a change annotation managed by a workspace
  * edit.
  *
- * @since 3.16.0 - proposed state.
+ * @since 3.16.0.
  */
 export type ChangeAnnotationIdentifier = string;
 
@@ -747,7 +745,7 @@ export type ChangeAnnotationIdentifier = string;
 /**
  * A special text edit with an additional change annotation.
  *
- * @since 3.16.0 - proposed state.
+ * @since 3.16.0.
  */
 export interface AnnotatedTextEdit extends TextEdit {
 	/**
@@ -830,7 +828,7 @@ export interface CreateFile {
 	/**
 	 * An optional annotation identifer describing the operation.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	annotationId?: ChangeAnnotationIdentifier;
 }
@@ -877,7 +875,7 @@ export interface RenameFile {
 	/**
 	 * An optional annotation identifer describing the operation.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	annotationId?: ChangeAnnotationIdentifier;
 }
@@ -919,7 +917,7 @@ export interface DeleteFile {
 	/**
 	 * An optional annotation identifer describing the operation.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	annotationId?: ChangeAnnotationIdentifier;
 }
@@ -964,7 +962,7 @@ export interface WorkspaceEdit {
 	 * Whether clients honor this property depends on the client capability
 	 * `workspace.changeAnnotationSupport`.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	changeAnnotations?: {
 		[id: string /* ChangeAnnotationIdentifier */]: ChangeAnnotation;
@@ -1011,7 +1009,7 @@ export interface WorkspaceEditClientCapabilities {
 	 * If set to `true` the client will normalize line ending characters
 	 * in a workspace edit to the client specific new line character(s).
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	normalizesLineEndings?: boolean;
 
@@ -1019,7 +1017,7 @@ export interface WorkspaceEditClientCapabilities {
 	 * Whether the client in general supports change annotations on text edits,
 	 * create file, rename file and delete file changes.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	changeAnnotationSupport?: {
         /**
@@ -1395,7 +1393,7 @@ In addition clients should signal the markdown parser they are using via the cli
 /**
  * Client capabilities specific to the used markdown parser.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface MarkdownClientCapabilities {
 	/**
@@ -1746,7 +1744,7 @@ interface InitializeParams extends WorkDoneProgressParams {
 	 * Uses IETF language tags as the value's syntax
 	 * (See https://en.wikipedia.org/wiki/IETF_language_tag)
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	locale?: string;
 
@@ -2019,7 +2017,7 @@ interface ClientCapabilities {
 		 * Capabilities specific to the semantic token requests scoped to the
 		 * workspace.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		 semanticTokens?: SemanticTokensWorkspaceClientCapabilities;
 
@@ -2027,14 +2025,14 @@ interface ClientCapabilities {
 		 * Capabilities specific to the code lens requests scoped to the
 		 * workspace.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		codeLens?: CodeLensWorkspaceClientCapabilities;
 
 		/**
 		 * The client has support for file requests/notifications.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		fileOperations?: {
 			/**
@@ -2096,14 +2094,14 @@ interface ClientCapabilities {
 		/**
 		 * Capabilities specific to the showMessage request
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		showMessage?: ShowMessageRequestClientCapabilities;
 
 		/**
 		 * Client capabilities for the show document request.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		showDocument?: ShowDocumentClientCapabilities;
 	}
@@ -2111,20 +2109,20 @@ interface ClientCapabilities {
 	/**
 	 * General client capabilities.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	general?: {
 		/**
 		 * Client capabilities specific to regular expressions.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		regularExpressions?: RegularExpressionsClientCapabilities;
 
 		/**
 		 * Client capabilities specific to the client's markdown parser.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		markdown?: MarkdownClientCapabilities;
 	}
@@ -2338,7 +2336,7 @@ interface ServerCapabilities {
 	/**
 	 * The server provides linked editing range support.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	linkedEditingRangeProvider?: boolean | LinkedEditingRangeOptions
 		| LinkedEditingRangeRegistrationOptions;
@@ -2362,7 +2360,7 @@ interface ServerCapabilities {
 	/**
 	 * Whether server provides moniker support.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
     monikerProvider?: boolean | MonikerOptions | MonikerRegistrationOptions;
 
@@ -2385,7 +2383,7 @@ interface ServerCapabilities {
 		/**
 		 * The server is interested in file notifications/requests.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		fileOperations?: {
 			/**
@@ -2636,7 +2634,7 @@ _Client Capability_:
 /**
  * Client capabilities for the show document request.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface ShowDocumentClientCapabilities {
 	/**
@@ -2655,7 +2653,7 @@ _Request_:
 /**
  * Params to show a document.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface ShowDocumentParams {
 	/**
@@ -2696,7 +2694,7 @@ _Response_:
 /**
  * The result of an show document request.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface ShowDocumentResult {
 	/**
@@ -3425,7 +3423,7 @@ _Server Capability_:
 /**
  * The options to register for file operations.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 interface FileOperationRegistrationOptions {
 	/**
@@ -3438,7 +3436,7 @@ interface FileOperationRegistrationOptions {
  * A pattern kind describing if a glob pattern matches a file a folder or
  * both.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export namespace FileOperationPatternKind {
 	/**
@@ -3457,7 +3455,7 @@ export type FileOperationPatternKind = 'file' | 'folder';
 /**
  * Matching options for the file operation pattern.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface FileOperationPatternOptions {
 
@@ -3471,7 +3469,7 @@ export interface FileOperationPatternOptions {
  * A pattern to describe in which file operation requests or notifications
  * the server is interested in.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 interface FileOperationPattern {
 	/**
@@ -3535,7 +3533,7 @@ _Request_:
  * The parameters sent in notifications/requests for user-initiated creation
  * of files.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface CreateFilesParams {
 
@@ -3547,7 +3545,7 @@ export interface CreateFilesParams {
 /**
  * Represents information on a file/folder create.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface FileCreate {
 
@@ -3609,7 +3607,7 @@ _Request_:
  * The parameters sent in notifications/requests for user-initiated renames
  * of files.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface RenameFilesParams {
 
@@ -3622,7 +3620,7 @@ export interface RenameFilesParams {
 /**
  * Represents information on a file/folder rename.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface FileRename {
 
@@ -3689,7 +3687,7 @@ _Request_:
  * The parameters sent in notifications/requests for user-initiated deletes
  * of files.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface DeleteFilesParams {
 
@@ -3701,7 +3699,7 @@ export interface DeleteFilesParams {
 /**
  * Represents information on a file/folder delete.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface FileDelete {
 
@@ -4205,7 +4203,7 @@ export interface PublishDiagnosticsClientCapabilities {
 	/**
 	 * Client supports a codeDescription property
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	codeDescriptionSupport?: boolean;
 
@@ -4214,7 +4212,7 @@ export interface PublishDiagnosticsClientCapabilities {
 	 * preserved between a `textDocument/publishDiagnostics` and
 	 * `textDocument/codeAction` request.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	dataSupport?: boolean;
 }
@@ -4317,7 +4315,7 @@ export interface CompletionClientCapabilities {
 		 * Client supports insert replace edit to control different behavior if
 		 * a completion item is inserted in the text or should replace text.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		insertReplaceSupport?: boolean;
 
@@ -4326,7 +4324,7 @@ export interface CompletionClientCapabilities {
 		 * completion item. Before version 3.16.0 only the predefined properties
 		 * `documentation` and `details` could be resolved lazily.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		resolveSupport?: {
 			/**
@@ -4340,7 +4338,7 @@ export interface CompletionClientCapabilities {
 		 * a completion item to override the whitespace handling mode
 		 * as defined by the client (see `insertTextMode`).
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		insertTextModeSupport?: {
 			valueSet: InsertTextMode[];
@@ -4541,7 +4539,7 @@ export type CompletionItemTag = 1;
 /**
  * A special text edit to provide an insert and a replace operation.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export interface InsertReplaceEdit {
 	/**
@@ -4564,7 +4562,7 @@ export interface InsertReplaceEdit {
  * How whitespace and indentation is handled during completion
  * item insertion.
  *
- * @since 3.16.0 - proposed state
+ * @since 3.16.0
  */
 export namespace InsertTextMode {
 	/**
@@ -4677,7 +4675,7 @@ export interface CompletionItem {
 	 * item insertion. If not provided the client's default value depends on
 	 * the `textDocument.completion.insertTextMode` client capability.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	insertTextMode?: InsertTextMode;
 
@@ -4703,7 +4701,7 @@ export interface CompletionItem {
 	 * must be a prefix of the edit's replace range, that means it must be
 	 * contained and starting at the same position.
 	 *
-	 * @since 3.16.0 additional type `InsertReplaceEdit` - proposed state
+	 * @since 3.16.0 additional type `InsertReplaceEdit`
 	 */
 	textEdit?: TextEdit | InsertReplaceEdit;
 
@@ -5006,7 +5004,7 @@ export interface SignatureHelpClientCapabilities {
 		 * The client supports the `activeParameter` property on
 		 * `SignatureInformation` literal.
 		 *
-		 * @since 3.16.0 - proposed state
+		 * @since 3.16.0
 		 */
 		activeParameterSupport?: boolean;
 	};
@@ -5202,7 +5200,7 @@ export interface SignatureInformation {
 	 *
 	 * If provided, this is used in place of `SignatureHelp.activeParameter`.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	activeParameter?: uinteger;
 }
@@ -5703,7 +5701,7 @@ export interface DocumentSymbolOptions extends WorkDoneProgressOptions {
 	 * A human-readable string that is shown when multiple outlines trees
 	 * are shown for the same document.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	label?: string;
 }
@@ -5955,7 +5953,7 @@ export interface CodeActionClientCapabilities {
 	/**
 	 * Whether code action supports the `disabled` property.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	disabledSupport?: boolean;
 
@@ -5964,7 +5962,7 @@ export interface CodeActionClientCapabilities {
 	 * preserved between a `textDocument/codeAction` and a
 	 * `codeAction/resolve` request.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	dataSupport?: boolean;
 
@@ -5973,7 +5971,7 @@ export interface CodeActionClientCapabilities {
 	 * Whether the client supports resolving additional code action
 	 * properties via a separate `codeAction/resolve` request.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	resolveSupport?: {
 		/**
@@ -5989,7 +5987,7 @@ export interface CodeActionClientCapabilities {
 	 * the workspace edit in the user interface and asking
 	 * for confirmation.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	honorsChangeAnnotations?: boolean;
 }
@@ -6250,7 +6248,7 @@ export interface CodeAction {
 	 * A data entry field that is preserved on a code action between
 	 * a `textDocument/codeAction` and a `codeAction/resolve` request.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	data?: any
 }
@@ -6969,7 +6967,7 @@ export interface RenameClientCapabilities {
 	 * the workspace edit in the user interface and asking
 	 * for confirmation.
 	 *
-	 * @since 3.16.0 - proposed state
+	 * @since 3.16.0
 	 */
 	honorsChangeAnnotations?: boolean;
 }
@@ -7620,7 +7618,14 @@ interface SemanticTokensClientCapabilities {
 	dynamicRegistration?: boolean;
 
 	/**
-	 * Which requests the client supports and might send to the server.
+	 * Which requests the client supports and might send to the server
+	 * depending on the server's capability. Please note that clients might not
+	 * show semantic tokens or degrade some of the user experience if a range
+	 * or full request is advertised by the client but not provided by the
+	 * server. If for example the client capability `requests.full` and
+	 * `request.range` are both set to true but the server only provides a
+	 * range provider the client might not render a minimap correctly or might
+	 * even decide to not show any semantic tokens at all.
 	 */
 	requests: {
 		/**
@@ -8129,7 +8134,7 @@ Servers usually support different communication channels (e.g. stdio, pipes, ...
 
 ### <a href="#changeLog" name="changeLog" class="anchor">Change Log</a>
 
-#### <a href="#version_3_16_0" name="version_3_16_0" class="anchor">3.16.0 (xx/xx/xxxx)</a>
+#### <a href="#version_3_16_0" name="version_3_16_0" class="anchor">3.16.0 (12/14/2020)</a>
 
 * Add support for tracing.
 * Add semantic token support.
