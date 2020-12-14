@@ -395,6 +395,13 @@ var v = <T>();
 ''');
   }
 
+  test_inAnnotation_noFlow_labeledStatement() async {
+    await _assertCanBeAnalyzed('''
+@A(() { label: })
+typedef F = void Function();
+''');
+  }
+
   test_inDefaultValue_noFlow_ifExpression() async {
     await _assertCanBeAnalyzed('''
 typedef void F({a = [if (true) 0]});

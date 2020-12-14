@@ -193,10 +193,14 @@ class FlowAnalysisHelper {
   }
 
   void labeledStatement_enter(LabeledStatement node) {
+    if (flow == null) return;
+
     flow.labeledStatement_begin(node);
   }
 
   void labeledStatement_exit(LabeledStatement node) {
+    if (flow == null) return;
+
     flow.labeledStatement_end();
   }
 
