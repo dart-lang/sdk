@@ -3712,7 +3712,6 @@ const Template<
 const Code<Message Function(String name)> codeFfiEmptyStruct =
     const Code<Message Function(String name)>(
   "FfiEmptyStruct",
-  templateFfiEmptyStruct,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
