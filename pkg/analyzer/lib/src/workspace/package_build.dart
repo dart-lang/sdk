@@ -297,7 +297,16 @@ class PackageBuildWorkspace extends Workspace {
               provider.pathContext.join(generatedRootPath, packageName);
           return PackageBuildWorkspace._(provider, packageMap, folder.path,
               packageName, generatedRootPath, generatedThisPath);
-        } catch (_) {}
+        } catch (_) {
+          return null;
+        }
+      }
+
+      // We found `pubspec.yaml`, but not `.dart_tool/build`.
+      // Stop going up, this package does not have package:build results.
+      // We don't want to find results of a parent package.
+      if (pubspec.exists) {
+        return null;
       }
 
       // Go up the folder.

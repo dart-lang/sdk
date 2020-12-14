@@ -11,12 +11,6 @@ dartdev_files = exec_script("../../tools/list_dart_files.py",
                             ],
                             "list lines")
 
-dartfix_files = exec_script("../../tools/list_dart_files.py",
-                            [
-                              "absolute",
-                              rebase_path("../../pkg/dartfix"),
-                            ],
-                            "list lines")
 group("dartdev") {
   public_deps = [ ":copy_dartdev_kernel" ]
 }
@@ -33,6 +27,6 @@ application_snapshot("generate_dartdev_kernel") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = []
   deps = [ "../dds:dds" ]
-  inputs = dartdev_files + dartfix_files
+  inputs = dartdev_files
   output = "$root_gen_dir/dartdev.dill"
 }

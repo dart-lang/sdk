@@ -53,6 +53,8 @@ class MethodRecognizer : public AllStatic {
   static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
 
+  static bool IsMarkedAsRecognized(const Function& function,
+                                   const char* kind = nullptr);
   static void InitializeState();
 
  private:

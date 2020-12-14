@@ -405,9 +405,7 @@ static const field core::List<core::String*>* nullList = #C3;
 static const field core::List<core::String*>* foo = #C8;
 static const field core::List<core::String*>* bar = #C10;
 static field core::List<core::String*>* barAsVar = block {
-  final core::List<core::String*>* #t1 = <core::String*>[];
-  for (final core::String* #t2 in #C8)
-    #t1.{core::List::add}{Invariant}(#t2);
+  final core::List<core::String*>* #t1 = core::List::of<core::String*>(#C8);
   #t1.{core::List::add}{Invariant}("!");
 } =>#t1;
 static const field core::List<core::String*>* barWithNullSpread = invalid-expression "Null value during constant evaluation.";
@@ -481,9 +479,9 @@ static method main() → dynamic {
   core::print(#C17);
   core::print(#C22);
   core::print( block {
-    final core::Set<core::String*>* #t3 = col::LinkedHashSet::•<core::String*>();
-    #t3.{core::Set::add}{Invariant}("hello");
-  } =>#t3);
+    final core::Set<core::String*>* #t2 = col::LinkedHashSet::•<core::String*>();
+    #t2.{core::Set::add}{Invariant}("hello");
+  } =>#t2);
   core::print(#C26);
 }
 

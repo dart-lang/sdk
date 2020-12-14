@@ -136,7 +136,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           isCovariant: isCovariant,
           isNonNullableByDefault: library.isNonNullableByDefault);
     } else if (isLate &&
-        !libraryBuilder.loader.target.backendTarget.supportsLateFields) {
+        libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
+            hasInitializer: hasInitializer,
+            isFinal: isFinal,
+            isStatic: (isStatic || isTopLevel))) {
       if (hasInitializer) {
         if (isFinal) {
           _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
@@ -228,6 +231,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           charEndOffset, reference, library.isNonNullableByDefault);
     }
   }
+
+  bool get isLateLowered => _fieldEncoding.isLateLowering;
 
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;
@@ -424,8 +429,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
       if (!library.isNonNullableByDefault) {
-        inferredType = legacyErasure(
-            library.loader.typeInferenceEngine.coreTypes, inferredType);
+        inferredType = legacyErasure(inferredType);
       }
       fieldType = implicitFieldType.checkInferred(inferredType);
 
@@ -570,6 +574,9 @@ abstract class FieldEncoding {
   /// Ensures that the signatures all members created by this field encoding
   /// are fully typed.
   void completeSignature(CoreTypes coreTypes);
+
+  /// Returns `true` if this encoding is a late lowering.
+  bool get isLateLowering;
 }
 
 class RegularFieldEncoding implements FieldEncoding {
@@ -695,6 +702,9 @@ class RegularFieldEncoding implements FieldEncoding {
       fieldBuilder.isAssignable
           ? <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: true)]
           : const <ClassMember>[];
+
+  @override
+  bool get isLateLowering => false;
 }
 
 class SourceFieldMember extends BuilderClassMember {
@@ -800,6 +810,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..isInternalImplementation = true;
     switch (_isSetStrategy) {
       case late_lowering.IsSetStrategy.useSentinelOrNull:
+      case late_lowering.IsSetStrategy.forceUseSentinel:
         // [_lateIsSetField] is never needed.
         break;
       case late_lowering.IsSetStrategy.forceUseIsSetField:
@@ -933,7 +944,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       {bool isCovariant}) {
     assert(isCovariant != null);
     VariableDeclaration parameter = new VariableDeclaration(null)
-      ..isCovariant = isCovariant;
+      ..isCovariant = isCovariant
+      ..fileOffset = fileOffset;
     return new Procedure(
         null,
         ProcedureKind.Setter,
@@ -1146,6 +1158,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     return list;
   }
+
+  @override
+  bool get isLateLowering => true;
 }
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
@@ -1323,7 +1338,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
         createIsSetWrite: (Expression value) =>
             _createFieldSet(_lateIsSetField, value),
-        isSetEncoding: isSetEncoding);
+        isSetEncoding: isSetEncoding,
+        forField: true);
   }
 
   @override
@@ -1523,7 +1539,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
     if (!isFinal) {
       VariableDeclaration parameter =
           new VariableDeclaration("#externalFieldValue")
-            ..isCovariant = isCovariant;
+            ..isCovariant = isCovariant
+            ..fileOffset = charOffset;
       _setter = new Procedure(
           null,
           ProcedureKind.Setter,
@@ -1684,6 +1701,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
                   forSetter: true, isInternalImplementation: false)
             ]
           : const <ClassMember>[];
+
+  @override
+  bool get isLateLowering => false;
 }
 
 enum _SynthesizedFieldMemberKind {

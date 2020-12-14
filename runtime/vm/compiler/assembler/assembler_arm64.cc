@@ -508,6 +508,21 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, true);
 }
 
+void Assembler::LoadFromStack(Register dst, intptr_t depth) {
+  ASSERT(depth >= 0);
+  LoadFromOffset(dst, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::StoreToStack(Register src, intptr_t depth) {
+  ASSERT(depth >= 0);
+  StoreToOffset(src, SPREG, depth * target::kWordSize);
+}
+
+void Assembler::CompareToStack(Register src, intptr_t depth) {
+  LoadFromStack(TMP, depth);
+  CompareRegisters(src, TMP);
+}
+
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
@@ -680,11 +695,11 @@ void Assembler::AddImmediateSetFlags(Register dest,
                                      Register rn,
                                      int64_t imm,
                                      OperandSize sz) {
-  ASSERT(sz == kDoubleWord || sz == kWord);
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, op);
     } else {
       addsw(dest, rn, op);
@@ -692,7 +707,7 @@ void Assembler::AddImmediateSetFlags(Register dest,
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, op);
     } else {
       subsw(dest, rn, op);
@@ -701,7 +716,7 @@ void Assembler::AddImmediateSetFlags(Register dest,
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, Operand(TMP2));
     } else {
       addsw(dest, rn, Operand(TMP2));
@@ -714,10 +729,10 @@ void Assembler::SubImmediateSetFlags(Register dest,
                                      int64_t imm,
                                      OperandSize sz) {
   Operand op;
-  ASSERT(sz == kDoubleWord || sz == kWord);
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, op);
     } else {
       subsw(dest, rn, op);
@@ -725,7 +740,7 @@ void Assembler::SubImmediateSetFlags(Register dest,
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       adds(dest, rn, op);
     } else {
       addsw(dest, rn, op);
@@ -734,7 +749,7 @@ void Assembler::SubImmediateSetFlags(Register dest,
     // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
+    if (sz == kEightBytes) {
       subs(dest, rn, Operand(TMP2));
     } else {
       subsw(dest, rn, Operand(TMP2));
@@ -1141,7 +1156,7 @@ void Assembler::StoreInternalPointer(Register object,
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kWord);
+  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kFourBytes);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
@@ -1159,7 +1174,7 @@ void Assembler::LoadClassId(Register result, Register object) {
       target::Object::tags_offset() +
       target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
-                 kUnsignedHalfword);
+                 kUnsignedTwoBytes);
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
@@ -1176,7 +1191,6 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
                                Register scratch) {
-  ASSERT(scratch == kNoRegister);
   LoadClassId(TMP, object);
   CompareImmediate(TMP, class_id);
 }
@@ -1744,10 +1758,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(top_reg, Address(THR, target::Thread::top_offset()));
 
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(TMP, tags);
     StoreToOffset(TMP, instance_reg, target::Object::tags_offset());
 
@@ -1792,10 +1803,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    // Extends the 32 bit tags with zeros, which is the uninitialized
-    // hash code.
+    const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp2, tags);
     str(temp2, FieldAddress(instance, target::Object::tags_offset()));
   } else {
@@ -2033,7 +2041,7 @@ bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
 
 void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
   constexpr int32_t bit_no = 63;
-  constexpr OperandSize sz = kDoubleWord;
+  constexpr OperandSize sz = kEightBytes;
   ASSERT(rn != CSP);
   switch (cond) {
     case EQ:  // equal

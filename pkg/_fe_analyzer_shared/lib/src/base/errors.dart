@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 import 'customized_codes.dart';
 
 /// An error code associated with an [AnalysisError].
@@ -13,6 +15,11 @@ abstract class ErrorCode {
    * The name of the error code.
    */
   final String name;
+
+  /**
+   * The unique name of this error code.
+   */
+  final String uniqueName;
 
   final String _message;
 
@@ -35,24 +42,34 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode(this.name, String message,
-      [String correction, this.hasPublishedDocs = false])
-      : isUnresolvedIdentifier = false,
+  const ErrorCode({
+    String correction,
+    this.hasPublishedDocs = false,
+    this.isUnresolvedIdentifier: false,
+    @required String message,
+    @required this.name,
+    @required this.uniqueName,
+  })  : _correction = correction,
         _message = message,
-        _correction = correction;
+        assert(hasPublishedDocs != null),
+        assert(isUnresolvedIdentifier != null);
 
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const ErrorCode.temporary(this.name, String message,
-      {String correction,
-      this.isUnresolvedIdentifier: false,
-      this.hasPublishedDocs = false})
-      : _message = message,
-        _correction = correction;
+  @Deprecated('Use the default constructor')
+  const ErrorCode.temporary2({
+    String correction,
+    bool hasPublishedDocs = false,
+    bool isUnresolvedIdentifier = false,
+    @required String message,
+    @required String name,
+    @required String uniqueName,
+  }) : this(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          isUnresolvedIdentifier: isUnresolvedIdentifier,
+          message: message,
+          name: name,
+          uniqueName: uniqueName,
+        );
 
   /**
    * The template used to create the correction to be displayed for this error,
@@ -80,11 +97,6 @@ abstract class ErrorCode {
    * The type of the error.
    */
   ErrorType get type;
-
-  /**
-   * The unique name of this error code.
-   */
-  String get uniqueName => "$runtimeType.$name";
 
   /**
    * Return a URL that can be used to access documentation for diagnostics with

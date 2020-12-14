@@ -303,8 +303,11 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
     for (intptr_t i = 0; i < num_types; i++) {
       type_parameter ^= type_parameters.TypeAt(i);
       if (!type_parameter.IsFinalized()) {
-        type_parameter.set_index(type_parameter.index() + offset);
+        ASSERT(type_parameter.index() == i);
+        type_parameter.set_index(offset + i);
         type_parameter.SetIsFinalized();
+      } else {
+        ASSERT(type_parameter.index() == offset + i);
       }
       // The declaration of a type parameter is canonical.
       ASSERT(type_parameter.IsDeclaration());
@@ -821,8 +824,11 @@ void ClassFinalizer::FinalizeSignature(const Function& function,
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       if (!type_param.IsFinalized()) {
+        ASSERT(type_param.index() == i);
         type_param.set_index(num_parent_type_params + i);
         type_param.SetIsFinalized();
+      } else {
+        ASSERT(type_param.index() == num_parent_type_params + i);
       }
       // The declaration of a type parameter is canonical.
       ASSERT(type_param.IsDeclaration());
@@ -955,13 +961,6 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     FinalizeSignature(function);
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
       continue;
-    }
-    if (function.is_static()) {
-      if (function.IsRedirectingFactory()) {
-        Type& type = Type::Handle(zone, function.RedirectionType());
-        type ^= FinalizeType(type);
-        function.SetRedirectionType(type);
-      }
     }
   }
 }
@@ -1149,10 +1148,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 }
 
 ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(cls.is_finalized());
-  if (cls.is_allocate_finalized()) {
-    return Error::null();
-  }
+  ASSERT(!cls.is_allocate_finalized());
 
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
@@ -1201,7 +1199,10 @@ ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
 }
 
 ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(!cls.is_finalized());
+
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1502,7 +1503,7 @@ class CidRewriteVisitor : public ObjectVisitor {
       if (old_cid != new_cid) {
         // Don't touch objects that are unchanged. In particular, Instructions,
         // which are write-protected.
-        obj->ptr()->SetClassId(new_cid);
+        obj->ptr()->SetClassIdUnsynchronized(new_cid);
       }
     }
   }

@@ -126,7 +126,8 @@ class ElementFactory {
     constructor.isConst = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
-      List<ParameterElement> parameters = List<ParameterElement>(count);
+      List<ParameterElement> parameters =
+          List<ParameterElement>.filled(count, null);
       for (int i = 0; i < count; i++) {
         ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
         parameter.type = argumentTypes[i];
@@ -162,10 +163,10 @@ class ElementFactory {
     // Build the enum.
     //
     EnumElementImpl enumElement = EnumElementImpl(enumName, -1);
-    InterfaceTypeImpl enumType = enumElement.instantiate(
+    var enumType = enumElement.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
     //
     // Populate the fields.
     //
@@ -261,15 +262,6 @@ class ElementFactory {
     _objectElement = null;
   }
 
-  static FunctionTypeAliasElementImpl functionTypeAliasElement(String name,
-      {List<ParameterElement> parameters = const [], DartType returnType}) {
-    var element = FunctionTypeAliasElementImpl(name, -1);
-    element.function = GenericFunctionTypeElementImpl.forOffset(-1)
-      ..parameters = parameters
-      ..returnType = returnType ?? DynamicTypeImpl.instance;
-    return element;
-  }
-
   static PropertyAccessorElementImpl getterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = FieldElementImpl(name, -1);
@@ -329,7 +321,8 @@ class ElementFactory {
       method.parameters = const <ParameterElement>[];
     } else {
       int count = argumentTypes.length;
-      List<ParameterElement> parameters = List<ParameterElement>(count);
+      List<ParameterElement> parameters =
+          List<ParameterElement>.filled(count, null);
       for (int i = 0; i < count; i++) {
         ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
         parameter.type = argumentTypes[i];
@@ -462,11 +455,12 @@ class ElementFactory {
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
           ConstTopLevelVariableElementImpl(name, -1);
+      var typeElement = type.element as ClassElement;
       InstanceCreationExpression initializer =
           AstTestFactory.instanceCreationExpression2(
-              Keyword.CONST, AstTestFactory.typeName(type.element));
+              Keyword.CONST, AstTestFactory.typeName(typeElement));
       if (type is InterfaceType) {
-        ConstructorElement element = type.element.unnamedConstructor;
+        ConstructorElement element = typeElement.unnamedConstructor;
         initializer.constructorName.staticElement = element;
       }
       constant.constantInitializer = initializer;
@@ -495,7 +489,7 @@ class ElementFactory {
       return const <TypeParameterElement>[];
     }
     List<TypeParameterElementImpl> typeParameters =
-        List<TypeParameterElementImpl>(count);
+        List<TypeParameterElementImpl>.filled(count, null);
     for (int i = 0; i < count; i++) {
       typeParameters[i] = typeParameterWithType(names[i]);
     }

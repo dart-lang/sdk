@@ -217,47 +217,33 @@ class SuggestionBuilder {
       }
     } else {
       var type = _getPropertyAccessorType(accessor);
-      int relevance;
-      if (request.useNewRelevance) {
-        var featureComputer = request.featureComputer;
-        var contextType =
-            featureComputer.contextTypeFeature(request.contextType, type);
-        var elementKind = _computeElementKind(accessor);
-        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-        var isConstant = request.inConstantContext
-            ? featureComputer.isConstantFeature(accessor)
-            : -1.0;
-        var startsWithDollar =
-            featureComputer.startsWithDollarFeature(accessor.name);
-        var superMatches = featureComputer.superMatchesFeature(
-            _containingMemberName, accessor.name);
-        relevance = _computeMemberRelevance(
-            contextType: contextType,
-            elementKind: elementKind,
-            hasDeprecated: hasDeprecated,
-            inheritanceDistance: inheritanceDistance,
-            isConstant: isConstant,
-            startsWithDollar: startsWithDollar,
-            superMatches: superMatches);
-        listener?.computedFeatures(
-            contextType: contextType,
-            elementKind: elementKind,
-            hasDeprecated: hasDeprecated,
-            inheritanceDistance: inheritanceDistance,
-            startsWithDollar: startsWithDollar,
-            superMatches: superMatches);
-      } else {
-        relevance = accessor.hasOrInheritsDeprecated
-            ? DART_RELEVANCE_LOW
-            : _computeOldMemberRelevance(accessor);
-        if (request.opType.includeReturnValueSuggestions) {
-          relevance =
-              request.opType.returnValueSuggestionsFilter(type, relevance);
-        }
-        if (relevance == null) {
-          return;
-        }
-      }
+      var featureComputer = request.featureComputer;
+      var contextType =
+          featureComputer.contextTypeFeature(request.contextType, type);
+      var elementKind = _computeElementKind(accessor);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+      var isConstant = request.inConstantContext
+          ? featureComputer.isConstantFeature(accessor)
+          : -1.0;
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(accessor.name);
+      var superMatches = featureComputer.superMatchesFeature(
+          _containingMemberName, accessor.name);
+      var relevance = _computeMemberRelevance(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: inheritanceDistance,
+          isConstant: isConstant,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
+      listener?.computedFeatures(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: inheritanceDistance,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
       _add(_createSuggestion(accessor, relevance: relevance));
     }
   }
@@ -265,28 +251,17 @@ class SuggestionBuilder {
   /// Add a suggestion for a catch [parameter].
   void suggestCatchParameter(LocalVariableElement parameter) {
     var variableType = parameter.type;
-    int relevance;
-    if (request.useNewRelevance) {
-      var contextType = request.featureComputer
-          .contextTypeFeature(request.contextType, variableType);
-      var elementKind = _computeElementKind(parameter);
-      var isConstant = request.inConstantContext
-          ? request.featureComputer.isConstantFeature(parameter)
-          : -1.0;
-      relevance = toRelevance(
-          weightedAverage(
-              [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
-          800);
-      listener?.computedFeatures(contextType: contextType);
-    } else {
-      relevance = _computeOldMemberRelevance(parameter);
-      relevance =
-          request.opType.returnValueSuggestionsFilter(variableType, relevance);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    var contextType = request.featureComputer
+        .contextTypeFeature(request.contextType, variableType);
+    var elementKind = _computeElementKind(parameter);
+    var isConstant = request.inConstantContext
+        ? request.featureComputer.isConstantFeature(parameter)
+        : -1.0;
+    var relevance = toRelevance(
+        weightedAverage(
+            [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
+        800);
+    listener?.computedFeatures(contextType: contextType);
     _add(_createSuggestion(parameter,
         elementKind: protocol.ElementKind.PARAMETER, relevance: relevance));
   }
@@ -297,20 +272,8 @@ class SuggestionBuilder {
   void suggestClass(ClassElement classElement,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
-    int relevance;
-    if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(classElement,
-          elementType: _instantiateClassElement(classElement));
-    } else if (classElement.hasOrInheritsDeprecated) {
-      relevance = DART_RELEVANCE_LOW;
-    } else {
-      relevance = request.opType.typeNameSuggestionsFilter(
-          _instantiateClassElement(classElement), DART_RELEVANCE_DEFAULT);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    var relevance = _computeTopLevelRelevance(classElement,
+        elementType: _instantiateClassElement(classElement));
     _add(_createSuggestion(classElement,
         kind: kind, prefix: prefix, relevance: relevance));
   }
@@ -345,7 +308,7 @@ class SuggestionBuilder {
     }) {
       return CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
-        request.useNewRelevance ? Relevance.closure : DART_RELEVANCE_HIGH,
+        Relevance.closure,
         completion,
         selectionOffset,
         0,
@@ -398,22 +361,9 @@ class SuggestionBuilder {
       return null;
     }
 
-    int relevance;
     var returnType = _instantiateClassElement(enclosingClass);
-    if (request.useNewRelevance) {
-      relevance =
-          _computeTopLevelRelevance(constructor, elementType: returnType);
-    } else {
-      relevance = constructor.hasOrInheritsDeprecated
-          ? DART_RELEVANCE_LOW
-          : DART_RELEVANCE_DEFAULT;
-      relevance =
-          request.opType.returnValueSuggestionsFilter(returnType, relevance);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    var relevance =
+        _computeTopLevelRelevance(constructor, elementType: returnType);
     _add(_createSuggestion(constructor,
         completion: completion,
         kind: kind,
@@ -451,21 +401,8 @@ class SuggestionBuilder {
     var enumElement = constant.enclosingElement;
     var enumName = enumElement.name;
     var completion = '$enumName.$constantName';
-
-    int relevance;
-    if (request.useNewRelevance) {
-      relevance =
-          _computeTopLevelRelevance(constant, elementType: constant.type);
-    } else if (constant.hasOrInheritsDeprecated) {
-      relevance = DART_RELEVANCE_LOW;
-    } else {
-      relevance = request.opType.returnValueSuggestionsFilter(
-          _instantiateClassElement(enumElement), DART_RELEVANCE_DEFAULT);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    var relevance =
+        _computeTopLevelRelevance(constant, elementType: constant.type);
     _add(_createSuggestion(constant,
         completion: completion, prefix: prefix, relevance: relevance));
   }
@@ -476,16 +413,8 @@ class SuggestionBuilder {
   void suggestExtension(ExtensionElement extension,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
-    int relevance;
-    if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(extension,
-          elementType: extension.extendedType);
-    } else {
-      relevance = extension.hasOrInheritsDeprecated
-          ? DART_RELEVANCE_LOW
-          : DART_RELEVANCE_DEFAULT;
-    }
-
+    var relevance = _computeTopLevelRelevance(extension,
+        elementType: extension.extendedType);
     _add(_createSuggestion(extension,
         kind: kind, prefix: prefix, relevance: relevance));
   }
@@ -497,45 +426,32 @@ class SuggestionBuilder {
   /// `-1.0` if the field is a static field).
   void suggestField(FieldElement field,
       {@required double inheritanceDistance}) {
-    int relevance;
-    if (request.useNewRelevance) {
-      var featureComputer = request.featureComputer;
-      var contextType =
-          featureComputer.contextTypeFeature(request.contextType, field.type);
-      var elementKind = _computeElementKind(field);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
-      var isConstant = request.inConstantContext
-          ? featureComputer.isConstantFeature(field)
-          : -1.0;
-      var startsWithDollar =
-          featureComputer.startsWithDollarFeature(field.name);
-      var superMatches = featureComputer.superMatchesFeature(
-          _containingMemberName, field.name);
-      relevance = _computeMemberRelevance(
-          contextType: contextType,
-          elementKind: elementKind,
-          hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
-          isConstant: isConstant,
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches);
-      listener?.computedFeatures(
-          contextType: contextType,
-          elementKind: elementKind,
-          hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches);
-    } else {
-      relevance = _computeOldMemberRelevance(field);
-      if (request.opType.includeReturnValueSuggestions) {
-        relevance =
-            request.opType.returnValueSuggestionsFilter(field.type, relevance);
-      }
-      if (relevance == null) {
-        return;
-      }
-    }
+    var featureComputer = request.featureComputer;
+    var contextType =
+        featureComputer.contextTypeFeature(request.contextType, field.type);
+    var elementKind = _computeElementKind(field);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
+    var isConstant = request.inConstantContext
+        ? featureComputer.isConstantFeature(field)
+        : -1.0;
+    var startsWithDollar = featureComputer.startsWithDollarFeature(field.name);
+    var superMatches =
+        featureComputer.superMatchesFeature(_containingMemberName, field.name);
+    var relevance = _computeMemberRelevance(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        inheritanceDistance: inheritanceDistance,
+        isConstant: isConstant,
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches);
+    listener?.computedFeatures(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        inheritanceDistance: inheritanceDistance,
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches);
     _add(_createSuggestion(field, relevance: relevance));
   }
 
@@ -543,11 +459,7 @@ class SuggestionBuilder {
   void suggestFieldFormalParameter(FieldElement field) {
     // TODO(brianwilkerson) Add a parameter (`bool includePrefix`) indicating
     //  whether to include the `this.` prefix in the completion.
-    var relevance = request.useNewRelevance
-        ? Relevance.fieldFormalParameter
-        : DART_RELEVANCE_LOCAL_FIELD;
-
-    _add(_createSuggestion(field, relevance: relevance));
+    _add(_createSuggestion(field, relevance: Relevance.fieldFormalParameter));
   }
 
   /// Add a suggestion for the `call` method defined on functions.
@@ -561,7 +473,7 @@ class SuggestionBuilder {
         returnType: 'void');
     _add(CompletionSuggestion(
       CompletionSuggestionKind.INVOCATION,
-      request.useNewRelevance ? Relevance.callFunction : DART_RELEVANCE_HIGH,
+      Relevance.callFunction,
       callString,
       callString.length,
       0,
@@ -583,32 +495,21 @@ class SuggestionBuilder {
   void suggestFunctionTypeAlias(FunctionTypeAliasElement functionTypeAlias,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
-    int relevance;
-    if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(functionTypeAlias,
-          defaultRelevance: 750,
-          elementType: _instantiateFunctionTypeAlias(functionTypeAlias));
-    } else if (functionTypeAlias.hasOrInheritsDeprecated) {
-      relevance = DART_RELEVANCE_LOW;
-    } else {
-      relevance = functionTypeAlias.library == request.libraryElement
-          ? DART_RELEVANCE_LOCAL_FUNCTION
-          : DART_RELEVANCE_DEFAULT;
-    }
+    var relevance = _computeTopLevelRelevance(functionTypeAlias,
+        defaultRelevance: 750,
+        elementType: _instantiateFunctionTypeAlias(functionTypeAlias));
     _add(_createSuggestion(functionTypeAlias,
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
   /// beginning of the keyword where the cursor will be left.
-  void suggestKeyword(String keyword, {int offset, @required int relevance}) {
-    if (request.useNewRelevance) {
-      // TODO(brianwilkerson) The default value should probably be a constant.
-      relevance = toRelevance(
-          request.featureComputer
-              .keywordFeature(keyword, request.opType.completionLocation),
-          800);
-    }
+  void suggestKeyword(String keyword, {int offset}) {
+    // TODO(brianwilkerson) The default value should probably be a constant.
+    var relevance = toRelevance(
+        request.featureComputer
+            .keywordFeature(keyword, request.opType.completionLocation),
+        800);
     _add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD, relevance,
         keyword, offset ?? keyword.length, 0, false, false));
   }
@@ -619,14 +520,8 @@ class SuggestionBuilder {
     // TODO(brianwilkerson) Figure out why we're excluding labels consisting of
     //  a single underscore.
     if (completion != null && completion.isNotEmpty && completion != '_') {
-      var suggestion = CompletionSuggestion(
-          CompletionSuggestionKind.IDENTIFIER,
-          request.useNewRelevance ? Relevance.label : DART_RELEVANCE_DEFAULT,
-          completion,
-          completion.length,
-          0,
-          false,
-          false);
+      var suggestion = CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
+          Relevance.label, completion, completion.length, 0, false, false);
       suggestion.element = createLocalElement(
           request.source, protocol.ElementKind.LABEL, label.label,
           returnType: NO_RETURN_TYPE);
@@ -637,49 +532,29 @@ class SuggestionBuilder {
   /// Add a suggestion for the `loadLibrary` [function] associated with a
   /// prefix.
   void suggestLoadLibraryFunction(FunctionElement function) {
-    int relevance;
-    if (request.useNewRelevance) {
-      // TODO(brianwilkerson) This might want to use the context type rather
-      //  than a fixed value.
-      relevance = Relevance.loadLibrary;
-    } else {
-      relevance = function.hasOrInheritsDeprecated
-          ? DART_RELEVANCE_LOW
-          : DART_RELEVANCE_DEFAULT;
-    }
-
+    // TODO(brianwilkerson) This might want to use the context type rather than
+    //  a fixed value.
+    var relevance = Relevance.loadLibrary;
     _add(_createSuggestion(function, relevance: relevance));
   }
 
   /// Add a suggestion for a local [variable].
   void suggestLocalVariable(LocalVariableElement variable) {
     var variableType = variable.type;
-    int relevance;
-    if (request.useNewRelevance) {
-      var contextType = request.featureComputer
-          .contextTypeFeature(request.contextType, variableType);
-      var elementKind = _computeElementKind(variable);
-      var isConstant = request.inConstantContext
-          ? request.featureComputer.isConstantFeature(variable)
-          : -1.0;
-      var localVariableDistance = request.featureComputer
-          .localVariableDistanceFeature(
-              request.target.containingNode, variable);
-      relevance = toRelevance(
-          weightedAverage(
-              [contextType, elementKind, isConstant, localVariableDistance],
-              [1.0, 1.0, 1.0, 1.0]),
-          800);
-      listener?.computedFeatures(contextType: contextType);
-    } else {
-      relevance = _computeOldMemberRelevance(variable);
-      relevance =
-          request.opType.returnValueSuggestionsFilter(variableType, relevance);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    var contextType = request.featureComputer
+        .contextTypeFeature(request.contextType, variableType);
+    var elementKind = _computeElementKind(variable);
+    var isConstant = request.inConstantContext
+        ? request.featureComputer.isConstantFeature(variable)
+        : -1.0;
+    var localVariableDistance = request.featureComputer
+        .localVariableDistanceFeature(request.target.containingNode, variable);
+    var relevance = toRelevance(
+        weightedAverage(
+            [contextType, elementKind, isConstant, localVariableDistance],
+            [1.0, 1.0, 1.0, 1.0]),
+        800);
+    listener?.computedFeatures(contextType: contextType);
     _add(_createSuggestion(variable, relevance: relevance));
   }
 
@@ -693,45 +568,32 @@ class SuggestionBuilder {
     // TODO(brianwilkerson) Refactor callers so that we're passing in the type
     //  of the target (assuming we don't already have that type available via
     //  the [request]) and compute the [inheritanceDistance] in this method.
-    int relevance;
-    if (request.useNewRelevance) {
-      var featureComputer = request.featureComputer;
-      var contextType = featureComputer.contextTypeFeature(
-          request.contextType, method.returnType);
-      var elementKind = _computeElementKind(method);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
-      var isConstant = request.inConstantContext
-          ? featureComputer.isConstantFeature(method)
-          : -1.0;
-      var startsWithDollar =
-          featureComputer.startsWithDollarFeature(method.name);
-      var superMatches = featureComputer.superMatchesFeature(
-          _containingMemberName, method.name);
-      relevance = _computeMemberRelevance(
-          contextType: contextType,
-          elementKind: elementKind,
-          hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
-          isConstant: isConstant,
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches);
-      listener?.computedFeatures(
-          contextType: contextType,
-          elementKind: elementKind,
-          hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches);
-    } else {
-      relevance = _computeOldMemberRelevance(method);
-      if (request.opType.includeReturnValueSuggestions) {
-        relevance = request.opType
-            .returnValueSuggestionsFilter(method.returnType, relevance);
-      }
-      if (relevance == null) {
-        return;
-      }
-    }
+    var featureComputer = request.featureComputer;
+    var contextType = featureComputer.contextTypeFeature(
+        request.contextType, method.returnType);
+    var elementKind = _computeElementKind(method);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
+    var isConstant = request.inConstantContext
+        ? featureComputer.isConstantFeature(method)
+        : -1.0;
+    var startsWithDollar = featureComputer.startsWithDollarFeature(method.name);
+    var superMatches =
+        featureComputer.superMatchesFeature(_containingMemberName, method.name);
+    var relevance = _computeMemberRelevance(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        inheritanceDistance: inheritanceDistance,
+        isConstant: isConstant,
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches);
+    listener?.computedFeatures(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        inheritanceDistance: inheritanceDistance,
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches);
 
     var suggestion =
         _createSuggestion(method, kind: kind, relevance: relevance);
@@ -769,14 +631,8 @@ class SuggestionBuilder {
   void suggestName(String name) {
     // TODO(brianwilkerson) Explore whether there are any features of the name
     //  that can be used to provide better relevance scores.
-    _add(CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER,
-        request.useNewRelevance ? 500 : DART_RELEVANCE_DEFAULT,
-        name,
-        name.length,
-        0,
-        false,
-        false));
+    _add(CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, 500, name,
+        name.length, 0, false, false));
   }
 
   /// Add a suggestion to add a named argument corresponding to the [parameter].
@@ -821,13 +677,9 @@ class SuggestionBuilder {
 
     int relevance;
     if (parameter.isRequiredNamed || parameter.hasRequired) {
-      relevance = request.useNewRelevance
-          ? Relevance.requiredNamedArgument
-          : DART_RELEVANCE_NAMED_PARAMETER_REQUIRED;
+      relevance = Relevance.requiredNamedArgument;
     } else {
-      relevance = request.useNewRelevance
-          ? Relevance.namedArgument
-          : DART_RELEVANCE_NAMED_PARAMETER;
+      relevance = Relevance.namedArgument;
     }
 
     var suggestion = CompletionSuggestion(
@@ -894,7 +746,7 @@ class SuggestionBuilder {
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     var suggestion = CompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
-        request.useNewRelevance ? Relevance.override : DART_RELEVANCE_HIGH,
+        Relevance.override,
         completion,
         selectionRange.offset - offsetDelta,
         selectionRange.length,
@@ -908,47 +760,30 @@ class SuggestionBuilder {
   /// Add a suggestion for a [parameter].
   void suggestParameter(ParameterElement parameter) {
     var variableType = parameter.type;
-    int relevance;
-    if (request.useNewRelevance) {
-      // TODO(brianwilkerson) Use the distance to the declaring function as
-      //  another feature.
-      var contextType = request.featureComputer
-          .contextTypeFeature(request.contextType, variableType);
-      var elementKind = _computeElementKind(parameter);
-      var isConstant = request.inConstantContext
-          ? request.featureComputer.isConstantFeature(parameter)
-          : -1.0;
-      relevance = toRelevance(
-          weightedAverage(
-              [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
-          800);
-      listener?.computedFeatures(contextType: contextType);
-    } else {
-      relevance = _computeOldMemberRelevance(parameter);
-      relevance =
-          request.opType.returnValueSuggestionsFilter(variableType, relevance);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    // TODO(brianwilkerson) Use the distance to the declaring function as
+    //  another feature.
+    var contextType = request.featureComputer
+        .contextTypeFeature(request.contextType, variableType);
+    var elementKind = _computeElementKind(parameter);
+    var isConstant = request.inConstantContext
+        ? request.featureComputer.isConstantFeature(parameter)
+        : -1.0;
+    var relevance = toRelevance(
+        weightedAverage(
+            [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
+        800);
+    listener?.computedFeatures(contextType: contextType);
     _add(_createSuggestion(parameter, relevance: relevance));
   }
 
   /// Add a suggestion for a [prefix] associated with a [library].
   void suggestPrefix(LibraryElement library, String prefix) {
-    int relevance;
-    if (request.useNewRelevance) {
-      var elementKind = _computeElementKind(library);
-      // TODO(brianwilkerson) If we are in a constant context it would be nice
-      //  to promote prefixes for libraries that define constants, but that
-      //  might be more work than it's worth.
-      relevance = toRelevance(elementKind, Relevance.prefix);
-      listener?.computedFeatures(elementKind: elementKind);
-    } else {
-      relevance =
-          library.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
-    }
+    var elementKind = _computeElementKind(library);
+    // TODO(brianwilkerson) If we are in a constant context it would be nice
+    //  to promote prefixes for libraries that define constants, but that
+    //  might be more work than it's worth.
+    var relevance = toRelevance(elementKind, Relevance.prefix);
+    listener?.computedFeatures(elementKind: elementKind);
     _add(_createSuggestion(library,
         completion: prefix,
         kind: CompletionSuggestionKind.IDENTIFIER,
@@ -961,23 +796,8 @@ class SuggestionBuilder {
   void suggestTopLevelFunction(FunctionElement function,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
-    int relevance;
-    if (request.useNewRelevance) {
-      relevance =
-          _computeTopLevelRelevance(function, elementType: function.returnType);
-    } else if (function.hasOrInheritsDeprecated) {
-      relevance = DART_RELEVANCE_LOW;
-    } else {
-      relevance = function.library == request.libraryElement
-          ? DART_RELEVANCE_LOCAL_FUNCTION
-          : DART_RELEVANCE_DEFAULT;
-      relevance =
-          request.opType.returnValueSuggestionsFilter(function.type, relevance);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    var relevance =
+        _computeTopLevelRelevance(function, elementType: function.returnType);
     _add(_createSuggestion(function,
         kind: kind, prefix: prefix, relevance: relevance));
   }
@@ -989,7 +809,10 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
-    assert(accessor.enclosingElement is CompilationUnitElement);
+    assert(
+        accessor.enclosingElement is CompilationUnitElement,
+        'Enclosing element of ${accessor.runtimeType} is '
+        '${accessor.enclosingElement.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
@@ -1002,43 +825,29 @@ class SuggestionBuilder {
       }
     } else {
       var type = _getPropertyAccessorType(accessor);
-      int relevance;
-      if (request.useNewRelevance) {
-        var featureComputer = request.featureComputer;
-        var contextType =
-            featureComputer.contextTypeFeature(request.contextType, type);
-        var elementKind = _computeElementKind(accessor);
-        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-        var isConstant = request.inConstantContext
-            ? featureComputer.isConstantFeature(accessor)
-            : -1.0;
-        var startsWithDollar =
-            featureComputer.startsWithDollarFeature(accessor.name);
-        relevance = _computeMemberRelevance(
-            contextType: contextType,
-            elementKind: elementKind,
-            hasDeprecated: hasDeprecated,
-            inheritanceDistance: -1.0,
-            isConstant: isConstant,
-            startsWithDollar: startsWithDollar,
-            superMatches: -1.0);
-        listener?.computedFeatures(
-            contextType: contextType,
-            elementKind: elementKind,
-            hasDeprecated: hasDeprecated,
-            startsWithDollar: startsWithDollar);
-      } else {
-        relevance = accessor.hasOrInheritsDeprecated
-            ? DART_RELEVANCE_LOW
-            : _computeOldMemberRelevance(accessor);
-        if (request.opType.includeReturnValueSuggestions) {
-          relevance =
-              request.opType.returnValueSuggestionsFilter(type, relevance);
-        }
-        if (relevance == null) {
-          return;
-        }
-      }
+      var featureComputer = request.featureComputer;
+      var contextType =
+          featureComputer.contextTypeFeature(request.contextType, type);
+      var elementKind = _computeElementKind(accessor);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+      var isConstant = request.inConstantContext
+          ? featureComputer.isConstantFeature(accessor)
+          : -1.0;
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(accessor.name);
+      var relevance = _computeMemberRelevance(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: -1.0,
+          isConstant: isConstant,
+          startsWithDollar: startsWithDollar,
+          superMatches: -1.0);
+      listener?.computedFeatures(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          startsWithDollar: startsWithDollar);
       _add(_createSuggestion(accessor, prefix: prefix, relevance: relevance));
     }
   }
@@ -1050,55 +859,30 @@ class SuggestionBuilder {
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
     assert(variable.enclosingElement is CompilationUnitElement);
-    int relevance;
-    if (request.useNewRelevance) {
-      relevance =
-          _computeTopLevelRelevance(variable, elementType: variable.type);
-    } else {
-      var type = variable.type;
-      relevance = variable.hasOrInheritsDeprecated
-          ? DART_RELEVANCE_LOW
-          : _computeOldMemberRelevance(variable);
-      relevance = request.opType.returnValueSuggestionsFilter(type, relevance);
-      if (relevance == null) {
-        return;
-      }
-    }
-
+    var relevance =
+        _computeTopLevelRelevance(variable, elementType: variable.type);
     _add(_createSuggestion(variable,
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a type [parameter].
   void suggestTypeParameter(TypeParameterElement parameter) {
-    int relevance;
-    if (request.useNewRelevance) {
-      var elementKind = _computeElementKind(parameter);
-      var isConstant = request.inConstantContext
-          ? request.featureComputer.isConstantFeature(parameter)
-          : -1.0;
-      relevance = toRelevance(
-          weightedAverage([elementKind, isConstant], [1.0, 1.0]),
-          Relevance.typeParameter);
-      listener?.computedFeatures(elementKind: elementKind);
-    } else {
-      relevance = _computeOldMemberRelevance(parameter);
-    }
-
+    var elementKind = _computeElementKind(parameter);
+    var isConstant = request.inConstantContext
+        ? request.featureComputer.isConstantFeature(parameter)
+        : -1.0;
+    var relevance = toRelevance(
+        weightedAverage([elementKind, isConstant], [1.0, 1.0]),
+        Relevance.typeParameter);
+    listener?.computedFeatures(elementKind: elementKind);
     _add(_createSuggestion(parameter,
         kind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance));
   }
 
   /// Add a suggestion to use the [uri] in an import, export, or part directive.
   void suggestUri(String uri) {
-    int relevance;
-    if (request.useNewRelevance) {
-      relevance =
-          uri == 'dart:core' ? Relevance.importDartCore : Relevance.import;
-    } else {
-      relevance =
-          uri == 'dart:core' ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
-    }
+    var relevance =
+        uri == 'dart:core' ? Relevance.importDartCore : Relevance.import;
     _add(CompletionSuggestion(CompletionSuggestionKind.IMPORT, relevance, uri,
         uri.length, 0, false, false));
   }
@@ -1173,46 +957,6 @@ class SuggestionBuilder {
       1.00, // superMatches
     ]);
     return toRelevance(score, Relevance.member);
-  }
-
-  /// Compute the old relevance score for a member.
-  int _computeOldMemberRelevance(Element member) {
-    if (member.hasOrInheritsDeprecated) {
-      return DART_RELEVANCE_LOW;
-    } else if (member.name == _containingMemberName) {
-      // Boost the relevance of a super expression calling a method of the
-      // same name as the containing method.
-      return DART_RELEVANCE_HIGH;
-    }
-    var identifier = member.displayName;
-    if (identifier != null && identifier.startsWith(r'$')) {
-      // Decrease relevance of suggestions starting with $
-      // https://github.com/dart-lang/sdk/issues/27303
-      return DART_RELEVANCE_LOW;
-    }
-    if (member is LocalVariableElement) {
-      return DART_RELEVANCE_LOCAL_VARIABLE;
-    }
-    if (!member.name.startsWith('_') &&
-        member.library == request.libraryElement) {
-      // Locally declared elements sometimes have a special relevance.
-      if (member is PropertyAccessorElement) {
-        return DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else if (member is FieldElement) {
-        return DART_RELEVANCE_LOCAL_FIELD;
-      } else if (member is FunctionElement) {
-        return DART_RELEVANCE_LOCAL_FUNCTION;
-      } else if (member is MethodElement) {
-        return DART_RELEVANCE_LOCAL_METHOD;
-      } else if (member is ParameterElement) {
-        return DART_RELEVANCE_PARAMETER;
-      } else if (member is TopLevelVariableElement) {
-        return DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
-      } else if (member is TypeParameterElement) {
-        return DART_RELEVANCE_TYPE_PARAMETER;
-      }
-    }
-    return DART_RELEVANCE_DEFAULT;
   }
 
   /// Return the relevance score for a top-level [element].

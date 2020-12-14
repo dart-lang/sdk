@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--causal-async-stacks --no-lazy-async-stacks
+// VMOptions=--lazy-async-stacks
 
 import 'dart:async';
 import 'dart:developer';
@@ -13,31 +13,29 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-bar(int depth) {
+bar(int depth) async {
   if (depth == 21) {
     debugger();
     return;
   }
-  foo(depth + 1);
+  await foo(depth + 1);
 }
 
-foo(int depth) {
-  bar(depth + 1);
+foo(int depth) async {
+  if (depth == 10) {
+    // Yield once to force the rest to run async.
+    await 0;
+  }
+  await bar(depth + 1);
 }
 
-testMain() {
-  foo(0);
+testMain() async {
+  await foo(0);
 }
 
-verifyStack(List frames, int numFrames) {
-  for (int i = 0; i < frames.length && i < numFrames; ++i) {
-    final frame = frames[i];
-    if (i < 22) {
-      expect(frame.function.qualifiedName, (i % 2) == 0 ? 'bar' : 'foo');
-    } else if (i == 22) {
-      expect(frame.function.qualifiedName, 'testMain');
-      break;
-    }
+verifyStack(List frames, List<String> expectedNames) {
+  for (int i = 0; i < frames.length && i < expectedNames.length; ++i) {
+    expect(frames[i].function.qualifiedName, expectedNames[i]);
   }
 }
 
@@ -57,10 +55,14 @@ var tests = <IsolateTest>[
     var awaiterFrames = stack['awaiterFrames'];
     expect(frames.length, greaterThanOrEqualTo(20));
     expect(asyncFrames.length, greaterThan(frames.length));
-    expect(awaiterFrames.length, greaterThan(frames.length));
+    expect(awaiterFrames.length, 13);
     expect(stack['truncated'], false);
-
-    verifyStack(frames, frames.length);
+    verifyStack(frames, [
+      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      '_RootZone.runUnary', // Internal async. mech. ..
+    ]);
 
     final fullStackLength = frames.length;
 
@@ -75,7 +77,12 @@ var tests = <IsolateTest>[
     expect(asyncFrames.length, fullStackLength + 1);
     expect(asyncFrames.length, fullStackLength + 1);
     expect(stack['truncated'], true);
-    verifyStack(frames, fullStackLength);
+    verifyStack(frames, [
+      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      '_RootZone.runUnary', // Internal async. mech. ..
+    ]);
 
     // Try a limit < actual stack depth and expect to get a stack of depth
     // 'limit'.
@@ -88,7 +95,18 @@ var tests = <IsolateTest>[
     expect(asyncFrames.length, 10);
     expect(awaiterFrames.length, 10);
     expect(stack['truncated'], true);
-    verifyStack(frames, 10);
+    verifyStack(frames, [
+      'bar.async_op',
+      'foo.async_op',
+      'bar.async_op',
+      'foo.async_op',
+      'bar.async_op',
+      'foo.async_op',
+      'bar.async_op',
+      'foo.async_op',
+      'bar.async_op',
+      'foo.async_op',
+    ]);
   },
 // Invalid limit
   (Isolate isolate) async {

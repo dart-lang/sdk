@@ -4,7 +4,6 @@
 # found in the LICENSE file.
 
 import argparse
-import multiprocessing
 import os
 import shutil
 import subprocess
@@ -471,12 +470,6 @@ def AddCommonConfigurationArgs(parser):
 
 def AddOtherArgs(parser):
     """Adds miscellaneous arguments to the parser."""
-    parser.add_argument('--workers',
-                        '-w',
-                        type=int,
-                        help='Number of simultaneous GN invocations',
-                        dest='workers',
-                        default=multiprocessing.cpu_count())
     parser.add_argument("-v",
                         "--verbose",
                         help='Verbose output.',
@@ -504,18 +497,6 @@ def parse_args(args):
         parser.print_help()
         return None
     return options
-
-
-# Run the command, if it succeeds returns 0, if it fails, returns the commands
-# output as a string.
-def RunCommand(command):
-    try:
-        subprocess.check_output(
-            command, cwd=DART_ROOT, stderr=subprocess.STDOUT)
-        return 0
-    except subprocess.CalledProcessError as e:
-        return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
-                e.output)
 
 
 def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
@@ -551,24 +532,43 @@ def RunGnOnConfiguredConfigurations(args):
                     if args.verbose:
                         print("gn gen --check in %s" % out_dir)
 
-    pool = multiprocessing.Pool(args.workers)
-    results = pool.map(RunCommand, commands, chunksize=1)
-    for r in results:
-        if r != 0:
-            print(r.strip())
+    active_commands = []
+
+    def cleanup(command):
+        print("Command failed: " + ' '.join(command))
+        for (_, process) in active_commands:
+            process.terminate()
+
+    for command in commands:
+        try:
+            process = subprocess.Popen(command, cwd=DART_ROOT)
+            active_commands.append([command, process])
+        except Exception as e:
+            print('Error: %s' % e)
+            cleanup(command)
             return 1
+    while active_commands:
+        time.sleep(0.1)
+        for active_command in active_commands:
+            (command, process) = active_command
+            if process.poll() is not None:
+                active_commands.remove(active_command)
+                if process.returncode != 0:
+                    cleanup(command)
+                    return 1
+    return 0
 
 
 def Main(argv):
     starttime = time.time()
     args = parse_args(argv)
 
-    RunGnOnConfiguredConfigurations(args)
+    result = RunGnOnConfiguredConfigurations(args)
 
     endtime = time.time()
     if args.verbose:
         print("GN Time: %.3f seconds" % (endtime - starttime))
-    return 0
+    return result
 
 
 if __name__ == '__main__':

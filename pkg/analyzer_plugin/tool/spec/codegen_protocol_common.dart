@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart' as path;
 
 import 'api.dart';
@@ -10,7 +10,16 @@ import 'codegen_dart_protocol.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-GeneratedFile target(bool responseRequiresRequestTime) =>
+GeneratedFile clientTarget(bool responseRequiresRequestTime) => GeneratedFile(
+        '../analysis_server_client/lib/src/protocol/protocol_common.dart',
+        (String pkgPath) async {
+      var visitor = CodegenCommonVisitor(
+          path.basename(pkgPath), responseRequiresRequestTime, readApi(pkgPath),
+          forClient: true);
+      return visitor.collectCode(visitor.visitApi);
+    });
+
+GeneratedFile pluginTarget(bool responseRequiresRequestTime) =>
     GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) async {
       var visitor = CodegenCommonVisitor(path.basename(pkgPath),
           responseRequiresRequestTime, readApi(pkgPath));
@@ -20,21 +29,34 @@ GeneratedFile target(bool responseRequiresRequestTime) =>
 /// A visitor that produces Dart code defining the common types associated with
 /// the API.
 class CodegenCommonVisitor extends CodegenProtocolVisitor {
+  final bool forClient;
+
   /// Initialize a newly created visitor to generate code in the package with
   /// the given [packageName] corresponding to the types in the given [api] that
   /// are common to multiple protocols.
   CodegenCommonVisitor(
-      String packageName, bool responseRequiresRequestTime, Api api)
+      String packageName, bool responseRequiresRequestTime, Api api,
+      {this.forClient = false})
       : super(packageName, responseRequiresRequestTime, api);
 
   @override
   void emitImports() {
     writeln("import 'dart:convert' hide JsonDecoder;");
     writeln();
-    writeln("import 'package:analyzer/src/generated/utilities_general.dart';");
-    writeln("import 'package:$packageName/protocol/protocol.dart';");
-    writeln(
-        "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+    if (forClient) {
+      writeln(
+          "import 'package:analysis_server_client/src/protocol/protocol_util.dart';");
+      writeln(
+          "import 'package:analysis_server_client/src/protocol/protocol_base.dart';");
+      writeln(
+          "import 'package:analysis_server_client/src/protocol/protocol_internal.dart';");
+    } else {
+      writeln(
+          "import 'package:analyzer/src/generated/utilities_general.dart';");
+      writeln("import 'package:$packageName/protocol/protocol.dart';");
+      writeln(
+          "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+    }
   }
 
   @override

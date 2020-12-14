@@ -11,8 +11,8 @@ import '../target/changed_structure_notifier.dart';
 
 // Parameter name used to track were widget constructor calls were made from.
 //
-// The parameter name contains a randomly generated hex string to avoid collision
-// with user generated parameters.
+// The parameter name contains a randomly generated hex string to avoid
+// collision with user generated parameters.
 const String _creationLocationParameterName =
     r'$creationLocationd_0dea112b090073317d4';
 
@@ -381,6 +381,9 @@ class WidgetCreatorTracker {
         isFinal: true,
         getterReference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
+            ?.reference,
+        setterReference: clazz.reference.canonicalName
+            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
     clazz.addField(locationField);
 
@@ -433,11 +436,12 @@ class WidgetCreatorTracker {
         // arguments but it is possible users could add classes with optional
         // positional arguments.
         //
-        // constructor.initializers.add(new AssertInitializer(new AssertStatement(
-        //   new IsExpression(
-        //       new VariableGet(variable), _locationClass.thisType),
-        //   conditionStartOffset: constructor.fileOffset,
-        //   conditionEndOffset: constructor.fileOffset,
+        // constructor.initializers.add(new AssertInitializer(
+        //   new AssertStatement(
+        //     new IsExpression(
+        //         new VariableGet(variable), _locationClass.thisType),
+        //     conditionStartOffset: constructor.fileOffset,
+        //     conditionEndOffset: constructor.fileOffset,
         // )));
       }
     }
@@ -569,7 +573,8 @@ class WidgetCreatorTracker {
           initializer: new NullLiteral());
       if (_hasNamedParameter(
           constructor.function, _creationLocationParameterName)) {
-        // Constructor was already rewritten. TODO(jacobr): is this case actually hit?
+        // Constructor was already rewritten.
+        // TODO(jacobr): is this case actually hit?
         return;
       }
       if (!_maybeAddNamedParameter(constructor.function, variable)) {

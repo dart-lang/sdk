@@ -605,8 +605,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
     _variablesInfo = new _VariablesInfoCollector(member);
-    _variableValues = new List<TypeExpr>(_variablesInfo.numVariables);
-    _variableCells = new List<Join>(_variablesInfo.numVariables);
+    _variableValues =
+        new List<TypeExpr>.filled(_variablesInfo.numVariables, null);
+    _variableCells = new List<Join>.filled(_variablesInfo.numVariables, null);
     _variableVersions = new List<int>.filled(_variablesInfo.numVariables, 0);
     _variableValuesAfterLabeledStatements = null;
     _joinsAtSwitchCases = null;
@@ -943,7 +944,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       new List<TypeExpr>.from(values);
 
   List<TypeExpr> _makeEmptyVariableValues() {
-    final values = new List<TypeExpr>(_variablesInfo.numVariables);
+    final values = new List<TypeExpr>.filled(_variablesInfo.numVariables, null);
     for (int i = 0; i < values.length; ++i) {
       if (_variableCells[i] != null) {
         values[i] = _variableValues[i];
@@ -1008,7 +1009,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   List<Join> _insertJoinsForModifiedVariables(TreeNode node, bool isTry) {
-    final List<Join> joins = new List<Join>(_variablesInfo.numVariables);
+    final List<Join> joins =
+        new List<Join>.filled(_variablesInfo.numVariables, null);
     for (var i in _variablesInfo.getModifiedVariables(node)) {
       if (_variableCells[i] != null) {
         assert(_variableCells[i] == _variableValues[i]);
@@ -2198,7 +2200,8 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     final substitution = Substitution.fromPairs(klass.typeParameters, typeArgs);
     final flattenedTypeArgs =
         genericInterfacesInfo.flattenedTypeArgumentsFor(klass);
-    final flattenedTypeExprs = new List<TypeExpr>(flattenedTypeArgs.length);
+    final flattenedTypeExprs =
+        new List<TypeExpr>.filled(flattenedTypeArgs.length, null);
 
     bool createConcreteType = true;
     bool allUnknown = true;
@@ -2269,7 +2272,8 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
         type.classNode.typeParameters, type.typeArguments);
     final flattenedTypeArgs =
         genericInterfacesInfo.flattenedTypeArgumentsFor(type.classNode);
-    final flattenedTypeExprs = new List<TypeExpr>(flattenedTypeArgs.length);
+    final flattenedTypeExprs =
+        new List<TypeExpr>.filled(flattenedTypeArgs.length, null);
 
     bool createRuntimeType = true;
     for (var i = 0; i < flattenedTypeArgs.length; ++i) {

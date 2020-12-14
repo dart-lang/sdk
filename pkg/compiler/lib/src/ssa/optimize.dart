@@ -72,8 +72,6 @@ class SsaOptimizerTask extends CompilerTask {
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
-    bool trustPrimitives = _options.trustPrimitives;
-    Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
 
@@ -114,7 +112,6 @@ class SsaOptimizerTask extends CompilerTask {
             typeRecipeDomain,
             registry,
             log),
-        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaInstructionSimplifier(
             globalInferenceResults,
             _options,
@@ -123,7 +120,6 @@ class SsaOptimizerTask extends CompilerTask {
             typeRecipeDomain,
             registry,
             log),
-        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         // Run a dead code eliminator before LICM because dead
@@ -155,7 +151,6 @@ class SsaOptimizerTask extends CompilerTask {
             typeRecipeDomain,
             registry,
             log),
-        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
 
@@ -184,7 +179,6 @@ class SsaOptimizerTask extends CompilerTask {
               typeRecipeDomain,
               registry,
               log),
-          new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
@@ -676,15 +670,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (selector.isCall || selector.isOperator) {
       FunctionEntity target;
       if (input.isExtendableArray(_abstractValueDomain).isDefinitelyTrue) {
-        if (applies(commonElements.jsArrayRemoveLast)) {
-          target = commonElements.jsArrayRemoveLast;
-        } else if (applies(commonElements.jsArrayAdd)) {
-          // The codegen special cases array calls, but does not
-          // inline argument type checks.
-          if (!_closedWorld.annotationsData
+        if (applies(commonElements.jsArrayAdd)) {
+          // Codegen special cases array calls to `Array.push`, but does not
+          // inline argument type checks. We lower if the check always passes
+          // (due to invariance or being a top-type), or if the check is not
+          // emitted.
+          if (node.isInvariant ||
+              input is HLiteralList ||
+              !_closedWorld.annotationsData
                   .getParameterCheckPolicy(commonElements.jsArrayAdd)
-                  .isEmitted ||
-              input is HLiteralList) {
+                  .isEmitted) {
             target = commonElements.jsArrayAdd;
           }
         }
@@ -715,6 +710,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // bounds check on removeLast). Once we start inlining, the
         // bounds check will become explicit, so we won't need this
         // optimization.
+        // TODO(sra): Fix comment - SsaCheckInserter is deleted.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
             node.selector,
             node.receiverType,
@@ -2285,99 +2281,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 }
 
-class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
-  final Set<HInstruction> boundsChecked;
-  final bool trustPrimitives;
-  final JClosedWorld closedWorld;
-  @override
-  final String name = "SsaCheckInserter";
-  HGraph graph;
-
-  SsaCheckInserter(this.trustPrimitives, this.closedWorld, this.boundsChecked);
-
-  AbstractValueDomain get _abstractValueDomain =>
-      closedWorld.abstractValueDomain;
-
-  @override
-  void visitGraph(HGraph graph) {
-    this.graph = graph;
-
-    // In --trust-primitives mode we don't add bounds checks.  This is better
-    // than trying to remove them later as the limit expression would become
-    // dead and require DCE.
-    if (trustPrimitives) return;
-
-    visitDominatorTree(graph);
-  }
-
-  @override
-  void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
-    while (instruction != null) {
-      HInstruction next = instruction.next;
-      instruction = instruction.accept(this);
-      instruction = next;
-    }
-  }
-
-  HBoundsCheck insertBoundsCheck(
-      HInstruction indexNode, HInstruction array, HInstruction indexArgument) {
-    HGetLength length = new HGetLength(
-        array, closedWorld.abstractValueDomain.positiveIntType,
-        isAssignable: !isFixedLength(array.instructionType, closedWorld));
-    indexNode.block.addBefore(indexNode, length);
-
-    AbstractValue type =
-        indexArgument.isPositiveInteger(_abstractValueDomain).isDefinitelyTrue
-            ? indexArgument.instructionType
-            : closedWorld.abstractValueDomain.positiveIntType;
-    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type)
-      ..sourceInformation = indexNode.sourceInformation;
-    indexNode.block.addBefore(indexNode, check);
-    // If the index input to the bounds check was not known to be an integer
-    // then we replace its uses with the bounds check, which is known to be an
-    // integer.  However, if the input was already an integer we don't do this
-    // because putting in a check instruction might obscure the real nature of
-    // the index eg. if it is a constant.  The range information from the
-    // BoundsCheck instruction is attached to the input directly by
-    // visitBoundsCheck in the SsaValueRangeAnalyzer.
-    if (indexArgument.isInteger(_abstractValueDomain).isPotentiallyFalse) {
-      indexArgument.replaceAllUsersDominatedBy(indexNode, check);
-    }
-    boundsChecked.add(indexNode);
-    return check;
-  }
-
-  @override
-  void visitIndex(HIndex node) {
-    if (boundsChecked.contains(node)) return;
-    HInstruction index = node.index;
-    index = insertBoundsCheck(node, node.receiver, index);
-  }
-
-  @override
-  void visitIndexAssign(HIndexAssign node) {
-    if (boundsChecked.contains(node)) return;
-    HInstruction index = node.index;
-    index = insertBoundsCheck(node, node.receiver, index);
-  }
-
-  @override
-  void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    MemberEntity element = node.element;
-    if (node.isInterceptedCall) return;
-    if (element != closedWorld.commonElements.jsArrayRemoveLast) return;
-    if (boundsChecked.contains(node)) return;
-    // `0` is the index we want to check, but we want to report `-1`, as if we
-    // executed `a[a.length-1]`
-    HBoundsCheck check = insertBoundsCheck(
-        node, node.receiver, graph.addConstantInt(0, closedWorld));
-    HInstruction minusOne = graph.addConstantInt(-1, closedWorld);
-    check.inputs.add(minusOne);
-    minusOne.usedBy.add(check);
-  }
-}
-
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   @override
   final String name = "SsaDeadCodeEliminator";
@@ -3061,8 +2964,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = new List<int>(length);
-    loopChangesFlags = new List<int>(length);
+    blockChangesFlags = new List<int>.filled(length, null);
+    loopChangesFlags = new List<int>.filled(length, null);
     for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
 
     // Run through all the basic blocks in the graph and fill in the
@@ -3143,7 +3046,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitGraph(HGraph graph) {
-    values = new List<ValueSet>(graph.blocks.length);
+    values = new List<ValueSet>.filled(graph.blocks.length, null);
     for (int i = 0; i < graph.blocks.length; i++) {
       values[graph.blocks[i].id] = new ValueSet();
     }
@@ -3412,7 +3315,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   @override
   void visitGraph(HGraph graph) {
     _graph = graph;
-    memories = new List<MemorySet>(graph.blocks.length);
+    memories = new List<MemorySet>.filled(graph.blocks.length, null);
     List<HBasicBlock> blocks = graph.blocks;
     for (int i = 0; i < blocks.length; i++) {
       HBasicBlock block = blocks[i];
@@ -3628,14 +3531,14 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   @override
   void visitIndex(HIndex instruction) {
     HInstruction receiver = instruction.receiver.nonCheck();
-    HInstruction existing =
-        memorySet.lookupKeyedValue(receiver, instruction.index);
+    HInstruction index = instruction.index.nonCheck();
+    HInstruction existing = memorySet.lookupKeyedValue(receiver, index);
     if (existing != null) {
       checkNewGvnCandidates(instruction, existing);
       instruction.block.rewriteWithBetterUser(instruction, existing);
       instruction.block.remove(instruction);
     } else {
-      memorySet.registerKeyedValue(receiver, instruction.index, instruction);
+      memorySet.registerKeyedValue(receiver, index, instruction);
     }
   }
 
@@ -3643,7 +3546,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitIndexAssign(HIndexAssign instruction) {
     HInstruction receiver = instruction.receiver.nonCheck();
     memorySet.registerKeyedValueUpdate(
-        receiver, instruction.index, instruction.value);
+        receiver, instruction.index.nonCheck(), instruction.value);
   }
 
   // Pure operations that do not escape their inputs.

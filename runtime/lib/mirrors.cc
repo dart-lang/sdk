@@ -269,8 +269,7 @@ static InstancePtr CreateMethodMirror(const Function& func,
   kind_flags |=
       (static_cast<intptr_t>(is_ctor && func.IsGenerativeConstructor())
        << Mirrors::kGenerativeCtor);
-  kind_flags |= (static_cast<intptr_t>(is_ctor && func.is_redirecting())
-                 << Mirrors::kRedirectingCtor);
+  kind_flags |= (static_cast<intptr_t>(false) << Mirrors::kRedirectingCtor);
   kind_flags |= (static_cast<intptr_t>(is_ctor && func.IsFactory())
                  << Mirrors::kFactoryCtor);
   kind_flags |=
@@ -436,11 +435,12 @@ static InstancePtr CreateLibraryDependencyMirror(Thread* thread,
                                                  const LibraryPrefix& prefix,
                                                  const bool is_import,
                                                  const bool is_deferred) {
-  const Library& importee = Library::Handle(ns.library());
+  const Library& importee = Library::Handle(ns.target());
   const Array& show_names = Array::Handle(ns.show_names());
   const Array& hide_names = Array::Handle(ns.hide_names());
 
-  Object& metadata = Object::Handle(ns.GetMetadata());
+  const Library& owner = Library::Handle(ns.owner());
+  Object& metadata = Object::Handle(owner.GetMetadata(ns));
   if (metadata.IsError()) {
     Exceptions::PropagateError(Error::Cast(metadata));
     UNREACHABLE();
@@ -1402,29 +1402,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   }
 
   Class& redirected_klass = Class::Handle(klass.raw());
-  Function& redirected_constructor = Function::Handle(lookup_constructor.raw());
-  if (lookup_constructor.IsRedirectingFactory()) {
-    // Redirecting factory must be resolved.
-    ASSERT(lookup_constructor.RedirectionTarget() != Function::null());
-    Type& redirect_type = Type::Handle(lookup_constructor.RedirectionType());
-
-    if (!redirect_type.IsInstantiated()) {
-      // The type arguments of the redirection type are instantiated from the
-      // type arguments of the type reflected by the class mirror.
-      ASSERT(redirect_type.IsInstantiated(kFunctions));
-      redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree, Heap::kOld);
-      redirect_type ^= redirect_type.Canonicalize(thread, nullptr);
-    }
-
-    type = redirect_type.raw();
-    type_arguments = redirect_type.arguments();
-
-    redirected_constructor = lookup_constructor.RedirectionTarget();
-    ASSERT(!redirected_constructor.IsNull());
-    redirected_klass = type.type_class();
-  }
-
   const intptr_t num_explicit_args = explicit_args.Length();
   const intptr_t num_implicit_args = 1;
   const Array& args =
@@ -1442,8 +1419,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (!redirected_constructor.AreValidArguments(args_descriptor, NULL)) {
-    external_constructor_name = redirected_constructor.name();
+  if (!lookup_constructor.AreValidArguments(args_descriptor, NULL)) {
+    external_constructor_name = lookup_constructor.name();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       external_constructor_name, explicit_args, arg_names,
                       InvocationMirror::kConstructor,
@@ -1457,7 +1434,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   ASSERT(explicit_argument.IsNull());
 #endif
   const Object& type_error =
-      Object::Handle(redirected_constructor.DoArgumentTypesMatch(
+      Object::Handle(lookup_constructor.DoArgumentTypesMatch(
           args, args_descriptor, type_arguments));
   if (!type_error.IsNull()) {
     Exceptions::PropagateError(Error::Cast(type_error));
@@ -1465,7 +1442,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   }
 
   Instance& new_object = Instance::Handle();
-  if (redirected_constructor.IsGenerativeConstructor()) {
+  if (lookup_constructor.IsGenerativeConstructor()) {
     // Constructors get the uninitialized object.
     // Note we have delayed allocation until after the function
     // type and argument matching checks.
@@ -1484,7 +1461,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
 
   // Invoke the constructor and return the new object.
   const Object& result = Object::Handle(DartEntry::InvokeFunction(
-      redirected_constructor, args, args_descriptor_array));
+      lookup_constructor, args, args_descriptor_array));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
@@ -1493,7 +1470,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   // Factories may return null.
   ASSERT(result.IsInstance() || result.IsNull());
 
-  if (redirected_constructor.IsGenerativeConstructor()) {
+  if (lookup_constructor.IsGenerativeConstructor()) {
     return new_object.raw();
   } else {
     return result.raw();

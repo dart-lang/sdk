@@ -248,8 +248,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // default nullability of the corresponding type-parameter types.  This list
   // is used to collect such type-parameter types in order to set the
   // nullability after the bounds are built.
-  final List<TypeParameterType> pendingNullabilities =
-      new List<TypeParameterType>();
+  final List<TypeParameterType> pendingNullabilities = <TypeParameterType>[];
 
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
@@ -480,6 +479,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'ffi_2',
     'language_2/',
     'lib_2/',
+    'samples_2/',
     'service_2/',
     'standalone_2/',
     'vm/dart_2/', // in runtime/tests
@@ -2119,7 +2119,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Procedure getterReferenceFrom;
     Procedure setterReferenceFrom;
     final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
-        !loader.target.backendTarget.supportsLateFields;
+        loader.target.backendTarget.isLateFieldLoweringEnabled(
+            hasInitializer: hasInitializer,
+            isFinal: (modifiers & finalMask) != 0,
+            isStatic: isTopLevel || (modifiers & staticMask) != 0);
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.classDeclaration &&
         (modifiers & staticMask) == 0;
@@ -2584,7 +2587,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset, fileUri)
+        metadata, modifiers, type, name, this, charOffset,
+        fileUri: fileUri)
       ..initializerToken = initializerToken
       ..hasDeclaredInitializer = (initializerToken != null);
     return formal;

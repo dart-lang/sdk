@@ -273,12 +273,10 @@ ObjectPtr DartEntry::InvokeCallable(Thread* thread,
                               arguments_descriptor);
   }
 
-  if (!callable_function.CanReceiveDynamicInvocation()) {
-    const auto& result = Object::Handle(
-        zone, callable_function.DoArgumentTypesMatch(arguments, args_desc));
-    if (result.IsError()) {
-      Exceptions::PropagateError(Error::Cast(result));
-    }
+  const auto& result = Object::Handle(
+      zone, callable_function.DoArgumentTypesMatch(arguments, args_desc));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
   }
 
   return InvokeFunction(callable_function, arguments, arguments_descriptor);
@@ -438,7 +436,7 @@ void ArgumentsDescriptor::PrintTo(BaseTextBuffer* buffer) const {
         buffer->AddString(", ");
       }
       str = NameAt(i);
-      buffer->Printf("'%s'", str.ToCString());
+      buffer->Printf("'%s' (%" Pd ")", str.ToCString(), PositionAt(i));
     }
     buffer->Printf("]");
   }

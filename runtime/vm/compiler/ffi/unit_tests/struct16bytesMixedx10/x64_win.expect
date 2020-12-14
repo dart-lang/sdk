@@ -1,0 +1,13 @@
+P(rdx int64) Compound(size: 16)
+P(r8 int64) Compound(size: 16)
+P(r9 int64) Compound(size: 16)
+P(S+0 int64) Compound(size: 16)
+P(S+8 int64) Compound(size: 16)
+P(S+16 int64) Compound(size: 16)
+P(S+24 int64) Compound(size: 16)
+P(S+32 int64) Compound(size: 16)
+P(S+40 int64) Compound(size: 16)
+P(S+48 int64) Compound(size: 16)
+S+56 float
+=>
+P(rcx int64, ret:rax int64) Compound(size: 16)

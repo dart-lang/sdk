@@ -4,8 +4,6 @@
 //
 // Sample illustrating resource management with an implicit pool in the zone.
 
-// @dart = 2.9
-
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';

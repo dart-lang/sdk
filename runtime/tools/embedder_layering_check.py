@@ -20,7 +20,9 @@ BIN_LAYER_RE = re.compile(r'^runtime/bin/')
 
 # Tests that don't match the simple case of *_test.cc.
 EXTRA_TEST_FILES = [
-    'runtime/bin/run_vm_tests.cc', 'runtime/vm/libfuzzer/dart_libfuzzer.cc'
+    'runtime/bin/run_vm_tests.cc',
+    'runtime/bin/ffi_unit_test/run_ffi_unit_tests.cc',
+    'runtime/vm/libfuzzer/dart_libfuzzer.cc'
 ]
 
 

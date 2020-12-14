@@ -42,6 +42,9 @@ class ReplaceWithVar extends CorrectionProducer {
       String typeArgumentsText;
       int typeArgumentsOffset;
       if (type is NamedType && type.typeArguments != null) {
+        if (initializer is CascadeExpression) {
+          initializer = (initializer as CascadeExpression).target;
+        }
         if (initializer is TypedLiteral) {
           if (initializer.typeArguments == null) {
             typeArgumentsText = utils.getNodeText(type.typeArguments);

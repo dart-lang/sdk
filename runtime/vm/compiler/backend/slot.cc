@@ -110,10 +110,18 @@ static classid_t GetUnboxedNativeSlotCid(Representation rep) {
   return kIllegalCid;
 }
 
+AcqRelAtomic<Slot*> Slot::native_fields_(nullptr);
+
+enum NativeSlotsEnumeration {
+#define DECLARE_KIND(CN, __, FN, ___, ____) k##CN##_##FN,
+  NATIVE_SLOTS_LIST(DECLARE_KIND)
+#undef DECLARE_KIND
+      kNativeSlotsCount
+};
+
 const Slot& Slot::GetNativeSlot(Kind kind) {
-  // There is a fixed statically known number of native slots so we cache
-  // them statically.
-  static const Slot fields[] = {
+  if (native_fields_.load() == nullptr) {
+    Slot* new_value = new Slot[kNativeSlotsCount]{
 #define NULLABLE_FIELD_FINAL                                                   \
   (IsNullableBit::encode(true) | IsImmutableBit::encode(true))
 #define NULLABLE_FIELD_VAR (IsNullableBit::encode(true))
@@ -123,7 +131,7 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
        k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
        #ClassName "." #FieldName, nullptr, kTagged),
 
-      NULLABLE_BOXED_NATIVE_SLOTS_LIST(DEFINE_NULLABLE_BOXED_NATIVE_FIELD)
+        NULLABLE_BOXED_NATIVE_SLOTS_LIST(DEFINE_NULLABLE_BOXED_NATIVE_FIELD)
 
 #undef DEFINE_NULLABLE_BOXED_NATIVE_FIELD
 #undef NULLABLE_FIELD_FINAL
@@ -137,8 +145,8 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
        k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
        #ClassName "." #FieldName, nullptr, kTagged),
 
-          NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(
-              DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD)
+            NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(
+                DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD)
 
 #undef DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD
 #define DEFINE_UNBOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName,      \
@@ -148,15 +156,20 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
        compiler::target::ClassName::FieldName##_offset(),                      \
        #ClassName "." #FieldName, nullptr, kUnboxed##representation),
 
-              UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
+                UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
 
 #undef DEFINE_UNBOXED_NATIVE_FIELD
 #undef NONNULLABLE_FIELD_VAR
 #undef NONNULLABLE_FIELD_FINAL
-  };
+    };
+    Slot* old_value = nullptr;
+    if (!native_fields_.compare_exchange_strong(old_value, new_value)) {
+      delete[] new_value;
+    }
+  }
 
-  ASSERT(static_cast<uint8_t>(kind) < ARRAY_SIZE(fields));
-  return fields[static_cast<uint8_t>(kind)];
+  ASSERT(static_cast<uint8_t>(kind) < kNativeSlotsCount);
+  return native_fields_.load()[static_cast<uint8_t>(kind)];
 }
 
 // Note: should only be called with cids of array-like classes.

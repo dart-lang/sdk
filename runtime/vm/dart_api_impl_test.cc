@@ -7364,7 +7364,9 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
       "foo1:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
-  EXPECT_ERROR(lib, "Compilation failed FileSystemException(uri=foo1:");
+  EXPECT_ERROR(lib,
+               "Compilation failed Invalid argument(s): Exception when reading "
+               "'foo1:///.dart_tool");
 }
 
 void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {
@@ -7866,10 +7868,10 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
       "}\n";
 
   // Create an isolate.
-  Dart_Isolate isolate = TestCase::CreateTestIsolate();
+  auto isolate = reinterpret_cast<Isolate*>(TestCase::CreateTestIsolate());
   EXPECT(isolate != NULL);
 
-  Isolate::SetShutdownCallback(IsolateShutdownRunDartCodeTestCallback);
+  isolate->set_on_shutdown_callback(IsolateShutdownRunDartCodeTestCallback);
 
   {
     Dart_EnterScope();
@@ -7886,8 +7888,6 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
 
   // The shutdown callback has not been called.
   EXPECT_EQ(0, add_result);
-
-  EXPECT(isolate != NULL);
 
   // Shutdown the isolate.
   Dart_ShutdownIsolate();

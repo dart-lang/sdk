@@ -144,7 +144,8 @@ class _MigrationCliRunner extends MigrationCliRunner {
 
   @override
   Set<String> computePathsToProcess(DriverBasedAnalysisContext context) =>
-      cli._test.overridePathsToProcess ?? super.computePathsToProcess(context);
+      cli._test.overridePathsToProcess ??
+      _sortPaths(super.computePathsToProcess(context));
 
   @override
   NonNullableFix createNonNullableFix(
@@ -185,6 +186,13 @@ class _MigrationCliRunner extends MigrationCliRunner {
   bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
       cli._test.overrideShouldBeMigrated?.call(path) ??
       super.shouldBeMigrated(context, path);
+
+  /// Sorts the paths in [paths] for repeatability of migration tests.
+  Set<String> _sortPaths(Set<String> paths) {
+    var pathList = paths.toList();
+    pathList.sort();
+    return pathList.toSet();
+  }
 }
 
 abstract class _MigrationCliTestBase {
@@ -676,10 +684,20 @@ linter:
     expect(
         errorOutput, isNot(contains('try to fix errors in the source code')));
     expect(errorOutput, contains('re-run with\n--ignore-exceptions'));
+    expect(errorOutput, contains('consider filing a bug report'));
+    expect(
+        errorOutput,
+        contains(
+            RegExp(r'Please include the SDK version \([0-9]+\.[0-9]+\..*\)')));
   }
 
   test_lifecycle_exception_handling_ignore() async {
-    var projectContents = simpleProject(sourceText: 'main() { print(0); }');
+    var projectContents = simpleProject(sourceText: '''
+main() {
+  print(0);
+  int x = null;
+}
+''');
     var projectDir = createProjectDir(projectContents);
     injectArtificialException = true;
     var cli = _createCli();
@@ -694,6 +712,14 @@ linter:
               ' of --ignore-exceptions.'));
       expect(output, contains('re-run without --ignore-exceptions'));
       await assertPreviewServerResponsive(url);
+      await _tellPreviewToApplyChanges(url);
+      assertProjectContents(
+          projectDir, simpleProject(migrated: true, sourceText: '''
+main() {
+  print(0);
+  int? x = null;
+}
+'''));
     });
     expect(logger.stderrBuffer.toString(), isEmpty);
   }
@@ -802,6 +828,30 @@ int? f() => null
     // But it should not mention foo.dart or bar.dart, which are migrated
     expect(output, isNot(contains('package:foo/foo.dart')));
     expect(output, isNot(contains('package:bar/bar.dart')));
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44118')
+  test_lifecycle_issue_44118() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null
+''');
+    projectContents['lib/foo.dart'] = '''
+import 'test.dart';
+''';
+    var projectDir = createProjectDir(projectContents);
+    await assertRunFailure([projectDir]);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('1 analysis issue found'));
+    var sep = resourceProvider.pathContext.separator;
+    expect(
+        output,
+        contains("error • Expected to find ';' at lib${sep}test.dart:1:12 • "
+            '(expected_token)'));
+    expect(
+        output,
+        contains(
+            'analysis errors will result in erroneous migration suggestions'));
+    expect(output, contains('Please fix the analysis issues'));
   }
 
   test_lifecycle_migration_already_performed() async {
@@ -945,14 +995,7 @@ void call_g() => g(null);
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
       await assertPreviewServerResponsive(url);
-      var uri = Uri.parse(url);
-      var authToken = uri.queryParameters['authToken'];
-      var response = await httpPost(
-          uri.replace(
-              path: PreviewSite.applyMigrationPath,
-              queryParameters: {'authToken': authToken}),
-          headers: {'Content-Type': 'application/json; charset=UTF-8'});
-      assertHttpSuccess(response);
+      await _tellPreviewToApplyChanges(url);
       expect(applyHookCalled, true);
     });
   }
@@ -1018,9 +1061,10 @@ void call_g() => g(null);
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var navRoots = jsonDecode(treeResponse.body);
       for (final root in navRoots) {
-        var navTree = NavigationTreeNode.fromJson(root);
+        var navTree =
+            NavigationTreeNode.fromJson(root) as NavigationTreeDirectoryNode;
         for (final file in navTree.subtree) {
-          if (file.href != null) {
+          if (file is NavigationTreeFileNode) {
             final contentsResponse = await httpGet(
                 uri
                     .resolve(file.href)
@@ -1671,6 +1715,101 @@ int f() => null;
     }
   }
 
+  test_pubspec_add_collection_dependency() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+dependencies:
+  foo: ^1.2.3
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  foo: ^1.2.3
+  collection: ^1.15.0-nullsafety.4
+'''));
+  }
+
+  test_pubspec_add_dependency_and_environment_sections() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''',
+            // Note: section order is weird, but it's valid and this is a rare use
+            // case.
+            pubspecText: '''
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  collection: ^1.15.0-nullsafety.4
+name: test
+'''));
+  }
+
+  test_pubspec_add_dependency_section() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''',
+        // Note: `dependencies` section is in a weird place, but it's valid and
+        // this is a rare use case.
+        pubspecText: '''
+dependencies:
+  collection: ^1.15.0-nullsafety.4
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+'''));
+  }
+
   test_pubspec_does_not_exist() async {
     var projectContents = simpleProject()..remove('pubspec.yaml');
     var projectDir = createProjectDir(projectContents);
@@ -1778,7 +1917,6 @@ name: test
         '''
 environment:
   sdk: '>=2.12.0 <3.0.0'
-
 name: test
 '''));
   }
@@ -1788,7 +1926,76 @@ name: test
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
         .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
-    expect(() async => await cliRunner.run(), throwsUnsupportedError);
+    var message = await assertErrorExit(
+        cliRunner, () async => await cliRunner.run(),
+        withUsage: false);
+    expect(message, contains('Failed to parse pubspec file'));
+  }
+
+  test_pubspec_preserve_collection_dependency() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+dependencies:
+  collection: ^1.16.0
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(logger.stdoutBuffer.toString(),
+        isNot(contains('Please run `dart pub get`')));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  collection: ^1.16.0
+'''));
+  }
+
+  test_pubspec_update_collection_dependency() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+dependencies:
+  collection: ^1.14.0
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  collection: ^1.15.0-nullsafety.4
+'''));
   }
 
   test_pubspec_with_sdk_version_beta() async {
@@ -1911,6 +2118,17 @@ environment:
 
   ArgResults _parseArgs(List<String> args) {
     return MigrationCli.createParser().parse(args);
+  }
+
+  Future<void> _tellPreviewToApplyChanges(String url) async {
+    var uri = Uri.parse(url);
+    var authToken = uri.queryParameters['authToken'];
+    var response = await httpPost(
+        uri.replace(
+            path: PreviewSite.applyMigrationPath,
+            queryParameters: {'authToken': authToken}),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'});
+    assertHttpSuccess(response);
   }
 }
 

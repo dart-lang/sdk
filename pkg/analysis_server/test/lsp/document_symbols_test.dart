@@ -18,6 +18,67 @@ void main() {
 
 @reflectiveTest
 class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_enumMember_notSupported() async {
+    const content = '''
+    enum Theme {
+      light,
+    }
+    ''';
+    newFile(mainFilePath, content: content);
+    await initialize();
+
+    final result = await getDocumentSymbols(mainFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(2));
+
+    final themeEnum = symbols[0];
+    expect(themeEnum.name, equals('Theme'));
+    expect(themeEnum.kind, equals(SymbolKind.Enum));
+    expect(themeEnum.containerName, isNull);
+
+    final enumValue = symbols[1];
+    expect(enumValue.name, equals('light'));
+    // EnumMember is not in the original LSP list, so unless the client explicitly
+    // advertises support, we will fall back to Enum.
+    expect(enumValue.kind, equals(SymbolKind.Enum));
+    expect(enumValue.containerName, 'Theme');
+  }
+
+  Future<void> test_enumMember_supported() async {
+    const content = '''
+    enum Theme {
+      light,
+    }
+    ''';
+    newFile(mainFilePath, content: content);
+    await initialize(
+      textDocumentCapabilities: withDocumentSymbolKinds(
+        emptyTextDocumentClientCapabilities,
+        [SymbolKind.Enum, SymbolKind.EnumMember],
+      ),
+    );
+
+    final result = await getDocumentSymbols(mainFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(2));
+
+    final themeEnum = symbols[0];
+    expect(themeEnum.name, equals('Theme'));
+    expect(themeEnum.kind, equals(SymbolKind.Enum));
+    expect(themeEnum.containerName, isNull);
+
+    final enumValue = symbols[1];
+    expect(enumValue.name, equals('light'));
+    expect(enumValue.kind, equals(SymbolKind.EnumMember));
+    expect(enumValue.containerName, 'Theme');
+  }
+
   Future<void> test_flat() async {
     const content = '''
     String topLevel = '';

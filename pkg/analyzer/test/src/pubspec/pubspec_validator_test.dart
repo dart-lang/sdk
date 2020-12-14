@@ -505,6 +505,23 @@ name: sample
 ''');
   }
 
+  test_pathNotPosix_error() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertErrors(r'''
+name: sample
+version: 0.1.0
+publish_to: none
+dependencies:
+  foo:
+    path: \foo
+''', [
+      PubspecWarningCode.PATH_NOT_POSIX,
+    ]);
+  }
+
   test_unnecessaryDevDependency_error() {
     assertErrors('''
 name: sample

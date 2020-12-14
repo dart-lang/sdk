@@ -28,16 +28,12 @@ intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
   return 0;
 }
 
-static bool IsABIPreservedRegister(Register reg) {
-  return ((1 << reg) & CallingConventions::kCalleeSaveCpuRegisters) != 0;
-}
-
 void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  ASSERT(IsABIPreservedRegister(CODE_REG));
-  ASSERT(!IsABIPreservedRegister(ARGS_DESC_REG));
-  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
-  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
-  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
+  COMPILE_ASSERT(!IsAbiPreservedRegister(ARGS_DESC_REG));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
 
   assembler->Comment("IntrinsicCallPrologue");
   assembler->movq(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
@@ -1680,7 +1676,10 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
   __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
   __ SmiUntag(RDX);
-  __ movl(FieldAddress(RAX, target::String::hash_offset()), RDX);
+  __ shlq(RDX, Immediate(target::ObjectLayout::kHashTagPos));
+  // lock+orq is an atomic read-modify-write.
+  __ lock();
+  __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
   __ ret();
 }
 
@@ -1915,7 +1914,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
   __ incq(RAX);
   __ Bind(&set_hash_code);
-  __ movl(FieldAddress(RBX, target::String::hash_offset()), RAX);
+  __ shlq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
+  // lock+orq is an atomic read-modify-write.
+  __ lock();
+  __ orq(FieldAddress(RBX, target::Object::tags_offset()), RAX);
+  __ sarq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
   __ SmiTag(RAX);
   __ ret();
 }
@@ -1935,7 +1938,7 @@ static void TryAllocateString(Assembler* assembler,
   __ cmpq(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, false));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, Assembler::kFarJump));
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
@@ -1990,7 +1993,7 @@ static void TryAllocateString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // This also clears the hash, which is in the high bits of the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orq(RDI, Immediate(tags));
     __ movq(FieldAddress(RAX, target::Object::tags_offset()), RDI);  // Tags.
@@ -2263,20 +2266,6 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
   __ ret();
 #endif
-}
-
-void AsmIntrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  __ LoadObject(RAX, NullObject());
-  __ movq(Address(THR, target::Thread::async_stack_trace_offset()), RAX);
-  __ ret();
-}
-
-void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  __ movq(Address(THR, target::Thread::async_stack_trace_offset()), RAX);
-  __ LoadObject(RAX, NullObject());
-  __ ret();
 }
 
 #undef __

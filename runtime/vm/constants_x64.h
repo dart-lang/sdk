@@ -155,13 +155,20 @@ struct TypeTestABI {
   static const Register kSubtypeTestCacheReg = R9;
   static const Register kScratchReg = RSI;
 
+  // For calls to InstanceOfStub.
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For calls to SubtypeNTestCacheStub. Must not overlap with any other
+  // registers above, for it is also used internally as kNullReg in those stubs.
+  static const Register kSubtypeTestCacheResultReg = R8;
+
+  // No registers need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters = 0;
+
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
-
-  // For call to InstanceOfStub.
-  static const Register kResultReg = RAX;
+      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg) |
+      (1 << kSubtypeTestCacheResultReg);
 };
 
 // Calling convention when calling AssertSubtypeStub.
@@ -277,7 +284,16 @@ enum ScaleFactor {
   // https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4
   // 3.7.5 Specifying an Offset
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt64SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt64SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 #define R(reg) (1 << (reg))
@@ -293,12 +309,12 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters =
       R(kArg1Reg) | R(kArg2Reg) | R(kArg3Reg) | R(kArg4Reg);
   static const intptr_t kNumArgRegs = 4;
+  static const Register kPointerToReturnStructRegisterCall = kArg1Reg;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters =
       R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
   static const intptr_t kNumFpuArgRegs = 4;
-  static const intptr_t kPointerToReturnStructRegister = kArg1Reg;
 
   // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
   // same time? (Windows no, rest yes)
@@ -338,6 +354,7 @@ class CallingConventions {
   static constexpr Register kReturnReg = RAX;
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
@@ -368,7 +385,7 @@ class CallingConventions {
                                              R(kArg3Reg) | R(kArg4Reg) |
                                              R(kArg5Reg) | R(kArg6Reg);
   static const intptr_t kNumArgRegs = 6;
-  static const Register kPointerToReturnStructRegister = kArg1Reg;
+  static const Register kPointerToReturnStructRegisterCall = kArg1Reg;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
@@ -399,8 +416,10 @@ class CallingConventions {
   static const XmmRegister xmmFirstNonParameterReg = XMM8;
 
   static constexpr Register kReturnReg = RAX;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = RDX;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+  static constexpr FpuRegister kSecondReturnFpuReg = XMM1;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
@@ -435,8 +454,11 @@ class CallingConventions {
 
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
-       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
+
+constexpr intptr_t kAbiPreservedCpuRegs =
+    CallingConventions::kCalleeSaveCpuRegisters;
 
 #undef R
 
@@ -469,7 +491,7 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-const uword kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
+const uint64_t kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
 
 }  // namespace dart
 

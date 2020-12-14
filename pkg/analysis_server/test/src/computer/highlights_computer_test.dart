@@ -11,12 +11,12 @@ import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(HighlightsComputerTest);
+    defineReflectiveTests(Highlights2ComputerTest);
   });
 }
 
 @reflectiveTest
-class HighlightsComputerTest extends AbstractContextTest {
+class Highlights2ComputerTest extends AbstractContextTest {
   String sourcePath;
   String content;
   List<HighlightRegion> highlights;
@@ -59,6 +59,20 @@ main() {
 }
 ''', hasErrors: true);
     _check(HighlightRegionType.IDENTIFIER_DEFAULT, 'foo');
+  }
+
+  Future<void> test_nullLiteral() async {
+    await _computeHighlights('var x = null;');
+    _check(HighlightRegionType.KEYWORD, 'null');
+  }
+
+  Future<void> test_throwExpression() async {
+    await _computeHighlights('''
+void main() {
+  throw 'foo';
+}
+  ''');
+    _check(HighlightRegionType.KEYWORD, 'throw');
   }
 
   void _check(HighlightRegionType expectedType, String expectedText) {

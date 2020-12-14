@@ -97,14 +97,13 @@ Component transformComponent(
 
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
-      desugarSets: desugarSets,
       enableTripleShift: enableTripleShift,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
   return component;
 }
 
-void transformLibraries(
+ConstantCoverage transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
     Map<String, String> environmentDefines,
@@ -112,18 +111,15 @@ void transformLibraries(
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations,
-    bool desugarSets,
     bool enableTripleShift,
     bool errorOnUnevaluatedConstant}) {
   assert(evaluateAnnotations != null);
-  assert(desugarSets != null);
   assert(enableTripleShift != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
-      desugarSets,
       enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
@@ -132,6 +128,7 @@ void transformLibraries(
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
+  return constantsTransformer.constantEvaluator.getConstantCoverage();
 }
 
 void transformProcedure(
@@ -142,18 +139,15 @@ void transformProcedure(
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations: true,
-    bool desugarSets: false,
     bool enableTripleShift: false,
     bool errorOnUnevaluatedConstant: false}) {
   assert(evaluateAnnotations != null);
-  assert(desugarSets != null);
   assert(enableTripleShift != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
-      desugarSets,
       enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
@@ -172,8 +166,6 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
   ConstantEvaluator _evaluator;
 
   ConstantWeakener(this._evaluator);
-
-  CoreTypes get _coreTypes => _evaluator.coreTypes;
 
   Constant processValue(Constant node, Constant value) {
     if (value != null) {
@@ -206,8 +198,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitMapConstant(MapConstant node) {
-    DartType keyType = rawLegacyErasure(_coreTypes, node.keyType);
-    DartType valueType = rawLegacyErasure(_coreTypes, node.valueType);
+    DartType keyType = rawLegacyErasure(node.keyType);
+    DartType valueType = rawLegacyErasure(node.valueType);
     List<ConstantMapEntry> entries;
     for (int index = 0; index < node.entries.length; index++) {
       ConstantMapEntry entry = node.entries[index];
@@ -228,7 +220,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitListConstant(ListConstant node) {
-    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    DartType typeArgument = rawLegacyErasure(node.typeArgument);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -246,7 +238,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitSetConstant(SetConstant node) {
-    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    DartType typeArgument = rawLegacyErasure(node.typeArgument);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -266,8 +258,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
   Constant visitInstanceConstant(InstanceConstant node) {
     List<DartType> typeArguments;
     for (int index = 0; index < node.typeArguments.length; index++) {
-      DartType typeArgument =
-          rawLegacyErasure(_coreTypes, node.typeArguments[index]);
+      DartType typeArgument = rawLegacyErasure(node.typeArguments[index]);
       if (typeArgument != null) {
         typeArguments ??= node.typeArguments.toList(growable: false);
         typeArguments[index] = typeArgument;
@@ -293,7 +284,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
       PartialInstantiationConstant node) {
     List<DartType> types;
     for (int index = 0; index < node.types.length; index++) {
-      DartType type = rawLegacyErasure(_coreTypes, node.types[index]);
+      DartType type = rawLegacyErasure(node.types[index]);
       if (type != null) {
         types ??= node.types.toList(growable: false);
         types[index] = type;
@@ -310,7 +301,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitTypeLiteralConstant(TypeLiteralConstant node) {
-    DartType type = rawLegacyErasure(_coreTypes, node.type);
+    DartType type = rawLegacyErasure(node.type);
     if (type != null) {
       return new TypeLiteralConstant(type);
     }
@@ -328,7 +319,6 @@ class ConstantsTransformer extends Transformer {
   StaticTypeContext _staticTypeContext;
 
   final bool evaluateAnnotations;
-  final bool desugarSets;
   final bool enableTripleShift;
   final bool errorOnUnevaluatedConstant;
 
@@ -336,7 +326,6 @@ class ConstantsTransformer extends Transformer {
       this.backend,
       Map<String, String> environmentDefines,
       this.evaluateAnnotations,
-      this.desugarSets,
       this.enableTripleShift,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
@@ -344,7 +333,6 @@ class ConstantsTransformer extends Transformer {
       EvaluationMode evaluationMode)
       : constantEvaluator = new ConstantEvaluator(
             backend, environmentDefines, typeEnvironment, errorReporter,
-            desugarSets: desugarSets,
             enableTripleShift: enableTripleShift,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode);
@@ -761,9 +749,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ErrorReporter errorReporter;
   final EvaluationMode evaluationMode;
 
-  final bool desugarSets;
-  final Field unmodifiableSetMap;
-
   final bool enableTripleShift;
 
   final bool Function(DartType) isInstantiated =
@@ -798,19 +783,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
-      {this.desugarSets = false,
-      this.enableTripleShift = false,
+      {this.enableTripleShift = false,
       this.errorOnUnevaluatedConstant = false,
       this.evaluationMode: EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{},
-        env = new EvaluationEnvironment(),
-        unmodifiableSetMap = desugarSets
-            ? typeEnvironment.coreTypes.index
-                .getMember('dart:collection', '_UnmodifiableSet', '_map')
-            : null {
+        env = new EvaluationEnvironment() {
     if (environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
           "No 'environmentDefines' passed to the constant evaluator but the "
@@ -839,7 +819,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       case EvaluationMode.agnostic:
         return type;
       case EvaluationMode.weak:
-        return legacyErasure(coreTypes, type);
+        return legacyErasure(type);
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -851,9 +831,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       case EvaluationMode.agnostic:
         return types;
       case EvaluationMode.weak:
-        return types
-            .map((DartType type) => legacyErasure(coreTypes, type))
-            .toList();
+        return types.map((DartType type) => legacyErasure(type)).toList();
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -1008,6 +986,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant lowerMapConstant(MapConstant constant) {
     if (shouldBeUnevaluated) return constant;
     return lower(constant, backend.lowerMapConstant(constant));
+  }
+
+  Map<Uri, Set<Reference>> _constructorCoverage = {};
+
+  ConstantCoverage getConstantCoverage() {
+    return new ConstantCoverage(_constructorCoverage);
+  }
+
+  void _recordConstructorCoverage(Constructor constructor, TreeNode caller) {
+    Uri currentUri = getFileUri(caller);
+    Set<Reference> uriCoverage = _constructorCoverage[currentUri] ??= {};
+    uriCoverage.add(constructor.reference);
   }
 
   /// Evaluate [node] and possibly cache the evaluation result.
@@ -1344,13 +1334,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (shouldBeUnevaluated) {
         enterLazy();
         AbortConstant error = handleConstructorInvocation(
-            constructor, typeArguments, positionals, named);
+            constructor, typeArguments, positionals, named, node);
         if (error != null) return error;
         leaveLazy();
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
       }
       AbortConstant error = handleConstructorInvocation(
-          constructor, typeArguments, positionals, named);
+          constructor, typeArguments, positionals, named, node);
       if (error != null) return error;
       if (shouldBeUnevaluated) {
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
@@ -1547,10 +1537,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       Constructor constructor,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments) {
+      Map<String, Constant> namedArguments,
+      TreeNode caller) {
     return withNewEnvironment(() {
       final Class klass = constructor.enclosingClass;
       final FunctionNode function = constructor.function;
+
+      // Mark in file of the caller that we evaluate this specific constructor.
+      _recordConstructorCoverage(constructor, caller);
 
       // We simulate now the constructor invocation.
 
@@ -1626,8 +1620,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           }
           assert(_gotError == null);
           assert(namedArguments != null);
-          error = handleConstructorInvocation(
-              init.target, types, positionalArguments, namedArguments);
+          error = handleConstructorInvocation(init.target, types,
+              positionalArguments, namedArguments, constructor);
           if (error != null) return error;
         } else if (init is RedirectingInitializer) {
           // Since a redirecting constructor targets a constructor of the same
@@ -1654,8 +1648,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           assert(_gotError == null);
           assert(namedArguments != null);
 
-          error = handleConstructorInvocation(
-              init.target, typeArguments, positionalArguments, namedArguments);
+          error = handleConstructorInvocation(init.target, typeArguments,
+              positionalArguments, namedArguments, constructor);
           if (error != null) return error;
         } else if (init is AssertInitializer) {
           AbortConstant error = checkAssert(init.statement);
@@ -2170,7 +2164,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     if (concatenated.length > 1) {
       final List<Expression> expressions =
-          new List<Expression>(concatenated.length);
+          new List<Expression>.filled(concatenated.length, null);
       for (int i = 0; i < concatenated.length; i++) {
         Object value = concatenated[i];
         if (value is StringBuffer) {
@@ -2591,7 +2585,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
     DartType constantType = constant.getType(_staticTypeContext);
     if (mode == SubtypeCheckMode.ignoringNullabilities) {
-      constantType = rawLegacyErasure(coreTypes, constantType) ?? constantType;
+      constantType = rawLegacyErasure(constantType) ?? constantType;
     }
     bool result = typeEnvironment.isSubtypeOf(constantType, type, mode);
     if (targetingJavaScript && !result) {
@@ -2742,9 +2736,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Arguments unevaluatedArguments(List<Constant> positionalArgs,
       Map<String, Constant> namedArgs, List<DartType> types) {
     final List<Expression> positional =
-        new List<Expression>(positionalArgs.length);
+        new List<Expression>.filled(positionalArgs.length, null);
     final List<NamedExpression> named =
-        new List<NamedExpression>(namedArgs.length);
+        new List<NamedExpression>.filled(namedArgs.length, null);
     for (int i = 0; i < positionalArgs.length; ++i) {
       positional[i] = extract(positionalArgs[i]);
     }
@@ -2822,6 +2816,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       node = node.parent;
     }
   }
+}
+
+class ConstantCoverage {
+  final Map<Uri, Set<Reference>> constructorCoverage;
+
+  ConstantCoverage(this.constructorCoverage);
 }
 
 /// Holds the necessary information for a constant object, namely

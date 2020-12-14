@@ -35,7 +35,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -43,6 +43,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
+var counterUnlinkedBytes = 0;
 var counterUnlinkedLinkedBytes = 0;
 int fileObjectId = 0;
 var timerFileStateRefresh = Stopwatch();
@@ -125,7 +126,9 @@ class FileState {
   Set<String> _definedClassMemberNames;
   Set<String> _definedTopLevelNames;
   Set<String> _referencedNames;
+  List<int> _unlinkedSignature;
   String _unlinkedKey;
+  String _astKey;
   AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   List<int> _apiSignature;
 
@@ -282,7 +285,7 @@ class FileState {
   LibraryCycle get libraryCycle {
     if (isPart) {
       var library = this.library;
-      if (library != null) {
+      if (library != null && !identical(library, this)) {
         return library.libraryCycle;
       }
     }
@@ -356,12 +359,25 @@ class FileState {
   /// The [UnlinkedUnit2] of the file.
   UnlinkedUnit2 get unlinked2 => _unlinked2;
 
+  /// The MD5 signature based on the content, feature sets, language version.
+  List<int> get unlinkedSignature => _unlinkedSignature;
+
   /// Return the [uri] string.
   String get uriStr => uri.toString();
 
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
+  }
+
+  Uint8List getAstBytes({CompilationUnit unit}) {
+    var bytes = _fsState._byteStore.get(_astKey);
+    if (bytes == null) {
+      unit ??= parse();
+      bytes = writeUnitToBytes(unit: unit);
+      _fsState._byteStore.put(_astKey, bytes);
+    }
+    return bytes;
   }
 
   void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
@@ -414,7 +430,6 @@ class FileState {
     }
 
     // Prepare the unlinked bundle key.
-    List<int> contentSignature;
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
@@ -422,8 +437,11 @@ class FileState {
       signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(_contentHash);
       signature.addBool(_exists);
-      contentSignature = signature.toByteList();
-      _unlinkedKey = '${hex.encode(contentSignature)}.unlinked2';
+      _unlinkedSignature = signature.toByteList();
+      var signatureHex = hex.encode(_unlinkedSignature);
+      _unlinkedKey = '$signatureHex.unlinked2';
+      // TODO(scheglov) Use the path as the key, and store the signature.
+      _astKey = '$signatureHex.ast';
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.
@@ -445,6 +463,8 @@ class FileState {
             subtypedNames: subtypedNames,
           ).toBuffer();
           _fsState._byteStore.put(_unlinkedKey, bytes);
+          counterUnlinkedBytes += bytes.length;
+          counterUnlinkedLinkedBytes += bytes.length;
         });
       }
     }
@@ -671,7 +691,6 @@ $content
         ),
       );
     }
-    var informativeData = createInformativeData(unit);
     return UnlinkedUnit2Builder(
       apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
@@ -680,7 +699,6 @@ $content
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
       lineStarts: unit.lineInfo.lineStarts,
-      informativeData: informativeData,
     );
   }
 
@@ -820,6 +838,7 @@ class FileSystemState {
   FileSystemStateTestView get test => _testView;
 
   /// Return the [FileState] instance that correspond to an unresolved URI.
+  /// TODO(scheglov) Remove it.
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
       var featureSet = FeatureSet.latestLanguageVersion();
@@ -1083,20 +1102,25 @@ class _FileContentCache {
   _FileContent get(String path, bool allowCached) {
     var file = allowCached ? _pathToFile[path] : null;
     if (file == null) {
+      List<int> contentBytes;
       String content;
       bool exists;
       try {
         if (_contentOverlay != null) {
           content = _contentOverlay[path];
         }
-        content ??= _resourceProvider.getFile(path).readAsStringSync();
+        if (content != null) {
+          contentBytes = utf8.encode(content);
+        } else {
+          contentBytes = _resourceProvider.getFile(path).readAsBytesSync();
+          content = utf8.decode(contentBytes);
+        }
         exists = true;
       } catch (_) {
+        contentBytes = Uint8List(0);
         content = '';
         exists = false;
       }
-
-      List<int> contentBytes = utf8.encode(content);
 
       List<int> contentHashBytes = md5.convert(contentBytes).bytes;
       String contentHash = hex.encode(contentHashBytes);

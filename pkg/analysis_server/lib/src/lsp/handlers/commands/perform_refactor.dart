@@ -83,18 +83,14 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 
           // If the file changed while we were validating and preparing the change,
           // we should fail to avoid sending bad edits.
-          if (docVersion != null &&
-              docVersion !=
-                  server.getVersionedDocumentIdentifier(path).version) {
-            return error(ErrorCodes.ContentModified,
-                'Content was modified before refactor was applied');
+          if (fileHasBeenModified(path, docVersion)) {
+            return fileModifiedError;
           }
 
           final edit = createWorkspaceEdit(server, change.edits);
           return await sendWorkspaceEditToClient(edit);
         } on InconsistentAnalysisException {
-          return error(ErrorCodes.ContentModified,
-              'Content was modified before refactor was applied');
+          return fileModifiedError;
         } finally {
           _manager.end(cancellationToken);
           reporter.end();

@@ -32,21 +32,6 @@ class FlowGraphCompiler;
 class RegisterSet;
 class RuntimeEntry;
 
-// TODO(vegorov) these enumerations are temporarily moved out of compiler
-// namespace to make refactoring easier.
-enum OperandSize {
-  kByte,
-  kUnsignedByte,
-  kHalfword,
-  kUnsignedHalfword,
-  kWord,
-  kUnsignedWord,
-  kWordPair,
-  kSWord,
-  kDWord,
-  kRegList,
-};
-
 // Load/store multiple addressing mode.
 enum BlockAddressMode {
   // bit encoding P U W
@@ -398,14 +383,17 @@ class Assembler : public AssemblerBase {
   }
 
   void Bind(Label* label);
-  void Jump(Label* label) { b(label); }
+  // Unconditional jump to a given label. [distance] is ignored on ARM.
+  void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
+  // Unconditional jump to a given address in memory.
+  void Jump(const Address& address) { Branch(address); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
-    LoadFromOffset(kWord, dst, base, offset, AL);
+    LoadFromOffset(dst, base, offset);
   }
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
-    StoreToOffset(kWord, src, base, offset, AL);
+    StoreToOffset(src, base, offset);
   }
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     ldr(dst, Address(address, offset));
@@ -768,6 +756,7 @@ class Assembler : public AssemblerBase {
     ldr(LR, target);
     blx(LR);
   }
+  void Call(const Code& code) { BranchLink(code); }
 
   void CallCFunction(Address target) { Call(target); }
 
@@ -833,7 +822,7 @@ class Assembler : public AssemblerBase {
 
   void LoadIsolate(Register rd);
 
-  // Load word from pool from the given offset using encoding that
+  // Load word from pool from the given index using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
   void LoadWordFromPoolIndex(Register rd,
                              intptr_t index,
@@ -929,29 +918,45 @@ class Assembler : public AssemblerBase {
 
   intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadFromOffset(OperandSize type,
-                      Register reg,
+  void LoadFromOffset(Register reg,
                       Register base,
                       int32_t offset,
+                      OperandSize type = kFourBytes,
                       Condition cond = AL);
-  void LoadFieldFromOffset(OperandSize type,
-                           Register reg,
+  void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
+                           OperandSize type = kFourBytes,
                            Condition cond = AL) {
-    LoadFromOffset(type, reg, base, offset - kHeapObjectTag, cond);
+    LoadFromOffset(reg, base, offset - kHeapObjectTag, type, cond);
   }
-  void StoreToOffset(OperandSize type,
-                     Register reg,
+  // For loading indexed payloads out of tagged objects like Arrays. If the
+  // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
+  // [index] is a Smi, otherwise TIMES_WORD_SIZE if unboxed.
+  void LoadIndexedPayload(Register reg,
+                          Register base,
+                          int32_t payload_start,
+                          Register index,
+                          ScaleFactor scale,
+                          OperandSize type = kFourBytes) {
+    add(reg, base, Operand(index, LSL, scale));
+    LoadFromOffset(reg, reg, payload_start - kHeapObjectTag, type);
+  }
+  void LoadFromStack(Register dst, intptr_t depth);
+  void StoreToStack(Register src, intptr_t depth);
+  void CompareToStack(Register src, intptr_t depth);
+
+  void StoreToOffset(Register reg,
                      Register base,
                      int32_t offset,
+                     OperandSize type = kFourBytes,
                      Condition cond = AL);
-  void StoreFieldToOffset(OperandSize type,
-                          Register reg,
+  void StoreFieldToOffset(Register reg,
                           Register base,
                           int32_t offset,
+                          OperandSize type = kFourBytes,
                           Condition cond = AL) {
-    StoreToOffset(type, reg, base, offset - kHeapObjectTag, cond);
+    StoreToOffset(reg, base, offset - kHeapObjectTag, type, cond);
   }
   void LoadSFromOffset(SRegister reg,
                        Register base,
@@ -1011,7 +1016,19 @@ class Assembler : public AssemblerBase {
   void PopNativeCalleeSavedRegisters();
 
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
-  void BranchIf(Condition condition, Label* label) { b(label, condition); }
+  // Branches to the given label if the condition holds.
+  // [distance] is ignored on ARM.
+  void BranchIf(Condition condition,
+                Label* label,
+                JumpDistance distance = kFarJump) {
+    b(label, condition);
+  }
+  void BranchIfZero(Register rn,
+                    Label* label,
+                    JumpDistance distance = kFarJump) {
+    cmp(rn, Operand(0));
+    b(label, ZERO);
+  }
 
   void MoveRegister(Register rd, Register rm, Condition cond = AL);
 
@@ -1078,12 +1095,18 @@ class Assembler : public AssemblerBase {
     b(is_smi, CC);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
+  // For ARM, the near argument is ignored.
+  void BranchIfNotSmi(Register reg,
+                      Label* label,
+                      JumpDistance distance = kFarJump) {
     tst(reg, Operand(kSmiTagMask));
     b(label, NE);
   }
 
-  void BranchIfSmi(Register reg, Label* label) {
+  // For ARM, the near argument is ignored.
+  void BranchIfSmi(Register reg,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
     tst(reg, Operand(kSmiTagMask));
     b(label, EQ);
   }

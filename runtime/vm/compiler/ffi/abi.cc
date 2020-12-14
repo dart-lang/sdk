@@ -51,7 +51,7 @@ Abi TargetAbi() {
 #elif (defined(TARGET_ARCH_IA32) && /* NOLINT(whitespace/parens) */            \
        (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                \
         defined(TARGET_OS_ANDROID))) ||                                        \
-    (defined(TARGET_ARCH_ARM) && defined(TARGET_OS_IOS))
+    (defined(TARGET_ARCH_ARM) && defined(TARGET_OS_MACOS_IOS))
   return Abi::kWordSize32Align32;
 #elif defined(TARGET_ARCH_IA32) && defined(TARGET_OS_WINDOWS) ||               \
     defined(TARGET_ARCH_ARM)

@@ -4,8 +4,6 @@
 //
 // Sample illustrating resource management with an explicit pool.
 
-// @dart = 2.9
-
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';

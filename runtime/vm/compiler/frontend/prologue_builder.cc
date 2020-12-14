@@ -40,7 +40,6 @@ bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
 
 bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
   return !function.HasOptionalParameters() && !function.IsGeneric() &&
-         !function.CanReceiveDynamicInvocation() &&
          !function.IsClosureFunction();
 }
 
@@ -53,26 +52,12 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   const bool load_optional_arguments = function_.HasOptionalParameters();
   const bool expect_type_args = function_.IsGeneric();
-  const bool check_shapes = function_.CanReceiveDynamicInvocation();
 
   Fragment prologue = Fragment(entry);
 
-  // We only check for bad argument shapes and throw NSM in functions that
-  // can receive dynamic invocation. Otherwise, the NSM block is never used
-  // and so there's no need to create it. The helper methods can only throw
-  // NSM in appropriate spots if one was created.
-  JoinEntryInstr* nsm = nullptr;
-  if (check_shapes) {
-    nsm = BuildThrowNoSuchMethod();
-    Fragment f = BuildTypeArgumentsLengthCheck(nsm, expect_type_args);
-    if (link) prologue += f;
-  }
   if (load_optional_arguments) {
-    Fragment f = BuildOptionalParameterHandling(
-        nsm, parsed_function_->expression_temp_var());
-    if (link) prologue += f;
-  } else if (check_shapes) {
-    Fragment f = BuildFixedParameterLengthChecks(nsm);
+    Fragment f =
+        BuildOptionalParameterHandling(parsed_function_->expression_temp_var());
     if (link) prologue += f;
   }
   if (function_.IsClosureFunction()) {
@@ -80,7 +65,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
     if (!compiling_for_osr_) prologue += f;
   }
   if (expect_type_args) {
-    Fragment f = BuildTypeArgumentsHandling(nsm);
+    Fragment f = BuildTypeArgumentsHandling();
     if (link) prologue += f;
   }
 
@@ -103,57 +88,8 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   }
 }
 
-Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(JoinEntryInstr* nsm,
-                                                        bool expect_type_args) {
-  ASSERT(nsm != nullptr);
-  Fragment check_type_args;
-  JoinEntryInstr* done = BuildJoinEntry();
-
-  // Type args are always optional, so length can always be zero.
-  // If expect_type_args, a non-zero length must match the declaration length.
-  TargetEntryInstr *then, *fail;
-  check_type_args += LoadArgDescriptor();
-  check_type_args += LoadNativeField(Slot::ArgumentsDescriptor_type_args_len());
-  if (expect_type_args) {
-    JoinEntryInstr* join2 = BuildJoinEntry();
-
-    LocalVariable* len = MakeTemporary();
-
-    TargetEntryInstr* otherwise;
-    check_type_args += LoadLocal(len);
-    check_type_args += IntConstant(0);
-    check_type_args += BranchIfEqual(&then, &otherwise);
-
-    TargetEntryInstr* then2;
-    Fragment check_len(otherwise);
-    check_len += LoadLocal(len);
-    check_len += IntConstant(function_.NumTypeParameters());
-    check_len += BranchIfEqual(&then2, &fail);
-
-    Fragment(then) + Goto(join2);
-    Fragment(then2) + Goto(join2);
-
-    Fragment(join2) + Drop() + Goto(done);
-    Fragment(fail) + Goto(nsm);
-  } else {
-    check_type_args += IntConstant(0);
-    check_type_args += BranchIfEqual(&then, &fail);
-    Fragment(then) + Goto(done);
-    Fragment(fail) + Goto(nsm);
-  }
-
-  return Fragment(check_type_args.entry, done);
-}
-
 Fragment PrologueBuilder::BuildOptionalParameterHandling(
-    JoinEntryInstr* nsm,
     LocalVariable* temp_var) {
-  // We only need to check the shape of the arguments (correct parameter count
-  // and correct names/provided required arguments) when the function can be
-  // invoked dynamically. The caller only provides a non-nullptr nsm block if
-  // dynamic invocation is possible.
-  const bool check_arguments_shape = nsm != nullptr;
-
   Fragment copy_args_prologue;
   const int num_fixed_params = function_.num_fixed_parameters();
   const int num_opt_pos_params = function_.NumOptionalPositionalParameters();
@@ -168,38 +104,14 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
   const int min_num_pos_args = num_fixed_params;
-  const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
   copy_args_prologue += LoadArgDescriptor();
   copy_args_prologue +=
       LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
-  LocalVariable* positional_count_var = MakeTemporary();
 
   copy_args_prologue += LoadArgDescriptor();
   copy_args_prologue += LoadNativeField(Slot::ArgumentsDescriptor_count());
   LocalVariable* count_var = MakeTemporary();
-
-  if (check_arguments_shape) {
-    // Ensure the caller provided at least [min_num_pos_args] arguments.
-    copy_args_prologue += IntConstant(min_num_pos_args);
-    copy_args_prologue += LoadLocal(positional_count_var);
-    copy_args_prologue += SmiRelationalOp(Token::kLTE);
-    TargetEntryInstr *success1, *fail1;
-    copy_args_prologue += BranchIfTrue(&success1, &fail1);
-    copy_args_prologue = Fragment(copy_args_prologue.entry, success1);
-
-    // Ensure the caller provided at most [max_num_pos_args] arguments.
-    copy_args_prologue += LoadLocal(positional_count_var);
-    copy_args_prologue += IntConstant(max_num_pos_args);
-    copy_args_prologue += SmiRelationalOp(Token::kLTE);
-    TargetEntryInstr *success2, *fail2;
-    copy_args_prologue += BranchIfTrue(&success2, &fail2);
-    copy_args_prologue = Fragment(copy_args_prologue.entry, success2);
-
-    // Link up the argument check failing code.
-    Fragment(fail1) + Goto(nsm);
-    Fragment(fail2) + Goto(nsm);
-  }
 
   copy_args_prologue += LoadLocal(count_var);
   copy_args_prologue += IntConstant(min_num_pos_args);
@@ -290,23 +202,11 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     }
     copy_args_prologue += Goto(next_missing /* join good/not_good flows */);
     copy_args_prologue.current = next_missing;
-
-    if (check_arguments_shape) {
-      // Check for unprocessed arguments and throw NSM if there are any.
-      TargetEntryInstr *done, *unknown_named_arg_passed;
-      copy_args_prologue += LoadLocal(positional_count_var);
-      copy_args_prologue += LoadLocal(count_var);
-      copy_args_prologue += BranchIfEqual(&done, &unknown_named_arg_passed);
-      copy_args_prologue.current = done;
-      {
-        Fragment f(unknown_named_arg_passed);
-        f += Goto(nsm);
-      }
-    }
   } else {
     ASSERT(num_opt_named_params > 0);
 
-    bool null_safety = Isolate::Current()->null_safety();
+    bool check_required_params =
+        Isolate::Current()->use_strict_null_safety_checks();
     const intptr_t first_name_offset =
         compiler::target::ArgumentsDescriptor::first_named_entry_offset() -
         compiler::target::Array::data_offset();
@@ -371,13 +271,10 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
         good += Drop();
       }
 
-      const bool required =
-          null_safety && function_.IsRequiredAt(opt_param_position[i]);
+      const bool required = check_required_params &&
+                            function_.IsRequiredAt(opt_param_position[i]);
 
-      // If this function cannot be invoked dynamically and this is a required
-      // named argument, then we can just add this fragment directly without
-      // checking the name to ensure it was provided.
-      if (required && !check_arguments_shape) {
+      if (required) {
         copy_args_prologue += good;
       } else {
         // name = arg_desc[names_offset + arg_desc_name_index + nameOffset]
@@ -409,41 +306,21 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
         good.Prepend(supplied);
         good += Goto(join);
 
-        // We had no match. If the param is required, throw a NoSuchMethod
-        // error. Otherwise just load the default constant.
+        // We had no match, so load the default constant.
         Fragment not_good(missing);
-        if (required) {
-          ASSERT(nsm != nullptr);
-          not_good += Goto(nsm);
-        } else {
-          not_good += Constant(DefaultParameterValueAt(opt_param_position[i] -
-                                                       num_fixed_params));
+        not_good += Constant(
+            DefaultParameterValueAt(opt_param_position[i] - num_fixed_params));
 
-          // Copy down with default value.
-          not_good += StoreLocalRaw(TokenPosition::kNoSource,
-                                    ParameterVariable(opt_param_position[i]));
-          not_good += Drop();
-          not_good += Goto(join);
-        }
+        // Copy down with default value.
+        not_good += StoreLocalRaw(TokenPosition::kNoSource,
+                                  ParameterVariable(opt_param_position[i]));
+        not_good += Drop();
+        not_good += Goto(join);
 
         copy_args_prologue.current = join;
       }
 
       copy_args_prologue += Drop();  // tuple_diff
-    }
-
-    if (check_arguments_shape) {
-      // Check for unprocessed arguments and throw NSM if there are any.
-      TargetEntryInstr *done, *unknown_named_arg_passed;
-      copy_args_prologue += LoadLocal(optional_count_var);
-      copy_args_prologue += LoadLocal(optional_count_vars_processed);
-      copy_args_prologue += BranchIfEqual(&done, &unknown_named_arg_passed);
-      copy_args_prologue.current = done;
-
-      {
-        Fragment f(unknown_named_arg_passed);
-        f += Goto(nsm);
-      }
     }
   }
 
@@ -452,32 +329,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   copy_args_prologue += Drop();  // positional_count_var
 
   return copy_args_prologue;
-}
-
-Fragment PrologueBuilder::BuildFixedParameterLengthChecks(JoinEntryInstr* nsm) {
-  Fragment check_args;
-  JoinEntryInstr* done = BuildJoinEntry();
-
-  check_args += LoadArgDescriptor();
-  check_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
-  LocalVariable* count = MakeTemporary();
-
-  TargetEntryInstr *then, *fail;
-  check_args += LoadLocal(count);
-  check_args += IntConstant(function_.num_fixed_parameters());
-  check_args += BranchIfEqual(&then, &fail);
-
-  TargetEntryInstr *then2, *fail2;
-  Fragment check_len(then);
-  check_len += LoadArgDescriptor();
-  check_len += LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
-  check_len += BranchIfEqual(&then2, &fail2);
-
-  Fragment(fail) + Goto(nsm);
-  Fragment(fail2) + Goto(nsm);
-  Fragment(then2) + Goto(done);
-
-  return Fragment(check_args.entry, done);
 }
 
 Fragment PrologueBuilder::BuildClosureContextHandling() {
@@ -494,13 +345,7 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
   return populate_context;
 }
 
-Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
-  // We only need to check the shape of the arguments (correct parameter count
-  // and correct names/provided required arguments) when the function can be
-  // invoked dynamically. The caller only provides a non-nullptr nsm block if
-  // dynamic invocation is possible.
-  const bool check_argument_shapes = nsm != nullptr;
-
+Fragment PrologueBuilder::BuildTypeArgumentsHandling() {
   LocalVariable* type_args_var = parsed_function_->RawTypeArgumentsVariable();
   ASSERT(type_args_var != nullptr);
 
@@ -538,15 +383,9 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
         StoreLocal(TokenPosition::kNoSource, type_args_var);
     use_delayed_type_args += Drop();
 
-    handling += TestDelayedTypeArgs(
-        closure,
-        /*present=*/
-        // No need to check the type arguments length if this function cannot
-        // be invoked dynamically, and thus we are not checking argument shapes.
-        check_argument_shapes
-            ? TestTypeArgsLen(use_delayed_type_args, Goto(nsm), 0)
-            : use_delayed_type_args,
-        /*absent=*/Fragment());
+    handling += TestDelayedTypeArgs(closure,
+                                    /*present=*/use_delayed_type_args,
+                                    /*absent=*/Fragment());
   }
 
   return handling;

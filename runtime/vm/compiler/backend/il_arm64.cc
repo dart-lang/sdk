@@ -188,24 +188,24 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&loop);
   switch (element_size_) {
     case 1:
-      __ ldr(temp_reg, src_address, kUnsignedByte);
-      __ str(temp_reg, dest_address, kUnsignedByte);
+      __ ldr(temp_reg, src_address, compiler::kUnsignedByte);
+      __ str(temp_reg, dest_address, compiler::kUnsignedByte);
       break;
     case 2:
-      __ ldr(temp_reg, src_address, kUnsignedHalfword);
-      __ str(temp_reg, dest_address, kUnsignedHalfword);
+      __ ldr(temp_reg, src_address, compiler::kUnsignedTwoBytes);
+      __ str(temp_reg, dest_address, compiler::kUnsignedTwoBytes);
       break;
     case 4:
-      __ ldr(temp_reg, src_address, kUnsignedWord);
-      __ str(temp_reg, dest_address, kUnsignedWord);
+      __ ldr(temp_reg, src_address, compiler::kUnsignedFourBytes);
+      __ str(temp_reg, dest_address, compiler::kUnsignedFourBytes);
       break;
     case 8:
-      __ ldr(temp_reg, src_address, kDoubleWord);
-      __ str(temp_reg, dest_address, kDoubleWord);
+      __ ldr(temp_reg, src_address, compiler::kEightBytes);
+      __ str(temp_reg, dest_address, compiler::kEightBytes);
       break;
     case 16:
-      __ ldp(temp_reg, temp_reg2, src_address, kDoubleWord);
-      __ stp(temp_reg, temp_reg2, dest_address, kDoubleWord);
+      __ ldp(temp_reg, temp_reg2, src_address, compiler::kEightBytes);
+      __ stp(temp_reg, temp_reg2, dest_address, compiler::kEightBytes);
       break;
   }
   __ subs(length_reg, length_reg, compiler::Operand(1));
@@ -688,12 +688,14 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
 
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallCalleeSafe);
-  summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
-  summary->set_in(1, dst_type_loc);
-  summary->set_in(2, Location::RegisterLocation(
-                         TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(kInstancePos,
+                  Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_in(kDstTypePos, dst_type_loc);
   summary->set_in(
-      3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
+      kInstantiatorTAVPos,
+      Location::RegisterLocation(TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(kFunctionTAVPos, Location::RegisterLocation(
+                                       TypeTestABI::kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::SameAsFirstInput());
 
   // Let's reserve all registers except for the input ones.
@@ -1407,8 +1409,10 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register str = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ LoadFieldFromOffset(result, str, String::length_offset());
-  __ ldr(TMP, compiler::FieldAddress(str, OneByteString::data_offset(), kByte),
-         kUnsignedByte);
+  __ ldr(TMP,
+         compiler::FieldAddress(str, OneByteString::data_offset(),
+                                compiler::kByte),
+         compiler::kUnsignedByte);
   __ CompareImmediate(result, Smi::RawValue(1));
   __ LoadImmediate(result, -1);
   __ csel(result, TMP, result, EQ);
@@ -1498,10 +1502,11 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Read byte and increment pointer.
   __ ldr(temp_reg,
          compiler::Address(bytes_ptr_reg, 1, compiler::Address::PostIndex),
-         kUnsignedByte);
+         compiler::kUnsignedByte);
 
   // Update size and flags based on byte value.
-  __ ldr(temp_reg, compiler::Address(table_reg, temp_reg), kUnsignedByte);
+  __ ldr(temp_reg, compiler::Address(table_reg, temp_reg),
+         compiler::kUnsignedByte);
   __ orr(flags_reg, flags_reg, compiler::Operand(temp_reg));
   __ andi(temp_reg, temp_reg, compiler::Immediate(kSizeMask));
   __ add(size_reg, size_reg, compiler::Operand(temp_reg));
@@ -1675,21 +1680,21 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (class_id()) {
     case kTypedDataInt32ArrayCid:
       ASSERT(representation() == kUnboxedInt32);
-      __ ldr(result, element_address, kWord);
+      __ ldr(result, element_address, compiler::kFourBytes);
       break;
     case kTypedDataUint32ArrayCid:
       ASSERT(representation() == kUnboxedUint32);
-      __ ldr(result, element_address, kUnsignedWord);
+      __ ldr(result, element_address, compiler::kUnsignedFourBytes);
       break;
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       ASSERT(representation() == kUnboxedInt64);
-      __ ldr(result, element_address, kDoubleWord);
+      __ ldr(result, element_address, compiler::kEightBytes);
       break;
     case kTypedDataInt8ArrayCid:
       ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
-      __ ldr(result, element_address, kByte);
+      __ ldr(result, element_address, compiler::kByte);
       break;
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
@@ -1699,17 +1704,17 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalOneByteStringCid:
       ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
-      __ ldr(result, element_address, kUnsignedByte);
+      __ ldr(result, element_address, compiler::kUnsignedByte);
       break;
     case kTypedDataInt16ArrayCid:
       ASSERT(representation() == kUnboxedIntPtr);
-      __ ldr(result, element_address, kHalfword);
+      __ ldr(result, element_address, compiler::kTwoBytes);
       break;
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
       ASSERT(representation() == kUnboxedIntPtr);
-      __ ldr(result, element_address, kUnsignedHalfword);
+      __ ldr(result, element_address, compiler::kUnsignedTwoBytes);
       break;
     default:
       ASSERT(representation() == kTagged);
@@ -1736,7 +1741,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The string register points to the backing store for external strings.
   const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
-  OperandSize sz = OperandSize::kByte;
+  compiler::OperandSize sz = compiler::kByte;
 
   Register result = locs()->out(0).reg();
   switch (class_id()) {
@@ -1744,13 +1749,13 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalOneByteStringCid:
       switch (element_count()) {
         case 1:
-          sz = kUnsignedByte;
+          sz = compiler::kUnsignedByte;
           break;
         case 2:
-          sz = kUnsignedHalfword;
+          sz = compiler::kUnsignedTwoBytes;
           break;
         case 4:
-          sz = kUnsignedWord;
+          sz = compiler::kUnsignedFourBytes;
           break;
         default:
           UNREACHABLE();
@@ -1760,10 +1765,10 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalTwoByteStringCid:
       switch (element_count()) {
         case 1:
-          sz = kUnsignedHalfword;
+          sz = compiler::kUnsignedTwoBytes;
           break;
         case 2:
-          sz = kUnsignedWord;
+          sz = compiler::kUnsignedFourBytes;
           break;
         default:
           UNREACHABLE();
@@ -1935,10 +1940,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ LoadImmediate(TMP, static_cast<int8_t>(constant.Value()));
-        __ str(TMP, element_address, kUnsignedByte);
+        __ str(TMP, element_address, compiler::kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
-        __ str(value, element_address, kUnsignedByte);
+        __ str(value, element_address, compiler::kUnsignedByte);
       }
       break;
     }
@@ -1955,14 +1960,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           value = 0;
         }
         __ LoadImmediate(TMP, static_cast<int8_t>(value));
-        __ str(TMP, element_address, kUnsignedByte);
+        __ str(TMP, element_address, compiler::kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
         // Clamp to 0x00 or 0xFF respectively.
         __ CompareImmediate(value, 0xFF);
         __ csetm(TMP, GT);             // TMP = value > 0xFF ? -1 : 0.
         __ csel(TMP, value, TMP, LS);  // TMP = value in range ? value : TMP.
-        __ str(TMP, element_address, kUnsignedByte);
+        __ str(TMP, element_address, compiler::kUnsignedByte);
       }
       break;
     }
@@ -1971,19 +1976,19 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint16ArrayCid: {
       ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       const Register value = locs()->in(2).reg();
-      __ str(value, element_address, kUnsignedHalfword);
+      __ str(value, element_address, compiler::kUnsignedTwoBytes);
       break;
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       const Register value = locs()->in(2).reg();
-      __ str(value, element_address, kUnsignedWord);
+      __ str(value, element_address, compiler::kUnsignedFourBytes);
       break;
     }
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid: {
       const Register value = locs()->in(2).reg();
-      __ str(value, element_address, kDoubleWord);
+      __ str(value, element_address, compiler::kEightBytes);
       break;
     }
     case kTypedDataFloat32ArrayCid: {
@@ -2100,24 +2105,25 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(field_reg, Field::ZoneHandle((field().Original())));
 
     compiler::FieldAddress field_cid_operand(
-        field_reg, Field::guarded_cid_offset(), kUnsignedHalfword);
+        field_reg, Field::guarded_cid_offset(), compiler::kUnsignedTwoBytes);
     compiler::FieldAddress field_nullability_operand(
-        field_reg, Field::is_nullable_offset(), kUnsignedHalfword);
+        field_reg, Field::is_nullable_offset(), compiler::kUnsignedTwoBytes);
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
       compiler::Label skip_length_check;
-      __ ldr(TMP, field_cid_operand, kUnsignedHalfword);
+      __ ldr(TMP, field_cid_operand, compiler::kUnsignedTwoBytes);
       __ CompareRegisters(value_cid_reg, TMP);
       __ b(&ok, EQ);
-      __ ldr(TMP, field_nullability_operand, kUnsignedHalfword);
+      __ ldr(TMP, field_nullability_operand, compiler::kUnsignedTwoBytes);
       __ CompareRegisters(value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      __ ldr(value_cid_reg, field_nullability_operand, kUnsignedHalfword);
+      __ ldr(value_cid_reg, field_nullability_operand,
+             compiler::kUnsignedTwoBytes);
       __ CompareImmediate(value_cid_reg, value_cid);
     } else {
       compiler::Label skip_length_check;
-      __ ldr(value_cid_reg, field_cid_operand, kUnsignedHalfword);
+      __ ldr(value_cid_reg, field_cid_operand, compiler::kUnsignedTwoBytes);
       __ CompareImmediate(value_cid_reg, value_cid);
     }
     __ b(&ok, EQ);
@@ -2131,17 +2137,18 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ ldr(TMP, field_cid_operand, kUnsignedHalfword);
+      __ ldr(TMP, field_cid_operand, compiler::kUnsignedTwoBytes);
       __ CompareImmediate(TMP, kIllegalCid);
       __ b(fail, NE);
 
       if (value_cid == kDynamicCid) {
-        __ str(value_cid_reg, field_cid_operand, kUnsignedHalfword);
-        __ str(value_cid_reg, field_nullability_operand, kUnsignedHalfword);
+        __ str(value_cid_reg, field_cid_operand, compiler::kUnsignedTwoBytes);
+        __ str(value_cid_reg, field_nullability_operand,
+               compiler::kUnsignedTwoBytes);
       } else {
         __ LoadImmediate(TMP, value_cid);
-        __ str(TMP, field_cid_operand, kUnsignedHalfword);
-        __ str(TMP, field_nullability_operand, kUnsignedHalfword);
+        __ str(TMP, field_cid_operand, compiler::kUnsignedTwoBytes);
+        __ str(TMP, field_nullability_operand, compiler::kUnsignedTwoBytes);
       }
 
       __ b(&ok);
@@ -2152,7 +2159,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(fail);
 
       __ LoadFieldFromOffset(TMP, field_reg, Field::guarded_cid_offset(),
-                             kUnsignedHalfword);
+                             compiler::kUnsignedTwoBytes);
       __ CompareImmediate(TMP, kDynamicCid);
       __ b(&ok, EQ);
 
@@ -2242,7 +2249,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ ldr(offset_reg,
            compiler::FieldAddress(
                field_reg, Field::guarded_list_length_in_object_offset_offset()),
-           kByte);
+           compiler::kByte);
     __ ldr(length_reg, compiler::FieldAddress(
                            field_reg, Field::guarded_list_length_offset()));
 
@@ -2495,27 +2502,27 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(temp, Field::ZoneHandle(Z, slot().field().Original()));
 
     __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset(),
-                           kUnsignedHalfword);
+                           compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp2, kNullCid);
     __ b(&store_pointer, EQ);
 
     __ LoadFromOffset(temp2, temp, Field::kind_bits_offset() - kHeapObjectTag,
-                      kUnsignedByte);
+                      compiler::kUnsignedByte);
     __ tsti(temp2, compiler::Immediate(1 << Field::kUnboxingCandidateBit));
     __ b(&store_pointer, EQ);
 
     __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(),
-                           kUnsignedHalfword);
+                           compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp2, kDoubleCid);
     __ b(&store_double, EQ);
 
     __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(),
-                           kUnsignedHalfword);
+                           compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp2, kFloat32x4Cid);
     __ b(&store_float32x4, EQ);
 
     __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(),
-                           kUnsignedHalfword);
+                           compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp2, kFloat64x2Cid);
     __ b(&store_float64x2, EQ);
 
@@ -2819,12 +2826,12 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kUnboxedUint32:
         __ Comment("UnboxedUint32LoadFieldInstr");
         __ LoadFieldFromOffset(result_reg, instance_reg, OffsetInBytes(),
-                               kUnsignedWord);
+                               compiler::kUnsignedFourBytes);
         break;
       case kUnboxedUint8:
         __ Comment("UnboxedUint8LoadFieldInstr");
         __ LoadFieldFromOffset(result_reg, instance_reg, OffsetInBytes(),
-                               kUnsignedByte);
+                               compiler::kUnsignedByte);
         break;
       default:
         UNIMPLEMENTED();
@@ -2889,23 +2896,23 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(result_reg, Field::ZoneHandle(slot().field().Original()));
 
     compiler::FieldAddress field_cid_operand(
-        result_reg, Field::guarded_cid_offset(), kUnsignedHalfword);
+        result_reg, Field::guarded_cid_offset(), compiler::kUnsignedTwoBytes);
     compiler::FieldAddress field_nullability_operand(
-        result_reg, Field::is_nullable_offset(), kUnsignedHalfword);
+        result_reg, Field::is_nullable_offset(), compiler::kUnsignedTwoBytes);
 
-    __ ldr(temp, field_nullability_operand, kUnsignedHalfword);
+    __ ldr(temp, field_nullability_operand, compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp, kNullCid);
     __ b(&load_pointer, EQ);
 
-    __ ldr(temp, field_cid_operand, kUnsignedHalfword);
+    __ ldr(temp, field_cid_operand, compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp, kDoubleCid);
     __ b(&load_double, EQ);
 
-    __ ldr(temp, field_cid_operand, kUnsignedHalfword);
+    __ ldr(temp, field_cid_operand, compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp, kFloat32x4Cid);
     __ b(&load_float32x4, EQ);
 
-    __ ldr(temp, field_cid_operand, kUnsignedHalfword);
+    __ ldr(temp, field_cid_operand, compiler::kUnsignedTwoBytes);
     __ CompareImmediate(temp, kFloat64x2Cid);
     __ b(&load_float64x2, EQ);
 
@@ -3334,10 +3341,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
     __ LoadFieldFromOffset(TMP, function, Function::usage_counter_offset(),
-                           kWord);
+                           compiler::kFourBytes);
     __ add(TMP, TMP, compiler::Operand(1));
     __ StoreFieldToOffset(TMP, function, Function::usage_counter_offset(),
-                          kWord);
+                          compiler::kFourBytes);
     __ CompareImmediate(TMP, threshold);
     __ b(slow_path->osr_entry_label(), GE);
   }
@@ -4157,8 +4164,10 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   compiler::Label done;
   __ SmiUntag(result, value);
   __ BranchIfSmi(value, &done);
-  __ ldr(result, compiler::FieldAddress(value, Mint::value_offset(), kWord),
-         kWord);
+  __ ldr(
+      result,
+      compiler::FieldAddress(value, Mint::value_offset(), compiler::kFourBytes),
+      compiler::kFourBytes);
   __ LoadFieldFromOffset(result, value, Mint::value_offset());
   __ Bind(&done);
 }
@@ -6017,10 +6026,10 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
   } else {
     switch (op_kind) {
       case Token::kSHR:
-        __ LsrImmediate(out, left, shift, kWord);
+        __ LsrImmediate(out, left, shift, compiler::kFourBytes);
         break;
       case Token::kSHL:
-        __ LslImmediate(out, left, shift, kWord);
+        __ LslImmediate(out, left, shift, compiler::kFourBytes);
         break;
       default:
         UNREACHABLE();

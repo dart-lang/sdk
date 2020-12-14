@@ -23,6 +23,8 @@ html/wrapping_collections_test: SkipByDesign # Testing an issue that is only rel
 html/xhr_test: Slow, Pass
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+typed_data/int64_list_load_store_test: SkipByDesign # No support for Int64List
+typed_data/typed_data_hierarchy_int64_test: SkipByDesign # No support for Int64List
 wasm/*: SkipByDesign # dart:wasm not currently supported on web.
 
 [ $compiler != dart2js ]

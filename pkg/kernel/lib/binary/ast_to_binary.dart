@@ -26,8 +26,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
-  final List<bool> _sourcesFromRealImplementation = new List<bool>();
-  final List<bool> _sourcesUsedInLibrary = new List<bool>();
+  final List<bool> _sourcesFromRealImplementation = <bool>[];
+  final List<bool> _sourcesUsedInLibrary = <bool>[];
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
   NonNullableByDefaultCompiledMode compilationMode;
@@ -120,7 +120,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _binaryOffsetForStringTable = getBufferOffset();
 
     // Containers for the WTF-8 encoded strings.
-    final List<Uint8List> data = new List<Uint8List>();
+    final List<Uint8List> data = <Uint8List>[];
     int totalLength = 0;
     const int minLength = 1 << 16;
     Uint8List buffer;
@@ -287,92 +287,92 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeNodeList(List<Node> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Node node = nodes[i];
       writeNode(node);
     }
   }
 
   void writeProcedureNodeList(List<Procedure> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Procedure node = nodes[i];
       writeProcedureNode(node);
     }
   }
 
   void writeFieldNodeList(List<Field> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Field node = nodes[i];
       writeFieldNode(node);
     }
   }
 
   void writeClassNodeList(List<Class> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Class node = nodes[i];
       writeClassNode(node);
     }
   }
 
   void writeExtensionNodeList(List<Extension> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Extension node = nodes[i];
       writeExtensionNode(node);
     }
   }
 
   void writeConstructorNodeList(List<Constructor> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Constructor node = nodes[i];
       writeConstructorNode(node);
     }
   }
 
   void writeRedirectingFactoryConstructorNodeList(
       List<RedirectingFactoryConstructor> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final RedirectingFactoryConstructor node = nodes[i];
       writeRedirectingFactoryConstructorNode(node);
     }
   }
 
   void writeSwitchCaseNodeList(List<SwitchCase> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final SwitchCase node = nodes[i];
       writeSwitchCaseNode(node);
     }
   }
 
   void writeCatchNodeList(List<Catch> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Catch node = nodes[i];
       writeCatchNode(node);
     }
   }
 
   void writeTypedefNodeList(List<Typedef> nodes) {
-    final len = nodes.length;
+    final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final node = nodes[i];
+      final Typedef node = nodes[i];
       writeTypedefNode(node);
     }
   }
@@ -538,7 +538,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     Timeline.timeSync("BinaryPrinter.writeComponentFile", () {
       compilationMode = component.mode;
       computeCanonicalNames(component);
-      final componentOffset = getBufferOffset();
+      final int componentOffset = getBufferOffset();
       writeUInt32(Tag.ComponentFile);
       writeUInt32(Tag.BinaryFormatVersion);
       writeBytes(ascii.encode(expectedSdkHash));
@@ -561,7 +561,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeConstantTable(_constantIndexer);
       List<Library> libraries = component.libraries;
       if (libraryFilter != null) {
-        List<Library> librariesNew = new List<Library>();
+        List<Library> librariesNew = <Library>[];
         for (int i = 0; i < libraries.length; i++) {
           Library library = libraries[i];
           if (libraryFilter(library)) librariesNew.add(library);
@@ -605,8 +605,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void _writeNodeMetadataImpl(Node node, int nodeOffset) {
     for (_MetadataSubsection subsection in _metadataSubsections) {
-      final repository = subsection.repository;
-      final value = repository.mapping[node];
+      final MetadataRepository<Object> repository = subsection.repository;
+      final Object value = repository.mapping[node];
       if (value == null) {
         continue;
       }
@@ -695,7 +695,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeUInt32(stringIndexer.put(subsection.repository.tag));
 
       // RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset
-      final mappingLength = subsection.metadataMapping.length;
+      final int mappingLength = subsection.metadataMapping.length;
       for (int i = 0; i < mappingLength; i += 2) {
         writeUInt32(subsection.metadataMapping[i]); // node offset
         writeUInt32(subsection.metadataMapping[i + 1]); // metadata offset
@@ -773,7 +773,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     int length = _sourceUriIndexer.index.length;
     writeUInt32(length);
-    List<int> index = new List<int>(length);
+    List<int> index = new List<int>.filled(length, null);
 
     // Write data.
     int i = 0;
@@ -794,18 +794,32 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
       writeByteList(source.source);
 
-      List<int> lineStarts = source.lineStarts;
-      writeUInt30(lineStarts.length);
-      int previousLineStart = 0;
-      for (int j = 0; j < lineStarts.length; ++j) {
-        int lineStart = lineStarts[j];
-        writeUInt30(lineStart - previousLineStart);
-        previousLineStart = lineStart;
+      {
+        List<int> lineStarts = source.lineStarts;
+        writeUInt30(lineStarts.length);
+        int previousLineStart = 0;
+        for (int j = 0; j < lineStarts.length; ++j) {
+          int lineStart = lineStarts[j];
+          writeUInt30(lineStart - previousLineStart);
+          previousLineStart = lineStart;
+        }
       }
 
       String importUriAsString =
           source.importUri == null ? "" : "${source.importUri}";
       outputStringViaBuffer(importUriAsString, buffer);
+
+      {
+        Set<Reference> coverage = source.constantCoverageConstructors;
+        if (coverage == null || coverage.isEmpty) {
+          writeUInt30(0);
+        } else {
+          writeUInt30(coverage.length);
+          for (Reference reference in coverage) {
+            writeNonNullReference(reference);
+          }
+        }
+      }
 
       i++;
     }
@@ -980,12 +994,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     leaveScope(memberScope: true);
 
     writeTypedefNodeList(node.typedefs);
-    classOffsets = new List<int>();
+    classOffsets = <int>[];
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeExtensionNodeList(node.extensions);
     writeFieldNodeList(node.fields);
-    procedureOffsets = new List<int>();
+    procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
@@ -1105,10 +1119,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeAnnotationList(List<Expression> annotations) {
-    final len = annotations.length;
+    final int len = annotations.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final annotation = annotations[i];
+      final Expression annotation = annotations[i];
       writeAnnotation(annotation);
     }
   }
@@ -1190,14 +1204,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitProcedure(Procedure node) {
-    assert(
-        !(node.isMemberSignature &&
-            node.memberSignatureOriginReference == null),
+    assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
-    assert(!(node.isMemberSignature && node.isForwardingStub),
-        "Procedure is both member signature and forwarding stub: $node.");
-    assert(!(node.isMemberSignature && node.isForwardingSemiStub),
-        "Procedure is both member signature and forwarding semi stub: $node.");
     assert(
         !(node.forwardingStubInterfaceTarget is Procedure &&
             (node.forwardingStubInterfaceTarget as Procedure)
@@ -1228,12 +1236,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
+    writeByte(node.stubKind.index);
     writeUInt30(node.flags);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
-    writeNullAllowedReference(node.forwardingStubSuperTargetReference);
-    writeNullAllowedReference(node.forwardingStubInterfaceTargetReference);
-    writeNullAllowedReference(node.memberSignatureOriginReference);
+    writeNullAllowedReference(node.stubTargetReference);
     writeOptionalFunctionNode(node.function);
     leaveScope(memberScope: true);
 
@@ -2511,7 +2518,7 @@ class VariableIndexer {
   }
 
   void pushScope() {
-    scopes ??= new List<int>();
+    scopes ??= <int>[];
     scopes.add(stackHeight);
   }
 

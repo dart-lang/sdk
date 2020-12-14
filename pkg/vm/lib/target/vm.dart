@@ -50,7 +50,7 @@ class VmTarget extends Target {
   bool get supportsSetLiterals => false;
 
   @override
-  bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+  int get enabledLateLowerings => flags.forceLateLoweringsForTesting;
 
   @override
   bool get supportsLateLoweringSentinel =>
@@ -90,7 +90,6 @@ class VmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:cli',
-        'dart:wasm',
       ];
 
   @override
@@ -465,9 +464,6 @@ class VmTarget extends Target {
     // TODO(alexmarkov): Call this from the front-end in order to have
     //  the same defines when compiling platform.
     assert(map != null);
-    if (map['dart.vm.product'] == 'true') {
-      map['dart.developer.causal_async_stacks'] = 'false';
-    }
     map['dart.isVM'] = 'true';
     // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
     for (String library in extraRequiredLibraries) {

@@ -17,6 +17,10 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
+import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -143,6 +147,25 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     //
     return CompletionResult(
         request.replacementOffset, request.replacementLength, suggestions);
+  }
+
+  /// Return the suggestions that should be presented in the YAML [file] at the
+  /// given [offset].
+  YamlCompletionResults computeYamlSuggestions(String file, int offset) {
+    var provider = server.resourceProvider;
+    if (AnalysisEngine.isAnalysisOptionsFileName(file)) {
+      var generator = AnalysisOptionsGenerator(provider);
+      return generator.getSuggestions(file, offset);
+    }
+    var fileName = provider.pathContext.basename(file);
+    if (fileName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+      var generator = PubspecGenerator(provider);
+      return generator.getSuggestions(file, offset);
+    } else if (fileName == AnalysisEngine.FIX_DATA_FILE) {
+      var generator = FixDataGenerator(provider);
+      return generator.getSuggestions(file, offset);
+    }
+    return const YamlCompletionResults.empty();
   }
 
   /// Process a `completion.getSuggestionDetails` request.
@@ -297,6 +320,25 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
         return;
       }
+      if (file.endsWith('.yaml')) {
+        // Return the response without results.
+        var completionId = (_nextCompletionId++).toString();
+        server.sendResponse(CompletionGetSuggestionsResult(completionId)
+            .toResponse(request.id));
+        // Send a notification with results.
+        final suggestions = computeYamlSuggestions(file, offset);
+        sendCompletionNotification(
+          completionId,
+          suggestions.replacementOffset,
+          suggestions.replacementLength,
+          suggestions.suggestions,
+          null,
+          null,
+          null,
+          null,
+        );
+        return;
+      }
 
       var resolvedUnit = await server.getResolvedUnit(file);
       server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
@@ -312,8 +354,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         recordRequest(performance, file, resolvedUnit.content, offset);
       }
-      var completionRequest = CompletionRequestImpl(
-          resolvedUnit, offset, server.options.useNewRelevance, performance);
+      var completionRequest =
+          CompletionRequestImpl(resolvedUnit, offset, performance);
 
       var completionId = (_nextCompletionId++).toString();
 

@@ -1,0 +1,13 @@
+name: analyzer_utilities
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '>=2.1.0 <3.0.0'
+
+dependencies:
+  analyzer:
+    path: ../analyzer
+  html: any
+  path: any
+  test: any

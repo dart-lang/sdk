@@ -11,12 +11,12 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertToNormalParameterTest);
+    defineReflectiveTests(ConvertToNullAwareTest);
   });
 }
 
 @reflectiveTest
-class ConvertToNormalParameterTest extends AssistProcessorTest {
+class ConvertToNullAwareTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_NULL_AWARE;
 
@@ -136,6 +136,18 @@ class A {
 }
 int f(A a) => a?.p;
 ''');
+  }
+
+  Future<void> test_notEqual_noTarget() async {
+    // https://github.com/dart-lang/sdk/issues/44173
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+foo() {
+  var range = 1;
+  var rangeStart = range != null ? toOffset() : null;
+}
+''');
+    await assertNoAssistAt(' null;');
   }
 
   Future<void> test_notEqual_notNullPreserving() async {

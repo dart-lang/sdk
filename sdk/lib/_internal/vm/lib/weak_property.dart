@@ -6,15 +6,17 @@
 
 @pragma("vm:entry-point")
 class _WeakProperty {
-  factory _WeakProperty(key, value) => _new(key, value);
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  get key native "WeakProperty_getKey";
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  set key(k) native "WeakProperty_setKey";
 
-  get key => _getKey();
-  get value => _getValue();
-  set value(value) => _setValue(value);
-
-  static _WeakProperty _new(key, value) native "WeakProperty_new";
-
-  _getKey() native "WeakProperty_getKey";
-  _getValue() native "WeakProperty_getValue";
-  _setValue(value) native "WeakProperty_setValue";
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  get value native "WeakProperty_getValue";
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  set value(v) native "WeakProperty_setValue";
 }

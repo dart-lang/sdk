@@ -39,14 +39,14 @@ Component loadComponentSourceFromBytes(List<int> bytes, [Component component]) {
 }
 
 Future writeComponentToBinary(Component component, String path) {
-  var sink;
+  IOSink sink;
   if (path == 'null' || path == 'stdout') {
     sink = stdout.nonBlocking;
   } else {
     sink = new File(path).openWrite();
   }
 
-  var future;
+  Future future;
   try {
     new BinaryPrinter(sink).writeComponentFile(component);
   } finally {

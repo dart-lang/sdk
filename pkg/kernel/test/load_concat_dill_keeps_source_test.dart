@@ -53,7 +53,7 @@ main() {
   List<int> partial2Serialized = serialize(cPartial2);
   expectSource(partial2Serialized, false, true);
 
-  List<int> combined = new List<int>();
+  List<int> combined = <int>[];
   combined.addAll(partial1Serialized);
   combined.addAll(partial2Serialized);
   expectSource(combined, true, true);
@@ -83,7 +83,7 @@ List<int> serialize(Component c) {
   SimpleSink sink = new SimpleSink();
   BinaryPrinter printerWhole = new BinaryPrinter(sink);
   printerWhole.writeComponentFile(c);
-  List<int> result = new List<int>();
+  List<int> result = <int>[];
   for (List<int> chunk in sink.chunks) {
     result.addAll(chunk);
   }

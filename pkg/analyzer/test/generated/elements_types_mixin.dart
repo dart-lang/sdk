@@ -215,27 +215,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  FunctionTypeAliasElementImpl functionTypeAlias({
-    @required String name,
-    List<TypeParameterElement> typeParameters = const [],
-    @required GenericFunctionTypeElement function,
-  }) {
-    return FunctionTypeAliasElementImpl(name, 0)
-      ..typeParameters = typeParameters
-      ..function = function as GenericFunctionTypeElementImpl;
-  }
-
-  FunctionType functionTypeAliasType(
-    FunctionTypeAliasElement element, {
-    List<DartType> typeArguments = const [],
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   FunctionTypeImpl functionTypeNone({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],

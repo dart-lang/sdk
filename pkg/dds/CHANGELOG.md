@@ -1,3 +1,15 @@
+# 1.6.1
+- Fixed unhandled `StateError` that could be thrown if the VM service disconnected
+  while a request was outstanding.
+
+# 1.6.0
+- Added `errorCode` to `DartDevelopmentServiceException` to communicate the
+  underlying reason of the failure.
+
+# 1.5.1
+- Improve internal error handling for situations with less than graceful
+  shutdowns.
+
 # 1.5.0
 - Added event caching for `Stdout`, `Stderr`, and `Extension` streams. When a
 client subscribes to one of these streams, they will be sent up to 10,000

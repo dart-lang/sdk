@@ -133,7 +133,7 @@ class TypeNameResolver {
       return const <DartType>[];
     }
 
-    var typeArguments = List<DartType>(parameterCount);
+    var typeArguments = List<DartType>.filled(parameterCount, null);
     for (var i = 0; i < parameterCount; i++) {
       typeArguments[i] = arguments[i].type;
     }
@@ -202,7 +202,7 @@ class TypeNameResolver {
       } else if (element is DynamicElementImpl) {
         _buildTypeArguments(node, 0);
         return DynamicTypeImpl.instance;
-      } else if (element is FunctionTypeAliasElement) {
+      } else if (element is TypeAliasElement) {
         var typeArguments = _buildTypeArguments(
           node,
           element.typeParameters.length,
@@ -249,9 +249,9 @@ class TypeNameResolver {
       return dynamicType;
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
-    } else if (element is FunctionTypeAliasElement) {
+    } else if (element is TypeAliasElement) {
       return typeSystem.instantiateToBounds2(
-        functionTypeAliasElement: element,
+        typeAliasElement: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is NeverElementImpl) {

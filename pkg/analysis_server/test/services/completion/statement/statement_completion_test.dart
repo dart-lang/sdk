@@ -61,8 +61,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   }
 
   Future<void> _computeCompletion(int offset) async {
-    var result = await session.getResolvedUnit(testFile);
-    var context = StatementCompletionContext(result, offset);
+    var context = StatementCompletionContext(testAnalysisResult, offset);
     var processor = StatementCompletionProcessor(context);
     var completion = await processor.compute();
     change = completion.change;

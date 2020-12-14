@@ -11,6 +11,7 @@ import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
+import 'package:pub_semver/src/version.dart';
 
 /// The state of an NNBD migration.
 class MigrationState {
@@ -44,10 +45,16 @@ class MigrationState {
 
   /*late*/ List<String> previewUrls;
 
+  /// Map of additional package dependencies that will be required by the
+  /// migrated code.  Keys are package names; values indicate the minimum
+  /// required version of each package.
+  final Map<String, Version> neededPackages;
+
   /// Initialize a newly created migration state with the given values.
   MigrationState(this.migration, this.includedRoot, this.listener,
-      this.instrumentationListener,
-      [this.analysisResult]);
+      this.instrumentationListener, this.neededPackages,
+      [this.analysisResult])
+      : assert(neededPackages != null);
 
   /// If the migration has been applied to disk.
   bool get hasBeenApplied => _hasBeenApplied;

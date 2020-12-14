@@ -152,9 +152,6 @@ class ErrorCodeValuesTest {
     var errorTypeMap = <Type, List<ErrorCode>>{};
     for (ErrorCode code in errorCodeValues) {
       Type type = code.runtimeType;
-      if (type == HintCodeWithUniqueName) {
-        type = HintCode;
-      }
       errorTypeMap.putIfAbsent(type, () => <ErrorCode>[]).add(code);
     }
 

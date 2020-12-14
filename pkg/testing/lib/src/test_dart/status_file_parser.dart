@@ -35,9 +35,9 @@ class Section {
 
   Section.always(this.statusFile, this.lineNumber)
       : condition = null,
-        testRules = new List<TestRule>();
+        testRules = <TestRule>[];
   Section(this.statusFile, this.condition, this.lineNumber)
-      : testRules = new List<TestRule>();
+      : testRules = <TestRule>[];
 
   bool isEnabled(Map<String, String> environment) =>
       condition == null || condition.evaluate(environment);
@@ -58,7 +58,7 @@ Future<TestExpectations> ReadTestExpectations(List<String> statusFilePaths,
 Future<void> ReadTestExpectationsInto(TestExpectations expectations,
     String statusFilePath, Map<String, String> environment) {
   var completer = new Completer();
-  List<Section> sections = new List<Section>();
+  List<Section> sections = <Section>[];
 
   void sectionsRead() {
     for (Section section in sections) {
@@ -233,7 +233,7 @@ class TestExpectations {
     _map.forEach((key, expectations) {
       if (_keyToRegExps[key] != null) return;
       var splitKey = key.split('/');
-      var regExps = new List<RegExp>(splitKey.length);
+      var regExps = new List<RegExp>.filled(splitKey.length, null);
       for (var i = 0; i < splitKey.length; i++) {
         var component = splitKey[i];
         var regExp = _regExpCache[component];

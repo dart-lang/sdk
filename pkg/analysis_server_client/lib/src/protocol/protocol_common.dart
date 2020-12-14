@@ -1,13 +1,10 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
-//
-// TODO(brianwilkerson) This file is not being generated as advertised, but it
-//  should be generated. Fix the generator to generate this file.
 
 import 'dart:convert' hide JsonDecoder;
 
@@ -96,6 +93,8 @@ class AddContentOverlay implements HasToJson {
 ///   "message": String
 ///   "correction": optional String
 ///   "code": String
+///   "url": optional String
+///   "contextMessages": optional List<DiagnosticMessage>
 ///   "hasFix": optional bool
 /// }
 ///
@@ -112,6 +111,10 @@ class AnalysisError implements HasToJson {
   String _correction;
 
   String _code;
+
+  String _url;
+
+  List<DiagnosticMessage> _contextMessages;
 
   bool _hasFix;
 
@@ -174,37 +177,62 @@ class AnalysisError implements HasToJson {
     _code = value;
   }
 
-  /// A hint to indicate to interested clients that this error has an associated
-  /// fix (or fixes). The absence of this field implies there are not known to
-  /// be fixes. Note that since the operation to calculate whether fixes apply
-  /// needs to be performant it is possible that complicated tests will be
-  /// skipped and a false negative returned. For this reason, this attribute
-  /// should be treated as a "hint". Despite the possibility of false negatives,
-  /// no false positives should be returned. If a client sees this flag set they
-  /// can proceed with the confidence that there are in fact associated fixes.
+  /// The URL of a page containing documentation associated with this error.
+  String get url => _url;
+
+  /// The URL of a page containing documentation associated with this error.
+  set url(String value) {
+    _url = value;
+  }
+
+  /// Additional messages associated with this diagnostic that provide context
+  /// to help the user understand the diagnostic.
+  List<DiagnosticMessage> get contextMessages => _contextMessages;
+
+  /// Additional messages associated with this diagnostic that provide context
+  /// to help the user understand the diagnostic.
+  set contextMessages(List<DiagnosticMessage> value) {
+    _contextMessages = value;
+  }
+
+  /// A hint to indicate to interested clients that this error has an
+  /// associated fix (or fixes). The absence of this field implies there are
+  /// not known to be fixes. Note that since the operation to calculate whether
+  /// fixes apply needs to be performant it is possible that complicated tests
+  /// will be skipped and a false negative returned. For this reason, this
+  /// attribute should be treated as a "hint". Despite the possibility of false
+  /// negatives, no false positives should be returned. If a client sees this
+  /// flag set they can proceed with the confidence that there are in fact
+  /// associated fixes.
   bool get hasFix => _hasFix;
 
-  /// A hint to indicate to interested clients that this error has an associated
-  /// fix (or fixes). The absence of this field implies there are not known to
-  /// be fixes. Note that since the operation to calculate whether fixes apply
-  /// needs to be performant it is possible that complicated tests will be
-  /// skipped and a false negative returned. For this reason, this attribute
-  /// should be treated as a "hint". Despite the possibility of false negatives,
-  /// no false positives should be returned. If a client sees this flag set they
-  /// can proceed with the confidence that there are in fact associated fixes.
+  /// A hint to indicate to interested clients that this error has an
+  /// associated fix (or fixes). The absence of this field implies there are
+  /// not known to be fixes. Note that since the operation to calculate whether
+  /// fixes apply needs to be performant it is possible that complicated tests
+  /// will be skipped and a false negative returned. For this reason, this
+  /// attribute should be treated as a "hint". Despite the possibility of false
+  /// negatives, no false positives should be returned. If a client sees this
+  /// flag set they can proceed with the confidence that there are in fact
+  /// associated fixes.
   set hasFix(bool value) {
     _hasFix = value;
   }
 
   AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
       Location location, String message, String code,
-      {String correction, bool hasFix}) {
+      {String correction,
+      String url,
+      List<DiagnosticMessage> contextMessages,
+      bool hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
     this.code = code;
+    this.url = url;
+    this.contextMessages = contextMessages;
     this.hasFix = hasFix;
   }
 
@@ -251,12 +279,27 @@ class AnalysisError implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'code');
       }
+      String url;
+      if (json.containsKey('url')) {
+        url = jsonDecoder.decodeString(jsonPath + '.url', json['url']);
+      }
+      List<DiagnosticMessage> contextMessages;
+      if (json.containsKey('contextMessages')) {
+        contextMessages = jsonDecoder.decodeList(
+            jsonPath + '.contextMessages',
+            json['contextMessages'],
+            (String jsonPath, Object json) =>
+                DiagnosticMessage.fromJson(jsonDecoder, jsonPath, json));
+      }
       bool hasFix;
       if (json.containsKey('hasFix')) {
         hasFix = jsonDecoder.decodeBool(jsonPath + '.hasFix', json['hasFix']);
       }
       return AnalysisError(severity, type, location, message, code,
-          correction: correction, hasFix: hasFix);
+          correction: correction,
+          url: url,
+          contextMessages: contextMessages,
+          hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'AnalysisError', json);
     }
@@ -273,6 +316,14 @@ class AnalysisError implements HasToJson {
       result['correction'] = correction;
     }
     result['code'] = code;
+    if (url != null) {
+      result['url'] = url;
+    }
+    if (contextMessages != null) {
+      result['contextMessages'] = contextMessages
+          .map((DiagnosticMessage value) => value.toJson())
+          .toList();
+    }
     if (hasFix != null) {
       result['hasFix'] = hasFix;
     }
@@ -291,6 +342,9 @@ class AnalysisError implements HasToJson {
           message == other.message &&
           correction == other.correction &&
           code == other.code &&
+          url == other.url &&
+          listEqual(contextMessages, other.contextMessages,
+              (DiagnosticMessage a, DiagnosticMessage b) => a == b) &&
           hasFix == other.hasFix;
     }
     return false;
@@ -305,6 +359,8 @@ class AnalysisError implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, correction.hashCode);
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, url.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contextMessages.hashCode);
     hash = JenkinsSmiHash.combine(hash, hasFix.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -562,7 +618,6 @@ class ChangeContentOverlay implements HasToJson {
 ///   "hasNamedParameters": optional bool
 ///   "parameterName": optional String
 ///   "parameterType": optional String
-///   "importUri": optional String
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -608,8 +663,6 @@ class CompletionSuggestion implements HasToJson {
   String _parameterName;
 
   String _parameterType;
-
-  String _importUri;
 
   /// The kind of element being suggested.
   CompletionSuggestionKind get kind => _kind;
@@ -720,12 +773,12 @@ class CompletionSuggestion implements HasToJson {
     _docComplete = value;
   }
 
-  /// The class that declares the element being suggested. This field is omitted
-  /// if the suggested element is not a member of a class.
+  /// The class that declares the element being suggested. This field is
+  /// omitted if the suggested element is not a member of a class.
   String get declaringType => _declaringType;
 
-  /// The class that declares the element being suggested. This field is omitted
-  /// if the suggested element is not a member of a class.
+  /// The class that declares the element being suggested. This field is
+  /// omitted if the suggested element is not a member of a class.
   set declaringType(String value) {
     _declaringType = value;
   }
@@ -766,14 +819,14 @@ class CompletionSuggestion implements HasToJson {
     _element = value;
   }
 
-  /// The return type of the getter, function or method or the type of the field
-  /// being suggested. This field is omitted if the suggested element is not a
-  /// getter, function or method.
+  /// The return type of the getter, function or method or the type of the
+  /// field being suggested. This field is omitted if the suggested element is
+  /// not a getter, function or method.
   String get returnType => _returnType;
 
-  /// The return type of the getter, function or method or the type of the field
-  /// being suggested. This field is omitted if the suggested element is not a
-  /// getter, function or method.
+  /// The return type of the getter, function or method or the type of the
+  /// field being suggested. This field is omitted if the suggested element is
+  /// not a getter, function or method.
   set returnType(String value) {
     _returnType = value;
   }
@@ -842,16 +895,6 @@ class CompletionSuggestion implements HasToJson {
     _parameterType = value;
   }
 
-  /// The import to be added if the suggestion is out of scope and needs an
-  /// import to be added to be in scope.
-  String get importUri => _importUri;
-
-  /// The import to be added if the suggestion is out of scope and needs an
-  /// import to be added to be in scope.
-  set importUri(String value) {
-    _importUri = value;
-  }
-
   CompletionSuggestion(
       CompletionSuggestionKind kind,
       int relevance,
@@ -873,8 +916,7 @@ class CompletionSuggestion implements HasToJson {
       int requiredParameterCount,
       bool hasNamedParameters,
       String parameterName,
-      String parameterType,
-      String importUri}) {
+      String parameterType}) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -896,7 +938,6 @@ class CompletionSuggestion implements HasToJson {
     this.hasNamedParameters = hasNamedParameters;
     this.parameterName = parameterName;
     this.parameterType = parameterType;
-    this.importUri = importUri;
   }
 
   factory CompletionSuggestion.fromJson(
@@ -1026,11 +1067,6 @@ class CompletionSuggestion implements HasToJson {
         parameterType = jsonDecoder.decodeString(
             jsonPath + '.parameterType', json['parameterType']);
       }
-      String importUri;
-      if (json.containsKey('importUri')) {
-        importUri = jsonDecoder.decodeString(
-            jsonPath + '.importUri', json['importUri']);
-      }
       return CompletionSuggestion(kind, relevance, completion, selectionOffset,
           selectionLength, isDeprecated, isPotential,
           displayText: displayText,
@@ -1046,8 +1082,7 @@ class CompletionSuggestion implements HasToJson {
           requiredParameterCount: requiredParameterCount,
           hasNamedParameters: hasNamedParameters,
           parameterName: parameterName,
-          parameterType: parameterType,
-          importUri: importUri);
+          parameterType: parameterType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'CompletionSuggestion', json);
     }
@@ -1105,9 +1140,6 @@ class CompletionSuggestion implements HasToJson {
     if (parameterType != null) {
       result['parameterType'] = parameterType;
     }
-    if (importUri != null) {
-      result['importUri'] = importUri;
-    }
     return result;
   }
 
@@ -1140,8 +1172,7 @@ class CompletionSuggestion implements HasToJson {
           requiredParameterCount == other.requiredParameterCount &&
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
-          parameterType == other.parameterType &&
-          importUri == other.importUri;
+          parameterType == other.parameterType;
     }
     return false;
   }
@@ -1170,7 +1201,6 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterName.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, importUri.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -1187,6 +1217,7 @@ class CompletionSuggestion implements HasToJson {
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1209,13 +1240,14 @@ class CompletionSuggestionKind implements Enum {
       CompletionSuggestionKind._('IDENTIFIER');
 
   /// The element is being invoked at the completion location. For example,
-  /// 'someMethod' in x.someMethod();. For suggestions of this kind, the element
-  /// attribute is defined and the completion field is the element's identifier.
+  /// 'someMethod' in x.someMethod();. For suggestions of this kind, the
+  /// element attribute is defined and the completion field is the element's
+  /// identifier.
   static const CompletionSuggestionKind INVOCATION =
       CompletionSuggestionKind._('INVOCATION');
 
-  /// A keyword is being suggested. For suggestions of this kind, the completion
-  /// is the keyword.
+  /// A keyword is being suggested. For suggestions of this kind, the
+  /// completion is the keyword.
   static const CompletionSuggestionKind KEYWORD =
       CompletionSuggestionKind._('KEYWORD');
 
@@ -1235,6 +1267,10 @@ class CompletionSuggestionKind implements Enum {
   static const CompletionSuggestionKind PARAMETER =
       CompletionSuggestionKind._('PARAMETER');
 
+  /// The name of a pub package is being suggested.
+  static const CompletionSuggestionKind PACKAGE_NAME =
+      CompletionSuggestionKind._('PACKAGE_NAME');
+
   /// A list containing all of the enum values that are defined.
   static const List<CompletionSuggestionKind> VALUES =
       <CompletionSuggestionKind>[
@@ -1246,7 +1282,8 @@ class CompletionSuggestionKind implements Enum {
     NAMED_ARGUMENT,
     OPTIONAL_ARGUMENT,
     OVERRIDE,
-    PARAMETER
+    PARAMETER,
+    PACKAGE_NAME
   ];
 
   @override
@@ -1274,6 +1311,8 @@ class CompletionSuggestionKind implements Enum {
         return OVERRIDE;
       case 'PARAMETER':
         return PARAMETER;
+      case 'PACKAGE_NAME':
+        return PACKAGE_NAME;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -1294,6 +1333,96 @@ class CompletionSuggestionKind implements Enum {
   String toString() => 'CompletionSuggestionKind.$name';
 
   String toJson() => name;
+}
+
+/// DiagnosticMessage
+///
+/// {
+///   "message": String
+///   "location": Location
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class DiagnosticMessage implements HasToJson {
+  String _message;
+
+  Location _location;
+
+  /// The message to be displayed to the user.
+  String get message => _message;
+
+  /// The message to be displayed to the user.
+  set message(String value) {
+    assert(value != null);
+    _message = value;
+  }
+
+  /// The location associated with or referenced by the message. Clients should
+  /// provide the ability to navigate to the location.
+  Location get location => _location;
+
+  /// The location associated with or referenced by the message. Clients should
+  /// provide the ability to navigate to the location.
+  set location(Location value) {
+    assert(value != null);
+    _location = value;
+  }
+
+  DiagnosticMessage(String message, Location location) {
+    this.message = message;
+    this.location = location;
+  }
+
+  factory DiagnosticMessage.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    json ??= {};
+    if (json is Map) {
+      String message;
+      if (json.containsKey('message')) {
+        message =
+            jsonDecoder.decodeString(jsonPath + '.message', json['message']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'message');
+      }
+      Location location;
+      if (json.containsKey('location')) {
+        location = Location.fromJson(
+            jsonDecoder, jsonPath + '.location', json['location']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'location');
+      }
+      return DiagnosticMessage(message, location);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'DiagnosticMessage', json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['message'] = message;
+    result['location'] = location.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is DiagnosticMessage) {
+      return message == other.message && location == other.location;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
 }
 
 /// Element
@@ -1415,14 +1544,14 @@ class Element implements HasToJson {
     _parameters = value;
   }
 
-  /// The return type of the element. If the element is not a method or function
-  /// this field will not be defined. If the element does not have a declared
-  /// return type, this field will contain an empty string.
+  /// The return type of the element. If the element is not a method or
+  /// function this field will not be defined. If the element does not have a
+  /// declared return type, this field will contain an empty string.
   String get returnType => _returnType;
 
-  /// The return type of the element. If the element is not a method or function
-  /// this field will not be defined. If the element does not have a declared
-  /// return type, this field will contain an empty string.
+  /// The return type of the element. If the element is not a method or
+  /// function this field will not be defined. If the element does not have a
+  /// declared return type, this field will contain an empty string.
   set returnType(String value) {
     _returnType = value;
   }
@@ -1573,6 +1702,7 @@ class Element implements HasToJson {
 ///   CONSTRUCTOR_INVOCATION
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FILE
 ///   FUNCTION
@@ -1610,6 +1740,8 @@ class ElementKind implements Enum {
   static const ElementKind ENUM = ElementKind._('ENUM');
 
   static const ElementKind ENUM_CONSTANT = ElementKind._('ENUM_CONSTANT');
+
+  static const ElementKind EXTENSION = ElementKind._('EXTENSION');
 
   static const ElementKind FIELD = ElementKind._('FIELD');
 
@@ -1661,6 +1793,7 @@ class ElementKind implements Enum {
     CONSTRUCTOR_INVOCATION,
     ENUM,
     ENUM_CONSTANT,
+    EXTENSION,
     FIELD,
     FILE,
     FUNCTION,
@@ -1703,6 +1836,8 @@ class ElementKind implements Enum {
         return ENUM;
       case 'ENUM_CONSTANT':
         return ENUM_CONSTANT;
+      case 'EXTENSION':
+        return EXTENSION;
       case 'FIELD':
         return FIELD;
       case 'FILE':
@@ -1767,6 +1902,7 @@ class ElementKind implements Enum {
 ///
 /// enum {
 ///   ANNOTATIONS
+///   BLOCK
 ///   CLASS_BODY
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
@@ -1779,6 +1915,8 @@ class ElementKind implements Enum {
 /// Clients may not extend, implement or mix-in this class.
 class FoldingKind implements Enum {
   static const FoldingKind ANNOTATIONS = FoldingKind._('ANNOTATIONS');
+
+  static const FoldingKind BLOCK = FoldingKind._('BLOCK');
 
   static const FoldingKind CLASS_BODY = FoldingKind._('CLASS_BODY');
 
@@ -1798,6 +1936,7 @@ class FoldingKind implements Enum {
   /// A list containing all of the enum values that are defined.
   static const List<FoldingKind> VALUES = <FoldingKind>[
     ANNOTATIONS,
+    BLOCK,
     CLASS_BODY,
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
@@ -1816,6 +1955,8 @@ class FoldingKind implements Enum {
     switch (name) {
       case 'ANNOTATIONS':
         return ANNOTATIONS;
+      case 'BLOCK':
+        return BLOCK;
       case 'CLASS_BODY':
         return CLASS_BODY;
       case 'DIRECTIVES':
@@ -2174,23 +2315,19 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType DIRECTIVE =
       HighlightRegionType._('DIRECTIVE');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType DYNAMIC_TYPE =
       HighlightRegionType._('DYNAMIC_TYPE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION =
       HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE =
       HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION =
       HighlightRegionType._('DYNAMIC_PARAMETER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE =
       HighlightRegionType._('DYNAMIC_PARAMETER_REFERENCE');
 
@@ -2199,24 +2336,24 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType ENUM_CONSTANT =
       HighlightRegionType._('ENUM_CONSTANT');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FIELD = HighlightRegionType._('FIELD');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FIELD_STATIC =
       HighlightRegionType._('FIELD_STATIC');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FUNCTION = HighlightRegionType._('FUNCTION');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FUNCTION_DECLARATION =
       HighlightRegionType._('FUNCTION_DECLARATION');
 
   static const HighlightRegionType FUNCTION_TYPE_ALIAS =
       HighlightRegionType._('FUNCTION_TYPE_ALIAS');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType GETTER_DECLARATION =
       HighlightRegionType._('GETTER_DECLARATION');
 
@@ -2226,39 +2363,30 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType IMPORT_PREFIX =
       HighlightRegionType._('IMPORT_PREFIX');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_DECLARATION =
       HighlightRegionType._('INSTANCE_FIELD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_REFERENCE =
       HighlightRegionType._('INSTANCE_FIELD_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_DECLARATION =
       HighlightRegionType._('INSTANCE_GETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_REFERENCE =
       HighlightRegionType._('INSTANCE_GETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_DECLARATION =
       HighlightRegionType._('INSTANCE_METHOD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
       HighlightRegionType._('INSTANCE_METHOD_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
       HighlightRegionType._('INSTANCE_SETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_REFERENCE =
       HighlightRegionType._('INSTANCE_SETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INVALID_STRING_ESCAPE =
       HighlightRegionType._('INVALID_STRING_ESCAPE');
 
@@ -2266,7 +2394,6 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType LABEL = HighlightRegionType._('LABEL');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LIBRARY_NAME =
       HighlightRegionType._('LIBRARY_NAME');
 
@@ -2288,113 +2415,94 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType LITERAL_STRING =
       HighlightRegionType._('LITERAL_STRING');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_DECLARATION =
       HighlightRegionType._('LOCAL_FUNCTION_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
       HighlightRegionType._('LOCAL_FUNCTION_REFERENCE');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType LOCAL_VARIABLE =
       HighlightRegionType._('LOCAL_VARIABLE');
 
   static const HighlightRegionType LOCAL_VARIABLE_DECLARATION =
       HighlightRegionType._('LOCAL_VARIABLE_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_VARIABLE_REFERENCE =
       HighlightRegionType._('LOCAL_VARIABLE_REFERENCE');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD = HighlightRegionType._('METHOD');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD_DECLARATION =
       HighlightRegionType._('METHOD_DECLARATION');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD_DECLARATION_STATIC =
       HighlightRegionType._('METHOD_DECLARATION_STATIC');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD_STATIC =
       HighlightRegionType._('METHOD_STATIC');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType PARAMETER =
       HighlightRegionType._('PARAMETER');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType SETTER_DECLARATION =
       HighlightRegionType._('SETTER_DECLARATION');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType TOP_LEVEL_VARIABLE =
       HighlightRegionType._('TOP_LEVEL_VARIABLE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_DECLARATION =
       HighlightRegionType._('PARAMETER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_REFERENCE =
       HighlightRegionType._('PARAMETER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_FIELD_DECLARATION =
       HighlightRegionType._('STATIC_FIELD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_DECLARATION =
       HighlightRegionType._('STATIC_GETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_REFERENCE =
       HighlightRegionType._('STATIC_GETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_DECLARATION =
       HighlightRegionType._('STATIC_METHOD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_REFERENCE =
       HighlightRegionType._('STATIC_METHOD_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_DECLARATION =
       HighlightRegionType._('STATIC_SETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_REFERENCE =
       HighlightRegionType._('STATIC_SETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_FUNCTION_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
       HighlightRegionType._('TOP_LEVEL_FUNCTION_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_GETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE =
       HighlightRegionType._('TOP_LEVEL_GETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_SETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE =
       HighlightRegionType._('TOP_LEVEL_SETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_VARIABLE_DECLARATION');
 
@@ -2404,11 +2512,9 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType TYPE_PARAMETER =
       HighlightRegionType._('TYPE_PARAMETER');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE =
       HighlightRegionType._('UNRESOLVED_INSTANCE_MEMBER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType VALID_STRING_ESCAPE =
       HighlightRegionType._('VALID_STRING_ESCAPE');
 
@@ -2849,13 +2955,13 @@ class KytheVName implements HasToJson {
     _signature = value;
   }
 
-  /// The corpus of source code this KytheVName belongs to. Loosely, a corpus is
-  /// a collection of related files, such as the contents of a given source
+  /// The corpus of source code this KytheVName belongs to. Loosely, a corpus
+  /// is a collection of related files, such as the contents of a given source
   /// repository.
   String get corpus => _corpus;
 
-  /// The corpus of source code this KytheVName belongs to. Loosely, a corpus is
-  /// a collection of related files, such as the contents of a given source
+  /// The corpus of source code this KytheVName belongs to. Loosely, a corpus
+  /// is a collection of related files, such as the contents of a given source
   /// repository.
   set corpus(String value) {
     assert(value != null);
@@ -3468,14 +3574,14 @@ class NavigationRegion implements HasToJson {
     _length = value;
   }
 
-  /// The indexes of the targets (in the enclosing navigation response) to which
-  /// the given region is bound. By opening the target, clients can implement
-  /// one form of navigation. This list cannot be empty.
+  /// The indexes of the targets (in the enclosing navigation response) to
+  /// which the given region is bound. By opening the target, clients can
+  /// implement one form of navigation. This list cannot be empty.
   List<int> get targets => _targets;
 
-  /// The indexes of the targets (in the enclosing navigation response) to which
-  /// the given region is bound. By opening the target, clients can implement
-  /// one form of navigation. This list cannot be empty.
+  /// The indexes of the targets (in the enclosing navigation response) to
+  /// which the given region is bound. By opening the target, clients can
+  /// implement one form of navigation. This list cannot be empty.
   set targets(List<int> value) {
     assert(value != null);
     _targets = value;
@@ -3557,6 +3663,8 @@ class NavigationRegion implements HasToJson {
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "codeOffset": optional int
+///   "codeLength": optional int
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3572,6 +3680,10 @@ class NavigationTarget implements HasToJson {
   int _startLine;
 
   int _startColumn;
+
+  int _codeOffset;
+
+  int _codeLength;
 
   /// The kind of the element.
   ElementKind get kind => _kind;
@@ -3593,54 +3705,73 @@ class NavigationTarget implements HasToJson {
     _fileIndex = value;
   }
 
-  /// The offset of the region to which the user can navigate.
+  /// The offset of the name of the target to which the user can navigate.
   int get offset => _offset;
 
-  /// The offset of the region to which the user can navigate.
+  /// The offset of the name of the target to which the user can navigate.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /// The length of the region to which the user can navigate.
+  /// The length of the name of the target to which the user can navigate.
   int get length => _length;
 
-  /// The length of the region to which the user can navigate.
+  /// The length of the name of the target to which the user can navigate.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
   /// The one-based index of the line containing the first character of the
-  /// region.
+  /// name of the target.
   int get startLine => _startLine;
 
   /// The one-based index of the line containing the first character of the
-  /// region.
+  /// name of the target.
   set startLine(int value) {
     assert(value != null);
     _startLine = value;
   }
 
   /// The one-based index of the column containing the first character of the
-  /// region.
+  /// name of the target.
   int get startColumn => _startColumn;
 
   /// The one-based index of the column containing the first character of the
-  /// region.
+  /// name of the target.
   set startColumn(int value) {
     assert(value != null);
     _startColumn = value;
   }
 
+  /// The offset of the target code to which the user can navigate.
+  int get codeOffset => _codeOffset;
+
+  /// The offset of the target code to which the user can navigate.
+  set codeOffset(int value) {
+    _codeOffset = value;
+  }
+
+  /// The length of the target code to which the user can navigate.
+  int get codeLength => _codeLength;
+
+  /// The length of the target code to which the user can navigate.
+  set codeLength(int value) {
+    _codeLength = value;
+  }
+
   NavigationTarget(ElementKind kind, int fileIndex, int offset, int length,
-      int startLine, int startColumn) {
+      int startLine, int startColumn,
+      {int codeOffset, int codeLength}) {
     this.kind = kind;
     this.fileIndex = fileIndex;
     this.offset = offset;
     this.length = length;
     this.startLine = startLine;
     this.startColumn = startColumn;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
   }
 
   factory NavigationTarget.fromJson(
@@ -3687,8 +3818,19 @@ class NavigationTarget implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'startColumn');
       }
+      int codeOffset;
+      if (json.containsKey('codeOffset')) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + '.codeOffset', json['codeOffset']);
+      }
+      int codeLength;
+      if (json.containsKey('codeLength')) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + '.codeLength', json['codeLength']);
+      }
       return NavigationTarget(
-          kind, fileIndex, offset, length, startLine, startColumn);
+          kind, fileIndex, offset, length, startLine, startColumn,
+          codeOffset: codeOffset, codeLength: codeLength);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'NavigationTarget', json);
     }
@@ -3703,6 +3845,12 @@ class NavigationTarget implements HasToJson {
     result['length'] = length;
     result['startLine'] = startLine;
     result['startColumn'] = startColumn;
+    if (codeOffset != null) {
+      result['codeOffset'] = codeOffset;
+    }
+    if (codeLength != null) {
+      result['codeLength'] = codeLength;
+    }
     return result;
   }
 
@@ -3717,7 +3865,9 @@ class NavigationTarget implements HasToJson {
           offset == other.offset &&
           length == other.length &&
           startLine == other.startLine &&
-          startColumn == other.startColumn;
+          startColumn == other.startColumn &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength;
     }
     return false;
   }
@@ -3731,6 +3881,8 @@ class NavigationTarget implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
     hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
     hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -3881,15 +4033,15 @@ class Outline implements HasToJson {
   }
 
   /// The offset of the first character of the element. This is different than
-  /// the offset in the Element, which is the offset of the name of the element.
-  /// It can be used, for example, to map locations in the file back to an
-  /// outline.
+  /// the offset in the Element, which is the offset of the name of the
+  /// element. It can be used, for example, to map locations in the file back
+  /// to an outline.
   int get offset => _offset;
 
   /// The offset of the first character of the element. This is different than
-  /// the offset in the Element, which is the offset of the name of the element.
-  /// It can be used, for example, to map locations in the file back to an
-  /// outline.
+  /// the offset in the Element, which is the offset of the name of the
+  /// element. It can be used, for example, to map locations in the file back
+  /// to an outline.
   set offset(int value) {
     assert(value != null);
     _offset = value;
@@ -4179,27 +4331,34 @@ class ParameterInfo implements HasToJson {
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ParameterKind implements Enum {
-  /// A named parameter.
-  static const ParameterKind NAMED = ParameterKind._('NAMED');
+  /// An optional named parameter.
+  static const ParameterKind OPTIONAL_NAMED = ParameterKind._('OPTIONAL_NAMED');
 
-  /// An optional parameter.
-  static const ParameterKind OPTIONAL = ParameterKind._('OPTIONAL');
+  /// An optional positional parameter.
+  static const ParameterKind OPTIONAL_POSITIONAL =
+      ParameterKind._('OPTIONAL_POSITIONAL');
 
-  /// A required parameter.
-  static const ParameterKind REQUIRED = ParameterKind._('REQUIRED');
+  /// A required named parameter.
+  static const ParameterKind REQUIRED_NAMED = ParameterKind._('REQUIRED_NAMED');
+
+  /// A required positional parameter.
+  static const ParameterKind REQUIRED_POSITIONAL =
+      ParameterKind._('REQUIRED_POSITIONAL');
 
   /// A list containing all of the enum values that are defined.
   static const List<ParameterKind> VALUES = <ParameterKind>[
-    NAMED,
-    OPTIONAL,
-    REQUIRED
+    OPTIONAL_NAMED,
+    OPTIONAL_POSITIONAL,
+    REQUIRED_NAMED,
+    REQUIRED_POSITIONAL
   ];
 
   @override
@@ -4209,12 +4368,14 @@ class ParameterKind implements Enum {
 
   factory ParameterKind(String name) {
     switch (name) {
-      case 'NAMED':
-        return NAMED;
-      case 'OPTIONAL':
-        return OPTIONAL;
-      case 'REQUIRED':
-        return REQUIRED;
+      case 'OPTIONAL_NAMED':
+        return OPTIONAL_NAMED;
+      case 'OPTIONAL_POSITIONAL':
+        return OPTIONAL_POSITIONAL;
+      case 'REQUIRED_NAMED':
+        return REQUIRED_NAMED;
+      case 'REQUIRED_POSITIONAL':
+        return REQUIRED_POSITIONAL;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -4682,13 +4843,13 @@ class RefactoringProblem implements HasToJson {
   }
 
   /// The location of the problem being represented. This field is omitted
-  /// unless there is a specific location associated with the problem (such as a
-  /// location where an element being renamed will be shadowed).
+  /// unless there is a specific location associated with the problem (such as
+  /// a location where an element being renamed will be shadowed).
   Location get location => _location;
 
   /// The location of the problem being represented. This field is omitted
-  /// unless there is a specific location associated with the problem (such as a
-  /// location where an element being renamed will be shadowed).
+  /// unless there is a specific location associated with the problem (such as
+  /// a location where an element being renamed will be shadowed).
   set location(Location value) {
     _location = value;
   }
@@ -4778,10 +4939,10 @@ class RefactoringProblemSeverity implements Enum {
   static const RefactoringProblemSeverity INFO =
       RefactoringProblemSeverity._('INFO');
 
-  /// A minor code problem. For example names of local variables should be camel
-  /// case and start with a lower case letter. Staring the name of a variable
-  /// with an upper case is OK from the language point of view, but it is nice
-  /// to warn the user.
+  /// A minor code problem. For example names of local variables should be
+  /// camel case and start with a lower case letter. Staring the name of a
+  /// variable with an upper case is OK from the language point of view, but it
+  /// is nice to warn the user.
   static const RefactoringProblemSeverity WARNING =
       RefactoringProblemSeverity._('WARNING');
 
@@ -5112,8 +5273,8 @@ class SourceChange implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceEdit implements HasToJson {
-  /// Get the result of applying a set of [edits] to the given [code]. Edits are
-  /// applied in the order they appear in [edits].
+  /// Get the result of applying a set of [edits] to the given [code]. Edits
+  /// are applied in the order they appear in [edits].
   static String applySequence(String code, Iterable<SourceEdit> edits) =>
       applySequenceOfEdits(code, edits);
 
@@ -5284,16 +5445,16 @@ class SourceFileEdit implements HasToJson {
 
   /// The modification stamp of the file at the moment when the change was
   /// created, in milliseconds since the "Unix epoch". Will be -1 if the file
-  /// did not exist and should be created. The client may use this field to make
-  /// sure that the file was not changed since then, so it is safe to apply the
-  /// change.
+  /// did not exist and should be created. The client may use this field to
+  /// make sure that the file was not changed since then, so it is safe to
+  /// apply the change.
   int get fileStamp => _fileStamp;
 
   /// The modification stamp of the file at the moment when the change was
   /// created, in milliseconds since the "Unix epoch". Will be -1 if the file
-  /// did not exist and should be created. The client may use this field to make
-  /// sure that the file was not changed since then, so it is safe to apply the
-  /// change.
+  /// did not exist and should be created. The client may use this field to
+  /// make sure that the file was not changed since then, so it is safe to
+  /// apply the change.
   set fileStamp(int value) {
     assert(value != null);
     _fileStamp = value;

@@ -26,7 +26,7 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -45,7 +45,6 @@
       "tests/corelib_2/",
       "tests/dart2js_2/",
       "tests/dartdevc_2/",
-      "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
       "tests/lib_2/",
@@ -86,7 +85,6 @@
       "tests/corelib/",
       "tests/dart2js/",
       "tests/dartdevc/",
-      "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
       "tests/lib/",
@@ -115,7 +113,7 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -134,7 +132,6 @@
       "tests/corelib_2/",
       "tests/dart2js_2/",
       "tests/dartdevc_2/",
-      "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
       "tests/lib_2/",
@@ -178,7 +175,6 @@
       "tests/corelib/",
       "tests/dart2js/",
       "tests/dartdevc/",
-      "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
       "tests/lib/",
@@ -204,6 +200,7 @@
       "runtime/tests/",
       "samples-dev/",
       "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -225,7 +222,6 @@
       "tests/dart2js_2/",
       "tests/dartdevc/",
       "tests/dartdevc_2/",
-      "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
       "tests/lib/",
@@ -308,6 +304,7 @@
       "xcodebuild/ReleaseSIMARM64/",
       "xcodebuild/ReleaseX64/",
       "samples/",
+      "samples_2/",
       "samples-dev/",
       "tools/",
       "third_party/android_tools/sdk/platform-tools/adb",
@@ -336,7 +333,6 @@
       "tests/dart2js_2/",
       "tests/dartdevc",
       "tests/dartdevc_2",
-      "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
       "tests/lib/",
@@ -422,6 +418,9 @@
       }
     },
     "flutter-frontend": {
+      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
+    },
+    "vm-ffi-unit-test": {
       "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
     },
     "unittest-asserts-no-sdk-(linux|mac|win)": {
@@ -513,7 +512,9 @@
     "dart2js-(linux|mac|win)-chrome-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-weak-(linux|mac|win)-x64-d8": {
@@ -530,7 +531,9 @@
     "dart2js-(linux|win)-firefox-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-win-ie11": {
@@ -543,7 +546,9 @@
       "options": {
         "use-sdk": true,
         "babel": "{\"presets\":[\"es2015\"]}",
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-win-edge": {
@@ -554,7 +559,9 @@
     "dart2js-win-edge-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-mac-safari": {
@@ -565,7 +572,9 @@
     "dart2js-mac-safari-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-minified-csp-(linux|mac|win)-chrome": {
@@ -580,7 +589,9 @@
         "minified": true,
         "csp": true,
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-minified-(linux|mac|win)-d8": {
@@ -593,7 +604,9 @@
       "options": {
         "minified": true,
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-production-(linux|mac|win)-d8": {
@@ -613,7 +626,9 @@
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8-unsound": {
       "options": {
         "host-checked": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
@@ -751,7 +766,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-simarm64": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "enable-asserts": true,
         "use-elf": true,
@@ -781,7 +796,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-simarm64": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-elf": true,
         "builder-tag": "vm_nnbd"
@@ -1108,9 +1123,25 @@
         "vm-precomp-ffi-qemu-linux-release-arm"
       ],
       "meta": {
-        "description": "This configuration is used for running FFI tests on qemu."
+        "description": "This configuration is used for running FFI tests on qemu and FFI unit tests."
       },
       "steps": [
+        {
+          "name": "build run_ffi_unit_tests",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=x64",
+            "--mode=debug",
+            "run_ffi_unit_tests"
+          ]
+        },
+        {
+          "name": "ffi unit tests",
+          "arguments": [
+            "-nvm-ffi-unit-test",
+            "ffi_unit"
+          ]
+        },
         {
           "name": "build dart",
           "script": "tools/build.py",
@@ -1405,7 +1436,7 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
-            "vm"
+            "vm/cc"
           ]
         }
       ]
@@ -1459,7 +1490,7 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
-            "vm"
+            "vm/cc"
           ]
         }
       ]
@@ -2810,7 +2841,7 @@
         "analyzer-analysis-server-linux"
       ],
       "meta": {
-        "description": "Analyze analyzer related packages."
+        "description": "Analyze repository packages."
       },
       "steps": [
         {
@@ -2822,9 +2853,9 @@
         },
         {
           "name": "analyze runtime/tools/dartfuzz",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "runtime/tools/dartfuzz"
           ]
         },
@@ -2833,6 +2864,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/analysis_server"
           ]
         },
@@ -2841,6 +2873,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/analysis_server_client"
           ]
         },
@@ -2849,6 +2882,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/analyzer"
           ]
         },
@@ -2857,6 +2891,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/analyzer_cli"
           ]
         },
@@ -2865,30 +2900,31 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/analyzer_plugin"
           ]
         },
         {
           "name": "analyze pkg/async_helper",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/async_helper"
           ]
         },
         {
           "name": "analyze pkg/build_integration",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/build_integration"
           ]
         },
         {
           "name": "analyze pkg/compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/compiler"
           ]
         },
@@ -2903,98 +2939,102 @@
         },
         {
           "name": "analyze pkg/dart2js_tools",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/dart2js_tools"
           ]
         },
         {
           "name": "analyze pkg/dart_internal",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/dart_internal"
           ]
         },
         {
           "name": "analyze pkg/dev_compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
-            "--fatal-lints",
+            "analyze",
+            "--fatal-infos",
             "pkg/dev_compiler"
           ]
         },
         {
           "name": "analyze pkg/expect",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/expect"
           ]
         },
         {
           "name": "analyze pkg/front_end",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/front_end"
           ]
         },
         {
           "name": "analyze pkg/js",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/js"
           ]
         },
         {
           "name": "analyze pkg/js_ast",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/js_ast"
           ]
         },
         {
           "name": "analyze pkg/kernel",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/kernel"
           ]
         },
         {
           "name": "analyze pkg/meta",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/meta"
           ]
         },
         {
           "name": "analyze pkg/native_stack_traces",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/native_stack_traces"
           ]
         },
         {
           "name": "analyze pkg/smith",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/smith"
           ]
         },
         {
           "name": "analyze pkg/sourcemap_testing",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/sourcemap_testing"
           ]
         },
@@ -3003,6 +3043,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/status_file"
           ]
         },
@@ -3011,6 +3052,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/telemetry"
           ]
         },
@@ -3024,25 +3066,28 @@
         },
         {
           "name": "analyze pkg/testing",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/testing"
           ]
         },
         {
           "name": "analyze pkg/vm",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/vm"
           ]
         },
         {
           "name": "analyze pkg/vm_service",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/vm_service"
           ]
         },
@@ -3051,21 +3096,24 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/vm_snapshot_analysis"
           ]
         },
         {
           "name": "analyze pkg/dds",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/dds"
           ]
         },
         {
           "name": "analyze runtime/observatory",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
+            "analyze",
             "runtime/observatory"
           ]
         },
@@ -3200,6 +3248,8 @@
             "--arch=ia32",
             "create_sdk",
             "runtime",
+            "dart2js_platform.dill",
+            "dart2js_nnbd_strong_platform.dill",
             "kernel-service.dart.snapshot"
           ]
         },
@@ -3234,6 +3284,8 @@
             "runtime",
             "gen_snapshot",
             "dart_precompiled_runtime",
+            "dart2js_platform.dill",
+            "dart2js_nnbd_strong_platform.dill",
             "kernel-service.dart.snapshot",
             "dartdevc_test"
           ]

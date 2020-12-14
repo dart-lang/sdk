@@ -38,12 +38,12 @@ class A {}
   test_greaterThanPackage() async {
     _configureTestPackageLanguageVersion('2.5');
     await assertNoErrorsInCode(r'''
-// @dart = 2.10
+// @dart = 2.12
 int? a;
 ''');
     _assertUnitLanguageVersion(
       package: Version.parse('2.5.0'),
-      override: Version.parse('2.10.0'),
+      override: Version.parse('2.12.0'),
     );
   }
 
@@ -70,18 +70,9 @@ class A {}
   }
 
   void _configureTestPackageLanguageVersion(String versionStr) {
-    newFile('$testPackageRootPath/.dart_tool/package_config.json', content: '''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "test",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "$versionStr"
-    }
-  ]
-}
-''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: versionStr,
+    );
   }
 }

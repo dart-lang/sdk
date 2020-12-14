@@ -1142,7 +1142,6 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.options.useAnalysisHighlight2 = true;
     createProject();
   }
 

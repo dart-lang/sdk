@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
@@ -1231,13 +1232,13 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
   String get _kind;
 
   Transform _rename(List<String> components, String newName) => Transform(
-          title: 'title',
-          element: ElementDescriptor(
-              libraryUris: [Uri.parse(importUri)],
-              kind: ElementKindUtilities.fromName(_kind),
-              components: components),
-          bulkApply: false,
-          changes: [
-            Rename(newName: newName),
-          ]);
+      title: 'title',
+      element: ElementDescriptor(
+          libraryUris: [Uri.parse(importUri)],
+          kind: ElementKindUtilities.fromName(_kind),
+          components: components),
+      bulkApply: false,
+      changesSelector: UnconditionalChangesSelector([
+        Rename(newName: newName),
+      ]));
 }

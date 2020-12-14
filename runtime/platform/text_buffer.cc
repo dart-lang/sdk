@@ -114,9 +114,6 @@ void BaseTextBuffer::AddEscapedString(const char* s) {
 TextBuffer::TextBuffer(intptr_t buf_size) {
   ASSERT(buf_size > 0);
   buffer_ = reinterpret_cast<char*>(malloc(buf_size));
-  if (buffer_ == nullptr) {
-    OUT_OF_MEMORY();
-  }
   capacity_ = buf_size;
   Clear();
 }
@@ -139,9 +136,6 @@ bool TextBuffer::EnsureCapacity(intptr_t len) {
   if (remaining <= len) {
     intptr_t new_size = capacity_ + Utils::Maximum(capacity_, len + 1);
     char* new_buf = reinterpret_cast<char*>(realloc(buffer_, new_size));
-    if (new_buf == nullptr) {
-      OUT_OF_MEMORY();
-    }
     buffer_ = new_buf;
     capacity_ = new_size;
   }

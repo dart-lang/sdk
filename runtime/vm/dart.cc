@@ -215,6 +215,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     return Utils::StrDup(
         "To use --lazy-async-stacks, please disable --causal-async-stacks!");
   }
+  // TODO(cskau): Remove once flag deprecation has been completed.
+  if (FLAG_causal_async_stacks) {
+    return Utils::StrDup("--causal-async-stacks is deprecated!");
+  }
 
   FrameLayout::Init();
 
@@ -693,8 +697,7 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
   }
   I->isolate_object_store()->Init();
   I->isolate_object_store()->PreallocateObjects();
-  I->set_field_table(
-      T, source_isolate_group->saved_initial_field_table()->Clone());
+  I->set_field_table(T, source_isolate_group->initial_field_table()->Clone(I));
 
   return true;
 }
@@ -739,8 +742,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    I->group()->set_saved_initial_field_table(
-        std::shared_ptr<FieldTable>(I->field_table()->Clone()));
+    I->set_field_table(T, I->group()->initial_field_table()->Clone(I));
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {
@@ -806,7 +808,7 @@ bool Dart::DetectNullSafety(const char* script_uri,
   }
 
   // If we are loading from source, figure out the mode from the source.
-  if (!KernelIsolate::GetExperimentalFlag("no-non-nullable")) {
+  if (KernelIsolate::GetExperimentalFlag(ExperimentalFeature::non_nullable)) {
     return KernelIsolate::DetectNullSafety(script_uri, package_config,
                                            original_working_directory);
   }
@@ -1068,7 +1070,7 @@ void Dart::RunShutdownCallback() {
   Isolate* isolate = thread->isolate();
   void* isolate_group_data = isolate->group()->embedder_data();
   void* isolate_data = isolate->init_callback_data();
-  Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
+  Dart_IsolateShutdownCallback callback = isolate->on_shutdown_callback();
   if (callback != NULL) {
     TransitionVMToNative transition(thread);
     (callback)(isolate_group_data, isolate_data);

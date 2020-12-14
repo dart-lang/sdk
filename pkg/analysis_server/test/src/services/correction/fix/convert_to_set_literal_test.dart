@@ -83,10 +83,7 @@ var s = <dynamic>{};
 ''');
   }
 
-  @failingTest
   Future<void> test_from_inferred() async {
-    // _setWouldBeInferred does not check for inference based on the parameter
-    // type.
     await resolveTestCode('''
 void f(Set<int> s) {}
 var s = f(Set.from([]));

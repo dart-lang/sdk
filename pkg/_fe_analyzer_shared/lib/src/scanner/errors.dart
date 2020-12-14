@@ -5,94 +5,8 @@
 import '../base/errors.dart';
 import '../messages/codes.dart';
 import 'error_token.dart';
-import 'token_constants.dart';
 import 'token.dart' show Token, TokenType;
-
-/**
- * The error codes used for errors detected by the scanner.
- */
-class ScannerErrorCode extends ErrorCode {
-  /**
-   * Parameters:
-   * 0: the token that was expected but not found
-   */
-  static const ScannerErrorCode EXPECTED_TOKEN =
-      const ScannerErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
-
-  /**
-   * Parameters:
-   * 0: the illegal character
-   */
-  static const ScannerErrorCode ILLEGAL_CHARACTER =
-      const ScannerErrorCode('ILLEGAL_CHARACTER', "Illegal character '{0}'.");
-
-  static const ScannerErrorCode MISSING_DIGIT =
-      const ScannerErrorCode('MISSING_DIGIT', "Decimal digit expected.");
-
-  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
-      'MISSING_HEX_DIGIT', "Hexadecimal digit expected.");
-
-  static const ScannerErrorCode MISSING_IDENTIFIER =
-      const ScannerErrorCode('MISSING_IDENTIFIER', "Expected an identifier.");
-
-  static const ScannerErrorCode MISSING_QUOTE =
-      const ScannerErrorCode('MISSING_QUOTE', "Expected quote (' or \").");
-
-  /**
-   * Parameters:
-   * 0: the path of the file that cannot be read
-   */
-  static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
-      'UNABLE_GET_CONTENT', "Unable to get content of '{0}'.");
-
-  static const ScannerErrorCode UNEXPECTED_DOLLAR_IN_STRING =
-      const ScannerErrorCode(
-          'UNEXPECTED_DOLLAR_IN_STRING',
-          "A '\$' has special meaning inside a string, and must be followed by "
-              "an identifier or an expression in curly braces ({}).",
-          correction: "Try adding a backslash (\\) to escape the '\$'.");
-
-  /**
-   * Parameters:
-   * 0: the unsupported operator
-   */
-  static const ScannerErrorCode UNSUPPORTED_OPERATOR = const ScannerErrorCode(
-      'UNSUPPORTED_OPERATOR', "The '{0}' operator is not supported.");
-
-  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
-      const ScannerErrorCode(
-          'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
-          correction: "Try terminating the comment with '*/', or "
-              "removing any unbalanced occurrences of '/*'"
-              " (because comments nest in Dart).");
-
-  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
-      const ScannerErrorCode(
-          'UNTERMINATED_STRING_LITERAL', "Unterminated string literal.");
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const ScannerErrorCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
-
-  @override
-  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-}
-
-/**
- * Used to report a scan error at the given offset.
- * The [errorCode] is the error code indicating the nature of the error.
- * The [arguments] are any arguments needed to complete the error message.
- */
-typedef ReportError(
-    ScannerErrorCode errorCode, int offset, List<Object> arguments);
+import 'token_constants.dart';
 
 /**
  *  Translates the given error [token] into an analyzer error and reports it
@@ -189,4 +103,95 @@ bool _isAtEnd(Token token, int charOffset) {
     if (token.type.kind != BAD_INPUT_TOKEN) return false;
     // Otherwise keep looking.
   }
+}
+
+/**
+ * Used to report a scan error at the given offset.
+ * The [errorCode] is the error code indicating the nature of the error.
+ * The [arguments] are any arguments needed to complete the error message.
+ */
+typedef ReportError(
+    ScannerErrorCode errorCode, int offset, List<Object> arguments);
+
+/**
+ * The error codes used for errors detected by the scanner.
+ */
+class ScannerErrorCode extends ErrorCode {
+  /**
+   * Parameters:
+   * 0: the token that was expected but not found
+   */
+  static const ScannerErrorCode EXPECTED_TOKEN =
+      const ScannerErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
+
+  /**
+   * Parameters:
+   * 0: the illegal character
+   */
+  static const ScannerErrorCode ILLEGAL_CHARACTER =
+      const ScannerErrorCode('ILLEGAL_CHARACTER', "Illegal character '{0}'.");
+
+  static const ScannerErrorCode MISSING_DIGIT =
+      const ScannerErrorCode('MISSING_DIGIT', "Decimal digit expected.");
+
+  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
+      'MISSING_HEX_DIGIT', "Hexadecimal digit expected.");
+
+  static const ScannerErrorCode MISSING_IDENTIFIER =
+      const ScannerErrorCode('MISSING_IDENTIFIER', "Expected an identifier.");
+
+  static const ScannerErrorCode MISSING_QUOTE =
+      const ScannerErrorCode('MISSING_QUOTE', "Expected quote (' or \").");
+
+  /**
+   * Parameters:
+   * 0: the path of the file that cannot be read
+   */
+  static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
+      'UNABLE_GET_CONTENT', "Unable to get content of '{0}'.");
+
+  static const ScannerErrorCode UNEXPECTED_DOLLAR_IN_STRING =
+      const ScannerErrorCode(
+          'UNEXPECTED_DOLLAR_IN_STRING',
+          "A '\$' has special meaning inside a string, and must be followed by "
+              "an identifier or an expression in curly braces ({}).",
+          correction: "Try adding a backslash (\\) to escape the '\$'.");
+
+  /**
+   * Parameters:
+   * 0: the unsupported operator
+   */
+  static const ScannerErrorCode UNSUPPORTED_OPERATOR = const ScannerErrorCode(
+      'UNSUPPORTED_OPERATOR', "The '{0}' operator is not supported.");
+
+  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
+      const ScannerErrorCode(
+          'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
+          correction: "Try terminating the comment with '*/', or "
+              "removing any unbalanced occurrences of '/*'"
+              " (because comments nest in Dart).");
+
+  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
+      const ScannerErrorCode(
+          'UNTERMINATED_STRING_LITERAL', "Unterminated string literal.");
+
+  /**
+   * Initialize a newly created error code to have the given [name]. The message
+   * associated with the error will be created from the given [message]
+   * template. The correction associated with the error will be created from the
+   * given [correction] template.
+   */
+  const ScannerErrorCode(String name, String message, {String correction})
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'ScannerErrorCode.$name',
+        );
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+
+  @override
+  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 }

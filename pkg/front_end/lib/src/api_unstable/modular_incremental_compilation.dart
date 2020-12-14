@@ -156,7 +156,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       if (trackNeededDillLibraries) {
         libraryToInputDill = new Map<Uri, Uri>();
       }
-      List<int> loadFromDillIndexes = new List<int>();
+      List<int> loadFromDillIndexes = <int>[];
 
       // Notice that the ordering of the input summaries matter, so we need to
       // keep them in order.

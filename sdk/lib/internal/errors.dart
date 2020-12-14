@@ -12,10 +12,16 @@ class LateError extends Error implements LateInitializationError {
   // The constructor names have been deliberately shortened to reduce the size
   // of unminified code as used by DDC.
 
+  @pragma("vm:entry-point")
   LateError.fieldADI(String fieldName)
       : _message =
             "Field '$fieldName' has been assigned during initialization.";
 
+  LateError.localADI(String localName)
+      : _message =
+            "Local '$localName' has been assigned during initialization.";
+
+  @pragma("vm:entry-point")
   LateError.fieldNI(String fieldName)
       : _message = "Field '${fieldName}' has not been initialized.";
 

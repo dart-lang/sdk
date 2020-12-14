@@ -12,6 +12,7 @@
 
 #include "vm/allocation.h"
 #include "vm/dart.h"
+#include "vm/experimental_features.h"
 #include "vm/os_thread.h"
 
 namespace dart {
@@ -78,7 +79,7 @@ class KernelIsolate : public AllStatic {
   static void NotifyAboutIsolateShutdown(const Isolate* isolate);
 
   static void AddExperimentalFlag(const char* value);
-  static bool GetExperimentalFlag(const char* value);
+  static bool GetExperimentalFlag(ExperimentalFeature feature);
 
  protected:
   static void InitCallback(Isolate* I);

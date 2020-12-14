@@ -206,8 +206,8 @@ typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
                                          intptr_t);
 
 const Code& StubCodeAllocateArray();
-const Code& StubCodeSubtype2TestCache();
-const Code& StubCodeSubtype6TestCache();
+const Code& StubCodeSubtype3TestCache();
+const Code& StubCodeSubtype7TestCache();
 
 class RuntimeEntry : public ValueObject {
  public:
@@ -288,8 +288,10 @@ static constexpr int kWordSizeLog2 = 3;
 static constexpr int kWordSize = 1 << kWordSizeLog2;
 static_assert(kWordSize == sizeof(word), "kWordSize should match sizeof(word)");
 // Our compiler code currently assumes this, so formally check it.
+#if !defined(FFI_UNIT_TESTS)
 static_assert(dart::kWordSize >= kWordSize,
               "Host word size smaller than target word size");
+#endif
 
 static constexpr word kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
 static constexpr word kBitsPerWord = 1 << kBitsPerWordLog2;
@@ -352,7 +354,7 @@ bool SizeFitsInSizeTag(uword instance_size);
 // size.
 //
 // Note: even on 64-bit platforms we only use lower 32-bits of the tag word.
-uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size);
+uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size);
 
 //
 // Target specific information about objects.
@@ -413,6 +415,8 @@ class ObjectLayout : public AllStatic {
   static const word kSizeTagSize;
   static const word kClassIdTagPos;
   static const word kClassIdTagSize;
+  static const word kHashTagPos;
+  static const word kHashTagSize;
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
@@ -772,12 +776,6 @@ class SignatureData : public AllStatic {
   static word NextFieldOffset();
 };
 
-class RedirectionData : public AllStatic {
- public:
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
 class FfiTrampolineData : public AllStatic {
  public:
   static word InstanceSize();
@@ -897,6 +895,7 @@ class TypeParameter : public AllStatic {
   static word NextFieldOffset();
   static word parameterized_class_id_offset();
   static word index_offset();
+  static word nullability_offset();
 };
 
 class LibraryPrefix : public AllStatic {
@@ -949,6 +948,8 @@ class Smi : public AllStatic {
 
 class WeakProperty : public AllStatic {
  public:
+  static word key_offset();
+  static word value_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -991,7 +992,6 @@ class Thread : public AllStatic {
   static uword exit_through_runtime_call();
   static uword exit_through_ffi();
   static word dart_stream_offset();
-  static word async_stack_trace_offset();
   static word predefined_symbols_address_offset();
   static word optimize_entry_offset();
   static word deoptimize_entry_offset();
@@ -1205,6 +1205,7 @@ class SubtypeTestCache : public AllStatic {
 
   static const word kTestEntryLength;
   static const word kInstanceClassIdOrFunction;
+  static const word kDestinationType;
   static const word kInstanceTypeArguments;
   static const word kInstantiatorTypeArguments;
   static const word kFunctionTypeArguments;

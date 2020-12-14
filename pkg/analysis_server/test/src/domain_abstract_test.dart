@@ -6,7 +6,6 @@ import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

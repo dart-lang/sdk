@@ -60,8 +60,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     var migration = NullabilityMigration(listener, getLineInfo,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
-        warnOnWeakCode: warnOnWeakCode,
-        transformWhereOrNull: true);
+        warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
       if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
@@ -243,6 +242,28 @@ class C<T extends num?> {}
 
 void main() {
   C<num> c = C();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_closure_parameter_in_local_variable() async {
+    var content = '''
+Object f<T>(Object Function(T) callback, Object obj) => 0;
+g() {
+  var y = f<Map<String, int>>(
+      (x) => x.keys,
+      f<List<bool>>(
+          (x) => x.last, 0));
+}
+''';
+    var expected = '''
+Object f<T>(Object Function(T) callback, Object obj) => 0;
+g() {
+  var y = f<Map<String, int>>(
+      (x) => x.keys,
+      f<List<bool>>(
+          (x) => x.last, 0));
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2218,6 +2239,28 @@ void g() => f(null);
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_extension_on_generic_type() async {
+    var content = '''
+class C<T> {
+  final T value;
+  C(this.value);
+}
+extension E<T> on Future<C<T/*?*/>> {
+  Future<T> get asyncValue async => (await this).value;
+}
+''';
+    var expected = '''
+class C<T> {
+  final T value;
+  C(this.value);
+}
+extension E<T> on Future<C<T?>> {
+  Future<T?> get asyncValue async => (await this).value;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_on_type_param_implementation() async {
     var content = '''
 abstract class C {
@@ -4045,6 +4088,24 @@ bool f(a) => a is List<int>;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_isExpression_with_function_type() async {
+    var content = '''
+void test(Function f) {
+  if (f is void Function()) {
+    f();
+  }
+}
+''';
+    var expected = '''
+void test(Function f) {
+  if (f is void Function()) {
+    f();
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_issue_40181() async {
     // This contrived example created an "exact nullable" type parameter bound
     // which propagated back to *all* instantiations of that parameter.
@@ -4612,6 +4673,54 @@ f() {
 f() {
   String? s;
   for (;; s) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_loop_var_is_field() async {
+    var content = '''
+class C {
+  int x;
+  C(this.x);
+  f(List<int/*?*/> y) {
+    for (x in y) {}
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? x;
+  C(this.x);
+  f(List<int?> y) {
+    for (x in y) {}
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_loop_var_is_inherited_field_with_substitution() async {
+    var content = '''
+class B<T> {
+  T x;
+  B(this.x);
+}
+abstract class C implements B<int> {
+  f(List<int/*?*/> y) {
+    for (x in y) {}
+  }
+}
+''';
+    var expected = '''
+class B<T> {
+  T x;
+  B(this.x);
+}
+abstract class C implements B<int?> {
+  f(List<int?> y) {
+    for (x in y) {}
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -6409,11 +6518,11 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
   Future<void> test_this_inside_extension() async {
     var content = '''
 class C<T> {
   T field;
+  C(this.field);
 }
 extension on C<int> {
   f() {
@@ -6422,14 +6531,14 @@ extension on C<int> {
 }
 extension on C<List<int>> {
   f() {
-    this.field = null;
+    this.field = [null];
   }
 }
 ''';
     var expected = '''
-
 class C<T> {
   T field;
+  C(this.field);
 }
 extension on C<int?> {
   f() {

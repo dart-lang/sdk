@@ -35,12 +35,14 @@ def ptrWrap(t, n):
 
 def removePrefix(t):
     assert (t.startswith('wasm_') or t.startswith('wasi_') or
-            t.startswith('wasmer_'))
+            t.startswith('wasmer_') or t.startswith('Dart_') or
+            t.startswith('set_finalizer_'))
     return t[(5 if t.startswith('wasm_') else 0):]
 
 
 def addPrefix(t):
-    if t.startswith('wasi_') or t.startswith('wasmer_'):
+    if t.startswith('wasi_') or t.startswith('wasmer_') or t.startswith(
+            'Dart_') or t.startswith('set_finalizer_'):
         return t
     return 'wasm_' + t
 
@@ -251,6 +253,7 @@ predefinedType('float32_t', 'Float32', 'double')
 predefinedType('float64_t', 'Float64', 'double')
 predefinedType('wasm_limits_t', 'WasmerLimits', 'WasmerLimits')
 predefinedType('wasm_val_t', 'WasmerVal', 'WasmerVal')
+predefinedType('Dart_Handle', 'Handle', 'Object')
 
 declareOwn('engine')
 declareOwn('store')
@@ -310,6 +313,7 @@ WASM_API_EXTERN own wasm_trap_t* wasm_func_call(const wasm_func_t*, const wasm_v
 WASM_API_EXTERN own wasm_trap_t* wasm_trap_new(wasm_store_t* store, const wasm_message_t*);
 WASM_API_EXTERN void wasm_trap_message(const wasm_trap_t*, own wasm_message_t* out);
 WASM_API_EXTERN wasm_valkind_t wasm_valtype_kind(const wasm_valtype_t*);
+
 wasi_config_t* wasi_config_new(const uint8_t* program_name);
 wasi_env_t* wasi_env_new(wasi_config_t* config);
 bool wasi_get_imports(const wasm_store_t* store, const wasm_module_t* module, const wasi_env_t* wasi_env, wasm_extern_vec_t* imports);
@@ -320,6 +324,16 @@ void wasi_config_inherit_stdout(wasi_config_t* config);
 void wasi_config_inherit_stderr(wasi_config_t* config);
 intptr_t wasi_env_read_stderr(wasi_env_t* env, uint8_t* buffer, uintptr_t buffer_len);
 intptr_t wasi_env_read_stdout(wasi_env_t* env, uint8_t* buffer, uintptr_t buffer_len);
+
+intptr_t Dart_InitializeApiDL(void* data);
+void set_finalizer_for_engine(Dart_Handle, wasm_engine_t*);
+void set_finalizer_for_store(Dart_Handle, wasm_store_t*);
+void set_finalizer_for_module(Dart_Handle, wasm_module_t*);
+void set_finalizer_for_instance(Dart_Handle, wasm_instance_t*);
+void set_finalizer_for_trap(Dart_Handle, wasm_trap_t*);
+void set_finalizer_for_memorytype(Dart_Handle, wasm_memorytype_t*);
+void set_finalizer_for_memory(Dart_Handle, wasm_memory_t*);
+void set_finalizer_for_func(Dart_Handle, wasm_func_t*);
 '''
 for f in rawFns.split('\n'):
     if len(f.strip()) > 0:

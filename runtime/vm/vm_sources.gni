@@ -21,6 +21,7 @@ vm_sources = [
   "bootstrap_natives.h",
   "bss_relocs.cc",
   "bss_relocs.h",
+  "canonical_tables.cc",
   "canonical_tables.h",
   "class_finalizer.cc",
   "class_finalizer.h",
@@ -98,6 +99,8 @@ vm_sources = [
   "elf.h",
   "exceptions.cc",
   "exceptions.h",
+  "experimental_features.cc",
+  "experimental_features.h",
   "ffi_callback_trampolines.cc",
   "ffi_callback_trampolines.h",
   "field_table.cc",
@@ -448,4 +451,16 @@ vm_sources_tests = [
   "utils_test.cc",
   "virtual_memory_test.cc",
   "zone_test.cc",
+]
+
+constants_sources = [
+  "constants_arm.cc",
+  "constants_arm.h",
+  "constants_arm64.cc",
+  "constants_arm64.h",
+  "constants_base.h",
+  "constants_ia32.cc",
+  "constants_ia32.h",
+  "constants_x64.cc",
+  "constants_x64.h",
 ]

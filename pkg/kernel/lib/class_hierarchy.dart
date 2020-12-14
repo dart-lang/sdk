@@ -369,7 +369,8 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
   bool invalidated = false;
 
   _ClosedWorldClassHierarchySubtypes(this.hierarchy)
-      : _classesByTopDownIndex = new List<Class>(hierarchy._infoMap.length) {
+      : _classesByTopDownIndex =
+            new List<Class>.filled(hierarchy._infoMap.length, null) {
     hierarchy.allBetsOff = true;
     if (hierarchy._infoMap.isNotEmpty) {
       for (Class class_ in hierarchy._infoMap.keys) {
@@ -388,7 +389,8 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
     int index = _topDownSortIndex++;
     subInfo.topDownIndex = index;
     _classesByTopDownIndex[index] = subInfo.classInfo.classNode;
-    var subtypeSetBuilder = new _IntervalListBuilder()..addSingleton(index);
+    _IntervalListBuilder subtypeSetBuilder = new _IntervalListBuilder()
+      ..addSingleton(index);
     for (_ClassInfo subtype in subInfo.classInfo.directExtenders) {
       _ClassInfoSubtype subtypeInfo = _infoMap[subtype.classNode];
       _topDownSortVisit(subtypeInfo);
@@ -459,7 +461,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       onAmbiguousSupertypes(class_, a, b);
       List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
       if (recorded == null) {
-        recorded = new List<Supertype>();
+        recorded = <Supertype>[];
         _recordedAmbiguousSupertypes[class_] = recorded;
       }
       recorded.add(a);
@@ -472,7 +474,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       new LinkedHashMap<Class, _ClassInfo>();
 
   List<ForTestingClassInfo> getTestingClassInfo() {
-    List<ForTestingClassInfo> result = new List<ForTestingClassInfo>();
+    List<ForTestingClassInfo> result = <ForTestingClassInfo>[];
     for (_ClassInfo info in _infoMap.values) {
       result.add(new ForTestingClassInfo._(info));
     }
@@ -486,7 +488,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   List<Class> getUsedClasses() {
-    List<Class> result = new List<Class>();
+    List<Class> result = <Class>[];
     for (_ClassInfo classInfo in _infoMap.values) {
       if (classInfo.used) {
         result.add(classInfo.classNode);
@@ -535,8 +537,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   Iterable<Class> getOrderedClasses(Iterable<Class> unordered) {
-    var unorderedSet = unordered.toSet();
-    for (Class c in unordered) _infoMap[c]?.used = true;
+    Set<Class> unorderedSet = unordered.toSet();
+    for (Class c in unordered) {
+      _infoMap[c]?.used = true;
+    }
     return _infoMap.keys.where(unorderedSet.contains);
   }
 
@@ -564,16 +568,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   List<_ClassInfo> _getRankedSuperclassInfos(_ClassInfo info) {
     if (info.leastUpperBoundInfos != null) return info.leastUpperBoundInfos;
-    var heap = new _LubHeap()..add(info);
-    var chain = <_ClassInfo>[];
+    _LubHeap heap = new _LubHeap()..add(info);
+    List<_ClassInfo> chain = <_ClassInfo>[];
     info.leastUpperBoundInfos = chain;
     _ClassInfo lastInfo = null;
     while (heap.isNotEmpty) {
-      var nextInfo = heap.remove();
+      _ClassInfo nextInfo = heap.remove();
       if (identical(nextInfo, lastInfo)) continue;
       chain.add(nextInfo);
       lastInfo = nextInfo;
-      var classNode = nextInfo.classNode;
+      Class classNode = nextInfo.classNode;
       void addToHeap(Supertype supertype) {
         heap.add(infoFor(supertype.classNode));
       }
@@ -682,17 +686,17 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         if (currentDepth == 0) return candidate;
         ++numCandidatesAtThisDepth;
       } else {
-        var superType1 = identical(info1, next)
+        InterfaceType superType1 = identical(info1, next)
             ? type1
             : Substitution.fromInterfaceType(type1).substituteType(
                 info1.genericSuperType[next.classNode].asInterfaceType);
-        var superType2 = identical(info2, next)
+        InterfaceType superType2 = identical(info2, next)
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
                 info2.genericSuperType[next.classNode].asInterfaceType);
         if (!clientLibrary.isNonNullableByDefault) {
-          superType1 = legacyErasure(coreTypes, superType1);
-          superType2 = legacyErasure(coreTypes, superType2);
+          superType1 = legacyErasure(superType1);
+          superType2 = legacyErasure(superType2);
         }
         if (superType1 == superType2) {
           candidate = superType1.withDeclaredNullability(
@@ -798,10 +802,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
       {bool crossGettersSetters: false}) {
     _ClassInfo info = infoFor(class_);
-    for (var supertype in class_.supers) {
-      var superclass = supertype.classNode;
-      var superGetters = getInterfaceMembers(superclass);
-      var superSetters = getInterfaceMembers(superclass, setters: true);
+    for (Supertype supertype in class_.supers) {
+      Class superclass = supertype.classNode;
+      List<Member> superGetters = getInterfaceMembers(superclass);
+      List<Member> superSetters =
+          getInterfaceMembers(superclass, setters: true);
       _reportOverrides(_buildDeclaredMembers(class_, info, setters: false),
           superGetters, callback);
       _reportOverrides(_buildDeclaredMembers(class_, info, setters: true),
@@ -837,7 +842,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   List<Supertype> genericSupertypesOf(Class class_) {
-    final supertypes = infoFor(class_).genericSuperType;
+    Map<Class, Supertype> supertypes = infoFor(class_).genericSuperType;
     if (supertypes == null) return const <Supertype>[];
     return supertypes.values.toList();
   }
@@ -924,7 +929,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
 
     // Add the new classes.
-    List<Class> addedClassesSorted = new List<Class>();
+    List<Class> addedClassesSorted = <Class>[];
     int expectedStartIndex = _topSortIndex;
     for (Library lib in ensureKnownLibraries) {
       if (knownLibraries.contains(lib)) continue;
@@ -951,7 +956,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       {bool findDescendants: false}) {
     if (classes.isEmpty) return this;
 
-    List<_ClassInfo> infos = new List<_ClassInfo>();
+    List<_ClassInfo> infos = <_ClassInfo>[];
     if (findDescendants) {
       Set<_ClassInfo> processedClasses = new Set<_ClassInfo>();
       List<_ClassInfo> worklist = <_ClassInfo>[];
@@ -1017,19 +1022,22 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
     for (_ClassInfo info in _infoMap.values) {
       for (_ClassInfo subInfo in info.directExtenders) {
-        if (!_infoMap.containsKey(subInfo.classNode))
+        if (!_infoMap.containsKey(subInfo.classNode)) {
           throw new StateError(
               "Found $subInfo (${subInfo.classNode}) in directExtenders");
+        }
       }
       for (_ClassInfo subInfo in info.directMixers) {
-        if (!_infoMap.containsKey(subInfo.classNode))
+        if (!_infoMap.containsKey(subInfo.classNode)) {
           throw new StateError(
               "Found $subInfo (${subInfo.classNode}) in directMixers");
+        }
       }
       for (_ClassInfo subInfo in info.directImplementers) {
-        if (!_infoMap.containsKey(subInfo.classNode))
+        if (!_infoMap.containsKey(subInfo.classNode)) {
           throw new StateError(
               "Found $subInfo (${subInfo.classNode}) in directImplementers");
+        }
       }
     }
     return true;
@@ -1045,14 +1053,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (type.classNode == superclass) {
       return superclass.asThisSupertype;
     }
-    var map = infoFor(type.classNode)?.genericSuperType;
+    Map<Class, Supertype> map = infoFor(type.classNode)?.genericSuperType;
     return map == null ? null : map[superclass];
   }
 
   void _initialize(List<Library> libraries) {
     // Build the class ordering based on a topological sort.
-    for (var library in libraries) {
-      for (var classNode in library.classes) {
+    for (Library library in libraries) {
+      for (Class classNode in library.classes) {
         _topologicalSortVisit(classNode, new Set<Class>());
       }
       knownLibraries.add(library);
@@ -1079,7 +1087,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       if (class_.mixedInType != null) {
         _infoMap[class_.mixedInType.classNode].directMixers.add(info);
       }
-      for (var supertype in class_.implementedTypes) {
+      for (Supertype supertype in class_.implementedTypes) {
         _infoMap[supertype.classNode].directImplementers.add(info);
       }
       _collectSupersForClass(class_);
@@ -1114,7 +1122,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   int _topSortIndex = 0;
   int _topologicalSortVisit(Class classNode, Set<Class> beingVisited,
       {List<Class> orderedList}) {
-    var info = _infoMap[classNode];
+    _ClassInfo info = _infoMap[classNode];
     if (info != null) {
       return info.depth;
     }
@@ -1138,7 +1146,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           _topologicalSortVisit(classNode.mixedInType.classNode, beingVisited,
               orderedList: orderedList));
     }
-    for (var supertype in classNode.implementedTypes) {
+    for (Supertype supertype in classNode.implementedTypes) {
       superDepth = max(
           superDepth,
           _topologicalSortVisit(supertype.classNode, beingVisited,
@@ -1207,7 +1215,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         }
       }
     } else {
-      members = new List<Member>();
+      members = <Member>[];
       for (Procedure procedure in classNode.procedures) {
         if (procedure.isStatic) continue;
         if (procedure.kind == ProcedureKind.Setter) {
@@ -1376,7 +1384,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       // Copy over all transitive generic super types, and substitute the
       // free variables with those provided in [supertype].
       Class superclass = supertype.classNode;
-      var substitution = Substitution.fromPairs(
+      Substitution substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
       subInfo.genericSuperType ??= <Class, Supertype>{};
       subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
@@ -1396,9 +1404,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   void _collectSupersForClass(Class class_) {
     _ClassInfo info = _infoMap[class_];
 
-    var superclassSetBuilder = new _IntervalListBuilder()
+    _IntervalListBuilder superclassSetBuilder = new _IntervalListBuilder()
       ..addSingleton(info.topologicalIndex);
-    var supertypeSetBuilder = new _IntervalListBuilder()
+    _IntervalListBuilder supertypeSetBuilder = new _IntervalListBuilder()
       ..addSingleton(info.topologicalIndex);
 
     if (class_.supertype != null) {
@@ -1429,9 +1437,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// The more numbers are condensed near the beginning, the more efficient the
   /// internal data structure is.
   List<int> getExpenseHistogram() {
-    var result = <int>[];
+    List<int> result = <int>[];
     for (Class class_ in _infoMap.keys) {
-      var info = _infoMap[class_];
+      _ClassInfo info = _infoMap[class_];
       int intervals = info.supertypeIntervalList.length ~/ 2;
       if (intervals >= result.length) {
         int oldLength = result.length;
@@ -1452,7 +1460,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     int intervals = 0;
     int sizes = 0;
     for (Class class_ in _infoMap.keys) {
-      var info = _infoMap[class_];
+      _ClassInfo info = _infoMap[class_];
       intervals += (info.superclassIntervalList.length +
               info.supertypeIntervalList.length) ~/
           2;
@@ -1521,7 +1529,7 @@ class _IntervalListBuilder {
       }
     }
     // Copy the results over to a typed array of the correct length.
-    var result = new Uint32List(storeIndex);
+    Uint32List result = new Uint32List(storeIndex);
     for (int i = 0; i < storeIndex; ++i) {
       result[i] = events[i];
     }
@@ -1650,7 +1658,7 @@ class _ClassInfo {
     Supertype canonical = genericSuperType[cls];
     if (canonical == null) {
       if (!classNode.enclosingLibrary.isNonNullableByDefault) {
-        canonical = legacyErasureSupertype(coreTypes, type);
+        canonical = legacyErasureSupertype(type);
       } else {
         canonical = type;
       }
@@ -1672,7 +1680,7 @@ class _ClassInfo {
           genericSuperType[cls] = result;
         }
       } else {
-        type = legacyErasureSupertype(coreTypes, type);
+        type = legacyErasureSupertype(type);
         if (type != canonical) {
           onAmbiguousSupertypes(classNode, canonical, type);
         }

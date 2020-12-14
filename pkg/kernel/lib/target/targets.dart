@@ -13,7 +13,7 @@ final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool trackWidgetCreation;
-  final bool forceLateLoweringForTesting;
+  final int forceLateLoweringsForTesting;
   final bool forceLateLoweringSentinelForTesting;
   final bool forceStaticFieldLoweringForTesting;
   final bool forceNoExplicitGetterCallsForTesting;
@@ -21,7 +21,7 @@ class TargetFlags {
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
-      this.forceLateLoweringForTesting = false,
+      this.forceLateLoweringsForTesting = LateLowering.none,
       this.forceLateLoweringSentinelForTesting = false,
       this.forceStaticFieldLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,
@@ -31,7 +31,7 @@ class TargetFlags {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
-        forceLateLoweringForTesting == other.forceLateLoweringForTesting &&
+        forceLateLoweringsForTesting == other.forceLateLoweringsForTesting &&
         forceLateLoweringSentinelForTesting ==
             other.forceLateLoweringSentinelForTesting &&
         forceStaticFieldLoweringForTesting ==
@@ -45,7 +45,7 @@ class TargetFlags {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff &
-        (hash * 31 + (hash ^ forceLateLoweringForTesting.hashCode));
+        (hash * 31 + (hash ^ forceLateLoweringsForTesting.hashCode));
     hash = 0x3fffffff &
         (hash * 31 + (hash ^ forceLateLoweringSentinelForTesting.hashCode));
     hash = 0x3fffffff &
@@ -90,11 +90,41 @@ class ConstantsBackend {
   /// Lowering of a list constant to a backend-specific representation.
   Constant lowerListConstant(ListConstant constant) => constant;
 
+  /// Returns `true` if [constant] is lowered list constant created by
+  /// [lowerListConstant].
+  bool isLoweredListConstant(Constant constant) => false;
+
+  /// Calls `f` for each element in the lowered list [constant].
+  ///
+  /// This assumes that `isLoweredListConstant(constant)` is true.
+  void forEachLoweredListConstantElement(
+      Constant constant, void Function(Constant element) f) {}
+
   /// Lowering of a set constant to a backend-specific representation.
   Constant lowerSetConstant(SetConstant constant) => constant;
 
+  /// Returns `true` if [constant] is lowered set constant created by
+  /// [lowerSetConstant].
+  bool isLoweredSetConstant(Constant constant) => false;
+
+  /// Calls `f` for each element in the lowered set [constant].
+  ///
+  /// This assumes that `isLoweredSetConstant(constant)` is true.
+  void forEachLoweredSetConstantElement(
+      Constant constant, void Function(Constant element) f) {}
+
   /// Lowering of a map constant to a backend-specific representation.
   Constant lowerMapConstant(MapConstant constant) => constant;
+
+  /// Returns `true` if [constant] is lowered map constant created by
+  /// [lowerMapConstant].
+  bool isLoweredMapConstant(Constant constant) => false;
+
+  /// Calls `f` for each key/value pair in the lowered map [constant].
+  ///
+  /// This assumes that `lowerMapConstant(constant)` is true.
+  void forEachLoweredMapConstantEntry(
+      Constant constant, void Function(Constant key, Constant value) f) {}
 
   /// Number semantics to use for this backend.
   NumberSemantics get numberSemantics => NumberSemantics.vm;
@@ -281,12 +311,43 @@ abstract class Target {
   /// literals (for const set literals).
   bool get supportsSetLiterals => true;
 
-  /// Whether late fields and variable are support by this target.
+  /// Bit mask of [LateLowering] values for the late lowerings that should
+  /// be performed by the CFE.
   ///
-  /// If `false`, late fields and variables are lowered fields, getter, setters
-  /// etc. that provide equivalent semantics. See `pkg/kernel/nnbd_api.md` for
-  /// details.
-  bool get supportsLateFields;
+  /// For the selected lowerings, late fields and variables are encoded using
+  /// fields, getter, setters etc. in a way that provide equivalent semantics.
+  /// See `pkg/kernel/nnbd_api.md` for details.
+  int get enabledLateLowerings;
+
+  /// Returns `true` if the CFE should lower a late field given it
+  /// [hasInitializer], [isFinal], and [isStatic].
+  ///
+  /// This is determined by the [enabledLateLowerings] mask.
+  bool isLateFieldLoweringEnabled(
+      {bool hasInitializer, bool isFinal, bool isStatic}) {
+    assert(hasInitializer != null);
+    assert(isFinal != null);
+    assert(isStatic != null);
+    int mask = LateLowering.getFieldLowering(
+        hasInitializer: hasInitializer, isFinal: isFinal, isStatic: isStatic);
+    return enabledLateLowerings & mask != 0;
+  }
+
+  /// Returns `true` if the CFE should lower a late local variable given it
+  /// [hasInitializer], [isFinal], and its type [isPotentiallyNullable].
+  ///
+  /// This is determined by the [enabledLateLowerings] mask.
+  bool isLateLocalLoweringEnabled(
+      {bool hasInitializer, bool isFinal, bool isPotentiallyNullable}) {
+    assert(hasInitializer != null);
+    assert(isFinal != null);
+    assert(isPotentiallyNullable != null);
+    int mask = LateLowering.getLocalLowering(
+        hasInitializer: hasInitializer,
+        isFinal: isFinal,
+        isPotentiallyNullable: isPotentiallyNullable);
+    return enabledLateLowerings & mask != 0;
+  }
 
   /// If `true`, the backend supports creation and checking of a sentinel value
   /// for uninitialized late fields and variables through the `createSentinel`
@@ -359,7 +420,7 @@ class NoneTarget extends Target {
   NoneTarget(this.flags);
 
   @override
-  bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+  int get enabledLateLowerings => flags.forceLateLoweringsForTesting;
 
   @override
   bool get supportsLateLoweringSentinel =>
@@ -416,4 +477,98 @@ class NoneTarget extends Target {
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
       // TODO(johnniwinther): Should this vary with the use case?
       const NoneConstantsBackend(supportsUnevaluatedConstants: true);
+}
+
+class LateLowering {
+  static const int nullableUninitializedNonFinalLocal = 1 << 0;
+  static const int nonNullableUninitializedNonFinalLocal = 1 << 1;
+  static const int nullableUninitializedFinalLocal = 1 << 2;
+  static const int nonNullableUninitializedFinalLocal = 1 << 3;
+  static const int nullableInitializedNonFinalLocal = 1 << 4;
+  static const int nonNullableInitializedNonFinalLocal = 1 << 5;
+  static const int nullableInitializedFinalLocal = 1 << 6;
+  static const int nonNullableInitializedFinalLocal = 1 << 7;
+  static const int uninitializedNonFinalStaticField = 1 << 8;
+  static const int uninitializedFinalStaticField = 1 << 9;
+  static const int initializedNonFinalStaticField = 1 << 10;
+  static const int initializedFinalStaticField = 1 << 11;
+  static const int uninitializedNonFinalInstanceField = 1 << 12;
+  static const int uninitializedFinalInstanceField = 1 << 13;
+  static const int initializedNonFinalInstanceField = 1 << 14;
+  static const int initializedFinalInstanceField = 1 << 15;
+
+  static const int none = 0;
+  static const int all = (1 << 16) - 1;
+
+  static int getLocalLowering(
+      {bool hasInitializer, bool isFinal, bool isPotentiallyNullable}) {
+    assert(hasInitializer != null);
+    assert(isFinal != null);
+    assert(isPotentiallyNullable != null);
+    if (hasInitializer) {
+      if (isFinal) {
+        if (isPotentiallyNullable) {
+          return nullableInitializedFinalLocal;
+        } else {
+          return nonNullableInitializedFinalLocal;
+        }
+      } else {
+        if (isPotentiallyNullable) {
+          return nullableInitializedNonFinalLocal;
+        } else {
+          return nonNullableInitializedNonFinalLocal;
+        }
+      }
+    } else {
+      if (isFinal) {
+        if (isPotentiallyNullable) {
+          return nullableUninitializedFinalLocal;
+        } else {
+          return nonNullableUninitializedFinalLocal;
+        }
+      } else {
+        if (isPotentiallyNullable) {
+          return nullableUninitializedNonFinalLocal;
+        } else {
+          return nonNullableUninitializedNonFinalLocal;
+        }
+      }
+    }
+  }
+
+  static int getFieldLowering(
+      {bool hasInitializer, bool isFinal, bool isStatic}) {
+    assert(hasInitializer != null);
+    assert(isFinal != null);
+    assert(isStatic != null);
+    if (hasInitializer) {
+      if (isFinal) {
+        if (isStatic) {
+          return initializedFinalStaticField;
+        } else {
+          return initializedFinalInstanceField;
+        }
+      } else {
+        if (isStatic) {
+          return initializedNonFinalStaticField;
+        } else {
+          return initializedNonFinalInstanceField;
+        }
+      }
+    } else {
+      if (isFinal) {
+        if (isStatic) {
+          return uninitializedFinalStaticField;
+        } else {
+          return uninitializedFinalInstanceField;
+        }
+      } else {
+        if (isStatic) {
+          return uninitializedNonFinalStaticField;
+        } else {
+          return uninitializedNonFinalInstanceField;
+        }
+      }
+    }
+  }
 }

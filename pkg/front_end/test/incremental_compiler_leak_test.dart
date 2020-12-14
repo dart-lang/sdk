@@ -143,8 +143,7 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
           }
           List<int> listOfInstanceCounts = instanceCounts[member.classRef];
           if (listOfInstanceCounts == null) {
-            listOfInstanceCounts =
-                instanceCounts[member.classRef] = new List<int>();
+            listOfInstanceCounts = instanceCounts[member.classRef] = <int>[];
           }
           while (listOfInstanceCounts.length < iterationNumber - 2) {
             listOfInstanceCounts.add(0);

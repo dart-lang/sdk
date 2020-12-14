@@ -595,6 +595,13 @@ abstract class JCommonElements implements CommonElements {
   /// compilation.
   bool isNamedListConstructor(String name, ConstructorEntity element);
 
+  /// Returns `true` if [element] is the named constructor of `JSArray`,
+  /// e.g. `JSArray.fixed`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  bool isNamedJSArrayConstructor(String name, ConstructorEntity element);
+
   bool isDefaultEqualityImplementation(MemberEntity element);
 
   /// Returns `true` if [selector] applies to `JSIndexable.length`.
@@ -884,6 +891,14 @@ class CommonElementsImpl
   @override
   bool isNamedListConstructor(String name, ConstructorEntity element) =>
       element.name == name && element.enclosingClass == listClass;
+
+  /// Returns `true` if [element] is the [name]d constructor of `JSArray`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  @override
+  bool isNamedJSArrayConstructor(String name, ConstructorEntity element) =>
+      element.name == name && element.enclosingClass == jsArrayClass;
 
   @override
   DynamicType get dynamicType => _env.dynamicType;

@@ -173,10 +173,7 @@ class _ImmutableMapKeyIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 }
 
 class _ImmutableMapValueIterator<E> implements Iterator<E> {
@@ -197,10 +194,7 @@ class _ImmutableMapValueIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 }
 
 class _ImmutableMapEntryIterator<K, V> implements Iterator<MapEntry<K, V>> {
@@ -222,8 +216,5 @@ class _ImmutableMapEntryIterator<K, V> implements Iterator<MapEntry<K, V>> {
     return false;
   }
 
-  MapEntry<K, V> get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as MapEntry<K, V>;
-  }
+  MapEntry<K, V> get current => _current as MapEntry<K, V>;
 }

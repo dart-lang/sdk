@@ -156,7 +156,7 @@ class Message {
   }
 
   Future<Response> sendToIsolate(SendPort sendPort) {
-    final receivePort = RawReceivePort();
+    final receivePort = RawReceivePort(null, 'Isolate Message');
     receivePort.handler = (value) {
       receivePort.close();
       _setResponseFromPort(value);
@@ -200,7 +200,7 @@ class Message {
   }
 
   Future<Response> sendToVM() {
-    final receivePort = RawReceivePort();
+    final receivePort = RawReceivePort(null, 'VM Message');
     receivePort.handler = (value) {
       receivePort.close();
       _setResponseFromPort(value);

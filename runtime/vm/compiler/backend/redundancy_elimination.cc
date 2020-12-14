@@ -3694,7 +3694,7 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
                                                    alloc_object->cls()));
     }
   }
-  if (auto create_array = alloc->AsCreateArray()) {
+  if (alloc->IsCreateArray()) {
     AddSlot(slots,
             Slot::GetTypeArgumentsSlotFor(
                 flow_graph_->thread(),

@@ -20,6 +20,7 @@ class LspClientConfiguration {
     }
   }
 
+  bool get completeFunctionCalls => _settings['completeFunctionCalls'] ?? false;
   bool get enableSdkFormatter => _settings['enableSdkFormatter'] ?? true;
   int get lineLength => _settings['lineLength'];
 

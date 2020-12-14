@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main(core::List<core::String> args) → dynamic {
+  lowered () →? core::int #recursiveInitLocal;
+  lowered core::bool #recursiveInitLocal#isSet = false;
+  function #recursiveInitLocal#get() → () → core::int
+    return #recursiveInitLocal#isSet ?{() → core::int} #recursiveInitLocal{() → core::int} : throw new _in::LateError::localNI("recursiveInitLocal");
+  function #recursiveInitLocal#set(() → core::int #t1) → dynamic {
+    #recursiveInitLocal#isSet = true;
+    return #recursiveInitLocal = #t1;
+  }
+  lowered final core::int? #local;
+  lowered core::bool #local#isSet = false;
+  function #local#get() → core::int {
+    if(!#local#isSet) {
+      final core::int #t2 = #recursiveInitLocal#get.call().call();
+      if(#local#isSet)
+        throw new _in::LateError::localADI("local");
+      #local = #t2;
+      #local#isSet = true;
+    }
+    return #local{core::int};
+  }
+  core::bool doRecursiveInitLocal = true;
+  #recursiveInitLocal#set.call(() → core::int {
+    core::print("Executing initializer");
+    if(doRecursiveInitLocal) {
+      doRecursiveInitLocal = false;
+      core::print("Trigger recursive initialization");
+      core::int val = #local#get.call();
+      core::print("Final local has value ${val}");
+      core::print("Returning 4 from initializer");
+      return 4;
+    }
+    core::print("Returning 3 from initializer");
+    return 3;
+  });
+  self::throws(() → Null {
+    core::int val = #local#get.call();
+    core::print("Final local has value ${val}");
+  }, "Read local");
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

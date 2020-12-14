@@ -13,7 +13,7 @@ class Expando<T> {
         _used = 0;
 
   static const _minSize = 8;
-  static final _deletedEntry = new _WeakProperty(null, null);
+  static final _deletedEntry = new _WeakProperty();
 
   @patch
   T? operator [](Object object) {
@@ -25,7 +25,7 @@ class Expando<T> {
 
     while (wp != null) {
       if (identical(wp.key, object)) {
-        return wp.value;
+        return unsafeCast<T?>(wp.value);
       } else if (wp.key == null) {
         // This entry has been cleared by the GC.
         _data[idx] = _deletedEntry;
@@ -82,7 +82,10 @@ class Expando<T> {
     }
 
     if (_used < _limit) {
-      _data[idx] = new _WeakProperty(object, value);
+      var ephemeron = new _WeakProperty();
+      ephemeron.key = object;
+      ephemeron.value = value;
+      _data[idx] = ephemeron;
       _used++;
       return;
     }

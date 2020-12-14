@@ -132,7 +132,8 @@ class TypePromotionManager {
   void _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
       AstNode target) {
     for (Element element in _promotedElements) {
-      if (_currentFunctionBody.isPotentiallyMutatedInScope(element)) {
+      if (_currentFunctionBody
+          .isPotentiallyMutatedInScope(element as VariableElement)) {
         if (_isVariableAccessedInClosure(element, target)) {
           _setType(element, null);
         }

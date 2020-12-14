@@ -248,7 +248,7 @@ void _debugPrint(List<_DartStackTraceDataEntry> trace, String outputPath) {
   }
 
   List<String> sideBySide(List<String> a, List<String> b, int columns) {
-    List<String> result = new List<String>(a.length);
+    List<String> result = new List<String>.filled(a.length, null);
     for (int i = 0; i < a.length; ++i) {
       String left = a[i].padRight(columns).substring(0, columns);
       String right = b[i].padRight(columns).substring(0, columns);

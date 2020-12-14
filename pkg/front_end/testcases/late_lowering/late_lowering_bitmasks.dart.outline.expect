@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field core::int? _#uninitializedNonFinalStaticField;
+  static field core::int? _#uninitializedFinalStaticField;
+  static field core::int? _#initializedNonFinalStaticField;
+  static field core::int? _#initializedFinalStaticField;
+  field core::int? _#Class#uninitializedNonFinalInstanceField;
+  field core::int? _#Class#uninitializedFinalInstanceField;
+  field core::int? _#Class#initializedNonFinalInstanceField;
+  field core::int? _#Class#initializedFinalInstanceField;
+  synthetic constructor •() → self::Class
+    ;
+  static get uninitializedNonFinalStaticField() → core::int;
+  static set uninitializedNonFinalStaticField(core::int #t1) → void;
+  static get uninitializedFinalStaticField() → core::int;
+  static set uninitializedFinalStaticField(core::int #t2) → void;
+  static get initializedNonFinalStaticField() → core::int;
+  static set initializedNonFinalStaticField(core::int #t3) → void;
+  static get initializedFinalStaticField() → core::int;
+  get uninitializedNonFinalInstanceField() → core::int;
+  set uninitializedNonFinalInstanceField(core::int #t4) → void;
+  get uninitializedFinalInstanceField() → core::int;
+  set uninitializedFinalInstanceField(core::int #t5) → void;
+  get initializedNonFinalInstanceField() → core::int;
+  set initializedNonFinalInstanceField(core::int #t6) → void;
+  get initializedFinalInstanceField() → core::int;
+}
+static field core::int? _#uninitializedNonFinalTopLevelField;
+static field core::int? _#uninitializedFinalTopLevelField;
+static field core::int? _#initializedNonFinalTopLevelField;
+static field core::int? _#initializedFinalTopLevelField;
+static method main() → dynamic
+  ;
+static method method() → dynamic
+  ;
+static get uninitializedNonFinalTopLevelField() → core::int;
+static set uninitializedNonFinalTopLevelField(core::int #t7) → void;
+static get uninitializedFinalTopLevelField() → core::int;
+static set uninitializedFinalTopLevelField(core::int #t8) → void;
+static get initializedNonFinalTopLevelField() → core::int;
+static set initializedNonFinalTopLevelField(core::int #t9) → void;
+static get initializedFinalTopLevelField() → core::int;

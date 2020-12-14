@@ -78,6 +78,23 @@ void f(E e) {
       error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10),
     ]);
   }
+
+  test_parenthesized() async {
+    await assertNoErrorsInCode('''
+enum E { one, two, three }
+
+void f(E e) {
+  switch (e) {
+    case (E.one):
+      break;
+    case (E.two):
+      break;
+    case (E.three):
+      break;
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

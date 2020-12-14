@@ -16,7 +16,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
-import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -601,9 +600,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 
 /// Various IDE options.
 class AnalysisServerOptions {
-  bool useAnalysisHighlight2 = false;
-
-  String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;
@@ -628,15 +624,6 @@ class AnalysisServerOptions {
 
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
-
-  /// Base path to locate trained completion language model files.
-  ///
-  /// ML completion is enabled if this is non-null.
-  String completionModelFolder;
-
-  /// Return `true` if the new relevance computations should be used when
-  /// computing code completion suggestions.
-  bool useNewRelevance = true;
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
@@ -829,11 +816,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
-    if (analysisServer.options.useAnalysisHighlight2) {
-      return DartUnitHighlightsComputer2(unit).compute();
-    } else {
-      return DartUnitHighlightsComputer(unit).compute();
-    }
+    return DartUnitHighlightsComputer(unit).compute();
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(

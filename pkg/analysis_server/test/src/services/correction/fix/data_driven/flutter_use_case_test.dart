@@ -600,6 +600,408 @@ void f() {
   }
 
   Future<void>
+      test_material_InputDecoration_defaultConstructor_matchFirstCase_deprecated() async {
+    setPackageContent('''
+class InputDecoration {
+  InputDecoration({
+    @deprecated bool hasFloatingPlaceholder: true,
+    FloatingLabelBehavior floatingLabelBehavior: FloatingLabelBehavior.auto,
+  });
+}
+enum FloatingLabelBehavior {always, auto, never}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename to floatingLabelBehavior'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'InputDecoration'
+    oneOf:
+      - if: "hasFloatingPlaceholder == 'true'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% FloatingLabelBehavior %}.auto'
+              requiredIf: "hasFloatingPlaceholder == 'true'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+      - if: "hasFloatingPlaceholder == 'false'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% FloatingLabelBehavior %}.never'
+              requiredIf: "hasFloatingPlaceholder == 'false'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+      - if: "hasFloatingPlaceholder != 'true' && hasFloatingPlaceholder != 'false'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% hasFloatingPlaceholder %} ? {% FloatingLabelBehavior %}.auto : {% FloatingLabelBehavior %}.never'
+              requiredIf: "hasFloatingPlaceholder != 'true' && hasFloatingPlaceholder != 'false'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+    variables:
+      hasFloatingPlaceholder:
+        kind: 'fragment'
+        value: 'arguments[hasFloatingPlaceholder]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+InputDecoration f(bool b) => InputDecoration(hasFloatingPlaceholder: true);
+''');
+    await assertHasFix('''
+import '$importUri';
+
+InputDecoration f(bool b) => InputDecoration(floatingLabelBehavior: FloatingLabelBehavior.auto);
+''');
+  }
+
+  Future<void>
+      test_material_InputDecoration_defaultConstructor_matchSecondCase_deprecated() async {
+    setPackageContent('''
+class InputDecoration {
+  InputDecoration({
+    @deprecated bool hasFloatingPlaceholder: true,
+    FloatingLabelBehavior floatingLabelBehavior: FloatingLabelBehavior.auto,
+  });
+}
+enum FloatingLabelBehavior {always, auto, never}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename to floatingLabelBehavior'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'InputDecoration'
+    oneOf:
+      - if: "hasFloatingPlaceholder == 'true'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% FloatingLabelBehavior %}.auto'
+              requiredIf: "hasFloatingPlaceholder == 'true'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+      - if: "hasFloatingPlaceholder == 'false'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% FloatingLabelBehavior %}.never'
+              requiredIf: "hasFloatingPlaceholder == 'false'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+      - if: "hasFloatingPlaceholder != 'true' && hasFloatingPlaceholder != 'false'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% hasFloatingPlaceholder %} ? {% FloatingLabelBehavior %}.auto : {% FloatingLabelBehavior %}.never'
+              requiredIf: "hasFloatingPlaceholder != 'true' && hasFloatingPlaceholder != 'false'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+    variables:
+      hasFloatingPlaceholder:
+        kind: 'fragment'
+        value: 'arguments[hasFloatingPlaceholder]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+InputDecoration f(bool b) => InputDecoration(hasFloatingPlaceholder: false);
+''');
+    await assertHasFix('''
+import '$importUri';
+
+InputDecoration f(bool b) => InputDecoration(floatingLabelBehavior: FloatingLabelBehavior.never);
+''');
+  }
+
+  Future<void>
+      test_material_InputDecoration_defaultConstructor_matchThirdCase_deprecated() async {
+    setPackageContent('''
+class InputDecoration {
+  InputDecoration({
+    @deprecated bool hasFloatingPlaceholder: true,
+    FloatingLabelBehavior floatingLabelBehavior: FloatingLabelBehavior.auto,
+  });
+}
+enum FloatingLabelBehavior {always, auto, never}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename to floatingLabelBehavior'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'InputDecoration'
+    oneOf:
+      - if: "hasFloatingPlaceholder == 'true'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% FloatingLabelBehavior %}.auto'
+              requiredIf: "hasFloatingPlaceholder == 'true'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+      - if: "hasFloatingPlaceholder == 'false'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% FloatingLabelBehavior %}.never'
+              requiredIf: "hasFloatingPlaceholder == 'false'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+      - if: "hasFloatingPlaceholder != 'true' && hasFloatingPlaceholder != 'false'"
+        changes:
+          - kind: 'addParameter'
+            index: 14
+            name: 'floatingLabelBehavior'
+            style: optional_named
+            argumentValue:
+              expression: '{% hasFloatingPlaceholder %} ? {% FloatingLabelBehavior %}.auto : {% FloatingLabelBehavior %}.never'
+              requiredIf: "hasFloatingPlaceholder != 'true' && hasFloatingPlaceholder != 'false'"
+              variables:
+                FloatingLabelBehavior:
+                  kind: 'import'
+                  uris: ['$importUri']
+                  name: 'FloatingLabelBehavior'
+          - kind: 'removeParameter'
+            name: 'hasFloatingPlaceholder'
+    variables:
+      hasFloatingPlaceholder:
+        kind: 'fragment'
+        value: 'arguments[hasFloatingPlaceholder]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+InputDecoration f(bool b) => InputDecoration(hasFloatingPlaceholder: b);
+''');
+    await assertHasFix('''
+import '$importUri';
+
+InputDecoration f(bool b) => InputDecoration(floatingLabelBehavior: b ? FloatingLabelBehavior.auto : FloatingLabelBehavior.never);
+''');
+  }
+
+  Future<void> test_material_Scaffold_of_matchFirstCase() async {
+    setPackageContent('''
+class Scaffold {
+  static ScaffoldState of(BuildContext context) => ScaffoldState();
+  static ScaffoldState maybeOf(BuildContext context) => ScaffoldState();
+}
+class ScaffoldState {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context, nullOk: true);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.maybeOf(context);
+}
+''');
+  }
+
+  Future<void> test_material_Scaffold_of_matchNoCases() async {
+    setPackageContent('''
+class Scaffold {
+  static ScaffoldState of(BuildContext context) => ScaffoldState();
+  static ScaffoldState maybeOf(BuildContext context) => ScaffoldState();
+}
+class ScaffoldState {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context, nullOk: b);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_material_Scaffold_of_matchSecondCase() async {
+    setPackageContent('''
+class Scaffold {
+  static ScaffoldState of(BuildContext context) => ScaffoldState();
+  static ScaffoldState maybeOf(BuildContext context) => ScaffoldState();
+}
+class ScaffoldState {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context, nullOk: false);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(BuildContext context, bool b) {
+  Scaffold.of(context);
+}
+''');
+  }
+
+  Future<void>
       test_material_Scaffold_resizeToAvoidBottomPadding_deprecated() async {
     setPackageContent('''
 class Scaffold {
@@ -673,10 +1075,7 @@ void f(Scaffold scaffold) {
 ''');
   }
 
-  @failingTest
   Future<void> test_material_showDialog_deprecated() async {
-    // This test is failing because there is no way to specify that if a `child`
-    // was previously provided that a `builder` should be provided.
     setPackageContent('''
 void showDialog({
   @deprecated Widget child,
@@ -700,10 +1099,11 @@ transforms:
         style: optional_named
         argumentValue:
           expression: '(context) => {% widget %}'
+          requiredIf: "widget != ''"
           variables:
             widget:
-              kind: argument
-              name: 'child'
+              kind: fragment
+              value: 'arguments[child]'
       - kind: 'removeParameter'
         name: 'child'
 ''');
@@ -723,10 +1123,7 @@ void f(Widget widget) {
 ''');
   }
 
-  @failingTest
   Future<void> test_material_showDialog_removed() async {
-    // This test is failing because there is no way to specify that if a `child`
-    // was previously provided that a `builder` should be provided.
     setPackageContent('''
 void showDialog({
   @deprecated Widget child,
@@ -750,10 +1147,11 @@ transforms:
         style: optional_named
         argumentValue:
           expression: '(context) => {% widget %}'
+          requiredIf: "widget != ''"
           variables:
             widget:
-              kind: argument
-              name: 'child'
+              kind: fragment
+              value: 'arguments[child]'
       - kind: 'removeParameter'
         name: 'child'
 ''');

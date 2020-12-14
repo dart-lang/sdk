@@ -2327,7 +2327,7 @@ bool FlowGraphDeserializer::CreateICData(SExpList* list, Instruction* inst) {
   }
 
   ASSERT(parsed_function_ != nullptr);
-  const auto& ic_data = ICData::ZoneHandle(
+  auto& ic_data = ICData::ZoneHandle(
       zone(), ICData::New(parsed_function_->function(), *function_name,
                           arguments_descriptor, inst->deopt_id(),
                           num_args_checked, rebind_rule, *type_ptr));
@@ -2360,7 +2360,9 @@ bool FlowGraphDeserializer::CreateICData(SExpList* list, Instruction* inst) {
         StoreError(entry, "expected a zero count for no checked args");
         return false;
       }
-      ic_data.AddTarget(target);
+      ic_data = ICData::NewForStaticCall(parsed_function_->function(), target,
+                                         arguments_descriptor, inst->deopt_id(),
+                                         num_args_checked, rebind_rule);
       continue;
     }
 
@@ -2386,7 +2388,7 @@ bool FlowGraphDeserializer::CreateICData(SExpList* list, Instruction* inst) {
   }
 
   if (auto const call = inst->AsInstanceCall()) {
-    call->set_ic_data(&ic_data);
+    call->set_ic_data(const_cast<const ICData*>(&ic_data));
   } else if (auto const call = inst->AsStaticCall()) {
     call->set_ic_data(&ic_data);
   }

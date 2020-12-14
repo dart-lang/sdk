@@ -23,7 +23,7 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 25, 7),
+      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 30, 2),
     ]);
   }
 
@@ -31,7 +31,7 @@ class A {
     await assertErrorsInCode('''
 f({var _p}) {}
 ''', [
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 6),
+      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 7, 2),
     ]);
   }
 

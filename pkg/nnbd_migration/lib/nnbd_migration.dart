@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
 
@@ -314,30 +315,30 @@ abstract class NullabilityMigration {
   /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
-  ///
-  /// Optional parameter [transformWhereOrNull] indicates whether Iterable
-  /// methods should be transformed to their "OrNull" equivalents when possible.
-  /// This feature is a work in progress, so by default they are not
-  /// transformed.
   factory NullabilityMigration(NullabilityMigrationListener listener,
       LineInfo Function(String) getLineInfo,
       {bool permissive,
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments,
-      bool warnOnWeakCode,
-      bool transformWhereOrNull}) = NullabilityMigrationImpl;
+      bool warnOnWeakCode}) = NullabilityMigrationImpl;
 
   /// Check if this migration is being run permissively.
   bool get isPermissive;
-
-  void finalizeInput(ResolvedUnitResult result);
-
-  void finish();
 
   /// Use this getter after any calls to [prepareInput] to obtain a list of URIs
   /// of unmigrated dependencies.  Ideally, this list should be empty before the
   /// user tries to migrate their package.
   List<String> get unmigratedDependencies;
+
+  void finalizeInput(ResolvedUnitResult result);
+
+  /// Finishes the migration.  Returns a map indicating packages that have been
+  /// newly imported by the migration; the caller should ensure that these
+  /// packages are properly imported by the package's pubspec.
+  ///
+  /// Keys of the returned map are package names; values indicate the minimum
+  /// required version of each package.
+  Map<String, Version> finish();
 
   void prepareInput(ResolvedUnitResult result);
 

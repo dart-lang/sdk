@@ -155,7 +155,7 @@ abstract class Compiler {
   final bool supportCodeCoverage;
   final bool supportHotReload;
 
-  final List<String> errors = new List<String>();
+  final List<String> errors = <String>[];
 
   CompilerOptions options;
 
@@ -621,7 +621,7 @@ Future _processExpressionCompilationRequest(request) async {
 
 void _recordDependencies(
     int isolateId, Component component, Uri packageConfig) {
-  final dependencies = isolateDependencies[isolateId] ??= new List<Uri>();
+  final dependencies = isolateDependencies[isolateId] ??= <Uri>[];
 
   if (component != null) {
     for (var lib in component.libraries) {

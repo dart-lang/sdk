@@ -65,6 +65,10 @@ class DocumentationValidator {
   /// be enabled for a snippet.
   static const String experimentsPrefix = '%experiments=';
 
+  /// The prefix used on directive lines to specify the language version for
+  /// the snippet.
+  static const String languagePrefix = '%language=';
+
   /// The prefix used on directive lines to indicate the uri of an auxiliary
   /// file that is needed for testing purposes.
   static const String uriDirectivePrefix = '%uri="';
@@ -144,19 +148,26 @@ class DocumentationValidator {
     return docs;
   }
 
-  _SnippetData _extractSnippetData(String snippet, bool errorRequired,
-      Map<String, String> auxiliaryFiles, List<String> experiments) {
+  _SnippetData _extractSnippetData(
+    String snippet,
+    bool errorRequired,
+    Map<String, String> auxiliaryFiles,
+    List<String> experiments,
+    String languageVersion,
+  ) {
     int rangeStart = snippet.indexOf(errorRangeStart);
     if (rangeStart < 0) {
       if (errorRequired) {
         _reportProblem('No error range in example');
       }
-      return _SnippetData(snippet, -1, 0, auxiliaryFiles, experiments);
+      return _SnippetData(
+          snippet, -1, 0, auxiliaryFiles, experiments, languageVersion);
     }
     int rangeEnd = snippet.indexOf(errorRangeEnd, rangeStart + 1);
     if (rangeEnd < 0) {
       _reportProblem('No end of error range in example');
-      return _SnippetData(snippet, -1, 0, auxiliaryFiles, experiments);
+      return _SnippetData(
+          snippet, -1, 0, auxiliaryFiles, experiments, languageVersion);
     } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
       _reportProblem('More than one error range in example');
     }
@@ -167,7 +178,8 @@ class DocumentationValidator {
         rangeStart,
         rangeEnd - rangeStart - 2,
         auxiliaryFiles,
-        experiments);
+        experiments,
+        languageVersion);
   }
 
   /// Extract the snippets of Dart code between the start (inclusive) and end
@@ -177,6 +189,7 @@ class DocumentationValidator {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
     List<String> experiments;
+    String languageVersion;
     var currentStart = -1;
     for (var i = start; i < end; i++) {
       var line = lines[i];
@@ -199,10 +212,13 @@ class DocumentationValidator {
                 .map((e) => e.trim())
                 .toList();
             currentStart++;
+          } else if (secondLine.startsWith(languagePrefix)) {
+            languageVersion = secondLine.substring(languagePrefix.length);
+            currentStart++;
           }
           var content = lines.sublist(currentStart + 1, i).join('\n');
-          snippets.add(_extractSnippetData(
-              content, errorRequired, auxiliaryFiles, experiments));
+          snippets.add(_extractSnippetData(content, errorRequired,
+              auxiliaryFiles, experiments, languageVersion));
           auxiliaryFiles = <String, String>{};
         }
         currentStart = -1;
@@ -394,9 +410,10 @@ class _SnippetData {
   final int length;
   final Map<String, String> auxiliaryFiles;
   final List<String> experiments;
+  final String languageVersion;
 
   _SnippetData(this.content, this.offset, this.length, this.auxiliaryFiles,
-      this.experiments);
+      this.experiments, this.languageVersion);
 }
 
 /// A test class that creates an environment suitable for analyzing the
@@ -407,7 +424,6 @@ class _SnippetTest extends PubPackageResolutionTest {
 
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
         experiments: snippet.experiments,
@@ -417,8 +433,7 @@ class _SnippetTest extends PubPackageResolutionTest {
 
   @override
   String get testPackageLanguageVersion {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
-    return snippet.experiments == null ? '2.9' : null;
+    return snippet.languageVersion;
   }
 
   @override

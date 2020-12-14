@@ -2,1712 +2,1879 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
-import 'package:analyzer/src/summary2/linking_bundle_context.dart';
+import 'package:analyzer/src/summary2/ast_binary_tag.dart';
+import 'package:analyzer/src/summary2/bundle_writer.dart';
+import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
+import 'package:analyzer/src/task/inference_error.dart';
+import 'package:meta/meta.dart';
 
-var timerAstBinaryWriter = Stopwatch();
-var timerAstBinaryWriterClass = Stopwatch();
-var timerAstBinaryWriterDirective = Stopwatch();
-var timerAstBinaryWriterFunctionBody = Stopwatch();
-var timerAstBinaryWriterMixin = Stopwatch();
-var timerAstBinaryWriterTopVar = Stopwatch();
-var timerAstBinaryWriterTypedef = Stopwatch();
+/// Serializer of fully resolved ASTs.
+class AstBinaryWriter extends ThrowingAstVisitor<void> {
+  final bool _withInformative;
+  final BufferedSink _sink;
+  final StringIndexer _stringIndexer;
+  final int Function() _getNextResolutionIndex;
+  final ResolutionSink _resolutionSink;
+  final bool _shouldWriteResolution;
 
-/// Serializer of fully resolved ASTs into flat buffers.
-class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
-  final LinkingBundleContext _linkingContext;
-
-  /// Is `true` if the current [ClassDeclaration] has a const constructor,
-  /// so initializers of final fields should be written.
+  /// TODO(scheglov) Keep it private, and write here, similarly as we do
+  /// for [_classMemberIndexItems]?
+  final List<_UnitMemberIndexItem> unitMemberIndexItems = [];
+  final List<_ClassMemberIndexItem> _classMemberIndexItems = [];
+  bool _isConstField = false;
+  bool _isFinalField = false;
+  bool _isConstTopLevelVariable = false;
   bool _hasConstConstructor = false;
+  int _nextUnnamedExtensionId = 0;
 
-  AstBinaryWriter(this._linkingContext);
+  AstBinaryWriter({
+    @required bool withInformative,
+    @required BufferedSink sink,
+    @required StringIndexer stringIndexer,
+    @required int Function() getNextResolutionIndex,
+    @required ResolutionSink resolutionSink,
+  })  : _withInformative = withInformative,
+        _sink = sink,
+        _stringIndexer = stringIndexer,
+        _getNextResolutionIndex = getNextResolutionIndex,
+        _resolutionSink = resolutionSink,
+        _shouldWriteResolution = resolutionSink != null;
 
   @override
-  LinkedNodeBuilder visitAdjacentStrings(AdjacentStrings node) {
-    return LinkedNodeBuilder.adjacentStrings(
-      adjacentStrings_strings: _writeNodeList(node.strings),
-    );
+  void visitAdjacentStrings(AdjacentStrings node) {
+    _writeByte(Tag.AdjacentStrings);
+    _writeNodeList(node.strings);
   }
 
   @override
-  LinkedNodeBuilder visitAnnotation(Annotation node) {
-    var elementComponents = _componentsOfElement(node.element);
+  void visitAnnotation(Annotation node) {
+    _writeByte(Tag.Annotation);
 
-    LinkedNodeBuilder storedArguments;
+    _writeOptionalNode(node.name);
+    _writeOptionalNode(node.constructorName);
+
     var arguments = node.arguments;
     if (arguments != null) {
-      if (arguments.arguments.every(_isSerializableExpression)) {
-        storedArguments = arguments.accept(this);
-      } else {
-        storedArguments = LinkedNodeBuilder.argumentList();
+      if (!arguments.arguments.every(_isSerializableExpression)) {
+        arguments = null;
+      }
+    }
+    _writeOptionalNode(arguments);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.element);
+    }
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    _writeByte(Tag.ArgumentList);
+    _writeNodeList(node.arguments);
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    _writeByte(Tag.AsExpression);
+    _writeNode(node.expression);
+    _writeNode(node.type);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    _writeByte(Tag.AssertInitializer);
+    _writeNode(node.condition);
+    _writeOptionalNode(node.message);
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _writeByte(Tag.AssignmentExpression);
+
+    _writeNode(node.leftHandSide);
+    _writeNode(node.rightHandSide);
+
+    var operatorToken = node.operator.type;
+    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
+    _writeByte(binaryToken.index);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      _resolutionSink.writeElement(node.readElement);
+      _resolutionSink.writeType(node.readType);
+      _resolutionSink.writeElement(node.writeElement);
+      _resolutionSink.writeType(node.writeType);
+    }
+    _storeExpression(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    _writeByte(Tag.BinaryExpression);
+
+    _writeNode(node.leftOperand);
+    _writeNode(node.rightOperand);
+
+    var operatorToken = node.operator.type;
+    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
+    _writeByte(binaryToken.index);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      _resolutionSink.writeType(node.staticType);
+    }
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    _writeByte(Tag.BooleanLiteral);
+    _writeByte(node.value ? 1 : 0);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.staticType);
+    }
+  }
+
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    _writeByte(Tag.CascadeExpression);
+    _writeNode(node.target);
+    _writeNodeList(node.cascadeSections);
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    var classOffset = _sink.offset;
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _hasConstConstructor = false;
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration && member.constKeyword != null) {
+        _hasConstConstructor = true;
+        break;
       }
     }
 
-    return LinkedNodeBuilder.annotation(
-      annotation_arguments: storedArguments,
-      annotation_constructorName: node.constructorName?.accept(this),
-      annotation_element: elementComponents.rawElement,
-      annotation_substitution: elementComponents.substitution,
-      annotation_name: node.name?.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitArgumentList(ArgumentList node) {
-    return LinkedNodeBuilder.argumentList(
-      argumentList_arguments: _writeNodeList(node.arguments),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitAsExpression(AsExpression node) {
-    return LinkedNodeBuilder.asExpression(
-      asExpression_expression: node.expression.accept(this),
-      asExpression_type: node.type.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitAssertInitializer(AssertInitializer node) {
-    return LinkedNodeBuilder.assertInitializer(
-      assertInitializer_condition: node.condition.accept(this),
-      assertInitializer_message: node.message?.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitAssertStatement(AssertStatement node) {
-    var builder = LinkedNodeBuilder.assertStatement(
-      assertStatement_condition: node.condition.accept(this),
-      assertStatement_message: node.message?.accept(this),
-    );
-    _storeStatement(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitAssignmentExpression(AssignmentExpression node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    return LinkedNodeBuilder.assignmentExpression(
-      assignmentExpression_element: elementComponents.rawElement,
-      assignmentExpression_substitution: elementComponents.substitution,
-      assignmentExpression_leftHandSide: node.leftHandSide.accept(this),
-      assignmentExpression_operator: TokensWriter.astToBinaryTokenType(
-        node.operator.type,
-      ),
-      assignmentExpression_rightHandSide: node.rightHandSide.accept(this),
-      expression_type: _writeType(node.staticType),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitAwaitExpression(AwaitExpression node) {
-    return LinkedNodeBuilder.awaitExpression(
-      awaitExpression_expression: node.expression.accept(this),
-      expression_type: _writeType(node.staticType),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitBinaryExpression(BinaryExpression node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    return LinkedNodeBuilder.binaryExpression(
-      binaryExpression_element: elementComponents.rawElement,
-      binaryExpression_substitution: elementComponents.substitution,
-      binaryExpression_leftOperand: node.leftOperand.accept(this),
-      binaryExpression_operator: TokensWriter.astToBinaryTokenType(
-        node.operator.type,
-      ),
-      binaryExpression_rightOperand: node.rightOperand.accept(this),
-      expression_type: _writeType(node.staticType),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitBlock(Block node) {
-    return LinkedNodeBuilder.block(
-      block_statements: _writeNodeList(node.statements),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitBlockFunctionBody(BlockFunctionBody node) {
-    timerAstBinaryWriterFunctionBody.start();
-    try {
-      var builder = LinkedNodeBuilder.blockFunctionBody(
-        blockFunctionBody_block: node.block.accept(this),
-      );
-      builder.flags = AstBinaryFlags.encode(
-        isAsync: node.keyword?.keyword == Keyword.ASYNC,
-        isStar: node.star != null,
-        isSync: node.keyword?.keyword == Keyword.SYNC,
-      );
-      return builder;
-    } finally {
-      timerAstBinaryWriterFunctionBody.stop();
-    }
-  }
-
-  @override
-  LinkedNodeBuilder visitBooleanLiteral(BooleanLiteral node) {
-    return LinkedNodeBuilder.booleanLiteral(
-      booleanLiteral_value: node.value,
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitBreakStatement(BreakStatement node) {
-    var builder = LinkedNodeBuilder.breakStatement(
-      breakStatement_label: node.label?.accept(this),
-    );
-    _storeStatement(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitCascadeExpression(CascadeExpression node) {
-    var builder = LinkedNodeBuilder.cascadeExpression(
-      cascadeExpression_target: node.target.accept(this),
-      cascadeExpression_sections: _writeNodeList(node.cascadeSections),
-    );
-    _storeExpression(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitCatchClause(CatchClause node) {
-    return LinkedNodeBuilder.catchClause(
-      catchClause_body: node.body.accept(this),
-      catchClause_exceptionParameter: node.exceptionParameter?.accept(this),
-      catchClause_exceptionType: node.exceptionType?.accept(this),
-      catchClause_stackTraceParameter: node.stackTraceParameter?.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitClassDeclaration(ClassDeclaration node) {
-    try {
-      timerAstBinaryWriterClass.start();
-
-      _hasConstConstructor = false;
-      for (var member in node.members) {
-        if (member is ConstructorDeclaration && member.constKeyword != null) {
-          _hasConstConstructor = true;
-          break;
-        }
-      }
-
-      var builder = LinkedNodeBuilder.classDeclaration(
-        classDeclaration_extendsClause: node.extendsClause?.accept(this),
-        classDeclaration_nativeClause: node.nativeClause?.accept(this),
-        classDeclaration_withClause: node.withClause?.accept(this),
-      );
-      builder.flags = AstBinaryFlags.encode(
+    _writeByte(Tag.Class);
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasConstConstructor: _hasConstConstructor,
         isAbstract: node.abstractKeyword != null,
-      );
-      _storeClassOrMixinDeclaration(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterClass.stop();
-    }
-  }
-
-  @override
-  LinkedNodeBuilder visitClassTypeAlias(ClassTypeAlias node) {
-    timerAstBinaryWriterClass.start();
-    try {
-      var builder = LinkedNodeBuilder.classTypeAlias(
-        classTypeAlias_implementsClause: node.implementsClause?.accept(this),
-        classTypeAlias_superclass: node.superclass.accept(this),
-        classTypeAlias_typeParameters: node.typeParameters?.accept(this),
-        classTypeAlias_withClause: node.withClause.accept(this),
-      );
-      builder.flags = AstBinaryFlags.encode(
-        isAbstract: node.abstractKeyword != null,
-      );
-      _storeTypeAlias(builder, node);
-      _storeIsSimpleBounded(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterClass.stop();
-    }
-  }
-
-  @override
-  LinkedNodeBuilder visitComment(Comment node) {
-    LinkedNodeCommentType type;
-    if (node.isBlock) {
-      type = LinkedNodeCommentType.block;
-    } else if (node.isDocumentation) {
-      type = LinkedNodeCommentType.documentation;
-    } else if (node.isEndOfLine) {
-      type = LinkedNodeCommentType.endOfLine;
+      ),
+    );
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(node.declaredElement.isSimplyBounded ? 1 : 0);
     }
 
-    return LinkedNodeBuilder.comment(
-      comment_tokens: node.tokens.map((t) => t.lexeme).toList(),
-      comment_type: type,
-      // TODO(scheglov) restore
-//      comment_references: _writeNodeList(node.references),
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    _pushScopeTypeParameters(node.typeParameters);
+
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.extendsClause);
+    _writeOptionalNode(node.withClause);
+    _writeOptionalNode(node.implementsClause);
+    _writeOptionalNode(node.nativeClause);
+    _storeNamedCompilationUnitMember(node);
+    _writeUInt30(resolutionIndex);
+
+    _classMemberIndexItems.clear();
+    _writeNodeList(node.members);
+    _hasConstConstructor = false;
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
+
+    // TODO(scheglov) write member index
+    var classIndexOffset = _sink.offset;
+    _writeClassMemberIndex();
+
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: classOffset,
+        tag: Tag.Class,
+        name: node.name.name,
+        classIndexOffset: classIndexOffset,
+      ),
     );
   }
 
   @override
-  LinkedNodeBuilder visitCommentReference(CommentReference node) {
-//    var identifier = node.identifier;
-//    _tokensWriter.writeTokens(
-//      node.newKeyword ?? identifier.beginToken,
-//      identifier.endToken,
-//    );
-//
-//    return LinkedNodeBuilder.commentReference(
-//      commentReference_identifier: identifier.accept(this),
-//      commentReference_newKeyword: _getToken(node.newKeyword),
-//    );
-    return null;
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: _sink.offset,
+        tag: Tag.ClassTypeAlias,
+        name: node.name.name,
+      ),
+    );
+
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _writeByte(Tag.ClassTypeAlias);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isAbstract: node.abstractKeyword != null,
+      ),
+    );
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(node.declaredElement.isSimplyBounded ? 1 : 0);
+    }
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _pushScopeTypeParameters(node.typeParameters);
+    _writeOptionalNode(node.typeParameters);
+    _writeNode(node.superclass);
+    _writeNode(node.withClause);
+    _writeOptionalNode(node.implementsClause);
+    _storeTypeAlias(node);
+    _writeDocumentationCommentString(node.documentationComment);
+    _writeUInt30(resolutionIndex);
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
   }
 
   @override
-  LinkedNodeBuilder visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     var nodeImpl = node as CompilationUnitImpl;
-    var builder = LinkedNodeBuilder.compilationUnit(
-      compilationUnit_declarations: _writeNodeList(node.declarations),
-      compilationUnit_directives: _writeNodeList(node.directives),
-      compilationUnit_featureSet:
-          (node.featureSet as ExperimentStatus).toStorage(),
-      compilationUnit_languageVersion: LinkedLibraryLanguageVersionBuilder(
-        package: LinkedLanguageVersionBuilder(
-          major: nodeImpl.languageVersion.package.major,
-          minor: nodeImpl.languageVersion.package.minor,
-        ),
-        override2: nodeImpl.languageVersion.override != null
-            ? LinkedLanguageVersionBuilder(
-                major: nodeImpl.languageVersion.override.major,
-                minor: nodeImpl.languageVersion.override.minor,
-              )
-            : null,
+    _writeLanguageVersion(nodeImpl.languageVersion);
+    _writeFeatureSet(node.featureSet);
+    _writeLineInfo(node.lineInfo);
+    _writeUInt30(_withInformative ? node.length : 0);
+    _writeNodeList(node.directives);
+    for (var declaration in node.declarations) {
+      declaration.accept(this);
+    }
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    _writeByte(Tag.ConditionalExpression);
+    _writeNode(node.condition);
+    _writeNode(node.thenExpression);
+    _writeNode(node.elseExpression);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitConfiguration(Configuration node) {
+    _writeByte(Tag.Configuration);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasEqual: node.equalToken != null,
       ),
-      compilationUnit_scriptTag: node.scriptTag?.accept(this),
-      informativeId: getInformativeId(node),
     );
-    return builder;
+
+    _writeNode(node.name);
+    _writeOptionalNode(node.value);
+    _writeNode(node.uri);
   }
 
   @override
-  LinkedNodeBuilder visitConditionalExpression(ConditionalExpression node) {
-    var builder = LinkedNodeBuilder.conditionalExpression(
-      conditionalExpression_condition: node.condition.accept(this),
-      conditionalExpression_elseExpression: node.elseExpression.accept(this),
-      conditionalExpression_thenExpression: node.thenExpression.accept(this),
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    _classMemberIndexItems.add(
+      _ClassMemberIndexItem(
+        offset: _sink.offset,
+        tag: Tag.ConstructorDeclaration,
+        name: node.name?.name ?? '',
+      ),
     );
-    _storeExpression(builder, node);
-    return builder;
+
+    _writeByte(Tag.ConstructorDeclaration);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasName: node.name != null,
+        hasSeparatorColon: node.separator?.type == TokenType.COLON,
+        hasSeparatorEquals: node.separator?.type == TokenType.EQ,
+        isAbstract: node.body is EmptyFunctionBody,
+        isConst: node.constKeyword != null,
+        isExternal: node.externalKeyword != null,
+        isFactory: node.factoryKeyword != null,
+      ),
+    );
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    var resolutionIndex = _getNextResolutionIndex();
+    _writeNode(node.returnType);
+    if (node.period != null) {
+      _writeInformativeUint30(node.period.offset);
+      _writeDeclarationName(node.name);
+    }
+    _writeNode(node.parameters);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.pushScope();
+      for (var parameter in node.parameters.parameters) {
+        _resolutionSink.localElements.declare(parameter.declaredElement);
+      }
+    }
+
+    // TODO(scheglov) Not nice, we skip both resolution and AST.
+    // But eventually we want to store full AST, and partial resolution.
+    if (node.constKeyword != null) {
+      _writeNodeList(node.initializers);
+    } else {
+      _writeNodeList(const <ConstructorInitializer>[]);
+    }
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
+
+    _writeOptionalNode(node.redirectedConstructor);
+    _storeClassMember(node);
+    _writeUInt30(resolutionIndex);
   }
 
   @override
-  LinkedNodeBuilder visitConfiguration(Configuration node) {
-    var builder = LinkedNodeBuilder.configuration(
-      configuration_name: node.name?.accept(this),
-      configuration_value: node.value?.accept(this),
-      configuration_uri: node.uri?.accept(this),
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    _writeByte(Tag.ConstructorFieldInitializer);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasThis: node.thisKeyword != null,
+      ),
     );
-    builder.flags = AstBinaryFlags.encode(
-      hasEqual: node.equalToken != null,
-    );
-    return builder;
+
+    _writeNode(node.fieldName);
+    _writeNode(node.expression);
+    _storeConstructorInitializer(node);
   }
 
   @override
-  LinkedNodeBuilder visitConstructorDeclaration(ConstructorDeclaration node) {
-    var builder = LinkedNodeBuilder.constructorDeclaration(
-      constructorDeclaration_initializers: _writeNodeList(node.initializers),
-      constructorDeclaration_parameters: node.parameters.accept(this),
-      constructorDeclaration_redirectedConstructor:
-          node.redirectedConstructor?.accept(this),
-      constructorDeclaration_returnType: node.returnType.accept(this),
-      informativeId: getInformativeId(node),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      hasName: node.name != null,
-      hasSeparatorColon: node.separator?.type == TokenType.COLON,
-      hasSeparatorEquals: node.separator?.type == TokenType.EQ,
-      isAbstract: node.body is EmptyFunctionBody,
-      isConst: node.constKeyword != null,
-      isExternal: node.externalKeyword != null,
-      isFactory: node.factoryKeyword != null,
-    );
-    builder.name = node.name?.name;
-    _storeClassMember(builder, node);
-    return builder;
+  void visitConstructorName(ConstructorName node) {
+    _writeByte(Tag.ConstructorName);
+
+    if (_shouldWriteResolution) {
+      // When we parse `C() = A.named` we don't know that `A` is a class name.
+      // We parse it as a `TypeName(PrefixedIdentifier)`.
+      // But when we resolve, we rewrite it.
+      // We need to inform the applier about the right shape of the AST.
+      _resolutionSink.writeByte(node.name != null ? 1 : 0);
+    }
+
+    _writeNode(node.type);
+    _writeOptionalNode(node.name);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
   }
 
   @override
-  LinkedNodeBuilder visitConstructorFieldInitializer(
-      ConstructorFieldInitializer node) {
-    var builder = LinkedNodeBuilder.constructorFieldInitializer(
-      constructorFieldInitializer_expression: node.expression.accept(this),
-      constructorFieldInitializer_fieldName: node.fieldName.accept(this),
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    _writeByte(Tag.DeclaredIdentifier);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.keyword?.keyword == Keyword.CONST,
+        isFinal: node.keyword?.keyword == Keyword.FINAL,
+        isVar: node.keyword?.keyword == Keyword.VAR,
+      ),
     );
-    builder.flags = AstBinaryFlags.encode(
-      hasThis: node.thisKeyword != null,
-    );
-    _storeConstructorInitializer(builder, node);
-    return builder;
+    _writeOptionalNode(node.type);
+    _writeDeclarationName(node.identifier);
+    _storeDeclaration(node);
   }
 
   @override
-  LinkedNodeBuilder visitConstructorName(ConstructorName node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    return LinkedNodeBuilder.constructorName(
-      constructorName_element: elementComponents.rawElement,
-      constructorName_substitution: elementComponents.substitution,
-      constructorName_name: node.name?.accept(this),
-      constructorName_type: node.type.accept(this),
-    );
-  }
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    _writeByte(Tag.DefaultFormalParameter);
 
-  @override
-  LinkedNodeBuilder visitContinueStatement(ContinueStatement node) {
-    var builder = LinkedNodeBuilder.continueStatement(
-      continueStatement_label: node.label?.accept(this),
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasInitializer: node.defaultValue != null,
+        isPositional: node.isPositional,
+        isRequired: node.isRequired,
+      ),
     );
-    _storeStatement(builder, node);
-    return builder;
-  }
 
-  @override
-  LinkedNodeBuilder visitDeclaredIdentifier(DeclaredIdentifier node) {
-    var builder = LinkedNodeBuilder.declaredIdentifier(
-      declaredIdentifier_identifier: node.identifier.accept(this),
-      declaredIdentifier_type: node.type?.accept(this),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isConst: node.keyword?.keyword == Keyword.CONST,
-      isFinal: node.keyword?.keyword == Keyword.FINAL,
-      isVar: node.keyword?.keyword == Keyword.VAR,
-    );
-    _storeDeclaration(builder, node);
-    return builder;
-  }
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
 
-  @override
-  LinkedNodeBuilder visitDefaultFormalParameter(DefaultFormalParameter node) {
+    _writeNode(node.parameter);
+
     var defaultValue = node.defaultValue;
     if (!_isSerializableExpression(defaultValue)) {
       defaultValue = null;
     }
-
-    var builder = LinkedNodeBuilder.defaultFormalParameter(
-      defaultFormalParameter_defaultValue: defaultValue?.accept(this),
-      defaultFormalParameter_kind: _toParameterKind(node),
-      defaultFormalParameter_parameter: node.parameter.accept(this),
-      informativeId: getInformativeId(node),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      hasInitializer: node.defaultValue != null,
-    );
-    return builder;
+    _writeOptionalNode(defaultValue);
   }
 
   @override
-  LinkedNodeBuilder visitDoStatement(DoStatement node) {
-    return LinkedNodeBuilder.doStatement(
-      doStatement_body: node.body.accept(this),
-      doStatement_condition: node.condition.accept(this),
-    );
+  void visitDottedName(DottedName node) {
+    _writeByte(Tag.DottedName);
+    _writeNodeList(node.components);
   }
 
   @override
-  LinkedNodeBuilder visitDottedName(DottedName node) {
-    return LinkedNodeBuilder.dottedName(
-      dottedName_components: _writeNodeList(node.components),
-    );
+  void visitDoubleLiteral(DoubleLiteral node) {
+    _writeByte(Tag.DoubleLiteral);
+    _writeDouble(node.value);
   }
 
   @override
-  LinkedNodeBuilder visitDoubleLiteral(DoubleLiteral node) {
-    return LinkedNodeBuilder.doubleLiteral(
-      doubleLiteral_value: node.value,
-    );
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    _writeByte(Tag.EnumConstantDeclaration);
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    _writeDeclarationName(node.name);
+    _storeDeclaration(node);
   }
 
   @override
-  LinkedNodeBuilder visitEmptyFunctionBody(EmptyFunctionBody node) {
-    var builder = LinkedNodeBuilder.emptyFunctionBody();
-    _storeFunctionBody(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitEmptyStatement(EmptyStatement node) {
-    return LinkedNodeBuilder.emptyStatement();
-  }
-
-  @override
-  LinkedNodeBuilder visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    var builder = LinkedNodeBuilder.enumConstantDeclaration(
-      informativeId: getInformativeId(node),
-    );
-    builder..name = node.name.name;
-    _storeDeclaration(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitEnumDeclaration(EnumDeclaration node) {
-    var builder = LinkedNodeBuilder.enumDeclaration(
-      enumDeclaration_constants: _writeNodeList(node.constants),
-    );
-    _storeNamedCompilationUnitMember(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitExportDirective(ExportDirective node) {
-    timerAstBinaryWriterDirective.start();
-    try {
-      var builder = LinkedNodeBuilder.exportDirective();
-      _storeNamespaceDirective(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterDirective.stop();
-    }
-  }
-
-  @override
-  LinkedNodeBuilder visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    timerAstBinaryWriterFunctionBody.start();
-    try {
-      var builder = LinkedNodeBuilder.expressionFunctionBody(
-        expressionFunctionBody_expression: node.expression.accept(this),
-      );
-      builder.flags = AstBinaryFlags.encode(
-        isAsync: node.keyword?.keyword == Keyword.ASYNC,
-        isSync: node.keyword?.keyword == Keyword.SYNC,
-      );
-      return builder;
-    } finally {
-      timerAstBinaryWriterFunctionBody.stop();
-    }
-  }
-
-  @override
-  LinkedNodeBuilder visitExpressionStatement(ExpressionStatement node) {
-    return LinkedNodeBuilder.expressionStatement(
-      expressionStatement_expression: node.expression.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitExtendsClause(ExtendsClause node) {
-    return LinkedNodeBuilder.extendsClause(
-      extendsClause_superclass: node.superclass.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitExtensionDeclaration(ExtensionDeclaration node) {
-    var builder = LinkedNodeBuilder.extensionDeclaration(
-      extensionDeclaration_extendedType: node.extendedType.accept(this),
-      extensionDeclaration_members: _writeNodeList(node.members),
-      extensionDeclaration_typeParameters: node.typeParameters?.accept(this),
-    );
-
-    _storeCompilationUnitMember(builder, node);
-    _storeInformativeId(builder, node);
-    builder.name = node.name?.name;
-    LazyExtensionDeclaration.get(node).put(builder);
-
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitExtensionOverride(ExtensionOverride node) {
-    var builder = LinkedNodeBuilder.extensionOverride(
-      extensionOverride_arguments: _writeNodeList(
-        node.argumentList.arguments,
+  void visitEnumDeclaration(EnumDeclaration node) {
+    var resolutionIndex = _getNextResolutionIndex();
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: _sink.offset,
+        tag: Tag.EnumDeclaration,
+        name: node.name.name,
       ),
-      extensionOverride_extensionName: node.extensionName.accept(this),
-      extensionOverride_typeArguments: node.typeArguments?.accept(this),
-      extensionOverride_typeArgumentTypes:
-          node.typeArgumentTypes.map(_writeType).toList(),
-      extensionOverride_extendedType: _writeType(node.extendedType),
     );
-    return builder;
+
+    _writeByte(Tag.EnumDeclaration);
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    _writeNodeList(node.constants);
+    _storeNamedCompilationUnitMember(node);
+    _writeUInt30(resolutionIndex);
   }
 
   @override
-  LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
-    var builder = LinkedNodeBuilder.fieldDeclaration(
-      fieldDeclaration_fields: node.fields.accept(this),
-      informativeId: getInformativeId(node),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isAbstract: node.abstractKeyword != null,
-      isCovariant: node.covariantKeyword != null,
-      isExternal: node.externalKeyword != null,
-      isStatic: node.staticKeyword != null,
-    );
-    _storeClassMember(builder, node);
+  void visitExportDirective(ExportDirective node) {
+    var resolutionIndex = _getNextResolutionIndex();
 
-    return builder;
-  }
+    _writeByte(Tag.ExportDirective);
+    _storeNamespaceDirective(node);
+    _writeUInt30(resolutionIndex);
 
-  @override
-  LinkedNodeBuilder visitFieldFormalParameter(FieldFormalParameter node) {
-    var builder = LinkedNodeBuilder.fieldFormalParameter(
-      fieldFormalParameter_formalParameters: node.parameters?.accept(this),
-      fieldFormalParameter_type: node.type?.accept(this),
-      fieldFormalParameter_typeParameters: node.typeParameters?.accept(this),
-    );
-    _storeNormalFormalParameter(builder, node, node.keyword);
-    builder.flags |= AstBinaryFlags.encode(hasQuestion: node.question != null);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitForEachPartsWithDeclaration(
-      ForEachPartsWithDeclaration node) {
-    var builder = LinkedNodeBuilder.forEachPartsWithDeclaration(
-      forEachPartsWithDeclaration_loopVariable: node.loopVariable.accept(this),
-    );
-    _storeForEachParts(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitForEachPartsWithIdentifier(
-      ForEachPartsWithIdentifier node) {
-    var builder = LinkedNodeBuilder.forEachPartsWithIdentifier(
-      forEachPartsWithIdentifier_identifier: node.identifier.accept(this),
-    );
-    _storeForEachParts(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitForElement(ForElement node) {
-    var builder = LinkedNodeBuilder.forElement(
-      forElement_body: node.body.accept(this),
-    );
-    _storeForMixin(builder, node as ForElementImpl);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitFormalParameterList(FormalParameterList node) {
-    var builder = LinkedNodeBuilder.formalParameterList(
-      formalParameterList_parameters: _writeNodeList(node.parameters),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isDelimiterCurly:
-          node.leftDelimiter?.type == TokenType.OPEN_CURLY_BRACKET,
-      isDelimiterSquare:
-          node.leftDelimiter?.type == TokenType.OPEN_SQUARE_BRACKET,
-    );
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitForPartsWithDeclarations(
-      ForPartsWithDeclarations node) {
-    var builder = LinkedNodeBuilder.forPartsWithDeclarations(
-      forPartsWithDeclarations_variables: node.variables.accept(this),
-    );
-    _storeForParts(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitForPartsWithExpression(ForPartsWithExpression node) {
-    var builder = LinkedNodeBuilder.forPartsWithExpression(
-      forPartsWithExpression_initialization: node.initialization?.accept(this),
-    );
-    _storeForParts(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitForStatement(ForStatement node) {
-    var builder = LinkedNodeBuilder.forStatement(
-      forStatement_body: node.body.accept(this),
-    );
-    _storeForMixin(builder, node as ForStatementImpl);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitFunctionDeclaration(FunctionDeclaration node) {
-    var builder = LinkedNodeBuilder.functionDeclaration(
-      functionDeclaration_returnType: node.returnType?.accept(this),
-      functionDeclaration_functionExpression:
-          node.functionExpression?.accept(this),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isExternal: node.externalKeyword != null,
-      isGet: node.isGetter,
-      isSet: node.isSetter,
-    );
-    _storeNamedCompilationUnitMember(builder, node);
-    _writeActualReturnType(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitFunctionDeclarationStatement(
-      FunctionDeclarationStatement node) {
-    return LinkedNodeBuilder.functionDeclarationStatement(
-      functionDeclarationStatement_functionDeclaration:
-          node.functionDeclaration.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitFunctionExpression(FunctionExpression node) {
-    var bodyToStore = node.body;
-    if (node.parent.parent is CompilationUnit) {
-      bodyToStore = null;
-    }
-    var builder = LinkedNodeBuilder.functionExpression(
-      functionExpression_typeParameters: node.typeParameters?.accept(this),
-      functionExpression_formalParameters: node.parameters?.accept(this),
-      functionExpression_body: bodyToStore?.accept(this),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isAsync: node.body?.isAsynchronous ?? false,
-      isGenerator: node.body?.isGenerator ?? false,
-    );
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitFunctionExpressionInvocation(
-      FunctionExpressionInvocation node) {
-    var builder = LinkedNodeBuilder.functionExpressionInvocation(
-      functionExpressionInvocation_function: node.function?.accept(this),
-    );
-    _storeInvocationExpression(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitFunctionTypeAlias(FunctionTypeAlias node) {
-    timerAstBinaryWriterTypedef.start();
-    try {
-      var builder = LinkedNodeBuilder.functionTypeAlias(
-        functionTypeAlias_formalParameters: node.parameters.accept(this),
-        functionTypeAlias_returnType: node.returnType?.accept(this),
-        functionTypeAlias_typeParameters: node.typeParameters?.accept(this),
-        typeAlias_hasSelfReference:
-            LazyFunctionTypeAlias.getHasSelfReference(node),
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(
+        (node.element as ExportElementImpl).exportedLibrary,
       );
-      _storeTypeAlias(builder, node);
-      _writeActualReturnType(builder, node);
-      _storeIsSimpleBounded(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterTypedef.stop();
     }
   }
 
   @override
-  LinkedNodeBuilder visitFunctionTypedFormalParameter(
-      FunctionTypedFormalParameter node) {
-    var builder = LinkedNodeBuilder.functionTypedFormalParameter(
-      functionTypedFormalParameter_formalParameters:
-          node.parameters.accept(this),
-      functionTypedFormalParameter_returnType: node.returnType?.accept(this),
-      functionTypedFormalParameter_typeParameters:
-          node.typeParameters?.accept(this),
-    );
-    _storeNormalFormalParameter(builder, node, null);
-    return builder;
+  void visitExtendsClause(ExtendsClause node) {
+    _writeByte(Tag.ExtendsClause);
+    _writeNode(node.superclass);
   }
 
   @override
-  LinkedNodeBuilder visitGenericFunctionType(GenericFunctionType node) {
-    var id = LazyAst.getGenericFunctionTypeId(node);
-    assert(id != null);
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var classOffset = _sink.offset;
+    var resolutionIndex = _getNextResolutionIndex();
 
-    var builder = LinkedNodeBuilder.genericFunctionType(
-      genericFunctionType_id: id,
-      genericFunctionType_returnType: node.returnType?.accept(this),
-      genericFunctionType_typeParameters: node.typeParameters?.accept(this),
-      genericFunctionType_formalParameters: node.parameters.accept(this),
-      genericFunctionType_type: _writeType(node.type),
+    _writeByte(Tag.ExtensionDeclaration);
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    _pushScopeTypeParameters(node.typeParameters);
+    _writeOptionalNode(node.typeParameters);
+    _writeNode(node.extendedType);
+    _writeOptionalDeclarationName(node.name);
+    _storeCompilationUnitMember(node);
+    _writeUInt30(resolutionIndex);
+
+    _classMemberIndexItems.clear();
+    _writeNodeList(node.members);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
+
+    // TODO(scheglov) write member index
+    var classIndexOffset = _sink.offset;
+    _writeClassMemberIndex();
+
+    var nameIdentifier = node.name;
+    var indexName = nameIdentifier != null
+        ? nameIdentifier.name
+        : 'extension-${_nextUnnamedExtensionId++}';
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: classOffset,
+        tag: Tag.ExtensionDeclaration,
+        name: indexName,
+        classIndexOffset: classIndexOffset,
+      ),
     );
-    builder.flags = AstBinaryFlags.encode(
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _writeByte(Tag.ExtensionOverride);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(MethodInvocationRewriteTag.extensionOverride);
+    }
+
+    _writeNode(node.extensionName);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _resolutionSink.writeType(node.extendedType);
+    // TODO(scheglov) typeArgumentTypes?
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _classMemberIndexItems.add(
+      _ClassMemberIndexItem(
+        offset: _sink.offset,
+        tag: Tag.FieldDeclaration,
+        fieldNames: node.fields.variables.map((e) => e.name.name).toList(),
+      ),
+    );
+
+    _writeByte(Tag.FieldDeclaration);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isAbstract: node.abstractKeyword != null,
+        isCovariant: node.covariantKeyword != null,
+        isExternal: node.externalKeyword != null,
+        isStatic: node.staticKeyword != null,
+      ),
+    );
+
+    _writeInformativeVariableCodeRanges(node.offset, node.fields);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _isConstField = node.fields.isConst;
+    _isFinalField = node.fields.isFinal;
+    try {
+      _writeNode(node.fields);
+    } finally {
+      _isConstField = false;
+      _isFinalField = false;
+    }
+
+    _storeClassMember(node);
+
+    _writeUInt30(resolutionIndex);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _writeByte(Tag.FieldFormalParameter);
+
+    _pushScopeTypeParameters(node.typeParameters);
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.type);
+    _writeOptionalNode(node.parameters);
+    _storeNormalFormalParameter(
+      node,
+      node.keyword,
       hasQuestion: node.question != null,
     );
-    _writeActualReturnType(builder, node);
 
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitGenericTypeAlias(GenericTypeAlias node) {
-    timerAstBinaryWriterTypedef.start();
-    try {
-      var builder = LinkedNodeBuilder.genericTypeAlias(
-        genericTypeAlias_typeParameters: node.typeParameters?.accept(this),
-        genericTypeAlias_functionType: node.functionType?.accept(this),
-        typeAlias_hasSelfReference:
-            LazyGenericTypeAlias.getHasSelfReference(node),
-      );
-      _storeTypeAlias(builder, node);
-      _storeIsSimpleBounded(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterTypedef.stop();
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
     }
   }
 
   @override
-  LinkedNodeBuilder visitHideCombinator(HideCombinator node) {
-    var builder = LinkedNodeBuilder.hideCombinator(
-      names: node.hiddenNames.map((id) => id.name).toList(),
-    );
-    _storeInformativeId(builder, node);
-    return builder;
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    _writeByte(Tag.ForEachPartsWithDeclaration);
+    _writeNode(node.loopVariable);
+    _storeForEachParts(node);
   }
 
   @override
-  LinkedNodeBuilder visitIfElement(IfElement node) {
-    var builder = LinkedNodeBuilder.ifElement(
-      ifMixin_condition: node.condition.accept(this),
-      ifElement_elseElement: node.elseElement?.accept(this),
-      ifElement_thenElement: node.thenElement.accept(this),
-    );
-    return builder;
+  void visitForElement(ForElement node) {
+    _writeByte(Tag.ForElement);
+    _writeNode(node.body);
+    _storeForMixin(node as ForElementImpl);
   }
 
   @override
-  LinkedNodeBuilder visitIfStatement(IfStatement node) {
-    var builder = LinkedNodeBuilder.ifStatement(
-      ifMixin_condition: node.condition.accept(this),
-      ifStatement_elseStatement: node.elseStatement?.accept(this),
-      ifStatement_thenStatement: node.thenStatement.accept(this),
+  void visitFormalParameterList(FormalParameterList node) {
+    _writeByte(Tag.FormalParameterList);
+
+    var leftDelimiter = node.leftDelimiter?.type;
+    _writeByte(
+      AstBinaryFlags.encode(
+        isDelimiterCurly: leftDelimiter == TokenType.OPEN_CURLY_BRACKET,
+        isDelimiterSquare: leftDelimiter == TokenType.OPEN_SQUARE_BRACKET,
+      ),
     );
-    return builder;
+
+    _writeNodeList(node.parameters);
   }
 
   @override
-  LinkedNodeBuilder visitImplementsClause(ImplementsClause node) {
-    return LinkedNodeBuilder.implementsClause(
-      implementsClause_interfaces: _writeNodeList(node.interfaces),
-    );
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    _writeByte(Tag.ForPartsWithDeclarations);
+    _writeNode(node.variables);
+    _storeForParts(node);
   }
 
   @override
-  LinkedNodeBuilder visitImportDirective(ImportDirective node) {
-    timerAstBinaryWriterDirective.start();
-    try {
-      var builder = LinkedNodeBuilder.importDirective(
-        importDirective_prefix: node.prefix?.name,
-      );
-      builder.flags = AstBinaryFlags.encode(
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    var indexTag = Tag.FunctionDeclaration;
+    if (node.isGetter) {
+      indexTag = Tag.FunctionDeclaration_getter;
+    } else if (node.isSetter) {
+      indexTag = Tag.FunctionDeclaration_setter;
+    }
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: _sink.offset,
+        tag: indexTag,
+        name: node.name.name,
+        variableNames: null,
+      ),
+    );
+
+    _writeByte(Tag.FunctionDeclaration);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        isExternal: node.externalKeyword != null,
+        isGet: node.isGetter,
+        isSet: node.isSetter,
+      ),
+    );
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _pushScopeTypeParameters(node.functionExpression.typeParameters);
+
+    _writeNode(node.functionExpression);
+    _writeOptionalNode(node.returnType);
+    _storeNamedCompilationUnitMember(node);
+
+    if (_shouldWriteResolution) {
+      _writeActualReturnType(node.declaredElement.returnType);
+      _resolutionSink.localElements.popScope();
+    }
+
+    _writeUInt30(resolutionIndex);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    _writeByte(Tag.FunctionExpression);
+
+    var body = node.body;
+    _writeByte(
+      AstBinaryFlags.encode(
+        isAsync: body?.isAsynchronous ?? false,
+        isGenerator: body?.isGenerator ?? false,
+      ),
+    );
+
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.parameters);
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _writeByte(Tag.FunctionExpressionInvocation);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink
+          .writeByte(MethodInvocationRewriteTag.functionExpressionInvocation);
+    }
+
+    _writeNode(node.function);
+    _storeInvocationExpression(node);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: _sink.offset,
+        tag: Tag.FunctionTypeAlias,
+        name: node.name.name,
+        variableNames: null,
+      ),
+    );
+
+    _writeByte(Tag.FunctionTypeAlias);
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _pushScopeTypeParameters(node.typeParameters);
+
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.returnType);
+    _writeNode(node.parameters);
+
+    _storeTypeAlias(node);
+
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as FunctionTypeAliasElementImpl;
+      _writeActualReturnType(element.function.returnType);
+      // TODO(scheglov) pack into one byte
+      _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
+      _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
+
+      _resolutionSink.localElements.popScope();
+    }
+
+    _writeUInt30(resolutionIndex);
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    _writeByte(Tag.FunctionTypedFormalParameter);
+
+    _pushScopeTypeParameters(node.typeParameters);
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.returnType);
+    _writeNode(node.parameters);
+    _storeNormalFormalParameter(node, null);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
+    }
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    _writeByte(Tag.GenericFunctionType);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion: node.question != null,
+      ),
+    );
+
+    _pushScopeTypeParameters(node.typeParameters);
+
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.returnType);
+    _writeNode(node.parameters);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.type);
+      _resolutionSink.localElements.popScope();
+    }
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: _sink.offset,
+        tag: Tag.GenericTypeAlias,
+        name: node.name.name,
+      ),
+    );
+
+    _writeByte(Tag.GenericTypeAlias);
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _pushScopeTypeParameters(node.typeParameters);
+
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.type);
+    _storeTypeAlias(node);
+
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as TypeAliasElementImpl;
+      // TODO(scheglov) pack into one byte
+      _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
+      _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
+      _resolutionSink.localElements.popScope();
+    }
+
+    _writeUInt30(resolutionIndex);
+  }
+
+  @override
+  void visitHideCombinator(HideCombinator node) {
+    _writeByte(Tag.HideCombinator);
+    _writeInformativeUint30(node.keyword.offset);
+    _writeNodeList(node.hiddenNames);
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    _writeByte(Tag.IfElement);
+    _writeNode(node.condition);
+    _writeNode(node.thenElement);
+    _writeOptionalNode(node.elseElement);
+  }
+
+  @override
+  void visitImplementsClause(ImplementsClause node) {
+    _writeByte(Tag.ImplementsClause);
+    _writeNodeList(node.interfaces);
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _writeByte(Tag.ImportDirective);
+
+    var prefix = node.prefix;
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasPrefix: prefix != null,
         isDeferred: node.deferredKeyword != null,
-      );
-      _storeNamespaceDirective(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterDirective.stop();
+      ),
+    );
+
+    if (prefix != null) {
+      _writeStringReference(prefix.name);
+      _writeInformativeUint30(prefix.offset);
+    }
+
+    _storeNamespaceDirective(node);
+    _writeUInt30(resolutionIndex);
+
+    if (_shouldWriteResolution) {
+      var element = node.element as ImportElementImpl;
+      _resolutionSink.writeElement(element.importedLibrary);
     }
   }
 
   @override
-  LinkedNodeBuilder visitIndexExpression(IndexExpression node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    var builder = LinkedNodeBuilder.indexExpression(
-      indexExpression_element: elementComponents.rawElement,
-      indexExpression_substitution: elementComponents.substitution,
-      indexExpression_index: node.index.accept(this),
-      indexExpression_target: node.target?.accept(this),
-      expression_type: _writeType(node.staticType),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      hasPeriod: node.period != null,
-      hasQuestion: node.question != null,
-    );
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitInstanceCreationExpression(
-      InstanceCreationExpression node) {
-    InstanceCreationExpressionImpl nodeImpl = node;
-    var builder = LinkedNodeBuilder.instanceCreationExpression(
-      instanceCreationExpression_arguments: _writeNodeList(
-        node.argumentList.arguments,
+  void visitIndexExpression(IndexExpression node) {
+    _writeByte(Tag.IndexExpression);
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasPeriod: node.period != null,
+        hasQuestion: node.question != null,
       ),
-      instanceCreationExpression_constructorName:
-          node.constructorName.accept(this),
-      instanceCreationExpression_typeArguments:
-          nodeImpl.typeArguments?.accept(this),
-      expression_type: _writeType(node.staticType),
     );
-    builder.flags = AstBinaryFlags.encode(
-      isConst: node.keyword?.type == Keyword.CONST,
-      isNew: node.keyword?.type == Keyword.NEW,
-    );
-    return builder;
+    _writeOptionalNode(node.target);
+    _writeNode(node.index);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitIntegerLiteral(IntegerLiteral node) {
-    return LinkedNodeBuilder.integerLiteral(
-      expression_type: _writeType(node.staticType),
-      integerLiteral_value: node.value,
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _writeByte(Tag.InstanceCreationExpression);
+
+    if (_shouldWriteResolution) {
+      if (node.constructorName.name != null) {
+        _resolutionSink.writeByte(
+          MethodInvocationRewriteTag.instanceCreationExpression_withName,
+        );
+      } else {
+        _resolutionSink.writeByte(
+          MethodInvocationRewriteTag.instanceCreationExpression_withoutName,
+        );
+      }
+    }
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.keyword?.type == Keyword.CONST,
+        isNew: node.keyword?.type == Keyword.NEW,
+      ),
     );
+
+    _writeNode(node.constructorName);
+    _writeNode(node.argumentList);
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitInterpolationExpression(InterpolationExpression node) {
-    return LinkedNodeBuilder.interpolationExpression(
-      interpolationExpression_expression: node.expression.accept(this),
-    )..flags = AstBinaryFlags.encode(
+  void visitIntegerLiteral(IntegerLiteral node) {
+    var value = node.value;
+
+    if (value == null) {
+      _writeByte(Tag.IntegerLiteralNull);
+      _writeStringReference(node.literal.lexeme);
+    } else {
+      var isPositive = value >= 0;
+      if (!isPositive) {
+        value = -value;
+      }
+
+      if (value & 0xFF == value) {
+        _writeByte(
+          isPositive
+              ? Tag.IntegerLiteralPositive1
+              : Tag.IntegerLiteralNegative1,
+        );
+        _writeByte(value);
+      } else {
+        _writeByte(
+          isPositive ? Tag.IntegerLiteralPositive : Tag.IntegerLiteralNegative,
+        );
+        _writeUInt32(value >> 32);
+        _writeUInt32(value & 0xFFFFFFFF);
+      }
+    }
+
+    if (_shouldWriteResolution) {
+      // TODO(scheglov) Dont write type, AKA separate true `int` and `double`?
+      _resolutionSink.writeType(node.staticType);
+    }
+  }
+
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    _writeByte(Tag.InterpolationExpression);
+    _writeByte(
+      AstBinaryFlags.encode(
         isStringInterpolationIdentifier:
             node.leftBracket.type == TokenType.STRING_INTERPOLATION_IDENTIFIER,
-      );
+      ),
+    );
+    _writeNode(node.expression);
   }
 
   @override
-  LinkedNodeBuilder visitInterpolationString(InterpolationString node) {
-    return LinkedNodeBuilder.interpolationString(
-      interpolationString_value: node.value,
-    );
+  void visitInterpolationString(InterpolationString node) {
+    _writeByte(Tag.InterpolationString);
+    _writeStringReference(node.value);
   }
 
   @override
-  LinkedNodeBuilder visitIsExpression(IsExpression node) {
-    var builder = LinkedNodeBuilder.isExpression(
-      isExpression_expression: node.expression.accept(this),
-      isExpression_type: node.type.accept(this),
+  void visitIsExpression(IsExpression node) {
+    _writeByte(Tag.IsExpression);
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasNot: node.notOperator != null,
+      ),
     );
-    builder.flags = AstBinaryFlags.encode(
-      hasNot: node.notOperator != null,
-    );
-    return builder;
+    _writeNode(node.expression);
+    _writeNode(node.type);
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitLabel(Label node) {
-    return LinkedNodeBuilder.label(
-      label_label: node.label.accept(this),
-    );
+  void visitLibraryDirective(LibraryDirective node) {
+    _writeByte(Tag.LibraryDirective);
+    _writeDocumentationCommentString(node.documentationComment);
+    visitLibraryIdentifier(node.name);
+    _storeDirective(node);
   }
 
   @override
-  LinkedNodeBuilder visitLabeledStatement(LabeledStatement node) {
-    return LinkedNodeBuilder.labeledStatement(
-      labeledStatement_labels: _writeNodeList(node.labels),
-      labeledStatement_statement: node.statement.accept(this),
-    );
+  void visitLibraryIdentifier(LibraryIdentifier node) {
+    _writeByte(Tag.LibraryIdentifier);
+    _writeNodeList(node.components);
   }
 
   @override
-  LinkedNodeBuilder visitLibraryDirective(LibraryDirective node) {
-    timerAstBinaryWriterDirective.start();
-    try {
-      var builder = LinkedNodeBuilder.libraryDirective(
-        informativeId: getInformativeId(node),
-        libraryDirective_name: node.name.accept(this),
-      );
-      _storeDirective(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterDirective.stop();
+  void visitListLiteral(ListLiteral node) {
+    _writeByte(Tag.ListLiteral);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.constKeyword != null,
+      ),
+    );
+
+    _writeOptionalNode(node.typeArguments);
+    _writeNodeList(node.elements);
+
+    _storeExpression(node);
+  }
+
+  @override
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    _writeByte(Tag.MapLiteralEntry);
+    _writeNode(node.key);
+    _writeNode(node.value);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    var indexTag = Tag.MethodDeclaration;
+    if (node.isGetter) {
+      indexTag = Tag.MethodDeclaration_getter;
+    } else if (node.isSetter) {
+      indexTag = Tag.MethodDeclaration_setter;
+    }
+    _classMemberIndexItems.add(
+      _ClassMemberIndexItem(
+        offset: _sink.offset,
+        tag: indexTag,
+        name: node.name.name,
+      ),
+    );
+
+    _writeByte(Tag.MethodDeclaration);
+
+    _writeUInt30(
+      AstBinaryFlags.encode(
+        isAbstract: node.body is EmptyFunctionBody,
+        isAsync: node.body?.isAsynchronous ?? false,
+        isExternal: node.externalKeyword != null,
+        isGenerator: node.body?.isGenerator ?? false,
+        isGet: node.isGetter,
+        isNative: node.body is NativeFunctionBody,
+        isOperator: node.operatorKeyword != null,
+        isSet: node.isSetter,
+        isStatic: node.isStatic,
+      ),
+    );
+
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _pushScopeTypeParameters(node.typeParameters);
+
+    _writeDeclarationName(node.name);
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.returnType);
+    _writeOptionalNode(node.parameters);
+
+    _storeClassMember(node);
+
+    _writeUInt30(resolutionIndex);
+
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as ExecutableElementImpl;
+      _writeActualReturnType(element.returnType);
+      _writeTopLevelInferenceError(element);
+      // TODO(scheglov) move this flag into ClassElementImpl?
+      if (element is MethodElementImpl) {
+        _resolutionSink.writeByte(
+          element.isOperatorEqualWithParameterTypeFromObject ? 1 : 0,
+        );
+      }
+      _resolutionSink.localElements.popScope();
     }
   }
 
   @override
-  LinkedNodeBuilder visitLibraryIdentifier(LibraryIdentifier node) {
-    return LinkedNodeBuilder.libraryIdentifier(
-      libraryIdentifier_components: _writeNodeList(node.components),
-    );
-  }
+  void visitMethodInvocation(MethodInvocation node) {
+    _writeByte(Tag.MethodInvocation);
 
-  @override
-  LinkedNodeBuilder visitListLiteral(ListLiteral node) {
-    var builder = LinkedNodeBuilder.listLiteral(
-      listLiteral_elements: _writeNodeList(node.elements),
-    );
-    _storeTypedLiteral(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitMapLiteralEntry(MapLiteralEntry node) {
-    return LinkedNodeBuilder.mapLiteralEntry(
-      mapLiteralEntry_key: node.key.accept(this),
-      mapLiteralEntry_value: node.value.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitMethodDeclaration(MethodDeclaration node) {
-    var builder = LinkedNodeBuilder.methodDeclaration(
-      methodDeclaration_returnType: node.returnType?.accept(this),
-      methodDeclaration_typeParameters: node.typeParameters?.accept(this),
-      methodDeclaration_formalParameters: node.parameters?.accept(this),
-      methodDeclaration_hasOperatorEqualWithParameterTypeFromObject:
-          LazyAst.hasOperatorEqualParameterTypeFromObject(node),
-    );
-    builder.name = node.name.name;
-    builder.flags = AstBinaryFlags.encode(
-      isAbstract: node.body is EmptyFunctionBody,
-      isAsync: node.body?.isAsynchronous ?? false,
-      isExternal: node.externalKeyword != null,
-      isGenerator: node.body?.isGenerator ?? false,
-      isGet: node.isGetter,
-      isNative: node.body is NativeFunctionBody,
-      isOperator: node.operatorKeyword != null,
-      isSet: node.isSetter,
-      isStatic: node.isStatic,
-    );
-    builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
-    _storeClassMember(builder, node);
-    _storeInformativeId(builder, node);
-    _writeActualReturnType(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitMethodInvocation(MethodInvocation node) {
-    var builder = LinkedNodeBuilder.methodInvocation(
-      methodInvocation_methodName: node.methodName?.accept(this),
-      methodInvocation_target: node.target?.accept(this),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      hasPeriod: node.operator?.type == TokenType.PERIOD,
-      hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
-    );
-    _storeInvocationExpression(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitMixinDeclaration(MixinDeclaration node) {
-    timerAstBinaryWriterMixin.start();
-    try {
-      var builder = LinkedNodeBuilder.mixinDeclaration(
-        mixinDeclaration_onClause: node.onClause?.accept(this),
-      );
-      _storeClassOrMixinDeclaration(builder, node);
-      LazyMixinDeclaration.get(node).put(builder);
-      return builder;
-    } finally {
-      timerAstBinaryWriterMixin.stop();
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeByte(MethodInvocationRewriteTag.none);
     }
-  }
 
-  @override
-  LinkedNodeBuilder visitNamedExpression(NamedExpression node) {
-    return LinkedNodeBuilder.namedExpression(
-      namedExpression_expression: node.expression.accept(this),
-      namedExpression_name: node.name.accept(this),
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasPeriod: node.operator?.type == TokenType.PERIOD,
+        hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
+      ),
     );
+    _writeOptionalNode(node.target);
+    _writeNode(node.methodName);
+    _storeInvocationExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitNativeClause(NativeClause node) {
-    return LinkedNodeBuilder.nativeClause(
-      nativeClause_name: node.name.accept(this),
-    );
-  }
+  void visitMixinDeclaration(MixinDeclaration node) {
+    var classOffset = _sink.offset;
+    var resolutionIndex = _getNextResolutionIndex();
 
-  @override
-  LinkedNodeBuilder visitNativeFunctionBody(NativeFunctionBody node) {
-    return LinkedNodeBuilder.nativeFunctionBody(
-      nativeFunctionBody_stringLiteral: node.stringLiteral?.accept(this),
-    );
-  }
+    _writeByte(Tag.MixinDeclaration);
 
-  @override
-  LinkedNodeBuilder visitNullLiteral(NullLiteral node) {
-    return LinkedNodeBuilder.nullLiteral();
-  }
-
-  @override
-  LinkedNodeBuilder visitOnClause(OnClause node) {
-    return LinkedNodeBuilder.onClause(
-      onClause_superclassConstraints:
-          _writeNodeList(node.superclassConstraints),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitParenthesizedExpression(ParenthesizedExpression node) {
-    var builder = LinkedNodeBuilder.parenthesizedExpression(
-      parenthesizedExpression_expression: node.expression.accept(this),
-    );
-    _storeExpression(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitPartDirective(PartDirective node) {
-    timerAstBinaryWriterDirective.start();
-    try {
-      var builder = LinkedNodeBuilder.partDirective();
-      _storeUriBasedDirective(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterDirective.stop();
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as MixinElementImpl;
+      _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
+      _resolutionSink.writeStringList(element.superInvokedNames);
     }
-  }
 
-  @override
-  LinkedNodeBuilder visitPartOfDirective(PartOfDirective node) {
-    timerAstBinaryWriterDirective.start();
-    try {
-      var builder = LinkedNodeBuilder.partOfDirective(
-        partOfDirective_libraryName: node.libraryName?.accept(this),
-        partOfDirective_uri: node.uri?.accept(this),
-      );
-      _storeDirective(builder, node);
-      return builder;
-    } finally {
-      timerAstBinaryWriterDirective.stop();
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    _pushScopeTypeParameters(node.typeParameters);
+
+    _writeOptionalNode(node.typeParameters);
+    _writeOptionalNode(node.onClause);
+    _writeOptionalNode(node.implementsClause);
+    _storeNamedCompilationUnitMember(node);
+    _writeUInt30(resolutionIndex);
+
+    _classMemberIndexItems.clear();
+    _writeNodeList(node.members);
+    _hasConstConstructor = false;
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.localElements.popScope();
     }
-  }
 
-  @override
-  LinkedNodeBuilder visitPostfixExpression(PostfixExpression node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    return LinkedNodeBuilder.postfixExpression(
-      expression_type: _writeType(node.staticType),
-      postfixExpression_element: elementComponents.rawElement,
-      postfixExpression_substitution: elementComponents.substitution,
-      postfixExpression_operand: node.operand.accept(this),
-      postfixExpression_operator: TokensWriter.astToBinaryTokenType(
-        node.operator.type,
+    // TODO(scheglov) write member index
+    var classIndexOffset = _sink.offset;
+    _writeClassMemberIndex();
+
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: classOffset,
+        tag: Tag.MixinDeclaration,
+        name: node.name.name,
+        classIndexOffset: classIndexOffset,
       ),
     );
   }
 
   @override
-  LinkedNodeBuilder visitPrefixedIdentifier(PrefixedIdentifier node) {
-    return LinkedNodeBuilder.prefixedIdentifier(
-      prefixedIdentifier_identifier: node.identifier.accept(this),
-      prefixedIdentifier_prefix: node.prefix.accept(this),
-      expression_type: _writeType(node.staticType),
-    );
+  void visitNamedExpression(NamedExpression node) {
+    _writeByte(Tag.NamedExpression);
+
+    var nameNode = node.name.label;
+    _writeStringReference(nameNode.name);
+    _writeInformativeUint30(nameNode.offset);
+
+    _writeNode(node.expression);
   }
 
   @override
-  LinkedNodeBuilder visitPrefixExpression(PrefixExpression node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    return LinkedNodeBuilder.prefixExpression(
-      expression_type: _writeType(node.staticType),
-      prefixExpression_element: elementComponents.rawElement,
-      prefixExpression_substitution: elementComponents.substitution,
-      prefixExpression_operand: node.operand.accept(this),
-      prefixExpression_operator: TokensWriter.astToBinaryTokenType(
-        node.operator.type,
-      ),
-    );
+  void visitNativeClause(NativeClause node) {
+    _writeByte(Tag.NativeClause);
+    _writeNode(node.name);
   }
 
   @override
-  LinkedNodeBuilder visitPropertyAccess(PropertyAccess node) {
-    var builder = LinkedNodeBuilder.propertyAccess(
-      propertyAccess_operator: TokensWriter.astToBinaryTokenType(
-        node.operator.type,
-      ),
-      propertyAccess_propertyName: node.propertyName.accept(this),
-      propertyAccess_target: node.target?.accept(this),
-    );
-    _storeExpression(builder, node);
-    return builder;
+  void visitNullLiteral(NullLiteral node) {
+    _writeByte(Tag.NullLiteral);
   }
 
   @override
-  LinkedNodeBuilder visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    var builder = LinkedNodeBuilder.redirectingConstructorInvocation(
-      redirectingConstructorInvocation_arguments:
-          node.argumentList.accept(this),
-      redirectingConstructorInvocation_constructorName:
-          node.constructorName?.accept(this),
-      redirectingConstructorInvocation_element: elementComponents.rawElement,
-      redirectingConstructorInvocation_substitution:
-          elementComponents.substitution,
-    );
-    builder.flags = AstBinaryFlags.encode(
-      hasThis: node.thisKeyword != null,
-    );
-    _storeConstructorInitializer(builder, node);
-    return builder;
+  void visitOnClause(OnClause node) {
+    _writeByte(Tag.OnClause);
+    _writeNodeList(node.superclassConstraints);
   }
 
   @override
-  LinkedNodeBuilder visitRethrowExpression(RethrowExpression node) {
-    return LinkedNodeBuilder.rethrowExpression(
-      expression_type: _writeType(node.staticType),
-    );
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    _writeByte(Tag.ParenthesizedExpression);
+    _writeNode(node.expression);
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitReturnStatement(ReturnStatement node) {
-    return LinkedNodeBuilder.returnStatement(
-      returnStatement_expression: node.expression?.accept(this),
-    );
+  void visitPartDirective(PartDirective node) {
+    _writeByte(Tag.PartDirective);
+    _storeUriBasedDirective(node);
   }
 
   @override
-  LinkedNodeBuilder visitScriptTag(ScriptTag node) {
-    return null;
+  void visitPartOfDirective(PartOfDirective node) {
+    _writeByte(Tag.PartOfDirective);
+    _writeOptionalNode(node.libraryName);
+    _writeOptionalNode(node.uri);
+    _storeDirective(node);
   }
 
   @override
-  LinkedNodeBuilder visitSetOrMapLiteral(SetOrMapLiteral node) {
-    var builder = LinkedNodeBuilder.setOrMapLiteral(
-      setOrMapLiteral_elements: _writeNodeList(node.elements),
-    );
-    _storeTypedLiteral(builder, node, isMap: node.isMap, isSet: node.isSet);
-    return builder;
+  void visitPostfixExpression(PostfixExpression node) {
+    _writeByte(Tag.PostfixExpression);
+
+    _writeNode(node.operand);
+
+    var operatorToken = node.operator.type;
+    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
+    _writeByte(binaryToken.index);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      if (operatorToken.isIncrementOperator) {
+        _resolutionSink.writeElement(node.readElement);
+        _resolutionSink.writeType(node.readType);
+        _resolutionSink.writeElement(node.writeElement);
+        _resolutionSink.writeType(node.writeType);
+      }
+    }
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitShowCombinator(ShowCombinator node) {
-    var builder = LinkedNodeBuilder.showCombinator(
-      names: node.shownNames.map((id) => id.name).toList(),
-    );
-    _storeInformativeId(builder, node);
-    return builder;
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _writeByte(Tag.PrefixedIdentifier);
+    _writeNode(node.prefix);
+    _writeNode(node.identifier);
+
+    if (_shouldWriteResolution) {
+      // TODO(scheglov) In actual prefixed identifier, the type of the identifier.
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   @override
-  LinkedNodeBuilder visitSimpleFormalParameter(SimpleFormalParameter node) {
-    var builder = LinkedNodeBuilder.simpleFormalParameter(
-      simpleFormalParameter_type: node.type?.accept(this),
-    );
-    builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
-    _storeNormalFormalParameter(builder, node, node.keyword);
-    _storeInheritsCovariant(builder, node);
-    return builder;
-  }
+  void visitPrefixExpression(PrefixExpression node) {
+    _writeByte(Tag.PrefixExpression);
 
-  @override
-  LinkedNodeBuilder visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element;
-    if (!node.inDeclarationContext()) {
-      element = node.staticElement;
-      if (element is MultiplyDefinedElement) {
-        element = null;
+    var operatorToken = node.operator.type;
+    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
+    _writeByte(binaryToken.index);
+
+    _writeNode(node.operand);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      if (operatorToken.isIncrementOperator) {
+        _resolutionSink.writeElement(node.readElement);
+        _resolutionSink.writeType(node.readType);
+        _resolutionSink.writeElement(node.writeElement);
+        _resolutionSink.writeType(node.writeType);
       }
     }
 
-    var elementComponents = _componentsOfElement(element);
-    var builder = LinkedNodeBuilder.simpleIdentifier(
-      simpleIdentifier_element: elementComponents.rawElement,
-      simpleIdentifier_substitution: elementComponents.substitution,
-      expression_type: _writeType(node.staticType),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isDeclaration: node is DeclaredSimpleIdentifier,
-    );
-    builder.name = node.name;
-    return builder;
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitSimpleStringLiteral(SimpleStringLiteral node) {
-    var builder = LinkedNodeBuilder.simpleStringLiteral(
-      simpleStringLiteral_value: node.value,
-    );
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitSpreadElement(SpreadElement node) {
-    return LinkedNodeBuilder.spreadElement(
-      spreadElement_expression: node.expression.accept(this),
-      spreadElement_spreadOperator: TokensWriter.astToBinaryTokenType(
-        node.spreadOperator.type,
+  void visitPropertyAccess(PropertyAccess node) {
+    _writeByte(Tag.PropertyAccess);
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasPeriod: node.operator?.type == TokenType.PERIOD,
+        hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
       ),
     );
+    _writeOptionalNode(node.target);
+    _writeNode(node.propertyName);
+    // TODO(scheglov) Get from the property?
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitStringInterpolation(StringInterpolation node) {
-    return LinkedNodeBuilder.stringInterpolation(
-      stringInterpolation_elements: _writeNodeList(node.elements),
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    _writeByte(Tag.RedirectingConstructorInvocation);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasThis: node.thisKeyword != null,
+      ),
     );
+
+    _writeOptionalNode(node.constructorName);
+    _writeNode(node.argumentList);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
+    _storeConstructorInitializer(node);
   }
 
   @override
-  LinkedNodeBuilder visitSuperConstructorInvocation(
-      SuperConstructorInvocation node) {
-    var elementComponents = _componentsOfElement(node.staticElement);
-    var builder = LinkedNodeBuilder.superConstructorInvocation(
-      superConstructorInvocation_arguments: node.argumentList.accept(this),
-      superConstructorInvocation_constructorName:
-          node.constructorName?.accept(this),
-      superConstructorInvocation_element: elementComponents.rawElement,
-      superConstructorInvocation_substitution: elementComponents.substitution,
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    _writeByte(Tag.SetOrMapLiteral);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.constKeyword != null,
+      ),
     );
-    _storeConstructorInitializer(builder, node);
-    return builder;
+
+    if (_shouldWriteResolution) {
+      var isMapBit = node.isMap ? (1 << 0) : 0;
+      var isSetBit = node.isSet ? (1 << 1) : 0;
+      _resolutionSink.writeByte(isMapBit | isSetBit);
+    }
+
+    _writeOptionalNode(node.typeArguments);
+    _writeNodeList(node.elements);
+
+    _storeExpression(node);
   }
 
   @override
-  LinkedNodeBuilder visitSuperExpression(SuperExpression node) {
-    var builder = LinkedNodeBuilder.superExpression();
-    _storeExpression(builder, node);
-    return builder;
+  void visitShowCombinator(ShowCombinator node) {
+    _writeByte(Tag.ShowCombinator);
+    _writeInformativeUint30(node.keyword.offset);
+    _writeNodeList(node.shownNames);
   }
 
   @override
-  LinkedNodeBuilder visitSwitchCase(SwitchCase node) {
-    var builder = LinkedNodeBuilder.switchCase(
-      switchCase_expression: node.expression.accept(this),
-    );
-    _storeSwitchMember(builder, node);
-    return builder;
-  }
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    _writeByte(Tag.SimpleFormalParameter);
 
-  @override
-  LinkedNodeBuilder visitSwitchDefault(SwitchDefault node) {
-    var builder = LinkedNodeBuilder.switchDefault();
-    _storeSwitchMember(builder, node);
-    return builder;
-  }
+    _writeOptionalNode(node.type);
+    _storeNormalFormalParameter(node, node.keyword);
 
-  @override
-  LinkedNodeBuilder visitSwitchStatement(SwitchStatement node) {
-    return LinkedNodeBuilder.switchStatement(
-      switchStatement_expression: node.expression.accept(this),
-      switchStatement_members: _writeNodeList(node.members),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitSymbolLiteral(SymbolLiteral node) {
-    var builder = LinkedNodeBuilder.symbolLiteral(
-      names: node.components.map((t) => t.lexeme).toList(),
-    );
-    _storeExpression(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitThisExpression(ThisExpression node) {
-    var builder = LinkedNodeBuilder.thisExpression();
-    _storeExpression(builder, node);
-    return builder;
-  }
-
-  @override
-  LinkedNodeBuilder visitThrowExpression(ThrowExpression node) {
-    return LinkedNodeBuilder.throwExpression(
-      throwExpression_expression: node.expression.accept(this),
-      expression_type: _writeType(node.staticType),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitTopLevelVariableDeclaration(
-      TopLevelVariableDeclaration node) {
-    timerAstBinaryWriterTopVar.start();
-    try {
-      var builder = LinkedNodeBuilder.topLevelVariableDeclaration(
-        informativeId: getInformativeId(node),
-        topLevelVariableDeclaration_variableList: node.variables?.accept(this),
-      );
-      builder.flags = AstBinaryFlags.encode(
-        isExternal: node.externalKeyword != null,
-      );
-      _storeCompilationUnitMember(builder, node);
-
-      return builder;
-    } finally {
-      timerAstBinaryWriterTopVar.stop();
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as ParameterElementImpl;
+      _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
     }
   }
 
   @override
-  LinkedNodeBuilder visitTryStatement(TryStatement node) {
-    return LinkedNodeBuilder.tryStatement(
-      tryStatement_body: node.body.accept(this),
-      tryStatement_catchClauses: _writeNodeList(node.catchClauses),
-      tryStatement_finallyBlock: node.finallyBlock?.accept(this),
-    );
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    _writeByte(Tag.SimpleIdentifier);
+    _writeStringReference(node.name);
+    _writeInformativeUint30(node.offset);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+      // TODO(scheglov) It is inefficient to write many null types.
+      _resolutionSink.writeType(node.staticType);
+    }
   }
 
   @override
-  LinkedNodeBuilder visitTypeArgumentList(TypeArgumentList node) {
-    return LinkedNodeBuilder.typeArgumentList(
-      typeArgumentList_arguments: _writeNodeList(node.arguments),
-    );
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    _writeByte(Tag.SimpleStringLiteral);
+    _writeStringReference(node.literal.lexeme);
+    _writeStringReference(node.value);
   }
 
   @override
-  LinkedNodeBuilder visitTypeName(TypeName node) {
-    return LinkedNodeBuilder.typeName(
-      typeName_name: node.name.accept(this),
-      typeName_type: _writeType(node.type),
-      typeName_typeArguments: _writeNodeList(
-        node.typeArguments?.arguments,
+  void visitSpreadElement(SpreadElement node) {
+    _writeByte(Tag.SpreadElement);
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion:
+            node.spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION,
       ),
-    )..flags = AstBinaryFlags.encode(
+    );
+    _writeNode(node.expression);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    _writeByte(Tag.StringInterpolation);
+    _writeNodeList(node.elements);
+  }
+
+  @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    _writeByte(Tag.SuperConstructorInvocation);
+
+    _writeOptionalNode(node.constructorName);
+    _writeNode(node.argumentList);
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeElement(node.staticElement);
+    }
+    _storeConstructorInitializer(node);
+  }
+
+  @override
+  void visitSuperExpression(SuperExpression node) {
+    _writeByte(Tag.SuperExpression);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) {
+    _writeByte(Tag.SymbolLiteral);
+
+    var components = node.components;
+    _writeUInt30(components.length);
+    for (var token in components) {
+      _writeStringReference(token.lexeme);
+    }
+    _storeExpression(node);
+  }
+
+  @override
+  void visitThisExpression(ThisExpression node) {
+    _writeByte(Tag.ThisExpression);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    _writeByte(Tag.ThrowExpression);
+    _writeNode(node.expression);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    unitMemberIndexItems.add(
+      _UnitMemberIndexItem(
+        offset: _sink.offset,
+        tag: Tag.TopLevelVariableDeclaration,
+        variableNames: node.variables.variables
+            .map((variable) => variable.name.name)
+            .toList(),
+      ),
+    );
+
+    _writeByte(Tag.TopLevelVariableDeclaration);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isExternal: node.externalKeyword != null,
+      ),
+    );
+
+    _writeInformativeVariableCodeRanges(node.offset, node.variables);
+    _writeDocumentationCommentString(node.documentationComment);
+
+    var resolutionIndex = _getNextResolutionIndex();
+
+    _isConstTopLevelVariable = node.variables.isConst;
+    try {
+      _writeNode(node.variables);
+    } finally {
+      _isConstTopLevelVariable = false;
+    }
+
+    _storeCompilationUnitMember(node);
+
+    _writeUInt30(resolutionIndex);
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    _writeByte(Tag.TypeArgumentList);
+    _writeNodeList(node.arguments);
+  }
+
+  @override
+  void visitTypeName(TypeName node) {
+    _writeByte(Tag.TypeName);
+
+    _writeByte(
+      AstBinaryFlags.encode(
         hasQuestion: node.question != null,
         hasTypeArguments: node.typeArguments != null,
+      ),
+    );
+
+    _writeNode(node.name);
+    _writeOptionalNode(node.typeArguments);
+
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.type);
+    }
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    _writeByte(Tag.TypeParameter);
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+    _writeDeclarationName(node.name);
+    _writeOptionalNode(node.bound);
+    _storeDeclaration(node);
+
+    if (_shouldWriteResolution) {
+      var element = node.declaredElement as TypeParameterElementImpl;
+      _resolutionSink.writeByte(
+        _encodeVariance(element),
       );
+      _resolutionSink.writeType(element.defaultType);
+    }
   }
 
   @override
-  LinkedNodeBuilder visitTypeParameter(TypeParameter node) {
-    var builder = LinkedNodeBuilder.typeParameter(
-      typeParameter_bound: node.bound?.accept(this),
-      typeParameter_defaultType: _writeType(LazyAst.getDefaultType(node)),
-      typeParameter_variance: _encodeVariance(LazyAst.getVariance(node)),
-      informativeId: getInformativeId(node),
+  void visitTypeParameterList(TypeParameterList node) {
+    _writeByte(Tag.TypeParameterList);
+    _writeNodeList(node.typeParameters);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    _writeByte(Tag.VariableDeclaration);
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasInitializer: node.initializer != null,
+      ),
     );
-    builder.name = node.name.name;
-    _storeDeclaration(builder, node);
-    return builder;
-  }
+    _writeDeclarationName(node.name);
 
-  @override
-  LinkedNodeBuilder visitTypeParameterList(TypeParameterList node) {
-    return LinkedNodeBuilder.typeParameterList(
-      typeParameterList_typeParameters: _writeNodeList(node.typeParameters),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitVariableDeclaration(VariableDeclaration node) {
-    var initializer = node.initializer;
-    var declarationList = node.parent as VariableDeclarationList;
-    var declaration = declarationList.parent;
-    if (declaration is TopLevelVariableDeclaration) {
-      if (!declarationList.isConst) {
-        initializer = null;
-      }
-    } else if (declaration is FieldDeclaration) {
-      if (!(declarationList.isConst ||
-          !declaration.isStatic &&
-              declarationList.isFinal &&
-              _hasConstConstructor)) {
-        initializer = null;
+    if (_shouldWriteResolution) {
+      // TODO(scheglov) Enforce not null, remove `?` in `?.type` below.
+      var element = node.declaredElement as VariableElementImpl;
+      _writeActualType(element?.type);
+      _writeTopLevelInferenceError(element);
+      if (element is FieldElementImpl) {
+        _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
       }
     }
 
-    if (!_isSerializableExpression(initializer)) {
-      initializer = null;
+    Expression initializerToWrite;
+    if (_isConstField ||
+        _hasConstConstructor && _isFinalField ||
+        _isConstTopLevelVariable) {
+      var initializer = node.initializer;
+      if (_isSerializableExpression(initializer)) {
+        initializerToWrite = initializer;
+      }
+    }
+    _writeOptionalNode(initializerToWrite);
+  }
+
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    _writeByte(Tag.VariableDeclarationList);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.isConst,
+        isFinal: node.isFinal,
+        isLate: node.lateKeyword != null,
+        isVar: node.keyword?.keyword == Keyword.VAR,
+      ),
+    );
+    _writeOptionalNode(node.type);
+    _writeNodeList(node.variables);
+    _storeAnnotatedNode(node);
+  }
+
+  @override
+  void visitWithClause(WithClause node) {
+    _writeByte(Tag.WithClause);
+    _writeNodeList(node.mixinTypes);
+  }
+
+  void _pushScopeTypeParameters(TypeParameterList node) {
+    if (!_shouldWriteResolution) {
+      return;
     }
 
-    var builder = LinkedNodeBuilder.variableDeclaration(
-      informativeId: getInformativeId(node),
-      variableDeclaration_initializer: initializer?.accept(this),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      hasInitializer: node.initializer != null,
-    );
-    builder.name = node.name.name;
-    builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
-    _writeActualType(builder, node);
-    _storeInheritsCovariant(builder, node);
-    return builder;
-  }
+    _resolutionSink.localElements.pushScope();
 
-  @override
-  LinkedNodeBuilder visitVariableDeclarationList(VariableDeclarationList node) {
-    var builder = LinkedNodeBuilder.variableDeclarationList(
-      variableDeclarationList_type: node.type?.accept(this),
-      variableDeclarationList_variables: _writeNodeList(node.variables),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isConst: node.isConst,
-      isFinal: node.isFinal,
-      isLate: node.lateKeyword != null,
-      isVar: node.keyword?.keyword == Keyword.VAR,
-    );
-    _storeAnnotatedNode(builder, node);
-    return builder;
-  }
+    if (node == null) {
+      return;
+    }
 
-  @override
-  LinkedNodeBuilder visitVariableDeclarationStatement(
-      VariableDeclarationStatement node) {
-    return LinkedNodeBuilder.variableDeclarationStatement(
-      variableDeclarationStatement_variables: node.variables.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitWhileStatement(WhileStatement node) {
-    return LinkedNodeBuilder.whileStatement(
-      whileStatement_body: node.body.accept(this),
-      whileStatement_condition: node.condition.accept(this),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitWithClause(WithClause node) {
-    return LinkedNodeBuilder.withClause(
-      withClause_mixinTypes: _writeNodeList(node.mixinTypes),
-    );
-  }
-
-  @override
-  LinkedNodeBuilder visitYieldStatement(YieldStatement node) {
-    var builder = LinkedNodeBuilder.yieldStatement(
-      yieldStatement_expression: node.expression.accept(this),
-    );
-    builder.flags = AstBinaryFlags.encode(
-      isStar: node.star != null,
-    );
-    _storeStatement(builder, node);
-    return builder;
-  }
-
-  LinkedNodeBuilder writeUnit(CompilationUnit unit) {
-    timerAstBinaryWriter.start();
-    try {
-      return unit.accept(this);
-    } finally {
-      timerAstBinaryWriter.stop();
+    for (var typeParameter in node.typeParameters) {
+      _resolutionSink.localElements.declare(typeParameter.declaredElement);
     }
   }
 
-  _ElementComponents _componentsOfElement(Element element) {
-    if (element is ParameterMember) {
-      element = element.declaration;
+  void _storeAnnotatedNode(AnnotatedNode node) {
+    _writeNodeList(node.metadata);
+  }
+
+  void _storeClassMember(ClassMember node) {
+    _storeDeclaration(node);
+  }
+
+  void _storeCompilationUnitMember(CompilationUnitMember node) {
+    _storeDeclaration(node);
+  }
+
+  void _storeConstructorInitializer(ConstructorInitializer node) {}
+
+  void _storeDeclaration(Declaration node) {
+    _storeAnnotatedNode(node);
+  }
+
+  void _storeDirective(Directive node) {
+    _writeInformativeUint30(node.keyword.offset);
+    _storeAnnotatedNode(node);
+  }
+
+  void _storeExpression(Expression node) {
+    if (_shouldWriteResolution) {
+      _resolutionSink.writeType(node.staticType);
     }
+  }
 
-    if (element is Member) {
-      var elementIndex = _indexOfElement(element.declaration);
-      var substitution = element.substitution.map;
-      var substitutionBuilder = LinkedNodeTypeSubstitutionBuilder(
-        isLegacy: element.isLegacy,
-        typeParameters: substitution.keys.map(_indexOfElement).toList(),
-        typeArguments: substitution.values.map(_writeType).toList(),
-      );
-      return _ElementComponents(elementIndex, substitutionBuilder);
+  void _storeForEachParts(ForEachParts node) {
+    _writeNode(node.iterable);
+    _storeForLoopParts(node);
+  }
+
+  void _storeForLoopParts(ForLoopParts node) {}
+
+  void _storeFormalParameter(FormalParameter node) {
+    if (_shouldWriteResolution) {
+      _writeActualType(node.declaredElement.type);
     }
-
-    var elementIndex = _indexOfElement(element);
-    return _ElementComponents(elementIndex, null);
   }
 
-  int _indexOfElement(Element element) {
-    return _linkingContext.indexOfElement(element);
-  }
-
-  void _storeAnnotatedNode(LinkedNodeBuilder builder, AnnotatedNode node) {
-    builder.annotatedNode_metadata = _writeNodeList(node.metadata);
-  }
-
-  void _storeClassMember(LinkedNodeBuilder builder, ClassMember node) {
-    _storeDeclaration(builder, node);
-  }
-
-  void _storeClassOrMixinDeclaration(
-      LinkedNodeBuilder builder, ClassOrMixinDeclaration node) {
-    builder
-      ..classOrMixinDeclaration_implementsClause =
-          node.implementsClause?.accept(this)
-      ..classOrMixinDeclaration_members = _writeNodeList(node.members)
-      ..classOrMixinDeclaration_typeParameters =
-          node.typeParameters?.accept(this);
-    _storeNamedCompilationUnitMember(builder, node);
-    _storeIsSimpleBounded(builder, node);
-  }
-
-  void _storeCompilationUnitMember(
-      LinkedNodeBuilder builder, CompilationUnitMember node) {
-    _storeDeclaration(builder, node);
-  }
-
-  void _storeConstructorInitializer(
-      LinkedNodeBuilder builder, ConstructorInitializer node) {}
-
-  void _storeDeclaration(LinkedNodeBuilder builder, Declaration node) {
-    _storeAnnotatedNode(builder, node);
-  }
-
-  void _storeDirective(LinkedNodeBuilder builder, Directive node) {
-    _storeAnnotatedNode(builder, node);
-    _storeInformativeId(builder, node);
-  }
-
-  void _storeExpression(LinkedNodeBuilder builder, Expression node) {
-    builder.expression_type = _writeType(node.staticType);
-  }
-
-  void _storeForEachParts(LinkedNodeBuilder builder, ForEachParts node) {
-    _storeForLoopParts(builder, node);
-    builder..forEachParts_iterable = node.iterable?.accept(this);
-  }
-
-  void _storeForLoopParts(LinkedNodeBuilder builder, ForLoopParts node) {}
-
-  void _storeFormalParameter(LinkedNodeBuilder builder, FormalParameter node) {
-    _writeActualType(builder, node);
-  }
-
-  void _storeForMixin(LinkedNodeBuilder builder, ForMixin node) {
-    builder.flags = AstBinaryFlags.encode(
-      hasAwait: node.awaitKeyword != null,
+  void _storeForMixin(ForMixin node) {
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasAwait: node.awaitKeyword != null,
+      ),
     );
-    builder..forMixin_forLoopParts = node.forLoopParts.accept(this);
+    _writeNode(node.forLoopParts);
   }
 
-  void _storeForParts(LinkedNodeBuilder builder, ForParts node) {
-    _storeForLoopParts(builder, node);
-    builder
-      ..forParts_condition = node.condition?.accept(this)
-      ..forParts_updaters = _writeNodeList(node.updaters);
+  void _storeForParts(ForParts node) {
+    _writeOptionalNode(node.condition);
+    _writeNodeList(node.updaters);
+    _storeForLoopParts(node);
   }
 
-  void _storeFunctionBody(LinkedNodeBuilder builder, FunctionBody node) {}
-
-  void _storeInformativeId(LinkedNodeBuilder builder, AstNode node) {
-    builder.informativeId = getInformativeId(node);
+  void _storeInvocationExpression(InvocationExpression node) {
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _storeExpression(node);
+    // TODO(scheglov) typeArgumentTypes and staticInvokeType?
   }
 
-  void _storeInheritsCovariant(LinkedNodeBuilder builder, AstNode node) {
-    var value = LazyAst.getInheritsCovariant(node);
-    builder.inheritsCovariant = value;
+  void _storeNamedCompilationUnitMember(NamedCompilationUnitMember node) {
+    _writeDeclarationName(node.name);
+    _storeCompilationUnitMember(node);
   }
 
-  void _storeInvocationExpression(
-      LinkedNodeBuilder builder, InvocationExpression node) {
-    _storeExpression(builder, node);
-    builder
-      ..invocationExpression_arguments = node.argumentList.accept(this)
-      ..invocationExpression_invokeType = _writeType(node.staticInvokeType)
-      ..invocationExpression_typeArguments = node.typeArguments?.accept(this);
-  }
-
-  void _storeIsSimpleBounded(LinkedNodeBuilder builder, AstNode node) {
-    var flag = LazyAst.isSimplyBounded(node);
-    // TODO(scheglov) Check for `null` when writing resolved AST.
-    builder.simplyBoundable_isSimplyBounded = flag;
-  }
-
-  void _storeNamedCompilationUnitMember(
-      LinkedNodeBuilder builder, NamedCompilationUnitMember node) {
-    _storeCompilationUnitMember(builder, node);
-    _storeInformativeId(builder, node);
-    builder.name = node.name.name;
-  }
-
-  void _storeNamespaceDirective(
-      LinkedNodeBuilder builder, NamespaceDirective node) {
-    _storeUriBasedDirective(builder, node);
-    builder
-      ..namespaceDirective_combinators = _writeNodeList(node.combinators)
-      ..namespaceDirective_configurations = _writeNodeList(node.configurations)
-      ..namespaceDirective_selectedUri = LazyDirective.getSelectedUri(node);
+  void _storeNamespaceDirective(NamespaceDirective node) {
+    _writeNodeList(node.combinators);
+    _writeNodeList(node.configurations);
+    _storeUriBasedDirective(node);
   }
 
   void _storeNormalFormalParameter(
-      LinkedNodeBuilder builder, NormalFormalParameter node, Token keyword) {
-    _storeFormalParameter(builder, node);
-    builder
-      ..flags = AstBinaryFlags.encode(
+    NormalFormalParameter node,
+    Token keyword, {
+    bool hasQuestion = false,
+  }) {
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasName: node.identifier != null,
+        hasQuestion: hasQuestion,
         isConst: keyword?.type == Keyword.CONST,
         isCovariant: node.covariantKeyword != null,
         isFinal: keyword?.type == Keyword.FINAL,
         isRequired: node.requiredKeyword != null,
         isVar: keyword?.type == Keyword.VAR,
-      )
-      ..informativeId = getInformativeId(node)
-      ..name = node.identifier?.name
-      ..normalFormalParameter_metadata = _writeNodeList(node.metadata);
-  }
-
-  void _storeStatement(LinkedNodeBuilder builder, Statement node) {}
-
-  void _storeSwitchMember(LinkedNodeBuilder builder, SwitchMember node) {
-    builder.switchMember_labels = _writeNodeList(node.labels);
-    builder.switchMember_statements = _writeNodeList(node.statements);
-  }
-
-  void _storeTypeAlias(LinkedNodeBuilder builder, TypeAlias node) {
-    _storeNamedCompilationUnitMember(builder, node);
-  }
-
-  void _storeTypedLiteral(LinkedNodeBuilder builder, TypedLiteral node,
-      {bool isMap = false, bool isSet = false}) {
-    _storeExpression(builder, node);
-    builder
-      ..flags = AstBinaryFlags.encode(
-        hasTypeArguments: node.typeArguments != null,
-        isConst: node.constKeyword != null,
-        isMap: isMap,
-        isSet: isSet,
-      )
-      ..typedLiteral_typeArguments = _writeNodeList(
-        node.typeArguments?.arguments,
-      );
-  }
-
-  void _storeUriBasedDirective(
-      LinkedNodeBuilder builder, UriBasedDirective node) {
-    _storeDirective(builder, node);
-    builder
-      ..uriBasedDirective_uri = node.uri.accept(this)
-      ..uriBasedDirective_uriContent = node.uriContent
-      ..uriBasedDirective_uriElement = _indexOfElement(node.uriElement);
-  }
-
-  void _writeActualReturnType(LinkedNodeBuilder builder, AstNode node) {
-    var type = LazyAst.getReturnType(node);
-    // TODO(scheglov) Check for `null` when writing resolved AST.
-    builder.actualReturnType = _writeType(type);
-  }
-
-  void _writeActualType(LinkedNodeBuilder builder, AstNode node) {
-    var type = LazyAst.getType(node);
-    // TODO(scheglov) Check for `null` when writing resolved AST.
-    builder.actualType = _writeType(type);
-  }
-
-  List<LinkedNodeBuilder> _writeNodeList(List<AstNode> nodeList) {
-    if (nodeList == null) {
-      return const <LinkedNodeBuilder>[];
-    }
-
-    var result = List<LinkedNodeBuilder>.filled(
-      nodeList.length,
-      null,
-      growable: true,
+      ),
     );
-    for (var i = 0; i < nodeList.length; ++i) {
-      result[i] = nodeList[i].accept(this);
+
+    // TODO(scheglov) Don't store when in DefaultFormalParameter?
+    _writeInformativeUint30(node.offset);
+    _writeInformativeUint30(node.length);
+
+    _writeNodeList(node.metadata);
+    if (node.identifier != null) {
+      _writeDeclarationName(node.identifier);
     }
-    return result;
+    _storeFormalParameter(node);
   }
 
-  LinkedNodeTypeBuilder _writeType(DartType type) {
-    return _linkingContext.writeType(type);
+  void _storeTypeAlias(TypeAlias node) {
+    _storeNamedCompilationUnitMember(node);
   }
 
-  static int _encodeVariance(Variance variance) {
-    if (variance == null) {
+  void _storeUriBasedDirective(UriBasedDirective node) {
+    _writeNode(node.uri);
+    _storeDirective(node);
+  }
+
+  void _writeActualReturnType(DartType type) {
+    // TODO(scheglov) Check for `null` when writing resolved AST.
+    _resolutionSink.writeType(type);
+  }
+
+  void _writeActualType(DartType type) {
+    // TODO(scheglov) Check for `null` when writing resolved AST.
+    _resolutionSink.writeType(type);
+  }
+
+  void _writeByte(int byte) {
+    assert((byte & 0xFF) == byte);
+    _sink.addByte(byte);
+  }
+
+  void _writeClassMemberIndex() {
+    _writeUInt30(_classMemberIndexItems.length);
+    for (var declaration in _classMemberIndexItems) {
+      _writeUInt30(declaration.offset);
+      _writeByte(declaration.tag);
+      if (declaration.name != null) {
+        _writeStringReference(declaration.name);
+      } else {
+        _writeUInt30(declaration.fieldNames.length);
+        for (var name in declaration.fieldNames) {
+          _writeStringReference(name);
+        }
+      }
+    }
+  }
+
+  void _writeDeclarationName(SimpleIdentifier node) {
+    _writeByte(Tag.SimpleIdentifier);
+    _writeStringReference(node.name);
+    _writeInformativeUint30(node.offset);
+  }
+
+  /// We write tokens as a list, so this must be the last entity written.
+  void _writeDocumentationCommentString(Comment node) {
+    if (node != null && _withInformative) {
+      var tokens = node.tokens;
+      _writeUInt30(tokens.length);
+      for (var token in tokens) {
+        _writeStringReference(token.lexeme);
+      }
+    } else {
+      _writeUInt30(0);
+    }
+  }
+
+  _writeDouble(double value) {
+    _sink.addDouble(value);
+  }
+
+  void _writeFeatureSet(FeatureSet featureSet) {
+    var experimentStatus = featureSet as ExperimentStatus;
+    var encoded = experimentStatus.toStorage();
+    _writeUint8List(encoded);
+  }
+
+  void _writeInformativeUint30(int value) {
+    if (_withInformative) {
+      _writeUInt30(value);
+    }
+  }
+
+  void _writeInformativeVariableCodeRanges(
+    int firstOffset,
+    VariableDeclarationList node,
+  ) {
+    if (_withInformative) {
+      var variables = node.variables;
+      _writeUInt30(variables.length * 2);
+      var isFirst = true;
+      for (var variable in variables) {
+        var offset = isFirst ? firstOffset : variable.offset;
+        var end = variable.end;
+        _writeUInt30(offset);
+        _writeUInt30(end - offset);
+        isFirst = false;
+      }
+    }
+  }
+
+  void _writeLanguageVersion(LibraryLanguageVersion languageVersion) {
+    _writeUInt30(languageVersion.package.major);
+    _writeUInt30(languageVersion.package.minor);
+
+    var override = languageVersion.override;
+    if (override != null) {
+      _writeUInt30(override.major + 1);
+      _writeUInt30(override.minor + 1);
+    } else {
+      _writeUInt30(0);
+      _writeUInt30(0);
+    }
+  }
+
+  void _writeLineInfo(LineInfo lineInfo) {
+    if (_withInformative) {
+      _writeUint30List(lineInfo.lineStarts);
+    } else {
+      _writeUint30List(const <int>[0]);
+    }
+  }
+
+  void _writeNode(AstNode node) {
+    node.accept(this);
+  }
+
+  void _writeNodeList(List<AstNode> nodeList) {
+    _writeUInt30(nodeList.length);
+    for (var i = 0; i < nodeList.length; ++i) {
+      nodeList[i].accept(this);
+    }
+  }
+
+  void _writeOptionalDeclarationName(SimpleIdentifier node) {
+    if (node == null) {
+      _writeByte(Tag.Nothing);
+    } else {
+      _writeByte(Tag.Something);
+      _writeDeclarationName(node);
+    }
+  }
+
+  void _writeOptionalNode(AstNode node) {
+    if (node == null) {
+      _writeByte(Tag.Nothing);
+    } else {
+      _writeByte(Tag.Something);
+      _writeNode(node);
+    }
+  }
+
+  void _writeStringReference(String string) {
+    assert(string != null);
+    var index = _stringIndexer[string];
+    _writeUInt30(index);
+  }
+
+  void _writeTopLevelInferenceError(ElementImpl element) {
+    TopLevelInferenceError error;
+    if (element is MethodElementImpl) {
+      error = element.typeInferenceError;
+    } else if (element is PropertyInducingElementImpl) {
+      error = element.typeInferenceError;
+    } else {
+      return;
+    }
+
+    if (error != null) {
+      _resolutionSink.writeByte(error.kind.index);
+      _resolutionSink.writeStringList(error.arguments);
+    } else {
+      _resolutionSink.writeByte(TopLevelInferenceErrorKind.none.index);
+    }
+  }
+
+  @pragma("vm:prefer-inline")
+  void _writeUInt30(int value) {
+    _sink.writeUInt30(value);
+  }
+
+  void _writeUint30List(List<int> values) {
+    var length = values.length;
+    _writeUInt30(length);
+    for (var i = 0; i < length; i++) {
+      _writeUInt30(values[i]);
+    }
+  }
+
+  void _writeUInt32(int value) {
+    _sink.addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF,
+        (value >> 8) & 0xFF, value & 0xFF);
+  }
+
+  void _writeUint8List(List<int> values) {
+    var length = values.length;
+    _writeUInt30(length);
+    for (var i = 0; i < length; i++) {
+      _writeByte(values[i]);
+    }
+  }
+
+  static int _encodeVariance(TypeParameterElementImpl element) {
+    if (element.isLegacyCovariant) {
       return 0;
-    } else if (variance == Variance.unrelated) {
+    }
+
+    var variance = element.variance;
+    if (variance == Variance.unrelated) {
       return 1;
     } else if (variance == Variance.covariant) {
       return 2;
@@ -1733,28 +1900,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     node.accept(visitor);
     return visitor.result;
   }
-
-  static LinkedNodeFormalParameterKind _toParameterKind(FormalParameter node) {
-    if (node.isRequiredPositional) {
-      return LinkedNodeFormalParameterKind.requiredPositional;
-    } else if (node.isRequiredNamed) {
-      return LinkedNodeFormalParameterKind.requiredNamed;
-    } else if (node.isOptionalPositional) {
-      return LinkedNodeFormalParameterKind.optionalPositional;
-    } else if (node.isOptionalNamed) {
-      return LinkedNodeFormalParameterKind.optionalNamed;
-    } else {
-      throw StateError('Unknown kind of parameter');
-    }
-  }
 }
 
-/// Components of a [Member] - the raw element, and the substitution.
-class _ElementComponents {
-  final int rawElement;
-  final LinkedNodeTypeSubstitutionBuilder substitution;
+/// An item in the class index, used to read only requested class members.
+class _ClassMemberIndexItem {
+  final int offset;
+  final int tag;
+  final String name;
+  final List<String> fieldNames;
 
-  _ElementComponents(this.rawElement, this.substitution);
+  _ClassMemberIndexItem({
+    @required this.offset,
+    @required this.tag,
+    this.name,
+    this.fieldNames,
+  });
 }
 
 class _IsSerializableExpressionVisitor extends RecursiveAstVisitor<void> {
@@ -1764,4 +1924,23 @@ class _IsSerializableExpressionVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) {
     result = false;
   }
+}
+
+/// An item in the unit index, used to read only requested unit members.
+class _UnitMemberIndexItem {
+  final int offset;
+  final int tag;
+  final String name;
+  final List<String> variableNames;
+
+  /// The absolute offset of the index of class members, `0` if not a class.
+  final int classIndexOffset;
+
+  _UnitMemberIndexItem({
+    @required this.offset,
+    @required this.tag,
+    this.name,
+    this.variableNames,
+    this.classIndexOffset = 0,
+  });
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -15,10 +16,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class CompletionResolveHandler
     extends MessageHandler<CompletionItem, CompletionItem> {
+  /// The last completion item we asked to be resolved.
   ///
-  /// The latest completion item we were asked to resolve. We use it to abort
-  /// previous requests.
-  ///
+  /// Used to abort previous requests in async handlers if another resolve request
+  /// arrives while the previous is being processed (for clients that don't send
+  /// cancel events).
   CompletionItem _latestCompletionItem;
 
   CompletionResolveHandler(LspAnalysisServer server) : super(server);
@@ -31,13 +33,23 @@ class CompletionResolveHandler
 
   @override
   Future<ErrorOr<CompletionItem>> handle(
-      CompletionItem item, CancellationToken token) async {
-    // If this isn't an item with resolution data, return the same item back.
-    if (item.data == null) {
+    CompletionItem item,
+    CancellationToken token,
+  ) async {
+    final resolutionInfo = item.data;
+
+    if (resolutionInfo is DartCompletionItemResolutionInfo) {
+      return resolveDartCompletion(item, resolutionInfo, token);
+    } else {
       return success(item);
     }
+  }
 
-    final data = item.data;
+  Future<ErrorOr<CompletionItem>> resolveDartCompletion(
+    CompletionItem item,
+    DartCompletionItemResolutionInfo data,
+    CancellationToken token,
+  ) async {
     final lineInfo = server.getLineInfo(data.file);
     if (lineInfo == null) {
       return error(
@@ -60,8 +72,11 @@ class CompletionResolveHandler
       );
     }
 
+    // If filterText is different to the label, it's because label has parens/args
+    // appended and we should take the basic label. We cannot use insertText as
+    // it may include snippets, whereas filterText is always just the pure string.
+    var requestedName = item.filterText ?? item.label;
     // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
-    var requestedName = item.insertText ?? item.label;
     if (requestedName.contains('.')) {
       requestedName = requestedName.substring(
         0,
@@ -154,9 +169,6 @@ class CompletionResolveHandler
                   .trim()
               : item.detail,
           documentation: documentation,
-          // The deprecated field is deprecated, but we should still supply it
-          // for clients that have not adopted CompletionItemTags.
-          // ignore: deprecated_member_use_from_same_package
           deprecated: item.deprecated,
           preselect: item.preselect,
           sortText: item.sortText,
@@ -164,9 +176,7 @@ class CompletionResolveHandler
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
           textEdit: TextEdit(
-            // TODO(dantup): If `clientSupportsSnippets == true` then we should map
-            // `selection` in to a snippet (see how Dart Code does this).
-            range: toRange(lineInfo, item.data.rOffset, item.data.rLength),
+            range: toRange(lineInfo, data.rOffset, data.rLength),
             newText: newInsertText,
           ),
           additionalTextEdits: thisFilesChanges

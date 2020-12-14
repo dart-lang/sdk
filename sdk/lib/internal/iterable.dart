@@ -325,10 +325,7 @@ class ListIterator<E> implements Iterator<E> {
         _length = iterable.length,
         _index = 0;
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 
   @pragma("vm:prefer-inline")
   bool moveNext() {
@@ -396,10 +393,7 @@ class MappedIterator<S, T> extends Iterator<T> {
     return false;
   }
 
-  T get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as T;
-  }
+  T get current => _current as T;
 }
 
 /**
@@ -471,10 +465,7 @@ class ExpandIterator<S, T> implements Iterator<T> {
 
   ExpandIterator(this._iterator, this._f);
 
-  T get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as T;
-  }
+  T get current => _current as T;
 
   bool moveNext() {
     if (_currentExpansion == null) return false;

@@ -25,6 +25,11 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
   constructors, a name which can be associated with the port and displayed in
   tooling.
 
+#### `dart:collection`
+
+* `LinkedList` made it explicit that elements are compared by identity,
+  and updated `contains` to take advantage of this.
+
 ### Dart VM
 
 *   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s will no longer
@@ -56,8 +61,15 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.124`, which includes:
+Updated the Linter to `0.1.126`, which includes:
 
+* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is passed as the argument to a function in any
+  position other than the first.
+* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is used in a place with a static type other than
+  Set or Map.
+* (Internal): test updates to the new `PhysicalResourceProvider` API.
 * Fixed false positives in `prefer_constructors_over_static_methods`.
 * Updates to `package_names` to allow leading underscores.
 * Fixed NPEs in `unnecessary_null_checks`.
@@ -103,18 +115,27 @@ Updated the Linter to `0.1.124`, which includes:
 * The top level `pub` executable has been deprecated. Use `dart pub` instead.
   See [dart tool][].
 * New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
-  
+
   And a corresponding `dart pub remove` that removes dependencies.
 * New option `dart pub outdated --mode=null-safety` that will analyze your
   dependencies for null-safety.
 * `dart pub publish` will now check your pubspec keys for likely typos.
 * New command `dart pub login` that logs in to pub.dev.
 * The `--server` option to `dart pub publish` and `dart pub uploader` have been
-  deprecated. Use `publish_to` in your `pubspec.yaml` or set the 
+  deprecated. Use `publish_to` in your `pubspec.yaml` or set the
   `$PUB_HOSTED_URL` environment variable.
 
 [#44072]: https://github.com/dart-lang/sdk/issues/44072
 [dart tool]: https://dart.dev/tools/dart-tool
+
+## 2.10.4 - 2020-11-12
+
+This is a patch release that fixes a crash in the Dart VM (issues [#43941][],
+[flutter/flutter#43620][], and [Dart-Code/Dart-Code#2814][]).
+
+[#43941]: https://github.com/dart-lang/sdk/issues/43941
+[flutter/flutter#43620]: https://github.com/flutter/flutter/issues/43620
+[Dart-Code/Dart-Code#2814]: https://github.com/Dart-Code/Dart-Code/issues/2814
 
 ## 2.10.3 - 2020-10-29
 

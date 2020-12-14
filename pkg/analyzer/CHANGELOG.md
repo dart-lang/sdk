@@ -1,4 +1,11 @@
-## 0.41.0 (Not yet released - breaking changes)
+## 0.41.1
+* Updated `PackageBuildWorkspace` that supports `package:build` to stop
+  at the first directory with `pubspec.yaml`, and don't try to go up
+  and find another one with both `pubspec.yaml` and `.dart_tool/build`.
+* Added a new constructor for non-API `ErrorCode` class. It will be used to
+  migrate existing `ErrorCode` subclasses, and then deprecated and removed.
+
+## 0.41.0
 * Replaced `Scope.lookup({id, setter})` with `lookup(id)`.
 * Deprecated `Scope.lookup2(id)`, use `lookup()` instead.
 * Removed deprecated `Member.baseElement`.
@@ -10,6 +17,10 @@
 * The value of`FunctionType.element` for types created from a `typedef`
   is now `FunctionTypeAliasElement`, not its function element.
 * Removed deprecated `GenericTypeAliasElement`.
+* Removed `PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS`.
+* Changed the default `PhysicalResourceProvider` constructor to no longer take a
+  required positional parameter (removed the existing `fileReadMode` positional
+  parameter).
 
 ## 0.40.6
 * The non_nullable feature is released in 2.12 language version.

@@ -482,40 +482,6 @@ Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
   return DebugStepCheck(check_pos);
 }
 
-Fragment StreamingFlowGraphBuilder::SetAsyncStackTrace(
-    const Function& dart_function) {
-  if (!FLAG_causal_async_stacks ||
-      !(dart_function.IsAsyncClosure() || dart_function.IsAsyncGenClosure())) {
-    return {};
-  }
-
-  // The code we are building will be executed right after we enter
-  // the function and before any nested contexts are allocated.
-  ASSERT(B->context_depth_ ==
-         scopes()->yield_jump_variable->owner()->context_level());
-
-  Fragment instructions;
-  LocalScope* scope = parsed_function()->scope();
-
-  const Function& target = Function::ZoneHandle(
-      Z, I->object_store()->async_set_thread_stack_trace());
-  ASSERT(!target.IsNull());
-
-  // Fetch and load :async_stack_trace
-  LocalVariable* async_stack_trace_var =
-      scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
-  ASSERT((async_stack_trace_var != NULL) &&
-         async_stack_trace_var->is_captured());
-
-  Fragment code;
-  code += LoadLocal(async_stack_trace_var);
-  // Call _setAsyncThreadStackTrace
-  code += StaticCall(TokenPosition::kNoSource, target,
-                     /* argument_count = */ 1, ICData::kStatic);
-  code += Drop();
-  return code;
-}
-
 Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
     const Function& dart_function) {
   Fragment prologue = B->BuildDefaultTypeHandling(dart_function);
@@ -722,31 +688,6 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
   return body;
 }
 
-// If we run in checked mode or strong mode, we have to check the type of the
-// passed arguments.
-//
-// TODO(#34162): If we're building an extra entry-point to skip
-// type checks, we should substitute Redefinition nodes for the AssertAssignable
-// instructions to ensure that the argument types are known.
-void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
-    const Function& dart_function,
-    intptr_t type_parameters_offset,
-    Fragment* explicit_checks,
-    Fragment* implicit_checks,
-    Fragment* implicit_redefinitions) {
-  if (dart_function.NeedsTypeArgumentTypeChecks()) {
-    B->BuildTypeArgumentTypeChecks(
-        MethodCanSkipTypeChecksForNonCovariantTypeArguments(dart_function)
-            ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
-            : TypeChecksToBuild::kCheckAllTypeParameterBounds,
-        implicit_checks);
-  }
-  if (dart_function.NeedsArgumentTypeChecks()) {
-    B->BuildArgumentTypeChecks(explicit_checks, implicit_checks,
-                               implicit_redefinitions);
-  }
-}
-
 Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
     const Function& dart_function,
     LocalVariable* first_parameter) {
@@ -826,7 +767,6 @@ Fragment StreamingFlowGraphBuilder::BuildEveryTimePrologue(
   Fragment F;
   F += CheckStackOverflowInPrologue(dart_function);
   F += DebugStepCheckInPrologue(dart_function, token_position);
-  F += SetAsyncStackTrace(dart_function);
   F += B->InitConstantParameters();
   return F;
 }
@@ -948,12 +888,19 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // regular methods.
   const Fragment type_args_handling = TypeArgumentsHandling(dart_function);
 
-  Fragment explicit_type_checks;
   Fragment implicit_type_checks;
+  if (dart_function.NeedsTypeArgumentTypeChecks()) {
+    B->BuildTypeArgumentTypeChecks(
+        TypeChecksToBuild::kCheckCovariantTypeParameterBounds,
+        &implicit_type_checks);
+  }
+
+  Fragment explicit_type_checks;
   Fragment implicit_redefinitions;
-  CheckArgumentTypesAsNecessary(dart_function, type_parameters_offset,
-                                &explicit_type_checks, &implicit_type_checks,
-                                &implicit_redefinitions);
+  if (dart_function.NeedsArgumentTypeChecks()) {
+    B->BuildArgumentTypeChecks(&explicit_type_checks, &implicit_type_checks,
+                               &implicit_redefinitions);
+  }
 
   // The RawParameter variables should be set to null to avoid retaining more
   // objects than necessary during GC.
@@ -2110,14 +2057,42 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
       // If the variable isn't initialized, call the initializer and set it.
       Fragment initialize(is_uninitialized);
       initialize += BuildExpression();
-      initialize += StoreLocal(position, variable);
-      initialize += Drop();
-      initialize += Goto(join);
+      if (variable->is_final()) {
+        // Late final variable, so check whether it has been assigned
+        // during initialization.
+        initialize += LoadLocal(variable);
+        TargetEntryInstr *is_uninitialized_after_init,
+            *is_initialized_after_init;
+        initialize += Constant(Object::sentinel());
+        initialize += flow_graph_builder_->BranchIfStrictEqual(
+            &is_uninitialized_after_init, &is_initialized_after_init);
+        {
+          // The variable is uninitialized, so store the initializer result.
+          Fragment store_result(is_uninitialized_after_init);
+          store_result += StoreLocal(position, variable);
+          store_result += Drop();
+          store_result += Goto(join);
+        }
+
+        {
+          // Already initialized, so throw a LateInitializationError.
+          Fragment already_assigned(is_initialized_after_init);
+          already_assigned += flow_graph_builder_->ThrowLateInitializationError(
+              position, "_throwLocalAssignedDuringInitialization",
+              variable->name());
+          already_assigned += Goto(join);
+        }
+      } else {
+        // Late non-final variable. Store the initializer result.
+        initialize += StoreLocal(position, variable);
+        initialize += Drop();
+        initialize += Goto(join);
+      }
     } else {
       // The variable has no initializer, so throw a LateInitializationError.
       Fragment initialize(is_uninitialized);
       initialize += flow_graph_builder_->ThrowLateInitializationError(
-          position, variable->name());
+          position, "_throwLocalNotInitialized", variable->name());
       initialize += Goto(join);
     }
   }
@@ -2183,7 +2158,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSetImpl(
       // Already initialized, so throw a LateInitializationError.
       Fragment already_initialized(is_initialized);
       already_initialized += flow_graph_builder_->ThrowLateInitializationError(
-          position, variable->name());
+          position, "_throwLocalAlreadyInitialized", variable->name());
       already_initialized += Goto(join);
     }
 
@@ -3058,10 +3033,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
-  const bool special_case_nop_async_stack_trace_helper =
-      !FLAG_causal_async_stacks &&
-      recognized_kind == MethodRecognizer::kAsyncStackTraceHelper;
-
   const bool special_case_unchecked_cast =
       klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
       (target.name() == Symbols::UnsafeCast().raw());
@@ -3070,9 +3041,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       klass.IsTopLevel() && (klass.library() == Library::CoreLibrary()) &&
       (target.name() == Symbols::Identical().raw());
 
-  const bool special_case = special_case_identical ||
-                            special_case_unchecked_cast ||
-                            special_case_nop_async_stack_trace_helper;
+  const bool special_case =
+      special_case_identical || special_case_unchecked_cast;
 
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
   // can appear, but the thing we're calling is not a static method, but a
@@ -3132,10 +3102,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     ASSERT(argument_count == 2);
     instructions +=
         StrictCompare(position, Token::kEQ_STRICT, /*number_check=*/true);
-  } else if (special_case_nop_async_stack_trace_helper) {
-    ASSERT(argument_count == 1);
-    instructions += Drop();
-    instructions += NullConstant();
   } else if (special_case_unchecked_cast) {
     // Simply do nothing: the result value is already pushed on the stack.
   } else {

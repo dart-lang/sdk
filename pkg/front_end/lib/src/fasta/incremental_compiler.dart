@@ -537,7 +537,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
     } else {
-      outputLibraries = new List<Library>();
+      outputLibraries = <Library>[];
       allLibraries = computeTransitiveClosure(
               compiledLibraries,
               entryPoints,
@@ -895,7 +895,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ExperimentalInvalidation experimentalInvalidation,
       ReusageResult reusedResult) {
     if (hierarchy != null) {
-      List<Library> removedLibraries = new List<Library>();
+      List<Library> removedLibraries = <Library>[];
       // TODO(jensj): For now remove all the original from the class hierarchy
       // to avoid the class hierarchy getting confused.
       if (experimentalInvalidation != null) {
@@ -1232,7 +1232,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
       neededDillLibraries ??= new Set<Library>();
       Set<Class> classes = new Set<Class>();
-      List<Class> worklist = new List<Class>();
+      List<Class> worklist = <Class>[];
       // Get all classes touched by kernel class hierarchy.
       List<Class> usedClasses = hierarchy.getUsedClasses();
       worklist.addAll(usedClasses);
@@ -1447,7 +1447,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       UriTranslator uriTranslator,
       Map<Uri, Source> uriToSource,
       [List<Library> inputLibrariesFiltered]) {
-    List<Library> result = new List<Library>();
+    List<Library> result = <Library>[];
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedInputLibraries = <Uri, Library>{};
@@ -1462,7 +1462,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    List<Uri> worklist = new List<Uri>();
+    List<Uri> worklist = <Uri>[];
     worklist.addAll(entries);
     for (LibraryBuilder libraryBuilder in reusedLibraries) {
       if (libraryBuilder.importUri.scheme == "dart" &&
@@ -1499,7 +1499,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    List<Library> removedLibraries = new List<Library>();
+    List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
@@ -1690,7 +1690,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (message.uri != null) {
           List<DiagnosticMessageFromJson> messages =
               remainingComponentProblems[message.uri] ??=
-                  new List<DiagnosticMessageFromJson>();
+                  <DiagnosticMessageFromJson>[];
           messages.add(message);
         }
         if (message.involvedFiles != null) {
@@ -1701,7 +1701,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           for (Uri uri in message.involvedFiles) {
             List<DiagnosticMessageFromJson> messages =
                 remainingComponentProblems[uri] ??=
-                    new List<DiagnosticMessageFromJson>();
+                    <DiagnosticMessageFromJson>[];
             messages.add(message);
           }
         }
@@ -1792,6 +1792,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               templateIncrementalCompilerIllegalParameter.withArguments(name),
               // TODO: pass variable declarations instead of
               // parameter names for proper location detection.
+              // https://github.com/dart-lang/sdk/issues/44158
               -1,
               -1,
               libraryUri);
@@ -1849,11 +1850,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      // TODO: pass variable declarations instead of
+      // parameter names for proper location detection.
+      // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
               .map((name) =>
-                  new VariableDeclarationImpl(name, 0, type: definitions[name]))
+                  new VariableDeclarationImpl(name, 0, type: definitions[name])
+                    ..fileOffset =
+                        cls?.fileOffset ?? libraryBuilder.library.fileOffset)
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);
@@ -1909,7 +1915,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return new ReusageResult({}, [], false, reusedLibraries);
     }
     bool invalidatedBecauseOfPackageUpdate = false;
-    List<LibraryBuilder> directlyInvalidated = new List<LibraryBuilder>();
+    List<LibraryBuilder> directlyInvalidated = <LibraryBuilder>[];
     Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
 
     // Maps all non-platform LibraryBuilders from their import URI.

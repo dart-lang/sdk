@@ -26,6 +26,7 @@ import 'nullability_node_test.dart' as nullability_node_test;
 import 'preview/test_all.dart' as preview;
 import 'utilities/test_all.dart' as utilities;
 import 'variables_test.dart' as variables;
+import 'verify_tests_test.dart' as verify_tests;
 
 main() {
   defineReflectiveSuite(() {
@@ -48,5 +49,6 @@ main() {
     preview.main();
     utilities.main();
     variables.main();
+    verify_tests.main();
   });
 }

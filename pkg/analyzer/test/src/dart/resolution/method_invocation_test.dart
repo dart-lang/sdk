@@ -755,6 +755,7 @@ main() {
   math?.loadLibrary();
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 
@@ -1309,13 +1310,15 @@ main() {
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary();
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
 
     var import = findElement.importFind('dart:math');
 
@@ -1337,6 +1340,7 @@ main() {
   math.loadLibrary(1 + 2);
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 7),
     ]);
 
@@ -1697,6 +1701,20 @@ class B extends A {
     assertSuperExpression(invocation.target);
   }
 
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode('''
+void f({a = b?.foo()}) {}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
   test_namedArgument() async {
     var question = typeToStringWithNullability ? '?' : '';
     await assertNoErrorsInCode('''
@@ -1905,6 +1923,29 @@ main() {
     } else {
       assertTypeLegacy(invocation.target);
     }
+  }
+
+  test_noReceiver_parameter_functionTyped_typedef() async {
+    await assertNoErrorsInCode(r'''
+typedef F = void Function();
+
+void f(F a) {
+  a();
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('a();');
+    assertFunctionExpressionInvocation(
+      invocation,
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+
+    var aRef = invocation.function as SimpleIdentifier;
+    assertElement(aRef, findElement.parameter('a'));
+    assertType(aRef, 'void Function()');
   }
 
   test_noReceiver_topFunction() async {
@@ -2309,14 +2350,16 @@ class MethodInvocationResolutionWithNullSafetyTest
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' deferred as a;
 
 main() {
   a.loadLibrary();
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 22, 8),
+    ]);
 
     var import = findElement.importFind('package:test/a.dart');
 

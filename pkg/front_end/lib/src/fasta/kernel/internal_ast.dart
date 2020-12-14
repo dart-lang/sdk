@@ -1428,6 +1428,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isLocalFunction: false,
       bool isLate: false,
       bool isRequired: false,
+      bool isLowered: false,
       this.isStaticLate: false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
@@ -1439,7 +1440,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isFieldFormal: isFieldFormal,
             isCovariant: isCovariant,
             isLate: isLate,
-            isRequired: isRequired);
+            isRequired: isRequired,
+            isLowered: isLowered);
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
@@ -1483,6 +1485,12 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
   DartType lateType;
+
+  // The original name of a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  String lateName;
 
   @override
   bool get isAssignable {
@@ -1936,6 +1944,17 @@ class CompoundPropertySet extends InternalExpression {
   @override
   String toString() {
     return "CompoundPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('.');
+    printer.writeName(propertyName);
+    printer.write(' ');
+    printer.writeName(binaryName);
+    printer.write('= ');
+    printer.writeExpression(rhs);
   }
 }
 
@@ -2939,6 +2958,28 @@ class NullAwareCompoundSet extends InternalExpression {
   String toString() {
     return "NullAwareCompoundSet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('?.');
+    printer.writeName(propertyName);
+    if (forPostIncDec &&
+        rhs is IntLiteral &&
+        (rhs as IntLiteral).value == 1 &&
+        (binaryName == plusName || binaryName == minusName)) {
+      if (binaryName == plusName) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    } else {
+      printer.write(' ');
+      printer.writeName(binaryName);
+      printer.write('= ');
+      printer.writeExpression(rhs);
+    }
+  }
 }
 
 /// Internal expression representing an null-aware if-null property set.
@@ -3025,6 +3066,15 @@ class NullAwareIfNullSet extends InternalExpression {
   @override
   String toString() {
     return "NullAwareIfNullSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('?.');
+    printer.writeName(name);
+    printer.write(' ??= ');
+    printer.writeExpression(value);
   }
 }
 

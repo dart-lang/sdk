@@ -27,6 +27,7 @@ class TestConfiguration {
       {this.configuration,
       this.progress,
       this.selectors,
+      this.build,
       this.testList,
       this.repeat,
       this.batch,
@@ -82,6 +83,7 @@ class TestConfiguration {
 
   final bool batch;
   final bool batchDart2JS;
+  final bool build;
   final bool copyCoreDumps;
   final bool rr;
   final bool fastTestsOnly;

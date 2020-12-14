@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "platform/allocation.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/utils.h"

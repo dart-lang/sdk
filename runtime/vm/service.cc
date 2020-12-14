@@ -2238,14 +2238,15 @@ static bool PrintRetainingPath(Thread* thread,
   LinkedHashMap& map = LinkedHashMap::Handle();
   Array& map_data = Array::Handle();
   Field& field = Field::Handle();
+  WeakProperty& wp = WeakProperty::Handle();
   String& name = String::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
     JSONObject jselement(&elements);
     element = path.At(i * 2);
     jselement.AddProperty("value", element);
-    // Interpret the word offset from parent as list index, map key
-    // or instance field.
+    // Interpret the word offset from parent as list index, map key,
+    // weak property, or instance field.
     if (i > 0) {
       slot_offset ^= path.At((i * 2) - 1);
       if (element.IsArray() || element.IsGrowableObjectArray()) {
@@ -2266,9 +2267,15 @@ static bool PrintRetainingPath(Thread* thread,
             break;
           }
         }
+      } else if (element.IsWeakProperty()) {
+        wp ^= static_cast<WeakPropertyPtr>(element.raw());
+        element = wp.key();
+        jselement.AddProperty("parentMapKey", element);
       } else if (element.IsInstance()) {
         element_class = element.clazz();
         element_field_map = element_class.OffsetToFieldMap();
+        OS::PrintErr("Class: %s Map: %s\n", element_class.ToCString(),
+                     element_field_map.ToCString());
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < element_field_map.Length()) {
           field ^= element_field_map.At(offset);
@@ -3178,11 +3185,14 @@ static bool GetPorts(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "PortList");
   {
-    Instance& port = Instance::Handle(zone.GetZone());
+    ReceivePort& port = ReceivePort::Handle(zone.GetZone());
     JSONArray arr(&jsobj, "ports");
     for (int i = 0; i < ports.Length(); ++i) {
       port ^= ports.At(i);
-      arr.AddValue(port);
+      // Don't report inactive ports.
+      if (PortMap::IsLivePort(port.Id())) {
+        arr.AddValue(port);
+      }
     }
   }
   return true;

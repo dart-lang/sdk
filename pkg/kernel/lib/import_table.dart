@@ -76,15 +76,15 @@ class _ImportTableBuilder extends RecursiveVisitor {
   void addLibraryImport(Library target) {
     if (target == referenceLibrary) return; // Self-reference is special.
     if (target == null) return;
-    var referenceUri = referenceLibrary.importUri;
-    var targetUri = target.importUri;
+    Uri referenceUri = referenceLibrary.importUri;
+    Uri targetUri = target.importUri;
     if (targetUri == null) {
       throw '$referenceUri cannot refer to library without an import URI';
     }
     // To support using custom-uris in unit tests, we don't check directly
     // whether the scheme is 'file:', but instead we check that is not 'dart:'
     // or 'package:'.
-    bool isFileOrCustomScheme(uri) =>
+    bool isFileOrCustomScheme(Uri uri) =>
         uri.scheme != '' && uri.scheme != 'package' && uri.scheme != 'dart';
     bool isTargetSchemeFileOrCustom = isFileOrCustomScheme(targetUri);
     bool isReferenceSchemeFileOrCustom = isFileOrCustomScheme(referenceUri);
@@ -144,7 +144,7 @@ String relativeUriPath(Uri target, Uri ref) {
     if (targetSegments.last == "") return ".";
     return targetSegments.last;
   }
-  List<String> path = new List<String>();
+  List<String> path = <String>[];
   int oked = same + 1;
   while (oked < refSegments.length - 1) {
     path.add("..");

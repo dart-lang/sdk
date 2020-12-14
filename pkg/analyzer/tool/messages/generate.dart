@@ -13,13 +13,12 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:analysis_tool/tools.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
-
-import '../../test/utils/package_root.dart' as pkg_root;
 
 main() async {
   String analyzerPkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
@@ -188,7 +187,7 @@ part of 'syntactic_errors.dart';
   }
 
   void generateFastaAnalyzerErrorCodeList() {
-    final sorted = List<Map>(translatedEntries.length);
+    final sorted = List<Map>.filled(translatedEntries.length, null);
     for (var entry in translatedEntries) {
       var index = entry['index'];
       if (index is int && index >= 1 && index <= sorted.length) {

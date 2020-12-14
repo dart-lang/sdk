@@ -671,7 +671,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
     memset(field_values, 0, (num_fields * sizeof(field_values[0])));
     return true;
   }
-  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length_));
+  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length()));
   intptr_t* native_values =
       reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
   memmove(field_values, native_values, (num_fields * sizeof(field_values[0])));
@@ -1563,6 +1563,47 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   return isolate;
 }
 
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolateInGroup(Dart_Isolate group_member,
+                          const char* name,
+                          Dart_IsolateShutdownCallback shutdown_callback,
+                          Dart_IsolateCleanupCallback cleanup_callback,
+                          void* child_isolate_data,
+                          char** error) {
+  CHECK_NO_ISOLATE(Isolate::Current());
+  auto member = reinterpret_cast<Isolate*>(group_member);
+  if (member->IsScheduled()) {
+    FATAL("The given member isolate (%s) must not have been entered.",
+          member->name());
+  }
+
+  *error = nullptr;
+
+  if (!FLAG_enable_isolate_groups) {
+    *error = Utils::StrDup(
+        "Lightweight isolates are only implemented in AOT "
+        "mode and need to be explicitly enabled by passing "
+        "--enable-isolate-groups.");
+    return nullptr;
+  }
+
+  Isolate* isolate;
+#if defined(DART_PRECOMPILED_RUNTIME)
+  isolate = CreateWithinExistingIsolateGroupAOT(member->group(), name, error);
+  if (isolate != nullptr) {
+    isolate->set_origin_id(member->origin_id());
+    isolate->set_init_callback_data(child_isolate_data);
+    isolate->set_on_shutdown_callback(shutdown_callback);
+    isolate->set_on_cleanup_callback(cleanup_callback);
+  }
+#else
+  *error = Utils::StrDup("Lightweight isolates are not yet ready in JIT mode.");
+  isolate = nullptr;
+#endif
+
+  return Api::CastIsolate(isolate);
+}
+
 DART_EXPORT void Dart_ShutdownIsolate() {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
@@ -1590,6 +1631,9 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   {
     StackZone zone(T);
     HandleScope handle_scope(T);
+#if defined(DEBUG)
+    I->ValidateConstants();
+#endif
     Dart::RunShutdownCallback();
   }
   Dart::ShutdownIsolate();
@@ -1656,10 +1700,16 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   if (!Thread::EnterIsolate(iso)) {
-    FATAL(
-        "Unable to Enter Isolate : "
-        "Multiple mutators entering an isolate / "
-        "Dart VM is shutting down");
+    if (iso->IsScheduled()) {
+      FATAL(
+          "Isolate %s is already scheduled on mutator thread %p, "
+          "failed to schedule from os thread 0x%" Px "\n",
+          iso->name(), iso->scheduled_mutator_thread(),
+          OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadId()));
+    } else {
+      FATAL("Unable to enter isolate %s as Dart VM is shutting down",
+            iso->name());
+    }
   }
   // A Thread structure has been associated to the thread, we do the
   // safepoint transition explicitly here instead of using the
@@ -1998,18 +2048,11 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
     FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
-  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  const char* error;
-  if (iso->object_store()->root_library() == Library::null()) {
-    // The embedder should have called Dart_LoadScriptFromKernel by now.
-    error = "Missing root library";
-  } else {
-    error = iso->MakeRunnable();
-  }
-  if (error != NULL) {
+  const char* error = reinterpret_cast<Isolate*>(isolate)->MakeRunnable();
+  if (error != nullptr) {
     return Utils::StrDup(error);
   }
-  return NULL;
+  return nullptr;
 }
 
 // --- Messages and Ports ---
@@ -2092,6 +2135,53 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     I->class_table()->Print();
   }
   return Api::Success();
+}
+
+DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
+                                   Dart_Port on_error_port,
+                                   Dart_Port on_exit_port,
+                                   char** error) {
+  auto thread = Thread::Current();
+  auto isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  *error = nullptr;
+
+  if (thread->api_top_scope() != nullptr) {
+    *error = Utils::StrDup("There must not be an active api scope.");
+    return false;
+  }
+
+  if (!isolate->is_runnable()) {
+    const char* error_msg = isolate->MakeRunnable();
+    if (error_msg != nullptr) {
+      *error = Utils::StrDup(error_msg);
+      return false;
+    }
+  }
+
+  isolate->SetErrorsFatal(errors_are_fatal);
+
+  if (on_error_port != ILLEGAL_PORT || on_exit_port != ILLEGAL_PORT) {
+    auto thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    if (on_error_port != ILLEGAL_PORT) {
+      const auto& port =
+          SendPort::Handle(thread->zone(), SendPort::New(on_error_port));
+      isolate->AddErrorListener(port);
+    }
+    if (on_exit_port != ILLEGAL_PORT) {
+      const auto& port =
+          SendPort::Handle(thread->zone(), SendPort::New(on_exit_port));
+      isolate->AddExitListener(port, Instance::null_instance());
+    }
+  }
+
+  Dart_ExitIsolate();
+  isolate->Run();
+  return true;
 }
 
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
@@ -4435,26 +4525,6 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   constructor ^= result.raw();
 
   Instance& new_object = Instance::Handle(Z);
-  if (constructor.IsRedirectingFactory()) {
-    Type& redirect_type = Type::Handle(constructor.RedirectionType());
-    constructor = constructor.RedirectionTarget();
-    ASSERT(!constructor.IsNull());
-
-    if (!redirect_type.IsInstantiated()) {
-      // The type arguments of the redirection type are instantiated from the
-      // type arguments of the type argument.
-      // We do not support generic constructors.
-      ASSERT(redirect_type.IsInstantiated(kFunctions));
-      redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree, Heap::kNew);
-      redirect_type ^= redirect_type.Canonicalize(T, nullptr);
-    }
-
-    type_obj = redirect_type.raw();
-    type_arguments = redirect_type.arguments();
-
-    cls = type_obj.type_class();
-  }
   if (constructor.IsGenerativeConstructor()) {
     CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
 #if defined(DEBUG)
@@ -4557,7 +4627,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
-  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
   return Api::NewHandle(T, AllocateObject(T, cls));
 }
 
@@ -4583,7 +4653,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
-  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
   if (num_native_fields != cls.num_native_fields()) {
     return Api::NewError(
         "%s: invalid number of native fields %" Pd " passed in, expected %d",
@@ -5445,11 +5515,6 @@ StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
     if (Symbols::DartIsVM().Equals(name)) {
       return Symbols::True().raw();
     }
-    if (FLAG_causal_async_stacks) {
-      if (Symbols::DartDeveloperCausalAsyncStacks().Equals(name)) {
-        return Symbols::True().raw();
-      }
-    }
   }
   return result.raw();
 }
@@ -5948,7 +6013,7 @@ DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
     for (intptr_t j = 0; j < imports.Length(); j++) {
       ns ^= imports.At(j);
       if (ns.IsNull()) continue;
-      importee = ns.library();
+      importee = ns.target();
       importee_uri = importee.url();
       if (importee_uri.StartsWith(scheme_vm)) {
         result.Add(importer);

@@ -1104,10 +1104,18 @@ void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
 
-void Exceptions::ThrowLateInitializationError(const String& name) {
+void Exceptions::ThrowLateFieldNotInitialized(const String& name) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, name);
-  Exceptions::ThrowByType(Exceptions::kLateInitializationError, args);
+  Exceptions::ThrowByType(Exceptions::kLateFieldNotInitialized, args);
+}
+
+void Exceptions::ThrowLateFieldAssignedDuringInitialization(
+    const String& name) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, name);
+  Exceptions::ThrowByType(Exceptions::kLateFieldAssignedDuringInitialization,
+                          args);
 }
 
 ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
@@ -1197,9 +1205,15 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();
       break;
-    case kLateInitializationError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::LateInitializationError();
+    case kLateFieldAssignedDuringInitialization:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::LateError();
+      constructor_name = &Symbols::DotFieldADI();
+      break;
+    case kLateFieldNotInitialized:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::LateError();
+      constructor_name = &Symbols::DotFieldNI();
       break;
   }
 

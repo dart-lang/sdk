@@ -27,13 +27,13 @@ class Cat extends self::Animal {
   synthetic constructor •() → self::Cat
     : super self::Animal::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::Cat;
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat".{core::String::hashCode});
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "Cat()";
-  method /*isNullableByDefault*/ copyWith() → dynamic
+  method /*isLegacy*/ copyWith() → dynamic
     return new self::Cat::•();
 }
 class Animal2 extends core::Object {
@@ -46,13 +46,13 @@ class Cat2 extends self::Animal2 {
   synthetic constructor •() → self::Cat2
     : super self::Animal2::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::Cat2;
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat2".{core::String::hashCode});
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "Cat2()";
-  method /*isNullableByDefault*/ copyWith() → dynamic
+  method /*isLegacy*/ copyWith() → dynamic
     return new self::Cat2::•();
 }
 static method main() → dynamic {}

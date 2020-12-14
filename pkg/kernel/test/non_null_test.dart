@@ -40,13 +40,18 @@ const Map<String, String> data = {
   'FutureOr<Object*>*': 'FutureOr<Object>',
   'FutureOr<FutureOr<Object?>>': 'FutureOr<FutureOr<Object>>',
   '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>':
-      '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>',
+      '(List<Object>, {required List<Object> a, List<Object> b})'
+          ' -> List<Object>',
   '(List<Object>, {required List<Object> a, List<Object> b}) ->? List<Object>':
-      '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>',
+      '(List<Object>, {required List<Object> a, List<Object> b})'
+          ' -> List<Object>',
   '(List<Object>, {required List<Object> a, List<Object> b}) ->* List<Object>':
-      '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>',
-  '(List<Object>?, {required List<Object?> a, List<Object?>? b}) ->? List<Object?>':
-      '(List<Object>?, {required List<Object?> a, List<Object?>? b}) -> List<Object?>',
+      '(List<Object>, {required List<Object> a, List<Object> b})'
+          ' -> List<Object>',
+  '(List<Object>?, {required List<Object?> a, List<Object?>? b})'
+          ' ->? List<Object?>':
+      '(List<Object>?, {required List<Object?> a, List<Object?>? b})'
+          ' -> List<Object?>',
   'X': 'X & Object',
   'X?': 'X & Object',
   'X*': 'X & Object',
@@ -73,7 +78,7 @@ const Map<String, String> data = {
 };
 
 main() {
-  Env env = new Env('')
+  Env env = new Env('', isNonNullableByDefault: true)
     ..extendWithTypeParameters('X,'
         'X_extends_Object extends Object,'
         'X_extends_dynamic extends dynamic,'

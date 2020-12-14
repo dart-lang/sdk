@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main(core::List<core::String> args) → dynamic {
+  lowered () →? core::int #recursiveInitLocal;
+  function #recursiveInitLocal#get() → () → core::int
+    return let final () →? core::int #t1 = #recursiveInitLocal in #t1.==(null) ?{() → core::int} throw new _in::LateError::localNI("recursiveInitLocal") : #t1{() → core::int};
+  function #recursiveInitLocal#set(() → core::int #t2) → dynamic
+    return #recursiveInitLocal = #t2;
+  lowered final core::int? #local;
+  function #local#get() → core::int
+    return let final core::int? #t3 = #local in #t3.==(null) ?{core::int} let final core::int #t4 = #recursiveInitLocal#get.call().call() in #local.==(null) ?{core::int} #local = #t4 : throw new _in::LateError::localADI("local") : #t3{core::int};
+  core::bool doRecursiveInitLocal = true;
+  #recursiveInitLocal#set.call(() → core::int {
+    core::print("Executing initializer");
+    if(doRecursiveInitLocal) {
+      doRecursiveInitLocal = false;
+      core::print("Trigger recursive initialization");
+      core::int val = #local#get.call();
+      core::print("Final local has value ${val}");
+      core::print("Returning 4 from initializer");
+      return 4;
+    }
+    core::print("Returning 3 from initializer");
+    return 3;
+  });
+  self::throws(() → Null {
+    core::int val = #local#get.call();
+    core::print("Final local has value ${val}");
+  }, "Read local");
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

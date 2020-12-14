@@ -8,7 +8,7 @@ final s12 = -s5;
 final s14 = (s13)();
 final s15 = throw null;
 final s2 = s1?.length;
-final s3 = new List<int>(2);
+final s3 = new List<int>.filled(2, null);
 final s4 = () {
   var e = 0;
   switch (e) {

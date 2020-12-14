@@ -1575,17 +1575,17 @@ Completer<int> res() => newCompleter();
   Future<void> test_singleExpression_returnTypeGeneric() async {
     await indexTestUnit('''
 main() {
-  var v = new List<String>();
+  var v = <String>[];
 }
 ''');
-    _createRefactoringForString('new List<String>()');
+    _createRefactoringForString('<String>[]');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 main() {
   var v = res();
 }
 
-List<String> res() => new List<String>();
+List<String> res() => <String>[];
 ''');
   }
 

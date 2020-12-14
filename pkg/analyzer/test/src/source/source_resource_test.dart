@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -60,28 +59,6 @@ class FileSourceTest with ResourceProviderMixin {
     expect(FileSource.fileReadMode('a\n'), 'a\nxyz');
     expect(FileSource.fileReadMode('ab'), 'abxyz');
     expect(FileSource.fileReadMode('abc'), 'abcxyz');
-    FileSource.fileReadMode = (String s) => s;
-  }
-
-  void test_fileReadMode_normalize_eol_always() {
-    FileSource.fileReadMode = PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS;
-    expect(FileSource.fileReadMode('a'), 'a');
-
-    // '\n' -> '\n' as first, last and only character
-    expect(FileSource.fileReadMode('\n'), '\n');
-    expect(FileSource.fileReadMode('a\n'), 'a\n');
-    expect(FileSource.fileReadMode('\na'), '\na');
-
-    // '\r\n' -> '\n' as first, last and only character
-    expect(FileSource.fileReadMode('\r\n'), '\n');
-    expect(FileSource.fileReadMode('a\r\n'), 'a\n');
-    expect(FileSource.fileReadMode('\r\na'), '\na');
-
-    // '\r' -> '\n' as first, last and only character
-    expect(FileSource.fileReadMode('\r'), '\n');
-    expect(FileSource.fileReadMode('a\r'), 'a\n');
-    expect(FileSource.fileReadMode('\ra'), '\na');
-
     FileSource.fileReadMode = (String s) => s;
   }
 

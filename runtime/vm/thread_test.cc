@@ -296,7 +296,9 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   bool wait = true;
 
   EXPECT(isolate->heap()->GrowthControlState());
-  isolate->heap()->DisableGrowthControl();
+
+  NoHeapGrowthControlScope no_heap_growth_scope;
+
   for (intptr_t i = 0; i < kTaskCount; i++) {
     Dart::thread_pool()->Run<SimpleTaskWithZoneAllocation>(
         (i + 1), isolate, &threads[i], &sync, &monitor, &done_count, &wait);
@@ -309,37 +311,6 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
     }
     // Reset the done counter for use later.
     done_count = 0;
-  }
-
-  // Get the information for the current isolate.
-  // We only need to check the current isolate since all tasks are spawned
-  // inside this single isolate.
-  JSONStream stream;
-  isolate->PrintJSON(&stream, false);
-  const char* json = stream.ToCString();
-
-  Thread* current_thread = Thread::Current();
-
-  // Confirm all expected entries are in the JSON output.
-  for (intptr_t i = 0; i < kTaskCount; i++) {
-    Thread* thread = threads[i];
-    StackZone stack_zone(current_thread);
-    Zone* current_zone = current_thread->zone();
-
-    // Check the thread exists and is the correct size.
-    char* thread_info_buf = OS::SCreate(
-        current_zone,
-        "\"type\":\"_Thread\","
-        "\"id\":\"threads\\/%" Pd
-        "\","
-        "\"kind\":\"%s\","
-        "\"_zoneHighWatermark\":\"%" Pu
-        "\","
-        "\"_zoneCapacity\":\"%" Pu "\"",
-        OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
-        Thread::TaskKindToCString(thread->task_kind()),
-        thread->zone_high_watermark(), thread->current_zone_capacity());
-    EXPECT_SUBSTRING(thread_info_buf, json);
   }
 
   // Unblock the tasks so they can finish.
@@ -1025,6 +996,38 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
   }
   DEBUG_ONLY(EXPECT(!lock.IsCurrentThreadReader()));
   EXPECT(!lock.IsCurrentThreadWriter());
+}
+
+template <typename LockType, typename LockerType>
+static void RunLockerWithLongJumpTest() {
+  const intptr_t kNumIterations = 5;
+  intptr_t execution_count = 0;
+  intptr_t thrown_count = 0;
+  LockType lock;
+  for (intptr_t i = 0; i < kNumIterations; ++i) {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      LockerType locker(Thread::Current(), &lock);
+      execution_count++;
+      Thread::Current()->long_jump_base()->Jump(
+          1, Object::background_compilation_error());
+    } else {
+      thrown_count++;
+    }
+  }
+  EXPECT_EQ(kNumIterations, execution_count);
+  EXPECT_EQ(kNumIterations, thrown_count);
+}
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteWithLongJmp) {
+  RunLockerWithLongJumpTest<SafepointRwLock, SafepointWriteRwLocker>();
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockReadWithLongJmp) {
+  RunLockerWithLongJumpTest<SafepointRwLock, SafepointReadRwLocker>();
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointMutexLockerWithLongJmp) {
+  RunLockerWithLongJumpTest<Mutex, SafepointMutexLocker>();
 }
 
 struct ReaderThreadState {

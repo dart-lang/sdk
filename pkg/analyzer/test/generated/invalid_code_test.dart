@@ -79,6 +79,25 @@ extension E on Object {
 ''');
   }
 
+  test_extensionOverrideInAnnotationContext_importedWithPrefix() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+extension E on Object {
+  int f() => 0;
+}
+''');
+    await _assertCanBeAnalyzed('''
+import 'a.dart' as prefix;
+
+class A {
+  const A(int x);
+}
+
+@R(prefix.E(null).f())
+void g() {}
+}
+''');
+  }
+
   test_extensionOverrideInConstContext() async {
     await _assertCanBeAnalyzed('''
 extension E on Object {
@@ -196,11 +215,11 @@ class A<T extends F> {}
 ''');
   }
 
-  @failingTest
   test_fuzz_12() async {
     // This code crashed with summary2 because usually AST reader is lazy,
     // so we did not read metadata `@b` for `c`. But default values must be
     // read fully.
+    // Fixed 2020-11-12.
     await _assertCanBeAnalyzed(r'''
 void f({a = [for (@b c = 0;;)]}) {}
 ''');
@@ -294,6 +313,13 @@ C<int Function()> c;
 ''');
   }
 
+  test_invalidPart_withPart() async {
+    await _assertCanBeAnalyzed('''
+part of a;
+part 'test.dart';
+''');
+  }
+
   test_keywordInConstructorInitializer_assert() async {
     await _assertCanBeAnalyzed('''
 class C {
@@ -334,6 +360,12 @@ void foo() {
   // ignore:unused_element
   void bar({@my this.x}) {}
 }
+''');
+  }
+
+  test_syntheticImportPrefix() async {
+    await _assertCanBeAnalyzed('''
+import 'dart:math' as;
 ''');
   }
 

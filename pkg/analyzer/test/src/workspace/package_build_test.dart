@@ -444,6 +444,21 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     );
   }
 
+  void test_find_hasBuild_hasPubspec_malformed_dontGoToUp() {
+    newFolder('/workspace/.dart_tool/build/generated');
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
+
+    newFolder('/workspace/aaa/.dart_tool/build/generated');
+    newFile('/workspace/aaa/pubspec.yaml', content: '*');
+
+    PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
+      resourceProvider,
+      {},
+      convertPath('/workspace/aaa/lib'),
+    );
+    expect(workspace, isNull);
+  }
+
   void test_find_hasDartToolAndPubspec() {
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
     newFile('/workspace/pubspec.yaml', content: 'name: project');
@@ -471,41 +486,10 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     expect(workspace.projectPackageName, 'subproject');
   }
 
-  void
-      test_find_hasDartToolAndPubspec_inParentDirectory_ignoresMalformedPubspec() {
-    newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFolder('/workspace/opened/up/a/child/dir/.dart_tool/build');
-    newFile('/workspace/opened/up/a/child/dir/pubspec.yaml',
-        content: 'not: yaml: here!!! 111');
-    newFile('/workspace/pubspec.yaml', content: 'name: project');
-    PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
-      resourceProvider,
-      {},
-      convertPath('/workspace/opened/up/a/child/dir'),
-    );
-    expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.projectPackageName, 'project');
-  }
-
   void test_find_hasDartToolAndPubspec_inParentDirectory_ignoresSoloDartTool() {
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
     newFolder('/workspace/opened/up/a/child/dir');
     newFolder('/workspace/opened/up/a/child/dir/.dart_tool/build');
-    newFile('/workspace/pubspec.yaml', content: 'name: project');
-    PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
-      resourceProvider,
-      {},
-      convertPath('/workspace/opened/up/a/child/dir'),
-    );
-    expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.projectPackageName, 'project');
-  }
-
-  void test_find_hasDartToolAndPubspec_inParentDirectory_ignoresSoloPubspec() {
-    newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFolder('/workspace/opened/up/a/child/dir');
-    newFile('/workspace/opened/up/a/child/dir/pubspec.yaml',
-        content: 'name: subproject');
     newFile('/workspace/pubspec.yaml', content: 'name: project');
     PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
       resourceProvider,
@@ -557,6 +541,20 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
       resourceProvider,
       {},
       convertPath('/workspace'),
+    );
+    expect(workspace, isNull);
+  }
+
+  void test_find_hasPubspec_noDartTool_dontGoUp() {
+    newFolder('/workspace/.dart_tool/build/generated');
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
+
+    newFile('/workspace/aaa/pubspec.yaml', content: '*');
+
+    PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
+      resourceProvider,
+      {},
+      convertPath('/workspace/aaa/lib'),
     );
     expect(workspace, isNull);
   }

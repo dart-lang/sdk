@@ -4,11 +4,15 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// The implementation of [DartAssistContext].
 class DartAssistContextImpl implements DartAssistContext {
+  @override
+  final InstrumentationService instrumentationService;
+
   @override
   final ChangeWorkspace workspace;
 
@@ -21,8 +25,8 @@ class DartAssistContextImpl implements DartAssistContext {
   @override
   final int selectionLength;
 
-  DartAssistContextImpl(this.workspace, this.resolveResult,
-      this.selectionOffset, this.selectionLength);
+  DartAssistContextImpl(this.instrumentationService, this.workspace,
+      this.resolveResult, this.selectionOffset, this.selectionLength);
 }
 
 /// An enumeration of possible assist kinds.

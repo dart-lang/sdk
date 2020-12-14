@@ -926,19 +926,25 @@ void SnapshotWriter::WriteObject(ObjectPtr rawobj) {
 }
 
 uint32_t SnapshotWriter::GetObjectTags(ObjectPtr raw) {
-  return raw->ptr()->tags_;
+  uword tags = raw->ptr()->tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  // Clear hash to make the narrowing cast safe / appease UBSAN.
+  tags = ObjectLayout::HashTag::update(0, tags);
+#endif
+  return tags;
 }
 
 uint32_t SnapshotWriter::GetObjectTags(ObjectLayout* raw) {
-  return raw->tags_;
+  uword tags = raw->tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  // Clear hash to make the narrowing cast safe / appease UBSAN.
+  tags = ObjectLayout::HashTag::update(0, tags);
+#endif
+  return tags;
 }
 
 uword SnapshotWriter::GetObjectTagsAndHash(ObjectPtr raw) {
-  uword result = raw->ptr()->tags_;
-#if defined(HASH_IN_OBJECT_HEADER)
-  result |= static_cast<uword>(raw->ptr()->hash_) << 32;
-#endif
-  return result;
+  return raw->ptr()->tags_;
 }
 
 #define VM_OBJECT_CLASS_LIST(V)                                                \
@@ -1317,10 +1323,10 @@ void SnapshotWriter::WriteClassId(ClassLayout* cls) {
   ASSERT(!IsSingletonClassId(class_id) && !IsBootstrapedClassId(class_id));
 
   // Write out the library url and class name.
-  LibraryPtr library = cls->library_;
+  LibraryPtr library = cls->library();
   ASSERT(library != Library::null());
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->name_, kAsInlinedObject);
+  WriteObjectImpl(cls->name(), kAsInlinedObject);
 }
 
 void SnapshotWriter::WriteStaticImplicitClosure(
@@ -1340,11 +1346,11 @@ void SnapshotWriter::WriteStaticImplicitClosure(
   // Write out the library url, class name and signature function name.
   ClassPtr cls = GetFunctionOwner(func);
   ASSERT(cls != Class::null());
-  LibraryPtr library = cls->ptr()->library_;
+  LibraryPtr library = cls->ptr()->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
-  WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
+  WriteObjectImpl(library->ptr()->url(), kAsInlinedObject);
+  WriteObjectImpl(cls->ptr()->name(), kAsInlinedObject);
+  WriteObjectImpl(func->ptr()->name(), kAsInlinedObject);
   WriteObjectImpl(delayed_type_arguments, kAsInlinedObject);
 }
 
@@ -1392,7 +1398,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
   // Extract the function object to check if this closure
   // can be sent in an isolate message.
-  FunctionPtr func = closure->ptr()->function_;
+  FunctionPtr func = closure->ptr()->function();
   // We only allow closure of top level methods or static functions in a
   // class to be sent in isolate messages.
   if (can_send_any_object() &&
@@ -1416,8 +1422,8 @@ FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
 }
 
 ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
-  ObjectPtr owner = func->ptr()->owner_;
-  uint32_t tags = GetObjectTags(owner);
+  ObjectPtr owner = func->ptr()->owner();
+  uword tags = GetObjectTags(owner);
   intptr_t class_id = ObjectLayout::ClassIdTag::decode(tags);
   if (class_id == kClassCid) {
     return static_cast<ClassPtr>(owner);

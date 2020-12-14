@@ -5,6 +5,7 @@
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
@@ -66,11 +67,15 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// A fix producer that produces changes to fix multiple diagnostics.
 class BulkFixProcessor {
@@ -338,6 +343,9 @@ class BulkFixProcessor {
         RemoveNonNullAssertion.newInstance,
   };
 
+  /// The service used to report errors when building fixes.
+  final InstrumentationService instrumentationService;
+
   /// Information about the workspace containing the libraries in which changes
   /// will be produced.
   final DartChangeWorkspace workspace;
@@ -346,10 +354,24 @@ class BulkFixProcessor {
   /// diagnostics.
   ChangeBuilder builder;
 
+  /// A map associating libraries to fixes with change counts.
+  final ChangeMap changeMap = ChangeMap();
+
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
-  BulkFixProcessor(this.workspace) {
-    builder = ChangeBuilder(workspace: workspace);
+  BulkFixProcessor(this.instrumentationService, this.workspace)
+      : builder = ChangeBuilder(workspace: workspace);
+
+  List<BulkFix> get fixDetails {
+    var details = <BulkFix>[];
+    for (var change in changeMap.libraryMap.entries) {
+      var fixes = <BulkFixDetail>[];
+      for (var codeEntry in change.value.entries) {
+        fixes.add(BulkFixDetail(codeEntry.key, codeEntry.value));
+      }
+      details.add(BulkFix(change.key, fixes));
+    }
+    return details;
   }
 
   /// Return a change builder that has been used to create fixes for the
@@ -372,12 +394,99 @@ class BulkFixProcessor {
     return builder;
   }
 
+  /// Return a change builder that has been used to create all fixes for a
+  /// specific diagnostic code in the given [unit].
+  Future<ChangeBuilder> fixOfTypeInUnit(
+    ResolvedUnitResult unit,
+    String errorCode,
+  ) async {
+    final errorCodeLowercase = errorCode.toLowerCase();
+    final errors = unit.errors.where(
+      (error) => error.errorCode.name.toLowerCase() == errorCodeLowercase,
+    );
+
+    final analysisOptions = unit.session.analysisContext.analysisOptions;
+    final fixContext = DartFixContextImpl(
+      instrumentationService,
+      workspace,
+      unit,
+      null,
+      (name) => [],
+    );
+
+    for (var error in errors) {
+      final processor = ErrorProcessor.getProcessor(analysisOptions, error);
+      // Only fix errors not filtered out in analysis options.
+      if (processor == null || processor.severity != null) {
+        await _fixSingleError(fixContext, unit, error);
+      }
+    }
+
+    return builder;
+  }
+
+  /// Returns the potential [FixKind]s that may be available for a given diagnostic.
+  ///
+  /// The presence of a kind does not guarantee a fix will be produced, nor does
+  /// the absence of a kind mean that it definitely will not (some producers
+  /// do not provide FixKinds up-front). These results are intended as a hint
+  /// for populating something like a quick-fix menu with possible apply-all fixes.
+  Iterable<FixKind> producableFixesForError(
+    ResolvedUnitResult result,
+    AnalysisError diagnostic,
+  ) sync* {
+    final errorCode = diagnostic.errorCode;
+    if (errorCode is LintCode) {
+      final generators = lintProducerMap[errorCode.name];
+      if (generators != null) {
+        yield* generators.map((g) => g().fixKind).where((k) => k != null);
+      }
+      return;
+    }
+
+    final generator = nonLintProducerMap[errorCode];
+    if (generator != null) {
+      final kind = generator().fixKind;
+      if (kind != null) yield kind;
+    }
+
+    final multiGenerators = nonLintMultiProducerMap[errorCode];
+    if (multiGenerators != null) {
+      final fixContext = DartFixContextImpl(
+        instrumentationService,
+        workspace,
+        result,
+        null,
+        (name) => [],
+      );
+
+      var context = CorrectionProducerContext(
+        applyingBulkFixes: true,
+        dartFixContext: fixContext,
+        diagnostic: diagnostic,
+        resolvedResult: result,
+        selectionOffset: diagnostic.offset,
+        selectionLength: diagnostic.length,
+        workspace: workspace,
+      );
+
+      for (final multiGenerator in multiGenerators) {
+        final multiProducer = multiGenerator();
+        multiProducer.configure(context);
+        yield* multiProducer.producers
+            .map((p) => p.fixKind)
+            .where((k) => k != null);
+      }
+    }
+  }
+
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
     for (var unitResult in result.units) {
       final fixContext = DartFixContextImpl(
+        instrumentationService,
         workspace,
         unitResult,
         null,
@@ -415,22 +524,48 @@ class BulkFixProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      await producer.compute(builder);
+      try {
+        var localBuilder = builder.copy();
+        await producer.compute(localBuilder);
+        builder = localBuilder;
+      } on ConflictingEditException {
+        // If a conflicting edit was added in [compute], then the [localBuilder]
+        // is discarded and we revert to the previous state of the builder.
+      }
+    }
+
+    int computeChangeHash() {
+      var hash = 0;
+      var edits = builder.sourceChange.edits;
+      for (var i = 0; i < edits.length; ++i) {
+        hash = JenkinsSmiHash.combine(hash, edits[i].hashCode);
+      }
+      return JenkinsSmiHash.finish(hash);
+    }
+
+    Future<void> generate(CorrectionProducer producer, String code) async {
+      var oldHash = computeChangeHash();
+      await compute(producer);
+      var newHash = computeChangeHash();
+      if (newHash != oldHash) {
+        changeMap.add(result.path, code);
+      }
     }
 
     var errorCode = diagnostic.errorCode;
     try {
+      var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var generators = lintProducerMap[errorCode.name];
+        var generators = lintProducerMap[codeName];
         if (generators != null) {
           for (var generator in generators) {
-            await compute(generator());
+            await generate(generator(), codeName);
           }
         }
       } else {
         var generator = nonLintProducerMap[errorCode];
         if (generator != null) {
-          await compute(generator());
+          await generate(generator(), codeName);
         }
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
@@ -438,7 +573,7 @@ class BulkFixProcessor {
             var multiProducer = multiGenerator();
             multiProducer.configure(context);
             for (var producer in multiProducer.producers) {
-              await compute(producer);
+              await generate(producer, codeName);
             }
           }
         }
@@ -449,5 +584,17 @@ class BulkFixProcessor {
           e,
           s);
     }
+  }
+}
+
+/// Maps changes to library paths.
+class ChangeMap {
+  /// Map of paths to maps of codes to counts.
+  final Map<String, Map<String, int>> libraryMap = {};
+
+  /// Add an entry for the given [code] in the given [libraryPath].
+  void add(String libraryPath, String code) {
+    var changes = libraryMap.putIfAbsent(libraryPath, () => {});
+    changes.update(code, (value) => value + 1, ifAbsent: () => 1);
   }
 }

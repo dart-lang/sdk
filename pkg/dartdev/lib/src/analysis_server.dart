@@ -257,6 +257,8 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   int get offset => json['location']['offset'] as int;
 
+  int get length => json['location']['length'] as int;
+
   String get messageSentenceFragment => trimEnd(message, '.');
 
   String get url => json['url'] as String;

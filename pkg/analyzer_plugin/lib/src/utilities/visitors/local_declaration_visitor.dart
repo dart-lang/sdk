@@ -109,6 +109,23 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachPartsWithDeclaration) {
+      var loopVariable = forLoopParts.loopVariable;
+      declaredLocalVar(loopVariable.identifier, loopVariable.type);
+    } else if (forLoopParts is ForPartsWithDeclarations) {
+      var varList = forLoopParts.variables;
+      if (varList != null) {
+        varList.variables.forEach((VariableDeclaration varDecl) {
+          declaredLocalVar(varDecl.name, varList.type);
+        });
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
@@ -133,7 +150,14 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    _visitTypeParameters(node, node.typeParameters);
     _visitParamList(node.parameters);
+    visitNode(node);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    _visitTypeParameters(node, node.typeParameters);
     visitNode(node);
   }
 
@@ -152,6 +176,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    _visitTypeParameters(node, node.typeParameters);
     _visitParamList(node.parameters);
     visitNode(node);
   }

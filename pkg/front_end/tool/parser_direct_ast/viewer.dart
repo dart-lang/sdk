@@ -64,22 +64,20 @@ class AstWidget extends Widget {
       case DirectParserASTType.BEGIN:
         header = "begin";
         break;
-      case DirectParserASTType.END:
-        throw "Unexpected";
       case DirectParserASTType.HANDLE:
         header = "handle";
         break;
-      case DirectParserASTType.DONE:
+      case DirectParserASTType.END:
         header = withEndHeader ? "end" : "";
         break;
     }
     String extra = " ";
-    if (element.content != null) {
-      extra += element.content.first.arguments.toString();
+    if (element.children != null) {
+      extra += element.children.first.deprecatedArguments.toString();
     }
     return "${indent ? "  " : ""}"
         "${header}${element.what} "
-        "${element.arguments.toString()}${extra}";
+        "${element.deprecatedArguments.toString()}${extra}";
   }
 
   @override
@@ -116,7 +114,7 @@ class AstWidget extends Widget {
       selected = selectedElement.selected;
     } else {
       shown = [new PrintedLine.parent(shown, selected)];
-      List<DirectParserASTContent> children = selectedElement.ast.content;
+      List<DirectParserASTContent> children = selectedElement.ast.children;
       if (children != null) {
         for (int i = 0; i < children.length; i++) {
           shown.add(new PrintedLine.ast(

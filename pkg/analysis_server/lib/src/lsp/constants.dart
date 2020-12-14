@@ -68,11 +68,13 @@ abstract class Commands {
     organizeImports,
     sendWorkspaceEdit,
     performRefactor,
+    fixAllOfErrorCodeInFile,
   ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
   static const performRefactor = 'refactor.perform';
+  static const fixAllOfErrorCodeInFile = 'edit.fixAll.errorCodeInFile';
 }
 
 abstract class CustomMethods {

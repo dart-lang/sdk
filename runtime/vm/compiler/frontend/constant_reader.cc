@@ -59,15 +59,15 @@ InstancePtr ConstantReader::ReadConstantExpression() {
 
 ObjectPtr ConstantReader::ReadAnnotations() {
   intptr_t list_length = helper_->ReadListLength();  // read list length.
-  const Array& metadata_values =
-      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
+  const auto& metadata_values =
+      Array::Handle(Z, ImmutableArray::New(list_length, H.allocation_space()));
   Instance& value = Instance::Handle(Z);
   for (intptr_t i = 0; i < list_length; ++i) {
     // This will read the expression.
     value = ReadConstantExpression();
     metadata_values.SetAt(i, value);
   }
-  return metadata_values.raw();
+  return H.Canonicalize(metadata_values);
 }
 
 InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
@@ -81,7 +81,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   // must be locked since mutator and background compiler can
   // access the array at the same time.
   {
-    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    SafepointMutexLocker ml(
+        H.thread()->isolate_group()->kernel_constants_mutex());
     KernelConstantsMap constant_map(H.info().constants());
     result_ ^= constant_map.GetOrNull(constant_offset);
     ASSERT(constant_map.Release().raw() == H.info().constants());
@@ -90,7 +91,8 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   // On miss, evaluate, and insert value.
   if (result_.IsNull()) {
     result_ = ReadConstantInternal(constant_offset);
-    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    SafepointMutexLocker ml(
+        H.thread()->isolate_group()->kernel_constants_mutex());
     KernelConstantsMap constant_map(H.info().constants());
     auto insert = constant_map.InsertNewOrGetValue(constant_offset, result_);
     ASSERT(insert == result_.raw());
@@ -231,7 +233,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
             "%s is not loaded yet.",
             klass.ToCString());
       }
-      const auto& obj = Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));
+      const auto& obj =
+          Object::Handle(Z, klass.EnsureIsAllocateFinalized(H.thread()));
       ASSERT(obj.IsNull());
       ASSERT(klass.is_enum_class() || klass.is_const());
       instance = Instance::New(klass, Heap::kOld);

@@ -626,9 +626,6 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
-    // Redirecting factory must be resolved.
-    ASSERT(!function.IsRedirectingFactory() ||
-           function.RedirectionTarget() != Function::null());
     return function.raw();
   }
 }
@@ -1084,6 +1081,10 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       kind_ = static_cast<Kind>(helper_->ReadByte());
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kStubKind:
+      stub_kind_ = static_cast<StubKind>(helper_->ReadByte());
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kFlags:
       flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
@@ -1100,16 +1101,12 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
       FALL_THROUGH;
-    case kForwardingStubSuperTarget:
-      forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    case kForwardingStubInterfaceTarget:
-      helper_->ReadCanonicalNameReference();
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    case kMemberSignatureTarget:
-      helper_->ReadCanonicalNameReference();
+    case kStubTarget:
+      if (stub_kind_ == kForwardingSuperStubKind) {
+        forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
+      } else {
+        helper_->ReadCanonicalNameReference();
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFunction:
@@ -2810,6 +2807,33 @@ String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index,
   return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
 }
 
+ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
+    intptr_t index) {
+  AlternativeReadingScope alt(&reader_);
+  SetOffset(GetOffsetForSourceInfo(index));
+  SkipBytes(ReadUInt());                         // skip uri.
+  SkipBytes(ReadUInt());                         // skip source.
+  const intptr_t line_start_count = ReadUInt();  // read number of line start
+                                                 // entries.
+  for (intptr_t i = 0; i < line_start_count; ++i) {
+    ReadUInt();
+  }
+
+  SkipBytes(ReadUInt());  // skip import uri.
+
+  intptr_t start_offset = ReaderOffset();
+
+  // Read past "constant coverage constructors".
+  const intptr_t constant_coverage_constructors = ReadUInt();
+  for (intptr_t i = 0; i < constant_coverage_constructors; ++i) {
+    ReadUInt();
+  }
+
+  intptr_t end_offset = ReaderOffset();
+
+  return reader_.ExternalDataFromTo(start_offset, end_offset);
+}
+
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
   ASSERT(member != NULL);
   if (member->IsFactory()) {
@@ -3338,20 +3362,9 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
 
-    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
-    // by the frontend.
     parameter ^= type_parameters.TypeAt(i);
-    const Tag tag = helper_->PeekTag();  // peek ith bound type.
-    if (tag == kDynamicType) {
-      helper_->SkipDartType();  // read ith bound.
-      parameter.set_bound(
-          Type::Handle(Z, nnbd_mode == NNBDMode::kOptedInLib
-                              ? I->object_store()->nullable_object_type()
-                              : I->object_store()->legacy_object_type()));
-    } else {
-      AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
-      parameter.set_bound(bound);
-    }
+    AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
+    parameter.set_bound(bound);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
     const AbstractType* default_arg = &Object::dynamic_type();
     if (helper_->ReadTag() == kSomething) {

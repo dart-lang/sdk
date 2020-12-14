@@ -235,11 +235,7 @@ Future<Null> analyzeUris(
   }
   Stopwatch sw = new Stopwatch()..start();
   Process process = await startDart(
-      analyzer,
-      const <String>["--batch"],
-      dartArguments
-        ..remove("-c")
-        ..add("-DuseFastaScanner=true"));
+      analyzer, const <String>["--batch"], dartArguments..remove("-c"));
   process.stdin.writeln(arguments.join(" "));
   process.stdin.close();
 

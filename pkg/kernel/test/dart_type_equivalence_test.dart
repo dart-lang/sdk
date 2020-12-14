@@ -169,8 +169,9 @@ areEqual(String type1, String type2,
     bool equateTopTypes = false,
     bool ignoreAllNullabilities = false,
     bool ignoreTopLevelNullability = false}) {
-  Env env = new Env("typedef Typedef<T> () -> T;\n")
-    ..extendWithTypeParameters(typeParameters);
+  Env env =
+      new Env("typedef Typedef<T> () -> T;\n", isNonNullableByDefault: true)
+        ..extendWithTypeParameters(typeParameters);
   DartType t1 = env.parseType(type1);
   DartType t2 = env.parseType(type2);
 
@@ -208,8 +209,9 @@ notEqual(String type1, String type2,
     bool equateTopTypes = false,
     bool ignoreAllNullabilities = false,
     bool ignoreTopLevelNullability = false}) {
-  Env env = new Env("typedef Typedef<T> () -> T;\n")
-    ..extendWithTypeParameters(typeParameters);
+  Env env =
+      new Env("typedef Typedef<T> () -> T;\n", isNonNullableByDefault: true)
+        ..extendWithTypeParameters(typeParameters);
   DartType t1 = env.parseType(type1);
   DartType t2 = env.parseType(type2);
 

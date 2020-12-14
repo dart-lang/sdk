@@ -113,6 +113,7 @@ bit1
 bit2
 bj
 bk
+blindly
 blob
 blocking
 bmp
@@ -244,6 +245,7 @@ corrections
 cosmetic
 counters
 covariances
+coverage
 cr
 creator
 criterion
@@ -546,6 +548,7 @@ inspired
 inst
 instanceof
 instantiator
+integrate
 intentionally
 interim
 interior
@@ -830,6 +833,7 @@ pow
 pragma
 pre
 prebuilt
+preexisted
 preexisting
 preorder
 prev
@@ -1062,6 +1066,7 @@ stdlib
 stdout
 sticky
 stmt
+stopped
 str
 strategies
 streak

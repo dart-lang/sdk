@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
@@ -484,12 +485,12 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
               kind: ElementKindUtilities.fromName(_kind),
               components: components ?? ['C', 'm']),
           bulkApply: false,
-          changes: [
+          changesSelector: UnconditionalChangesSelector([
             AddTypeParameter(
                 index: index,
                 name: 'T',
                 extendedType:
                     extendedType == null ? null : codeTemplate(extendedType),
                 argumentValue: codeTemplate('String')),
-          ]);
+          ]));
 }

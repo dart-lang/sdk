@@ -4,8 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
@@ -29,7 +32,7 @@ class TransformSetParserTest extends AbstractTransformSetParserTest {
   List<Uri> get uris => [Uri.parse('package:myPackage/test.dart')];
 
   void test_addParameter_optionalNamed() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -53,8 +56,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -70,7 +74,7 @@ transforms:
   }
 
   void test_addParameter_optionalPositional() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -83,13 +87,16 @@ transforms:
       index: 0
       name: 'p'
       style: optional_positional
+      argumentValue:
+        expression: ''
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -100,7 +107,7 @@ transforms:
   }
 
   void test_addParameter_requiredNamed() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -124,8 +131,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -141,7 +149,7 @@ transforms:
   }
 
   void test_addParameter_requiredPositional() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -165,8 +173,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -182,7 +191,7 @@ transforms:
   }
 
   void test_addParameter_requiredPositional_complexTemplate() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -209,8 +218,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as AddParameter;
@@ -231,7 +241,7 @@ transforms:
   }
 
   void test_addTypeParameter_fromImportedName() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - date: 2020-09-03
@@ -256,8 +266,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as AddTypeParameter;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
     var components = change.argumentValue.components;
@@ -268,7 +279,7 @@ transforms:
   }
 
   void test_addTypeParameter_fromNamedArgument() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -292,8 +303,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as AddTypeParameter;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
     expect(change.extendedType, null);
@@ -306,7 +318,7 @@ transforms:
   }
 
   void test_addTypeParameter_fromPositionalArgument() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -332,8 +344,53 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as AddTypeParameter;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
+    expect(change.index, 0);
+    expect(change.name, 'T');
+
+    var extendsComponents = change.extendedType.components;
+    expect(extendsComponents, hasLength(1));
+    expect((extendsComponents[0] as TemplateText).text, 'Object');
+
+    var argumentComponents = change.argumentValue.components;
+    expect(argumentComponents, hasLength(1));
+    var value = _accessor(argumentComponents[0]) as ArgumentAccessor;
+    var parameter = value.parameter as PositionalParameterReference;
+    expect(parameter.index, 2);
+  }
+
+  void test_addTypeParameter_fromPositionalArgument_variableInOuterScope() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-03
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      extends:
+        expression: 'Object'
+      argumentValue:
+        expression: '{% t %}'
+  variables:
+    t:
+      kind: 'fragment'
+      value: 'arguments[2]'
+''');
+    var transforms = _transforms('A');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
 
@@ -349,7 +406,7 @@ transforms:
   }
 
   void test_bulkApply() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -365,7 +422,7 @@ transforms:
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
     expect(transform.bulkApply, false);
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_correctOffsetForPlainStrings() {
@@ -396,7 +453,7 @@ transforms:
   }
 
   void test_date() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -410,11 +467,11 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_getter_inMixin() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -429,11 +486,11 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_getter_topLevel() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -447,11 +504,11 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_method_inClass() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename m'
@@ -466,11 +523,11 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename m');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_element_variable() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename v'
@@ -484,32 +541,30 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename v');
-    expect(transform.changes, isEmpty);
+    expect(_changes(transform), isEmpty);
   }
 
   void test_incomplete() {
-    parse('''
+    assertErrors('''
 version: 1
 transforms:
-''');
-    expect(result, null);
-    errorListener.assertErrors([
+''', [
       error(TransformSetErrorCode.invalidValue, 21, 0),
     ]);
+    expect(result, null);
   }
 
   void test_invalidYaml() {
-    parse('''
+    assertErrors('''
 [
-''');
-    expect(result, null);
-    errorListener.assertErrors([
+''', [
       error(TransformSetErrorCode.yamlSyntaxError, 2, 0),
     ]);
+    expect(result, null);
   }
 
   void test_removeParameter_named() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Remove'
@@ -525,8 +580,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as RemoveParameter;
@@ -535,7 +591,7 @@ transforms:
   }
 
   void test_removeParameter_positional() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Remove'
@@ -551,8 +607,9 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
-    expect(transform.changes, hasLength(1));
-    var change = transform.changes[0] as ModifyParameters;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
     var modifications = change.modifications;
     expect(modifications, hasLength(1));
     var modification = modifications[0] as RemoveParameter;
@@ -561,7 +618,7 @@ transforms:
   }
 
   void test_rename() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -578,14 +635,98 @@ transforms:
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename A');
-    expect(transform.changes, hasLength(1));
-    var rename = transform.changes[0] as Rename;
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var rename = changes[0] as Rename;
     expect(rename.newName, 'B');
+  }
+
+  void test_rename_oneOf() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Rename A'
+  date: 2020-08-21
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  oneOf:
+    - if: "'a' == 'b'"
+      changes:
+        - kind: 'rename'
+          newName: 'B'
+''');
+    var transforms = _transforms('A');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename A');
+    var selector = transform.changesSelector as ConditionalChangesSelector;
+    var changeMap = selector.changeMap;
+    expect(changeMap, hasLength(1));
+    var condition = changeMap.keys.first as BinaryExpression;
+    expect((condition.leftOperand as LiteralString).value, 'a');
+    expect(condition.operator, Operator.equal);
+    expect((condition.rightOperand as LiteralString).value, 'b');
+    var changes = changeMap[condition];
+    expect(changes, hasLength(1));
+    var rename = changes[0] as Rename;
+    expect(rename.newName, 'B');
+  }
+
+  void test_requiredIf() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-09
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'p'
+      style: optional_named
+      argumentValue:
+        expression: '{% p %}'
+        requiredIf: "p != ''"
+        variables:
+          p:
+            kind: 'fragment'
+            value: 'arguments[1]'
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as AddParameter;
+    expect(modification.index, 0);
+    expect(modification.name, 'p');
+    expect(modification.isRequired, false);
+    expect(modification.isPositional, false);
+    var argumentValue = modification.argumentValue;
+    expect(argumentValue.requiredIfCondition, isNotNull);
+    var components = argumentValue.components;
+    expect(components, hasLength(1));
+    var value = _accessor(components[0]) as ArgumentAccessor;
+    var parameter = value.parameter as PositionalParameterReference;
+    expect(parameter.index, 1);
   }
 
   /// Return the first accessor from the given [component].
   Accessor _accessor(TemplateComponent component) =>
       ((component as TemplateVariable).generator as CodeFragment).accessors[0];
+
+  /// Assuming that the [transform] has a single list of changes associated with
+  /// it, return the list of changes.
+  List<Change> _changes(Transform transform) =>
+      (transform.changesSelector as UnconditionalChangesSelector).changes;
 
   ElementMatcher _matcher(String name) =>
       ElementMatcher(importedUris: uris, name: name);

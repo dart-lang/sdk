@@ -170,7 +170,7 @@ abstract class Iterable<E> {
   Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
 
   /**
-   * Returns the lazy concatentation of this iterable and [other].
+   * Returns the lazy concatenation of this iterable and [other].
    *
    * The returned iterable will provide the same elements as this iterable,
    * and, after that, the elements of [other], in the same order as in the

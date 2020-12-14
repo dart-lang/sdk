@@ -461,7 +461,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       _extensionThis = result.positionalParameters.first;
       if (extensionBuilder.typeParameters != null) {
         int count = extensionBuilder.typeParameters.length;
-        _extensionTypeParameters = new List<TypeParameter>(count);
+        _extensionTypeParameters = new List<TypeParameter>.filled(count, null);
         for (int index = 0; index < count; index++) {
           _extensionTypeParameters[index] = result.typeParameters[index];
         }

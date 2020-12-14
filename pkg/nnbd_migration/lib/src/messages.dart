@@ -12,8 +12,6 @@ const String sdkNnbdOff = 'Analysis seems to have an SDK without NNBD enabled.';
 const String sdkPathEnvironmentVariableSet =
     r'Note: $SDK_PATH environment variable is set and may point to outdated '
     'dart:core sources';
-const String _skipImportCheckFlag =
-    '--${CommandLineOptions.skipImportCheckFlag}';
 const String unmigratedDependenciesWarning = '''
 Warning: package has unmigrated dependencies.
 
@@ -21,6 +19,8 @@ Continuing due to the presence of `$_skipImportCheckFlag`.  To see a complete
 list of the unmigrated dependencies, re-run without the `$_skipImportCheckFlag`
 flag.
 ''';
+const String _skipImportCheckFlag =
+    '--${CommandLineOptions.skipImportCheckFlag}';
 
 String unmigratedDependenciesError(List<String> uris) => '''
 Error: package has unmigrated dependencies.

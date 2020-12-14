@@ -7,7 +7,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static method foo() → dynamic {}
 }
 
-And 19 platform libraries:
+And 18 platform libraries:
  - dart:_http
  - dart:_builtin
  - dart:vmservice_io
@@ -26,4 +26,3 @@ And 19 platform libraries:
  - dart:mirrors
  - dart:typed_data
  - dart:_vmservice
- - dart:wasm

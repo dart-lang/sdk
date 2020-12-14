@@ -58,6 +58,7 @@ namespace dart {
   V(RawReceivePortImpl_get_id, 1)                                              \
   V(RawReceivePortImpl_get_sendport, 1)                                        \
   V(RawReceivePortImpl_closeInternal, 1)                                       \
+  V(RawReceivePortImpl_setActive, 2)                                           \
   V(SendPortImpl_get_id, 1)                                                    \
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
@@ -161,9 +162,6 @@ namespace dart {
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 4)                                          \
   V(Async_rethrow, 2)                                                          \
-  V(StackTrace_asyncStackTraceHelper, 1)                                       \
-  V(StackTrace_clearAsyncThreadStackTrace, 0)                                  \
-  V(StackTrace_setAsyncThreadStackTrace, 1)                                    \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
@@ -357,8 +355,8 @@ namespace dart {
   V(LinkedHashMap_setUsedData, 2)                                              \
   V(LinkedHashMap_getDeletedKeys, 1)                                           \
   V(LinkedHashMap_setDeletedKeys, 2)                                           \
-  V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
+  V(WeakProperty_setKey, 2)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
   V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
@@ -420,20 +418,7 @@ namespace dart {
   V(DartApiDLMinorVersion, 0)                                                  \
   V(DartNativeApiFunctionPointer, 1)                                           \
   V(TransferableTypedData_factory, 2)                                          \
-  V(TransferableTypedData_materialize, 1)                                      \
-  V(Wasm_initModule, 2)                                                        \
-  V(Wasm_describeModule, 1)                                                    \
-  V(Wasm_initImports, 1)                                                       \
-  V(Wasm_addMemoryImport, 4)                                                   \
-  V(Wasm_addGlobalImport, 6)                                                   \
-  V(Wasm_addFunctionImport, 5)                                                 \
-  V(Wasm_initMemory, 3)                                                        \
-  V(Wasm_growMemory, 2)                                                        \
-  V(Wasm_initInstance, 3)                                                      \
-  V(Wasm_initMemoryFromInstance, 2)                                            \
-  V(Wasm_getMemoryPages, 1)                                                    \
-  V(Wasm_initFunction, 4)                                                      \
-  V(Wasm_callFunction, 2)
+  V(TransferableTypedData_materialize, 1)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \

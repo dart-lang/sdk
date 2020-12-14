@@ -46,7 +46,6 @@ static method getNull() → dynamic
 static method getStreamNull() → asy::Stream<dynamic> /* originally async* */ {
   asy::_AsyncStarStreamController<dynamic>? :controller;
   dynamic :controller_stream;
-  dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
@@ -71,7 +70,6 @@ static method getStreamNull() → asy::Stream<dynamic> /* originally async* */ {
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
     }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
@@ -81,7 +79,6 @@ static method getStreamNull() → asy::Stream<dynamic> /* originally async* */ {
 static method getStreamBool() → asy::Stream<core::bool> /* originally async* */ {
   asy::_AsyncStarStreamController<core::bool>? :controller;
   dynamic :controller_stream;
-  dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
@@ -106,7 +103,6 @@ static method getStreamBool() → asy::Stream<core::bool> /* originally async* *
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
     }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -116,7 +112,6 @@ static method getStreamBool() → asy::Stream<core::bool> /* originally async* *
 static method test1() → asy::Stream<core::bool> /* originally async* */ {
   asy::_AsyncStarStreamController<core::bool>? :controller;
   dynamic :controller_stream;
-  dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
@@ -141,7 +136,6 @@ static method test1() → asy::Stream<core::bool> /* originally async* */ {
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
     }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -155,7 +149,6 @@ static method test3() → core::bool
 static method test4() → asy::Stream<core::bool> /* originally async* */ {
   asy::_AsyncStarStreamController<core::bool>? :controller;
   dynamic :controller_stream;
-  dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
@@ -183,7 +176,6 @@ static method test4() → asy::Stream<core::bool> /* originally async* */ {
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
     }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -200,7 +192,6 @@ static method test6() → asy::Stream<core::bool>
 static method test7() → asy::Stream<core::bool> /* originally async* */ {
   asy::_AsyncStarStreamController<core::bool>? :controller;
   dynamic :controller_stream;
-  dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
@@ -225,7 +216,6 @@ static method test7() → asy::Stream<core::bool> /* originally async* */ {
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
     }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -236,7 +226,6 @@ static method test() → dynamic /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
   core::bool* :is_sync = false;
   FutureOr<dynamic>? :return_value;
-  dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
@@ -248,7 +237,6 @@ static method test() → dynamic /* originally async */ {
         function test1() → asy::Stream<core::bool> /* originally async* */ {
           asy::_AsyncStarStreamController<core::bool>? :controller;
           dynamic :controller_stream;
-          dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
@@ -273,7 +261,6 @@ static method test() → dynamic /* originally async */ {
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
             }
-          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -287,7 +274,6 @@ static method test() → dynamic /* originally async */ {
         function test4() → asy::Stream<core::bool> /* originally async* */ {
           asy::_AsyncStarStreamController<core::bool>? :controller;
           dynamic :controller_stream;
-          dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
@@ -315,7 +301,6 @@ static method test() → dynamic /* originally async */ {
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
             }
-          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -332,7 +317,6 @@ static method test() → dynamic /* originally async */ {
         function test7() → asy::Stream<core::bool> /* originally async* */ {
           asy::_AsyncStarStreamController<core::bool>? :controller;
           dynamic :controller_stream;
-          dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
@@ -357,7 +341,6 @@ static method test() → dynamic /* originally async */ {
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
             }
-          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -370,7 +353,6 @@ static method test() → dynamic /* originally async */ {
     ^" in (() → asy::Stream<dynamic> /* originally async* */ {
           asy::_AsyncStarStreamController<dynamic>? :controller;
           dynamic :controller_stream;
-          dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
@@ -395,7 +377,6 @@ static method test() → dynamic /* originally async */ {
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
             }
-          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
@@ -410,7 +391,6 @@ static method test() → dynamic /* originally async */ {
     ^" in (() → asy::Stream<dynamic> /* originally async* */ {
           asy::_AsyncStarStreamController<dynamic>? :controller;
           dynamic :controller_stream;
-          dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
@@ -435,7 +415,6 @@ static method test() → dynamic /* originally async */ {
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
             }
-          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
@@ -450,7 +429,6 @@ static method test() → dynamic /* originally async */ {
         asy::Stream<core::bool> var7 = (() → asy::Stream<core::bool> /* originally async* */ {
           asy::_AsyncStarStreamController<core::bool>? :controller;
           dynamic :controller_stream;
-          dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
@@ -475,7 +453,6 @@ static method test() → dynamic /* originally async */ {
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
             }
-          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
@@ -489,7 +466,6 @@ static method test() → dynamic /* originally async */ {
     on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
       asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
     }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   :async_op.call();

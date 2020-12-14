@@ -1,0 +1,15 @@
+M(xmm0 double, xmm1 double) Compound(size: 16)
+xmm2 float
+M(xmm3 double, xmm4 double) Compound(size: 16)
+M(xmm5 double, xmm6 double) Compound(size: 16)
+S+0 Compound(size: 16)
+S+16 Compound(size: 16)
+S+32 Compound(size: 16)
+S+48 Compound(size: 16)
+S+64 Compound(size: 16)
+S+80 Compound(size: 16)
+xmm7 float
+rdi int32[int8]
+S+96 Compound(size: 16)
+=>
+M(xmm0 double, xmm1 double) Compound(size: 16)

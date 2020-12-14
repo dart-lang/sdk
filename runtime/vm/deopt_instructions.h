@@ -27,7 +27,7 @@ class TimelineEvent;
 
 // Holds all data relevant for execution of deoptimization instructions.
 // Structure is allocated in C-heap.
-class DeoptContext {
+class DeoptContext : public MallocAllocated {
  public:
   enum DestFrameOptions {
     kDestIsOriginalFrame,  // Replace the original frame with deopt frame.

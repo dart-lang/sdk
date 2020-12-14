@@ -4,6 +4,7 @@
 
 #include "vm/base64.h"
 
+#include "platform/allocation.h"
 #include "vm/os.h"
 
 namespace dart {

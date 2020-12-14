@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:vm/metadata/procedure_attributes.dart';
+import 'package:vm/transformations/pragma.dart';
 import 'package:vm/transformations/type_flow/analysis.dart';
 import 'package:vm/transformations/type_flow/calls.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
@@ -199,18 +200,11 @@ class UnboxingInfoManager {
     // have boxed parameters and return values.
     return _isNative(member) ||
         _nativeCodeOracle.isMemberReferencedFromNativeCode(member) ||
-        _isEnclosingClassSubtypeOfNum(member);
+        _nativeCodeOracle.isRecognized(member, const [
+          PragmaRecognizedType.AsmIntrinsic,
+          PragmaRecognizedType.Other
+        ]);
   }
 
   bool _isNative(Member member) => getExternalName(member) != null;
-
-  // TODO(dartbug.com/33549): Calls to these methods could be replaced by
-  // CheckedSmiOpInstr, so in order to allow the parameters and return
-  // value to be unboxed, the slow path for such instructions should be
-  // updated to be consistent with the representations from the target interface.
-  bool _isEnclosingClassSubtypeOfNum(Member member) {
-    return (member.enclosingClass != null &&
-        ConeType(_typeHierarchy.getTFClass(member.enclosingClass))
-            .isSubtypeOf(_typeHierarchy, _coreTypes.numClass));
-  }
 }

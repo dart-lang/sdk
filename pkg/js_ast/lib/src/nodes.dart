@@ -444,6 +444,8 @@ abstract class Node {
 
   bool get isCommaOperator => false;
 
+  bool get isFinalized => true;
+
   Statement toStatement() {
     throw new UnsupportedError('toStatement');
   }
@@ -1004,6 +1006,9 @@ class LiteralStringFromName extends LiteralString {
   Name name;
 
   LiteralStringFromName(this.name) : super(null);
+
+  @override
+  bool get isFinalized => name.isFinalized;
 
   String get value => '"${name.name}"';
 

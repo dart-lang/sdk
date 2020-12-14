@@ -280,7 +280,7 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   if (typeParameterCount != bTypeParameters.length) return false;
   Substitution substitution;
   if (typeParameterCount != 0) {
-    List<DartType> types = new List<DartType>(typeParameterCount);
+    List<DartType> types = new List<DartType>.filled(typeParameterCount, null);
     for (int i = 0; i < typeParameterCount; i++) {
       types[i] = new TypeParameterType.forAlphaRenaming(
           bTypeParameters[i], aTypeParameters[i]);
@@ -790,7 +790,8 @@ class ClassHierarchyNodeBuilder {
           }
           Substitution methodSubstitution;
           if (typeParameterCount != 0) {
-            List<DartType> types = new List<DartType>(typeParameterCount);
+            List<DartType> types =
+                new List<DartType>.filled(typeParameterCount, null);
             for (int i = 0; i < typeParameterCount; i++) {
               types[i] = new TypeParameterType.forAlphaRenaming(
                   overriddenTypeParameters[i], declaredTypeParameters[i]);
@@ -1265,7 +1266,7 @@ class ClassHierarchyNodeBuilder {
             norm(hierarchy.coreTypes, inheritedType));
       }
     } else {
-      inheritedType = legacyErasure(hierarchy.coreTypes, inheritedType);
+      inheritedType = legacyErasure(inheritedType);
       if (inferredType == null) {
         return inheritedType;
       } else {
@@ -1682,13 +1683,14 @@ class ClassHierarchyNodeBuilder {
     bool hasInterfaces = false;
     if (supernode == null) {
       // This should be Object.
-      superclasses = new List<Supertype>(0);
-      interfaces = new List<Supertype>(0);
+      superclasses = new List<Supertype>.filled(0, null);
+      interfaces = new List<Supertype>.filled(0, null);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
 
-      superclasses = new List<Supertype>(supernode.superclasses.length + 1);
+      superclasses =
+          new List<Supertype>.filled(supernode.superclasses.length + 1, null);
       Supertype supertype = classBuilder.supertypeBuilder.buildSupertype(
           classBuilder.library, classBuilder.charOffset, classBuilder.fileUri);
       if (supertype == null) {
@@ -1703,8 +1705,7 @@ class ClassHierarchyNodeBuilder {
       if (!classBuilder.library.isNonNullableByDefault &&
           supernode.classBuilder.library.isNonNullableByDefault) {
         for (int i = 0; i < superclasses.length; i++) {
-          superclasses[i] =
-              legacyErasureSupertype(hierarchy.coreTypes, superclasses[i]);
+          superclasses[i] = legacyErasureSupertype(superclasses[i]);
         }
       }
 
@@ -2329,9 +2330,10 @@ class ClassHierarchyNodeBuilder {
       substitutions[cls] = Substitution.empty;
     } else {
       List<DartType> arguments = supertype.typeArguments;
-      List<DartType> typeArguments = new List<DartType>(arguments.length);
+      List<DartType> typeArguments =
+          new List<DartType>.filled(arguments.length, null);
       List<TypeParameter> typeParameters =
-          new List<TypeParameter>(arguments.length);
+          new List<TypeParameter>.filled(arguments.length, null);
       for (int i = 0; i < arguments.length; i++) {
         typeParameters[i] = supertypeTypeParameters[i];
         typeArguments[i] = arguments[i];
@@ -2377,7 +2379,7 @@ class ClassHierarchyNodeBuilder {
       Supertype type) {
     if (type == null) return null;
     if (!classBuilder.library.isNonNullableByDefault) {
-      type = legacyErasureSupertype(hierarchy.coreTypes, type);
+      type = legacyErasureSupertype(type);
     }
     ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
     if (node == null) return null;
@@ -2475,7 +2477,7 @@ class ClassHierarchyNodeBuilder {
                 mixedInType.classNode.typeParameters, cls.enclosingLibrary))
         .infer(cls);
     List<TypeBuilder> inferredArguments =
-        new List<TypeBuilder>(typeArguments.length);
+        new List<TypeBuilder>.filled(typeArguments.length, null);
     for (int i = 0; i < typeArguments.length; i++) {
       inferredArguments[i] =
           hierarchy.loader.computeTypeBuilder(typeArguments[i]);
@@ -2558,8 +2560,8 @@ class ClassHierarchyNode {
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(
       ClassHierarchyBuilder hierarchy) {
-    List<ClassHierarchyNode> result = new List<ClassHierarchyNode>(
-        1 + superclasses.length + interfaces.length);
+    List<ClassHierarchyNode> result = new List<ClassHierarchyNode>.filled(
+        1 + superclasses.length + interfaces.length, null);
     for (int i = 0; i < superclasses.length; i++) {
       Supertype type = superclasses[i];
       result[i] = hierarchy.getNodeFromClass(type.classNode);

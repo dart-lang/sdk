@@ -61,7 +61,7 @@ void _benchmarkAstFromBinary(Uint8List bytes, {bool eager: true}) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs = new List<int>(benchmarkIterations);
+  final runsUs = new List<int>.filled(benchmarkIterations, null);
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _fromBinary(bytes, eager: eager);
@@ -85,7 +85,7 @@ void _benchmarkAstToBinary(Uint8List bytes) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs = new List<int>(benchmarkIterations);
+  final runsUs = new List<int>.filled(benchmarkIterations, null);
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _toBinary(p);

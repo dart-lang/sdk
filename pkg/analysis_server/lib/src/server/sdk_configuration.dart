@@ -61,9 +61,6 @@ class SdkConfiguration {
   /// Returns whether this SDK configuration has any configured values.
   bool get hasAnyOverrides => _values.isNotEmpty;
 
-  /// Return an override value for the analysis server's ML model file path.
-  String get mlModelPath => _values['server.ml.model.path'];
-
   @override
   String toString() => displayString;
 

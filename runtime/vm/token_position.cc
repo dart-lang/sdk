@@ -27,12 +27,12 @@ bool TokenPosition::IsSynthetic() const {
 }
 
 #define DEFINE_VALUES(name, value)                                             \
-  const TokenPosition TokenPosition::k##name = TokenPosition(value);
+  const TokenPosition TokenPosition::k##name(value);
 SENTINEL_TOKEN_DESCRIPTORS(DEFINE_VALUES);
 #undef DEFINE_VALUES
-const TokenPosition TokenPosition::kMinSource = TokenPosition(kMinSourcePos);
+const TokenPosition TokenPosition::kMinSource(kMinSourcePos);
 
-const TokenPosition TokenPosition::kMaxSource = TokenPosition(kMaxSourcePos);
+const TokenPosition TokenPosition::kMaxSource(kMaxSourcePos);
 
 const char* TokenPosition::ToCString() const {
   switch (value_) {

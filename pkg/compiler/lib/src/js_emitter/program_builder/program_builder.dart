@@ -250,7 +250,8 @@ class ProgramBuilder {
     Iterable<Fragment> deferredFragments =
         _registry.deferredLibrariesMap.map(_buildDeferredFragment);
 
-    List<Fragment> fragments = new List<Fragment>(_registry.librariesMapCount);
+    List<Fragment> fragments =
+        new List<Fragment>.filled(_registry.librariesMapCount, null);
     fragments[0] = mainFragment;
     fragments.setAll(1, deferredFragments);
 
@@ -480,7 +481,8 @@ class ProgramBuilder {
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {
-    List<Library> libraries = new List<Library>(librariesMap.length);
+    List<Library> libraries =
+        new List<Library>.filled(librariesMap.length, null);
     int count = 0;
     librariesMap.forEach((LibraryEntity library, List<ClassEntity> classes,
         List<MemberEntity> members, List<ClassEntity> classTypeElements) {

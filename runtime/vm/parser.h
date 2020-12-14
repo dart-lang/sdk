@@ -237,6 +237,9 @@ class ParsedFunction : public ZoneAllocated {
   // Variables needed for the InvokeFieldDispatcher for dynamic closure calls,
   // because they are both read and written to by the builders.
   struct DynamicClosureCallVars : ZoneAllocated {
+    DynamicClosureCallVars(Zone* zone, intptr_t num_named)
+        : named_argument_parameter_indices(zone, num_named) {}
+
 #define FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(V)                              \
   V(current_function, Function, CurrentFunction)                               \
   V(current_num_processed, Smi, CurrentNumProcessed)                           \
@@ -246,6 +249,10 @@ class ParsedFunction : public ZoneAllocated {
 #define DEFINE_FIELD(Name, _, __) LocalVariable* Name = nullptr;
     FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(DEFINE_FIELD)
 #undef DEFINE_FIELD
+
+    // An array of local variables, one for each named parameter in the
+    // saved arguments descriptor.
+    ZoneGrowableArray<LocalVariable*> named_argument_parameter_indices;
   };
 
   DynamicClosureCallVars* dynamic_closure_call_vars() const {

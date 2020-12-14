@@ -12,4 +12,5 @@ environment:
   sdk: '>=2.0.0'
 
 dependencies:
-  meta: any
+  meta:
+    path: ../meta

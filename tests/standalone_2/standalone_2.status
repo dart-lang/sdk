@@ -72,6 +72,7 @@ regress_29350_test: Skip
 
 [ $system != macos ]
 io/https_nonblocking_trust_evaluation_test: SkipByDesign
+io/https_connection_closed_during_handshake_test: SkipByDesign # long_ssl_cert_evaluation needed for long handshake is only supported on mac.
 
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618

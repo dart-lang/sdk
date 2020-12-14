@@ -122,7 +122,7 @@ main(List<String> args) async {
 
   c = null;
 
-  List<Uri> diffs = new List<Uri>();
+  List<Uri> diffs = <Uri>[];
   Set<Uri> componentUris = new Set<Uri>();
 
   Stopwatch localStopwatch = new Stopwatch()..start();

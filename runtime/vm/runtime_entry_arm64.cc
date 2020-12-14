@@ -73,8 +73,8 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ str(TMP, compiler::Address(THR, Thread::vm_tag_offset()));
     __ mov(SP, kCallLeafRuntimeCalleeSaveScratch2);
     __ mov(CSP, kCallLeafRuntimeCalleeSaveScratch1);
-    ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);
-    ASSERT((kAbiPreservedCpuRegs & (1 << PP)) != 0);
+    COMPILE_ASSERT(IsAbiPreservedRegister(THR));
+    COMPILE_ASSERT(IsAbiPreservedRegister(PP));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

@@ -32,8 +32,8 @@ extension Extension on exp::Class* {
   method method = exp::Extension|method;
   tearoff method = exp::Extension|get#method;
 }
-static method Extension|method(final exp::Class* #this) → dynamic {}
-static method Extension|get#method(final exp::Class* #this) → () →* dynamic
+static method Extension|method(lowered final exp::Class* #this) → dynamic {}
+static method Extension|get#method(lowered final exp::Class* #this) → () →* dynamic
   return () → dynamic => exp::Extension|method(#this);
 
 library;

@@ -1141,8 +1141,8 @@ class DwarfElfStream : public DwarfWriteStream {
                                     intptr_t offset2) {
     auto const address1 = RelocatedAddress(symbol1, offset1);
     auto const address2 = RelocatedAddress(symbol2, offset2);
+    RELEASE_ASSERT(address1 >= address2);
     auto const delta = address1 - address2;
-    RELEASE_ASSERT(delta >= 0);
     uleb128(delta);
   }
   void InitializeAbstractOrigins(intptr_t size) {

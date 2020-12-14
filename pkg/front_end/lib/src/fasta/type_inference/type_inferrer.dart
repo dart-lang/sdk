@@ -1644,17 +1644,13 @@ class TypeInferrerImpl implements TypeInferrer {
       VariableDeclarationImpl variable) {
     assert(variable.isImplicitlyTyped);
     assert(variable.initializer != null);
-    ExpressionInferenceResult result = inferExpression(
+    ExpressionInferenceResult result = inferNullAwareExpression(
         variable.initializer, const UnknownType(), true,
         isVoidAllowed: true);
-    Link<NullAwareGuard> nullAwareGuards;
-    if (isNonNullableByDefault) {
-      variable.initializer = result.nullAwareAction..parent = variable;
-      nullAwareGuards = result.nullAwareGuards;
-    } else {
-      variable.initializer = result.expression..parent = variable;
-      nullAwareGuards = const Link<NullAwareGuard>();
-    }
+
+    Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
+    variable.initializer = result.nullAwareAction..parent = variable;
+
     DartType inferredType =
         inferDeclarationType(result.inferredType, forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
@@ -1713,7 +1709,7 @@ class TypeInferrerImpl implements TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
-  ExpressionInferenceResult inferExpression(
+  ExpressionInferenceResult _inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed: false, bool forEffect: false}) {
     registerIfUnreachableForTesting(expression);
@@ -1768,6 +1764,28 @@ class TypeInferrerImpl implements TypeInferrer {
     return result;
   }
 
+  ExpressionInferenceResult inferExpression(
+      Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed: false, bool forEffect: false}) {
+    ExpressionInferenceResult result = _inferExpression(
+        expression, typeContext, typeNeeded,
+        isVoidAllowed: isVoidAllowed, forEffect: forEffect);
+    return result.stopShorting();
+  }
+
+  ExpressionInferenceResult inferNullAwareExpression(
+      Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed: false, bool forEffect: false}) {
+    ExpressionInferenceResult result = _inferExpression(
+        expression, typeContext, typeNeeded,
+        isVoidAllowed: isVoidAllowed, forEffect: forEffect);
+    if (isNonNullableByDefault) {
+      return result;
+    } else {
+      return result.stopShorting();
+    }
+  }
+
   @override
   Expression inferFieldInitializer(
     InferenceHelper helper,
@@ -1816,7 +1834,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
-      bool isImplicitCall: false}) {
+      bool isImplicitCall: false,
+      Member staticTarget}) {
     int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
     if (extensionTypeParameterCount != 0) {
       return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
@@ -1836,7 +1855,8 @@ class TypeInferrerImpl implements TypeInferrer {
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
         isImplicitExtensionMember: isImplicitExtensionMember,
-        isImplicitCall: isImplicitCall);
+        isImplicitCall: isImplicitCall,
+        staticTarget: staticTarget);
   }
 
   InvocationInferenceResult _inferGenericExtensionMethodInvocation(
@@ -1852,7 +1872,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
-      bool isImplicitCall: false}) {
+      bool isImplicitCall: false,
+      Member staticTarget}) {
     FunctionType extensionFunctionType = new FunctionType(
         [calleeType.positionalParameters.first],
         const DynamicType(),
@@ -1869,7 +1890,8 @@ class TypeInferrerImpl implements TypeInferrer {
         skipTypeArgumentInference: skipTypeArgumentInference,
         receiverType: receiverType,
         isImplicitExtensionMember: isImplicitExtensionMember,
-        isImplicitCall: isImplicitCall);
+        isImplicitCall: isImplicitCall,
+        staticTarget: staticTarget);
     Substitution extensionSubstitution = Substitution.fromPairs(
         extensionFunctionType.typeParameters, extensionArguments.types);
 
@@ -1896,7 +1918,8 @@ class TypeInferrerImpl implements TypeInferrer {
         isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
-        isImplicitCall: isImplicitCall);
+        isImplicitCall: isImplicitCall,
+        staticTarget: staticTarget);
     arguments.positional.clear();
     arguments.positional.addAll(extensionArguments.positional);
     arguments.positional.addAll(targetArguments.positional);
@@ -1924,7 +1947,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
-      bool isImplicitCall}) {
+      bool isImplicitCall,
+      Member staticTarget}) {
     List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
     if (calleeTypeParameters.isNotEmpty) {
       // It's possible that one of the callee type parameters might match a type
@@ -1967,7 +1991,7 @@ class TypeInferrerImpl implements TypeInferrer {
       typeSchemaEnvironment.inferGenericFunctionOrType(
           isNonNullableByDefault
               ? calleeType.returnType
-              : legacyErasure(coreTypes, calleeType.returnType),
+              : legacyErasure(calleeType.returnType),
           calleeTypeParameters,
           null,
           null,
@@ -1986,6 +2010,8 @@ class TypeInferrerImpl implements TypeInferrer {
           new List<DartType>.filled(
               calleeTypeParameters.length, const DynamicType()));
     }
+    bool isIdentical =
+        staticTarget == typeSchemaEnvironment.coreTypes.identicalProcedure;
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
     for (int position = 0; position < arguments.positional.length; position++) {
@@ -2016,16 +2042,24 @@ class TypeInferrerImpl implements TypeInferrer {
             arguments.positional[position],
             isNonNullableByDefault
                 ? inferredFormalType
-                : legacyErasure(coreTypes, inferredFormalType),
+                : legacyErasure(inferredFormalType),
             inferenceNeeded ||
                 isSpecialCasedBinaryOperator ||
                 isSpecialCasedTernaryOperator ||
                 typeChecksNeeded);
         inferredType = result.inferredType == null || isNonNullableByDefault
             ? result.inferredType
-            : legacyErasure(coreTypes, result.inferredType);
+            : legacyErasure(result.inferredType);
         Expression expression =
             _hoist(result.expression, inferredType, hoistedExpressions);
+        if (isIdentical && arguments.positional.length == 2) {
+          if (position == 0) {
+            flowAnalysis?.equalityOp_rightBegin(expression, inferredType);
+          } else {
+            flowAnalysis?.equalityOp_end(
+                arguments.parent, expression, inferredType);
+          }
+        }
         arguments.positional[position] = expression..parent = arguments;
       }
       if (inferenceNeeded || typeChecksNeeded) {
@@ -2055,12 +2089,12 @@ class TypeInferrerImpl implements TypeInferrer {
           namedArgument.value,
           isNonNullableByDefault
               ? inferredFormalType
-              : legacyErasure(coreTypes, inferredFormalType),
+              : legacyErasure(inferredFormalType),
           inferenceNeeded || isSpecialCasedBinaryOperator || typeChecksNeeded);
       DartType inferredType =
           result.inferredType == null || isNonNullableByDefault
               ? result.inferredType
-              : legacyErasure(coreTypes, result.inferredType);
+              : legacyErasure(result.inferredType);
       Expression expression =
           _hoist(result.expression, inferredType, hoistedExpressions);
       namedArgument.value = expression..parent = namedArgument;
@@ -2198,7 +2232,7 @@ class TypeInferrerImpl implements TypeInferrer {
         "Inferred function type: $calleeType.");
 
     if (!isNonNullableByDefault) {
-      inferredType = legacyErasure(coreTypes, inferredType);
+      inferredType = legacyErasure(inferredType);
     }
 
     return new SuccessfulInferenceResult(inferredType);
@@ -3965,6 +3999,8 @@ class ExpressionInferenceResult {
 
   DartType get nullAwareActionType => inferredType;
 
+  ExpressionInferenceResult stopShorting() => this;
+
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
 
@@ -4045,24 +4081,26 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
   @override
   final Expression nullAwareAction;
 
-  Expression _expression;
-
   NullAwareExpressionInferenceResult(this.inferredType,
       this.nullAwareActionType, this.nullAwareGuards, this.nullAwareAction)
       : assert(nullAwareGuards.isNotEmpty),
         assert(nullAwareAction != null);
 
   Expression get expression {
-    if (_expression == null) {
-      _expression = nullAwareAction;
-      Link<NullAwareGuard> nullAwareGuard = nullAwareGuards;
-      while (nullAwareGuard.isNotEmpty) {
-        _expression =
-            nullAwareGuard.head.createExpression(inferredType, _expression);
-        nullAwareGuard = nullAwareGuard.tail;
-      }
+    throw new UnsupportedError('Shorting must be explicitly stopped before'
+        'accessing the expression result of a '
+        'NullAwareExpressionInferenceResult');
+  }
+
+  ExpressionInferenceResult stopShorting() {
+    Expression expression = nullAwareAction;
+    Link<NullAwareGuard> nullAwareGuard = nullAwareGuards;
+    while (nullAwareGuard.isNotEmpty) {
+      expression =
+          nullAwareGuard.head.createExpression(inferredType, expression);
+      nullAwareGuard = nullAwareGuard.tail;
     }
-    return _expression;
+    return new ExpressionInferenceResult(inferredType, expression);
   }
 
   String toString() =>

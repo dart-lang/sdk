@@ -416,7 +416,6 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_simple_instance_of_function(null_function);
       I->object_store()->set_simple_instance_of_true_function(null_function);
       I->object_store()->set_simple_instance_of_false_function(null_function);
-      I->object_store()->set_async_set_thread_stack_trace(null_function);
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
@@ -633,7 +632,6 @@ void Precompiler::ProcessFunction(const Function& function) {
   }
 
   ASSERT(!function.is_abstract());
-  ASSERT(!function.IsRedirectingFactory());
 
   error_ = CompileFunction(this, thread_, zone_, function);
   if (!error_.IsNull()) {
@@ -781,9 +779,6 @@ void Precompiler::AddTypesOf(const Class& cls) {
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
   if (functions_to_retain_.ContainsKey(function)) return;
-  // We don't expect to see a reference to a redirecting factory. Only its
-  // target should remain.
-  ASSERT(!function.IsRedirectingFactory());
   functions_to_retain_.Insert(function);
 
   AddTypeArguments(TypeArguments::Handle(Z, function.type_parameters()));
@@ -1127,7 +1122,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
   class_count_++;
   cls.set_is_allocated(true);
-  error_ = cls.EnsureIsFinalized(T);
+  error_ = cls.EnsureIsAllocateFinalized(T);
   if (!error_.IsNull()) {
     Jump(error_);
   }
@@ -2121,48 +2116,12 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 }
 
 void Precompiler::DropMetadata() {
-  Library& lib = Library::Handle(Z);
-  const GrowableObjectArray& null_growable_list =
-      GrowableObjectArray::Handle(Z);
-  Array& dependencies = Array::Handle(Z);
-  Namespace& ns = Namespace::Handle(Z);
-  const Field& null_field = Field::Handle(Z);
-  GrowableObjectArray& metadata = GrowableObjectArray::Handle(Z);
-  Field& metadata_field = Field::Handle(Z);
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
 
+  Library& lib = Library::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
-    metadata ^= lib.metadata();
-    for (intptr_t j = 0; j < metadata.Length(); j++) {
-      metadata_field ^= metadata.At(j);
-      if (metadata_field.is_static()) {
-        // Although this field will become garbage after clearing the list
-        // below, we also need to clear its value from the field table.
-        // The value may be an instance of an otherwise dead class, and if
-        // it remains in the field table we can get an instance on the heap
-        // with a deleted class.
-        metadata_field.SetStaticValue(Object::null_instance(),
-                                      /*save_initial_value=*/true);
-      }
-    }
-
-    lib.set_metadata(null_growable_list);
-
-    dependencies = lib.imports();
-    for (intptr_t j = 0; j < dependencies.Length(); j++) {
-      ns ^= dependencies.At(j);
-      if (!ns.IsNull()) {
-        ns.set_metadata_field(null_field);
-      }
-    }
-
-    dependencies = lib.exports();
-    for (intptr_t j = 0; j < dependencies.Length(); j++) {
-      ns ^= dependencies.At(j);
-      if (!ns.IsNull()) {
-        ns.set_metadata_field(null_field);
-      }
-    }
+    lib.set_metadata(Array::null_array());
   }
 }
 

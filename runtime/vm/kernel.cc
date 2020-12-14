@@ -347,6 +347,36 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   script.set_debug_positions(array_object);
 }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  interesting_script.LookupSourceAndLineStarts(zone);
+  TranslationHelper helper(thread);
+  helper.InitFromScript(interesting_script);
+
+  ExternalTypedData& data =
+      ExternalTypedData::Handle(zone, interesting_script.constant_coverage());
+
+  KernelReaderHelper kernel_reader(zone, &helper, interesting_script, data, 0);
+
+  // Read "constant coverage constructors".
+  const intptr_t constant_coverage_constructors = kernel_reader.ReadUInt();
+  const Array& constructors =
+      Array::Handle(Array::New(constant_coverage_constructors));
+  for (intptr_t i = 0; i < constant_coverage_constructors; ++i) {
+    NameIndex kernel_name = kernel_reader.ReadCanonicalNameReference();
+    Class& klass = Class::ZoneHandle(
+        zone,
+        helper.LookupClassByKernelClass(helper.EnclosingName(kernel_name)));
+    const Function& target = Function::ZoneHandle(
+        zone, helper.LookupConstructorByKernelConstructor(klass, kernel_name));
+    constructors.SetAt(i, target);
+  }
+  return constructors.raw();
+}
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
   ASSERT(field.is_static() && field.is_const());
 
@@ -430,26 +460,28 @@ class MetadataEvaluator : public KernelReaderHelper {
   DISALLOW_COPY_AND_ASSIGN(MetadataEvaluator);
 };
 
-ObjectPtr EvaluateMetadata(const Field& metadata_field,
+ObjectPtr EvaluateMetadata(const Library& library,
+                           intptr_t kernel_offset,
                            bool is_annotations_offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
-    Script& script = Script::Handle(zone, metadata_field.Script());
+    Script& script = Script::Handle(
+        zone, Class::Handle(zone, library.toplevel_class()).script());
     helper.InitFromScript(script);
 
-    const Class& owner_class = Class::Handle(zone, metadata_field.Owner());
+    const Class& owner_class = Class::Handle(zone, library.toplevel_class());
     ActiveClass active_class;
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     MetadataEvaluator metadata_evaluator(
         zone, &helper, script,
-        ExternalTypedData::Handle(zone, metadata_field.KernelData()),
-        metadata_field.KernelDataProgramOffset(), &active_class);
+        ExternalTypedData::Handle(zone, library.kernel_data()),
+        library.kernel_offset(), &active_class);
 
-    return metadata_evaluator.EvaluateMetadata(metadata_field.kernel_offset(),
+    return metadata_evaluator.EvaluateMetadata(kernel_offset,
                                                is_annotations_offset);
 
   } else {

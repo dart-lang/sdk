@@ -187,6 +187,11 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
                  /*is_reflectable=*/true,
                  /*is_late=*/false, object_class, Object::dynamic_type(),
                  TokenPosition::kNoSource, TokenPosition::kNoSource));
+  {
+    SafepointWriteRwLocker locker(thread,
+                                  thread->isolate_group()->program_lock());
+    thread->isolate_group()->RegisterStaticField(field, Instance::Handle());
+  }
 
   FlowGraphBuilderHelper H;
 

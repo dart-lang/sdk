@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' show max;
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -50,21 +52,19 @@ class InstantiatedClass {
   /// Return the interfaces that are directly implemented by this class.
   List<InstantiatedClass> get interfaces {
     var interfaces = element.interfaces;
-
-    var result = List<InstantiatedClass>(interfaces.length);
-    for (var i = 0; i < interfaces.length; i++) {
-      var interface = interfaces[i];
-      var substituted = _substitution.substituteType(interface);
-      result[i] = InstantiatedClass.of(substituted);
-    }
-
-    return result;
+    return _toInstantiatedClasses(interfaces);
   }
 
   /// Return `true` if this type represents the type 'Function' defined in the
   /// dart:core library.
   bool get isDartCoreFunction {
     return element.name == 'Function' && element.library.isDartCore;
+  }
+
+  /// Return the mixin that are directly implemented by this class.
+  List<InstantiatedClass> get mixins {
+    var mixins = element.mixins;
+    return _toInstantiatedClasses(mixins);
   }
 
   /// Return the superclass of this type, or `null` if this type represents
@@ -84,15 +84,7 @@ class InstantiatedClass {
   /// the type for the class `Object`.
   List<InstantiatedClass> get superclassConstraints {
     var constraints = element.superclassConstraints;
-
-    var result = List<InstantiatedClass>(constraints.length);
-    for (var i = 0; i < constraints.length; i++) {
-      var constraint = constraints[i];
-      var substituted = _substitution.substituteType(constraint);
-      result[i] = InstantiatedClass.of(substituted);
-    }
-
-    return result;
+    return _toInstantiatedClasses(constraints);
   }
 
   @visibleForTesting
@@ -138,6 +130,19 @@ class InstantiatedClass {
       typeArguments: arguments,
       nullabilitySuffix: nullability,
     );
+  }
+
+  List<InstantiatedClass> _toInstantiatedClasses(
+    List<InterfaceType> interfaces,
+  ) {
+    var result = List<InstantiatedClass>.filled(interfaces.length, null);
+    for (var i = 0; i < interfaces.length; i++) {
+      var interface = interfaces[i];
+      var substituted = _substitution.substituteType(interface);
+      result[i] = InstantiatedClass.of(substituted);
+    }
+
+    return result;
   }
 }
 
@@ -191,7 +196,7 @@ class InterfaceLeastUpperBoundHelper {
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
-      var args = List<DartType>(args1.length);
+      var args = List<DartType>.filled(args1.length, null);
       for (int i = 0; i < args1.length; i++) {
         // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
@@ -277,11 +282,7 @@ class InterfaceLeastUpperBoundHelper {
   /// Object.
   @visibleForTesting
   static int computeLongestInheritancePathToObject(ClassElement element) {
-    return _computeLongestInheritancePathToObject(
-      element,
-      0,
-      <ClassElement>{},
-    );
+    return _computeLongestInheritancePathToObject(element, <ClassElement>{});
   }
 
   /// Add all of the superinterfaces of the given [type] to the given [set].
@@ -291,6 +292,14 @@ class InterfaceLeastUpperBoundHelper {
       if (!interface.isDartCoreFunction) {
         if (set.add(interface)) {
           _addSuperinterfaces(set, interface);
+        }
+      }
+    }
+
+    for (var mixin in type.mixins) {
+      if (!mixin.isDartCoreFunction) {
+        if (set.add(mixin)) {
+          _addSuperinterfaces(set, mixin);
         }
       }
     }
@@ -333,47 +342,53 @@ class InterfaceLeastUpperBoundHelper {
   /// is used to prevent infinite recursion in the case of a cyclic type
   /// structure.
   static int _computeLongestInheritancePathToObject(
-      ClassElement element, int depth, Set<ClassElement> visitedElements) {
+      ClassElement element, Set<ClassElement> visitedElements) {
     // Object case
     if (element.isDartCoreObject || visitedElements.contains(element)) {
-      return depth;
+      return 0;
     }
-    int longestPath = 1;
+    int longestPath = 0;
     try {
       visitedElements.add(element);
-      int pathLength;
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.superclassConstraints) {
-        pathLength = _computeLongestInheritancePathToObject(
-            interface.element, depth + 1, visitedElements);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
+        var pathLength = _computeLongestInheritancePathToObject(
+            interface.element, visitedElements);
+        longestPath = max(longestPath, 1 + pathLength);
       }
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.interfaces) {
-        pathLength = _computeLongestInheritancePathToObject(
-            interface.element, depth + 1, visitedElements);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
+        var pathLength = _computeLongestInheritancePathToObject(
+            interface.element, visitedElements);
+        longestPath = max(longestPath, 1 + pathLength);
       }
 
-      // finally, perform this same check on the super type
-      // TODO(brianwilkerson) Does this also need to add in the number of mixin
-      // classes?
-      InterfaceType supertype = element.supertype;
-      if (supertype != null) {
-        pathLength = _computeLongestInheritancePathToObject(
-            supertype.element, depth + 1, visitedElements);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
+      var supertype = element.supertype;
+      if (supertype == null) {
+        return longestPath;
       }
+
+      var superLength = _computeLongestInheritancePathToObject(
+          supertype.element, visitedElements);
+
+      var mixins = element.mixins;
+      for (var i = 0; i < mixins.length; i++) {
+        // class _X&S&M extends S implements M {}
+        // So, we choose the maximum length from S and M.
+        var mixinLength = _computeLongestInheritancePathToObject(
+          mixins[i].element,
+          visitedElements,
+        );
+        superLength = max(superLength, mixinLength);
+        // For this synthetic class representing the mixin application.
+        superLength++;
+      }
+
+      longestPath = max(longestPath, 1 + superLength);
     } finally {
       visitedElements.remove(element);
     }

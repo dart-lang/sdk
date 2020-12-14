@@ -23,7 +23,6 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -51,8 +50,6 @@ abstract class AbstractLspAnalysisServerTest
   MockLspServerChannel channel;
   TestPluginManager pluginManager;
   LspAnalysisServer server;
-
-  final testWorkDoneToken = Either2<num, String>.t2('test');
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -217,6 +214,7 @@ mixin ClientCapabilitiesHelperMixin {
       'documentSymbol': {'dynamicRegistration': true},
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
+      'rangeFormatting': {'dynamicRegistration': true},
       'declaration': {'dynamicRegistration': true},
       'definition': {'dynamicRegistration': true},
       'implementation': {'dynamicRegistration': true},
@@ -330,6 +328,18 @@ mixin ClientCapabilitiesHelperMixin {
     return extendTextDocumentCapabilities(source, {
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
+      'rangeFormatting': {'dynamicRegistration': true},
+    });
+  }
+
+  TextDocumentClientCapabilities withDocumentSymbolKinds(
+    TextDocumentClientCapabilities source,
+    List<SymbolKind> kinds,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'documentSymbol': {
+        'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
+      }
     });
   }
 
@@ -462,6 +472,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   static final allMarkersPattern =
       RegExp(allMarkers.map(RegExp.escape).join('|'));
 
+  /// A progress token used in tests where the client-provides the token, which
+  /// should not be validated as being created by the server first.
+  final clientProvidedTestWorkDoneToken =
+      Either2<num, String>.t2('client-test');
+
   int _id = 0;
   String projectFolderPath, mainFilePath, pubspecFilePath, analysisOptionsPath;
   Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
@@ -577,18 +592,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     /// logic.
     void validateChangesCanBeApplied() {
       /// Check if a position is before (but not equal) to another position.
-      bool isBefore(Position p, Position other) =>
+      bool isBeforeOrEqual(Position p, Position other) =>
           p.line < other.line ||
-          (p.line == other.line && p.character < other.character);
+          (p.line == other.line && p.character <= other.character);
 
       /// Check if a position is after (but not equal) to another position.
-      bool isAfter(Position p, Position other) =>
+      bool isAfterOrEqual(Position p, Position other) =>
           p.line > other.line ||
-          (p.line == other.line && p.character > other.character);
-      // Check if two ranges intersect or touch.
+          (p.line == other.line && p.character >= other.character);
+      // Check if two ranges intersect.
       bool rangesIntersect(Range r1, Range r2) {
-        var endsBefore = isBefore(r1.end, r2.start);
-        var startsAfter = isAfter(r1.start, r2.end);
+        var endsBefore = isBeforeOrEqual(r1.end, r2.start);
+        var startsAfter = isAfterOrEqual(r1.start, r2.end);
         return !(endsBefore || startsAfter);
       }
 
@@ -604,12 +619,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
 
     validateChangesCanBeApplied();
-    changes.sort(
-      (c1, c2) =>
-          positionCompare(c1.range.start, c2.range.start) *
-          -1, // Multiply by -1 to get descending sort.
-    );
-    for (final change in changes) {
+    final sortedChanges = changes.toList() // Don't mutate the original list.
+      ..sort(
+        // Multiply by -1 to get descending sort.
+        (c1, c2) => positionCompare(c1.range.start, c2.range.start) * -1,
+      );
+
+    for (final change in sortedChanges) {
       newContent = applyTextEdit(newContent, change);
     }
 
@@ -789,6 +805,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
             insertSpaces: true), // These currently don't do anything
         textDocument: TextDocumentIdentifier(uri: fileUri),
         position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TextEdit.fromJson));
+  }
+
+  Future<List<TextEdit>> formatRange(String fileUri, Range range) {
+    final request = makeRequest(
+      Method.textDocument_rangeFormatting,
+      DocumentRangeFormattingParams(
+        options: FormattingOptions(
+            tabSize: 2,
+            insertSpaces: true), // These currently don't do anything
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        range: range,
       ),
     );
     return expectSuccessfulResponseTo(
@@ -1077,6 +1108,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       }
     });
 
+    notificationsFromServer.listen((notification) async {
+      if (notification.method == Method.progress) {
+        await _handleProgress(notification);
+      }
+    });
+
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
     if (rootPath == null &&
@@ -1197,7 +1234,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (p1.line > p2.line) return 1;
 
     if (p1.character < p2.character) return -1;
-    if (p1.character > p2.character) return -1;
+    if (p1.character > p2.character) return 1;
 
     return 0;
   }
@@ -1408,10 +1445,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           }
 
           final params = ProgressParams.fromJson(message.params);
-          if (!validProgressTokens.contains(params.token)) {
-            throw Exception('Server sent a progress notification for a token '
-                'that has not been created: ${params.token}');
-          }
 
           // Skip unrelated progress notifications.
           if (params.token != analyzingProgressToken) {
@@ -1511,6 +1544,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           T Function(Map<String, dynamic>) fromJson) =>
       (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
 
+  Future<void> _handleProgress(NotificationMessage request) async {
+    final params = ProgressParams.fromJson(request.params);
+    if (params.token != clientProvidedTestWorkDoneToken &&
+        !validProgressTokens.contains(params.token)) {
+      throw Exception('Server sent a progress notification for a token '
+          'that has not been created: ${params.token}');
+    }
+
+    if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
+      validProgressTokens.remove(params.token);
+    }
+  }
+
   Future<void> _handleWorkDoneProgressCreate(RequestMessage request) async {
     if (_clientCapabilities.window?.workDoneProgress != true) {
       throw Exception('Server sent ${Method.window_workDoneProgress_create} '
@@ -1518,7 +1564,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
     final params = WorkDoneProgressCreateParams.fromJson(request.params);
     if (validProgressTokens.contains(params.token)) {
-      throw Exception('Server tried to create the same progress token twice');
+      throw Exception('Server tried to create already-active progress token');
     }
     validProgressTokens.add(params.token);
   }

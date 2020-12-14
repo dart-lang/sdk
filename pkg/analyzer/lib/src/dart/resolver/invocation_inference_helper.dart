@@ -312,8 +312,19 @@ class InvocationInferenceHelper {
     return typeArgs;
   }
 
+  bool _isCallToIdentical(AstNode invocation) {
+    if (invocation is MethodInvocation) {
+      var invokedMethod = invocation.methodName.staticElement;
+      return invokedMethod != null &&
+          invokedMethod.name == 'identical' &&
+          invokedMethod.library.isDartCore;
+    }
+    return false;
+  }
+
   void _resolveArguments(ArgumentList argumentList) {
-    argumentList.accept(_resolver);
+    _resolver.visitArgumentList(argumentList,
+        isIdentical: _isCallToIdentical(argumentList.parent));
   }
 
   void _resolveInvocation({

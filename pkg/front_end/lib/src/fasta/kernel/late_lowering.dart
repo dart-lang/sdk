@@ -16,13 +16,10 @@ const String lateLocalGetterSuffix = '#get';
 const String lateLocalSetterSuffix = '#set';
 
 /// Creates the body for the synthesized getter used to encode the lowering
-/// of a late non-final field with an initializer or a late local with an
-/// initializer.
+/// of a late non-final field or local with an initializer.
 ///
-/// Late final field needs to detect writes during initialization and therefore
-/// uses [createGetterWithInitializerWithRecheck] instead. Late final locals
-/// cannot have writes during initialization since they are not in scope in
-/// their own initializer.
+/// Late final fields and locals need to detect writes during initialization and
+/// therefore uses [createGetterWithInitializerWithRecheck] instead.
 Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     String name, DartType type, Expression initializer,
     {Expression createVariableRead({bool needsPromotion}),
@@ -120,23 +117,23 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
 }
 
 /// Creates the body for the synthesized getter used to encode the lowering
-/// of a late final field with an initializer.
-///
-/// A late final field needs to detect writes during initialization for
-/// which a `LateInitializationError` should be thrown. Late final locals
-/// cannot have writes during initialization since they are not in scope in
-/// their own initializer.
+/// of a late final field or local with an initializer.
 Statement createGetterWithInitializerWithRecheck(CoreTypes coreTypes,
     int fileOffset, String name, DartType type, Expression initializer,
     {Expression createVariableRead({bool needsPromotion}),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding}) {
+    IsSetEncoding isSetEncoding,
+    bool forField}) {
+  assert(forField != null);
+  Constructor constructor = forField
+      ? coreTypes.lateInitializationFieldAssignedDuringInitializationConstructor
+      : coreTypes
+          .lateInitializationLocalAssignedDuringInitializationConstructor;
   Expression exception = new Throw(
       new ConstructorInvocation(
-          coreTypes
-              .lateInitializationFieldAssignedDuringInitializationConstructor,
+          constructor,
           new Arguments(
               <Expression>[new StringLiteral(name)..fileOffset = fileOffset])
             ..fileOffset = fileOffset)
@@ -538,6 +535,11 @@ enum IsSetStrategy {
   /// been initialized.
   forceUseIsSetField,
 
+  /// Always use `createSentinel`and `isSentinel` from `dart:_internal` to
+  /// generate and check a sentinel value to signal an uninitialized
+  /// field/local.
+  forceUseSentinel,
+
   /// For potentially nullable fields/locals use an `isSet` field/local to track
   /// whether the field/local has been initialized. Otherwise use `null` as
   /// sentinel value to signal an uninitialized field/local.
@@ -557,7 +559,13 @@ enum IsSetStrategy {
 IsSetStrategy computeIsSetStrategy(SourceLibraryBuilder libraryBuilder) {
   IsSetStrategy isSetStrategy = IsSetStrategy.useIsSetFieldOrNull;
   if (libraryBuilder.loader.target.backendTarget.supportsLateLoweringSentinel) {
-    isSetStrategy = IsSetStrategy.useSentinelOrNull;
+    if (libraryBuilder.loader.nnbdMode != NnbdMode.Strong) {
+      // Non-nullable fields/locals might contain `null` so we always use the
+      // sentinel.
+      isSetStrategy = IsSetStrategy.forceUseSentinel;
+    } else {
+      isSetStrategy = IsSetStrategy.useSentinelOrNull;
+    }
   } else if (libraryBuilder.loader.nnbdMode != NnbdMode.Strong) {
     isSetStrategy = IsSetStrategy.forceUseIsSetField;
   }
@@ -568,6 +576,8 @@ IsSetEncoding computeIsSetEncoding(DartType type, IsSetStrategy isSetStrategy) {
   switch (isSetStrategy) {
     case IsSetStrategy.forceUseIsSetField:
       return IsSetEncoding.useIsSetField;
+    case IsSetStrategy.forceUseSentinel:
+      return IsSetEncoding.useSentinel;
     case IsSetStrategy.useIsSetFieldOrNull:
       return type.isPotentiallyNullable
           ? IsSetEncoding.useIsSetField
@@ -578,4 +588,28 @@ IsSetEncoding computeIsSetEncoding(DartType type, IsSetStrategy isSetStrategy) {
           : IsSetEncoding.useNull;
   }
   throw new UnsupportedError("Unexpected IsSetStrategy $isSetStrategy");
+}
+
+/// Returns the name used for the variable that holds the value of a late
+/// lowered local by the given [name].
+String computeLateLocalName(String name) {
+  return '${lateLocalPrefix}$name';
+}
+
+/// Returns the name used for the 'isSet' variable of a late lowered local by
+/// the given [name].
+String computeLateLocalIsSetName(String name) {
+  return '${lateLocalPrefix}${name}${lateIsSetSuffix}';
+}
+
+/// Returns the name used for the getter function of a late lowered local by
+/// the given [name].
+String computeLateLocalGetterName(String name) {
+  return '${lateLocalPrefix}${name}${lateLocalGetterSuffix}';
+}
+
+/// Returns the name used for the setter function of a late lowered local by
+/// the given [name].
+String computeLateLocalSetterName(String name) {
+  return '${lateLocalPrefix}${name}${lateLocalSetterSuffix}';
 }

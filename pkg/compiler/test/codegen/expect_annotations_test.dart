@@ -10,7 +10,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
-import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../inference/type_mask_test_helper.dart';
@@ -50,16 +49,19 @@ runTest() async {
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
-  void testTypeMatch(FunctionEntity function, TypeMask expectedParameterType,
-      TypeMask expectedReturnType, GlobalTypeInferenceResults results) {
+  void testTypeMatch(
+      FunctionEntity function,
+      AbstractValue expectedParameterType,
+      AbstractValue expectedReturnType,
+      GlobalTypeInferenceResults results) {
     closedWorld.elementEnvironment.forEachParameterAsLocal(
         closedWorld.globalLocalsMap, function, (Local parameter) {
-      TypeMask type = results.resultOfParameter(parameter);
+      AbstractValue type = results.resultOfParameter(parameter);
       Expect.equals(
           expectedParameterType, simplify(type, commonMasks), "$parameter");
     });
     if (expectedReturnType != null) {
-      TypeMask type = results.resultOfMember(function).returnType;
+      AbstractValue type = results.resultOfMember(function).returnType;
       Expect.equals(
           expectedReturnType, simplify(type, commonMasks), "$function");
     }
@@ -67,8 +69,8 @@ runTest() async {
 
   void test(String name,
       {bool expectNoInline: false,
-      TypeMask expectedParameterType: null,
-      TypeMask expectedReturnType: null,
+      AbstractValue expectedParameterType: null,
+      AbstractValue expectedReturnType: null,
       bool expectAssumeDynamic: false}) {
     LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary;
     FunctionEntity method =

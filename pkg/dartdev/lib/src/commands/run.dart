@@ -191,15 +191,39 @@ class RunCommand extends DartdevCommand {
     }
 
     String path;
+    String packagesConfigOverride;
+
     try {
-      path = await getExecutableForCommand(mainCommand);
+      final filename = maybeUriToFilename(mainCommand);
+      if (File(filename).existsSync()) {
+        // TODO(sigurdm): getExecutableForCommand is able to figure this out,
+        // but does not return a package config override.
+        path = filename;
+        packagesConfigOverride = null;
+      } else {
+        path = await getExecutableForCommand(mainCommand);
+        packagesConfigOverride =
+            join(current, '.dart_tool', 'package_config.json');
+      }
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
       return errorExitCode;
     }
-
-    VmInteropHandler.run(path, runArgs);
+    VmInteropHandler.run(
+      path,
+      runArgs,
+      packageConfigOverride: packagesConfigOverride,
+    );
     return 0;
+  }
+}
+
+/// Try parsing [maybeUri] as a file uri or [maybeUri] itself if that fails.
+String maybeUriToFilename(String maybeUri) {
+  try {
+    return Uri.parse(maybeUri).toFilePath();
+  } catch (_) {
+    return maybeUri;
   }
 }
 

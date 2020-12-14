@@ -364,7 +364,7 @@ class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
   LateInitializationErrorSlowPath(LoadFieldInstr* instruction,
                                   intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
-                               kLateInitializationErrorRuntimeEntry,
+                               kLateFieldNotInitializedErrorRuntimeEntry,
                                try_index) {}
   virtual const char* name() { return "late initialization error"; }
 
@@ -911,11 +911,15 @@ class FlowGraphCompiler : public ValueObject {
   bool may_reoptimize() const { return may_reoptimize_; }
 
   // Use in unoptimized compilation to preserve/reuse ICData.
+  //
+  // If [binary_smi_target] is non-null and we have to create the ICData, the
+  // ICData will get an (kSmiCid, kSmiCid, binary_smi_target) entry.
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
                                            const String& target_name,
                                            const Array& arguments_descriptor,
                                            intptr_t num_args_tested,
-                                           const AbstractType& receiver_type);
+                                           const AbstractType& receiver_type,
+                                           const Function& binary_smi_target);
 
   const ICData* GetOrAddStaticCallICData(intptr_t deopt_id,
                                          const Function& target,
@@ -1076,21 +1080,19 @@ class FlowGraphCompiler : public ValueObject {
 
   enum TypeTestStubKind {
     kTestTypeOneArg,
-    kTestTypeTwoArgs,
-    kTestTypeFourArgs,
-    kTestTypeSixArgs,
+    kTestTypeThreeArgs,
+    kTestTypeFiveArgs,
+    kTestTypeSevenArgs,
   };
 
   // Returns type test stub kind for a type test against type parameter type.
   TypeTestStubKind GetTypeTestStubKindForTypeParameter(
       const TypeParameter& type_param);
 
+  // Takes input from TypeTestABI registers (or stack on IA32), see
+  // StubCodeCompiler::GenerateSubtypeNTestCacheStub for caller-save registers.
   SubtypeTestCachePtr GenerateCallSubtypeTestStub(
       TypeTestStubKind test_kind,
-      Register instance_reg,
-      Register instantiator_type_arguments_reg,
-      Register function_type_arguments_reg,
-      Register temp_reg,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 

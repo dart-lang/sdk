@@ -99,7 +99,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t size,
                                     bool is_canonical) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uint32_t tags = 0;
+  uword tags = 0;
   tags = ObjectLayout::ClassIdTag::update(class_id, tags);
   tags = ObjectLayout::SizeTag::update(size, tags);
   tags = ObjectLayout::CanonicalBit::update(is_canonical, tags);
@@ -108,9 +108,6 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
   tags = ObjectLayout::NewBit::update(false, tags);
   raw->ptr()->tags_ = tags;
-#if defined(HASH_IN_OBJECT_HEADER)
-  raw->ptr()->hash_ = 0;
-#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -988,69 +985,6 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
   }
 };
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class RedirectionDataSerializationCluster : public SerializationCluster {
- public:
-  RedirectionDataSerializationCluster()
-      : SerializationCluster("RedirectionData") {}
-  ~RedirectionDataSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    RedirectionDataPtr data = RedirectionData::RawCast(object);
-    objects_.Add(data);
-    PushFromTo(data);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kRedirectionDataCid);
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RedirectionDataPtr data = objects_[i];
-      s->AssignRef(data);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RedirectionDataPtr data = objects_[i];
-      AutoTraceObject(data);
-      WriteFromTo(data);
-    }
-  }
-
- private:
-  GrowableArray<RedirectionDataPtr> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class RedirectionDataDeserializationCluster : public DeserializationCluster {
- public:
-  RedirectionDataDeserializationCluster()
-      : DeserializationCluster("RedirectionData") {}
-  ~RedirectionDataDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d, bool is_canonical) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, RedirectionData::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d, bool is_canonical) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RedirectionDataPtr data = static_cast<RedirectionDataPtr>(d->Ref(id));
-      Deserializer::InitializeHeader(data, kRedirectionDataCid,
-                                     RedirectionData::InstanceSize());
-      ReadFromTo(data);
-    }
-  }
-};
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class FieldSerializationCluster : public SerializationCluster {
@@ -1071,26 +1005,16 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->initializer_function_);
 
     if (kind != Snapshot::kFullAOT) {
-      s->Push(field->ptr()->saved_initial_value_);
       s->Push(field->ptr()->guarded_list_length_);
     }
     if (kind == Snapshot::kFullJIT) {
       s->Push(field->ptr()->dependent_code_);
     }
-    // Write out either static value, initial value or field offset.
+    // Write out either the initial static value or field offset.
     if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-      if (
-          // For precompiled static fields, the value was already reset and
-          // initializer_ now contains a Function.
-          kind == Snapshot::kFullAOT ||
-          // Do not reset const fields.
-          Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-        s->Push(s->field_table()->At(
-            Smi::Value(field->ptr()->host_offset_or_field_id_)));
-      } else {
-        // Otherwise, for static fields we write out the initial static value.
-        s->Push(field->ptr()->saved_initial_value_);
-      }
+      const intptr_t field_id =
+          Smi::Value(field->ptr()->host_offset_or_field_id_);
+      s->Push(s->initial_field_table()->At(field_id));
     } else {
       s->Push(Smi::New(Field::TargetOffsetOf(field)));
     }
@@ -1119,7 +1043,6 @@ class FieldSerializationCluster : public SerializationCluster {
       // Write out the initializer function and initial value if not in AOT.
       WriteField(field, initializer_function_);
       if (kind != Snapshot::kFullAOT) {
-        WriteField(field, saved_initial_value_);
         WriteField(field, guarded_list_length_);
       }
       if (kind == Snapshot::kFullJIT) {
@@ -1136,22 +1059,12 @@ class FieldSerializationCluster : public SerializationCluster {
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
 
-      // Write out the initial static value or field offset.
+      // Write out either the initial static value or field offset.
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-        if (
-            // For precompiled static fields, the value was already reset and
-            // initializer_ now contains a Function.
-            kind == Snapshot::kFullAOT ||
-            // Do not reset const fields.
-            Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-          WriteFieldValue("static value",
-                          s->field_table()->At(Smi::Value(
-                              field->ptr()->host_offset_or_field_id_)));
-        } else {
-          // Otherwise, for static fields we write out the initial static value.
-          WriteFieldValue("static value", field->ptr()->saved_initial_value_);
-        }
-        s->WriteUnsigned(Smi::Value(field->ptr()->host_offset_or_field_id_));
+        const intptr_t field_id =
+            Smi::Value(field->ptr()->host_offset_or_field_id_);
+        WriteFieldValue("static value", s->initial_field_table()->At(field_id));
+        s->WriteUnsigned(field_id);
       } else {
         WriteFieldValue("offset", Smi::New(Field::TargetOffsetOf(field)));
       }
@@ -1186,10 +1099,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(field, kFieldCid, Field::InstanceSize());
       ReadFromTo(field);
       if (kind != Snapshot::kFullAOT) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        field->ptr()->saved_initial_value_ =
-            static_cast<InstancePtr>(d->ReadRef());
-#endif
         field->ptr()->guarded_list_length_ = static_cast<SmiPtr>(d->ReadRef());
       }
       if (kind == Snapshot::kFullJIT) {
@@ -1209,9 +1118,9 @@ class FieldDeserializationCluster : public DeserializationCluster {
 
       ObjectPtr value_or_offset = d->ReadRef();
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-        intptr_t field_id = d->ReadUnsigned();
-        d->field_table()->SetAt(field_id,
-                                static_cast<InstancePtr>(value_or_offset));
+        const intptr_t field_id = d->ReadUnsigned();
+        d->initial_field_table()->SetAt(
+            field_id, static_cast<InstancePtr>(value_or_offset));
         field->ptr()->host_offset_or_field_id_ = Smi::New(field_id);
       } else {
         field->ptr()->host_offset_or_field_id_ = Smi::RawCast(value_or_offset);
@@ -1228,10 +1137,10 @@ class FieldDeserializationCluster : public DeserializationCluster {
     if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
-        field.set_guarded_cid(kDynamicCid);
-        field.set_is_nullable(true);
-        field.set_guarded_list_length(Field::kNoFixedLength);
-        field.set_guarded_list_length_in_object_offset(
+        field.set_guarded_cid_unsafe(kDynamicCid);
+        field.set_is_nullable_unsafe(true);
+        field.set_guarded_list_length_unsafe(Field::kNoFixedLength);
+        field.set_guarded_list_length_in_object_offset_unsafe(
             Field::kUnknownLengthOffset);
         field.set_static_type_exactness_state(
             StaticTypeExactnessState::NotTracking());
@@ -1239,7 +1148,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
     } else {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
-        field.InitializeGuardedListLengthInObjectOffset();
+        field.InitializeGuardedListLengthInObjectOffset(/*unsafe=*/true);
       }
     }
   }
@@ -4413,6 +4322,7 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(property, kWeakPropertyCid,
                                      WeakProperty::InstanceSize());
       ReadFromTo(property);
+      property->ptr()->next_ = WeakProperty::null();
     }
   }
 };
@@ -5302,7 +5212,7 @@ Serializer::Serializer(Thread* thread,
       num_written_objects_(0),
       next_ref_index_(kFirstReference),
       previous_text_offset_(0),
-      field_table_(thread->isolate()->field_table()),
+      initial_field_table_(thread->isolate_group()->initial_field_table()),
       vm_(vm),
       profile_writer_(profile_writer)
 #if defined(SNAPSHOT_BACKTRACE)
@@ -5573,8 +5483,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ClosureDataSerializationCluster();
     case kSignatureDataCid:
       return new (Z) SignatureDataSerializationCluster();
-    case kRedirectionDataCid:
-      return new (Z) RedirectionDataSerializationCluster();
     case kFfiTrampolineDataCid:
       return new (Z) FfiTrampolineDataSerializationCluster();
     case kFieldCid:
@@ -5929,7 +5837,12 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   WriteUnsigned(num_objects);
   WriteUnsigned(canonical_clusters.length());
   WriteUnsigned(clusters.length());
-  WriteUnsigned(field_table_->NumFieldIds());
+  // TODO(dartbug.com/36097): Not every snapshot carries the field table.
+  if (current_loading_unit_id_ <= LoadingUnit::kRootId) {
+    WriteUnsigned(initial_field_table_->NumFieldIds());
+  } else {
+    WriteUnsigned(0);
+  }
 
   for (SerializationCluster* cluster : canonical_clusters) {
     cluster->WriteAndMeasureAlloc(this);
@@ -6210,7 +6123,7 @@ Deserializer::Deserializer(Thread* thread,
       previous_text_offset_(0),
       canonical_clusters_(nullptr),
       clusters_(nullptr),
-      field_table_(thread->isolate()->field_table()),
+      initial_field_table_(thread->isolate_group()->initial_field_table()),
       is_non_root_unit_(is_non_root_unit) {
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != nullptr);
@@ -6269,8 +6182,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ClosureDataDeserializationCluster();
     case kSignatureDataCid:
       return new (Z) SignatureDataDeserializationCluster();
-    case kRedirectionDataCid:
-      return new (Z) RedirectionDataDeserializationCluster();
     case kFfiTrampolineDataCid:
       return new (Z) FfiTrampolineDataDeserializationCluster();
     case kFieldCid:
@@ -6660,15 +6571,15 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   num_objects_ = ReadUnsigned();
   num_canonical_clusters_ = ReadUnsigned();
   num_clusters_ = ReadUnsigned();
-  const intptr_t field_table_len = ReadUnsigned();
+  const intptr_t initial_field_table_len = ReadUnsigned();
 
   canonical_clusters_ = new DeserializationCluster*[num_canonical_clusters_];
   clusters_ = new DeserializationCluster*[num_clusters_];
   refs_ = Array::New(num_objects_ + kFirstReference, Heap::kOld);
-  if (field_table_len > 0) {
-    field_table_->AllocateIndex(field_table_len - 1);
+  if (initial_field_table_len > 0) {
+    initial_field_table_->AllocateIndex(initial_field_table_len - 1);
+    ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
   }
-  ASSERT_EQUAL(field_table_->NumFieldIds(), field_table_len);
 
   {
     NoSafepointScope no_safepoint;

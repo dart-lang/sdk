@@ -1,0 +1,4 @@
+main() {}
+void expect(List list1, List list2) {}
+void useAddAll() {}
+void useAddAllNullable() {}

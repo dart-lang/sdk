@@ -83,7 +83,7 @@ class Isolate {
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() = _ReceivePort;
+  factory ReceivePort([String debugName]) = _ReceivePort;
 
   @patch
   factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) =>
@@ -94,6 +94,8 @@ class ReceivePort {
 /// (async_helper, unittest) create a dummy receive port to keep the Dart VM
 /// alive.
 class _ReceivePort extends Stream implements ReceivePort {
+  _ReceivePort([String debugName = '']);
+
   close() {}
 
   get sendPort => _unsupported();
@@ -108,7 +110,8 @@ class _ReceivePort extends Stream implements ReceivePort {
 @patch
 class RawReceivePort {
   @patch
-  factory RawReceivePort([Function? handler]) => _unsupported();
+  factory RawReceivePort([Function? handler, String debugName = '']) =>
+      _unsupported();
 }
 
 @patch

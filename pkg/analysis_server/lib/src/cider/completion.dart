@@ -77,7 +77,6 @@ class CiderCompletionComputer {
       var completionRequest = CompletionRequestImpl(
         resolvedUnit,
         offset,
-        false,
         CompletionPerformance(),
       );
       var dartdocDirectiveInfo = DartdocDirectiveInfo();

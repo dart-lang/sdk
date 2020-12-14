@@ -241,9 +241,6 @@ abstract class ServiceObject implements M.ObjectRef {
       case 'SourceLocation':
         obj = new SourceLocation._empty(owner);
         break;
-      case '_Thread':
-        obj = new Thread._empty(owner);
-        break;
       case 'UnresolvedSourceLocation':
         obj = new UnresolvedSourceLocation._empty(owner);
         break;
@@ -1628,18 +1625,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   DartError error;
   SnapshotReader _snapshotFetch;
 
-  List<Thread> get threads => _threads;
-  final List<Thread> _threads = <Thread>[];
-
-  int get zoneHighWatermark => _zoneHighWatermark;
-  int _zoneHighWatermark = 0;
-
-  int get numZoneHandles => _numZoneHandles;
-  int _numZoneHandles;
-
-  int get numScopedHandles => _numScopedHandles;
-  int _numScopedHandles;
-
   bool isSystemIsolate;
 
   void _loadHeapSnapshot(ServiceEvent event) {
@@ -1742,23 +1727,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     if (map['extensionRPCs'] != null) {
       for (String e in map['extensionRPCs']) extensionRPCs.add(e);
     }
-
-    threads.clear();
-    if (map['_threads'] != null) {
-      for (Thread t in map['_threads']) threads.add(t);
-    }
-
-    int currentZoneHighWatermark = 0;
-    for (var i = 0; i < threads.length; i++) {
-      currentZoneHighWatermark += threads[i].zoneHighWatermark;
-    }
-
-    if (currentZoneHighWatermark > _zoneHighWatermark) {
-      _zoneHighWatermark = currentZoneHighWatermark;
-    }
-
-    _numZoneHandles = map['_numZoneHandles'];
-    _numScopedHandles = map['_numScopedHandles'];
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -3296,60 +3264,6 @@ class Sentinel extends ServiceObject implements M.Sentinel {
 
   String toString() => 'Sentinel($kind)';
   String get shortName => valueAsString;
-}
-
-class Thread extends ServiceObject implements M.Thread {
-  M.ThreadKind get kind => _kind;
-  M.ThreadKind _kind;
-  String get kindString => _kindString;
-  String _kindString;
-  int get zoneHighWatermark => _zoneHighWatermark;
-  int _zoneHighWatermark;
-  int get zoneCapacity => _zoneCapacity;
-  int _zoneCapacity;
-
-  Thread._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  void _update(Map map, bool mapIsRef) {
-    String rawKind = map['kind'];
-
-    switch (rawKind) {
-      case "kUnknownTask":
-        _kind = M.ThreadKind.unknownTask;
-        _kindString = 'unknown';
-        break;
-      case "kMutatorTask":
-        _kind = M.ThreadKind.mutatorTask;
-        _kindString = 'mutator';
-        break;
-      case "kCompilerTask":
-        _kind = M.ThreadKind.compilerTask;
-        _kindString = 'compiler';
-        break;
-      case "kSweeperTask":
-        _kind = M.ThreadKind.sweeperTask;
-        _kindString = 'sweeper';
-        break;
-      case "kMarkerTask":
-        _kind = M.ThreadKind.markerTask;
-        _kindString = 'marker';
-        break;
-      default:
-        assert(false);
-    }
-
-    _zoneHighWatermark = int.parse(map['_zoneHighWatermark']);
-    _zoneCapacity = int.parse(map['_zoneCapacity']);
-  }
-}
-
-class Zone implements M.Zone {
-  int get capacity => _capacity;
-  int _capacity;
-  int get used => _used;
-  int _used;
-
-  Zone(this._capacity, this._used);
 }
 
 class Field extends HeapObject implements M.Field {

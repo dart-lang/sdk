@@ -15,16 +15,104 @@ import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InterfaceLeastUpperBoundHelperTest);
+    defineReflectiveTests(PathToObjectTest);
+    defineReflectiveTests(SuperinterfaceSetTest);
   });
 }
 
 @reflectiveTest
-class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
+class PathToObjectTest extends AbstractTypeSystemTest {
   @override
   final TestTypeProvider typeProvider = TestTypeProvider();
 
-  void test_computeLongestInheritancePathToObject_multipleInterfacePaths() {
+  void test_class_mixins1() {
+    var M1 = mixin_(name: 'M1');
+    expect(_longestPathToObject(M1), 1);
+
+    var A = class_(name: 'A');
+    expect(_longestPathToObject(A), 1);
+
+    // class _X&A&M1 extends A implements M1 {}
+    //    length: 2
+    // class X extends _X&A&M1 {}
+    //    length: 3
+    var X = class_(
+      name: 'X',
+      superType: interfaceTypeNone(A),
+      mixins: [
+        interfaceTypeNone(M1),
+      ],
+    );
+
+    expect(_longestPathToObject(X), 3);
+  }
+
+  void test_class_mixins2() {
+    var M1 = mixin_(name: 'M1');
+    var M2 = mixin_(name: 'M2');
+    expect(_longestPathToObject(M1), 1);
+    expect(_longestPathToObject(M2), 1);
+
+    var A = class_(name: 'A');
+    expect(_longestPathToObject(A), 1);
+
+    // class _X&A&M1 extends A implements M1 {}
+    //    length: 2
+    // class _X&A&M1&M2 extends _X&A&M1 implements M2 {}
+    //    length: 3
+    // class X extends _X&A&M1&M2 {}
+    //    length: 4
+    var X = class_(
+      name: 'X',
+      superType: interfaceTypeNone(A),
+      mixins: [
+        interfaceTypeNone(M1),
+        interfaceTypeNone(M2),
+      ],
+    );
+
+    expect(_longestPathToObject(X), 4);
+  }
+
+  void test_class_mixins_longerViaSecondMixin() {
+    var I1 = class_(name: 'I1');
+    var I2 = class_(name: 'I2', superType: interfaceTypeNone(I1));
+    var I3 = class_(name: 'I3', superType: interfaceTypeNone(I2));
+
+    expect(_longestPathToObject(I1), 1);
+    expect(_longestPathToObject(I2), 2);
+    expect(_longestPathToObject(I3), 3);
+
+    var M1 = mixin_(name: 'M1');
+    var M2 = mixin_(
+      name: 'M2',
+      interfaces: [interfaceTypeNone(I3)],
+    );
+    expect(_longestPathToObject(M1), 1);
+    expect(_longestPathToObject(M2), 4);
+
+    var A = class_(name: 'A'); // length: 1
+    expect(_longestPathToObject(A), 1);
+
+    // class _X&A&M1 extends A implements M1 {}
+    //    length: 2
+    // class _X&A&M1&M2 extends _X&A&M1 implements M2 {}
+    //    length: 5 = max(1 + _X&A&M1, 1 + M2)
+    // class X extends _X&A&M1&M2 {}
+    //    length: 6
+    var X = class_(
+      name: 'X',
+      superType: interfaceTypeNone(A),
+      mixins: [
+        interfaceTypeNone(M1),
+        interfaceTypeNone(M2),
+      ],
+    );
+
+    expect(_longestPathToObject(X), 6);
+  }
+
+  void test_class_multipleInterfacePaths() {
     //
     //   Object
     //     |
@@ -55,7 +143,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     expect(_longestPathToObject(classE), 4);
   }
 
-  void test_computeLongestInheritancePathToObject_multipleSuperclassPaths() {
+  void test_class_multipleSuperclassPaths() {
     //
     //   Object
     //     |
@@ -84,11 +172,11 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     expect(_longestPathToObject(classE), 4);
   }
 
-  void test_computeLongestInheritancePathToObject_object() {
+  void test_class_object() {
     expect(_longestPathToObject(typeProvider.objectType.element), 0);
   }
 
-  void test_computeLongestInheritancePathToObject_recursion() {
+  void test_class_recursion() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
@@ -96,7 +184,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     expect(_longestPathToObject(classA), 2);
   }
 
-  void test_computeLongestInheritancePathToObject_singleInterfacePath() {
+  void test_class_singleInterfacePath() {
     //
     //   Object
     //     |
@@ -116,7 +204,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     expect(_longestPathToObject(classC), 3);
   }
 
-  void test_computeLongestInheritancePathToObject_singleSuperclassPath() {
+  void test_class_singleSuperclassPath() {
     //
     //   Object
     //     |
@@ -136,7 +224,138 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     expect(_longestPathToObject(classC), 3);
   }
 
-  void test_computeSuperinterfaceSet_genericInterfacePath() {
+  void test_mixin_constraints_interfaces_allSame() {
+    var A = class_(name: 'A');
+    var B = class_(name: 'B');
+    var I = class_(name: 'I');
+    var J = class_(name: 'J');
+    expect(_longestPathToObject(A), 1);
+    expect(_longestPathToObject(B), 1);
+    expect(_longestPathToObject(I), 1);
+    expect(_longestPathToObject(J), 1);
+
+    // The interface of M is:
+    // class _M&A&A implements A, B, I, J {}
+    var M = mixin_(
+      name: 'M',
+      constraints: [
+        interfaceTypeNone(A),
+        interfaceTypeNone(B),
+      ],
+      interfaces: [
+        interfaceTypeNone(I),
+        interfaceTypeNone(J),
+      ],
+    );
+    expect(_longestPathToObject(M), 2);
+  }
+
+  void test_mixin_longerConstraint_1() {
+    var A1 = class_(name: 'A1');
+    var A = class_(
+      name: 'A',
+      superType: interfaceTypeNone(A1),
+    );
+    var B = class_(name: 'B');
+    var I = class_(name: 'I');
+    var J = class_(name: 'J');
+    expect(_longestPathToObject(A), 2);
+    expect(_longestPathToObject(B), 1);
+    expect(_longestPathToObject(I), 1);
+    expect(_longestPathToObject(J), 1);
+
+    // The interface of M is:
+    // class _M&A&A implements A, B, I, J {}
+    var M = mixin_(
+      name: 'M',
+      constraints: [
+        interfaceTypeNone(A),
+        interfaceTypeNone(B),
+      ],
+      interfaces: [
+        interfaceTypeNone(I),
+        interfaceTypeNone(J),
+      ],
+    );
+    expect(_longestPathToObject(M), 3);
+  }
+
+  void test_mixin_longerConstraint_2() {
+    var A = class_(name: 'A');
+    var B1 = class_(name: 'B1');
+    var B = class_(
+      name: 'B',
+      interfaces: [
+        interfaceTypeNone(B1),
+      ],
+    );
+    var I = class_(name: 'I');
+    var J = class_(name: 'J');
+    expect(_longestPathToObject(A), 1);
+    expect(_longestPathToObject(B), 2);
+    expect(_longestPathToObject(I), 1);
+    expect(_longestPathToObject(J), 1);
+
+    // The interface of M is:
+    // class _M&A&A implements A, B, I, J {}
+    var M = mixin_(
+      name: 'M',
+      constraints: [
+        interfaceTypeNone(A),
+        interfaceTypeNone(B),
+      ],
+      interfaces: [
+        interfaceTypeNone(I),
+        interfaceTypeNone(J),
+      ],
+    );
+    expect(_longestPathToObject(M), 3);
+  }
+
+  void test_mixin_longerInterface_1() {
+    var A = class_(name: 'A');
+    var B = class_(name: 'B');
+    var I1 = class_(name: 'I1');
+    var I = class_(
+      name: 'I',
+      interfaces: [
+        interfaceTypeNone(I1),
+      ],
+    );
+    var J = class_(name: 'J');
+    expect(_longestPathToObject(A), 1);
+    expect(_longestPathToObject(B), 1);
+    expect(_longestPathToObject(I), 2);
+    expect(_longestPathToObject(J), 1);
+
+    // The interface of M is:
+    // class _M&A&A implements A, B, I, J {}
+    var M = mixin_(
+      name: 'M',
+      constraints: [
+        interfaceTypeNone(A),
+        interfaceTypeNone(B),
+      ],
+      interfaces: [
+        interfaceTypeNone(I),
+        interfaceTypeNone(J),
+      ],
+    );
+    expect(_longestPathToObject(M), 3);
+  }
+
+  int _longestPathToObject(ClassElement element) {
+    return InterfaceLeastUpperBoundHelper.computeLongestInheritancePathToObject(
+        element);
+  }
+}
+
+@reflectiveTest
+class SuperinterfaceSetTest extends AbstractTypeSystemTest {
+  @override
+  final TestTypeProvider typeProvider = TestTypeProvider();
+
+  void test_genericInterfacePath() {
     //
     //  A
     //  | implements
@@ -200,7 +419,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_genericSuperclassPath() {
+  void test_genericSuperclassPath() {
     //
     //  A
     //  |
@@ -261,7 +480,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_mixin_constraints() {
+  void test_mixin_constraints() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
@@ -291,7 +510,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_mixin_constraints_object() {
+  void test_mixin_constraints_object() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var mixinM = mixin_(name: 'M');
@@ -303,7 +522,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_mixin_interfaces() {
+  void test_mixin_interfaces() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
@@ -333,7 +552,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_multipleInterfacePaths() {
+  void test_multipleInterfacePaths() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
@@ -379,7 +598,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_multipleSuperclassPaths() {
+  void test_multipleSuperclassPaths() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
@@ -425,7 +644,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_recursion() {
+  void test_recursion() {
     var classA = ElementFactory.classElement3(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
@@ -448,7 +667,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_singleInterfacePath() {
+  void test_singleInterfacePath() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
     var classA = ElementFactory.classElement3(name: 'A');
@@ -485,7 +704,7 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
     );
   }
 
-  void test_computeSuperinterfaceSet_singleSuperclassPath() {
+  void test_singleSuperclassPath() {
     //
     //  A
     //  |
@@ -527,11 +746,6 @@ class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
       _superInterfaces(instC),
       unorderedEquals([instObject, instA, instB]),
     );
-  }
-
-  int _longestPathToObject(ClassElement element) {
-    return InterfaceLeastUpperBoundHelper.computeLongestInheritancePathToObject(
-        element);
   }
 
   Set<InstantiatedClass> _superInterfaces(InstantiatedClass type) {

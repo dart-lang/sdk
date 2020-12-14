@@ -448,7 +448,6 @@ static char* CompilerFlags() {
   ADD_FLAG(enable_asserts);
   ADD_FLAG(use_field_guards);
   ADD_FLAG(use_osr);
-  ADD_FLAG(causal_async_stacks);
   ADD_FLAG(fields_may_be_reset);
 #undef ADD_FLAG
 
@@ -744,6 +743,8 @@ ObjectPtr TypeFeedbackLoader::LoadFields() {
       fields_ = cls_.fields();
     }
 
+    SafepointWriteRwLocker ml(thread_,
+                              thread_->isolate_group()->program_lock());
     for (intptr_t i = 0; i < num_fields; i++) {
       field_name_ = ReadString();
       intptr_t guarded_cid = cid_map_[ReadInt()];

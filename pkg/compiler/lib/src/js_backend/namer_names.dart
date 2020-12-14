@@ -83,6 +83,9 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   int get hashCode => base.hashCode * 13 + prefix.hashCode;
 
   @override
+  bool get isFinalized => prefix.isFinalized && base.isFinalized;
+
+  @override
   int compareTo(jsAst.Name other) {
     _NamerName otherNamerName;
     if (other is ModularName) {
@@ -209,6 +212,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
 
   TokenName(this._scope, this.key);
 
+  @override
   bool get isFinalized => _name != null;
 
   @override
@@ -274,6 +278,9 @@ class _NameReference extends _NamerName implements jsAst.AstContainer {
     }
     return _target.compareTo(otherNamerName);
   }
+
+  @override
+  bool get isFinalized => _target.isFinalized;
 
   @override
   bool operator ==(other) => _target == other;

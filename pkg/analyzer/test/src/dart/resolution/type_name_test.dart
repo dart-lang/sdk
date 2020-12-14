@@ -12,6 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeNameResolutionTest);
     defineReflectiveTests(TypeNameResolutionWithNullSafetyTest);
+    defineReflectiveTests(TypeNameResolutionWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -283,6 +284,112 @@ f(Never a) {}
       findNode.typeName('Never a'),
       neverElement,
       typeStr('Never', 'Null*'),
+    );
+  }
+}
+
+@reflectiveTest
+class TypeNameResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_typeAlias_asParameter_Never_none() async {
+    await assertNoErrorsInCode(r'''
+typedef X = Never;
+void f(X a, X? b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.typeAlias('X'),
+      'Never',
+    );
+
+    assertTypeName(
+      findNode.typeName('X? b'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+  }
+
+  test_typeAlias_asParameter_Never_question() async {
+    await assertNoErrorsInCode(r'''
+typedef X = Never?;
+void f(X a, X? b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+
+    assertTypeName(
+      findNode.typeName('X? b'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+  }
+
+  test_typeAlias_asParameterType_interfaceType_none() async {
+    await assertNoErrorsInCode(r'''
+typedef X<T> = Map<int, T>;
+void f(X<String> a, X<String?> b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<String>'),
+      findElement.typeAlias('X'),
+      'Map<int, String>',
+    );
+
+    assertTypeName(
+      findNode.typeName('X<String?>'),
+      findElement.typeAlias('X'),
+      'Map<int, String?>',
+    );
+  }
+
+  test_typeAlias_asParameterType_interfaceType_question() async {
+    await assertNoErrorsInCode(r'''
+typedef X<T> = List<T?>;
+void f(X<int> a, X<int?> b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<int>'),
+      findElement.typeAlias('X'),
+      'List<int?>',
+    );
+
+    assertTypeName(
+      findNode.typeName('X<int?>'),
+      findElement.typeAlias('X'),
+      'List<int?>',
+    );
+  }
+
+  test_typeAlias_asReturnType_interfaceType() async {
+    await assertNoErrorsInCode(r'''
+typedef X<T> = Map<int, T>;
+X<String> f() => {};
+''');
+
+    assertTypeName(
+      findNode.typeName('X<String>'),
+      findElement.typeAlias('X'),
+      'Map<int, String>',
+    );
+  }
+
+  test_typeAlias_asReturnType_void() async {
+    await assertNoErrorsInCode(r'''
+typedef Nothing = void;
+Nothing f() {}
+''');
+
+    assertTypeName(
+      findNode.typeName('Nothing f()'),
+      findElement.typeAlias('Nothing'),
+      'void',
     );
   }
 }

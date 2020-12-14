@@ -138,21 +138,6 @@ static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
   return writer.WriteCMessage(obj, dest_port, Message::kNormalPriority);
 }
 
-static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
-  if (message == NULL) {
-    return Instance::null();
-  }
-  Zone* zone = thread->zone();
-  if (message->IsRaw()) {
-    return Instance::RawCast(message->raw_obj());
-  } else {
-    MessageSnapshotReader reader(message, thread);
-    const Object& obj = Object::Handle(zone, reader.ReadObject());
-    ASSERT(!obj.IsError());
-    return Instance::RawCast(obj.raw());
-  }
-}
-
 void IsolateGroupSource::add_loaded_blob(
     Zone* zone,
     const ExternalTypedData& external_typed_data) {
@@ -368,11 +353,28 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
+      initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
       symbols_lock_(new SafepointRwLock()),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
       type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
           "IsolateGroup::type_arguments_canonicalization_mutex_")),
+      subtype_test_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::subtype_test_cache_mutex_")),
+      megamorphic_table_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::megamorphic_table_mutex_")),
+      type_feedback_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::type_feedback_mutex_")),
+      patchable_call_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::patchable_call_mutex_")),
+      constant_canonicalization_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::constant_canonicalization_mutex_")),
+      kernel_data_lib_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_data_lib_cache_mutex_")),
+      kernel_data_class_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
+      kernel_constants_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
@@ -558,8 +560,6 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
 
     // Now get a free Thread structure.
     ASSERT(thread != nullptr);
-
-    thread->ResetHighWatermark();
 
     // Set up other values and set the TLS value.
     thread->isolate_ = nullptr;
@@ -903,8 +903,20 @@ void Isolate::ValidateClassTable() {
 }
 #endif  // DEBUG
 
-void Isolate::RegisterStaticField(const Field& field) {
-  field_table()->Register(field);
+void IsolateGroup::RegisterStaticField(const Field& field,
+                                       const Instance& initial_value) {
+  ASSERT(program_lock()->IsCurrentThreadWriter());
+
+  ASSERT(field.is_static());
+  initial_field_table()->Register(field);
+  initial_field_table()->SetAt(field.field_id(), initial_value.raw());
+
+  // TODO(dartbug.com/36097): When we start sharing the object stores (and
+  // therefore libraries, classes, fields) we'll have to register the initial
+  // static field value in all isolates.
+  auto current = Isolate::Current();
+  current->field_table()->AllocateIndex(field.field_id());
+  current->field_table()->SetAt(field.field_id(), initial_value.raw());
 }
 
 void Isolate::RehashConstants() {
@@ -1619,7 +1631,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
       shared_class_table_(isolate_group->shared_class_table()),
-      field_table_(new FieldTable()),
+      field_table_(new FieldTable(/*isolate=*/this)),
       isolate_group_(isolate_group),
       isolate_object_store_(
           new IsolateObjectStore(isolate_group->object_store())),
@@ -1644,17 +1656,10 @@ Isolate::Isolate(IsolateGroup* isolate_group,
           reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif  // !defined(PRODUCT)
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      on_shutdown_callback_(Isolate::ShutdownCallback()),
+      on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      constant_canonicalization_mutex_(
-          NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
-      megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
-      kernel_data_lib_cache_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
-      kernel_data_class_cache_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_")),
-      kernel_constants_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_constants_mutex_")),
       pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
@@ -2048,30 +2053,34 @@ void Isolate::DeleteReloadContext() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Isolate::MakeRunnable() {
-  ASSERT(Isolate::Current() == nullptr);
-
   MutexLocker ml(&mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable() == true) {
     return "Isolate is already runnable";
   }
+  if (object_store()->root_library() == Library::null()) {
+    return "The embedder has to ensure there is a root library (e.g. by "
+           "calling Dart_LoadScriptFromKernel ).";
+  }
+  MakeRunnableLocked();
+  return nullptr;
+}
+
+void Isolate::MakeRunnableLocked() {
+  ASSERT(mutex_.IsOwnedByCurrentThread());
+  ASSERT(!is_runnable());
+  ASSERT(object_store()->root_library() != Library::null());
+
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
-  ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
   if (!Isolate::IsSystemIsolate(this)) {
-    debugger()->OnIsolateRunnable();
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }
   }
 #endif  // !PRODUCT
-  IsolateSpawnState* state = spawn_state();
-  if (state != nullptr) {
-    ASSERT(this == state->isolate());
-    Run();
-  }
 #if defined(SUPPORT_TIMELINE)
   TimelineStream* stream = Timeline::GetIsolateStream();
   ASSERT(stream != nullptr);
@@ -2087,17 +2096,7 @@ const char* Isolate::MakeRunnable() {
     Service::HandleEvent(&runnableEvent);
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
-  if (FLAG_print_benchmarking_metrics) {
-    {
-      StartIsolateScope scope(this);
-      heap()->CollectAllGarbage();
-    }
-    int64_t heap_size = (heap()->UsedInWords(Heap::kNew) * kWordSize) +
-                        (heap()->UsedInWords(Heap::kOld) * kWordSize);
-    GetRunnableHeapSizeMetric()->set_value(heap_size);
-  }
 #endif  // !PRODUCT
-  return nullptr;
 }
 
 bool Isolate::VerifyPauseCapability(const Object& capability) const {
@@ -2308,124 +2307,9 @@ bool Isolate::NotifyErrorListeners(const char* message,
   return listeners.Length() > 0;
 }
 
-static MessageHandler::MessageStatus RunIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  IsolateSpawnState* state = nullptr;
-  {
-    // TODO(turnidge): Is this locking required here at all anymore?
-    MutexLocker ml(isolate->mutex());
-    state = isolate->spawn_state();
-  }
-  {
-    StartIsolateScope start_scope(isolate);
-    Thread* thread = Thread::Current();
-    ASSERT(thread->isolate() == isolate);
-    StackZone zone(thread);
-    HandleScope handle_scope(thread);
-
-    // If particular values were requested for this newly spawned isolate, then
-    // they are set here before the isolate starts executing user code.
-    isolate->SetErrorsFatal(state->errors_are_fatal());
-    if (state->on_exit_port() != ILLEGAL_PORT) {
-      const SendPort& listener =
-          SendPort::Handle(SendPort::New(state->on_exit_port()));
-      isolate->AddExitListener(listener, Instance::null_instance());
-    }
-    if (state->on_error_port() != ILLEGAL_PORT) {
-      const SendPort& listener =
-          SendPort::Handle(SendPort::New(state->on_error_port()));
-      isolate->AddErrorListener(listener);
-    }
-
-    // Switch back to spawning isolate.
-
-    if (!ClassFinalizer::ProcessPendingClasses()) {
-// Error is in sticky error already.
-#if defined(DEBUG)
-      const Error& error = Error::Handle(thread->sticky_error());
-      ASSERT(!error.IsUnwindError());
-#endif
-      return MessageHandler::kError;
-    }
-
-    Object& result = Object::Handle();
-    result = state->ResolveFunction();
-    bool is_spawn_uri = state->is_spawn_uri();
-    if (result.IsError()) {
-      return StoreError(thread, Error::Cast(result));
-    }
-    ASSERT(result.IsFunction());
-    Function& func = Function::Handle(thread->zone());
-    func ^= result.raw();
-
-    func = func.ImplicitClosureFunction();
-
-    const Array& capabilities = Array::Handle(Array::New(2));
-    Capability& capability = Capability::Handle();
-    capability = Capability::New(isolate->pause_capability());
-    capabilities.SetAt(0, capability);
-    // Check whether this isolate should be started in paused state.
-    if (state->paused()) {
-      bool added = isolate->AddResumeCapability(capability);
-      ASSERT(added);  // There should be no pending resume capabilities.
-      isolate->message_handler()->increment_paused();
-    }
-    capability = Capability::New(isolate->terminate_capability());
-    capabilities.SetAt(1, capability);
-
-    // Instead of directly invoking the entry point we call '_startIsolate' with
-    // the entry point as argument.
-    // Since this function ("RunIsolate") is used for both Isolate.spawn and
-    // Isolate.spawnUri we also send a boolean flag as argument so that the
-    // "_startIsolate" function can act corresponding to how the isolate was
-    // created.
-    const Array& args = Array::Handle(Array::New(7));
-    args.SetAt(0, SendPort::Handle(SendPort::New(state->parent_port())));
-    args.SetAt(1, Instance::Handle(func.ImplicitStaticClosure()));
-    args.SetAt(2, Instance::Handle(state->BuildArgs(thread)));
-    args.SetAt(3, Instance::Handle(state->BuildMessage(thread)));
-    args.SetAt(4, is_spawn_uri ? Bool::True() : Bool::False());
-    args.SetAt(5, ReceivePort::Handle(
-                      ReceivePort::New(isolate->main_port(), Symbols::Empty(),
-                                       true /* control port */)));
-    args.SetAt(6, capabilities);
-
-    const Library& lib = Library::Handle(Library::IsolateLibrary());
-    const String& entry_name = String::Handle(String::New("_startIsolate"));
-    const Function& entry_point =
-        Function::Handle(lib.LookupLocalFunction(entry_name));
-    ASSERT(entry_point.IsFunction() && !entry_point.IsNull());
-
-    result = DartEntry::InvokeFunction(entry_point, args);
-    if (result.IsError()) {
-      return StoreError(thread, Error::Cast(result));
-    }
-  }
-  return MessageHandler::kOK;
-}
-
 static void ShutdownIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  {
-    // Print the error if there is one.  This may execute dart code to
-    // print the exception object, so we need to use a StartIsolateScope.
-    StartIsolateScope start_scope(isolate);
-    Thread* thread = Thread::Current();
-    ASSERT(thread->isolate() == isolate);
-
-    // We must wait for any outstanding spawn calls to complete before
-    // running the shutdown callback.
-    isolate->WaitForOutstandingSpawns();
-
-    StackZone zone(thread);
-    HandleScope handle_scope(thread);
-#if defined(DEBUG)
-    isolate->ValidateConstants();
-#endif  // defined(DEBUG)
-    Dart::RunShutdownCallback();
-  }
-  // Shut the isolate down.
-  Dart::ShutdownIsolate(isolate);
+  Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(parameter));
+  Dart_ShutdownIsolate();
 }
 
 void Isolate::SetStickyError(ErrorPtr sticky_error) {
@@ -2436,7 +2320,7 @@ void Isolate::SetStickyError(ErrorPtr sticky_error) {
 }
 
 void Isolate::Run() {
-  message_handler()->Run(group()->thread_pool(), RunIsolate, ShutdownIsolate,
+  message_handler()->Run(group()->thread_pool(), nullptr, ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
@@ -2549,7 +2433,7 @@ void Isolate::LowLevelShutdown() {
         "\tisolate:    %s\n",
         name());
   }
-  if (FLAG_print_metrics || FLAG_print_benchmarking_metrics) {
+  if (FLAG_print_metrics) {
     LogBlock lb;
     OS::PrintErr("Printing metrics for %s\n", name());
 #define ISOLATE_GROUP_METRIC_PRINT(type, variable, name, unit)                 \
@@ -2652,7 +2536,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // Cache these two fields, since they are no longer available after the
   // `delete this` further down.
   IsolateGroup* isolate_group = isolate->isolate_group_;
-  Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
+  Dart_IsolateCleanupCallback cleanup = isolate->on_cleanup_callback();
   auto callback_data = isolate->init_callback_data_;
 
   // From this point on the isolate is no longer visited by GC (which is ok,
@@ -2918,9 +2802,7 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     object_store()->VisitObjectPointers(visitor);
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
-  if (saved_initial_field_table() != nullptr) {
-    saved_initial_field_table()->VisitObjectPointers(visitor);
-  }
+  initial_field_table()->VisitObjectPointers(visitor);
   VisitStackPointers(visitor, validate_frames);
 }
 
@@ -3165,12 +3047,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  intptr_t zone_handle_count = thread_registry()->CountZoneHandles(this);
-  intptr_t scoped_handle_count = thread_registry()->CountScopedHandles(this);
-
-  jsobj.AddProperty("_numZoneHandles", zone_handle_count);
-  jsobj.AddProperty("_numScopedHandles", scoped_handle_count);
-
   if (FLAG_profiler) {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
@@ -3229,8 +3105,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       }
     }
   }
-
-  jsobj.AddProperty("_threads", thread_registry());
 
   {
     JSONObject isolate_group(&jsobj, "isolate_group");
@@ -3851,190 +3725,6 @@ void Isolate::UnscheduleThread(Thread* thread,
   if (is_mutator) {
     group()->DecreaseMutatorCount(this);
   }
-}
-
-static const char* NewConstChar(const char* chars) {
-  size_t len = strlen(chars);
-  char* mem = new char[len + 1];
-  memmove(mem, chars, len + 1);
-  return mem;
-}
-
-IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
-                                     Dart_Port origin_id,
-                                     const char* script_url,
-                                     const Function& func,
-                                     SerializedObjectBuffer* message_buffer,
-                                     const char* package_config,
-                                     bool paused,
-                                     bool errors_are_fatal,
-                                     Dart_Port on_exit_port,
-                                     Dart_Port on_error_port,
-                                     const char* debug_name,
-                                     IsolateGroup* isolate_group)
-    : isolate_(nullptr),
-      parent_port_(parent_port),
-      origin_id_(origin_id),
-      on_exit_port_(on_exit_port),
-      on_error_port_(on_error_port),
-      script_url_(script_url),
-      package_config_(package_config),
-      library_url_(nullptr),
-      class_name_(nullptr),
-      function_name_(nullptr),
-      debug_name_(debug_name),
-      isolate_group_(isolate_group),
-      serialized_args_(nullptr),
-      serialized_message_(message_buffer->StealMessage()),
-      paused_(paused),
-      errors_are_fatal_(errors_are_fatal) {
-  const Class& cls = Class::Handle(func.Owner());
-  const Library& lib = Library::Handle(cls.library());
-  const String& lib_url = String::Handle(lib.url());
-  library_url_ = NewConstChar(lib_url.ToCString());
-
-  String& func_name = String::Handle();
-  func_name = func.name();
-  function_name_ = NewConstChar(String::ScrubName(func_name));
-  if (!cls.IsTopLevel()) {
-    const String& class_name = String::Handle(cls.Name());
-    class_name_ = NewConstChar(class_name.ToCString());
-  }
-
-  // Inherit flags from spawning isolate.
-  Isolate::Current()->FlagsCopyTo(isolate_flags());
-}
-
-IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
-                                     const char* script_url,
-                                     const char* package_config,
-                                     SerializedObjectBuffer* args_buffer,
-                                     SerializedObjectBuffer* message_buffer,
-                                     bool paused,
-                                     bool errors_are_fatal,
-                                     Dart_Port on_exit_port,
-                                     Dart_Port on_error_port,
-                                     const char* debug_name,
-                                     IsolateGroup* group)
-    : isolate_(nullptr),
-      parent_port_(parent_port),
-      origin_id_(ILLEGAL_PORT),
-      on_exit_port_(on_exit_port),
-      on_error_port_(on_error_port),
-      script_url_(script_url),
-      package_config_(package_config),
-      library_url_(nullptr),
-      class_name_(nullptr),
-      function_name_(nullptr),
-      debug_name_(debug_name),
-      isolate_group_(group),
-      serialized_args_(args_buffer->StealMessage()),
-      serialized_message_(message_buffer->StealMessage()),
-      isolate_flags_(),
-      paused_(paused),
-      errors_are_fatal_(errors_are_fatal) {
-  function_name_ = NewConstChar("main");
-
-  // By default inherit flags from spawning isolate. These can be overridden
-  // from the calling code.
-  Isolate::Current()->FlagsCopyTo(isolate_flags());
-}
-
-IsolateSpawnState::~IsolateSpawnState() {
-  delete[] script_url_;
-  delete[] package_config_;
-  delete[] library_url_;
-  delete[] class_name_;
-  delete[] function_name_;
-  delete[] debug_name_;
-}
-
-ObjectPtr IsolateSpawnState::ResolveFunction() {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
-  const String& func_name = String::Handle(zone, String::New(function_name()));
-
-  if (library_url() == nullptr) {
-    // Handle spawnUri lookup rules.
-    // Check whether the root library defines a main function.
-    const Library& lib =
-        Library::Handle(zone, I->object_store()->root_library());
-    Function& func = Function::Handle(zone, lib.LookupLocalFunction(func_name));
-    if (func.IsNull()) {
-      // Check whether main is reexported from the root library.
-      const Object& obj = Object::Handle(zone, lib.LookupReExport(func_name));
-      if (obj.IsFunction()) {
-        func ^= obj.raw();
-      }
-    }
-    if (func.IsNull()) {
-      const String& msg = String::Handle(
-          zone, String::NewFormatted(
-                    "Unable to resolve function '%s' in script '%s'.",
-                    function_name(), script_url()));
-      return LanguageError::New(msg);
-    }
-    return func.raw();
-  }
-
-  // Lookup the to be spawned function for the Isolate.spawn implementation.
-  // Resolve the library.
-  const String& lib_url = String::Handle(zone, String::New(library_url()));
-  const Library& lib =
-      Library::Handle(zone, Library::LookupLibrary(thread, lib_url));
-  if (lib.IsNull() || lib.IsError()) {
-    const String& msg = String::Handle(
-        zone,
-        String::NewFormatted("Unable to find library '%s'.", library_url()));
-    return LanguageError::New(msg);
-  }
-
-  // Resolve the function.
-  if (class_name() == nullptr) {
-    const Function& func =
-        Function::Handle(zone, lib.LookupLocalFunction(func_name));
-    if (func.IsNull()) {
-      const String& msg = String::Handle(
-          zone, String::NewFormatted(
-                    "Unable to resolve function '%s' in library '%s'.",
-                    function_name(), library_url()));
-      return LanguageError::New(msg);
-    }
-    return func.raw();
-  }
-
-  const String& cls_name = String::Handle(zone, String::New(class_name()));
-  const Class& cls = Class::Handle(zone, lib.LookupLocalClass(cls_name));
-  if (cls.IsNull()) {
-    const String& msg = String::Handle(
-        zone, String::NewFormatted(
-                  "Unable to resolve class '%s' in library '%s'.", class_name(),
-                  (library_url() != nullptr ? library_url() : script_url())));
-    return LanguageError::New(msg);
-  }
-  Function& func = Function::Handle(zone);
-  const auto& error = cls.EnsureIsFinalized(thread);
-  if (error == Error::null()) {
-    func = cls.LookupStaticFunctionAllowPrivate(func_name);
-  }
-  if (func.IsNull()) {
-    const String& msg = String::Handle(
-        zone, String::NewFormatted(
-                  "Unable to resolve static method '%s.%s' in library '%s'.",
-                  class_name(), function_name(),
-                  (library_url() != nullptr ? library_url() : script_url())));
-    return LanguageError::New(msg);
-  }
-  return func.raw();
-}
-
-InstancePtr IsolateSpawnState::BuildArgs(Thread* thread) {
-  return DeserializeMessage(thread, serialized_args_.get());
-}
-
-InstancePtr IsolateSpawnState::BuildMessage(Thread* thread) {
-  return DeserializeMessage(thread, serialized_message_.get());
 }
 
 }  // namespace dart

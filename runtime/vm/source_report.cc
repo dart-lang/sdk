@@ -105,7 +105,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.IsRedirectingFactory() || func.is_synthetic()) {
+      func.is_synthetic()) {
     return true;
   }
   if (func.IsNonImplicitClosureFunction() &&
@@ -565,11 +565,121 @@ void SourceReport::PrintJSON(JSONStream* js,
 
     // Visit all closures for this isolate.
     VisitClosures(&ranges);
+
+    // Output constant coverage if coverage is requested.
+    if (IsReportRequested(kCoverage)) {
+      // Find all scripts. We need to go though all scripts because a script
+      // (even one we don't want) can add coverage to another library (i.e.
+      // potentially one we want).
+      DirectChainedHashMap<ScriptTableTrait> local_script_table;
+      GrowableArray<ScriptTableEntry*> local_script_table_entries;
+      CollectAllScripts(&local_script_table, &local_script_table_entries);
+      CollectConstConstructorCoverageFromScripts(&local_script_table_entries,
+                                                 &ranges);
+      CleanupCollectedScripts(&local_script_table, &local_script_table_entries);
+    }
   }
 
   // Print the script table.
   JSONArray scripts(&report, "scripts");
   PrintScriptTable(&scripts);
+}
+
+void SourceReport::CollectAllScripts(
+    DirectChainedHashMap<ScriptTableTrait>* local_script_table,
+    GrowableArray<ScriptTableEntry*>* local_script_table_entries) {
+  ScriptTableEntry wrapper;
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone(), thread()->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(zone());
+  Script& scriptRef = Script::Handle(zone());
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    const Array& scripts = Array::Handle(zone(), lib.LoadedScripts());
+    for (intptr_t j = 0; j < scripts.Length(); j++) {
+      scriptRef ^= scripts.At(j);
+      const String& url = String::Handle(zone(), scriptRef.url());
+      wrapper.key = &url;
+      wrapper.script = &Script::Handle(zone(), scriptRef.raw());
+      ScriptTableEntry* pair = local_script_table->LookupValue(&wrapper);
+      if (pair != NULL) {
+        // Existing one.
+        continue;
+      }
+      // New one. Insert.
+      ScriptTableEntry* tmp = new ScriptTableEntry();
+      tmp->key = &url;
+      tmp->index = next_script_index_++;
+      tmp->script = wrapper.script;
+      local_script_table_entries->Add(tmp);
+      local_script_table->Insert(tmp);
+    }
+  }
+}
+
+void SourceReport::CleanupCollectedScripts(
+    DirectChainedHashMap<ScriptTableTrait>* local_script_table,
+    GrowableArray<ScriptTableEntry*>* local_script_table_entries) {
+  for (intptr_t i = 0; i < local_script_table_entries->length(); i++) {
+    delete local_script_table_entries->operator[](i);
+    local_script_table_entries->operator[](i) = NULL;
+  }
+  local_script_table_entries->Clear();
+  local_script_table->Clear();
+}
+
+void SourceReport::CollectConstConstructorCoverageFromScripts(
+    GrowableArray<ScriptTableEntry*>* local_script_table_entries,
+    JSONArray* ranges) {
+  // Now output the wanted constant coverage.
+  for (intptr_t i = 0; i < local_script_table_entries->length(); i++) {
+    const Script* script = local_script_table_entries->At(i)->script;
+    bool script_ok = true;
+    if (script_ != NULL && !script_->IsNull()) {
+      if (script->raw() != script_->raw()) {
+        // This is the wrong script.
+        script_ok = false;
+      }
+    }
+
+    // Whether we want *this* script or not we need to look at the constant
+    // constructor coverage. Any of those could be in a script we *do* want.
+    {
+      Script& scriptRef = Script::Handle(zone());
+      const Array& constructors =
+          Array::Handle(kernel::CollectConstConstructorCoverageFrom(*script));
+      intptr_t constructors_count = constructors.Length();
+      Function& constructor = Function::Handle(zone());
+      Code& code = Code::Handle(zone());
+      for (intptr_t i = 0; i < constructors_count; i++) {
+        constructor ^= constructors.At(i);
+        // Check if we want coverage for this constructor.
+        if (ShouldSkipFunction(constructor)) {
+          continue;
+        }
+        scriptRef ^= constructor.script();
+        code ^= constructor.unoptimized_code();
+        const TokenPosition begin_pos = constructor.token_pos();
+        const TokenPosition end_pos = constructor.end_token_pos();
+        JSONObject range(ranges);
+        range.AddProperty("scriptIndex", GetScriptIndex(scriptRef));
+        range.AddProperty("compiled",
+                          !code.IsNull());  // Does this make a difference?
+        range.AddProperty("startPos", begin_pos);
+        range.AddProperty("endPos", end_pos);
+
+        JSONObject cov(&range, "coverage");
+        {
+          JSONArray hits(&cov, "hits");
+          hits.AddValue(begin_pos);
+        }
+        {
+          JSONArray misses(&cov, "misses");
+          // No misses
+        }
+      }
+    }
+  }
 }
 
 }  // namespace dart

@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 
 main() {
   // The error cannot be null.
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     Future.error(null as dynamic);
   });
 }

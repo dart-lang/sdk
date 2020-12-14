@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/replace_top_bottom_visitor.dart';
+import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
 import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
@@ -501,9 +502,12 @@ class TypeSystemImpl implements TypeSystem {
   @override
   DartType instantiateToBounds2({
     ClassElement classElement,
-    FunctionTypeAliasElement functionTypeAliasElement,
+    @Deprecated("Use 'typeAliasElement' instead")
+        FunctionTypeAliasElement functionTypeAliasElement,
+    TypeAliasElement typeAliasElement,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
+    typeAliasElement ??= functionTypeAliasElement;
     if (classElement != null) {
       var typeParameters = classElement.typeParameters;
       var typeArguments = _defaultTypeArguments(typeParameters);
@@ -513,10 +517,10 @@ class TypeSystemImpl implements TypeSystem {
       );
       type = toLegacyType(type);
       return type;
-    } else if (functionTypeAliasElement != null) {
-      var typeParameters = functionTypeAliasElement.typeParameters;
+    } else if (typeAliasElement != null) {
+      var typeParameters = typeAliasElement.typeParameters;
       var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = functionTypeAliasElement.instantiate(
+      var type = typeAliasElement.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );
@@ -597,6 +601,8 @@ class TypeSystemImpl implements TypeSystem {
           if (type is FunctionType) {
             appendParameters(type.returnType);
             type.parameters.map((p) => p.type).forEach(appendParameters);
+            // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
+            type.typeArguments.forEach(appendParameters);
           } else if (type is InterfaceType) {
             type.typeArguments.forEach(appendParameters);
           }
@@ -1230,6 +1236,8 @@ class TypeSystemImpl implements TypeSystem {
       typeParameters,
       considerExtendsClause: false,
     );
+    inferredTypes =
+        inferredTypes.map(_removeBoundsOfGenericFunctionTypes).toList();
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1785,6 +1793,15 @@ class TypeSystemImpl implements TypeSystem {
     return currentType;
   }
 
+  DartType _removeBoundsOfGenericFunctionTypes(DartType type) {
+    return _RemoveBoundsOfGenericFunctionTypeVisitor.run(
+      bottomType: isNonNullableByDefault
+          ? NeverTypeImpl.instance
+          : typeProvider.nullType,
+      type: type,
+    );
+  }
+
   /// Starting from the given [type], search its class hierarchy for types of
   /// the form Future<R>, and return a list of the resulting R's.
   List<DartType> _searchTypeHierarchyForFutureTypeParameters(DartType type) {
@@ -1807,6 +1824,27 @@ class TypeSystemImpl implements TypeSystem {
 
     recurse(type);
     return result;
+  }
+}
+
+/// TODO(scheglov) Ask the language team how to deal with it.
+class _RemoveBoundsOfGenericFunctionTypeVisitor extends ReplacementVisitor {
+  final DartType _bottomType;
+
+  _RemoveBoundsOfGenericFunctionTypeVisitor._(this._bottomType);
+
+  @override
+  DartType visitTypeParameterBound(DartType type) {
+    return _bottomType;
+  }
+
+  static DartType run({
+    @required DartType bottomType,
+    @required DartType type,
+  }) {
+    var visitor = _RemoveBoundsOfGenericFunctionTypeVisitor._(bottomType);
+    var result = type.accept(visitor);
+    return result ?? type;
   }
 }
 

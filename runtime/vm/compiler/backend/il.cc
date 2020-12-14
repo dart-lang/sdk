@@ -820,23 +820,26 @@ void CallTargets::CreateHelper(Zone* zone, const ICData& ic_data) {
     const Array& descriptor =
         Array::Handle(zone, ic_data.arguments_descriptor());
     Thread* thread = Thread::Current();
-    const MegamorphicCache& cache = MegamorphicCache::Handle(
+
+    const auto& cache = MegamorphicCache::Handle(
         zone, MegamorphicCacheTable::Lookup(thread, name, descriptor));
-    SafepointMutexLocker ml(thread->isolate()->megamorphic_mutex());
-    MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
-    for (intptr_t i = 0, n = entries.Length(); i < n; i++) {
-      const intptr_t id =
-          Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
-      if (id == kIllegalCid) {
-        continue;
+    {
+      SafepointMutexLocker ml(thread->isolate_group()->type_feedback_mutex());
+      MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
+      for (intptr_t i = 0, n = entries.Length(); i < n; i++) {
+        const intptr_t id =
+            Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
+        if (id == kIllegalCid) {
+          continue;
+        }
+        Function& function = Function::ZoneHandle(zone);
+        function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
+        const intptr_t filled_entry_count = cache.filled_entry_count();
+        ASSERT(filled_entry_count > 0);
+        cid_ranges_.Add(new (zone) TargetInfo(
+            id, id, &function, Usage(function) / filled_entry_count,
+            StaticTypeExactnessState::NotTracking()));
       }
-      Function& function = Function::ZoneHandle(zone);
-      function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
-      const intptr_t filled_entry_count = cache.filled_entry_count();
-      ASSERT(filled_entry_count > 0);
-      cid_ranges_.Add(new (zone) TargetInfo(
-          id, id, &function, Usage(function) / filled_entry_count,
-          StaticTypeExactnessState::NotTracking()));
     }
   }
 }
@@ -1070,8 +1073,8 @@ bool GuardFieldTypeInstr::AttributesEqual(Instruction* other) const {
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
-  // If all inputs are constant, we can instantiate the sub and super type and
-  // remove this instruction if the subtype test succeeds.
+  // If all inputs needed to check instantation are constant, instantiate the
+  // sub and super type and remove the instruction if the subtype test succeeds.
   if (super_type()->BindsToConstant() && sub_type()->BindsToConstant() &&
       instantiator_type_arguments()->BindsToConstant() &&
       function_type_arguments()->BindsToConstant()) {
@@ -2752,6 +2755,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
+    case Slot::Kind::kWeakProperty_key:
+    case Slot::Kind::kWeakProperty_value:
       return false;
   }
   UNREACHABLE();
@@ -4815,8 +4820,36 @@ void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
   }
 }
 
+static FunctionPtr FindBinarySmiOp(Zone* zone, const String& name) {
+  const auto& smi_class = Class::Handle(zone, Smi::Class());
+  auto& smi_op_target = Function::Handle(
+      zone, Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (smi_op_target.IsNull() &&
+      Function::IsDynamicInvocationForwarderName(name)) {
+    const String& demangled = String::Handle(
+        zone, Function::DemangleDynamicInvocationForwarderName(name));
+    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
+  }
+#endif
+  return smi_op_target.raw();
+}
+
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
+
+  UpdateReceiverSminess(zone);
+
+  auto& specialized_binary_smi_ic_stub = Code::ZoneHandle(zone);
+  auto& binary_smi_op_target = Function::Handle(zone);
+  if (!receiver_is_not_smi()) {
+    specialized_binary_smi_ic_stub = TwoArgsSmiOpInlineCacheEntry(token_kind());
+    if (!specialized_binary_smi_ic_stub.IsNull()) {
+      binary_smi_op_target = FindBinarySmiOp(zone, function_name());
+    }
+  }
+
   const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
       (ic_data() == NULL)) {
@@ -4830,12 +4863,10 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
-        checked_argument_count(), receivers_static_type);
+        checked_argument_count(), receivers_static_type, binary_smi_op_target);
   } else {
     call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }
-
-  UpdateReceiverSminess(zone);
 
   if (compiler->is_optimizing() && HasICData()) {
     if (ic_data()->NumberOfUsedChecks() > 0) {
@@ -4854,18 +4885,27 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Unoptimized code.
     compiler->AddCurrentDescriptor(PcDescriptorsLayout::kRewind, deopt_id(),
                                    token_pos());
-    bool is_smi_two_args_op = false;
-    const Code& stub =
-        Code::ZoneHandle(TwoArgsSmiOpInlineCacheEntry(token_kind()));
-    if (!stub.IsNull()) {
-      // We have a dedicated inline cache stub for this operation, add an
-      // an initial Smi/Smi check with count 0.
-      is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
+
+    // If the ICData contains a (Smi, Smi, <binary-smi-op-target>) stub already
+    // we will call the specialized IC Stub that works as a normal IC Stub but
+    // has inlined fast path for the specific Smi operation.
+    bool use_specialized_smi_ic_stub = false;
+    if (!specialized_binary_smi_ic_stub.IsNull() &&
+        call_ic_data->NumberOfChecksIs(1)) {
+      GrowableArray<intptr_t> class_ids(2);
+      auto& target = Function::Handle();
+      call_ic_data->GetCheckAt(0, &class_ids, &target);
+      if (class_ids[0] == kSmiCid && class_ids[1] == kSmiCid &&
+          target.raw() == binary_smi_op_target.raw()) {
+        use_specialized_smi_ic_stub = true;
+      }
     }
-    if (is_smi_two_args_op) {
+
+    if (use_specialized_smi_ic_stub) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCallJIT(stub, *call_ic_data, deopt_id(),
-                                    token_pos(), locs(), entry_kind());
+      compiler->EmitInstanceCallJIT(specialized_binary_smi_ic_stub,
+                                    *call_ic_data, deopt_id(), token_pos(),
+                                    locs(), entry_kind());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
                                      *call_ic_data, entry_kind(),
@@ -5286,7 +5326,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(value()->Type(), token_pos(), deopt_id(),
                                      dst_name(), locs());
-  ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
+  ASSERT(locs()->in(kInstancePos).reg() == locs()->out(0).reg());
 }
 
 LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,

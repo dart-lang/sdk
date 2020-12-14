@@ -118,7 +118,10 @@ struct TypeTestABI {
       EDI;  // On ia32 we don't use CODE_REG.
 
   // For call to InstanceOfStub.
-  static const Register kResultReg = kNoRegister;
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For call to SubtypeNTestCacheStub.
+  static const Register kSubtypeTestCacheResultReg =
+      TypeTestABI::kSubtypeTestCacheReg;
 };
 
 // Calling convention when calling kSubtypeCheckRuntimeEntry, to match other
@@ -202,7 +205,16 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt32SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt32SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 class Instr {
@@ -239,7 +251,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = 0;
   static const intptr_t kFpuArgumentRegisters = 0;
   static const intptr_t kNumArgRegs = 0;
-  static const Register kPointerToReturnStructRegister = kNoRegister;
+  static const Register kPointerToReturnStructRegisterCall = kNoRegister;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kXmmArgumentRegisters = 0;
@@ -252,6 +264,7 @@ class CallingConventions {
 
   static constexpr Register kReturnReg = EAX;
   static constexpr Register kSecondReturnReg = EDX;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Floating point values are returned on the "FPU stack" (in "ST" registers).
   // However, we use XMM0 in our compiler pipeline as the location.
@@ -273,7 +286,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How fields in composites are aligned.
-#if defined(_WIN32)
+#if defined(TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else
   static constexpr AlignmentStrategy kFieldAlignment =

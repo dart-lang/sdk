@@ -6,7 +6,7 @@ part of dart.collection;
 
 /// A specialized double-linked list of elements that extends [LinkedListEntry].
 ///
-/// This is not a generic data structure. It only accepts elements that extend
+/// This is not a generic data structure. It only accepts elements that *extend*
 /// the [LinkedListEntry] class. See the [Queue] implementations for generic
 /// collections that allow constant time adding and removing at the ends.
 ///
@@ -17,6 +17,9 @@ part of dart.collection;
 /// Because the elements themselves contain the links of this linked list,
 /// each element can be in only one list at a time. To add an element to another
 /// list, it must first be removed from its current list (if any).
+/// For the same reason, the [remove] and [contains] methods
+/// are based on *identity*, even if the [LinkedListEntry] chooses
+/// to override [Object.operator==].
 ///
 /// In return, each element knows its own place in the linked list, as well as
 /// which list it is in. This allows constant time
@@ -60,6 +63,13 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     _unlink(entry); // Unlink will decrement length.
     return true;
   }
+
+  /// Whether [entry] is a [LinkedListEntry] belonging to this list.
+  ///
+  /// The [entry] is considered as belonging to this list if
+  /// its [LinkedListEntry.list] is this list.
+  bool contains(Object? entry) =>
+      entry is LinkedListEntry && identical(this, entry.list);
 
   Iterator<E> get iterator => _LinkedListIterator<E>(this);
 
@@ -181,10 +191,7 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
         _next = list._first,
         _visitedFirst = false;
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 
   bool moveNext() {
     if (_modificationCount != _list._modificationCount) {

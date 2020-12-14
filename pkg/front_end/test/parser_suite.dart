@@ -171,7 +171,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    List<int> lineStarts = new List<int>();
+    List<int> lineStarts = <int>[];
 
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
@@ -215,7 +215,7 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    List<int> lineStarts = new List<int>();
+    List<int> lineStarts = <int>[];
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
@@ -251,7 +251,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    List<int> lineStarts = new List<int>();
+    List<int> lineStarts = <int>[];
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
@@ -412,7 +412,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   final bool annotateLines;
   final Source source;
   final String shortName;
-  final List<String> errors = new List<String>();
+  final List<String> errors = <String>[];
   Location latestSeenLocation;
 
   ParserTestListenerWithMessageFormatting(

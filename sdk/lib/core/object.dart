@@ -27,6 +27,7 @@ class Object {
    * through their identity. An [Object] instance is equal to itself
    * only.
    */
+  @pragma("vm:recognized", "other")
   const Object();
 
   /**

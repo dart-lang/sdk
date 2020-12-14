@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::bool* b = false;
+  block {
+    final core::List<core::String*>* #t1 = <core::String*>["ab"];
+    if(b)
+      #t1.{core::List::add}{Invariant}("cd");
+  } =>#t1;
+}

@@ -593,19 +593,19 @@ class TreeShaker {
       } else if (m is Procedure) {
         func = m.function;
         if (m.forwardingStubSuperTarget != null) {
-          m.forwardingStubSuperTarget = fieldMorpher.adjustInstanceCallTarget(
+          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
               m.forwardingStubSuperTarget,
               isSetter: m.isSetter);
           addUsedMember(m.forwardingStubSuperTarget);
         }
         if (m.forwardingStubInterfaceTarget != null) {
-          m.forwardingStubInterfaceTarget = fieldMorpher
-              .adjustInstanceCallTarget(m.forwardingStubInterfaceTarget,
-                  isSetter: m.isSetter);
+          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
+              m.forwardingStubInterfaceTarget,
+              isSetter: m.isSetter);
           addUsedMember(m.forwardingStubInterfaceTarget);
         }
         if (m.memberSignatureOrigin != null) {
-          m.memberSignatureOrigin = fieldMorpher.adjustInstanceCallTarget(
+          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
               m.memberSignatureOrigin,
               isSetter: m.isSetter);
           addUsedMember(m.memberSignatureOrigin);
@@ -1230,6 +1230,12 @@ class _TreeShakerPass2 extends Transformer {
 
   void transform(Component component) {
     component.transformChildren(this);
+    for (Source source in component.uriToSource.values) {
+      source?.constantCoverageConstructors?.removeWhere((Reference reference) {
+        Member node = reference.asMember;
+        return !shaker.isMemberUsed(node) && !_preserveSpecialMember(node);
+      });
+    }
   }
 
   @override
@@ -1322,8 +1328,10 @@ class _TreeShakerPass2 extends Transformer {
           _makeUnreachableBody(node.function);
         }
         node.function.asyncMarker = AsyncMarker.Sync;
-        node.forwardingStubSuperTargetReference = null;
-        node.forwardingStubInterfaceTargetReference = null;
+        if (node.forwardingStubSuperTarget != null ||
+            node.forwardingStubInterfaceTarget != null) {
+          node.stubTarget = null;
+        }
         Statistics.methodBodiesDropped++;
       } else if (node is Field) {
         node.initializer = null;

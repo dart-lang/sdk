@@ -28,6 +28,25 @@ class MemoryRegion;
 
 namespace compiler {
 
+enum OperandSize {
+  // Architecture-independent constants.
+  kByte,
+  kUnsignedByte,
+  kTwoBytes,  // Halfword (ARM), w(ord) (Intel)
+  kUnsignedTwoBytes,
+  kFourBytes,  // Word (ARM), l(ong) (Intel)
+  kUnsignedFourBytes,
+  kEightBytes,  // DoubleWord (ARM), q(uadword) (Intel)
+  // ARM-specific constants.
+  kSWord,
+  kDWord,
+  // 32-bit ARM specific constants.
+  kWordPair,
+  kRegList,
+  // 64-bit ARM specific constants.
+  kQWord,
+};
+
 // Forward declarations.
 class Assembler;
 class AssemblerFixup;
@@ -329,6 +348,12 @@ class AssemblerBase : public StackResource {
         has_monomorphic_entry_(false),
         object_pool_builder_(object_pool_builder) {}
   virtual ~AssemblerBase();
+
+  // Used for near/far jumps on IA32/X64, ignored for ARM.
+  enum JumpDistance : bool {
+    kFarJump = false,
+    kNearJump = true,
+  };
 
   intptr_t CodeSize() const { return buffer_.Size(); }
 

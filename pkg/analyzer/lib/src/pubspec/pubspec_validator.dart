@@ -249,6 +249,12 @@ class PubspecValidator {
       if (pathEntry != null) {
         YamlNode pathKey() => getKey(dependency, PATH_FIELD);
         YamlNode pathValue() => getValue(dependency, PATH_FIELD);
+
+        if (pathEntry.contains(r'\')) {
+          _reportErrorForNode(reporter, pathValue(),
+              PubspecWarningCode.PATH_NOT_POSIX, [pathEntry]);
+          return;
+        }
         var context = provider.pathContext;
         var normalizedPath = context.joinAll(path.posix.split(pathEntry));
         var packageRoot = context.dirname(source.fullName);

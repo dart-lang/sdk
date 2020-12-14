@@ -429,7 +429,7 @@ class Scavenger {
   bool scavenging_;
   bool early_tenure_ = false;
   RelaxedAtomic<intptr_t> root_slices_started_;
-  StoreBufferBlock* blocks_;
+  StoreBufferBlock* blocks_ = nullptr;
 
   int64_t gc_time_micros_;
   intptr_t collections_;

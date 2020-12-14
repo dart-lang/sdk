@@ -84,15 +84,19 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     TypeBuilder type = this.type;
     if (type is FunctionTypeBuilder) {
       List<TypeParameter> typeParameters =
-          new List<TypeParameter>(type.typeVariables?.length ?? 0);
+          new List<TypeParameter>.filled(type.typeVariables?.length ?? 0, null);
       for (int i = 0; i < typeParameters.length; ++i) {
         TypeVariableBuilder typeVariable = type.typeVariables[i];
         typeParameters[i] = typeVariable.parameter;
       }
       FreshTypeParameters freshTypeParameters =
           getFreshTypeParameters(typeParameters);
-      typedef.typeParametersOfFunctionType
-          .addAll(freshTypeParameters.freshTypeParameters);
+      for (int i = 0; i < freshTypeParameters.freshTypeParameters.length; i++) {
+        TypeParameter typeParameter =
+            freshTypeParameters.freshTypeParameters[i];
+        typedef.typeParametersOfFunctionType
+            .add(typeParameter..parent = typedef);
+      }
 
       if (type.formals != null) {
         for (FormalParameterBuilder formal in type.formals) {
@@ -103,6 +107,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           } else {
             typedef.positionalParameters.add(parameter);
           }
+          parameter.parent = typedef;
         }
       }
     } else if (type is NamedTypeBuilder || type is FixedTypeBuilder) {

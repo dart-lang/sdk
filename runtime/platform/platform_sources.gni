@@ -6,6 +6,7 @@
 # components.
 platform_sources = [
   "address_sanitizer.h",
+  "allocation.cc",
   "allocation.h",
   "assert.cc",
   "assert.h",

@@ -54,10 +54,10 @@ class ZoneAllocated {
   ZoneAllocated() {}
 
   // Implicitly allocate the object in the current zone.
-  void* operator new(uword size);
+  void* operator new(size_t size);
 
   // Allocate the object in the given zone, which must be the current zone.
-  void* operator new(uword size, Zone* zone);
+  void* operator new(size_t size, Zone* zone);
 
   // Ideally, the delete operator should be protected instead of
   // public, but unfortunately the compiler sometimes synthesizes

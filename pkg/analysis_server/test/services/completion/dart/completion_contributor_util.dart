@@ -96,10 +96,6 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   /// where there is no `new` or `const` keyword.
   bool get suggestConstructorsWithoutNew => true;
 
-  /// Return `true` if the new relevance computations should be used when
-  /// computing code completion suggestions.
-  bool get useNewRelevance => false;
-
   bool get usingFastaParser => analyzer.Parser.useFasta;
 
   void addTestSource(String content) {
@@ -552,7 +548,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   Future computeSuggestions({int times = 200}) async {
     result = await session.getResolvedUnit(testFile);
     var baseRequest = CompletionRequestImpl(
-        result, completionOffset, useNewRelevance, CompletionPerformance());
+        result, completionOffset, CompletionPerformance());
 
     return await baseRequest.performance.runRequestOperation(
       (performance) async {

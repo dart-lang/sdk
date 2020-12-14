@@ -64,18 +64,8 @@ class LspSocketServer implements AbstractSocketServer {
       return;
     }
 
-    PhysicalResourceProvider resourceProvider;
-    if (analysisServerOptions.fileReadMode == 'as-is') {
-      resourceProvider = PhysicalResourceProvider(null,
-          stateLocation: analysisServerOptions.cacheFolder);
-    } else if (analysisServerOptions.fileReadMode == 'normalize-eol-always') {
-      resourceProvider = PhysicalResourceProvider(
-          PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS,
-          stateLocation: analysisServerOptions.cacheFolder);
-    } else {
-      throw Exception(
-          'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
-    }
+    var resourceProvider = PhysicalResourceProvider(
+        stateLocation: analysisServerOptions.cacheFolder);
 
     analysisServer = LspAnalysisServer(
         serverChannel,

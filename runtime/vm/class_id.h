@@ -23,7 +23,6 @@ typedef uint16_t ClassIdTagType;
   V(Function)                                                                  \
   V(ClosureData)                                                               \
   V(SignatureData)                                                             \
-  V(RedirectionData)                                                           \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
   V(Script)                                                                    \
@@ -144,13 +143,6 @@ typedef uint16_t ClassIdTagType;
   V(DynamicLibrary)                                                            \
   V(Struct)
 
-#define CLASS_LIST_WASM(V)                                                     \
-  V(WasmInt32)                                                                 \
-  V(WasmInt64)                                                                 \
-  V(WasmFloat)                                                                 \
-  V(WasmDouble)                                                                \
-  V(WasmVoid)
-
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
   V(Int8)                                                                      \
   V(Uint8)                                                                     \
@@ -200,10 +192,6 @@ enum ClassId : intptr_t {
 // clang-format off
 #define DEFINE_OBJECT_KIND(clazz) kFfi##clazz##Cid,
   CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
-#define DEFINE_OBJECT_KIND(clazz) k##clazz##Cid,
-  CLASS_LIST_WASM(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
 #define DEFINE_OBJECT_KIND(clazz)                                              \
@@ -364,21 +352,29 @@ inline bool IsFfiNativeTypeTypeClassId(intptr_t index) {
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {
-  // Make sure this is updated when new Ffi types are added.
-  COMPILE_ASSERT(kFfiNativeFunctionCid == kFfiPointerCid + 1 &&
-                 kFfiInt8Cid == kFfiPointerCid + 2 &&
-                 kFfiInt16Cid == kFfiPointerCid + 3 &&
-                 kFfiInt32Cid == kFfiPointerCid + 4 &&
-                 kFfiInt64Cid == kFfiPointerCid + 5 &&
-                 kFfiUint8Cid == kFfiPointerCid + 6 &&
-                 kFfiUint16Cid == kFfiPointerCid + 7 &&
-                 kFfiUint32Cid == kFfiPointerCid + 8 &&
-                 kFfiUint64Cid == kFfiPointerCid + 9 &&
-                 kFfiIntPtrCid == kFfiPointerCid + 10 &&
-                 kFfiFloatCid == kFfiPointerCid + 11 &&
-                 kFfiDoubleCid == kFfiPointerCid + 12 &&
-                 kFfiVoidCid == kFfiPointerCid + 13);
-  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+  switch (index) {
+    case kFfiPointerCid:
+    case kFfiNativeFunctionCid:
+#define CASE_FFI_CID(name) case kFfi##name##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
+#undef CASE_FFI_CID
+      return true;
+    default:
+      return false;
+  }
+  UNREACHABLE();
+}
+
+inline bool IsFfiPredefinedClassId(classid_t class_id) {
+  switch (class_id) {
+#define CASE_FFI_CID(name) case kFfi##name##Cid:
+    CLASS_LIST_FFI(CASE_FFI_CID)
+#undef CASE_FFI_CID
+    return true;
+    default:
+      return false;
+  }
+  UNREACHABLE();
 }
 
 inline bool IsFfiTypeIntClassId(intptr_t index) {

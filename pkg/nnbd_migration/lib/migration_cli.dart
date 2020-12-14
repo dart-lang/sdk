@@ -101,10 +101,6 @@ class CommandLineOptions {
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
   static const skipImportCheckFlag = 'skip-import-check';
-
-  /// TODO(paulberry): remove this flag once internal sources have been updated.
-  @Deprecated('The migration tool no longer performs "pub outdated" checks')
-  static const skipPubOutdatedFlag = 'skip-pub-outdated';
   static const summaryOption = 'summary';
   static const verboseFlag = 'verbose';
   static const webPreviewFlag = 'web-preview';
@@ -130,36 +126,16 @@ class CommandLineOptions {
   final bool webPreview;
 
   CommandLineOptions(
-      {@required
-          this.applyChanges,
-      @required
-          this.directory,
-      @required
-          this.ignoreErrors,
-      @required
-          this.ignoreExceptions,
-      @required
-          this.previewHostname,
-      @required
-          this.previewPort,
-      @required
-          this.sdkPath,
-      // TODO(paulberry): make this parameter required once internal sources
-      // have been updated.
-      bool skipImportCheck,
-      // TODO(paulberry): remove this flag once internal sources have been
-      // updated.
-      @Deprecated('The migration tool no longer performs "pub outdated" checks')
-          bool skipPubOutdated = false,
-      @required
-          this.summary,
-      @required
-          this.webPreview})
-      // `skipImportCheck` has replaced `skipPubOutdated`, so if the caller
-      // specifies the latter but not the former, carry it over.
-      // TODO(paulberry): remove this logic once internal sources have been
-      // updated.
-      : skipImportCheck = skipImportCheck ?? skipPubOutdated;
+      {@required this.applyChanges,
+      @required this.directory,
+      @required this.ignoreErrors,
+      @required this.ignoreExceptions,
+      @required this.previewHostname,
+      @required this.previewPort,
+      @required this.sdkPath,
+      @required this.skipImportCheck,
+      @required this.summary,
+      @required this.webPreview});
 }
 
 // TODO(devoncarew): Refactor so this class extends DartdevCommand.
@@ -520,7 +496,7 @@ class MigrationCliOption {
 ///
 /// This class may be used directly by clients that with to run migration but
 /// provide their own command-line interface.
-class MigrationCliRunner {
+class MigrationCliRunner implements DartFixListenerClient {
   final MigrationCli cli;
 
   /// Logger instance we use to give feedback to the user.
@@ -637,6 +613,69 @@ class MigrationCliRunner {
         sdkPath: sdkPath);
   }
 
+  @override
+  void onException(String detail) {
+    if (_hasExceptions) {
+      if (!options.ignoreExceptions) {
+        // Our intention is to exit immediately when an exception occurred.  We
+        // tried, but failed (probably due to permissive mode logic in the
+        // migration tool itself catching the MigrationExit exception).  The
+        // stack has now been unwound further, so throw again.
+        throw MigrationExit(1);
+      }
+      // We're not exiting immediately when an exception occurs.  We've already
+      // reported that an exception happened.  So do nothing further.
+      return;
+    }
+    _hasExceptions = true;
+    if (options.ignoreExceptions) {
+      logger.stdout('''
+Exception(s) occurred during migration.  Attempting to perform
+migration anyway due to the use of --${CommandLineOptions.ignoreExceptionsFlag}.
+
+To see exception details, re-run without --${CommandLineOptions.ignoreExceptionsFlag}.
+''');
+    } else {
+      if (_hasAnalysisErrors) {
+        logger.stderr('''
+Aborting migration due to an exception.  This may be due to a bug in
+the migration tool, or it may be due to errors in the source code
+being migrated.  If possible, try to fix errors in the source code and
+re-try migrating.  If that doesn't work, consider filing a bug report
+at:
+''');
+      } else {
+        logger.stderr('''
+Aborting migration due to an exception.  This most likely is due to a
+bug in the migration tool.  Please consider filing a bug report at:
+''');
+      }
+      logger.stderr('https://github.com/dart-lang/sdk/issues/new');
+      var sdkVersion = Platform.version.split(' ')[0];
+      logger.stderr('''
+Please include the SDK version ($sdkVersion) in your bug report.
+
+To attempt to perform migration anyway, you may re-run with
+--${CommandLineOptions.ignoreExceptionsFlag}.
+
+Exception details:
+''');
+      logger.stderr(detail);
+      throw MigrationExit(1);
+    }
+  }
+
+  @override
+  void onFatalError(String detail) {
+    logger.stderr(detail);
+    throw MigrationExit(1);
+  }
+
+  @override
+  void onMessage(String detail) {
+    logger.stdout(detail);
+  }
+
   /// Runs the full migration process.
   ///
   /// If something goes wrong, a message is printed using the logger configured
@@ -660,8 +699,8 @@ class MigrationCliRunner {
 
     logger.stdout(ansi.emphasized('Analyzing project...'));
     _fixCodeProcessor = _FixCodeProcessor(context, this);
-    _dartFixListener = DartFixListener(
-        DriverProviderImpl(resourceProvider, context), _exceptionReported);
+    _dartFixListener =
+        DartFixListener(DriverProviderImpl(resourceProvider, context), this);
     nonNullableFix = createNonNullableFix(_dartFixListener, resourceProvider,
         _fixCodeProcessor.getLineInfo, computeBindAddress(),
         included: [options.directory],
@@ -835,43 +874,6 @@ sources' action.
     }
   }
 
-  void _exceptionReported(String detail) {
-    if (_hasExceptions) return;
-    _hasExceptions = true;
-    if (options.ignoreExceptions) {
-      logger.stdout('''
-Exception(s) occurred during migration.  Attempting to perform
-migration anyway due to the use of --${CommandLineOptions.ignoreExceptionsFlag}.
-
-To see exception details, re-run without --${CommandLineOptions.ignoreExceptionsFlag}.
-''');
-    } else {
-      if (_hasAnalysisErrors) {
-        logger.stderr('''
-Aborting migration due to an exception.  This may be due to a bug in
-the migration tool, or it may be due to errors in the source code
-being migrated.  If possible, try to fix errors in the source code and
-re-try migrating.  If that doesn't work, consider filing a bug report
-at:
-''');
-      } else {
-        logger.stderr('''
-Aborting migration due to an exception.  This most likely is due to a
-bug in the migration tool.  Please consider filing a bug report at:
-''');
-      }
-      logger.stderr('https://github.com/dart-lang/sdk/issues/new');
-      logger.stderr('''
-To attempt to perform migration anyway, you may re-run with
---${CommandLineOptions.ignoreExceptionsFlag}.
-
-Exception details:
-''');
-      logger.stderr(detail);
-      throw MigrationExit(1);
-    }
-  }
-
   void _logAlreadyMigrated() {
     logger.stdout(migratedAlready);
   }
@@ -939,6 +941,7 @@ get erroneous migration suggestions.
           _fixCodeProcessor._task.includedRoot,
           _dartFixListener,
           _fixCodeProcessor._task.instrumentationListener,
+          {},
           analysisResult);
     } else if (analysisResult.allSourcesAlreadyMigrated) {
       _logAlreadyMigrated();
@@ -947,6 +950,7 @@ get erroneous migration suggestions.
           _fixCodeProcessor._task.includedRoot,
           _dartFixListener,
           _fixCodeProcessor._task.instrumentationListener,
+          {},
           analysisResult);
     } else {
       logger.stdout(ansi.emphasized('Re-generating migration suggestions...'));
@@ -1079,9 +1083,6 @@ class _FixCodeProcessor extends Object {
   }
 
   Future<AnalysisResult> runFirstPhase() async {
-    // Process package
-    _task.processPackage(context.contextRoot.root);
-
     var analysisErrors = <AnalysisError>[];
 
     // All tasks should be registered; [numPhases] should be finalized.
@@ -1142,6 +1143,7 @@ class _FixCodeProcessor extends Object {
     _migrationCli.logger.stdout(_migrationCli.ansi
         .emphasized('Compiling instrumentation information...'));
     var state = await _task.finish();
+    _task.processPackage(context.contextRoot.root, state.neededPackages);
     if (_migrationCli.options.webPreview) {
       await _task.startPreviewServer(state, _migrationCli.applyHook);
     }

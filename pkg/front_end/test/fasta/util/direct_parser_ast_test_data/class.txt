@@ -1,0 +1,21 @@
+class Foo extends Bar implements Baz {
+  Foo() {
+    // Constructor
+  }
+
+  factory Foo.factory() => Foo();
+
+  void method() {
+    // instance method.
+  }
+
+  static void staticMethod() {
+    // static method.
+  }
+
+  int field1, field2 = 42;
+}
+
+class Foo2 with Bar2 {
+  // empty
+}

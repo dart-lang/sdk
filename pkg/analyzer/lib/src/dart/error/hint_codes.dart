@@ -293,27 +293,28 @@ class HintCode extends AnalyzerErrorCode {
    * 1: message details
    */
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
-      HintCodeWithUniqueName(
-          'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
-          'HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
-          "'{0}' is deprecated and shouldn't be used. {1}.",
-          correction: "Try replacing the use of the deprecated member with the "
-              "replacement.",
-          hasPublishedDocs: true);
+      HintCode(
+    'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
+    "'{0}' is deprecated and shouldn't be used. {1}.",
+    correction: "Try replacing the use of the deprecated member with the "
+        "replacement.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
+  );
 
   /**
    * Parameters:
    * 0: the name of the member
    * 1: message details
    */
-  static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE =
-      HintCodeWithUniqueName(
-          'DEPRECATED_MEMBER_USE',
-          'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
-          "'{0}' is deprecated and shouldn't be used. {1}.",
-          correction: "Try replacing the use of the deprecated member with the "
-              "replacement.",
-          hasPublishedDocs: true);
+  static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE = HintCode(
+    'DEPRECATED_MEMBER_USE',
+    "'{0}' is deprecated and shouldn't be used. {1}.",
+    correction: "Try replacing the use of the deprecated member with the "
+        "replacement.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+  );
 
   /**
    * `Function` should not be mixed in anymore.
@@ -721,13 +722,13 @@ class HintCode extends AnalyzerErrorCode {
   /// valid language version override comment, it is reported.
   ///
   /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
-          "The Dart language version override number must begin with '@dart'",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN = HintCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override number must begin with '@dart'",
+    correction: "Specify a Dart language version override with a comment "
+        "like '// @dart = 2.0'.",
+    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+  );
 
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
@@ -739,32 +740,30 @@ class HintCode extends AnalyzerErrorCode {
   /// valid language version override comment, it is reported.
   ///
   /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
-          "The Dart language version override comment must be specified with "
-              "an '=' character",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
-
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER =
-      HintCodeWithUniqueName(
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+    "The Dart language version override comment must be specified with "
+        "an '=' character",
+    correction: "Specify a Dart language version override with a comment "
+        "like '// @dart = 2.0'.",
+    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+  );
+
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER = HintCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The language version override can't specify a version greater than the "
         "latest known language version: {0}.{1}",
     correction: "Try removing the language version override.",
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
   );
 
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION =
-      HintCodeWithUniqueName(
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
     "The language version override must be before any declaration or "
         "directive.",
     correction:
         "Try moving the language version override to the top of the file.",
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
   );
 
   /// Invalid Dart language version comments don't follow the specification [1].
@@ -777,14 +776,14 @@ class HintCode extends AnalyzerErrorCode {
   /// valid language version override comment, it is reported.
   ///
   /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
-          "The Dart language version override comment must be specified with "
-              "the word 'dart' in all lower case",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE = HintCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment must be specified with "
+        "the word 'dart' in all lower case",
+    correction: "Specify a Dart language version override with a comment "
+        "like '// @dart = 2.0'.",
+    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+  );
 
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
@@ -796,14 +795,14 @@ class HintCode extends AnalyzerErrorCode {
   /// valid language version override comment, it is reported.
   ///
   /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
-          "The Dart language version override comment must be specified with a "
-              "version number, like '2.0', after the '=' character.",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER = HintCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment must be specified with a "
+        "version number, like '2.0', after the '=' character.",
+    correction: "Specify a Dart language version override with a comment "
+        "like '// @dart = 2.0'.",
+    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+  );
 
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
@@ -815,14 +814,14 @@ class HintCode extends AnalyzerErrorCode {
   /// valid language version override comment, it is reported.
   ///
   /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
-          "The Dart language version override number can't be prefixed with "
-              "a letter",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX = HintCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override number can't be prefixed with "
+        "a letter",
+    correction: "Specify a Dart language version override with a comment "
+        "like '// @dart = 2.0'.",
+    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+  );
 
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
@@ -835,13 +834,15 @@ class HintCode extends AnalyzerErrorCode {
   ///
   /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
-          "The Dart language version override comment can't be followed by "
-              "any non-whitespace characters",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
+      HintCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    "The Dart language version override comment can't be followed by "
+        "any non-whitespace characters",
+    correction: "Specify a Dart language version override with a comment "
+        "like '// @dart = 2.0'.",
+    uniqueName:
+        'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+  );
 
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
@@ -854,13 +855,14 @@ class HintCode extends AnalyzerErrorCode {
   ///
   /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
-          'The Dart language version override comment must be specified with '
-              'exactly two slashes.',
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
+      HintCode(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    'The Dart language version override comment must be specified with '
+        'exactly two slashes.',
+    correction: "Specify a Dart language version override with a comment "
+        "like '// @dart = 2.0'.",
+    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+  );
 
   /**
    * No parameters.
@@ -1150,6 +1152,7 @@ class HintCode extends AnalyzerErrorCode {
   // is required:
   //
   // ```dart
+  // %language=2.9
   // import 'package:meta/meta.dart';
   //
   // void f({@required int x}) {}
@@ -1164,6 +1167,7 @@ class HintCode extends AnalyzerErrorCode {
   // Provide the required value:
   //
   // ```dart
+  // %language=2.9
   // import 'package:meta/meta.dart';
   //
   // void f({@required int x}) {}
@@ -1184,12 +1188,12 @@ class HintCode extends AnalyzerErrorCode {
    * 0: the name of the parameter
    * 1: message details
    */
-  static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS =
-      HintCodeWithUniqueName(
-          'MISSING_REQUIRED_PARAM',
-          'HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
-          "The parameter '{0}' is required. {1}.",
-          hasPublishedDocs: true);
+  static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS = HintCode(
+    'MISSING_REQUIRED_PARAM',
+    "The parameter '{0}' is required. {1}.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
+  );
 
   /**
    * Parameters:
@@ -1207,6 +1211,7 @@ class HintCode extends AnalyzerErrorCode {
   // return:
   //
   // ```dart
+  // %language=2.9
   // int [!f!](int x) {
   //   if (x < 0) {
   //     return 0;
@@ -1320,7 +1325,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   //
   // If the instances of the class should be mutable, then remove the
-  //annotation, or choose a different superclass if the annotation is inherited:
+  // annotation, or choose a different superclass if the annotation is
+  // inherited:
   //
   // ```dart
   // class C {
@@ -1449,13 +1455,14 @@ class HintCode extends AnalyzerErrorCode {
    * 0: the name of the class defining the annotated constructor
    */
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
-      HintCodeWithUniqueName(
-          'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-          'HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
-          "This instance creation must be 'const', because the {0} constructor "
-              "is marked as '@literal'.",
-          correction: "Try replacing the 'new' keyword with 'const'.",
-          hasPublishedDocs: true);
+      HintCode(
+    'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+    "This instance creation must be 'const', because the {0} constructor "
+        "is marked as '@literal'.",
+    correction: "Try replacing the 'new' keyword with 'const'.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+  );
 
   /**
    * When the left operand of a binary expression uses '?.' operator, it can be
@@ -1511,7 +1518,6 @@ class HintCode extends AnalyzerErrorCode {
   // specified to allow `null` when `null` can't be thrown:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f() {
   //   try {
   //     // ...
@@ -1525,7 +1531,6 @@ class HintCode extends AnalyzerErrorCode {
   // Remove the question mark from the type:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f() {
   //   try {
   //     // ...
@@ -1558,28 +1563,28 @@ class HintCode extends AnalyzerErrorCode {
    *
    * No parameters.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD =
-      HintCodeWithUniqueName(
-          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-          'HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
-          "The field doesn't override an inherited getter or setter.",
-          correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.",
-          hasPublishedDocs: true);
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The field doesn't override an inherited getter or setter.",
+    correction: "Try updating this class to match the superclass, or "
+        "removing the override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
+  );
 
   /**
    * A getter with the override annotation does not override an existing getter.
    *
    * No parameters.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER =
-      HintCodeWithUniqueName(
-          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-          'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
-          "The getter doesn't override an inherited getter.",
-          correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.",
-          hasPublishedDocs: true);
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The getter doesn't override an inherited getter.",
+    correction: "Try updating this class to match the superclass, or "
+        "removing the override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
+  );
 
   /**
    * A method with the override annotation does not override an existing method.
@@ -1620,28 +1625,28 @@ class HintCode extends AnalyzerErrorCode {
   // superclass, then consider removing the member from the subclass.
   //
   // If the member can't be removed, then remove the annotation.
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD =
-      HintCodeWithUniqueName(
-          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-          'HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
-          "The method doesn't override an inherited method.",
-          correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.",
-          hasPublishedDocs: true);
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The method doesn't override an inherited method.",
+    correction: "Try updating this class to match the superclass, or "
+        "removing the override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
+  );
 
   /**
    * A setter with the override annotation does not override an existing setter.
    *
    * No parameters.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER =
-      HintCodeWithUniqueName(
-          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-          'HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
-          "The setter doesn't override an inherited setter.",
-          correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.",
-          hasPublishedDocs: true);
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = HintCode(
+    'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+    "The setter doesn't override an inherited setter.",
+    correction: "Try updating this class to match the superclass, or "
+        "removing the override annotation.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
+  );
 
   /**
    * It is a bad practice for a package import to reference anything outside the
@@ -1879,6 +1884,7 @@ class HintCode extends AnalyzerErrorCode {
   // diagnostic:
   //
   // ```dart
+  // %language=2.9
   // class C {}
   // const C a = null;
   // const C b = null;
@@ -1900,6 +1906,7 @@ class HintCode extends AnalyzerErrorCode {
   // expression isn't in a [constant context][]:
   //
   // ```dart
+  // %language=2.9
   // class C {}
   // const C a = null;
   // const C b = null;
@@ -2113,6 +2120,7 @@ class HintCode extends AnalyzerErrorCode {
   // diagnostic:
   //
   // ```dart
+  // %language=2.9
   // [!Never!] n;
   // ```
   //
@@ -2501,7 +2509,6 @@ class HintCode extends AnalyzerErrorCode {
   // `null`, so the comparison always evaluates to `true`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int x) {
   //   if (x [!!= null!]) {
   //     print(x);
@@ -2513,7 +2520,6 @@ class HintCode extends AnalyzerErrorCode {
   // `null`, so the comparison always evaluates to `false`:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int x) {
   //   if (x [!== null!]) {
   //     throw ArgumentError("x can't be null");
@@ -2527,7 +2533,6 @@ class HintCode extends AnalyzerErrorCode {
   // the operand:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int? x) {
   //   if (x != null) {
   //     print(x);
@@ -2538,52 +2543,53 @@ class HintCode extends AnalyzerErrorCode {
   // If the other operand really can't be `null`, then remove the condition:
   //
   // ```dart
-  // %experiments=non-nullable
   // void f(int x) {
   //   print(x);
   // }
   // ```
-  static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE =
-      HintCodeWithUniqueName(
-          'UNNECESSARY_NULL_COMPARISON',
-          'UNNECESSARY_NULL_COMPARISON_FALSE',
-          "The operand can't be null, so the condition is always false.",
-          correction: "Try removing the condition, an enclosing condition, "
-              "or the whole conditional statement.",
-          hasPublishedDocs: true);
+  static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE = HintCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand can't be null, so the condition is always false.",
+    correction: "Try removing the condition, an enclosing condition, "
+        "or the whole conditional statement.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_FALSE',
+  );
 
   /**
    * No parameters.
    */
-  static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE =
-      HintCodeWithUniqueName(
-          'UNNECESSARY_NULL_COMPARISON',
-          'UNNECESSARY_NULL_COMPARISON_TRUE',
-          "The operand can't be null, so the condition is always true.",
-          correction: "Remove the condition.",
-          hasPublishedDocs: true);
+  static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE = HintCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand can't be null, so the condition is always true.",
+    correction: "Remove the condition.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',
+  );
 
   /**
    * Unnecessary type checks, the result is always false.
    *
    * No parameters.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCodeWithUniqueName(
-      'UNNECESSARY_TYPE_CHECK',
-      'UNNECESSARY_TYPE_CHECK_FALSE',
-      "Unnecessary type check, the result is always false.",
-      correction: "Try correcting the type check, or removing the type check.");
+  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCode(
+    'UNNECESSARY_TYPE_CHECK',
+    "Unnecessary type check, the result is always false.",
+    correction: "Try correcting the type check, or removing the type check.",
+    uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
+  );
 
   /**
    * Unnecessary type checks, the result is always true.
    *
    * No parameters.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCodeWithUniqueName(
-      'UNNECESSARY_TYPE_CHECK',
-      'UNNECESSARY_TYPE_CHECK_TRUE',
-      "Unnecessary type check, the result is always true.",
-      correction: "Try correcting the type check, or removing the type check.");
+  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCode(
+    'UNNECESSARY_TYPE_CHECK',
+    "Unnecessary type check, the result is always true.",
+    correction: "Try correcting the type check, or removing the type check.",
+    uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
+  );
 
   /**
    * Parameters:
@@ -2703,6 +2709,7 @@ class HintCode extends AnalyzerErrorCode {
   // invocation of `_m`, the following code produces this diagnostic:
   //
   // ```dart
+  // %language=2.9
   // class C {
   //   void _m(int x, [int [!y!]]) {}
   //
@@ -2732,12 +2739,13 @@ class HintCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the parameter that is declared but not used
    */
-  static const HintCode UNUSED_ELEMENT_PARAMETER = HintCodeWithUniqueName(
-      'UNUSED_ELEMENT',
-      'HintCode.UNUSED_ELEMENT_PARAMETER',
-      "A value for optional parameter '{0}' isn't ever given.",
-      correction: "Try removing the unused parameter.",
-      hasPublishedDocs: true);
+  static const HintCode UNUSED_ELEMENT_PARAMETER = HintCode(
+    'UNUSED_ELEMENT',
+    "A value for optional parameter '{0}' isn't ever given.",
+    correction: "Try removing the unused parameter.",
+    hasPublishedDocs: true,
+    uniqueName: 'HintCode.UNUSED_ELEMENT_PARAMETER',
+  );
 
   /**
    * Parameters:
@@ -2754,6 +2762,7 @@ class HintCode extends AnalyzerErrorCode {
   // anywhere in the library:
   //
   // ```dart
+  // %language=2.9
   // class Point {
   //   int [!_x!];
   // }
@@ -2923,26 +2932,23 @@ class HintCode extends AnalyzerErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const HintCode(String name, String message,
-      {String correction, bool hasPublishedDocs})
-      : super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+  const HintCode(
+    String name,
+    String message, {
+    String correction,
+    bool hasPublishedDocs = false,
+    String uniqueName,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: uniqueName ?? 'HintCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
 
   @override
   ErrorType get type => ErrorType.HINT;
-}
-
-/// A [HintCode] class in which a [uniqueName] can be given which is not just
-/// derived from [name].
-class HintCodeWithUniqueName extends HintCode {
-  @override
-  final String uniqueName;
-
-  const HintCodeWithUniqueName(String name, this.uniqueName, String message,
-      {String correction, bool hasPublishedDocs})
-      : super(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
 }

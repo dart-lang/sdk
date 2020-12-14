@@ -7,7 +7,9 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:file/file.dart' as pkg_file;
 import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:test_runner/src/command_output.dart';
@@ -130,7 +132,7 @@ Future<void> main(List<String> args) async {
   for (var entry in glob.listSync(root: root)) {
     if (!entry.path.endsWith(".dart")) continue;
 
-    if (entry is File) {
+    if (entry is pkg_file.File) {
       await _processFile(entry,
           dryRun: dryRun,
           remove: removeSources,
@@ -301,7 +303,7 @@ Future<List<StaticError>> runDart2js(
   return errors;
 }
 
-/// Find the most recently-built [binary] in any of the build directories.
+/// Find the most recently-built binary [name] in any of the build directories.
 String _findBinary(String name, String windowsExtension) {
   var binary = Platform.isWindows ? "$name.$windowsExtension" : name;
 

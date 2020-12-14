@@ -2929,7 +2929,6 @@ extension E on String {}
     // metadata was visited.
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
   Future<void> test_extension_on_class_with_generic_type_arguments() async {
     await analyze('''
 class C<T> {}
@@ -2942,7 +2941,6 @@ extension E on C<List> {
     // adding assertion(s).
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
   Future<void> test_extension_on_function_type() async {
     await analyze('''
 extension CurryFunction<R, S, T> on R Function(S, T) {
@@ -4433,7 +4431,6 @@ bool f(List<num> list) => list is List<int>
         hard: false);
   }
 
-  @failingTest
   Future<void> test_isExpression_genericFunctionType() async {
     await analyze('''
 bool f(a) => a is int Function(String);

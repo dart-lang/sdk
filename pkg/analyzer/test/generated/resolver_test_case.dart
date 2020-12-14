@@ -284,17 +284,6 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
 /// Shared infrastructure for [StaticTypeAnalyzer2Test].
 class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
-  /// Find the expression that starts at the offset of [search] and validate its
-  /// that its static type matches the given [type].
-  ///
-  /// If [type] is a string, validates that the expression's static type
-  /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
-  /// to match the type.
-  void expectExpressionType(String search, type) {
-    Expression expression = findNode.expression(search);
-    _expectType(expression.staticType, type);
-  }
-
   /// Looks up the identifier with [name] and validates that its type type
   /// stringifies to [type] and that its generics match the given stringified
   /// output.

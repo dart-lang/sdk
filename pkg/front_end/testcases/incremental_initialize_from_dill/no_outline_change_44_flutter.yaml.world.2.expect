@@ -1,0 +1,33 @@
+main = <No Member>;
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  import "package:flutter/src/widgets/widget_inspector.dart";
+
+  abstract class Widget extends dart.core::Object implements wid::_HasCreationLocation {
+    final field wid::_Location? _location /*isLegacy, from null */;
+    synthetic constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
+      : super dart.core::Object::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+}
+library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
+
+  abstract class _HasCreationLocation extends dart.core::Object {
+    synthetic constructor •() → wid::_HasCreationLocation
+      : super dart.core::Object::•()
+      ;
+  }
+  class _Location extends dart.core::Object {
+    synthetic constructor •() → wid::_Location
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///flutter_gallery/lib/main.dart" as main {
+
+  import "package:flutter/src/widgets/framework.dart";
+
+}
+constants  {
+  #C1 = null
+}

@@ -108,8 +108,13 @@ class ExpressionCompilerWorker {
   final CompilerOptions _compilerOptions;
   final Component _sdkComponent;
 
-  ExpressionCompilerWorker._(this._processedOptions, this._compilerOptions,
-      this._sdkComponent, this.requestStream, this.sendResponse);
+  ExpressionCompilerWorker._(
+    this._processedOptions,
+    this._compilerOptions,
+    this._sdkComponent,
+    this.requestStream,
+    this.sendResponse,
+  );
 
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
@@ -243,8 +248,6 @@ class ExpressionCompilerWorker {
   /// Handles a `CompileExpression` request.
   Future<Map<String, dynamic>> _compileExpression(
       CompileExpressionRequest request) async {
-    _processedOptions.ticker.logMs('Compiling expression to JavaScript');
-
     var libraryUri = Uri.parse(request.libraryUri);
     if (libraryUri.scheme == 'dart') {
       // compiling expressions inside the SDK currently fails because
@@ -259,7 +262,8 @@ class ExpressionCompilerWorker {
       throw ArgumentError(
           'Unable to find library `$libraryUri`, it must be loaded first.');
     }
-
+    _processedOptions.ticker.logMs(
+        'Compiling expression to JavaScript in module ${request.moduleName}');
     var component = _sdkComponent;
 
     if (libraryUri.scheme != 'dart') {
@@ -297,7 +301,13 @@ class ExpressionCompilerWorker {
       finalComponent,
       incrementalCompiler.getClassHierarchy(),
       SharedCompilerOptions(
-          sourceMap: true, summarizeApi: false, moduleName: request.moduleName),
+          sourceMap: true,
+          summarizeApi: false,
+          moduleName: request.moduleName,
+          // Disable asserts due to failures to load source and
+          // locations on kernel loaded from dill files in DDC.
+          // https://github.com/dart-lang/sdk/issues/43986
+          enableAsserts: false),
       _componentForLibrary,
       _componentModuleNames,
       coreTypes: incrementalCompiler.getCoreTypes(),
@@ -318,9 +328,7 @@ class ExpressionCompilerWorker {
         request.libraryUri,
         request.line,
         request.column,
-        request.jsModules,
         request.jsScope,
-        request.moduleName,
         request.expression);
 
     _processedOptions.ticker.logMs('Compiled expression to JavaScript');

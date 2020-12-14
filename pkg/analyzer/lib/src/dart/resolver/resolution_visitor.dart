@@ -726,7 +726,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
-        node.functionType?.accept(this);
+        node.type?.accept(this);
       });
     });
   }

@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.30.0
+  1.32.1
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -235,6 +235,11 @@ a:focus, a:hover {
   the server so clients should ensure unknown values are handled gracefully, either
   ignoring the item or treating it with some default/fallback handling.
 </p>
+<h3>Changelog</h3>
+<h4>1.32.1</h4>
+<ul>
+  <li>Added <tt>CompletionSuggestionKind.PACKAGE_NAME</tt> for Pub package name completions in <tt>pubspec.yaml</tt></li>
+</ul>
 <h3>Domains</h3>
 <p>
   For convenience, the API is divided into domains. Each domain is specified
@@ -3046,6 +3051,8 @@ a:focus, a:hover {
   
   
   
+  
+  
 <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
     <p>
       A directive to begin overlaying the contents of a file. The supplied
@@ -3323,6 +3330,37 @@ a:focus, a:hover {
         </p>
       </dd><dt class="field"><b>items: List&lt;<a href="#type_AvailableSuggestion">AvailableSuggestion</a>&gt;</b></dt><dd>
         
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_BulkFix">BulkFix: object</a></dt><dd>
+    <p>
+      A description of bulk fixes to a library.
+    </p>
+    
+  <dl><dt class="field"><b>path: <a href="#type_FilePath">FilePath</a></b></dt><dd>
+        
+        <p>
+          The path of the library.
+        </p>
+      </dd><dt class="field"><b>fixes: List&lt;<a href="#type_BulkFixDetail">BulkFixDetail</a>&gt;</b></dt><dd>
+        
+        <p>
+          A list of bulk fix details.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_BulkFixDetail">BulkFixDetail: object</a></dt><dd>
+    <p>
+      A description of a fix applied to a library.
+    </p>
+    
+  <dl><dt class="field"><b>code: String</b></dt><dd>
+        
+        <p>
+          The code of the diagnostic associated with the fix.
+        </p>
+      </dd><dt class="field"><b>occurrences: int</b></dt><dd>
+        
+        <p>
+          The number times the associated diagnostic was fixed in the associated
+          source edit.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_ChangeContentOverlay">ChangeContentOverlay: object</a></dt><dd>
     <p>
       A directive to modify an existing file content overlay. One or more ranges
@@ -3590,7 +3628,10 @@ a:focus, a:hover {
         <p>
           An overriding implementation of a class member is being suggested.
         </p>
-      </dd><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_ContextData">ContextData: object</a></dt><dd>
+      </dd><dt class="value">PARAMETER</dt><dt class="value">PACKAGE_NAME</dt><dd>
+        
+        <p>The name of a pub package is being suggested.</p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_ContextData">ContextData: object</a></dt><dd>
     <p>
       Information about an analysis context.
     </p>
@@ -4239,152 +4280,47 @@ a:focus, a:hover {
     
   <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
         
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
-        
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FIELD_STATIC</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FUNCTION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FUNCTION_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">INSTANCE_FIELD_DECLARATION</dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">INSTANCE_FIELD_DECLARATION</dt><dt class="value">INSTANCE_FIELD_REFERENCE</dt><dt class="value">INSTANCE_GETTER_DECLARATION</dt><dt class="value">INSTANCE_GETTER_REFERENCE</dt><dt class="value">INSTANCE_METHOD_DECLARATION</dt><dt class="value">INSTANCE_METHOD_REFERENCE</dt><dt class="value">INSTANCE_SETTER_DECLARATION</dt><dt class="value">INSTANCE_SETTER_REFERENCE</dt><dt class="value">INVALID_STRING_ESCAPE</dt><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_NAME</dt><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_FUNCTION_DECLARATION</dt><dt class="value">LOCAL_FUNCTION_REFERENCE</dt><dt class="value">LOCAL_VARIABLE</dt><dd>
         
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_FIELD_REFERENCE</dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">LOCAL_VARIABLE_DECLARATION</dt><dt class="value">LOCAL_VARIABLE_REFERENCE</dt><dt class="value">METHOD</dt><dd>
         
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_GETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_GETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_METHOD_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_METHOD_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_SETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_SETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INVALID_STRING_ESCAPE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_NAME</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_FUNCTION_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">LOCAL_FUNCTION_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">LOCAL_VARIABLE</dt><dd>
-        
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">LOCAL_VARIABLE_DECLARATION</dt><dt class="value">LOCAL_VARIABLE_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">METHOD</dt><dd>
-        
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">METHOD_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">METHOD_DECLARATION_STATIC</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">METHOD_STATIC</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">PARAMETER</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">SETTER_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">TOP_LEVEL_VARIABLE</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">PARAMETER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">PARAMETER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_FIELD_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_GETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_GETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_METHOD_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_METHOD_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_SETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_SETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">VALID_STRING_ESCAPE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd></dl></dd><dt class="typeDefinition"><a name="type_HoverInformation">HoverInformation: object</a></dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">PARAMETER_DECLARATION</dt><dt class="value">PARAMETER_REFERENCE</dt><dt class="value">STATIC_FIELD_DECLARATION</dt><dt class="value">STATIC_GETTER_DECLARATION</dt><dt class="value">STATIC_GETTER_REFERENCE</dt><dt class="value">STATIC_METHOD_DECLARATION</dt><dt class="value">STATIC_METHOD_REFERENCE</dt><dt class="value">STATIC_SETTER_DECLARATION</dt><dt class="value">STATIC_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dt class="value">VALID_STRING_ESCAPE</dt></dl></dd><dt class="typeDefinition"><a name="type_HoverInformation">HoverInformation: object</a></dt><dd>
     <p>
       The hover information associated with a specific location.
     </p>
@@ -6062,7 +5998,7 @@ a:focus, a:hover {
   TODO: TBD
 </p>
 <h2 class="domain"><a name="index">Index</a></h2>
-<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.log">log</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getPostfixCompletion">getPostfixCompletion</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h4>flutter (<a href="#domain_flutter">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_flutter.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_flutter.outline">outline</a></li></ul></div></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FlutterOutline">FlutterOutline</a></li><li><a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a></li><li><a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></li><li><a href="#type_FlutterService">FlutterService</a></li><li><a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a></li><li><a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a></li><li><a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></li><li><a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a></li><li><a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_KytheEntry">KytheEntry</a></li><li><a href="#type_KytheVName">KytheVName</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
+<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.log">log</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getPostfixCompletion">getPostfixCompletion</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h4>flutter (<a href="#domain_flutter">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_flutter.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_flutter.outline">outline</a></li></ul></div></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_BulkFix">BulkFix</a></li><li><a href="#type_BulkFixDetail">BulkFixDetail</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FlutterOutline">FlutterOutline</a></li><li><a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a></li><li><a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></li><li><a href="#type_FlutterService">FlutterService</a></li><li><a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a></li><li><a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a></li><li><a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></li><li><a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a></li><li><a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_KytheEntry">KytheEntry</a></li><li><a href="#type_KytheVName">KytheVName</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
 
 
 </body></html>

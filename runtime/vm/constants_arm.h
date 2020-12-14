@@ -333,13 +333,20 @@ struct TypeTestABI {
   static const Register kSubtypeTestCacheReg = R3;
   static const Register kScratchReg = R4;
 
+  // For calls to InstanceOfStub.
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For calls to SubtypeNTestCacheStub. Must be saved by the caller if the
+  // original value is needed after the call.
+  static const Register kSubtypeTestCacheResultReg = kSubtypeTestCacheReg;
+
+  // Registers that need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
+      1 << kSubtypeTestCacheReg;
+
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
       (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
-
-  // For call to InstanceOfStub.
-  static const Register kResultReg = R0;
 };
 
 // Calling convention when calling AssertSubtypeStub.
@@ -480,7 +487,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 4;
-  static const Register kPointerToReturnStructRegister = R0;
+  static const Register kPointerToReturnStructRegisterCall = R0;
 
   static const intptr_t kFpuArgumentRegisters = 0;
 
@@ -520,6 +527,7 @@ class CallingConventions {
   static constexpr Register kReturnReg = R0;
   static constexpr Register kSecondReturnReg = R1;
   static constexpr FpuRegister kReturnFpuReg = Q0;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // We choose these to avoid overlap between themselves and reserved registers.
   static constexpr Register kFirstNonArgumentRegister = R8;
@@ -529,7 +537,7 @@ class CallingConventions {
 
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
-       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
 #undef R
@@ -697,6 +705,24 @@ enum InstructionFields {
   kOpc1Bits = 3,
 
   kBranchOffsetMask = 0x00ffffff
+};
+
+enum ScaleFactor {
+  TIMES_1 = 0,
+  TIMES_2 = 1,
+  TIMES_4 = 2,
+  TIMES_8 = 3,
+  TIMES_16 = 4,
+// Don't use (dart::)kWordSizeLog2, as this needs to work for crossword as
+// well. If this is included, we know the target is 32 bit.
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt32SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt32SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 // The class Instr enables access to individual fields defined in the ARM

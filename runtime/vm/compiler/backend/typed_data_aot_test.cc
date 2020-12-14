@@ -491,10 +491,6 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Regress43534) {
   ILMatcher cursor(flow_graph, entry, /*trace=*/true);
   RELEASE_ASSERT(cursor.TryMatch(
       {
-          kMatchAndMoveGoto,
-          kMatchAndMoveBranchFalse,
-          kMatchAndMoveAssertAssignable,
-          kMatchAndMoveGoto,
           kMatchAndMoveLoadField,
           kMatchAndMoveGenericCheckBound,
           kMatchAndMoveLoadUntagged,

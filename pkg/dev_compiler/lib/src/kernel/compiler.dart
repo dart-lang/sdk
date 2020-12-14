@@ -22,6 +22,7 @@ import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;
 import '../compiler/module_builder.dart'
     show isSdkInternalRuntimeUri, libraryUriToJsIdentifier, pathToJSIdentifier;
+import '../compiler/module_containers.dart' show ModuleItemContainer;
 import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
@@ -69,10 +70,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Let variables collected for the given function.
   List<js_ast.TemporaryId> _letVariables;
 
-  final _constTable = _emitTemporaryId('CT');
+  final _constTable = js_ast.TemporaryId('CT');
 
-  // Constant getters used to populate the constant table.
+  /// Constant getters used to populate the constant table.
   final _constLazyAccessors = <js_ast.Method>[];
+
+  /// Container for holding the results of lazily-evaluated constants.
+  final _constTableCache = ModuleItemContainer<String>.asArray('C');
 
   /// Tracks the index in [moduleItems] where the const table must be inserted.
   /// Required for SDK builds due to internal circular dependencies.
@@ -104,6 +108,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   Library _currentLibrary;
 
   FunctionNode _currentFunction;
+
+  /// Whether the current function needs to insert parameter checks.
+  ///
+  /// Used to avoid adding checks for formal parameters inside a synthetic
+  /// function that is generated during expression compilation in the
+  /// incremental compiler, since those checks would already be done in
+  /// the original code.
+  bool _checkParameters = true;
 
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
@@ -208,7 +220,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final constAliasCache = HashMap<Constant, js_ast.Expression>();
 
   /// Maps uri strings in asserts and elsewhere to hoisted identifiers.
-  final _uriMap = HashMap<String, js_ast.Identifier>();
+  final _uriContainer = ModuleItemContainer<String>.asArray('I');
 
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
@@ -315,7 +327,32 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var libraries = component.libraries;
 
-    // Initialize our library variables.
+    // Initialize library variables.
+    isBuildingSdk = libraries.any(isSdkInternalRuntime);
+
+    // For runtime performance reasons, we only containerize SDK symbols in web
+    // libraries. Otherwise, we use a 600-member cutoff before a module is
+    // containerized. This is somewhat arbitrary but works promisingly for the
+    // SDK and Flutter Web.
+    if (!isBuildingSdk) {
+      // The number of DDC top-level symbols scales with the number of
+      // non-static class members across an entire module.
+      var uniqueNames = HashSet<String>();
+      libraries.forEach((Library l) {
+        l.classes.forEach((Class c) {
+          c.members.forEach((m) {
+            var isStatic =
+                m is Field ? m.isStatic : (m is Procedure ? m.isStatic : false);
+            if (isStatic) return;
+            var name = js_ast.toJSIdentifier(
+                m.name.text.replaceAll(js_ast.invalidCharInIdentifier, '_'));
+            uniqueNames.add(name);
+          });
+        });
+      });
+      containerizeSymbols = uniqueNames.length > 600;
+    }
+
     var items = startModule(libraries);
     _nullableInference.allowNotNullDeclarations = isBuildingSdk;
     _typeTable = TypeTable(runtimeModule);
@@ -327,10 +364,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _pendingClasses.addAll(l.classes);
     }
 
-    // TODO(markzipan): Don't emit this when compiling the SDK.
-    moduleItems
-        .add(js.statement('const # = Object.create(null);', [_constTable]));
-    _constTableInsertionIndex = moduleItems.length;
+    // Record a safe index after the declaration of type generators and
+    // top-level symbols but before the declaration of any functions.
+    // Various preliminary data structures must be inserted here prior before
+    // referenced by the rest of the module.
+    var safeDeclarationIndex = moduleItems.length;
+    _constTableInsertionIndex = safeDeclarationIndex;
 
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(_coreTypes.coreLibrary);
@@ -342,20 +381,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // This is done by forward declaring items.
     libraries.forEach(_emitLibrary);
 
+    // Emit hoisted assert strings
+    moduleItems.insertAll(safeDeclarationIndex, _uriContainer.emit());
+
+    if (_constTableCache.isNotEmpty) {
+      moduleItems.insertAll(safeDeclarationIndex, _constTableCache.emit());
+    }
+
     // This can cause problems if it's ever true during the SDK build, as it's
     // emitted before dart.defineLazy.
     if (_constLazyAccessors.isNotEmpty) {
+      var constTableDeclaration =
+          js.statement('const # = Object.create(null);', [_constTable]);
       var constTableBody = runtimeStatement(
           'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]);
-      moduleItems.insert(_constTableInsertionIndex, constTableBody);
+      moduleItems.insertAll(
+          _constTableInsertionIndex, [constTableDeclaration, constTableBody]);
       _constLazyAccessors.clear();
     }
-
-    // Add assert locations
-    _uriMap.forEach((location, id) {
-      moduleItems.insert(_constTableInsertionIndex,
-          js.statement('var # = #;', [id, js.escapedString(location)]));
-    });
 
     moduleItems.addAll(afterClassDefItems);
     afterClassDefItems.clear();
@@ -366,9 +409,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Declare imports and extension symbols
     emitImportsAndExtensionSymbols(items);
 
-    // Discharge the type table cache variables and
-    // hoisted definitions.
-    items.addAll(_typeTable.discharge());
+    // Emit the hoisted type table cache variables
+    items.addAll(_typeTable.dischargeBoundTypes());
 
     return finishModule(items, _options.moduleName);
   }
@@ -432,6 +474,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(_currentLibrary == null);
     _currentLibrary = library;
     _staticTypeContext.enterLibrary(_currentLibrary);
+
+    if (isBuildingSdk) {
+      containerizeSymbols = _isWebLibrary(library.importUri);
+    }
 
     if (isSdkInternalRuntime(library)) {
       // `dart:_runtime` uses a different order for bootstrapping.
@@ -557,10 +603,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _classProperties =
         ClassPropertyModel.build(_types, _extensionTypes, _virtualFields, c);
 
+    var body = <js_ast.Statement>[];
+
+    // ClassPropertyModel.build introduces symbols for virtual field accessors.
+    _classProperties.virtualFields.forEach((field, virtualField) {
+      // TODO(vsm): Clean up this logic.
+      //
+      // Typically, [emitClassPrivateNameSymbol] creates a new symbol.  If it
+      // is called multiple times, that symbol is cached.  If the former,
+      // assign directly to [virtualField].  If the latter, copy the old
+      // variable to [virtualField].
+      var symbol = emitClassPrivateNameSymbol(c.enclosingLibrary,
+          getLocalClassName(c), field.name.text, virtualField);
+      if (symbol != virtualField) {
+        addSymbol(virtualField, getSymbolValue(symbol));
+        if (!containerizeSymbols) {
+          body.add(js.statement('const # = #;', [virtualField, symbol]));
+        }
+      }
+    });
+
     var jsCtors = _defineConstructors(c, className);
     var jsMethods = _emitClassMethods(c);
 
-    var body = <js_ast.Statement>[];
     _emitSuperHelperSymbols(body);
     // Deferred supertypes must be evaluated lazily while emitting classes to
     // prevent evaluating a JS expression for a deferred type from influencing
@@ -584,7 +649,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Attach caches on all canonicalized types.
     body.add(runtimeStatement('addTypeCaches(#)', [className]));
 
-    _emitVirtualFieldSymbols(c, body);
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);
     if (!c.isMixinDeclaration) {
@@ -635,7 +699,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var typeConstructor = js.call('(#) => { #; #; return #; }', [
       jsFormals,
-      _typeTable.discharge(formals),
+      _typeTable.dischargeFreeTypes(formals),
       body,
       className ?? _emitIdentifier(name)
     ]);
@@ -1516,7 +1580,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var body = <js_ast.Statement>[];
     void emitFieldInit(Field f, Expression initializer, TreeNode hoverInfo) {
-      var access = _classProperties.virtualFields[f] ?? _declareMemberName(f);
+      var virtualField = _classProperties.virtualFields[f];
+
+      // Avoid calling getSymbol on _declareMemberName since _declareMemberName
+      // calls _emitMemberName downstream, which already invokes getSymbol.
+      var access = virtualField == null
+          ? _declareMemberName(f)
+          : getSymbol(virtualField);
       var jsInit = _visitInitializer(initializer, f.annotations);
       body.add(jsInit
           .toAssignExpression(js.call('this.#', [access])
@@ -1903,14 +1973,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// wrong behavior if a new field was declared.
   List<js_ast.Method> _emitVirtualFieldAccessor(Field field) {
     var virtualField = _classProperties.virtualFields[field];
+    var virtualFieldSymbol = getSymbol(virtualField);
     var name = _declareMemberName(field);
 
-    var getter = js.fun('function() { return this[#]; }', [virtualField]);
+    var getter = js.fun('function() { return this[#]; }', [virtualFieldSymbol]);
     var jsGetter = js_ast.Method(name, getter, isGetter: true)
       ..sourceInformation = _nodeStart(field);
 
-    var args =
-        field.isFinal ? [js_ast.Super(), name] : [js_ast.This(), virtualField];
+    var args = field.isFinal
+        ? [js_ast.Super(), name]
+        : [js_ast.This(), virtualFieldSymbol];
 
     js_ast.Expression value = _emitIdentifier('value');
     if (!field.isFinal && isCovariantField(field)) {
@@ -2226,13 +2298,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var memberLibrary = member?.name?.library ??
           memberClass?.enclosingLibrary ??
           _currentLibrary;
-      return emitPrivateNameSymbol(memberLibrary, name);
+      return getSymbol(emitPrivateNameSymbol(memberLibrary, name));
     }
 
     useExtension ??= _isSymbolizedMember(memberClass, name);
     name = js_ast.memberNameForDartMember(name, _isExternal(member));
     if (useExtension) {
-      return getExtensionSymbolInternal(name);
+      return getSymbol(getExtensionSymbolInternal(name));
     }
     return propertyName(name);
   }
@@ -2639,6 +2711,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       {bool emitNullability = true}) {
     var c = type.classNode;
     _declareBeforeUse(c);
+    js_ast.Expression typeRep;
 
     // Type parameters don't matter as JS interop types cannot be reified.
     // We have to use lazy JS types because until we have proper module
@@ -2654,17 +2727,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Anonymous JS types do not have a corresponding concrete JS type so we
     // have to use a helper to define them.
     if (isJSAnonymousType(c)) {
-      return runtimeCall(
+      typeRep = runtimeCall(
           'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
+    } else {
+      var jsName = _jsNameWithoutGlobal(c);
+      if (jsName != null) {
+        typeRep = runtimeCall('lazyJSType(() => #, #)',
+            [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
+      }
     }
-    var jsName = _jsNameWithoutGlobal(c);
-    if (jsName != null) {
-      return runtimeCall('lazyJSType(() => #, #)',
-          [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
+
+    if (typeRep != null) {
+      // JS types are not currently cached in the type table like other types
+      // are below.
+      return emitNullability
+          ? _emitNullabilityWrapper(typeRep, type.nullability)
+          : typeRep;
     }
 
     var args = type.typeArguments;
-    js_ast.Expression typeRep;
     Iterable<js_ast.Expression> jsArgs;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
@@ -2840,7 +2921,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       js_ast.Expression addTypeFormalsAsParameters(
           List<js_ast.Expression> elements) {
-        var names = _typeTable.discharge(typeFormals);
+        var names = _typeTable.dischargeFreeTypes(typeFormals);
         return names.isEmpty
             ? js.call('(#) => [#]', [tf, elements])
             : js.call('(#) => {#; return [#];}', [tf, names, elements]);
@@ -2973,6 +3054,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _staticTypeContext.enterLibrary(_currentLibrary);
     _currentClass = cls;
 
+    // Do not add formal parameter checks for the top-level synthetic function
+    // generated for expression evaluation, as those parameters are a set of
+    // variables from the current scope, and should alredy be checked in the
+    // original code.
+    _checkParameters = false;
+
     // Emit function with additional information, such as types that are used
     // in the expression. Note that typeTable can be null if this function is
     // called from the expression compilation service, since we currently do
@@ -2982,9 +3069,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
 
-    var types = _typeTable.discharge();
+    var types = _typeTable?.dischargeFreeTypes();
     var constants = _dischargeConstTable();
-
     var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
     return js_ast.Fun(fun.params, body);
   }
@@ -3076,22 +3162,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     if (f.namedParameters.isNotEmpty) result.add(namedArgumentTemp);
     return result;
-  }
-
-  void _emitVirtualFieldSymbols(Class c, List<js_ast.Statement> body) {
-    _classProperties.virtualFields.forEach((field, virtualField) {
-      // TODO(vsm): Clean up this logic.  See comments on the following method.
-      //
-      // Typically, [emitClassPrivateNameSymbol] creates a new symbol.  If it
-      // is called multiple times, that symbol is cached.  If the former,
-      // assign directly to [virtualField].  If the latter, copy the old
-      // variable to [virtualField].
-      var symbol = emitClassPrivateNameSymbol(c.enclosingLibrary,
-          getLocalClassName(c), field.name.text, virtualField);
-      if (symbol != virtualField) {
-        body.add(js.statement('const # = #;', [virtualField, symbol]));
-      }
-    });
   }
 
   List<js_ast.Identifier> _emitTypeFormals(List<TypeParameter> typeFormals) {
@@ -3332,13 +3402,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // The check on `p.type` is per:
         // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
         var condition = js.call('# == null', [jsParam]);
+        // Offsets are not available for compiler-generated variables
+        // Get the best available location even if the offset is missing.
+        // https://github.com/dart-lang/sdk/issues/34942
         var location = p.location;
         var check = js.statement(' if (#) #.nullFailed(#, #, #, #);', [
           condition,
           runtimeModule,
-          _cacheUri(location.file.toString()),
-          js.number(location.line),
-          js.number(location.column),
+          _cacheUri(location?.file?.toString()),
+          js.number(location?.line ?? -1),
+          js.number(location?.column ?? -1),
           js.escapedString('${p.name}'),
         ]);
         body.add(check);
@@ -3347,7 +3420,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     for (var p in f.positionalParameters) {
       var jsParam = _emitVariableDef(p);
-      initParameter(p, jsParam);
+      if (_checkParameters) {
+        initParameter(p, jsParam);
+      }
     }
     for (var p in f.namedParameters) {
       // Parameters will be passed using their real names, not the (possibly
@@ -3374,8 +3449,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           paramName,
         ]));
       }
-      initParameter(p, jsParam);
+      if (_checkParameters) {
+        initParameter(p, jsParam);
+      }
     }
+
+    // '_checkParametes = false' is only needed once, while processing formal
+    // parameters of the synthetic function from expression evalaluation - it
+    // will be called from emitFunctionIncremental, which is a top-level API
+    // for expression compilation.
+    // Here we either are done with processing those formals, or compiling
+    // something else (in which case _checkParameters is already true).
+    _checkParameters = true;
     return body;
   }
 
@@ -3605,14 +3690,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   // Replace a string `uri` literal with a cached top-level variable containing
   // the value to reduce overall code size.
-  js_ast.Identifier _cacheUri(String uri) {
-    var id = _uriMap[uri];
-    if (id == null) {
-      var name = 'L${_uriMap.length}';
-      id = js_ast.TemporaryId(name);
-      _uriMap[uri] = id;
+  js_ast.Expression _cacheUri(String uri) {
+    if (!_uriContainer.contains(uri)) {
+      _uriContainer[uri] = js_ast.LiteralString('"$uri"');
     }
-    return id;
+    return _uriContainer.access(uri);
   }
 
   @override
@@ -4389,6 +4471,33 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
       Arguments arguments, InvocationExpression node) {
     var name = node.name.text;
+
+    /// Returns `true` when [node] represents an invocation of `List.add()` that
+    /// can be optimized.
+    ///
+    /// The optimized add operation can skip checks for a growable or modifiable
+    /// list and the element type is known to be invariant so it can skip the
+    /// type check.
+    bool isNativeListInvariantAdd(InvocationExpression node) {
+      if (node is MethodInvocation &&
+          node.isInvariant &&
+          node.name.name == 'add') {
+        // The call to add is marked as invariant, so the type check on the
+        // parameter to add is not needed.
+        var receiver = node.receiver;
+        if (receiver is VariableGet && receiver.variable.isFinal) {
+          // The receiver is a final variable, so it only contains the
+          // initializer value.
+          if (receiver.variable.initializer is ListLiteral) {
+            // The initializer is a list literal, so we know the list can be
+            // grown, modified, and is represented by a JavaScript Array.
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
     if (isOperatorMethodName(name) && arguments.named.isEmpty) {
       var argLength = arguments.positional.length;
       if (argLength == 0) {
@@ -4401,6 +4510,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var jsReceiver = _visitExpression(receiver);
     var args = _emitArgumentList(arguments, target: target);
+
+    if (isNativeListInvariantAdd(node)) {
+      return js.call('#.push(#)', [jsReceiver, args]);
+    }
 
     var isCallingDynamicField = target is Member &&
         target.hasGetter &&
@@ -4934,7 +5047,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           return _emitType(firstArg.type);
         }
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
-          return getExtensionSymbolInternal(firstArg.value);
+          return getSymbol(getExtensionSymbolInternal(firstArg.value));
         }
 
         if (name == 'compileTimeFlag' && firstArg is StringLiteral) {
@@ -5416,8 +5529,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitAsExpression(AsExpression node) {
     var fromExpr = node.operand;
-    var to = node.type;
     var jsFrom = _visitExpression(fromExpr);
+
+    // The `_EventStreamSubscription.cancel()` method dart:html returns null in
+    // weak mode. This causes unwanted warnings/failures when you turn on the
+    // weak mode warnings/errors so we remove these specific runtime casts.
+    // TODO(44157) Remove this workaround once it returns a consistent type.
+    if (_isWebLibrary(currentLibraryUri) && node.parent is ReturnStatement) {
+      var parent = node.parent;
+      while (parent != null && parent is! FunctionNode) {
+        parent = parent?.parent;
+      }
+      parent = parent?.parent;
+      if (parent is Procedure) {
+        if (parent.enclosingClass != null &&
+            parent.enclosingClass.name == '_EventStreamSubscription' &&
+            parent.name.name == 'cancel') {
+          // Ignore these casts and just emit the expression.
+          return jsFrom;
+        }
+      }
+    }
+
+    var to = node.type;
     var from = fromExpr.getStaticType(_staticTypeContext);
 
     // If the check was put here by static analysis to ensure soundness, we
@@ -5789,19 +5923,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var constAliasString = 'C${constAliasCache.length}';
     var constAliasProperty = propertyName(constAliasString);
-    var constAliasId = _emitTemporaryId(constAliasString);
-    var constAccessor =
-        js.call('# || #.#', [constAliasId, _constTable, constAliasProperty]);
+
+    _constTableCache[constAliasString] = js.call('void 0');
+    var constAliasAccessor = _constTableCache.access(constAliasString);
+
+    var constAccessor = js.call(
+        '# || #.#', [constAliasAccessor, _constTable, constAliasProperty]);
     constAliasCache[node] = constAccessor;
     var constJs = super.visitConstant(node);
-    // TODO(vsm): Change back to `let`.
-    // See https://github.com/dart-lang/sdk/issues/40380.
-    moduleItems.add(js.statement('var #;', [constAliasId]));
 
     var func = js_ast.Fun(
         [],
         js_ast.Block([
-          js.statement('return # = #;', [constAliasId, constJs])
+          js.statement('return # = #;', [constAliasAccessor, constJs])
         ]));
     var accessor = js_ast.Method(constAliasProperty, func, isGetter: true);
     _constLazyAccessors.add(accessor);
@@ -5887,8 +6021,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // was overridden.
       var symbol = cls.isEnum
           ? _emitMemberName(member.name.text, member: member)
-          : emitClassPrivateNameSymbol(
-              cls.enclosingLibrary, getLocalClassName(cls), member.name.text);
+          : getSymbol(emitClassPrivateNameSymbol(
+              cls.enclosingLibrary, getLocalClassName(cls), member.name.text));
       return js_ast.Property(symbol, constant);
     }
 

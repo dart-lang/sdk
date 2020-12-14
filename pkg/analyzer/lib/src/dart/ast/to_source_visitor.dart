@@ -668,7 +668,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNode(node.name);
     safelyVisitNode(node.typeParameters);
     sink.write(" = ");
-    safelyVisitNode(node.functionType);
+    safelyVisitNode(node.type);
   }
 
   @override

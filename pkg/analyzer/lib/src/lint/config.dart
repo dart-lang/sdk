@@ -20,7 +20,8 @@ LintConfig parseConfig(YamlMap optionsMap) {
 /// Process the given option [fileContents] and produce a corresponding
 /// [LintConfig].
 LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
-  var yaml = loadYamlNode(fileContents, sourceUrl: fileUrl);
+  var yaml = loadYamlNode(fileContents,
+      sourceUrl: fileUrl != null ? Uri.parse(fileUrl) : null);
   if (yaml is YamlMap) {
     return parseConfig(yaml);
   }
@@ -101,7 +102,8 @@ class _LintConfig implements LintConfig {
   }
 
   void _parse(String src, {String sourceUrl}) {
-    var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
+    var yaml = loadYamlNode(src,
+        sourceUrl: sourceUrl != null ? Uri.parse(sourceUrl) : null);
     if (yaml is YamlMap) {
       _parseYaml(yaml);
     }

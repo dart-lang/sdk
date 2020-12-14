@@ -350,7 +350,7 @@ class FrontendCompiler implements CompilerInterface {
 
   final ProgramTransformer transformer;
 
-  final List<String> errors = List<String>();
+  final List<String> errors = <String>[];
 
   _onDiagnostic(DiagnosticMessage message) {
     bool printMessage;
@@ -824,7 +824,8 @@ class FrontendCompiler implements CompilerInterface {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
 
-    _processedOptions.ticker.logMs('Compiling expression to JavaScript');
+    _processedOptions.ticker
+        .logMs('Compiling expression to JavaScript in $moduleName');
 
     var kernel2jsCompiler = _bundler.compilers[moduleName];
     Component component = _generator.lastKnownGoodComponent;
@@ -832,7 +833,7 @@ class FrontendCompiler implements CompilerInterface {
 
     _processedOptions.ticker.logMs('Computed component');
 
-    var evaluator = new ExpressionCompiler(
+    var expressionCompiler = new ExpressionCompiler(
       _compilerOptions,
       errors,
       _generator.generator,
@@ -840,8 +841,8 @@ class FrontendCompiler implements CompilerInterface {
       component,
     );
 
-    var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
-        column, jsModules, jsFrameValues, moduleName, expression);
+    var procedure = await expressionCompiler.compileExpressionToJs(
+        libraryUri, line, column, jsFrameValues, expression);
 
     var result = errors.length > 0 ? errors[0] : procedure;
 
@@ -887,8 +888,8 @@ class FrontendCompiler implements CompilerInterface {
       Component deltaProgram, Sink<List<int>> ioSink) {
     if (deltaProgram == null) return;
 
-    List<Library> packageLibraries = List<Library>();
-    List<Library> libraries = List<Library>();
+    List<Library> packageLibraries = <Library>[];
+    List<Library> libraries = <Library>[];
     deltaProgram.computeCanonicalNames();
 
     for (var lib in deltaProgram.libraries) {

@@ -25,7 +25,7 @@ class ChangeTest {
   void test_addEdit() {
     var change = SourceChange('msg');
     var edit1 = SourceEdit(1, 2, 'a');
-    var edit2 = SourceEdit(1, 2, 'b');
+    var edit2 = SourceEdit(4, 2, 'b');
     expect(change.edits, hasLength(0));
     change.addEdit('/a.dart', 0, edit1);
     expect(change.edits, hasLength(1));

@@ -64,13 +64,13 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_constructor(node)) {
       return;
     }
-    if (_addIdentifierRegion_dynamicType(node)) {
-      return;
-    }
     if (_addIdentifierRegion_getterSetterDeclaration(node)) {
       return;
     }
     if (_addIdentifierRegion_field(node)) {
+      return;
+    }
+    if (_addIdentifierRegion_dynamicLocal(node)) {
       return;
     }
     if (_addIdentifierRegion_function(node)) {
@@ -95,6 +95,9 @@ class DartUnitHighlightsComputer {
       return;
     }
     if (_addIdentifierRegion_typeParameter(node)) {
+      return;
+    }
+    if (_addIdentifierRegion_unresolvedInstanceMemberReference(node)) {
       return;
     }
     _addRegion_node(node, HighlightRegionType.IDENTIFIER_DEFAULT);
@@ -141,14 +144,25 @@ class DartUnitHighlightsComputer {
     return _addRegion_node(node, HighlightRegionType.CONSTRUCTOR);
   }
 
-  bool _addIdentifierRegion_dynamicType(SimpleIdentifier node) {
+  bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element is VariableElement) {
-      var staticType = element.type;
-      if (staticType == null || !staticType.isDynamic) {
-        return false;
+    if (element is LocalVariableElement) {
+      var elementType = element.type;
+      if (elementType?.isDynamic == true) {
+        var type = node.inDeclarationContext()
+            ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
+            : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
+        return _addRegion_node(node, type);
       }
-      return _addRegion_node(node, HighlightRegionType.DYNAMIC_TYPE);
+    }
+    if (element is ParameterElement) {
+      var elementType = element.type;
+      if (elementType?.isDynamic == true) {
+        var type = node.inDeclarationContext()
+            ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
+            : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
+        return _addRegion_node(node, type);
+      }
     }
     return false;
   }
@@ -156,10 +170,9 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
-    }
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
+      if (node.parent is FieldFormalParameter) {
+        element = (element as FieldFormalParameterElement).field;
+      }
     }
     // prepare type
     HighlightRegionType type;
@@ -168,12 +181,33 @@ class DartUnitHighlightsComputer {
       if (enclosingElement is ClassElement && enclosingElement.isEnum) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (element.isStatic) {
-        type = HighlightRegionType.FIELD_STATIC;
+        type = HighlightRegionType.STATIC_FIELD_DECLARATION;
       } else {
-        type = HighlightRegionType.FIELD;
+        type = node.inDeclarationContext()
+            ? HighlightRegionType.INSTANCE_FIELD_DECLARATION
+            : HighlightRegionType.INSTANCE_FIELD_REFERENCE;
       }
     } else if (element is TopLevelVariableElement) {
-      type = HighlightRegionType.TOP_LEVEL_VARIABLE;
+      type = HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION;
+    }
+    if (element is PropertyAccessorElement) {
+      var accessor = element;
+      var enclosingElement = element.enclosingElement;
+      if (accessor.variable is TopLevelVariableElement) {
+        type = accessor.isGetter
+            ? HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE
+            : HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE;
+      } else if (enclosingElement is ClassElement && enclosingElement.isEnum) {
+        type = HighlightRegionType.ENUM_CONSTANT;
+      } else if (accessor.isStatic) {
+        type = accessor.isGetter
+            ? HighlightRegionType.STATIC_GETTER_REFERENCE
+            : HighlightRegionType.STATIC_SETTER_REFERENCE;
+      } else {
+        type = accessor.isGetter
+            ? HighlightRegionType.INSTANCE_GETTER_REFERENCE
+            : HighlightRegionType.INSTANCE_SETTER_REFERENCE;
+      }
     }
     // add region
     if (type != null) {
@@ -188,10 +222,15 @@ class DartUnitHighlightsComputer {
       return false;
     }
     HighlightRegionType type;
+    var isTopLevel = element.enclosingElement is CompilationUnitElement;
     if (node.inDeclarationContext()) {
-      type = HighlightRegionType.FUNCTION_DECLARATION;
+      type = isTopLevel
+          ? HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION
+          : HighlightRegionType.LOCAL_FUNCTION_DECLARATION;
     } else {
-      type = HighlightRegionType.FUNCTION;
+      type = isTopLevel
+          ? HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE
+          : HighlightRegionType.LOCAL_FUNCTION_REFERENCE;
     }
     return _addRegion_node(node, type);
   }
@@ -217,11 +256,26 @@ class DartUnitHighlightsComputer {
     }
     // getter or setter
     var propertyAccessorElement = element as PropertyAccessorElement;
+    var isTopLevel = element.enclosingElement is CompilationUnitElement;
+    HighlightRegionType type;
     if (propertyAccessorElement.isGetter) {
-      return _addRegion_node(node, HighlightRegionType.GETTER_DECLARATION);
+      if (isTopLevel) {
+        type = HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION;
+      } else if (propertyAccessorElement.isStatic) {
+        type = HighlightRegionType.STATIC_GETTER_DECLARATION;
+      } else {
+        type = HighlightRegionType.INSTANCE_GETTER_DECLARATION;
+      }
     } else {
-      return _addRegion_node(node, HighlightRegionType.SETTER_DECLARATION);
+      if (isTopLevel) {
+        type = HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION;
+      } else if (propertyAccessorElement.isStatic) {
+        type = HighlightRegionType.STATIC_SETTER_DECLARATION;
+      } else {
+        type = HighlightRegionType.INSTANCE_SETTER_DECLARATION;
+      }
     }
+    return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_importPrefix(SimpleIdentifier node) {
@@ -254,12 +308,9 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // OK
-    HighlightRegionType type;
-    if (node.inDeclarationContext()) {
-      type = HighlightRegionType.LOCAL_VARIABLE_DECLARATION;
-    } else {
-      type = HighlightRegionType.LOCAL_VARIABLE;
-    }
+    var type = node.inDeclarationContext()
+        ? HighlightRegionType.LOCAL_VARIABLE_DECLARATION
+        : HighlightRegionType.LOCAL_VARIABLE_REFERENCE;
     return _addRegion_node(node, type);
   }
 
@@ -274,15 +325,15 @@ class DartUnitHighlightsComputer {
     HighlightRegionType type;
     if (node.inDeclarationContext()) {
       if (isStatic) {
-        type = HighlightRegionType.METHOD_DECLARATION_STATIC;
+        type = HighlightRegionType.STATIC_METHOD_DECLARATION;
       } else {
-        type = HighlightRegionType.METHOD_DECLARATION;
+        type = HighlightRegionType.INSTANCE_METHOD_DECLARATION;
       }
     } else {
       if (isStatic) {
-        type = HighlightRegionType.METHOD_STATIC;
+        type = HighlightRegionType.STATIC_METHOD_REFERENCE;
       } else {
-        type = HighlightRegionType.METHOD;
+        type = HighlightRegionType.INSTANCE_METHOD_REFERENCE;
       }
     }
     return _addRegion_node(node, type);
@@ -293,7 +344,10 @@ class DartUnitHighlightsComputer {
     if (element is! ParameterElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightRegionType.PARAMETER);
+    var type = node.inDeclarationContext()
+        ? HighlightRegionType.PARAMETER_DECLARATION
+        : HighlightRegionType.PARAMETER_REFERENCE;
+    return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
@@ -302,6 +356,38 @@ class DartUnitHighlightsComputer {
       return false;
     }
     return _addRegion_node(node, HighlightRegionType.TYPE_PARAMETER);
+  }
+
+  bool _addIdentifierRegion_unresolvedInstanceMemberReference(
+      SimpleIdentifier node) {
+    // unresolved
+    var element = node.writeOrReadElement;
+    if (element != null) {
+      return false;
+    }
+    // invoke / get / set
+    var decorate = false;
+    var parent = node.parent;
+    if (parent is MethodInvocation) {
+      var target = parent.realTarget;
+      if (parent.methodName == node &&
+          target != null &&
+          _isDynamicExpression(target)) {
+        decorate = true;
+      }
+    } else if (node.inGetterContext() || node.inSetterContext()) {
+      if (parent is PrefixedIdentifier) {
+        decorate = parent.identifier == node;
+      } else if (parent is PropertyAccess) {
+        decorate = parent.propertyName == node;
+      }
+    }
+    if (decorate) {
+      _addRegion_node(
+          node, HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE);
+      return true;
+    }
+    return false;
   }
 
   void _addRegion(int offset, int length, HighlightRegionType type) {
@@ -335,6 +421,11 @@ class DartUnitHighlightsComputer {
     var offset = a.offset;
     var end = b.end;
     _addRegion(offset, end - offset, type);
+  }
+
+  static bool _isDynamicExpression(Expression e) {
+    var type = e.staticType;
+    return type != null && type.isDynamic;
   }
 }
 
@@ -622,6 +713,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLibraryIdentifier(LibraryIdentifier node) {
+    computer._addRegion_node(node, HighlightRegionType.LIBRARY_NAME);
+    null;
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_LIST);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
@@ -657,6 +754,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNativeFunctionBody(NativeFunctionBody node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  void visitNullLiteral(NullLiteral node) {
+    computer._addRegion_token(node.literal, HighlightRegionType.KEYWORD);
+    super.visitNullLiteral(node);
   }
 
   @override
@@ -759,6 +862,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitThisExpression(ThisExpression node) {
     computer._addRegion_token(node.thisKeyword, HighlightRegionType.KEYWORD);
     super.visitThisExpression(node);
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    computer._addRegion_token(node.throwKeyword, HighlightRegionType.KEYWORD);
+    super.visitThrowExpression(node);
   }
 
   @override

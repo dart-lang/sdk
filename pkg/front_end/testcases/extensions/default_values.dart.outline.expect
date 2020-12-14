@@ -27,21 +27,21 @@ extension Extension on self::Class* {
   tearoff method3 = self::Extension|get#method3;
   static method staticMethod = self::Extension|staticMethod;
 }
-static method Extension|method0(final self::Class* #this, [dynamic a]) → dynamic
+static method Extension|method0(lowered final self::Class* #this, [dynamic a]) → dynamic
   ;
-static method Extension|get#method0(final self::Class* #this) → ([dynamic]) →* dynamic
+static method Extension|get#method0(lowered final self::Class* #this) → ([dynamic]) →* dynamic
   return ([dynamic a]) → dynamic => self::Extension|method0(#this, a);
-static method Extension|method1(final self::Class* #this, [dynamic a]) → dynamic
+static method Extension|method1(lowered final self::Class* #this, [dynamic a]) → dynamic
   ;
-static method Extension|get#method1(final self::Class* #this) → ([dynamic]) →* dynamic
+static method Extension|get#method1(lowered final self::Class* #this) → ([dynamic]) →* dynamic
   return ([dynamic a]) → dynamic => self::Extension|method1(#this, a);
-static method Extension|method2(final self::Class* #this, {dynamic b}) → dynamic
+static method Extension|method2(lowered final self::Class* #this, {dynamic b}) → dynamic
   ;
-static method Extension|get#method2(final self::Class* #this) → ({b: dynamic}) →* dynamic
+static method Extension|get#method2(lowered final self::Class* #this) → ({b: dynamic}) →* dynamic
   return ({dynamic b}) → dynamic => self::Extension|method2(#this, b: b);
-static method Extension|method3(final self::Class* #this, {dynamic c}) → dynamic
+static method Extension|method3(lowered final self::Class* #this, {dynamic c}) → dynamic
   ;
-static method Extension|get#method3(final self::Class* #this) → ({c: dynamic}) →* dynamic
+static method Extension|get#method3(lowered final self::Class* #this) → ({c: dynamic}) →* dynamic
   return ({dynamic c}) → dynamic => self::Extension|method3(#this, c: c);
 static method Extension|staticMethod() → dynamic
   ;

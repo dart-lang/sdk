@@ -26,7 +26,7 @@ import 'dart:_js_helper'
         getTraceFromException,
         RuntimeError;
 
-import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
+import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
 import 'dart:_rti' show getRuntimeType;
 
@@ -459,9 +459,15 @@ class List<E> {
     assertUnreachable();
   }
 
+  factory List._ofArray(Iterable<E> elements) {
+    return JSArray<E>.markGrowable(
+        JS('effects:none;depends:no-static', '#.slice(0)', elements));
+  }
+
   factory List._of(Iterable<E> elements) {
-    // This is essentially `addAll`, but without a check for modifiability or
-    // ConcurrentModificationError on the receiver.
+    if (elements is JSArray) return List._ofArray(elements);
+    // This is essentially `<E>[]..addAll(elements)`, but without a check for
+    // modifiability or ConcurrentModificationError on the receiver.
     List<E> list = <E>[];
     for (final e in elements) {
       list.add(e);

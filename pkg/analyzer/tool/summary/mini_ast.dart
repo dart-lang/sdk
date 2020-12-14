@@ -478,7 +478,7 @@ class MiniAstBuilder extends StackListener {
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     debugEvent("LiteralList");
 
-    var elements = List<Object>(count);
+    var elements = List<Object>.filled(count, null);
     popList(count, elements);
     pop(); // type arguments
 

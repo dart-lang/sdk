@@ -18,6 +18,8 @@ import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
+export 'configuration.dart' show TestConfiguration;
+
 /// The directories that contain test suites which follow the conventions
 /// required by [StandardTestSuite]'s forDirectory constructor.
 ///
@@ -34,6 +36,7 @@ final testSuiteDirectories = [
   Path('runtime/observatory_2/tests/service_2'),
   Path('runtime/observatory_2/tests/observatory_ui_2'),
   Path('samples'),
+  Path('samples_2'),
   Path('samples-dev'),
   Path('tests/corelib'),
   Path('tests/corelib_2'),
@@ -41,7 +44,6 @@ final testSuiteDirectories = [
   Path('tests/dart2js_2'),
   Path('tests/dartdevc'),
   Path('tests/dartdevc_2'),
-  Path('tests/kernel'),
   Path('tests/language'),
   Path('tests/language_2'),
   Path('tests/lib'),
@@ -53,6 +55,7 @@ final testSuiteDirectories = [
   Path('utils/tests/peg'),
 ];
 
+// TODO(26372): Ensure that the returned future awaits on all started tasks.
 Future testConfigurations(List<TestConfiguration> configurations) async {
   var startTime = DateTime.now();
 
@@ -147,6 +150,12 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
           // vm tests contain both cc tests (added here) and dart tests (added
           // in [TEST_SUITE_DIRECTORIES]).
           testSuites.add(VMTestSuite(configuration));
+        } else if (key == 'ffi_unit') {
+          // 'ffi_unit' contains cc non-DartVM unit tests.
+          //
+          // This is a separate suite from 'ffi', because we want to run the
+          // 'ffi' suite on many architectures, but 'ffi_unit' only on one.
+          testSuites.add(FfiTestSuite(configuration));
         } else if (configuration.compiler == Compiler.dart2analyzer) {
           if (key == 'analyze_library') {
             testSuites.add(AnalyzeLibraryTestSuite(configuration));

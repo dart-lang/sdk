@@ -53,6 +53,18 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
         entries = spread.entries;
       } else if (spread is SetConstant) {
         entries = spread.entries;
+      } else if (evaluator.backend.isLoweredListConstant(spread)) {
+        entries = <Constant>[];
+        evaluator.backend.forEachLoweredListConstantElement(spread,
+            (Constant element) {
+          entries.add(element);
+        });
+      } else if (evaluator.backend.isLoweredSetConstant(constant)) {
+        entries = <Constant>[];
+        evaluator.backend.forEachLoweredSetConstantElement(spread,
+            (Constant element) {
+          entries.add(element);
+        });
       } else {
         // Not list or set in spread
         return evaluator.createErrorConstant(
@@ -176,26 +188,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       // Fully evaluated
       List<Constant> entries = parts.single;
       SetConstant result = new SetConstant(elementType, entries);
-      if (evaluator.desugarSets) {
-        final List<ConstantMapEntry> mapEntries =
-            new List<ConstantMapEntry>(entries.length);
-        for (int i = 0; i < entries.length; ++i) {
-          mapEntries[i] =
-              new ConstantMapEntry(entries[i], evaluator.nullConstant);
-        }
-        Constant map = evaluator.lowerMapConstant(
-            new MapConstant(elementType, const NullType(), mapEntries));
-        return evaluator.lower(
-            result,
-            new InstanceConstant(
-                evaluator.unmodifiableSetMap.enclosingClass.reference, [
-              elementType
-            ], <Reference, Constant>{
-              evaluator.unmodifiableSetMap.getterReference: map
-            }));
-      } else {
-        return evaluator.lowerSetConstant(result);
-      }
+      return evaluator.lowerSetConstant(result);
     }
     List<Expression> sets = <Expression>[];
     for (Object part in parts) {
@@ -271,6 +264,13 @@ class MapConstantBuilder {
               entry.key, entry.value, spreadExpression, spreadExpression);
           if (error != null) return error;
         }
+      } else if (evaluator.backend.isLoweredMapConstant(spread)) {
+        AbortConstant error;
+        evaluator.backend.forEachLoweredMapConstantEntry(spread,
+            (Constant key, Constant value) {
+          error ??= addConstant(key, value, spreadExpression, spreadExpression);
+        });
+        if (error != null) return error;
       } else {
         // Not map in spread
         return evaluator.createErrorConstant(

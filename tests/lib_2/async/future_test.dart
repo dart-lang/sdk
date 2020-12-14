@@ -709,7 +709,7 @@ void testCompleteErrorWithCustomFuture() {
 
 void testCompleteErrorWithNull() {
   final completer = new Completer<int>();
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     completer.completeError(null);
   });
 }

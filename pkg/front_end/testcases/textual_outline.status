@@ -118,6 +118,7 @@ general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/issue40242: FormatterCrash
 general/issue42997: FormatterCrash
+general/issue43363: FormatterCrash
 general/many_errors: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/type_parameter_usage_in_static_method_in_extension: FormatterCrash
@@ -163,11 +164,13 @@ late_lowering/late_final_field_without_initializer: FormatterCrash
 late_lowering/late_final_nullable_field_with_initializer: FormatterCrash
 late_lowering/late_final_nullable_field_without_initializer: FormatterCrash
 late_lowering/late_future_or: FormatterCrash
+late_lowering/late_lowering_bitmasks: FormatterCrash
 late_lowering/late_nullable_field_with_initializer: FormatterCrash
 late_lowering/late_nullable_field_without_initializer: FormatterCrash
 late_lowering/later: FormatterCrash
 late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
+late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
 late_lowering_sentinel/late_fields: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
@@ -258,3 +261,4 @@ variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash
 variance/mixin_type_parameter_modifier: FormatterCrash
 variance/unconstrained_inference: FormatterCrash
+

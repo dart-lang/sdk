@@ -118,7 +118,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         freelist_(freelist),
         bytes_promoted_(0),
         visiting_old_object_(nullptr),
-        promoted_list_(promotion_stack) {}
+        promoted_list_(promotion_stack),
+        delayed_weak_properties_(WeakProperty::null()) {}
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                           ObjectPtr* first,
@@ -318,7 +319,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       new_obj = ObjectLayout::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
-        uint32_t tags = static_cast<uint32_t>(header);
+        uword tags = static_cast<uword>(header);
         tags = ObjectLayout::OldBit::update(true, tags);
         tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
         tags = ObjectLayout::NewBit::update(false, tags);
@@ -426,7 +427,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   ObjectPtr visiting_old_object_;
 
   PromotionWorkList promoted_list_;
-  WeakPropertyPtr delayed_weak_properties_ = nullptr;
+  WeakPropertyPtr delayed_weak_properties_;
 
   NewPage* head_ = nullptr;
   NewPage* tail_ = nullptr;  // Allocating from here.
@@ -762,6 +763,7 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
   delete to_;
+  ASSERT(blocks_ == nullptr);
 }
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
@@ -830,7 +832,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (!is_remembered_) {
           FATAL3(
-              "Old object %#" Px "references new object %#" Px
+              "Old object %#" Px " references new object %#" Px
               ", but it is not"
               " in any store buffer. Consider using rr to watch the slot %p and"
               " reverse-continue to find the store with a missing barrier.\n",
@@ -1024,9 +1026,8 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   // Grab the deduplication sets out of the isolate's consolidated store buffer.
   StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   StoreBufferBlock* pending = blocks_;
-  blocks_ = nullptr;
   intptr_t total_count = 0;
-  while (pending != NULL) {
+  while (pending != nullptr) {
     StoreBufferBlock* next = pending->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(pending, sizeof(*pending));
@@ -1045,10 +1046,10 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
     store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
-    pending = next;
+    blocks_ = pending = next;
   }
   // Done iterating through old objects remembered in the store buffers.
-  visitor->VisitingOldObject(NULL);
+  visitor->VisitingOldObject(nullptr);
 
   heap_->RecordData(kStoreBufferEntries, total_count);
   heap_->RecordData(kDataUnused1, 0);
@@ -1181,9 +1182,9 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
   // for which the keys have become reachable. Potentially this adds more
   // objects to the to space.
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = nullptr;
-  while (cur_weak != nullptr) {
-    uword next_weak = cur_weak->ptr()->next_;
+  delayed_weak_properties_ = WeakProperty::null();
+  while (cur_weak != WeakProperty::null()) {
+    WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
     // Promoted weak properties are not enqueued. So we can guarantee that
     // we do not need to think about store barriers here.
     ASSERT(cur_weak->IsNewObject());
@@ -1197,14 +1198,14 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
     ASSERT(from_->Contains(raw_addr));
     uword header = *reinterpret_cast<uword*>(raw_addr);
     // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
+    cur_weak->ptr()->next_ = WeakProperty::null();
     if (IsForwarding(header)) {
       cur_weak->ptr()->VisitPointersNonvirtual(this);
     } else {
       EnqueueWeakProperty(cur_weak);
     }
     // Advance to next weak property in the queue.
-    cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+    cur_weak = next_weak;
   }
 }
 
@@ -1244,8 +1245,8 @@ void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
   uword header = *reinterpret_cast<uword*>(raw_addr);
   ASSERT(!IsForwarding(header));
 #endif  // defined(DEBUG)
-  ASSERT(raw_weak->ptr()->next_ == 0);
-  raw_weak->ptr()->next_ = static_cast<uword>(delayed_weak_properties_);
+  ASSERT(raw_weak->ptr()->next_ == WeakProperty::null());
+  raw_weak->ptr()->next_ = delayed_weak_properties_;
   delayed_weak_properties_ = raw_weak;
 }
 
@@ -1330,11 +1331,11 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
   // The queued weak properties at this point do not refer to reachable keys,
   // so we clear their key and value fields.
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = nullptr;
-  while (cur_weak != nullptr) {
-    uword next_weak = cur_weak->ptr()->next_;
+  delayed_weak_properties_ = WeakProperty::null();
+  while (cur_weak != WeakProperty::null()) {
+    WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
     // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
+    cur_weak->ptr()->next_ = WeakProperty::null();
 
 #if defined(DEBUG)
     ObjectPtr raw_key = cur_weak->ptr()->key_;
@@ -1348,7 +1349,7 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
     WeakProperty::Clear(cur_weak);
 
     // Advance to next weak property in the queue.
-    cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+    cur_weak = next_weak;
   }
 }
 
@@ -1618,15 +1619,15 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
         intptr_t size = to_obj->ptr()->HeapSize();
 
         // Reset the ages bits in case this was a promotion.
-        uint32_t tags = static_cast<uint32_t>(to_header);
-        tags = ObjectLayout::OldBit::update(false, tags);
-        tags = ObjectLayout::OldAndNotRememberedBit::update(false, tags);
-        tags = ObjectLayout::NewBit::update(true, tags);
-        tags = ObjectLayout::OldAndNotMarkedBit::update(false, tags);
-        uword original_header =
-            (to_header & ~static_cast<uword>(0xFFFFFFFF)) | tags;
+        uword from_header = static_cast<uword>(to_header);
+        from_header = ObjectLayout::OldBit::update(false, from_header);
+        from_header =
+            ObjectLayout::OldAndNotRememberedBit::update(false, from_header);
+        from_header = ObjectLayout::NewBit::update(true, from_header);
+        from_header =
+            ObjectLayout::OldAndNotMarkedBit::update(false, from_header);
 
-        WriteHeader(from_obj, original_header);
+        WriteHeader(from_obj, from_header);
 
         ForwardingCorpse::AsForwarder(ObjectLayout::ToAddr(to_obj), size)
             ->set_target(from_obj);
@@ -1645,9 +1646,23 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   to_ = *from;
   *from = temp;
 
+  // Release any remaining part of the promotion worklist that wasn't completed.
   promotion_stack_.Reset();
 
-  // This also rebuilds the remembered set.
+  // Release any remaining part of the rememebred set that wasn't completed.
+  StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
+  StoreBufferBlock* pending = blocks_;
+  while (pending != nullptr) {
+    StoreBufferBlock* next = pending->next();
+    pending->Reset();
+    // Return the emptied block for recycling (no need to check threshold).
+    store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
+    pending = next;
+  }
+  blocks_ = nullptr;
+
+  // Reverse the partial forwarding from the aborted scavenge. This also
+  // rebuilds the remembered set.
   Become::FollowForwardingPointers(thread);
 
   // Don't scavenge again until the next old-space GC has occurred. Prevents

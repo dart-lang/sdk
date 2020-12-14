@@ -440,6 +440,17 @@ class Expect {
     _fail("$defaultMessage$diff");
   }
 
+  /// Checks that [haystack] contains a given substring [needle].
+  ///
+  /// For example, this succeeds:
+  ///
+  ///     Expect.contains("a", "abcdefg");
+  static void contains(String needle, String haystack) {
+    if (!haystack.contains(needle)) {
+      _fail("String '$needle' not found within '$haystack'");
+    }
+  }
+
   /// Checks that [actual] contains a given list of [substrings] in order.
   ///
   /// For example, this succeeds:
@@ -616,19 +627,6 @@ class Expect {
       [String reason = "ReachabilityError"]) {
     Expect.throws(
         f, (error) => error.toString().startsWith('ReachabilityError'), reason);
-  }
-
-  /// Checks that [f] throws an appropriate error on a null argument.
-  ///
-  /// With sound null safety, this is expected to be a [TypeError] when casting
-  /// the `null` to some non-nullable type. In weak mode, that cast is ignored
-  /// and some later explicit validation should handle it and [ArgumentError].
-  static void throwsNullCheckError(void f()) {
-    if (hasSoundNullSafety) {
-      throwsTypeError(f);
-    } else {
-      throwsArgumentError(f);
-    }
   }
 
   static void throwsRangeError(void f(), [String reason = "RangeError"]) {

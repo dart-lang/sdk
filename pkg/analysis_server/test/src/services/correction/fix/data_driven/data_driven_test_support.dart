@@ -33,7 +33,8 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
 
   /// Return a code template that will produce the given [text].
   CodeTemplate codeTemplate(String text) {
-    return CodeTemplate(CodeTemplateKind.expression, [TemplateText(text)]);
+    return CodeTemplate(
+        CodeTemplateKind.expression, [TemplateText(text)], null);
   }
 
   /// A method that can be used as an error filter to ignore any unused_import

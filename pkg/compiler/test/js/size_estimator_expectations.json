@@ -1,0 +1,196 @@
+{
+  "expressions": [
+    {
+      "original": "1",
+      "expected": "1",
+      "minified": "1"
+    },
+    {
+      "original": "123456789",
+      "expected": "123456789",
+      "minified": "123456789"
+    },
+    {
+      "original": "true",
+      "expected": "!0",
+      "minified": "true"
+    },
+    {
+      "original": "false",
+      "expected": "!1",
+      "minified": "false"
+    },
+    {
+      "original": "a || b",
+      "expected": "#||#",
+      "minified": "a||b"
+    },
+    {
+      "original": "(a || b) && c",
+      "expected": "(#||#)&&#",
+      "minified": "(a||b)&&c"
+    },
+    {
+      "original": "a == true ? b : c",
+      "expected": "#==!0?#:#",
+      "minified": "a==true?b:c"
+    },
+    {
+      "original": "x = a + b * c",
+      "expected": "#=#+#*#",
+      "minified": "x=a+b*c"
+    },
+    {
+      "original": "a + (b == c) + d",
+      "expected": "#+(#==#)+#",
+      "minified": "a+(b==c)+d"
+    },
+    {
+      "original": "foo(bar)",
+      "expected": "#(#)",
+      "minified": "foo(bar)"
+    },
+    {
+      "original": "foo.bar(baz)",
+      "expected": "#.bar(#)",
+      "minified": "foo.bar(baz)"
+    },
+    {
+      "original": "foo({meaning: 42})",
+      "expected": "#({meaning:42})",
+      "minified": "foo({meaning:42})"
+    },
+    {
+      "original": "x = !x",
+      "expected": "#=!#",
+      "minified": "x=!x"
+    },
+    {
+      "original": "delete foo.bar",
+      "expected": "delete #.bar",
+      "minified": "delete foo.bar"
+    },
+    {
+      "original": "x in y",
+      "expected": "# in #",
+      "minified": "x in y"
+    },
+    {
+      "original": "x instanceof y",
+      "expected": "# instanceof #",
+      "minified": "x instanceof y"
+    },
+    {
+      "original": "x &= ~mask",
+      "expected": "#&=~#",
+      "minified": "x&=~mask"
+    },
+    {
+      "original": "await x++",
+      "expected": "await #++",
+      "minified": "await x++"
+    },
+    {
+      "original": "foo[x[bar]]",
+      "expected": "#[#[#]]",
+      "minified": "foo[x[bar]]"
+    },
+    {
+      "original": "x << 5",
+      "expected": "#<<5",
+      "minified": "x<<5"
+    },
+    {
+      "original": "x = ['a', 'b', 'c']",
+      "expected": "#=['a','b','c']",
+      "minified": "x=['a','b','c']"
+    },
+    {
+      "original": "a = {'b': 1, 'c': 2}",
+      "expected": "#={b:1,c:2}",
+      "minified": "a={b:1,c:2}"
+    },
+    {
+      "original": "foo([1, 2, 3])",
+      "expected": "#([1,2,3])",
+      "minified": "foo([1,2,3])"
+    },
+    {
+      "original": "a = b = c",
+      "expected": "#=#=#",
+      "minified": "a=b=c"
+    },
+    {
+      "original": "var a = \"\"",
+      "expected": "var #=\"\"",
+      "minified": "var a=\"\""
+    }
+  ],
+  "statements": [
+    {
+      "original": "{ 1; 2; 3; }",
+      "expected": "{1;2;3;}",
+      "minified": "{1;2;3}"
+    },
+    {
+      "original": "function foo() { /a/; 1; 2; }",
+      "expected": "function #(){/a/;1;2;}",
+      "minified": "function foo(){/a/;1;2}"
+    },
+    {
+      "original": "function foo() { return function bar() { return null; } }",
+      "expected": "function #(){return function #(){return null;};}",
+      "minified": "function foo(){return function bar(){return null}}"
+    },
+    {
+      "original": "if (x == true) { bar(); }",
+      "expected": "if(#==!0)#()",
+      "minified": "if(x==true)bar()"
+    },
+    {
+      "original": "if (x > 4 && y < 5) { 1; 2; }",
+      "expected": "if(#>4&&#<5){1;2;}",
+      "minified": "if(x>4&&y<5){1;2}"
+    },
+    {
+      "original": "if (x == true) { return true; } else if (y < 3 || z > 5) { return l != null ? 'a' : 4; } else { foo(); return; }",
+      "expected": "if(#==!0)return !0;else if(#<3||#>5)return #!=null?'a':4;else{#();return;}",
+      "minified": "if(x==true)return true;else if(y<3||z>5)return l!=null?'a':4;else{foo();return}"
+    },
+    {
+      "original": "for (var a = 0; a < 10; a++) { foo(a); }",
+      "expected": "for(var #=0;#<10;#++)#(#)",
+      "minified": "for(var a=0;a<10;a++)foo(a)"
+    },
+    {
+      "original": "for (var b in c) { var e = 1; foo(e); }",
+      "expected": "for(var # in #){var #=1;#(#);}",
+      "minified": "for(var b in c){var e=1;foo(e)}"
+    },
+    {
+      "original": "while (x != null) { foo(); }",
+      "expected": "while(#!=null)#()",
+      "minified": "while(x!=null)foo()"
+    },
+    {
+      "original": "do { print(1); do while (true) ; while (false); } while (a != b);",
+      "expected": "do{#(1);do while(!0);while(!1);}while(#!=#)",
+      "minified": "do{print(1);do while(true);while(false)}while(a!=b)"
+    },
+    {
+      "original": "switch (foo) { case 'a': case 'b': bar(); break; case 'c': 1; break; default: boo(); }",
+      "expected": "switch(#){case 'a':case 'b':#();break;case 'c':1;break;default:#();}",
+      "minified": "switch(foo){case'a':case'b':bar();break;case'c':1;break;default:boo()}"
+    },
+    {
+      "original": "foo.prototype.Goo = function(a) { return a.bar(); }",
+      "expected": "#.prototype.Goo=function(#){return #.bar();}",
+      "minified": "foo.prototype.Goo=function(a){return a.bar()}"
+    },
+    {
+      "original": "try { null = 4; } catch (e) { print(e); }",
+      "expected": "try{null=4;}catch(#){#(#);}",
+      "minified": "try{null=4}catch(e){print(e)}"
+    }
+  ]
+}

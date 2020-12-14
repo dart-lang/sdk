@@ -1,8 +1,8 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--async-debugger --verbose-debug --no-causal-async-stacks --lazy-async-stacks
-// VMOptions=--async-debugger --verbose-debug --causal-async-stacks --no-lazy-async-stacks
+//
+// VMOptions=--async-debugger --verbose-debug --lazy-async-stacks
 
 import 'dart:developer';
 import 'package:observatory_2/models.dart' as M;
@@ -50,28 +50,13 @@ var tests = <IsolateTest>[
       print(v);
     }
 
-    if (useCausalAsyncStacks) {
-      expect(awaiterFrames.length, greaterThanOrEqualTo(4));
-      // Awaiter frame.
-      expect(await awaiterFrames[0].toUserString(),
-          stringContainsInOrder(['foobar', '.dart:${LINE_A}']));
-      // Awaiter frame.
-      expect(await awaiterFrames[1].toUserString(),
-          stringContainsInOrder(['helper', '.dart:${LINE_B}']));
-      // Suspension point.
-      expect(awaiterFrames[2].kind, equals(M.FrameKind.asyncSuspensionMarker));
-      // Causal frame.
-      expect(await awaiterFrames[3].toUserString(),
-          stringContainsInOrder(['testMain', '.dart:${LINE_C}']));
-    } else {
-      expect(awaiterFrames.length, greaterThanOrEqualTo(2));
-      // Awaiter frame.
-      expect(await awaiterFrames[0].toUserString(),
-          stringContainsInOrder(['foobar', '.dart:${LINE_A}']));
-      // Awaiter frame.
-      expect(await awaiterFrames[1].toUserString(),
-          stringContainsInOrder(['helper', '.dart:${LINE_B}']));
-    }
+    expect(awaiterFrames.length, greaterThanOrEqualTo(2));
+    // Awaiter frame.
+    expect(await awaiterFrames[0].toUserString(),
+        stringContainsInOrder(['foobar', '.dart:${LINE_A}']));
+    // Awaiter frame.
+    expect(await awaiterFrames[1].toUserString(),
+        stringContainsInOrder(['helper', '.dart:${LINE_B}']));
   },
 ];
 

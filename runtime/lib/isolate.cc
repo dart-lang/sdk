@@ -76,6 +76,15 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 0, 1) {
   return Integer::New(id);
 }
 
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_setActive, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, active, arguments->NativeArgAt(1));
+  Dart_Port id = port.Id();
+  PortMap::SetPortState(
+      id, active.value() ? PortMap::kLivePort : PortMap::kInactivePort);
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
@@ -284,6 +293,272 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
   return Object::null();
 }
 
+class IsolateSpawnState {
+ public:
+  IsolateSpawnState(Dart_Port parent_port,
+                    Dart_Port origin_id,
+                    const char* script_url,
+                    const Function& func,
+                    SerializedObjectBuffer* message_buffer,
+                    const char* package_config,
+                    bool paused,
+                    bool errorsAreFatal,
+                    Dart_Port onExit,
+                    Dart_Port onError,
+                    const char* debug_name,
+                    IsolateGroup* group);
+  IsolateSpawnState(Dart_Port parent_port,
+                    const char* script_url,
+                    const char* package_config,
+                    SerializedObjectBuffer* args_buffer,
+                    SerializedObjectBuffer* message_buffer,
+                    bool paused,
+                    bool errorsAreFatal,
+                    Dart_Port onExit,
+                    Dart_Port onError,
+                    const char* debug_name,
+                    IsolateGroup* group);
+  ~IsolateSpawnState();
+
+  Isolate* isolate() const { return isolate_; }
+  void set_isolate(Isolate* value) { isolate_ = value; }
+
+  Dart_Port parent_port() const { return parent_port_; }
+  Dart_Port origin_id() const { return origin_id_; }
+  Dart_Port on_exit_port() const { return on_exit_port_; }
+  Dart_Port on_error_port() const { return on_error_port_; }
+  const char* script_url() const { return script_url_; }
+  const char* package_config() const { return package_config_; }
+  const char* library_url() const { return library_url_; }
+  const char* class_name() const { return class_name_; }
+  const char* function_name() const { return function_name_; }
+  const char* debug_name() const { return debug_name_; }
+  bool is_spawn_uri() const { return library_url_ == nullptr; }
+  bool paused() const { return paused_; }
+  bool errors_are_fatal() const { return errors_are_fatal_; }
+  Dart_IsolateFlags* isolate_flags() { return &isolate_flags_; }
+
+  ObjectPtr ResolveFunction();
+  InstancePtr BuildArgs(Thread* thread);
+  InstancePtr BuildMessage(Thread* thread);
+
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+
+ private:
+  Isolate* isolate_ = nullptr;
+  Dart_Port parent_port_;
+  Dart_Port origin_id_ = ILLEGAL_PORT;
+  Dart_Port on_exit_port_;
+  Dart_Port on_error_port_;
+  const char* script_url_;
+  const char* package_config_;
+  const char* library_url_ = nullptr;
+  const char* class_name_ = nullptr;
+  const char* function_name_ = nullptr;
+  const char* debug_name_;
+  IsolateGroup* isolate_group_;
+  std::unique_ptr<Message> serialized_args_;
+  std::unique_ptr<Message> serialized_message_;
+
+  Dart_IsolateFlags isolate_flags_;
+  bool paused_;
+  bool errors_are_fatal_;
+};
+
+static const char* NewConstChar(const char* chars) {
+  size_t len = strlen(chars);
+  char* mem = new char[len + 1];
+  memmove(mem, chars, len + 1);
+  return mem;
+}
+
+IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     Dart_Port origin_id,
+                                     const char* script_url,
+                                     const Function& func,
+                                     SerializedObjectBuffer* message_buffer,
+                                     const char* package_config,
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port,
+                                     const char* debug_name,
+                                     IsolateGroup* isolate_group)
+    : parent_port_(parent_port),
+      origin_id_(origin_id),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
+      script_url_(script_url),
+      package_config_(package_config),
+      debug_name_(debug_name),
+      isolate_group_(isolate_group),
+      serialized_args_(nullptr),
+      serialized_message_(message_buffer->StealMessage()),
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
+  auto thread = Thread::Current();
+  auto isolate = thread->isolate();
+  auto zone = thread->zone();
+  const auto& cls = Class::Handle(zone, func.Owner());
+  const auto& lib = Library::Handle(zone, cls.library());
+  const auto& lib_url = String::Handle(zone, lib.url());
+  library_url_ = NewConstChar(lib_url.ToCString());
+
+  String& func_name = String::Handle(zone);
+  func_name = func.name();
+  function_name_ = NewConstChar(String::ScrubName(func_name));
+  if (!cls.IsTopLevel()) {
+    const auto& class_name = String::Handle(zone, cls.Name());
+    class_name_ = NewConstChar(class_name.ToCString());
+  }
+
+  // Inherit flags from spawning isolate.
+  isolate->FlagsCopyTo(isolate_flags());
+}
+
+IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     const char* script_url,
+                                     const char* package_config,
+                                     SerializedObjectBuffer* args_buffer,
+                                     SerializedObjectBuffer* message_buffer,
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port,
+                                     const char* debug_name,
+                                     IsolateGroup* group)
+    : parent_port_(parent_port),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
+      script_url_(script_url),
+      package_config_(package_config),
+      debug_name_(debug_name),
+      isolate_group_(group),
+      serialized_args_(args_buffer->StealMessage()),
+      serialized_message_(message_buffer->StealMessage()),
+      isolate_flags_(),
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
+  function_name_ = NewConstChar("main");
+
+  // By default inherit flags from spawning isolate. These can be overridden
+  // from the calling code.
+  Isolate::Current()->FlagsCopyTo(isolate_flags());
+}
+
+IsolateSpawnState::~IsolateSpawnState() {
+  delete[] script_url_;
+  delete[] package_config_;
+  delete[] library_url_;
+  delete[] class_name_;
+  delete[] function_name_;
+  delete[] debug_name_;
+}
+
+ObjectPtr IsolateSpawnState::ResolveFunction() {
+  Thread* thread = Thread::Current();
+  Isolate* I = thread->isolate();
+  Zone* zone = thread->zone();
+
+  const String& func_name = String::Handle(zone, String::New(function_name()));
+
+  if (library_url() == nullptr) {
+    // Handle spawnUri lookup rules.
+    // Check whether the root library defines a main function.
+    const Library& lib =
+        Library::Handle(zone, I->object_store()->root_library());
+    Function& func = Function::Handle(zone, lib.LookupLocalFunction(func_name));
+    if (func.IsNull()) {
+      // Check whether main is reexported from the root library.
+      const Object& obj = Object::Handle(zone, lib.LookupReExport(func_name));
+      if (obj.IsFunction()) {
+        func ^= obj.raw();
+      }
+    }
+    if (func.IsNull()) {
+      const String& msg = String::Handle(
+          zone, String::NewFormatted(
+                    "Unable to resolve function '%s' in script '%s'.",
+                    function_name(), script_url()));
+      return LanguageError::New(msg);
+    }
+    return func.raw();
+  }
+
+  // Lookup the to be spawned function for the Isolate.spawn implementation.
+  // Resolve the library.
+  const String& lib_url = String::Handle(zone, String::New(library_url()));
+  const Library& lib =
+      Library::Handle(zone, Library::LookupLibrary(thread, lib_url));
+  if (lib.IsNull() || lib.IsError()) {
+    const String& msg = String::Handle(
+        zone,
+        String::NewFormatted("Unable to find library '%s'.", library_url()));
+    return LanguageError::New(msg);
+  }
+
+  // Resolve the function.
+  if (class_name() == nullptr) {
+    const Function& func =
+        Function::Handle(zone, lib.LookupLocalFunction(func_name));
+    if (func.IsNull()) {
+      const String& msg = String::Handle(
+          zone, String::NewFormatted(
+                    "Unable to resolve function '%s' in library '%s'.",
+                    function_name(), library_url()));
+      return LanguageError::New(msg);
+    }
+    return func.raw();
+  }
+
+  const String& cls_name = String::Handle(zone, String::New(class_name()));
+  const Class& cls = Class::Handle(zone, lib.LookupLocalClass(cls_name));
+  if (cls.IsNull()) {
+    const String& msg = String::Handle(
+        zone, String::NewFormatted(
+                  "Unable to resolve class '%s' in library '%s'.", class_name(),
+                  (library_url() != nullptr ? library_url() : script_url())));
+    return LanguageError::New(msg);
+  }
+  Function& func = Function::Handle(zone);
+  const auto& error = cls.EnsureIsFinalized(thread);
+  if (error == Error::null()) {
+    func = cls.LookupStaticFunctionAllowPrivate(func_name);
+  }
+  if (func.IsNull()) {
+    const String& msg = String::Handle(
+        zone, String::NewFormatted(
+                  "Unable to resolve static method '%s.%s' in library '%s'.",
+                  class_name(), function_name(),
+                  (library_url() != nullptr ? library_url() : script_url())));
+    return LanguageError::New(msg);
+  }
+  return func.raw();
+}
+
+static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
+  if (message == NULL) {
+    return Instance::null();
+  }
+  Zone* zone = thread->zone();
+  if (message->IsRaw()) {
+    return Instance::RawCast(message->raw_obj());
+  } else {
+    MessageSnapshotReader reader(message, thread);
+    const Object& obj = Object::Handle(zone, reader.ReadObject());
+    ASSERT(!obj.IsError());
+    return Instance::RawCast(obj.raw());
+  }
+}
+
+InstancePtr IsolateSpawnState::BuildArgs(Thread* thread) {
+  return DeserializeMessage(thread, serialized_args_.get());
+}
+
+InstancePtr IsolateSpawnState::BuildMessage(Thread* thread) {
+  return DeserializeMessage(thread, serialized_message_.get());
+}
+
 static void ThrowIsolateSpawnException(const String& message) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
@@ -293,11 +568,8 @@ static void ThrowIsolateSpawnException(const String& message) {
 class SpawnIsolateTask : public ThreadPool::Task {
  public:
   SpawnIsolateTask(Isolate* parent_isolate,
-                   std::unique_ptr<IsolateSpawnState> state,
-                   bool in_new_isolate_group)
-      : parent_isolate_(parent_isolate),
-        state_(std::move(state)),
-        in_new_isolate_group_(in_new_isolate_group) {
+                   std::unique_ptr<IsolateSpawnState> state)
+      : parent_isolate_(parent_isolate), state_(std::move(state)) {
     parent_isolate->IncrementSpawnCount();
   }
 
@@ -308,68 +580,67 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   void Run() override {
-    auto group = state_->isolate_group();
+    const char* name = (state_->debug_name() == nullptr)
+                           ? state_->function_name()
+                           : state_->debug_name();
+    ASSERT(name != nullptr);
 
-    // The create isolate group call back is mandatory.  If not provided we
+    auto group = state_->isolate_group();
+    if (!FLAG_enable_isolate_groups || group == nullptr) {
+      RunHeavyweight(name);
+    } else {
+      RunLightweight(name);
+    }
+  }
+
+  void RunHeavyweight(const char* name) {
+    // The create isolate group callback is mandatory.  If not provided we
     // cannot spawn isolates.
-    Dart_IsolateGroupCreateCallback create_group_callback =
-        Isolate::CreateGroupCallback();
+    auto create_group_callback = Isolate::CreateGroupCallback();
     if (create_group_callback == nullptr) {
       FailedSpawn("Isolate spawn is not supported by this Dart embedder\n");
       return;
     }
 
-    // The initialize callback is optional atm, we fall back to creating isolate
-    // groups if it was not provided.
-    Dart_InitializeIsolateCallback initialize_callback =
-        Isolate::InitializeCallback();
-
-    const char* name = (state_->debug_name() == NULL) ? state_->function_name()
-                                                      : state_->debug_name();
-    ASSERT(name != NULL);
-
-    // Create a new isolate.
     char* error = nullptr;
-    Isolate* isolate = nullptr;
-    if (!FLAG_enable_isolate_groups || group == nullptr ||
-        initialize_callback == nullptr || in_new_isolate_group_) {
-      // Make a copy of the state's isolate flags and hand it to the callback.
-      Dart_IsolateFlags api_flags = *(state_->isolate_flags());
-      isolate = reinterpret_cast<Isolate*>((create_group_callback)(
-          state_->script_url(), name, nullptr, state_->package_config(),
-          &api_flags, parent_isolate_->init_callback_data(), &error));
-      parent_isolate_->DecrementSpawnCount();
-      parent_isolate_ = nullptr;
-    } else {
-      if (initialize_callback == nullptr) {
-        FailedSpawn("Isolate spawn is not supported by this embedder.");
-        return;
-      }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-      isolate = CreateWithinExistingIsolateGroupAOT(group, name, &error);
-#else
-      isolate = CreateWithinExistingIsolateGroup(group, name, &error);
-#endif
-      parent_isolate_->DecrementSpawnCount();
-      parent_isolate_ = nullptr;
-      if (isolate == nullptr) {
-        FailedSpawn(error);
-        free(error);
-        return;
-      }
+    // Make a copy of the state's isolate flags and hand it to the callback.
+    Dart_IsolateFlags api_flags = *(state_->isolate_flags());
+    Dart_Isolate isolate = (create_group_callback)(
+        state_->script_url(), name, nullptr, state_->package_config(),
+        &api_flags, parent_isolate_->init_callback_data(), &error);
+    parent_isolate_->DecrementSpawnCount();
+    parent_isolate_ = nullptr;
 
-      void* child_isolate_data = nullptr;
-      bool success = initialize_callback(&child_isolate_data, &error);
-      isolate->set_init_callback_data(child_isolate_data);
-      if (!success) {
-        Dart_ShutdownIsolate();
-        FailedSpawn(error);
-        free(error);
-        return;
-      }
-      Dart_ExitIsolate();
+    if (isolate == nullptr) {
+      FailedSpawn(error);
+      free(error);
+      return;
     }
+    Dart_EnterIsolate(isolate);
+    Run(reinterpret_cast<Isolate*>(isolate));
+  }
+
+  void RunLightweight(const char* name) {
+    // The create isolate initialize callback is mandatory if
+    // --enable-isolate-groups was passed.
+    auto initialize_callback = Isolate::InitializeCallback();
+    if (initialize_callback == nullptr) {
+      FailedSpawn(
+          "Lightweight isolate spawn is not supported by this Dart embedder\n");
+      return;
+    }
+
+    char* error = nullptr;
+
+    auto group = state_->isolate_group();
+#if defined(DART_PRECOMPILED_RUNTIME)
+    Isolate* isolate = CreateWithinExistingIsolateGroupAOT(group, name, &error);
+#else
+    Isolate* isolate = CreateWithinExistingIsolateGroup(group, name, &error);
+#endif
+    parent_isolate_->DecrementSpawnCount();
+    parent_isolate_ = nullptr;
 
     if (isolate == nullptr) {
       FailedSpawn(error);
@@ -377,20 +648,134 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
-    if (state_->origin_id() != ILLEGAL_PORT) {
-      // For isolates spawned using spawnFunction we set the origin_id
-      // to the origin_id of the parent isolate.
-      isolate->set_origin_id(state_->origin_id());
+    void* child_isolate_data = nullptr;
+    const bool success = initialize_callback(&child_isolate_data, &error);
+    if (!success) {
+      Dart_ShutdownIsolate();
+      FailedSpawn(error);
+      free(error);
+      return;
     }
-    MutexLocker ml(isolate->mutex());
-    state_->set_isolate(isolate);
-    isolate->set_spawn_state(std::move(state_));
-    if (isolate->is_runnable()) {
-      isolate->Run();
-    }
+
+    isolate->set_init_callback_data(child_isolate_data);
+    Run(isolate);
   }
 
  private:
+  void Run(Isolate* child) {
+    if (!EnsureIsRunnable(child)) {
+      Dart_ShutdownIsolate();
+      return;
+    }
+
+    state_->set_isolate(child);
+    child->set_origin_id(state_->origin_id());
+
+    bool success = true;
+    {
+      auto thread = Thread::Current();
+      TransitionNativeToVM transition(thread);
+      StackZone zone(thread);
+      HandleScope hs(thread);
+
+      success = EnqueueEntrypointInvocationAndNotifySpawner(thread);
+    }
+
+    if (!success) {
+      Dart_ShutdownIsolate();
+      return;
+    }
+
+    // All preconditions are met for this to always succeed.
+    char* error = nullptr;
+    if (!Dart_RunLoopAsync(state_->errors_are_fatal(), state_->on_error_port(),
+                           state_->on_exit_port(), &error)) {
+      FATAL("Dart_RunLoopAsync() failed: %s. Please file a Dart VM bug report.",
+            error);
+    }
+  }
+
+  bool EnsureIsRunnable(Isolate* child) {
+    // We called out to the embedder to create/initialize a new isolate. The
+    // embedder callback sucessfully did so. It is now our responsibility to
+    // run the isolate.
+    // If the isolate was not marked as runnable, we'll do so here and run it.
+    if (!child->is_runnable()) {
+      const char* error = child->MakeRunnable();
+      if (error != nullptr) {
+        FailedSpawn(error);
+        return false;
+      }
+    }
+    ASSERT(child->is_runnable());
+    return true;
+  }
+
+  bool EnqueueEntrypointInvocationAndNotifySpawner(Thread* thread) {
+    auto isolate = thread->isolate();
+    auto zone = thread->zone();
+
+    // Step 1) Resolve the entrypoint function.
+    auto& result = Object::Handle(zone, state_->ResolveFunction());
+    const bool is_spawn_uri = state_->is_spawn_uri();
+    if (result.IsError()) {
+      ASSERT(is_spawn_uri);
+      ReportError("Failed to resolve entrypoint function.");
+      return false;
+    }
+    ASSERT(result.IsFunction());
+    auto& func = Function::Handle(zone, Function::Cast(result).raw());
+    func = func.ImplicitClosureFunction();
+    const auto& entrypoint_closure =
+        Object::Handle(zone, func.ImplicitStaticClosure());
+
+    // Step 2) Enqueue delayed invocation of entrypoint callback.
+    const Array& args = Array::Handle(zone, Array::New(4));
+    args.SetAt(0, entrypoint_closure);
+    args.SetAt(1, Instance::Handle(zone, state_->BuildArgs(thread)));
+    args.SetAt(2, Instance::Handle(zone, state_->BuildMessage(thread)));
+    args.SetAt(3, is_spawn_uri ? Bool::True() : Bool::False());
+
+    const auto& lib = Library::Handle(zone, Library::IsolateLibrary());
+    const auto& entry_name = String::Handle(zone, String::New("_startIsolate"));
+    const auto& entry_point =
+        Function::Handle(zone, lib.LookupLocalFunction(entry_name));
+    ASSERT(entry_point.IsFunction() && !entry_point.IsNull());
+    result = DartEntry::InvokeFunction(entry_point, args);
+    if (result.IsError()) {
+      ReportError("Failed to enqueue delayed entrypoint invocation.");
+      return false;
+    }
+
+    // Step 3) Pause the isolate if required & Notify parent isolate about
+    // isolate creation.
+    const auto& capabilities = Array::Handle(zone, Array::New(2));
+    auto& capability = Capability::Handle(zone);
+    capability = Capability::New(isolate->pause_capability());
+    capabilities.SetAt(0, capability);
+    capability = Capability::New(isolate->terminate_capability());
+    capabilities.SetAt(1, capability);
+    const auto& send_port =
+        SendPort::Handle(zone, SendPort::New(isolate->main_port()));
+    const auto& message = Array::Handle(zone, Array::New(2));
+    message.SetAt(0, send_port);
+    message.SetAt(1, capabilities);
+    if (state_->paused()) {
+      capability ^= capabilities.At(0);
+      const bool added = isolate->AddResumeCapability(capability);
+      ASSERT(added);
+      isolate->message_handler()->increment_paused();
+    }
+    {
+      MessageWriter writer(/*can_send_any_object=*/false);
+      // If parent isolate died, we ignore the fact that we cannot notify it.
+      PortMap::PostMessage(writer.WriteMessage(message, state_->parent_port(),
+                                               Message::kNormalPriority));
+    }
+
+    return true;
+  }
+
   void FailedSpawn(const char* error) {
     ReportError(error != nullptr
                     ? error
@@ -410,7 +795,6 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
   Isolate* parent_isolate_;
   std::unique_ptr<IsolateSpawnState> state_;
-  bool in_new_isolate_group_;
 
   DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
 };
@@ -466,18 +850,19 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
       const char* utf8_debug_name =
           debugName.IsNull() ? NULL : String2UTF8(debugName);
+      const bool in_new_isolate_group = newIsolateGroup.value();
 
       std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
           port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
           &message_buffer, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name, isolate->group()));
+          on_exit_port, on_error_port, utf8_debug_name,
+          in_new_isolate_group ? nullptr : isolate->group()));
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      const bool in_new_isolate_group = newIsolateGroup.value();
-      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
-          isolate, std::move(state), in_new_isolate_group);
+      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                             std::move(state));
       return Object::null();
     }
   }
@@ -581,9 +966,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  const bool in_new_isolate_group = false;
-  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
-      isolate, std::move(state), in_new_isolate_group);
+  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                         std::move(state));
   return Object::null();
 }
 
@@ -689,7 +1073,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
     }
   }
 
-  uint8_t* data = reinterpret_cast<uint8_t*>(malloc(total_bytes));
+  uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(total_bytes));
   if (data == nullptr) {
     const Instance& exception =
         Instance::Handle(thread->isolate()->object_store()->out_of_memory());

@@ -48,7 +48,7 @@ class _FieldNamingRegistry {
 
   int globalCount = 0;
 
-  final List<jsAst.Name> nameStore = new List<jsAst.Name>();
+  final List<jsAst.Name> nameStore = <jsAst.Name>[];
 
   _FieldNamingRegistry(this.namer);
 

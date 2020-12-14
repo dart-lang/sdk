@@ -68,6 +68,12 @@ group("runtime") {
   }
 }
 
+# A separate target and not included in group("runtime"). This way the target\
+# "runtime" does not get many executables extra as build output.
+group("run_ffi_unit_tests") {
+  deps = [ "runtime/bin/ffi_unit_test:run_ffi_unit_tests" ]
+}
+
 group("runtime_kernel") {
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
@@ -105,10 +111,6 @@ group("dartdevc") {
 
 group("dartfmt") {
   deps = [ "utils/dartfmt" ]
-}
-
-group("dartfix") {
-  deps = [ "utils/dartfix" ]
 }
 
 group("analysis_server") {

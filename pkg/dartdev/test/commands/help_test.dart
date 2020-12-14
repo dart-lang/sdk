@@ -4,7 +4,6 @@
 
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
-import 'package:dartdev/src/analytics.dart' show disabledAnalytics;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -22,14 +21,14 @@ void help() {
   List<String> _commandsNotTested = <String>[
     'help', // `dart help help` is redundant
   ];
-  DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
+  DartdevRunner(['--no-analytics'])
       .commands
       .forEach((String commandKey, Command command) {
     if (!_commandsNotTested.contains(commandKey)) {
       test('(help $commandKey == $commandKey --help)', () {
         p = project();
-        var result = p.runSync('help', [commandKey]);
-        var verbHelpResult = p.runSync(commandKey, ['--help']);
+        var result = p.runSync(['help', commandKey]);
+        var verbHelpResult = p.runSync([commandKey, '--help']);
 
         expect(result.stdout, contains(verbHelpResult.stdout));
         expect(result.stderr, contains(verbHelpResult.stderr));
@@ -39,15 +38,15 @@ void help() {
 
   test('(help pub == pub --help)', () {
     p = project();
-    var result = p.runSync('help', ['pub']);
-    var pubHelpResult = p.runSync('pub', ['--help']);
+    var result = p.runSync(['help', 'pub']);
+    var pubHelpResult = p.runSync(['pub', '--help']);
 
     expect(result.stdout, contains(pubHelpResult.stdout));
     expect(result.stderr, contains(pubHelpResult.stderr));
   });
 
   test('(--help flags also have -h abbr)', () {
-    DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
+    DartdevRunner(['--no-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       var helpOption = command.argParser.options['help'];

@@ -18,7 +18,7 @@ class ObjectPointerVisitor;
 
 // A set of ObjectPtr. Must be emptied before destruction (using Pop/Reset).
 template <int Size>
-class PointerBlock {
+class PointerBlock : public MallocAllocated {
  public:
   enum { kSize = Size };
 

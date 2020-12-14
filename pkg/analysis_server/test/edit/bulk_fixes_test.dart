@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,6 +24,21 @@ void main() {
 
 @reflectiveTest
 class BulkFixesTest extends AbstractAnalysisTest {
+  void assertContains(List<BulkFix> details,
+      {@required String path, @required String code, @required int count}) {
+    for (var detail in details) {
+      if (detail.path == path) {
+        for (var fix in detail.fixes) {
+          if (fix.code == code) {
+            expect(fix.occurrences, count);
+            return;
+          }
+        }
+      }
+    }
+    fail('No match found for: $path:$code->$count in $details');
+  }
+
   Future<void> assertEditEquals(String expectedSource) async {
     await waitForTasksFinished();
     var edits = await _getBulkEdits();
@@ -131,6 +150,40 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_details() async {
+    addAnalysisOptionsFile('''
+linter:
+  rules:
+    - annotate_overrides
+    - unnecessary_new
+''');
+
+    var fileA = convertPath('$projectPath/a.dart');
+    newFile(fileA, content: '''
+class A {
+  A f() => new A();
+}
+class B extends A {
+  A f() => new B();
+}
+''');
+
+    addTestFile('''
+import 'a.dart';
+
+A f() => new A();
+''');
+
+    var details = await _getBulkFixDetails();
+    expect(details, hasLength(2));
+    assertContains(details,
+        path: fileA, code: LintNames.unnecessary_new, count: 2);
+    assertContains(details,
+        path: fileA, code: LintNames.annotate_overrides, count: 1);
+    assertContains(details,
+        path: testFile, code: LintNames.unnecessary_new, count: 1);
+  }
+
   Future<void> test_unnecessaryNew() async {
     addAnalysisOptionsFile('''
 linter:
@@ -150,6 +203,12 @@ A f() => A();
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44080')
   Future<void> test_unnecessaryNew_collectionLiteral_overlap() async {
+    // The test case currently drops the 'new' but does not convert the code to
+    // use a set literal. The code is no longer mangled, but we need to run the
+    // BulkFixProcessor iteratively to solve the second case.
+    if (Platform.isWindows) {
+      fail('Should not be passing on Windows, but it does');
+    }
     addAnalysisOptionsFile('''
 linter:
   rules:
@@ -203,9 +262,18 @@ A f() => new A();
   }
 
   Future<List<SourceFileEdit>> _getBulkEdits() async {
+    var result = await _getBulkFixes();
+    return result.edits;
+  }
+
+  Future<List<BulkFix>> _getBulkFixDetails() async {
+    var result = await _getBulkFixes();
+    return result.details;
+  }
+
+  Future<EditBulkFixesResult> _getBulkFixes() async {
     var request = EditBulkFixesParams([projectPath]).toRequest('0');
     var response = await waitResponse(request);
-    var result = EditBulkFixesResult.fromResponse(response);
-    return result.edits;
+    return EditBulkFixesResult.fromResponse(response);
   }
 }

@@ -41,7 +41,7 @@ main() {
   print(i++);
   print(new Object());
   print(const Object());
-  print((new List<String>(2)).runtimeType);
+  print((new List<String>.filled(2, null)).runtimeType);
   foo(fisk: "Blorp gulp");
   f() {
     print("f was called");

@@ -109,33 +109,33 @@ static set finalTopLevelField(dynamic #t13) → void
     non::_#finalTopLevelField = #t13;
   }
 static method method<T extends core::Object = core::Object>(core::bool b, core::int i, non::method::T t) → dynamic {
-  core::int? local;
+  lowered core::int? #local;
   function #local#get() → core::int
-    return let final core::int? #t14 = local in #t14.==(null) ?{core::int} throw new _in::LateError::localNI("local") : #t14{core::int};
+    return let final core::int? #t14 = #local in #t14.==(null) ?{core::int} throw new _in::LateError::localNI("local") : #t14{core::int};
   function #local#set(core::int #t15) → dynamic
-    return local = #t15;
-  final dynamic finalLocal;
-  core::bool #finalLocal#isSet = false;
+    return #local = #t15;
+  lowered final dynamic #finalLocal;
+  lowered core::bool #finalLocal#isSet = false;
   function #finalLocal#get() → dynamic
-    return #finalLocal#isSet ?{dynamic} finalLocal : throw new _in::LateError::localNI("finalLocal");
+    return #finalLocal#isSet ?{dynamic} #finalLocal : throw new _in::LateError::localNI("finalLocal");
   function #finalLocal#set(dynamic #t16) → dynamic
     if(#finalLocal#isSet)
       throw new _in::LateError::localAI("finalLocal");
     else {
       #finalLocal#isSet = true;
-      return finalLocal = #t16;
+      return #finalLocal = #t16;
     }
-  non::method::T? localTypeVariable;
+  lowered non::method::T? #localTypeVariable;
   function #localTypeVariable#get() → non::method::T
-    return let final non::method::T? #t17 = localTypeVariable in #t17.==(null) ?{non::method::T} throw new _in::LateError::localNI("localTypeVariable") : #t17{non::method::T};
+    return let final non::method::T? #t17 = #localTypeVariable in #t17.==(null) ?{non::method::T} throw new _in::LateError::localNI("localTypeVariable") : #t17{non::method::T};
   function #localTypeVariable#set(non::method::T #t18) → dynamic
-    return localTypeVariable = #t18;
-  final non::method::T? finalLocalTypeVariable;
+    return #localTypeVariable = #t18;
+  lowered final non::method::T? #finalLocalTypeVariable;
   function #finalLocalTypeVariable#get() → non::method::T
-    return let final non::method::T? #t19 = finalLocalTypeVariable in #t19.==(null) ?{non::method::T} throw new _in::LateError::localNI("finalLocalTypeVariable") : #t19{non::method::T};
+    return let final non::method::T? #t19 = #finalLocalTypeVariable in #t19.==(null) ?{non::method::T} throw new _in::LateError::localNI("finalLocalTypeVariable") : #t19{non::method::T};
   function #finalLocalTypeVariable#set(non::method::T #t20) → dynamic
-    if(finalLocalTypeVariable.==(null))
-      return finalLocalTypeVariable = #t20;
+    if(#finalLocalTypeVariable.==(null))
+      return #finalLocalTypeVariable = #t20;
     else
       throw new _in::LateError::localAI("finalLocalTypeVariable");
   if(b) {

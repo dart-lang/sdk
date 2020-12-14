@@ -36,7 +36,7 @@ class A extends self::B implements req::C {
   method test_default({required core::int? i = #C1}) → void {}
   method test_nondefault({required core::int? i = #C1}) → void {}
   method test_legacy({required core::int? i = #C1}) → void {}
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 static method main() → dynamic {
   new self::A::•().{self::A::test_default}(i: 1);

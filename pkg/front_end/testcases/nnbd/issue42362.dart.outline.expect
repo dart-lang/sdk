@@ -2,67 +2,83 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:45:16: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:45:16: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   method3([int i]) {} // error
 //                ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:47:16: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:47:16: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   method4({int i}) {} // error
 //                ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:8:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:8:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   A.constructor1([this.i]); // error
 //                        ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:10:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:10:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   A.constructor2({this.i}); // error
 //                        ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:12:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:12:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   A.constructor3([int i]) // error
 //                       ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:15:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:15:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   A.constructor4({int i}) // error
 //                       ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:41:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:41:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   factory A.factory8([int i]) => new A.constructor3(); // error
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:43:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:43:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   factory A.factory9({int i}) => new A.constructor4(); // error
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:106:12: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:106:12: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   method3([i]) {} // error
 //            ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:108:12: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:108:12: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   method4({i}) {} // error
 //            ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:77:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:77:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   C.constructor1([this.i]); // error
 //                        ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:79:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:79:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   C.constructor2({this.i}); // error
 //                        ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:81:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:81:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   C.constructor3([int i]) : this.i = i; // error
 //                       ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:83:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:83:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   C.constructor4({int i}) : this.i = i; // error
 //                       ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:102:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:102:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   factory C.factory8([int i]) => new C.constructor3(); // error
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:104:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:104:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   factory C.factory9({int i}) => new C.constructor4(); // error
 //                           ^
 //
@@ -71,7 +87,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int i;
-  static field dynamic _redirecting# = <dynamic>[self::A::factory3, self::A::factory4, self::A::factory5, self::A::factory6, self::A::factory7]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[self::A::factory3, self::A::factory4, self::A::factory5, self::A::factory6, self::A::factory7]/*isLegacy*/;
   constructor constructor1([core::int i]) → self::A
     ;
   constructor constructor2({core::int i}) → self::A
@@ -129,7 +145,7 @@ abstract class B extends core::Object {
 }
 class C extends core::Object implements self::B {
   field core::int i;
-  static field dynamic _redirecting# = <dynamic>[self::C::factory3, self::C::factory4, self::C::factory5, self::C::factory6, self::C::factory7]/*isNullableByDefault*/;
+  static field dynamic _redirecting# = <dynamic>[self::C::factory3, self::C::factory4, self::C::factory5, self::C::factory6, self::C::factory7]/*isLegacy*/;
   constructor constructor1([core::int i]) → self::C
     ;
   constructor constructor2({core::int i}) → self::C

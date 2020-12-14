@@ -34,11 +34,11 @@ Map<TypeParameter, DartType> getSubstitutionMap(Supertype type) {
 
 Map<TypeParameter, DartType> getUpperBoundSubstitutionMap(Class host) {
   if (host.typeParameters.isEmpty) return const <TypeParameter, DartType>{};
-  var result = <TypeParameter, DartType>{};
-  for (var parameter in host.typeParameters) {
+  Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
+  for (TypeParameter parameter in host.typeParameters) {
     result[parameter] = const DynamicType();
   }
-  for (var parameter in host.typeParameters) {
+  for (TypeParameter parameter in host.typeParameters) {
     result[parameter] = substitute(parameter.bound, result);
   }
   return result;
@@ -63,8 +63,8 @@ Map<TypeParameter, DartType> getUpperBoundSubstitutionMap(Class host) {
 DartType substituteDeep(
     DartType type, Map<TypeParameter, DartType> substitution) {
   if (substitution.isEmpty) return type;
-  var substitutor = new _DeepTypeSubstitutor(substitution);
-  var result = substitutor.visit(type);
+  _DeepTypeSubstitutor substitutor = new _DeepTypeSubstitutor(substitution);
+  DartType result = substitutor.visit(type);
   return substitutor.isInfinite ? null : result;
 }
 
@@ -93,37 +93,16 @@ bool containsFreeFunctionTypeVariables(DartType type) {
   return new _FreeFunctionTypeVariableVisitor().visit(type);
 }
 
-/// Given a set of type variables, finds a substitution of those variables such
-/// that the two given types becomes equal, or returns `null` if no such
-/// substitution exists.
-///
-/// For example, unifying `List<T>` with `List<String>`, where `T` is a
-/// quantified variable, yields the substitution `T = String`.
-///
-/// If successful, this equation holds:
-///
-///     substitute(type1, substitution) == substitute(type2, substitution)
-///
-/// The unification can fail for two reasons:
-/// - incompatible types, e.g. `List<T>` cannot be unified with `Set<T>`.
-/// - infinite types: e.g. `T` cannot be unified with `List<T>` because it
-///   would create the infinite type `List<List<List<...>>>`.
-Map<TypeParameter, DartType> unifyTypes(
-    DartType type1, DartType type2, Set<TypeParameter> quantifiedVariables) {
-  var unifier = new _TypeUnification(type1, type2, quantifiedVariables);
-  return unifier.success ? unifier.substitution : null;
-}
-
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
 ///
 /// The returned object contains the fresh type parameter list as well as a
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
-  var freshParameters = new List<TypeParameter>.generate(
+  List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
       typeParameters.length, (i) => new TypeParameter(typeParameters[i].name),
       growable: true);
-  var map = <TypeParameter, DartType>{};
+  Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
         typeParameters[i], freshParameters[i]);
@@ -255,11 +234,11 @@ abstract class Substitution {
   /// been replaced by dynamic.
   static Substitution upperBoundForClass(Class class_) {
     if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
-    var upper = <TypeParameter, DartType>{};
-    for (var parameter in class_.typeParameters) {
+    Map<TypeParameter, DartType> upper = <TypeParameter, DartType>{};
+    for (TypeParameter parameter in class_.typeParameters) {
       upper[parameter] = const DynamicType();
     }
-    for (var parameter in class_.typeParameters) {
+    for (TypeParameter parameter in class_.typeParameters) {
       upper[parameter] = substitute(parameter.bound, upper);
     }
     return fromUpperAndLowerBounds(upper, {});
@@ -483,14 +462,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   Supertype visitSupertype(Supertype node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
-    var typeArguments = node.typeArguments.map(visit).toList();
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new Supertype(node.classNode, typeArguments);
   }
 
   NamedType visitNamedType(NamedType node) {
     int before = useCounter;
-    var type = visit(node.type);
+    DartType type = visit(node.type);
     if (useCounter == before) return node;
     return new NamedType(node.name, type, isRequired: node.isRequired);
   }
@@ -508,7 +487,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
-    var typeArguments = node.typeArguments.map(visit).toList();
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
@@ -523,7 +502,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitTypedefType(TypedefType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
-    var typeArguments = node.typeArguments.map(visit).toList();
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new TypedefType(node.typedefNode, node.nullability, typeArguments);
   }
@@ -554,19 +533,21 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         "Function type variables cannot be substituted while still attached "
         "to the function. Perform substitution on "
         "`FunctionType.withoutTypeParameters` instead.");
-    var inner = node.typeParameters.isEmpty ? this : newInnerEnvironment();
+    _TypeSubstitutor inner =
+        node.typeParameters.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
     // Invert the variance when translating parameters.
     inner.invertVariance();
-    var typeParameters = inner.freshTypeParameters(node.typeParameters);
-    var positionalParameters = node.positionalParameters.isEmpty
+    List<TypeParameter> typeParameters =
+        inner.freshTypeParameters(node.typeParameters);
+    List<DartType> positionalParameters = node.positionalParameters.isEmpty
         ? const <DartType>[]
         : node.positionalParameters.map(inner.visit).toList();
-    var namedParameters = node.namedParameters.isEmpty
+    List<NamedType> namedParameters = node.namedParameters.isEmpty
         ? const <NamedType>[]
         : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
-    var returnType = inner.visit(node.returnType);
+    DartType returnType = inner.visit(node.returnType);
     DartType typedefType =
         node.typedefType == null ? null : inner.visit(node.typedefType);
     if (this.useCounter == before) return node;
@@ -578,7 +559,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
-    var node = this;
+    _TypeSubstitutor node = this;
     while (node != target) {
       ++node.useCounter;
       node = node.outer;
@@ -587,7 +568,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   DartType getSubstitute(TypeParameter variable) {
-    var environment = this;
+    _TypeSubstitutor environment = this;
     while (environment != null) {
       DartType replacement = environment.lookup(variable, covariantContext);
       if (replacement != null) {
@@ -643,170 +624,6 @@ class _DeepTypeSubstitutor extends _InnerTypeSubstitutor {
       --depth;
       return replacement;
     }
-  }
-}
-
-class _TypeUnification {
-  // Acyclic invariant: There are no cycles in the map, that is, all types can
-  //   be resolved to finite types by substituting all contained type variables.
-  //
-  // The acyclic invariant holds everywhere except during cycle detection.
-  //
-  // It is not checked that the substitution satisfies the bound on the type
-  // parameter.
-  final Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
-
-  /// Variables that may be assigned freely in order to obtain unification.
-  ///
-  /// These are sometimes referred to as existentially quantified variables.
-  final Set<TypeParameter> quantifiedVariables;
-
-  /// Variables that are bound by a function type inside one of the types.
-  /// These may not occur in a substitution, because these variables are not in
-  /// scope at the existentially quantified variables.
-  ///
-  /// For example, suppose we are trying to satisfy the equation:
-  ///
-  ///     ∃S. <E>(E, S) => E  =  <E>(E, E) => E
-  ///
-  /// That is, we must choose `S` such that the generic function type
-  /// `<E>(E, S) => E` becomes `<E>(E, E) => E`.  Choosing `S = E` is not a
-  /// valid solution, because `E` is not in scope where `S` is quantified.
-  /// The two function types cannot be unified.
-  final Set<TypeParameter> _universallyQuantifiedVariables =
-      new Set<TypeParameter>();
-
-  bool success = true;
-
-  _TypeUnification(DartType type1, DartType type2, this.quantifiedVariables) {
-    _unify(type1, type2);
-    if (success && substitution.length >= 2) {
-      for (var key in substitution.keys) {
-        substitution[key] = substituteDeep(substitution[key], substitution);
-      }
-    }
-  }
-
-  DartType _substituteHead(TypeParameterType type) {
-    for (int i = 0; i <= substitution.length; ++i) {
-      DartType nextType = substitution[type.parameter];
-      if (nextType == null) return type;
-      if (nextType is TypeParameterType) {
-        type = nextType;
-      } else {
-        return nextType;
-      }
-    }
-    // The cycle should have been found by _trySubstitution when the cycle
-    // was created.
-    throw 'Unexpected cycle found during unification';
-  }
-
-  bool _unify(DartType type1, DartType type2) {
-    if (!success) return false;
-    type1 = type1 is TypeParameterType ? _substituteHead(type1) : type1;
-    type2 = type2 is TypeParameterType ? _substituteHead(type2) : type2;
-    if (type1 is DynamicType && type2 is DynamicType) return true;
-    if (type1 is VoidType && type2 is VoidType) return true;
-    if (type1 is InvalidType && type2 is InvalidType) return true;
-    if (type1 is BottomType && type2 is BottomType) return true;
-    if (type1 is InterfaceType && type2 is InterfaceType) {
-      if (type1.classNode != type2.classNode ||
-          type1.nullability != type2.nullability) {
-        return _fail();
-      }
-      assert(type1.typeArguments.length == type2.typeArguments.length);
-      for (int i = 0; i < type1.typeArguments.length; ++i) {
-        if (!_unify(type1.typeArguments[i], type2.typeArguments[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-    if (type1 is FunctionType && type2 is FunctionType) {
-      if (type1.typeParameters.length != type2.typeParameters.length ||
-          type1.positionalParameters.length !=
-              type2.positionalParameters.length ||
-          type1.namedParameters.length != type2.namedParameters.length ||
-          type1.requiredParameterCount != type2.requiredParameterCount ||
-          type1.nullability != type2.nullability) {
-        return _fail();
-      }
-      // When unifying two generic functions, transform the equation like this:
-      //
-      //    ∃S. <E>(fn1) = <T>(fn2)
-      //      ==>
-      //    ∃S. ∀G. fn1[G/E] = fn2[G/T]
-      //
-      // That is, assume some fixed identical choice of type parameters for both
-      // functions and try to unify the instantiated function types.
-      assert(!type1.typeParameters.any(quantifiedVariables.contains));
-      assert(!type2.typeParameters.any(quantifiedVariables.contains));
-      var leftInstance = <TypeParameter, DartType>{};
-      var rightInstance = <TypeParameter, DartType>{};
-      for (int i = 0; i < type1.typeParameters.length; ++i) {
-        var instantiator = new TypeParameter(type1.typeParameters[i].name);
-        var instantiatorType = new TypeParameterType.forAlphaRenaming(
-            type1.typeParameters[i], instantiator);
-        leftInstance[type1.typeParameters[i]] = instantiatorType;
-        rightInstance[type2.typeParameters[i]] = instantiatorType;
-        _universallyQuantifiedVariables.add(instantiator);
-      }
-      for (int i = 0; i < type1.typeParameters.length; ++i) {
-        var left = substitute(type1.typeParameters[i].bound, leftInstance);
-        var right = substitute(type2.typeParameters[i].bound, rightInstance);
-        if (!_unify(left, right)) return false;
-      }
-      for (int i = 0; i < type1.positionalParameters.length; ++i) {
-        var left = substitute(type1.positionalParameters[i], leftInstance);
-        var right = substitute(type2.positionalParameters[i], rightInstance);
-        if (!_unify(left, right)) return false;
-      }
-      for (int i = 0; i < type1.namedParameters.length; ++i) {
-        if (type1.namedParameters[i].name != type2.namedParameters[i].name) {
-          return false;
-        }
-        var left = substitute(type1.namedParameters[i].type, leftInstance);
-        var right = substitute(type2.namedParameters[i].type, rightInstance);
-        if (!_unify(left, right)) return false;
-      }
-      var leftReturn = substitute(type1.returnType, leftInstance);
-      var rightReturn = substitute(type2.returnType, rightInstance);
-      if (!_unify(leftReturn, rightReturn)) return false;
-      return true;
-    }
-    if (type1 is TypeParameterType &&
-        type2 is TypeParameterType &&
-        type1.parameter == type2.parameter &&
-        type1.declaredNullability == type2.declaredNullability) {
-      return true;
-    }
-    if (type1 is TypeParameterType &&
-        quantifiedVariables.contains(type1.parameter)) {
-      return _trySubstitution(type1.parameter, type2);
-    }
-    if (type2 is TypeParameterType &&
-        quantifiedVariables.contains(type2.parameter)) {
-      return _trySubstitution(type2.parameter, type1);
-    }
-    return _fail();
-  }
-
-  bool _trySubstitution(TypeParameter variable, DartType type) {
-    if (containsTypeVariable(type, _universallyQuantifiedVariables)) {
-      return _fail();
-    }
-    // Set the plain substitution first and then generate the deep
-    // substitution to detect cycles.
-    substitution[variable] = type;
-    DartType deepSubstitute = substituteDeep(type, substitution);
-    if (deepSubstitute == null) return _fail();
-    substitution[variable] = deepSubstitute;
-    return true;
-  }
-
-  bool _fail() {
-    return success = false;
   }
 }
 

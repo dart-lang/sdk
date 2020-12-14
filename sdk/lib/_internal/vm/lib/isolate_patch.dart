@@ -188,6 +188,12 @@ class _RawReceivePortImpl implements RawReceivePort {
   // Call into the VM to close the VM maintained mappings.
   _closeInternal() native "RawReceivePortImpl_closeInternal";
 
+  // Set this port as active or inactive in the VM. If inactive, this port
+  // will not be considered live even if it hasn't been explicitly closed.
+  // TODO(bkonyi): determine if we want to expose this as an option through
+  // RawReceivePort.
+  _setActive(bool active) native "RawReceivePortImpl_setActive";
+
   void set handler(Function? value) {
     final id = this._get_id();
     if (!_portMap.containsKey(id)) {
@@ -234,20 +240,12 @@ typedef _UnaryFunction(Never args);
 typedef _BinaryFunction(Never args, Never message);
 
 /**
- * Takes the real entry point as argument and invokes it with the
- * initial message.  Defers execution of the entry point until the
- * isolate is in the message loop.
+ * Takes the real entry point as argument and schedules it to run in the message
+ * queue.
  */
 @pragma("vm:entry-point", "call")
 void _startMainIsolate(Function entryPoint, List<String>? args) {
-  _startIsolate(
-      null, // no parent port
-      entryPoint,
-      args,
-      null, // no message
-      true, // isSpawnUri
-      null, // no control port
-      null); // no capabilities
+  _delayEntrypointInvocation(entryPoint, args, null, true);
 }
 
 /**
@@ -262,47 +260,21 @@ Function _getStartMainIsolateFunction() {
 }
 
 /**
- * Takes the real entry point as argument and invokes it with the initial
- * message.
+ * Takes the real entry point as argument and schedules it to run in the message
+ * queue.
  */
 @pragma("vm:entry-point", "call")
 void _startIsolate(
-    SendPort? parentPort,
-    Function entryPoint,
-    List<String>? args,
-    Object? message,
-    bool isSpawnUri,
-    RawReceivePort? controlPort,
-    List? capabilities) {
-  // The control port (aka the main isolate port) does not handle any messages.
-  if (controlPort != null) {
-    controlPort.handler = (_) {}; // Nobody home on the control port.
+    Function entryPoint, List<String>? args, Object? message, bool isSpawnUri) {
+  _delayEntrypointInvocation(entryPoint, args, message, isSpawnUri);
+}
 
-    if (parentPort != null) {
-      // Build a message to our parent isolate providing access to the
-      // current isolate's control port and capabilities.
-      //
-      // TODO(floitsch): Send an error message if we can't find the entry point.
-      final readyMessage = List<Object?>.filled(2, null);
-      readyMessage[0] = controlPort.sendPort;
-      readyMessage[1] = capabilities;
-
-      // Out of an excess of paranoia we clear the capabilities from the
-      // stack.  Not really necessary.
-      capabilities = null;
-      parentPort.send(readyMessage);
-    }
-  }
-  assert(capabilities == null);
-
-  // Delay all user code handling to the next run of the message loop. This
-  // allows us to intercept certain conditions in the event dispatch, such as
-  // starting in paused state.
-  RawReceivePort port = new RawReceivePort();
+void _delayEntrypointInvocation(Function entryPoint, List<String>? args,
+    Object? message, bool allowZeroOneOrTwoArgs) {
+  final port = RawReceivePort();
   port.handler = (_) {
     port.close();
-
-    if (isSpawnUri) {
+    if (allowZeroOneOrTwoArgs) {
       if (entryPoint is _BinaryFunction) {
         (entryPoint as dynamic)(args, message);
       } else if (entryPoint is _UnaryFunction) {
@@ -314,7 +286,6 @@ void _startIsolate(
       entryPoint(message);
     }
   };
-  // Make sure the message handler is triggered.
   port.sendPort.send(null);
 }
 
@@ -385,7 +356,8 @@ class Isolate {
     }
 
     const bool newIsolateGroup = false;
-    final RawReceivePort readyPort = new RawReceivePort();
+    final RawReceivePort readyPort =
+        new RawReceivePort(null, 'Isolate.spawn ready');
     try {
       spawnFunction(
           readyPort.sendPort,
@@ -462,7 +434,8 @@ class Isolate {
     // The VM will invoke [_startIsolate] and not `main`.
     final packageConfigString = packageConfig?.toString();
 
-    final RawReceivePort readyPort = new RawReceivePort();
+    final RawReceivePort readyPort =
+        new RawReceivePort(null, 'Isolate.spawnUri ready');
     try {
       _spawnUri(
           readyPort.sendPort,

@@ -73,7 +73,7 @@ void FieldTable::AllocateIndex(intptr_t index) {
     Grow(new_capacity);
   }
 
-  ASSERT(table_[index] == nullptr);
+  ASSERT(table_[index] == InstancePtr());
   if (index >= top_) {
     top_ = index + 1;
   }
@@ -98,14 +98,16 @@ void FieldTable::Grow(intptr_t new_capacity) {
   // via store to table_.
   std::atomic_thread_fence(std::memory_order_release);
   table_ = new_table;
-  Thread::Current()->field_table_values_ = table_;
+  if (isolate_ != nullptr) {
+    isolate_->mutator_thread()->field_table_values_ = table_;
+  }
 }
 
-FieldTable* FieldTable::Clone() {
-  FieldTable* clone = new FieldTable();
+FieldTable* FieldTable::Clone(Isolate* for_isolate) {
+  FieldTable* clone = new FieldTable(for_isolate);
   auto new_table = static_cast<InstancePtr*>(
       malloc(capacity_ * sizeof(InstancePtr)));  // NOLINT
-  memmove(new_table, table_, top_ * sizeof(InstancePtr));
+  memmove(new_table, table_, capacity_ * sizeof(InstancePtr));
   ASSERT(clone->table_ == nullptr);
   clone->table_ = new_table;
   clone->capacity_ = capacity_;

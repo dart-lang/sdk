@@ -443,7 +443,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    ClassElementImpl enclosingClass = _resolver.enclosingClass;
+    var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
       return;
@@ -646,7 +646,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     element = _resolver.toLegacyElement(element);
 
     if (element is PropertyAccessorElement && identifier.inSetterContext()) {
-      PropertyAccessorElement setter = lookupResult.setter;
+      var setter = lookupResult.setter;
       if (setter == null) {
         //
         // Check to see whether there might be a locally defined getter and
@@ -734,7 +734,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Resolve each of the annotations in the given list of [annotations].
   static void _resolveAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
-      ElementAnnotationImpl elementAnnotation = annotation.elementAnnotation;
+      var elementAnnotation =
+          annotation.elementAnnotation as ElementAnnotationImpl;
       elementAnnotation.element = annotation.element;
     }
   }

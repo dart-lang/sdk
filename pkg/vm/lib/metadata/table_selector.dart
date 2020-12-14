@@ -29,7 +29,7 @@ class TableSelectorInfo {
         flags = 0;
 
   TableSelectorInfo.readFromBinary(BinarySource source)
-      : callCount = source.readUInt(),
+      : callCount = source.readUInt30(),
         flags = source.readByte();
 
   void writeToBinary(BinarySink sink) {
@@ -79,7 +79,7 @@ class TableSelectorMetadataRepository
 
   @override
   TableSelectorMetadata readFromBinary(Node node, BinarySource source) {
-    final int length = source.readUInt();
+    final int length = source.readUInt30();
     final List<TableSelectorInfo> selectors = List<TableSelectorInfo>.generate(
         length, (_) => TableSelectorInfo.readFromBinary(source));
     return TableSelectorMetadata.fromSelectors(selectors);

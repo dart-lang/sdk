@@ -737,7 +737,7 @@ class _FbGenericList<E> extends _FbList<E> {
 
   @override
   E operator [](int i) {
-    _items ??= List<E>(length);
+    _items ??= List<E>.filled(length, null);
     E item = _items[i];
     if (item == null) {
       item = elementReader.read(bc, offset + 4 + elementReader.size * i);

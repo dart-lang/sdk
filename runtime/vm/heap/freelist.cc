@@ -21,7 +21,7 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
 
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
 
-  uint32_t tags = 0;
+  uword tags = 0;
   tags = ObjectLayout::SizeTag::update(size, tags);
   tags = ObjectLayout::ClassIdTag::update(kFreeListElement, tags);
   ASSERT((addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset);
@@ -30,11 +30,7 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
   tags = ObjectLayout::NewBit::update(false, tags);
   result->tags_ = tags;
-#if defined(HASH_IN_OBJECT_HEADER)
-  // Clearing this is mostly for neatness. The identityHashCode
-  // of free list entries is not used.
-  result->hash_ = 0;
-#endif
+
   if (size > ObjectLayout::SizeTag::kMaxSizeTag) {
     *result->SizeAddress() = size;
   }

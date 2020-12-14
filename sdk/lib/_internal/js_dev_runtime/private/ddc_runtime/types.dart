@@ -12,24 +12,47 @@ part of dart._runtime;
 @notNull
 external bool compileTimeFlag(String flag);
 
-_throwNullSafetyWarningError() => throw UnsupportedError(
-    'Null safety errors cannot be shown as warnings when running with sound '
-    'null safety.');
+_throwInvalidFlagError(String message) =>
+    throw UnsupportedError('Invalid flag combination.\n$message');
 
 @notNull
 bool _weakNullSafetyWarnings = false;
 
-/// Sets the runtime mode to show warnings when running with weak null safety.
+/// Sets the runtime mode to show warnings when types violate sound null safety.
 ///
-/// These are warnings for issues that will become errors when sound null safety
-/// is enabled. Showing warnings while running with sound null safety is not
-/// supported (they will be errors).
+/// This option is not compatible with weak null safety errors or sound null
+/// safety (the warnings will be errors).
 void weakNullSafetyWarnings(bool showWarnings) {
   if (showWarnings && compileTimeFlag('soundNullSafety')) {
-    _throwNullSafetyWarningError();
+    _throwInvalidFlagError(
+        'Null safety violations cannot be shown as warnings when running with '
+        'sound null safety.');
   }
 
   _weakNullSafetyWarnings = showWarnings;
+}
+
+@notNull
+bool _weakNullSafetyErrors = false;
+
+/// Sets the runtime mode to throw errors when types violate sound null safety.
+///
+/// This option is not compatible with weak null safety warnings (the warnings
+/// are now errors) or sound null safety (the errors are already errors).
+void weakNullSafetyErrors(bool showErrors) {
+  if (showErrors && compileTimeFlag('soundNullSafety')) {
+    _throwInvalidFlagError(
+        'Null safety violations are already thrown as errors when running with '
+        'sound null safety.');
+  }
+
+  if (showErrors && _weakNullSafetyWarnings) {
+    _throwInvalidFlagError(
+        'Null safety violations can be shown as warnings or thrown as errors, '
+        'not both.');
+  }
+
+  _weakNullSafetyErrors = showErrors;
 }
 
 @notNull
@@ -250,10 +273,12 @@ void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
 }
 
-void _nullWarn(arg) {
+void _nullWarn(message) {
   if (_weakNullSafetyWarnings) {
-    _warn('$arg\n'
+    _warn('$message\n'
         'This will become a failure when runtime null safety is enabled.');
+  } else if (_weakNullSafetyErrors) {
+    throw TypeErrorImpl(message);
   }
 }
 

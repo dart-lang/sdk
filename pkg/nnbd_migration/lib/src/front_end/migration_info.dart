@@ -10,6 +10,7 @@ import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/unit_link.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
 import 'package:path/path.dart' as path;
 
@@ -104,8 +105,8 @@ class MigrationInfo {
     var links = <UnitLink>[];
     for (var unit in units) {
       var count = unit.fixRegions.length;
-      links.add(
-          UnitLink(unit.path, pathContext.split(computeName(unit)), count));
+      links.add(UnitLink(unit.path, pathContext.split(computeName(unit)), count,
+          unit.wasExplicitlyOptedOut, unit.migrationStatus));
     }
     return links;
   }
@@ -279,6 +280,25 @@ class UnitInfo {
   /// run, which can be rebased on [migrationOffsetMapper] to create and
   /// maintain an offset mapper from current disk state to migration result.
   OffsetMapper diskChangesOffsetMapper = OffsetMapper.identity;
+
+  /// Whether this compilation unit was explicitly opted out of null safety at
+  /// the start of this migration.
+  bool wasExplicitlyOptedOut;
+
+  /// Indicates the migration status of this unit.
+  ///
+  /// After all migration phases have completed, this indicates that a file was
+  /// already migrated, or is being migrated during this migration.
+  ///
+  /// A user can change this migration status from the preview interface:
+  /// * An already migrated unit cannot be changed.
+  /// * During an initial migration, in which a package is migrated to null
+  ///   safety, the user can toggle a file's migration status between
+  ///   "migrating" and "opting out."
+  /// * During a follow-up migration, in which a package has been migrated to
+  ///   null safety, but some files have been opted out, the user can toggle a
+  ///   file's migration status between "migrating" and "keeping opted out."
+  UnitMigrationStatus migrationStatus;
 
   /// Initialize a newly created unit.
   UnitInfo(this.path);

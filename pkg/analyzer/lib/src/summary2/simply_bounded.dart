@@ -7,18 +7,15 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 
 /// Compute simple-boundedness for all classes and generic types aliases in
 /// the source [libraryBuilders].  There might be dependencies between them,
 /// so they all should be processed simultaneously.
 void computeSimplyBounded(
-  LinkedBundleContext bundleContext,
   Iterable<LibraryBuilder> libraryBuilders,
 ) {
-  var walker = SimplyBoundedDependencyWalker(bundleContext);
+  var walker = SimplyBoundedDependencyWalker();
   var nodes = <SimplyBoundedNode>[];
   for (var libraryBuilder in libraryBuilders) {
     for (var unit in libraryBuilder.element.units) {
@@ -41,17 +38,29 @@ void computeSimplyBounded(
     if (!node.isEvaluated) {
       walker.walk(node);
     }
-    LazyAst.setSimplyBounded(node._node, node.isSimplyBounded);
+    var node2 = node._node;
+    if (node2 is ClassOrMixinDeclaration) {
+      var element = node2.declaredElement as ClassElementImpl;
+      element.isSimplyBounded = node.isSimplyBounded;
+    } else if (node2 is ClassTypeAlias) {
+      var element = node2.declaredElement as ClassElementImpl;
+      element.isSimplyBounded = node.isSimplyBounded;
+    } else if (node2 is GenericTypeAlias) {
+      var element = node2.declaredElement as TypeAliasElementImpl;
+      element.isSimplyBounded = node.isSimplyBounded;
+    } else if (node2 is FunctionTypeAlias) {
+      var element = node2.declaredElement as TypeAliasElementImpl;
+      element.isSimplyBounded = node.isSimplyBounded;
+    } else {
+      throw UnimplementedError('${node2.runtimeType}');
+    }
   }
 }
 
 /// The graph walker for evaluating whether types are simply bounded.
 class SimplyBoundedDependencyWalker
     extends graph.DependencyWalker<SimplyBoundedNode> {
-  final LinkedBundleContext bundleContext;
   final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
-
-  SimplyBoundedDependencyWalker(this.bundleContext);
 
   @override
   void evaluate(SimplyBoundedNode v) {
@@ -158,11 +167,15 @@ class SimplyBoundedDependencyWalker
       collector.visitParameters(node.parameters);
       return collector.types;
     } else if (node is GenericTypeAlias) {
-      var functionType = node.functionType;
-      if (functionType != null) {
+      var type = node.type;
+      if (type != null) {
         var collector = _TypeCollector();
-        collector.addType(functionType.returnType);
-        collector.visitParameters(functionType.parameters);
+        if (type is GenericFunctionType) {
+          collector.addType(type.returnType);
+          collector.visitParameters(type.parameters);
+        } else {
+          collector.addType(type);
+        }
         return collector.types;
       } else {
         return const <TypeAnnotation>[];

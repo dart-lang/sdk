@@ -18,6 +18,12 @@ class TransformSetErrorCode extends ErrorCode {
       "The key '{0}' can't be used when '{1}' is also used.");
 
   /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode expectedPrimary = TransformSetErrorCode(
+      'expected_primary', "Expected either an identifier or a string literal.");
+
+  /**
    * Parameters:
    * 0: the character that is invalid
    */
@@ -30,6 +36,13 @@ class TransformSetErrorCode extends ErrorCode {
    */
   static const TransformSetErrorCode invalidKey = TransformSetErrorCode(
       'invalid_key', "Keys must be of type 'String' but found the type '{0}'.");
+
+  /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode invalidRequiredIf = TransformSetErrorCode(
+      'invalid_required_if',
+      "The key 'requiredIf' can only be used with optional named parameters.");
 
   /**
    * Parameters:
@@ -97,7 +110,14 @@ class TransformSetErrorCode extends ErrorCode {
    * 0: the missing key
    */
   static const TransformSetErrorCode undefinedVariable = TransformSetErrorCode(
-      'undefined_variable', "The variable '{0}' is not defined.");
+      'undefined_variable', "The variable '{0}' isn't defined.");
+
+  /**
+   * Parameters:
+   * 0: the token that was unexpectedly found
+   */
+  static const TransformSetErrorCode unexpectedToken =
+      TransformSetErrorCode('unexpected_token', "Didn't expect to find {0}.");
 
   /**
    * Parameters:
@@ -122,7 +142,7 @@ class TransformSetErrorCode extends ErrorCode {
   /**
    * Parameters:
    * 0: a description of the expected kind of token
-   * 1: a description of the actial kind of token
+   * 1: a description of the actual kind of token
    */
   static const TransformSetErrorCode wrongToken = TransformSetErrorCode(
       'wrong_token', "Expected to find {0}, but found {1}.");
@@ -135,10 +155,18 @@ class TransformSetErrorCode extends ErrorCode {
       TransformSetErrorCode('yaml_syntax_error', "Parse error: {0}");
 
   /// Initialize a newly created error code.
-  const TransformSetErrorCode(String name, String message,
-      {String correction, bool hasPublishedDocs = false})
-      : super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+  const TransformSetErrorCode(
+    String name,
+    String message, {
+    String correction,
+    bool hasPublishedDocs = false,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: 'TransformSetErrorCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

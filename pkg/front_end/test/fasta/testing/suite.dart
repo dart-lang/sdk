@@ -105,6 +105,7 @@ import 'package:kernel/target/targets.dart'
         DiagnosticReporter,
         NoneConstantsBackend,
         NoneTarget,
+        LateLowering,
         Target,
         TargetFlags;
 
@@ -205,7 +206,7 @@ const String noVerifyCmd = '--no-verify';
 /// test folders.
 class FolderOptions {
   final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
-  final bool forceLateLowering;
+  final int forceLateLowerings;
   final bool forceLateLoweringSentinel;
   final bool forceStaticFieldLowering;
   final bool forceNoExplicitGetterCalls;
@@ -216,7 +217,7 @@ class FolderOptions {
   final String overwriteCurrentSdkVersion;
 
   FolderOptions(this._explicitExperimentalFlags,
-      {this.forceLateLowering: false,
+      {this.forceLateLowerings: LateLowering.none,
       this.forceLateLoweringSentinel: false,
       this.forceStaticFieldLowering: false,
       this.forceNoExplicitGetterCalls: false,
@@ -226,7 +227,7 @@ class FolderOptions {
       this.target: "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
-      : assert(forceLateLowering != null),
+      : assert(forceLateLowerings != null),
         assert(forceLateLoweringSentinel != null),
         assert(forceStaticFieldLowering != null),
         assert(forceNoExplicitGetterCalls != null),
@@ -376,7 +377,7 @@ class FastaContext extends ChainContext with MatchContext {
   FolderOptions _computeFolderOptions(Directory directory) {
     FolderOptions folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
-      bool forceLateLowering = false;
+      int forceLateLowering = LateLowering.none;
       bool forceLateLoweringSentinel = false;
       bool forceStaticFieldLowering = false;
       bool forceNoExplicitGetterCalls = false;
@@ -386,7 +387,7 @@ class FastaContext extends ChainContext with MatchContext {
       String target = "vm";
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
-            forceLateLowering: forceLateLowering,
+            forceLateLowerings: forceLateLowering,
             forceLateLoweringSentinel: forceLateLoweringSentinel,
             forceStaticFieldLowering: forceStaticFieldLowering,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
@@ -410,8 +411,12 @@ class FastaContext extends ChainContext with MatchContext {
                   line.substring(overwriteCurrentSdkVersion.length);
             } else if (line.startsWith(Flags.forceLateLoweringSentinel)) {
               forceLateLoweringSentinel = true;
+            } else if (line.startsWith('${Flags.forceLateLowering}=')) {
+              int mask = int.parse(
+                  line.substring('${Flags.forceLateLowering}='.length));
+              forceLateLowering = mask;
             } else if (line.startsWith(Flags.forceLateLowering)) {
-              forceLateLowering = true;
+              forceLateLowering = LateLowering.all;
             } else if (line.startsWith(Flags.forceStaticFieldLowering)) {
               forceStaticFieldLowering = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
@@ -466,7 +471,7 @@ class FastaContext extends ChainContext with MatchContext {
                   onError: (String message) => throw new ArgumentError(message),
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
-              forceLateLowering: forceLateLowering,
+              forceLateLowerings: forceLateLowering,
               forceLateLoweringSentinel: forceLateLoweringSentinel,
               forceStaticFieldLowering: forceStaticFieldLowering,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
@@ -743,7 +748,7 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         StdioProcess process;
         try {
           var args = <String>[];
-          if (experimentalFlags[ExperimentalFlag.nonNullable]) {
+          if (experimentalFlags[ExperimentalFlag.nonNullable] == true) {
             args.add("--enable-experiment=non-nullable");
             if (!context.weak) {
               args.add("--sound-null-safety");
@@ -833,13 +838,11 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
       EvaluationMode evaluationMode) {
     constantEvaluator = new ConstantEvaluator(
         backend, environmentDefines, typeEnvironment, this,
-        desugarSets: desugarSets,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
     constantEvaluatorWithEmptyEnvironment = new ConstantEvaluator(
         backend, {}, typeEnvironment, this,
-        desugarSets: desugarSets,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
@@ -1060,7 +1063,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         }
 
         testOptions.component = p;
-        List<Library> keepLibraries = new List<Library>();
+        List<Library> keepLibraries = <Library>[];
         for (Library lib in p.libraries) {
           if (testOptions.linkDependencies.contains(lib.importUri)) {
             keepLibraries.add(lib);
@@ -1110,16 +1113,16 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
             await instrumentation.fixSource(description.uri, false);
           } else {
             return new Result<ComponentResult>(
-                new ComponentResult(
-                    description, p, userLibraries, options, sourceTarget),
+                new ComponentResult(description, p, userLibraries, options,
+                    sourceTarget, sourceTarget.constantCoverageForTesting),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
                 autoFixCommand: '${UPDATE_COMMENTS}=true');
           }
         }
       }
-      return pass(new ComponentResult(
-          description, p, userLibraries, options, sourceTarget));
+      return pass(new ComponentResult(description, p, userLibraries, options,
+          sourceTarget, sourceTarget.constantCoverageForTesting));
     });
   }
 
@@ -1134,7 +1137,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     UriTranslator uriTranslator =
         await context.computeUriTranslator(description);
     TargetFlags targetFlags = new TargetFlags(
-      forceLateLoweringForTesting: testOptions.forceLateLowering,
+      forceLateLoweringsForTesting: testOptions.forceLateLowerings,
       forceLateLoweringSentinelForTesting:
           testOptions.forceLateLoweringSentinel,
       forceStaticFieldLoweringForTesting: testOptions.forceStaticFieldLowering,

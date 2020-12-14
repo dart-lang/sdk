@@ -21,6 +21,23 @@ Language/Libraries_and_Scripts/Scripts/main_optional_parameters_t01: SkipByDesig
 Language/Libraries_and_Scripts/Scripts/main_optional_parameters_t03: SkipByDesign # https://github.com/dart-lang/co19/issues/952
 Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t03: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A02_t01: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A02_t04: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A03_t01: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A03_t02: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A03_t03: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A03_t04: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A03_t06: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A04_t01: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A04_t02: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A05_t01: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A05_t02: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/static_analysis_external_A05_t03: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/syntax_A01_t03: SkipByDesign # External variables are not supported by dart2js
+LanguageFeatures/Abstract-external-fields/syntax_A02_t03: SkipByDesign # External variables are not supported by dart2js
 LibTest/core/DateTime/DateTime.fromMicrosecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
 LibTest/core/DateTime/microsecond_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
 LibTest/core/DateTime/microsecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
@@ -32,7 +49,7 @@ LibTest/core/int/operator_remainder_A01_t03: SkipByDesign # Division by zero is 
 LibTest/core/int/operator_truncating_division_A01_t02: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/core/int/parse_A01_t02: SkipByDesign # big integers cannot be represented in JavaScript
 LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
-LibTest/html/HttpRequest/*: Skip # https://github.com/dart-lang/co19/issues/932
+LibTest/html/HttpRequest/responseText_A01_t02: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/html/HttpRequestUpload/*: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
@@ -16,17 +18,16 @@ import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
 
 var counterLinkedLibraries = 0;
 var counterLoadedLibraries = 0;
-var timerBundleToBytes = Stopwatch();
+var timerBundleToBytes = Stopwatch(); // TODO(scheglov) use
 var timerInputLibraries = Stopwatch();
 var timerLinking = Stopwatch();
 var timerLoad2 = Stopwatch();
@@ -100,8 +101,6 @@ class LibraryContext {
   /// Load data required to access elements of the given [targetLibrary].
   void load2(FileState targetLibrary) {
     timerLoad2.start();
-    var inputBundles = <LinkedNodeBundle>[];
-
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
@@ -119,14 +118,27 @@ class LibraryContext {
 
       librariesTotal += cycle.libraries.length;
 
+      if (cycle.isUnresolvedFile) {
+        return;
+      }
+
       cycle.directDependencies.forEach(
         (e) => loadBundle(e, '$debugPrefix  '),
       );
 
-      var key = cycle.transitiveSignature + '.linked_bundle';
-      var bytes = byteStore.get(key);
+      var uriToLibrary_uriToUnitAstBytes = <String, Map<String, Uint8List>>{};
+      for (var library in cycle.libraries) {
+        var uriToUnitAstBytes = <String, Uint8List>{};
+        uriToLibrary_uriToUnitAstBytes[library.uriStr] = uriToUnitAstBytes;
+        for (var file in library.libraryFiles) {
+          uriToUnitAstBytes[file.uriStr] = file.getAstBytes();
+        }
+      }
 
-      if (bytes == null) {
+      var resolutionKey = cycle.transitiveSignature + '.linked_bundle';
+      var resolutionBytes = byteStore.get(resolutionKey);
+
+      if (resolutionBytes == null) {
         librariesLinkedTimer.start();
 
         testView.linkedCycles.add(
@@ -212,49 +224,33 @@ class LibraryContext {
         link2.LinkResult linkResult;
         try {
           timerLinking.start();
-          linkResult = link2.link(elementFactory, inputLibraries);
+          linkResult = link2.link(elementFactory, inputLibraries, true);
           librariesLinked += cycle.libraries.length;
-          counterLinkedLibraries += linkResult.bundle.libraries.length;
+          counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();
         } catch (exception, stackTrace) {
           _throwLibraryCycleLinkException(cycle, exception, stackTrace);
         }
 
-        timerBundleToBytes.start();
-        bytes = linkResult.bundle.toBuffer();
-        timerBundleToBytes.stop();
-
-        byteStore.put(key, bytes);
-        bytesPut += bytes.length;
-        counterUnlinkedLinkedBytes += bytes.length;
+        resolutionBytes = linkResult.resolutionBytes;
+        byteStore.put(resolutionKey, resolutionBytes);
+        bytesPut += resolutionBytes.length;
+        counterUnlinkedLinkedBytes += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
       } else {
         // TODO(scheglov) Take / clear parsed units in files.
-        bytesGet += bytes.length;
+        bytesGet += resolutionBytes.length;
         librariesLoaded += cycle.libraries.length;
       }
 
-      var bundle = LinkedNodeBundle.fromBuffer(bytes);
-      inputBundles.add(bundle);
-      elementFactory.addBundle(
-        LinkedBundleContext(elementFactory, bundle),
+      elementFactory.addLibraries(
+        createLibraryReadersWithAstBytes(
+          elementFactory: elementFactory,
+          resolutionBytes: resolutionBytes,
+          uriToLibrary_uriToUnitAstBytes: uriToLibrary_uriToUnitAstBytes,
+        ),
       );
-      counterLoadedLibraries += bundle.libraries.length;
-
-      // Set informative data.
-      for (var libraryFile in cycle.libraries) {
-        for (var unitFile in libraryFile.libraryFiles) {
-          elementFactory.setInformativeData(
-            libraryFile.uriStr,
-            unitFile.uriStr,
-            unitFile.unlinked2.informativeData,
-          );
-        }
-      }
-
-      // We might have just linked dart:core, ensure the type provider.
-      _createElementFactoryTypeProvider();
     }
 
     logger.run('Prepare linked bundles', () {
@@ -296,7 +292,11 @@ class LibraryContext {
     if (externalSummaries != null) {
       for (var bundle in externalSummaries.bundles) {
         elementFactory.addBundle(
-          LinkedBundleContext(elementFactory, bundle.bundle2),
+          BundleReader(
+            elementFactory: elementFactory,
+            astBytes: bundle.astBytes,
+            resolutionBytes: bundle.resolutionBytes,
+          ),
         );
       }
     }

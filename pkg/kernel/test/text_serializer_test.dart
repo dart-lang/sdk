@@ -83,8 +83,8 @@ class TestRunner {
     test('(const-list (dynamic) ((int 0) (int 1) (int 2)))');
     test('(set (dynamic) ((bool true) (bool false) (int 0)))');
     test('(const-set (dynamic) ((int 0) (int 1) (int 2)))');
-    test(
-        '(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))');
+    test('(map (dynamic) (void)'
+        ' ((int 0) (null) (int 1) (null) (int 2) (null)))');
     test('(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) '
         '(int 2) (null)))');
     test('(type (-> () () () ((dynamic)) () () (dynamic)))');

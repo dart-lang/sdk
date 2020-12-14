@@ -104,6 +104,8 @@ class Flags {
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String writeClosedWorld = '--write-closed-world';
+  static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';
   static const String writeCodegen = '--write-codegen';
   static const String codegenShard = '--codegen-shard';

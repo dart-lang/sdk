@@ -1686,7 +1686,8 @@ main() {
     await assertOpType(
         completionLocation: 'InterpolationExpression_expression',
         constructors: true,
-        returnValue: true);
+        returnValue: true,
+        typeNames: true);
   }
 
   Future<void> test_interpolationExpression_block() async {

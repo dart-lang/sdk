@@ -194,7 +194,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 }
 
 class LintListener extends Listener {
-  List<String> problems = new List<String>();
+  List<String> problems = <String>[];
   LintTestDescription description;
   Uri uri;
 
@@ -204,7 +204,7 @@ class LintListener extends Listener {
 }
 
 class ExplicitTypeLintListener extends LintListener {
-  List<LatestType> _latestTypes = new List<LatestType>();
+  List<LatestType> _latestTypes = <LatestType>[];
 
   @override
   void beginVariablesDeclaration(

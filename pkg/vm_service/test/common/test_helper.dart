@@ -13,14 +13,8 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 export 'service_test_common.dart' show IsolateTest, VMTest;
 
-/// Whether to use causal async stacks (if not we use lazy async stacks).
-const bool useCausalAsyncStacks =
-    bool.fromEnvironment('dart.developer.causal_async_stacks');
-
 /// The extra arguments to use
-const List<String> extraDebuggingArgs = useCausalAsyncStacks
-    ? ['--causal-async-stacks', '--no-lazy-async-stacks']
-    : ['--no-causal-async-stacks', '--lazy-async-stacks'];
+const List<String> extraDebuggingArgs = ['--lazy-async-stacks'];
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.

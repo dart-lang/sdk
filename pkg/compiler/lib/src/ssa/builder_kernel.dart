@@ -1981,6 +1981,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           _sourceInformationBuilder.buildForInCurrent(node);
       HInstruction index = localsHandler.readLocal(indexVariable,
           sourceInformation: sourceInformation);
+      // No bound check is necessary on indexer as it is immediately guarded by
+      // the condition.
       HInstruction value = new HIndex(array, index, type)
         ..sourceInformation = sourceInformation;
       add(value);
@@ -3882,7 +3884,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       if (_abstractValueDomain.isFixedArray(resultType).isDefinitelyTrue) {
         // These constructors all take a length as the first argument.
         if (_commonElements.isNamedListConstructor('filled', function) ||
-            _commonElements.isNamedListConstructor('generate', function)) {
+            _commonElements.isNamedListConstructor('generate', function) ||
+            _commonElements.isNamedJSArrayConstructor('fixed', function) ||
+            _commonElements.isNamedJSArrayConstructor(
+                'allocateFixed', function)) {
           isFixedList = true;
         }
       }
@@ -4963,22 +4968,29 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     AbstractValue resultType =
         _typeInferenceMap.resultTypeOfSelector(selector, receiverType);
+    HInvokeDynamic invoke;
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(selector, receiverType, element, inputs,
-          isIntercepted, resultType, sourceInformation));
+      invoke = HInvokeDynamicGetter(selector, receiverType, element, inputs,
+          isIntercepted, resultType, sourceInformation);
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(selector, receiverType, element, inputs,
-          isIntercepted, resultType, sourceInformation));
+      invoke = HInvokeDynamicSetter(selector, receiverType, element, inputs,
+          isIntercepted, resultType, sourceInformation);
     } else if (selector.isClosureCall) {
       assert(!isIntercepted);
-      push(new HInvokeClosure(
+      invoke = HInvokeClosure(
           selector, receiverType, inputs, resultType, typeArguments)
-        ..sourceInformation = sourceInformation);
+        ..sourceInformation = sourceInformation;
     } else {
-      push(new HInvokeDynamicMethod(selector, receiverType, inputs, resultType,
+      invoke = HInvokeDynamicMethod(selector, receiverType, inputs, resultType,
           typeArguments, sourceInformation,
-          isIntercepted: isIntercepted));
+          isIntercepted: isIntercepted);
     }
+    invoke.instructionContext = _currentFrame.member;
+    if (node is ir.MethodInvocation) {
+      invoke.isInvariant = node.isInvariant;
+      invoke.isBoundsSafe = node.isBoundsSafe;
+    }
+    push(invoke);
   }
 
   HInstruction _invokeJsInteropFunction(
@@ -5203,7 +5215,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     var argumentsInstruction = _buildLiteralList(arguments);
     add(argumentsInstruction);
 
-    var argumentNames = new List<HInstruction>();
+    var argumentNames = <HInstruction>[];
     for (String argumentName in selector.namedArguments) {
       ConstantValue argumentNameConstant =
           constant_system.createString(argumentName);
@@ -5853,10 +5865,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     ParameterStructure parameterStructure = function.parameterStructure;
     List<String> selectorArgumentNames =
         selector.callStructure.getOrderedNamedArguments();
-    List<HInstruction> compiledArguments = new List<HInstruction>(
+    List<HInstruction> compiledArguments = new List<HInstruction>.filled(
         parameterStructure.totalParameters +
             parameterStructure.typeParameters +
-            1); // Plus one for receiver.
+            1,
+        null); // Plus one for receiver.
 
     int compiledArgumentIndex = 0;
 

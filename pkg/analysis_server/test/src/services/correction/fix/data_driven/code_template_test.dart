@@ -77,7 +77,7 @@ void g(int x, int y) {}
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
     var node = statement.expression;
-    var template = CodeTemplate(CodeTemplateKind.expression, components);
+    var template = CodeTemplate(CodeTemplateKind.expression, components, null);
     var builder = ChangeBuilder(session: session);
     var context = TemplateContext(node, CorrectionUtils(testAnalysisResult));
     await builder.addDartFileEdit(testFile, (builder) {

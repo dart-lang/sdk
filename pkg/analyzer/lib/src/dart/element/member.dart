@@ -1069,8 +1069,8 @@ class _SubstitutedTypeParameters {
 
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
-    var newElements = List<TypeParameterElement>(elements.length);
-    var newTypes = List<TypeParameterType>(elements.length);
+    var newElements = List<TypeParameterElement>.filled(elements.length, null);
+    var newTypes = List<TypeParameterType>.filled(elements.length, null);
     for (int i = 0; i < newElements.length; i++) {
       var element = elements[i];
       var newElement = TypeParameterElementImpl.synthetic(element.name);

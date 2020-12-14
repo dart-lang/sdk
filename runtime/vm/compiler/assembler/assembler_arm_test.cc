@@ -2024,7 +2024,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vaddqi(kHalfword, Q2, Q0, Q1);
+    __ vaddqi(kTwoBytes, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2065,7 +2065,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vaddqi(kWord, Q2, Q0, Q1);
+    __ vaddqi(kFourBytes, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2214,7 +2214,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
     __ rsb(shift, shift, Operand(0));
     __ vmovsr(stemp0, shift);
     __ vshlqi(kWordPair, temp, out, temp);
-    __ vceqqi(kWord, out, temp, value);
+    __ vceqqi(kFourBytes, out, temp, value);
     // Low 64 bits of temp should be all 1's, otherwise temp != value and
     // we deopt.
     __ vmovrs(shift, sout0);
@@ -2269,7 +2269,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
     __ rsb(shift, shift, Operand(0));
     __ vmovsr(stemp0, shift);
     __ vshlqi(kWordPair, temp, out, temp);
-    __ vceqqi(kWord, out, temp, value);
+    __ vceqqi(kFourBytes, out, temp, value);
     // Low 64 bits of temp should be all 1's, otherwise temp != value and
     // we deopt.
     __ vmovrs(shift, sout0);
@@ -2356,7 +2356,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vsubqi(kHalfword, Q2, Q1, Q0);
+    __ vsubqi(kTwoBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2397,7 +2397,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vsubqi(kWord, Q2, Q1, Q0);
+    __ vsubqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2508,7 +2508,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vmulqi(kHalfword, Q2, Q1, Q0);
+    __ vmulqi(kTwoBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2549,7 +2549,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vmulqi(kWord, Q2, Q1, Q0);
+    __ vmulqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3071,7 +3071,7 @@ ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
     __ vmovsr(S5, R1);
 
     // Should copy 0xff to each byte of Q0.
-    __ vdup(kHalfword, Q0, D2, 1);
+    __ vdup(kTwoBytes, Q0, D2, 1);
 
     __ vmovrs(R0, S0);
     __ vmovrs(R1, S1);
@@ -3101,7 +3101,7 @@ ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
     __ vmovsr(S5, R1);
 
     // Should copy 0xff to each byte of Q0.
-    __ vdup(kWord, Q0, D2, 1);
+    __ vdup(kFourBytes, Q0, D2, 1);
 
     __ vmovrs(R0, S0);
     __ vmovrs(R1, S1);
@@ -3173,7 +3173,7 @@ ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
     __ mov(R0, Operand(40));
     __ vmovsr(S7, R0);
 
-    __ vceqqi(kWord, Q2, Q1, Q0);
+    __ vceqqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3247,7 +3247,7 @@ ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcgeqi(kWord, Q2, Q1, Q0);
+    __ vcgeqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3288,7 +3288,7 @@ ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcugeqi(kWord, Q2, Q1, Q0);
+    __ vcugeqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3362,7 +3362,7 @@ ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcgtqi(kWord, Q2, Q1, Q0);
+    __ vcgtqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3403,7 +3403,7 @@ ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcugtqi(kWord, Q2, Q1, Q0);
+    __ vcugtqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);

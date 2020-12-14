@@ -30,6 +30,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_documentHighlight,
     Method.textDocument_formatting,
     Method.textDocument_onTypeFormatting,
+    Method.textDocument_rangeFormatting,
     Method.textDocument_definition,
     Method.textDocument_codeAction,
     Method.textDocument_rename,
@@ -70,6 +71,9 @@ class ClientDynamicRegistrations {
 
   bool get implementation =>
       _capabilities.textDocument?.implementation?.dynamicRegistration ?? false;
+
+  bool get rangeFormatting =>
+      _capabilities.textDocument?.rangeFormatting?.dynamicRegistration ?? false;
 
   bool get references =>
       _capabilities.textDocument?.references?.dynamicRegistration ?? false;
@@ -187,6 +191,9 @@ class ServerCapabilitiesComputer {
                   moreTriggerCharacter:
                       dartTypeFormattingCharacters.skip(1).toList())
               : null,
+      documentRangeFormattingProvider: dynamicRegistrations.typeFormatting
+          ? null
+          : Either2<bool, DocumentRangeFormattingOptions>.t1(enableFormatter),
       renameProvider: dynamicRegistrations.rename
           ? null
           : renameOptionsSupport
@@ -203,7 +210,7 @@ class ServerCapabilitiesComputer {
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
       ),
-      workspaceSymbolProvider: true,
+      workspaceSymbolProvider: Either2<bool, WorkspaceSymbolOptions>.t1(true),
       workspace: ServerCapabilitiesWorkspace(
           workspaceFolders: WorkspaceFoldersServerCapabilities(
         supported: true,
@@ -235,15 +242,25 @@ class ServerCapabilitiesComputer {
         // folders as well.
         .map((glob) => DocumentFilter(scheme: 'file', pattern: '**/$glob'));
 
-    final allTypes = {dartFiles, ...pluginTypes}.toList();
+    final fullySupportedTypes = {dartFiles, ...pluginTypes}.toList();
 
     // Add pubspec + analysis options only for synchronisation. We do not support
     // things like hovers/formatting/etc. for these files so there's no point
     // in having the client send those requests (plus, for things like formatting
     // this could result in the editor reporting "multiple formatters installed"
     // and prevent a built-in YAML formatter from being selected).
-    final allSynchronisedTypes = {
-      ...allTypes,
+    final synchronisedTypes = {
+      ...fullySupportedTypes,
+      pubspecFile,
+      analysisOptionsFile,
+      fixDataFile,
+    }.toList();
+
+    // Completion is supported for some synchronised files that we don't _fully_
+    // support (eg. YAML). If these gain support for things like hover, we may
+    // wish to move them to fullySupprtedTypes but add an exclusion for formatting.
+    final completionSupportedTypes = {
+      ...fullySupportedTypes,
       pubspecFile,
       analysisOptionsFile,
       fixDataFile,
@@ -271,25 +288,25 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didOpen,
-      TextDocumentRegistrationOptions(documentSelector: allSynchronisedTypes),
+      TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
     );
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didClose,
-      TextDocumentRegistrationOptions(documentSelector: allSynchronisedTypes),
+      TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
     );
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didChange,
       TextDocumentChangeRegistrationOptions(
           syncKind: TextDocumentSyncKind.Incremental,
-          documentSelector: allSynchronisedTypes),
+          documentSelector: synchronisedTypes),
     );
     register(
       dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
-        documentSelector: allTypes,
+        documentSelector: completionSupportedTypes,
         triggerCharacters: dartCompletionTriggerCharacters,
         allCommitCharacters:
             previewCommitCharacters ? dartCompletionCommitCharacters : null,
@@ -299,13 +316,13 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.hover,
       Method.textDocument_hover,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.signatureHelp,
       Method.textDocument_signatureHelp,
       SignatureHelpRegistrationOptions(
-        documentSelector: allTypes,
+        documentSelector: fullySupportedTypes,
         triggerCharacters: dartSignatureHelpTriggerCharacters,
         retriggerCharacters: dartSignatureHelpRetriggerCharacters,
       ),
@@ -313,22 +330,22 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.references,
       Method.textDocument_references,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.documentHighlights,
       Method.textDocument_documentHighlight,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.documentSymbol,
       Method.textDocument_documentSymbol,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       enableFormatter && dynamicRegistrations.formatting,
       Method.textDocument_formatting,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       enableFormatter && dynamicRegistrations.typeFormatting,
@@ -340,20 +357,27 @@ class ServerCapabilitiesComputer {
       ),
     );
     register(
+      enableFormatter && dynamicRegistrations.rangeFormatting,
+      Method.textDocument_rangeFormatting,
+      DocumentRangeFormattingRegistrationOptions(
+        documentSelector: [dartFiles], // This one is currently Dart-specific
+      ),
+    );
+    register(
       dynamicRegistrations.definition,
       Method.textDocument_definition,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.implementation,
       Method.textDocument_implementation,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.codeActions,
       Method.textDocument_codeAction,
       CodeActionRegistrationOptions(
-        documentSelector: allTypes,
+        documentSelector: fullySupportedTypes,
         codeActionKinds: DartCodeActionKind.serverSupportedKinds,
       ),
     );
@@ -361,12 +385,12 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.rename,
       Method.textDocument_rename,
       RenameRegistrationOptions(
-          documentSelector: allTypes, prepareProvider: true),
+          documentSelector: fullySupportedTypes, prepareProvider: true),
     );
     register(
       dynamicRegistrations.folding,
       Method.textDocument_foldingRange,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.didChangeConfiguration,

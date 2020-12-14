@@ -107,6 +107,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   Uri sourceMapOut;
   Uri readDataUri;
   Uri writeDataUri;
+  Uri readClosedWorldUri;
+  Uri writeClosedWorldUri;
   Uri readCodegenUri;
   Uri writeCodegenUri;
   int codegenShard;
@@ -115,7 +117,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   List<Uri> multiRoots;
   String multiRootScheme = 'org-dartlang-app';
   Uri packageConfig = null;
-  List<String> options = new List<String>();
+  List<String> options = <String>[];
   bool wantHelp = false;
   bool wantVersion = false;
   bool trustTypeAnnotations = false;
@@ -267,6 +269,14 @@ Future<api.CompilationResult> compile(List<String> argv,
     }
   }
 
+  void setReadClosedWorld(String argument) {
+    if (argument != Flags.readClosedWorld) {
+      readClosedWorldUri =
+          fe.nativeToUri(extractPath(argument, isDirectory: false));
+    }
+    readStrategy = ReadStrategy.fromClosedWorld;
+  }
+
   void setDillDependencies(String argument) {
     String dependencies = extractParameter(argument);
     String uriDependencies = dependencies.splitMapJoin(',',
@@ -275,6 +285,10 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setCfeOnly(String argument) {
+    if (writeStrategy == WriteStrategy.toClosedWorld) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized closed world simultaneously.");
+    }
     if (writeStrategy == WriteStrategy.toData) {
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized data simultaneously.");
@@ -299,6 +313,9 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized data simultaneously.");
     }
+    if (writeStrategy == WriteStrategy.toClosedWorld) {
+      fail("Cannot write closed world and data simultaneously.");
+    }
     if (writeStrategy == WriteStrategy.toCodegen) {
       fail("Cannot write serialized data and codegen simultaneously.");
     }
@@ -308,10 +325,31 @@ Future<api.CompilationResult> compile(List<String> argv,
     writeStrategy = WriteStrategy.toData;
   }
 
+  void setWriteClosedWorld(String argument) {
+    if (writeStrategy == WriteStrategy.toKernel) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized data simultaneously.");
+    }
+    if (writeStrategy == WriteStrategy.toData) {
+      fail("Cannot write both closed world and data");
+    }
+    if (writeStrategy == WriteStrategy.toCodegen) {
+      fail("Cannot write serialized data and codegen simultaneously.");
+    }
+    if (argument != Flags.writeClosedWorld) {
+      writeClosedWorldUri =
+          fe.nativeToUri(extractPath(argument, isDirectory: false));
+    }
+    writeStrategy = WriteStrategy.toClosedWorld;
+  }
+
   void setWriteCodegen(String argument) {
     if (writeStrategy == WriteStrategy.toKernel) {
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized codegen simultaneously.");
+    }
+    if (writeStrategy == WriteStrategy.toClosedWorld) {
+      fail("Cannot write closed world and codegen simultaneously.");
     }
     if (writeStrategy == WriteStrategy.toData) {
       fail("Cannot write serialized data and codegen data simultaneously.");
@@ -415,6 +453,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('${Flags.dillDependencies}=.+', setDillDependencies),
     new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
+    new OptionHandler('${Flags.readClosedWorld}|${Flags.readClosedWorld}=.+',
+        setReadClosedWorld),
+    new OptionHandler('${Flags.writeClosedWorld}|${Flags.writeClosedWorld}=.+',
+        setWriteClosedWorld),
     new OptionHandler(
         '${Flags.readCodegen}|${Flags.readCodegen}=.+', setReadCodegen),
     new OptionHandler(
@@ -606,12 +648,28 @@ Future<api.CompilationResult> compile(List<String> argv,
     case WriteStrategy.toKernel:
       out ??= Uri.base.resolve('out.dill');
       options.add(Flags.cfeOnly);
-      if (readStrategy == ReadStrategy.fromData) {
+      if (readStrategy == ReadStrategy.fromClosedWorld) {
+        fail("Cannot use ${Flags.cfeOnly} "
+            "and read serialized closed world simultaneously.");
+      } else if (readStrategy == ReadStrategy.fromData) {
         fail("Cannot use ${Flags.cfeOnly} "
             "and read serialized data simultaneously.");
       } else if (readStrategy == ReadStrategy.fromCodegen) {
         fail("Cannot use ${Flags.cfeOnly} "
             "and read serialized codegen simultaneously.");
+      }
+      break;
+    case WriteStrategy.toClosedWorld:
+      out ??= Uri.base.resolve('out.dill');
+      writeClosedWorldUri ??= Uri.base.resolve('$out.world');
+      options.add('${Flags.writeClosedWorld}=${writeClosedWorldUri}');
+      if (readStrategy == ReadStrategy.fromClosedWorld) {
+        fail("Cannot read and write serialized data simultaneously.");
+      } else if (readStrategy == ReadStrategy.fromData) {
+        fail("Cannot read from both closed world and data");
+      } else if (readStrategy == ReadStrategy.fromCodegen) {
+        fail("Cannot read serialized codegen and "
+            "write serialized data simultaneously.");
       }
       break;
     case WriteStrategy.toData:
@@ -657,7 +715,17 @@ Future<api.CompilationResult> compile(List<String> argv,
   switch (readStrategy) {
     case ReadStrategy.fromDart:
       break;
+    case ReadStrategy.fromClosedWorld:
+      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
+      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
+      break;
     case ReadStrategy.fromData:
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
+      break;
+    case ReadStrategy.fromDataAndClosedWorld:
+      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
+      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
       readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       break;
@@ -673,6 +741,22 @@ Future<api.CompilationResult> compile(List<String> argv,
         fail("${Flags.codegenShards} must be a positive integer.");
       }
       options.add('${Flags.codegenShards}=$codegenShards');
+      break;
+    case ReadStrategy.fromCodegenAndClosedWorld:
+      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
+      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
+      readCodegenUri ??= Uri.base.resolve('$scriptName.code');
+      options.add('${Flags.readCodegen}=${readCodegenUri}');
+      if (codegenShards == null) {
+        fail("Cannot write serialized codegen without setting "
+            "${Flags.codegenShards}.");
+      } else if (codegenShards <= 0) {
+        fail("${Flags.codegenShards} must be a positive integer.");
+      }
+      options.add('${Flags.codegenShards}=$codegenShards');
+      break;
   }
   options.add('--out=$out');
   if (writeStrategy == WriteStrategy.toJs) {
@@ -707,12 +791,28 @@ Future<api.CompilationResult> compile(List<String> argv,
         inputSize = inputProvider.dartCharactersRead;
         summary = 'Dart file $input ';
         break;
+      case ReadStrategy.fromClosedWorld:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String dataInput =
+            fe.relativizeUri(Uri.base, readClosedWorldUri, Platform.isWindows);
+        summary = 'Data files $input and $dataInput ';
+        break;
       case ReadStrategy.fromData:
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String dataInput =
             fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
         summary = 'Data files $input and $dataInput ';
+        break;
+      case ReadStrategy.fromDataAndClosedWorld:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String worldInput =
+            fe.relativizeUri(Uri.base, readClosedWorldUri, Platform.isWindows);
+        String dataInput =
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
+        summary = 'Data files $input, $worldInput, and $dataInput ';
         break;
       case ReadStrategy.fromCodegen:
         inputName = 'bytes data';
@@ -722,6 +822,18 @@ Future<api.CompilationResult> compile(List<String> argv,
         String codeInput =
             fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
         summary = 'Data files $input, $dataInput and '
+            '${codeInput}[0-${codegenShards - 1}] ';
+        break;
+      case ReadStrategy.fromCodegenAndClosedWorld:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String worldInput =
+            fe.relativizeUri(Uri.base, readClosedWorldUri, Platform.isWindows);
+        String dataInput =
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
+        String codeInput =
+            fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
+        summary = 'Data files $input, $worldInput, $dataInput and '
             '${codeInput}[0-${codegenShards - 1}] ';
         break;
     }
@@ -741,6 +853,15 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputSize = outputProvider.totalDataWritten;
         String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
         summary += 'compiled to dill: ${output}.';
+        break;
+      case WriteStrategy.toClosedWorld:
+        processName = 'Serialized';
+        outputName = 'bytes data';
+        outputSize = outputProvider.totalDataWritten;
+        String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
+        String dataOutput =
+            fe.relativizeUri(Uri.base, writeClosedWorldUri, Platform.isWindows);
+        summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
         break;
       case WriteStrategy.toData:
         processName = 'Serialized';
@@ -1235,5 +1356,12 @@ void batchMain(List<String> batchArguments) {
   });
 }
 
-enum ReadStrategy { fromDart, fromData, fromCodegen }
-enum WriteStrategy { toKernel, toData, toCodegen, toJs }
+enum ReadStrategy {
+  fromDart,
+  fromClosedWorld,
+  fromData,
+  fromDataAndClosedWorld,
+  fromCodegen,
+  fromCodegenAndClosedWorld
+}
+enum WriteStrategy { toKernel, toClosedWorld, toData, toCodegen, toJs }

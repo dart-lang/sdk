@@ -5,10 +5,10 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart';
+import 'package:pub/pub.dart';
 
 import '../core.dart';
-import '../experiments.dart';
-import '../sdk.dart';
 import '../vm_interop_handler.dart';
 
 /// Implement `dart test`.
@@ -19,110 +19,40 @@ class TestCommand extends DartdevCommand {
 
   TestCommand() : super(cmdName, 'Run tests in this package.');
 
+  // This argument parser is here solely to ensure that VM specific flags are
+  // provided before any command and to provide a more consistent help message
+  // with the rest of the tool.
   @override
-  final ArgParser argParser = ArgParser.allowAnything();
-
-  @override
-  void printUsage() {
-    _runImpl(['-h']);
+  ArgParser createArgParser() {
+    return ArgParser.allowAnything();
   }
 
   @override
   FutureOr<int> run() async {
-    return _runImpl(argResults.arguments.toList());
-  }
-
-  int _runImpl(List<String> testArgs) {
-    if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
-      return 255;
+    if (argResults.rest.contains('-h') || argResults.rest.contains('--help')) {
+      printUsage();
+      return 0;
     }
-
-    final pubSnapshot = sdk.pubSnapshot;
-
-    bool isHelpCommand = testArgs.contains('--help') || testArgs.contains('-h');
-
-    // Check for no pubspec.yaml file.
     if (!project.hasPubspecFile) {
-      _printNoPubspecMessage(isHelpCommand);
-      return 65;
-    }
-
-    // Handle the case of no .dart_tool/package_config.json file.
-    if (!project.hasPackageConfigFile) {
-      _printRunPubGetInstructions(isHelpCommand);
-      return 65;
-    }
-
-    // "Could not find package "test". Did you forget to add a dependency?"
-    if (!project.packageConfig.hasDependency('test')) {
-      _printMissingDepInstructions(isHelpCommand);
-      return 65;
-    }
-    List<String> enabledExperiments = [];
-    if (!(testArgs.length == 1 && testArgs[0] == '-h')) {
-      enabledExperiments = argResults.enabledExperiments;
-    }
-    final args = [
-      'run',
-      if (enabledExperiments.isNotEmpty)
-        '--$experimentFlagName=${enabledExperiments.join(',')}',
-      'test',
-      ...testArgs,
-    ];
-
-    log.trace('$pubSnapshot ${args.join(' ')}');
-    VmInteropHandler.run(pubSnapshot, args);
-    return 0;
-  }
-
-  void _printNoPubspecMessage(bool wasHelpCommand) {
-    log.stdout('''
+      log.stdout('''
 No pubspec.yaml file found; please run this command from the root of your project.
 ''');
 
-    if (wasHelpCommand) {
-      log.stdout(_terseHelp);
-      log.stdout('');
+      printUsage();
+      return 65;
     }
-
-    log.stdout(_usageHelp);
-  }
-
-  void _printRunPubGetInstructions(bool wasHelpCommand) {
-    log.stdout('''
-No .dart_tool/package_config.json file found, please run 'dart pub get'.
-''');
-
-    if (wasHelpCommand) {
-      log.stdout(_terseHelp);
-      log.stdout('');
+    try {
+      final testExecutable = await getExecutableForCommand('test:test');
+      log.trace('dart $testExecutable ${argResults.rest.join(' ')}');
+      VmInteropHandler.run(testExecutable, argResults.rest,
+          packageConfigOverride:
+              join(current, '.dart_tool', 'package_config.json'));
+      return 0;
+    } on CommandResolutionFailedException catch (e) {
+      print(e.message);
+      print('You need to add a dependency on package:test.');
+      print('Try running `dart pub add test`.');
+      return 65;
     }
-
-    log.stdout(_usageHelp);
-  }
-
-  void _printMissingDepInstructions(bool wasHelpCommand) {
-    final ansi = log.ansi;
-
-    log.stdout('''
-No dependency on package:test found. In order to run tests, you need to add a dependency
-on package:test in your pubspec.yaml file:
-
-${ansi.emphasized('dev_dependencies:\n  test: ^1.0.0')}
-
-See https://pub.dev/packages/test/install for more information on adding package:test,
-and https://dart.dev/guides/testing for general information on testing.
-''');
-
-    if (wasHelpCommand) {
-      log.stdout(_terseHelp);
-      log.stdout('');
-    }
-
-    log.stdout(_usageHelp);
   }
 }
-
-const String _terseHelp = 'Run tests in this package.';
-
-const String _usageHelp = 'Usage: dart test [files or directories...]';

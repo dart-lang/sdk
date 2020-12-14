@@ -49,7 +49,7 @@ class LateVarInitTransformer {
 
   List<Statement> _transformStatements(List<Statement> statements) {
     if (!statements.any((s) => _shouldApplyTransform(s))) return null;
-    final List<Statement> newStatements = List<Statement>();
+    final List<Statement> newStatements = <Statement>[];
     for (Statement s in statements) {
       if (_shouldApplyTransform(s)) {
         newStatements.addAll(_transformVariableDeclaration(s));

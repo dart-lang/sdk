@@ -1389,6 +1389,15 @@ abstract class HInstruction implements Spannable {
   String toString() => '${this.runtimeType}()';
 }
 
+/// An interface implemented by certain kinds of [HInstruction]. This makes it
+/// possible to discover which annotations were in force in the code from which
+/// the instruction originated.
+// TODO(sra): It would be easier to use a mostly-shared Map-like structure that
+// surfaces the ambient annotations at any point in the code.
+abstract class InstructionContext {
+  MemberEntity instructionContext;
+}
+
 /// The set of uses of [source] that are dominated by [dominator].
 class DominatedUses {
   final HInstruction _source;
@@ -1702,12 +1711,23 @@ abstract class HInvoke extends HInstruction {
   }
 }
 
-abstract class HInvokeDynamic extends HInvoke {
+abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   final InvokeDynamicSpecializer specializer;
 
   Selector _selector;
   AbstractValue _receiverType;
   final AbstractValue _originalReceiverType;
+
+  /// `true` if the type parameters at the call known to be invariant with
+  /// respect to the type parameters of the receiver instance. This corresponds
+  /// to the [ir.MethodInvocation.isInvariant] property and may be updated with
+  /// additional analysis.
+  bool isInvariant = false;
+
+  /// `true` for an indexed getter or setter if the index is known to be in
+  /// range. This corresponds to the [ir.MethodInvocation.isBoundsSafe] property
+  /// but and may updated with additional analysis.
+  bool isBoundsSafe = false;
 
   // Cached target when non-nullable receiver type and selector determine a
   // single target. This is in effect a direct call (except for a possible
@@ -1716,6 +1736,9 @@ abstract class HInvokeDynamic extends HInvoke {
   // needs defaulted arguments, is `noSuchMethod` (legacy), or is a call-through
   // stub.
   MemberEntity element;
+
+  @override
+  MemberEntity instructionContext;
 
   HInvokeDynamic(Selector selector, this._receiverType, this.element,
       List<HInstruction> inputs, bool isIntercepted, AbstractValue resultType)
@@ -3766,8 +3789,8 @@ class HLoopInformation {
   HLoopBlockInformation loopBlockInformation;
 
   HLoopInformation(this.header, this.target, this.labels)
-      : blocks = new List<HBasicBlock>(),
-        backEdges = new List<HBasicBlock>();
+      : blocks = <HBasicBlock>[],
+        backEdges = <HBasicBlock>[];
 
   void addBackEdge(HBasicBlock predecessor) {
     backEdges.add(predecessor);

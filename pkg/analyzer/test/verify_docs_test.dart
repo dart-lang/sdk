@@ -12,9 +12,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:test/test.dart';
-
-import 'utils/package_root.dart' as package_root;
 
 main() async {
   SnippetTester tester = SnippetTester();

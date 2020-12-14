@@ -104,7 +104,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
-    FLAG_causal_async_stacks = false;
     FLAG_lazy_async_stacks = true;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -212,17 +211,15 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  Object& result = Object::Handle(zone);
-  ASSERT(!function.HasCode());
 
-  result = Compiler::CompileFunction(thread, function);
-  if (result.IsError()) {
-    if (result.IsLanguageError()) {
-      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
-      UNREACHABLE();
-    }
-    Exceptions::PropagateError(Error::Cast(result));
-  }
+  // In single-isolate scenarios the lazy compile stub is only invoked if
+  // there's no existing code. In multi-isolate scenarios with shared JITed code
+  // we can end up in the lazy compile runtime entry here with code being
+  // installed.
+  ASSERT(!function.HasCode() || FLAG_enable_isolate_groups);
+
+  // Will throw if compilation failed (e.g. with compile-time error).
+  function.EnsureHasCode();
 }
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
@@ -620,10 +617,13 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           CheckIfBackgroundCompilerIsBeingStopped(optimized());
         }
 
-        // Grab read program_lock outside of potential safepoint, that lock
+        // Grab write program_lock outside of potential safepoint, that lock
         // can't be waited for inside the safepoint.
-        SafepointReadRwLocker ml(thread(),
-                                 thread()->isolate_group()->program_lock());
+        // Initially read lock was added to guard direct_subclasses field
+        // access.
+        // Read lock was upgraded to write lock to guard dependent code updates.
+        SafepointWriteRwLocker ml(thread(),
+                                  thread()->isolate_group()->program_lock());
         // We have to ensure no mutators are running, because:
         //
         //   a) We allocate an instructions object, which might cause us to
@@ -975,8 +975,7 @@ ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.is_abstract() &&
-        !func.IsRedirectingFactory()) {
+    if (!func.HasCode() && !func.is_abstract()) {
       result = CompileFunction(thread, func);
       if (result.IsError()) {
         return Error::Cast(result).raw();

@@ -398,18 +398,18 @@ class RunServiceTask : public ThreadPool::Task {
     if (FLAG_trace_service) {
       OS::PrintErr("vm-service: ShutdownIsolate\n");
     }
-    Isolate* I = reinterpret_cast<Isolate*>(parameter);
-    ASSERT(ServiceIsolate::IsServiceIsolate(I));
+    Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(parameter));
     {
-      // Print the error if there is one.  This may execute dart code to
-      // print the exception object, so we need to use a StartIsolateScope.
-      ASSERT(Isolate::Current() == NULL);
-      StartIsolateScope start_scope(I);
-      Thread* T = Thread::Current();
-      ASSERT(I == T->isolate());
-      I->WaitForOutstandingSpawns();
+      auto T = Thread::Current();
+      TransitionNativeToVM transition(T);
       StackZone zone(T);
       HandleScope handle_scope(T);
+
+      auto I = T->isolate();
+      ASSERT(ServiceIsolate::IsServiceIsolate(I));
+
+      // Print the error if there is one.  This may execute dart code to
+      // print the exception object, so we need to use a StartIsolateScope.
       Error& error = Error::Handle(Z);
       error = T->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
@@ -421,11 +421,8 @@ class RunServiceTask : public ThreadPool::Task {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Error: %s\n",
                      error.ToErrorCString());
       }
-      Dart::RunShutdownCallback();
     }
-
-    // Shut the isolate down.
-    Dart::ShutdownIsolate(I);
+    Dart_ShutdownIsolate();
     if (FLAG_trace_service) {
       OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Shutdown.\n");
     }

@@ -59,7 +59,9 @@ class ParsedFunction;
   V(ClosureData, ClosureDataLayout, default_type_arguments, TypeArguments,     \
     FINAL)                                                                     \
   V(Function, FunctionLayout, type_parameters, TypeArguments, FINAL)           \
-  V(Type, TypeLayout, arguments, TypeArguments, FINAL)
+  V(Type, TypeLayout, arguments, TypeArguments, FINAL)                         \
+  V(WeakProperty, WeakPropertyLayout, key, Dynamic, VAR)                       \
+  V(WeakProperty, WeakPropertyLayout, value, Dynamic, VAR)
 
 // The list of slots that correspond to non-nullable boxed fields of native
 // objects in the following format:
@@ -295,6 +297,9 @@ class Slot : public ZoneAllocated {
     return static_cast<const T*>(data_);
   }
 
+  // There is a fixed statically known number of native slots so we cache
+  // them statically.
+  static AcqRelAtomic<Slot*> native_fields_;
   static const Slot& GetNativeSlot(Kind kind);
 
   const Kind kind_;

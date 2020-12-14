@@ -348,16 +348,6 @@ void JSONStream::PrintValue(IsolateGroup* isolate_group, bool ref) {
   isolate_group->PrintJSON(this, ref);
 }
 
-void JSONStream::PrintValue(ThreadRegistry* reg) {
-  PrintCommaIfNeeded();
-  reg->PrintJSON(this);
-}
-
-void JSONStream::PrintValue(Thread* thread) {
-  PrintCommaIfNeeded();
-  thread->PrintJSON(this);
-}
-
 void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
   PrintCommaIfNeeded();
   timeline_event->PrintJSON(this);
@@ -406,16 +396,6 @@ void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);
   PrintValue(isolate);
-}
-
-void JSONStream::PrintProperty(const char* name, ThreadRegistry* reg) {
-  PrintPropertyName(name);
-  PrintValue(reg);
-}
-
-void JSONStream::PrintProperty(const char* name, Thread* thread) {
-  PrintPropertyName(name);
-  PrintValue(thread);
 }
 
 void JSONStream::PrintProperty(const char* name,

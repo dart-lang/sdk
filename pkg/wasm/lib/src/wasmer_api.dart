@@ -214,6 +214,58 @@ class WasmerValtypeVec extends Struct {
   external Pointer<Pointer<WasmerValtype>> data;
 }
 
+// Dart_InitializeApiDL
+typedef NativeWasmerDartInitializeApiDLFn = Int64 Function(Pointer<Void>);
+typedef WasmerDartInitializeApiDLFn = int Function(Pointer<Void>);
+
+// set_finalizer_for_engine
+typedef NativeWasmerSetFinalizerForEngineFn = Void Function(
+    Handle, Pointer<WasmerEngine>);
+typedef WasmerSetFinalizerForEngineFn = void Function(
+    Object, Pointer<WasmerEngine>);
+
+// set_finalizer_for_func
+typedef NativeWasmerSetFinalizerForFuncFn = Void Function(
+    Handle, Pointer<WasmerFunc>);
+typedef WasmerSetFinalizerForFuncFn = void Function(
+    Object, Pointer<WasmerFunc>);
+
+// set_finalizer_for_instance
+typedef NativeWasmerSetFinalizerForInstanceFn = Void Function(
+    Handle, Pointer<WasmerInstance>);
+typedef WasmerSetFinalizerForInstanceFn = void Function(
+    Object, Pointer<WasmerInstance>);
+
+// set_finalizer_for_memory
+typedef NativeWasmerSetFinalizerForMemoryFn = Void Function(
+    Handle, Pointer<WasmerMemory>);
+typedef WasmerSetFinalizerForMemoryFn = void Function(
+    Object, Pointer<WasmerMemory>);
+
+// set_finalizer_for_memorytype
+typedef NativeWasmerSetFinalizerForMemorytypeFn = Void Function(
+    Handle, Pointer<WasmerMemorytype>);
+typedef WasmerSetFinalizerForMemorytypeFn = void Function(
+    Object, Pointer<WasmerMemorytype>);
+
+// set_finalizer_for_module
+typedef NativeWasmerSetFinalizerForModuleFn = Void Function(
+    Handle, Pointer<WasmerModule>);
+typedef WasmerSetFinalizerForModuleFn = void Function(
+    Object, Pointer<WasmerModule>);
+
+// set_finalizer_for_store
+typedef NativeWasmerSetFinalizerForStoreFn = Void Function(
+    Handle, Pointer<WasmerStore>);
+typedef WasmerSetFinalizerForStoreFn = void Function(
+    Object, Pointer<WasmerStore>);
+
+// set_finalizer_for_trap
+typedef NativeWasmerSetFinalizerForTrapFn = Void Function(
+    Handle, Pointer<WasmerTrap>);
+typedef WasmerSetFinalizerForTrapFn = void Function(
+    Object, Pointer<WasmerTrap>);
+
 // wasi_config_inherit_stderr
 typedef NativeWasmerWasiConfigInheritStderrFn = Void Function(
     Pointer<WasmerWasiConfig>);

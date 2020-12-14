@@ -644,6 +644,48 @@ COMPILATION_UNIT test.dart
 LIBRARY my_lib''');
   }
 
+  Future<void> test_path_inExtension_named() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+extension E on A {
+  void bar() {
+    foo();
+  }
+}
+''');
+    await findElementReferences('foo() {}', false);
+    assertHasResult(SearchResultKind.INVOCATION, 'foo();');
+    expect(getPathString(result.path), '''
+METHOD bar
+EXTENSION E
+COMPILATION_UNIT test.dart
+LIBRARY''');
+  }
+
+  Future<void> test_path_inExtension_unnamed() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+extension on A {
+  void bar() {
+    foo();
+  }
+}
+''');
+    await findElementReferences('foo() {}', false);
+    assertHasResult(SearchResultKind.INVOCATION, 'foo();');
+    expect(getPathString(result.path), '''
+METHOD bar
+EXTENSION
+COMPILATION_UNIT test.dart
+LIBRARY''');
+  }
+
   @failingTest
   Future<void> test_path_inFunction() async {
     // The path does not contain the first expected element.

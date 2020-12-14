@@ -2,3 +2,5 @@
 # make it easer to depend on libraries.dart from sdk packages like dart2js.
 name: sdk_library_metadata
 publish_to: none
+environment:
+  sdk: '>=2.11.0 <3.0.0'

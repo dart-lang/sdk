@@ -101,20 +101,21 @@ runTest(
 
 GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
     GlobalTypeInferenceResults results, SerializationStrategy strategy) {
-  List<int> irData = strategy.serializeComponent(results);
+  List<int> irData = strategy.unpackAndSerializeComponent(results);
 
-  List worldData = strategy.serializeData(results);
+  List worldData = strategy.serializeGlobalTypeInferenceResults(results);
   print('data size: ${worldData.length}');
 
   ir.Component newComponent = strategy.deserializeComponent(irData);
-  GlobalTypeInferenceResults newResults = strategy.deserializeData(
-      compiler.options,
-      compiler.reporter,
-      compiler.environment,
-      compiler.abstractValueStrategy,
-      newComponent,
-      worldData);
-  List newWorldData = strategy.serializeData(newResults);
+  GlobalTypeInferenceResults newResults =
+      strategy.deserializeGlobalTypeInferenceResults(
+          compiler.options,
+          compiler.reporter,
+          compiler.environment,
+          compiler.abstractValueStrategy,
+          newComponent,
+          worldData);
+  List newWorldData = strategy.serializeGlobalTypeInferenceResults(newResults);
   Expect.equals(worldData.length, newWorldData.length,
       "Reserialization data length mismatch.");
   for (int i = 0; i < worldData.length; i++) {

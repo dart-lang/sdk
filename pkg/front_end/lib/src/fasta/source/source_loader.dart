@@ -1106,7 +1106,7 @@ class SourceLoader extends Loader {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     if (!target.backendTarget.enableNoSuchMethodForwarders) return;
 
-    List<Class> changedClasses = new List<Class>();
+    List<Class> changedClasses = <Class>[];
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
         if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
@@ -1438,6 +1438,8 @@ export 'dart:async' show Future, Stream;
 
 print(object) {}
 
+bool identical(a, b) => false;
+
 class Iterator<E> {
   bool moveNext() => null;
   E get current => null;
@@ -1447,24 +1449,29 @@ class Iterable<E> {
   Iterator<E> get iterator => null;
 }
 
-class List<E> extends Iterable {
+class List<E> extends Iterable<E> {
   factory List() => null;
   factory List.unmodifiable(elements) => null;
+  factory List.empty({bool growable = false}) => null;
   factory List.filled(int length, E fill, {bool growable = false}) => null;
   factory List.generate(int length, E generator(int index),
       {bool growable = true}) => null;
-  void add(E) {}
+  factory List.of() => null;
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
 }
 
 class _GrowableList<E> {
   factory _GrowableList() => null;
+  factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
   factory _GrowableList.generate(int length, E generator(int index)) => null;
 }
 
 class _List<E> {
   factory _List() => null;
+  factory _List.empty() => null;
   factory _List.filled() => null;
   factory _List.generate(int length, E generator(int index)) => null;
 }
@@ -1512,7 +1519,9 @@ class Symbol {}
 class Set<E> {
   factory Set() = Set<E>._fake;
   external factory Set._fake();
-  void add(E) {}
+  external factory Set.of();
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
 }
 
 class Type {}
@@ -1546,8 +1555,6 @@ const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 
 void _asyncStarMoveNextHelper(var stream) {}
-
-_asyncStackTraceHelper(async_op) {}
 
 _asyncThenWrapperHelper(continuation) {}
 

@@ -252,12 +252,12 @@ const Code& StubCodeAllocateArray() {
   return dart::StubCode::AllocateArray();
 }
 
-const Code& StubCodeSubtype2TestCache() {
-  return dart::StubCode::Subtype2TestCache();
+const Code& StubCodeSubtype3TestCache() {
+  return dart::StubCode::Subtype3TestCache();
 }
 
-const Code& StubCodeSubtype6TestCache() {
-  return dart::StubCode::Subtype6TestCache();
+const Code& StubCodeSubtype7TestCache() {
+  return dart::StubCode::Subtype7TestCache();
 }
 
 #define DEFINE_ALIAS(name)                                                     \
@@ -298,7 +298,7 @@ bool SizeFitsInSizeTag(uword instance_size) {
       TranslateOffsetInWordsToHost(instance_size));
 }
 
-uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
+uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::ObjectLayout::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::ObjectLayout::ClassIdTag::encode(cid) |
@@ -325,6 +325,10 @@ const word ObjectLayout::kSizeTagSize = dart::ObjectLayout::kSizeTagSize;
 const word ObjectLayout::kClassIdTagPos = dart::ObjectLayout::kClassIdTagPos;
 
 const word ObjectLayout::kClassIdTagSize = dart::ObjectLayout::kClassIdTagSize;
+
+const word ObjectLayout::kHashTagPos = dart::ObjectLayout::kHashTagPos;
+
+const word ObjectLayout::kHashTagSize = dart::ObjectLayout::kHashTagSize;
 
 const word ObjectLayout::kSizeTagMaxSizeTag =
     dart::ObjectLayout::SizeTag::kMaxSizeTagInUnitsOfAlignment *
@@ -380,6 +384,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return LinkedHashMap::InstanceSize();
     case kUnhandledExceptionCid:
       return UnhandledException::InstanceSize();
+    case kWeakPropertyCid:
+      return WeakProperty::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kFfiPointerCid:
@@ -975,10 +981,6 @@ word PatchClass::NextFieldOffset() {
 }
 
 word SignatureData::NextFieldOffset() {
-  return -kWordSize;
-}
-
-word RedirectionData::NextFieldOffset() {
   return -kWordSize;
 }
 

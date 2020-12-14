@@ -48,12 +48,9 @@ class ExtensionMemberContributor extends DartCompletionContributor {
             var types = <InterfaceType>[];
             ClassElementImpl.collectAllSupertypes(types, extendedType, null);
             for (var type in types) {
-              double inheritanceDistance;
-              if (request.useNewRelevance) {
-                inheritanceDistance = memberBuilder.request.featureComputer
-                    .inheritanceDistanceFeature(
-                        extendedType.element, type.element);
-              }
+              var inheritanceDistance = memberBuilder.request.featureComputer
+                  .inheritanceDistanceFeature(
+                      extendedType.element, type.element);
               _addTypeMembers(type, inheritanceDistance);
             }
           }
@@ -102,13 +99,11 @@ class ExtensionMemberContributor extends DartCompletionContributor {
           _resolveExtendedType(containingLibrary, extension, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
         double inheritanceDistance;
-        if (memberBuilder.request.useNewRelevance) {
-          if (type is InterfaceType && extendedType is InterfaceType) {
-            inheritanceDistance = memberBuilder.request.featureComputer
-                .inheritanceDistanceFeature(type.element, extendedType.element);
-          } else {
-            inheritanceDistance = -1;
-          }
+        if (type is InterfaceType && extendedType is InterfaceType) {
+          inheritanceDistance = memberBuilder.request.featureComputer
+              .inheritanceDistanceFeature(type.element, extendedType.element);
+        } else {
+          inheritanceDistance = -1;
         }
         // TODO(brianwilkerson) We might want to apply the substitution to the
         //  members of the extension for display purposes.

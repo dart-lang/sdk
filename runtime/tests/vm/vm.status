@@ -115,6 +115,7 @@ dart_2/data_uri_import_test/badencodeddate: CompileTimeError
 
 [ $mode == debug ]
 cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.
+cc/SixtyThousandDartClasses: SkipSlow # Finalization of 64K classes is too slow in debug mode.
 cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
@@ -139,8 +140,24 @@ dart_2/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 [ $nnbd == legacy ]
 dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
 
+[ $runtime == vm ]
+dart/isolates/*: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/issue_31959_31960_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/sendandexit_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/spawn_infinite_loop_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/transferable_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/transferable_throws_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/isolates/*: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/issue_31959_31960_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/sendandexit_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/spawn_infinite_loop_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/transferable_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/transferable_throws_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+
 [ $system == android ]
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # On android this test does not work due to not being able to identify library uri.
 dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # On android this test does not work due to not being able to identify library uri.
 dart_2/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 
 [ $system == fuchsia ]
@@ -158,7 +175,9 @@ dart_2/transferable_throws_oom_test: SkipByDesign # Allocating too much memory t
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579: Dart C API symbols not available.
 dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579: Dart C API symbols not available.
 
 [ $arch == ia32 && $mode == debug && $system == windows ]
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
@@ -181,11 +200,13 @@ dart_2/data_uri_import_test/wrongmime: Crash
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 dart/extension_names_test: SkipByDesign # No demangling (obfuscated).
 dart/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/44215: This test relies on non-obfuscated library uris.
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/regress_37382_test: SkipByDesign # Matches the type arguments names
 dart_2/extension_names_test: SkipByDesign # No demangling (obfuscated).
 dart_2/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/44215: This test relies on non-obfuscated library uris.
 dart_2/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
 dart_2/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
 dart_2/regress_37382_test: SkipByDesign # Matches the type arguments names
@@ -327,12 +348,14 @@ cc/Profiler_ToggleRecordAllocation: SkipByDesign
 cc/Profiler_TrivialRecordAllocation: SkipByDesign
 cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 dart/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 dart/regress_41971_test: SkipByDesign # dart:ffi is not supported on simulator
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
 dart/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not supported on simulator
 dart/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
 dart/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 dart_2/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 dart_2/regress_41971_test: SkipByDesign # dart:ffi is not supported on simulator
 dart_2/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm

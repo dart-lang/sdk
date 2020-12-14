@@ -54,11 +54,11 @@ const Map<String, String> data = {
 };
 
 main() {
-  Env env = new Env('');
+  Env env = new Env('', isNonNullableByDefault: true);
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);
-    DartType actualOutputType = legacyErasure(env.coreTypes, inputType);
+    DartType actualOutputType = legacyErasure(inputType);
     print('legacyErasure($inputType) = $actualOutputType: $expectedOutputType');
     Expect.equals(
         expectedOutputType,

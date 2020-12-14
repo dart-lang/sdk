@@ -47,9 +47,6 @@ namespace dart {
   F(ClosureData, closure_)                                                     \
   F(SignatureData, parent_function_)                                           \
   F(SignatureData, signature_type_)                                            \
-  F(RedirectionData, type_)                                                    \
-  F(RedirectionData, identifier_)                                              \
-  F(RedirectionData, target_)                                                  \
   F(Field, name_)                                                              \
   F(Field, owner_)                                                             \
   F(Field, type_)                                                              \
@@ -78,10 +75,10 @@ namespace dart {
   F(Library, resolved_names_)                                                  \
   F(Library, exported_names_)                                                  \
   F(Library, loaded_scripts_)                                                  \
-  F(Namespace, library_)                                                       \
+  F(Namespace, target_)                                                        \
   F(Namespace, show_names_)                                                    \
   F(Namespace, hide_names_)                                                    \
-  F(Namespace, metadata_field_)                                                \
+  F(Namespace, owner_)                                                         \
   F(KernelProgramInfo, string_offsets_)                                        \
   F(KernelProgramInfo, string_data_)                                           \
   F(KernelProgramInfo, canonical_names_)                                       \
@@ -155,7 +152,6 @@ namespace dart {
   F(Closure, context_)                                                         \
   F(Closure, hash_)                                                            \
   F(String, length_)                                                           \
-  F(String, hash_)                                                             \
   F(Array, type_arguments_)                                                    \
   F(Array, length_)                                                            \
   F(GrowableObjectArray, type_arguments_)                                      \
@@ -177,10 +173,14 @@ namespace dart {
   F(RegExp, num_bracket_expressions_)                                          \
   F(RegExp, capture_name_map_)                                                 \
   F(RegExp, pattern_)                                                          \
-  F(RegExp, external_one_byte_function_)                                       \
-  F(RegExp, external_two_byte_function_)                                       \
-  F(RegExp, external_one_byte_sticky_function_)                                \
-  F(RegExp, external_two_byte_sticky_function_)                                \
+  F(RegExp, one_byte_)                                                         \
+  F(RegExp, two_byte_)                                                         \
+  F(RegExp, external_one_byte_)                                                \
+  F(RegExp, external_two_byte_)                                                \
+  F(RegExp, one_byte_sticky_)                                                  \
+  F(RegExp, two_byte_sticky_)                                                  \
+  F(RegExp, external_one_byte_sticky_)                                         \
+  F(RegExp, external_two_byte_sticky_)                                         \
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
@@ -205,13 +205,14 @@ namespace dart {
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
   F(Function, unoptimized_code_)                                               \
-  F(Field, saved_initial_value_)                                               \
   F(Field, type_test_cache_)                                                   \
   F(WeakSerializationReference, target_)
 
 #define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
   F(ReceivePort, debug_name_)                                                  \
   F(ReceivePort, allocation_location_)
+
+#define NON_HEADER_HASH_CLASSES_AND_FIELDS(F) F(String, hash_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {
@@ -234,6 +235,10 @@ OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
     COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
     NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
+
+#if !defined(HASH_IN_OBJECT_HEADER)
+    NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)

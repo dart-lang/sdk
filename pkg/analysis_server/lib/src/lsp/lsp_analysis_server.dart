@@ -31,6 +31,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -43,6 +44,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -153,9 +155,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     channel.listen(handleMessage, onDone: done, onError: socketError);
     _pluginChangeSubscription =
         pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
-
-    analyzingProgressReporter =
-        ProgressReporter.serverCreated(this, analyzingProgressToken);
   }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
@@ -355,14 +354,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Logs an exception by sending it to the client (window/logMessage) and
   /// recording it in a buffer on the server for diagnostics.
   void logException(String message, exception, stackTrace) {
+    var fullMessage = message;
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
-      message = '$message: ${exception.exception}';
+      fullMessage = '$fullMessage: ${exception.exception}';
     } else if (exception != null) {
-      message = '$message: $exception';
+      fullMessage = '$fullMessage: $exception';
     }
 
-    final fullError = stackTrace == null ? message : '$message\n$stackTrace';
+    final fullError =
+        stackTrace == null ? fullMessage : '$fullMessage\n$stackTrace';
 
     // Log the full message since showMessage above may be truncated or
     // formatted badly (eg. VS Code takes the newlines out).
@@ -375,6 +376,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       stackTrace is StackTrace ? stackTrace : null,
       false,
     ));
+
+    AnalysisEngine.instance.instrumentationService.logException(
+      FatalException(
+        message,
+        exception,
+        stackTrace,
+      ),
+      null,
+      crashReportingAttachmentsBuilder.forException(exception),
+    );
   }
 
   void onOverlayCreated(String path, String content) {
@@ -535,7 +546,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
-  void sendStatusNotification(nd.AnalysisStatus status) {
+  Future<void> sendStatusNotification(nd.AnalysisStatus status) async {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
@@ -549,9 +560,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
 
     if (status.isAnalyzing) {
-      analyzingProgressReporter.begin('Analyzing…');
+      analyzingProgressReporter ??=
+          ProgressReporter.serverCreated(this, analyzingProgressToken)
+            ..begin('Analyzing…');
     } else {
-      analyzingProgressReporter.end();
+      if (analyzingProgressReporter != null) {
+        // Do not null this out until after end completes, otherwise we may try
+        // to create a new token before it's really completed.
+        await analyzingProgressReporter.end();
+        analyzingProgressReporter = null;
+      }
     }
   }
 

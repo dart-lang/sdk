@@ -1,0 +1,32 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_interceptors" as _in;
+
+static field core::List<core::int*>* list1 = block {
+  final _in::JSArray<core::int*> _list = _in::JSArray::allocateGrowable<core::int*>(10);
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::int* i = i;
+    _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i);
+  }
+} =>_list;
+static field core::List<core::int*>* list2 = block {
+  final _in::JSArray<core::int*> _list = _in::JSArray::allocateGrowable<core::int*>(10);
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::int* i = i;
+    _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i);
+  }
+} =>_list;
+static field core::List<core::int*>* list3 = block {
+  final _in::JSArray<core::int*> _list = _in::JSArray::allocateFixed<core::int*>(10);
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::int* i = i;
+    _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i);
+  }
+} =>_list;
+static field core::List<core::int*>* list4 = core::List::generate<core::int*>(10, (core::int* i) → core::int* => i, growable: self::someGrowable);
+static field core::bool* someGrowable = true;
+static method main() → void {
+  self::someGrowable = !self::someGrowable;
+  core::print(<core::List<core::int*>*>[self::list1, self::list2, self::list3, self::list4]);
+}

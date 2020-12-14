@@ -828,13 +828,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.function.dartAsyncMarker = AsyncMarker.Sync;
 
     procedure.isAbstract = false;
-    procedure.isNoSuchMethodForwarder = true;
-    procedure.isMemberSignature = false;
-    procedure.isForwardingStub = false;
-    procedure.isForwardingSemiStub = false;
-    procedure.memberSignatureOrigin = null;
-    procedure.forwardingStubInterfaceTarget = null;
-    procedure.forwardingStubSuperTarget = null;
+    procedure.stubKind = ProcedureStubKind.NoSuchMethodForwarder;
+    procedure.stubTarget = null;
   }
 
   void _addRedirectingConstructor(ProcedureBuilder constructorBuilder,
@@ -1239,8 +1234,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
           if (!library.isNonNullableByDefault) {
-            computedBound =
-                legacyErasure(types.hierarchy.coreTypes, computedBound);
+            computedBound = legacyErasure(computedBound);
           }
           if (!types
               .performNullabilityAwareMutualSubtypesCheck(
@@ -1310,7 +1304,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     if (!declaredMember.isNonNullableByDefault &&
         interfaceMember.isNonNullableByDefault) {
-      interfaceType = legacyErasure(types.hierarchy.coreTypes, interfaceType);
+      interfaceType = legacyErasure(interfaceType);
     }
 
     bool inParameter = declaredParameter != null || asIfDeclaredParameter;

@@ -7,10 +7,9 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -39,8 +38,11 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   }
 
   @override
-  void _createAnalysisOptionsFile() {
-    createAnalysisOptionsFile(experiments: experiments, lints: [lintCode]);
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(
+      lints: [lintCode],
+    );
   }
 }
 
@@ -56,10 +58,6 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// The result of applying the [change] to the file content, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
   String resultCode;
-
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, or `null` if there are no experiments that should be enabled.
-  List<String> get experiments => null;
 
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
@@ -165,7 +163,6 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     super.setUp();
     verifyNoTestUnitErrors = false;
     useLineEndingsForPlatform = true;
-    _createAnalysisOptionsFile();
   }
 
   /// Computes fixes and verifies that there is a fix for the given [error] of the appropriate kind.
@@ -277,6 +274,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     tracker.addContext(analysisContext);
 
     var context = DartFixContextImpl(
+      InstrumentationService.NULL_SERVICE,
       workspace,
       testAnalysisResult,
       error,
@@ -287,12 +285,6 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       },
     );
     return await DartFixContributor().computeFixes(context);
-  }
-
-  /// Create the analysis options file needed in order to correctly analyze the
-  /// test file.
-  void _createAnalysisOptionsFile() {
-    createAnalysisOptionsFile(experiments: experiments);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,
@@ -347,16 +339,14 @@ mixin WithNullSafetyLintMixin on AbstractContextTest {
   String get lintCode;
 
   @override
-  String get testPackageLanguageVersion =>
-      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
+  String get testPackageLanguageVersion => '2.12';
 
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
-  /// Remove when Null Safety is enabled by default.
   @nonVirtual
   @override
   void setUp() {
     super.setUp();
     createAnalysisOptionsFile(
-        experiments: [EnableString.non_nullable], lints: [lintCode]);
+      lints: [lintCode],
+    );
   }
 }

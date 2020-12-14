@@ -90,12 +90,12 @@ class CoreTypes {
   Constructor _streamIteratorDefaultConstructor;
   Constructor _asyncStarStreamControllerDefaultConstructor;
   Procedure _asyncStarMoveNextHelperProcedure;
-  Procedure _asyncStackTraceHelperProcedure;
   Procedure _asyncThenWrapperHelperProcedure;
   Procedure _asyncErrorWrapperHelperProcedure;
   Procedure _awaitHelperProcedure;
   Procedure _boolFromEnvironment;
   Constructor _lateInitializationFieldAssignedDuringInitializationConstructor;
+  Constructor _lateInitializationLocalAssignedDuringInitializationConstructor;
   Constructor _lateInitializationFieldNotInitializedConstructor;
   Constructor _lateInitializationLocalNotInitializedConstructor;
   Constructor _lateInitializationFieldAlreadyInitializedConstructor;
@@ -231,11 +231,6 @@ class CoreTypes {
   Procedure get asyncStarMoveNextHelper {
     return _asyncStarMoveNextHelperProcedure ??=
         index.getTopLevelMember('dart:async', '_asyncStarMoveNextHelper');
-  }
-
-  Procedure get asyncStackTraceHelperProcedure {
-    return _asyncStackTraceHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_asyncStackTraceHelper');
   }
 
   Procedure get asyncThenWrapperHelperProcedure {
@@ -1224,6 +1219,12 @@ class CoreTypes {
       get lateInitializationFieldAssignedDuringInitializationConstructor {
     return _lateInitializationFieldAssignedDuringInitializationConstructor ??=
         index.getMember('dart:_internal', 'LateError', 'fieldADI');
+  }
+
+  Constructor
+      get lateInitializationLocalAssignedDuringInitializationConstructor {
+    return _lateInitializationLocalAssignedDuringInitializationConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'localADI');
   }
 
   Constructor get lateInitializationFieldNotInitializedConstructor {

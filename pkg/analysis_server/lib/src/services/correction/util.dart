@@ -422,7 +422,7 @@ List<AstNode> getParents(AstNode node) {
     }
   }
   // fill array of parents
-  var parents = List<AstNode>(numParents);
+  var parents = List<AstNode>.filled(numParents, null);
   var current = node.parent;
   var index = numParents;
   while (current != null) {

@@ -1,0 +1,10 @@
+// @dart = 2.9
+void foldInitialElements() {}
+void foldInitialSpread1() {}
+void foldInitialSpread2() {}
+void foldInitialSpread3() {}
+void foldInitialSpread4() {}
+void foldInitialSpread5() {}
+void foldInitialSpread6() {}
+main() {}
+void expect(List list1, List list2) {}

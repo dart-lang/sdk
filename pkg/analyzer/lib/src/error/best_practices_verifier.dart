@@ -928,7 +928,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var importElement = node.element as ImportElement;
+    var importElement = node.element;
+    if (importElement == null) {
+      return;
+    }
+
     var importedLibrary = importElement.importedLibrary;
     if (importedLibrary == null || importedLibrary.isNonNullableByDefault) {
       return;
@@ -1360,17 +1364,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
           param,
-          [param.identifier.name]);
+          [_formalParameterNameOrEmpty(param)]);
     }
     for (final param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_REQUIRED_POSITIONAL_PARAM,
           param,
-          [param.identifier.name]);
+          [_formalParameterNameOrEmpty(param)]);
     }
     for (final param in namedParamsWithRequiredAndDefault) {
       _errorReporter.reportErrorForNode(HintCode.INVALID_REQUIRED_NAMED_PARAM,
-          param, [param.identifier.name]);
+          param, [_formalParameterNameOrEmpty(param)]);
     }
   }
 
@@ -1627,6 +1631,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     return true;
+  }
+
+  static String _formalParameterNameOrEmpty(FormalParameter node) {
+    var identifier = node.identifier;
+    return identifier?.name ?? '';
   }
 
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {

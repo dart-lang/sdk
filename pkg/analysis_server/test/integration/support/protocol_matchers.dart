@@ -192,6 +192,24 @@ final Matcher isAvailableSuggestionSet = LazyMatcher(() => MatchesJsonObject(
     'AvailableSuggestionSet',
     {'id': isInt, 'uri': isString, 'items': isListOf(isAvailableSuggestion)}));
 
+/// BulkFix
+///
+/// {
+///   "path": FilePath
+///   "fixes": List<BulkFixDetail>
+/// }
+final Matcher isBulkFix = LazyMatcher(() => MatchesJsonObject(
+    'BulkFix', {'path': isFilePath, 'fixes': isListOf(isBulkFixDetail)}));
+
+/// BulkFixDetail
+///
+/// {
+///   "code": String
+///   "occurrences": int
+/// }
+final Matcher isBulkFixDetail = LazyMatcher(() => MatchesJsonObject(
+    'BulkFixDetail', {'code': isString, 'occurrences': isInt}));
+
 /// ChangeContentOverlay
 ///
 /// {
@@ -288,6 +306,7 @@ final Matcher isCompletionSuggestion =
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 final Matcher isCompletionSuggestionKind =
     MatchesEnum('CompletionSuggestionKind', [
@@ -299,7 +318,8 @@ final Matcher isCompletionSuggestionKind =
   'NAMED_ARGUMENT',
   'OPTIONAL_ARGUMENT',
   'OVERRIDE',
-  'PARAMETER'
+  'PARAMETER',
+  'PACKAGE_NAME'
 ]);
 
 /// ContextData
@@ -2229,9 +2249,11 @@ final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
 ///
 /// {
 ///   "edits": List<SourceFileEdit>
+///   "details": List<BulkFix>
 /// }
 final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes result', {'edits': isListOf(isSourceFileEdit)}));
+    'edit.bulkFixes result',
+    {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
 
 /// edit.dartfix params
 ///

@@ -11,14 +11,14 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-10-26T09:42:07.748397",
+  "generated": "2020-12-03T14:26:48.568312",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
       "name": "_fe_analyzer_shared",
       "rootUri": "../pkg/_fe_analyzer_shared",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "_fe_analyzer_shared_assigned_variables",
@@ -74,12 +74,6 @@
       "languageVersion": "2.8"
     },
     {
-      "name": "analysis_tool",
-      "rootUri": "../pkg/analysis_tool",
-      "packageUri": "lib/",
-      "languageVersion": "2.1"
-    },
-    {
       "name": "analyzer",
       "rootUri": "../pkg/analyzer",
       "packageUri": "lib/",
@@ -98,10 +92,16 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "analyzer_utilities",
+      "rootUri": "../pkg/analyzer_utilities",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
+    },
+    {
       "name": "args",
       "rootUri": "../third_party/pkg/args",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "async",
@@ -118,7 +118,7 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "benchmark_harness",
@@ -148,7 +148,7 @@
       "name": "cli_util",
       "rootUri": "../third_party/pkg/cli_util",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "clock",
@@ -258,6 +258,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "file",
+      "rootUri": "../third_party/pkg/file/packages/file",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
@@ -267,7 +273,7 @@
       "name": "front_end",
       "rootUri": "../pkg/front_end",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "front_end_testcases",
@@ -284,7 +290,7 @@
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "html",
@@ -361,7 +367,7 @@
       "name": "kernel",
       "rootUri": "../pkg/kernel",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "language_versioning_2.7_test",
@@ -495,7 +501,7 @@
       "name": "protobuf",
       "rootUri": "../third_party/pkg/protobuf/protobuf",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "pub",
@@ -507,7 +513,7 @@
       "name": "pub_semver",
       "rootUri": "../third_party/pkg/pub_semver",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "resource",
@@ -530,7 +536,7 @@
       "name": "shelf",
       "rootUri": "../third_party/pkg/shelf",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "shelf_packages_handler",
@@ -689,12 +695,6 @@
       "languageVersion": "2.0"
     },
     {
-      "name": "tflite_native",
-      "rootUri": "../third_party/pkg/tflite_native",
-      "packageUri": "lib/",
-      "languageVersion": "2.6"
-    },
-    {
       "name": "typed_data",
       "rootUri": "../third_party/pkg/typed_data",
       "packageUri": "lib/",
@@ -704,7 +704,7 @@
       "name": "usage",
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "vector_math",
@@ -764,7 +764,7 @@
       "name": "yaml",
       "rootUri": "../third_party/pkg/yaml",
       "packageUri": "lib/",
-      "languageVersion": "2.4"
+      "languageVersion": "2.12"
     }
   ]
 }

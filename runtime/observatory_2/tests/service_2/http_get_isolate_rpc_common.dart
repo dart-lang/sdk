@@ -70,8 +70,6 @@ Future<Null> testeeBefore() async {
     Expect.isFalse(result['pauseOnExit']);
     Expect.equals(result['pauseEvent']['type'], 'Event');
     Expect.isNull(result['error']);
-    Expect.isTrue(result['_numZoneHandles'] > 0);
-    Expect.isTrue(result['_numScopedHandles'] > 0);
     Expect.equals(result['rootLib']['type'], '@Library');
     Expect.isTrue(result['libraries'].length > 0);
     Expect.equals(result['libraries'][0]['type'], '@Library');

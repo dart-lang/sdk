@@ -22,7 +22,8 @@ library /*isNonNullableByDefault*/;
 //   const Class.method(T t) : this(-t);
 //                                  ^
 //
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:123:27: Error: Optional parameter 'named' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:123:27: Error: The parameter 'named' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // int procedure(int i, {int named}) => i;
 //                           ^^^^^
 //

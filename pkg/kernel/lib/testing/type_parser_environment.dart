@@ -98,36 +98,60 @@ class Env {
 
   TypeParserEnvironment _libraryEnvironment;
 
-  Env(String source) {
+  final bool isNonNullableByDefault;
+
+  Env(String source, {this.isNonNullableByDefault}) {
+    assert(isNonNullableByDefault != null);
     Uri libraryUri = Uri.parse('memory:main.dart');
     Uri coreUri = Uri.parse("dart:core");
     TypeParserEnvironment coreEnvironment =
         new TypeParserEnvironment(coreUri, coreUri);
     Library coreLibrary =
-        parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
+        parseLibrary(coreUri, mockSdk, environment: coreEnvironment)
+          ..isNonNullableByDefault = isNonNullableByDefault;
     _libraryEnvironment = new TypeParserEnvironment(libraryUri, libraryUri)
         ._extend(coreEnvironment._declarations);
     Library library =
-        parseLibrary(libraryUri, source, environment: _libraryEnvironment);
+        parseLibrary(libraryUri, source, environment: _libraryEnvironment)
+          ..isNonNullableByDefault = isNonNullableByDefault;
     library.name = "lib";
     component = new Component(libraries: <Library>[coreLibrary, library]);
     coreTypes = new CoreTypes(component);
   }
 
-  DartType parseType(String text) {
-    return _libraryEnvironment.parseType(text);
+  DartType parseType(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return _libraryEnvironment.parseType(text,
+        additionalTypes: additionalTypes);
   }
 
-  void extendWithTypeParameters(String typeParameters) {
-    _libraryEnvironment =
-        _libraryEnvironment.extendWithTypeParameters(typeParameters);
+  List<DartType> parseTypes(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return _libraryEnvironment.parseTypes(text,
+        additionalTypes: additionalTypes);
   }
 
-  void withTypeParameters(String typeParameters, void Function() f) {
-    TypeParserEnvironment oldLibraryEnvironment = _libraryEnvironment;
-    extendWithTypeParameters(typeParameters);
-    f();
-    _libraryEnvironment = oldLibraryEnvironment;
+  List<TypeParameter> extendWithTypeParameters(String typeParameters) {
+    if (typeParameters == null || typeParameters.isEmpty) {
+      return <TypeParameter>[];
+    }
+    ParameterEnvironment parameterEnvironment =
+        _libraryEnvironment.extendToParameterEnvironment(typeParameters);
+    _libraryEnvironment = parameterEnvironment.environment;
+    return parameterEnvironment.parameters;
+  }
+
+  void withTypeParameters(
+      String typeParameters, void Function(List<TypeParameter>) f) {
+    if (typeParameters == null || typeParameters.isEmpty) {
+      f(<TypeParameter>[]);
+    } else {
+      TypeParserEnvironment oldLibraryEnvironment = _libraryEnvironment;
+      List<TypeParameter> typeParameterNodes =
+          extendWithTypeParameters(typeParameters);
+      f(typeParameterNodes);
+      _libraryEnvironment = oldLibraryEnvironment;
+    }
   }
 }
 
@@ -154,13 +178,26 @@ class TypeParserEnvironment {
 
   TypeParserEnvironment(this.uri, this.fileUri, [this._parent]);
 
-  Node _kernelFromParsedType(ParsedType type) {
-    Node node = type.accept(const _KernelFromParsedType(), this);
+  Node _kernelFromParsedType(ParsedType type,
+      {Map<String, DartType Function()> additionalTypes}) {
+    Node node = type.accept(
+        new _KernelFromParsedType(additionalTypes: additionalTypes), this);
     return node;
   }
 
-  DartType parseType(String text) {
-    return _kernelFromParsedType(type_parser.parse(text).single);
+  /// Parses a single type.
+  DartType parseType(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return _kernelFromParsedType(type_parser.parse(text).single,
+        additionalTypes: additionalTypes);
+  }
+
+  /// Parses a list of types separated by commas.
+  List<DartType> parseTypes(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return (parseType("(${text}) -> void", additionalTypes: additionalTypes)
+            as FunctionType)
+        .positionalParameters;
   }
 
   bool isObject(String name) => name == "Object" && "$uri" == "dart:core";
@@ -191,10 +228,13 @@ class TypeParserEnvironment {
 
   TypeParserEnvironment extendWithTypeParameters(String typeParameters) {
     if (typeParameters?.isEmpty ?? true) return this;
-    return const _KernelFromParsedType()
-        .computeTypeParameterEnvironment(
-            parseTypeVariables("<${typeParameters}>"), this)
-        .environment;
+    return extendToParameterEnvironment(typeParameters).environment;
+  }
+
+  ParameterEnvironment extendToParameterEnvironment(String typeParameters) {
+    assert(typeParameters != null && typeParameters.isNotEmpty);
+    return const _KernelFromParsedType().computeTypeParameterEnvironment(
+        parseTypeVariables("<${typeParameters}>"), this);
   }
 
   /// Returns the predefined type by the [name], if any.
@@ -209,7 +249,9 @@ class TypeParserEnvironment {
 }
 
 class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
-  const _KernelFromParsedType();
+  final Map<String, DartType Function()> additionalTypes; // Can be null.
+
+  const _KernelFromParsedType({this.additionalTypes});
 
   DartType visitInterfaceType(
       ParsedInterfaceType node, TypeParserEnvironment environment) {
@@ -237,6 +279,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new NullType();
+    } else if (additionalTypes != null && additionalTypes.containsKey(name)) {
+      return additionalTypes[name].call();
     }
     TreeNode declaration = environment.lookupDeclaration(name);
     List<ParsedType> arguments = node.arguments;

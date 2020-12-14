@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -413,33 +413,6 @@ class _ElementWriter {
     buffer.writeln(' {}');
   }
 
-  void writeFunctionTypeAliasElement(FunctionTypeAliasElement e) {
-    writeDocumentation(e);
-    writeMetadata(e, '', '\n');
-    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
-
-    if (e is FunctionTypeAliasElement) {
-      buffer.write('typedef ');
-      writeName(e);
-      writeCodeRange(e);
-      writeTypeParameterElements(e.typeParameters, withDefault: true);
-
-      buffer.write(' = ');
-
-      var function = e.function;
-      if (function != null) {
-        writeType(function.returnType);
-        buffer.write(' Function');
-        writeTypeParameterElements(function.typeParameters, withDefault: false);
-        writeParameterElements(function.parameters);
-      } else {
-        buffer.write('<null>');
-      }
-    }
-
-    buffer.writeln(';');
-  }
-
   void writeIf(bool flag, String str) {
     if (flag) {
       buffer.write(str);
@@ -465,6 +438,12 @@ class _ElementWriter {
       e.combinators.forEach(writeNamespaceCombinator);
 
       buffer.writeln(';');
+
+      if (withFullyResolvedAst) {
+        _withIndent(() {
+          _writeResolvedMetadata(e.metadata);
+        });
+      }
     }
   }
 
@@ -605,6 +584,10 @@ class _ElementWriter {
         writeList('(', ')', e.arguments.arguments, ', ', writeNode,
             includeEmpty: true);
       }
+    } else if (e is AsExpression) {
+      writeNode(e.expression);
+      buffer.write(' as ');
+      writeNode(e.type);
     } else if (e is AssertInitializer) {
       buffer.write('assert(');
       writeNode(e.condition);
@@ -669,6 +652,10 @@ class _ElementWriter {
       buffer.write(r'}');
     } else if (e is InterpolationString) {
       buffer.write(e.value.replaceAll("'", r"\'"));
+    } else if (e is IsExpression) {
+      writeNode(e.expression);
+      buffer.write(e.notOperator == null ? ' is ' : ' is! ');
+      writeNode(e.type);
     } else if (e is ListLiteral) {
       if (e.constKeyword != null) {
         buffer.write('const ');
@@ -1030,6 +1017,32 @@ class _ElementWriter {
     buffer.write(' ');
   }
 
+  void writeTypeAliasElement(TypeAliasElement e) {
+    writeDocumentation(e);
+    writeMetadata(e, '', '\n');
+    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+
+    buffer.write('typedef ');
+    writeName(e);
+    writeCodeRange(e);
+    writeTypeParameterElements(e.typeParameters, withDefault: true);
+
+    buffer.write(' = ');
+
+    var aliasedElement = e.aliasedElement;
+    if (aliasedElement is GenericFunctionTypeElement) {
+      writeType(aliasedElement.returnType);
+      buffer.write(' Function');
+      writeTypeParameterElements(aliasedElement.typeParameters,
+          withDefault: false);
+      writeParameterElements(aliasedElement.parameters);
+    } else {
+      writeType(e.aliasedType);
+    }
+
+    buffer.writeln(';');
+  }
+
   void writeTypeInferenceError(Element e) {
     TopLevelInferenceError inferenceError;
     if (e is MethodElementImpl) {
@@ -1095,7 +1108,7 @@ class _ElementWriter {
       buffer.writeln('unit: ${e.source?.shortName}');
       buffer.writeln();
     }
-    e.functionTypeAliases.forEach(writeFunctionTypeAliasElement);
+    e.typeAliases.forEach(writeTypeAliasElement);
     e.enums.forEach(writeClassElement);
     e.types.forEach(writeClassElement);
     e.mixins.forEach(writeClassElement);
@@ -1203,6 +1216,7 @@ class _ElementWriter {
         selfUriStr: selfUriStr,
         sink: buffer,
         indent: indent,
+        withNullability: annotateNullability,
       ),
     );
   }

@@ -731,10 +731,6 @@ ObjectPtr ActivationFrame::GetAsyncAwaiter(
   return Object::null();
 }
 
-ObjectPtr ActivationFrame::GetCausalStack() {
-  return GetAsyncContextVariable(Symbols::AsyncStackTraceVar());
-}
-
 bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   if ((kind_ == kAsyncSuspensionMarker) || (kind_ == kAsyncCausal)) {
     // These frames are historical.
@@ -1555,8 +1551,6 @@ void Debugger::Shutdown() {
   }
 }
 
-void Debugger::OnIsolateRunnable() {}
-
 bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   ActivationFrame* top_frame = TopDartFrame();
   if (!IsAtAsyncJump(top_frame)) {
@@ -1825,97 +1819,9 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
     return CollectAsyncLazyStackTrace();
   }
   if (!FLAG_causal_async_stacks) {
-    return NULL;
+    return nullptr;
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-
-  Object& code_obj = Object::Handle(zone);
-  Code& code = Code::Handle(zone);
-  Smi& offset = Smi::Handle();
-  Code& inlined_code = Code::Handle(zone);
-  Array& deopt_frame = Array::Handle(zone);
-
-  Function& async_function = Function::Handle(zone);
-  class StackTrace& async_stack_trace = StackTrace::Handle(zone);
-  Array& async_code_array = Array::Handle(zone);
-  Array& async_pc_offset_array = Array::Handle(zone);
-
-  // Extract the eagerly recorded async stack from the current thread.
-  StackTraceUtils::ExtractAsyncStackTraceInfo(
-      thread, &async_function, &async_stack_trace, &async_code_array,
-      &async_pc_offset_array);
-
-  if (async_function.IsNull()) {
-    return NULL;
-  }
-
-  bool sync_async_end = false;
-  intptr_t synchronous_stack_trace_length =
-      StackTraceUtils::CountFrames(thread, 0, async_function, &sync_async_end);
-
-  // Append the top frames from the synchronous stack trace, up until the active
-  // asynchronous function. We truncate the remainder of the synchronous
-  // stack trace because it contains activations that are part of the
-  // asynchronous dispatch mechanisms.
-  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
-                              Thread::Current(),
-                              StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  while (synchronous_stack_trace_length > 0) {
-    ASSERT(frame != NULL);
-    if (frame->IsDartFrame()) {
-      code = frame->LookupDartCode();
-      AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
-                       &inlined_code, &deopt_frame);
-      synchronous_stack_trace_length--;
-    }
-    frame = iterator.NextFrame();
-  }
-
-  // Now we append the asynchronous causal stack trace. These are not active
-  // frames but a historical record of how this asynchronous function was
-  // activated.
-
-  intptr_t frame_skip =
-      sync_async_end ? StackTrace::kSyncAsyncCroppedFrames : 0;
-  while (!async_stack_trace.IsNull()) {
-    for (intptr_t i = frame_skip; i < async_stack_trace.Length(); i++) {
-      code_obj = async_stack_trace.CodeAtFrame(i);
-      if (code_obj.IsNull()) {
-        break;
-      }
-      if (code_obj.raw() == StubCode::AsynchronousGapMarker().raw()) {
-        stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
-        // The frame immediately below the asynchronous gap marker is the
-        // identical to the frame above the marker. Skip the frame to enhance
-        // the readability of the trace.
-        i++;
-      } else {
-        offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));
-        code ^= code_obj.raw();
-        uword pc = code.PayloadStart() + offset.Value();
-        if (code.is_optimized()) {
-          for (InlinedFunctionsIterator it(code, pc); !it.Done();
-               it.Advance()) {
-            inlined_code = it.code();
-            stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
-          }
-        } else {
-          stack_trace->AddAsyncCausalFrame(pc, code);
-        }
-      }
-    }
-    // Follow the link.
-    frame_skip = async_stack_trace.skip_sync_start_in_parent_stack()
-                     ? StackTrace::kSyncAsyncCroppedFrames
-                     : 0;
-    async_stack_trace = async_stack_trace.async_link();
-  }
-
-  return stack_trace;
+  UNREACHABLE();  //  FLAG_causal_async_stacks is deprecated.
 }
 
 DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
@@ -1925,11 +1831,18 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
 
   Code& code = Code::Handle(zone);
   Code& inlined_code = Code::Handle(zone);
-  Smi& offset = Smi::Handle();
   Array& deopt_frame = Array::Handle(zone);
+  Smi& offset = Smi::Handle(zone);
+  Function& function = Function::Handle(zone);
 
   constexpr intptr_t kDefaultStackAllocation = 8;
   auto stack_trace = new DebuggerStackTrace(kDefaultStackAllocation);
+
+  const auto& code_array = GrowableObjectArray::ZoneHandle(
+      zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
+      zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  bool has_async = false;
 
   std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
     code = frame->LookupDartCode();
@@ -1937,29 +1850,45 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
                      &inlined_code, &deopt_frame);
   };
 
-  const auto& code_array = GrowableObjectArray::ZoneHandle(
-      zone, GrowableObjectArray::New(kDefaultStackAllocation));
-  const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
-      zone, GrowableObjectArray::New(kDefaultStackAllocation));
-  bool has_async = false;
   StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
                                      /*skip_frames=*/0, &on_sync_frame,
                                      &has_async);
 
+  // If the entire stack is sync, return no trace.
   if (!has_async) {
     return nullptr;
   }
 
   const intptr_t length = code_array.Length();
-  for (intptr_t i = stack_trace->Length(); i < length; ++i) {
+  bool async_frames = false;
+  for (intptr_t i = 0; i < length; ++i) {
     code ^= code_array.At(i);
-    offset ^= pc_offset_array.At(i);
+
     if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
       stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
-    } else {
-      const uword absolute_pc = code.PayloadStart() + offset.Value();
-      stack_trace->AddAsyncCausalFrame(absolute_pc, code);
+      // Once we reach a gap, the rest is async.
+      async_frames = true;
+      continue;
     }
+
+    // Skip the sync frames since they've been added (and un-inlined) above.
+    if (!async_frames) {
+      continue;
+    }
+
+    if (!code.IsFunctionCode()) {
+      continue;
+    }
+
+    // Skip invisible function frames.
+    function ^= code.function();
+    if (!function.is_visible()) {
+      continue;
+    }
+
+    offset ^= pc_offset_array.At(i);
+    const uword absolute_pc = code.PayloadStart() + offset.Value();
+    stack_trace->AddAsyncCausalFrame(absolute_pc, code);
   }
 
   return stack_trace;
@@ -1984,16 +1913,12 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
 
-  Object& code_object = Object::Handle(zone);
   Code& code = Code::Handle(zone);
-  Smi& offset = Smi::Handle(zone);
   Function& function = Function::Handle(zone);
   Code& inlined_code = Code::Handle(zone);
   Closure& async_activation = Closure::Handle(zone);
   Object& next_async_activation = Object::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
-  // Note: 'class' since Debugger declares a method by the same name.
-  class StackTrace& async_stack_trace = StackTrace::Handle(zone);
   bool stack_has_async_function = false;
   Closure& closure = Closure::Handle();
 
@@ -2025,7 +1950,6 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         stack_has_async_function = true;
         // Grab the awaiter.
         async_activation ^= activation->GetAsyncAwaiter(&caller_closure_finder);
-        async_stack_trace ^= activation->GetCausalStack();
         // Bail if we've reach the end of sync execution stack.
         ObjectPtr* last_caller_obj =
             reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
@@ -2081,7 +2005,6 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         stack_has_async_function = true;
         // Grab the awaiter.
         async_activation ^= activation->GetAsyncAwaiter(&caller_closure_finder);
-        async_stack_trace ^= activation->GetCausalStack();
         found_async_awaiter = true;
       } else {
         stack_trace->AddActivation(CollectDartFrame(isolate, it.pc(), frame,
@@ -2108,8 +2031,6 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
     if (!(activation->function().IsAsyncClosure() ||
           activation->function().IsAsyncGenClosure())) {
-      // No more awaiters. Extract the causal stack trace (if it exists).
-      async_stack_trace ^= activation->GetCausalStack();
       break;
     }
 
@@ -2124,57 +2045,10 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
     next_async_activation = activation->GetAsyncAwaiter(&caller_closure_finder);
     if (next_async_activation.IsNull()) {
-      // No more awaiters. Extract the causal stack trace (if it exists).
-      async_stack_trace ^= activation->GetCausalStack();
       break;
     }
 
     async_activation = Closure::RawCast(next_async_activation.raw());
-  }
-
-  // Now we append the asynchronous causal stack trace. These are not active
-  // frames but a historical record of how this asynchronous function was
-  // activated.
-  while (!async_stack_trace.IsNull()) {
-    for (intptr_t i = 0; i < async_stack_trace.Length(); i++) {
-      code_object = async_stack_trace.CodeAtFrame(i);
-
-      if (code_object.raw() == Code::null()) {
-        // Incomplete OutOfMemory/StackOverflow trace OR array padding.
-        break;
-      }
-
-      if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
-        stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
-        // The frame immediately below the asynchronous gap marker is the
-        // identical to the frame above the marker. Skip the frame to enhance
-        // the readability of the trace.
-        i++;
-        continue;
-      }
-
-      code_object = async_stack_trace.CodeAtFrame(i);
-      offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));
-      code ^= code_object.raw();
-      if (FLAG_trace_debugger_stacktrace) {
-        OS::PrintErr(
-            "CollectAwaiterReturnStackTrace: visiting frame %" Pd
-            " in async causal stack trace:\n\t%s\n",
-            i, Function::Handle(code.function()).ToFullyQualifiedCString());
-      }
-      uword pc = code.PayloadStart() + offset.Value();
-      if (code.is_optimized()) {
-        for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
-          inlined_code = it.code();
-          stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
-        }
-      } else {
-        stack_trace->AddAsyncCausalFrame(pc, code);
-      }
-    }
-
-    // Follow the link.
-    async_stack_trace = async_stack_trace.async_link();
   }
 
   return stack_trace;
@@ -3159,7 +3033,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   while ((loc == NULL) && (first_token_idx <= last_token_idx)) {
     loc = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
                         column_number, Function::Handle());
-    first_token_idx.Next();
+    first_token_idx = first_token_idx.Next();
   }
   if ((loc == NULL) && FLAG_verbose_debug) {
     OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
@@ -3723,9 +3597,7 @@ ErrorPtr Debugger::PauseStepping() {
     }
   }
 
-  // Since lazy async stacks doesn't use the _asyncStackTraceHelper runtime
-  // entry, we need to manually set a synthetic breakpoint for async_op before
-  // we enter it.
+  // We need to manually set a synthetic breakpoint for async_op before entry.
   if (FLAG_lazy_async_stacks) {
     // async and async* functions always contain synthetic async_ops.
     if ((frame->function().IsAsyncFunction() ||

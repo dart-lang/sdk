@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.3.0</version>
+<version>1.4.0</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -414,6 +414,10 @@
         </p>
       </value>
       <value><code>PARAMETER</code></value>
+      <value>
+        <code>PACKAGE_NAME</code>
+        <p>The name of a pub package is being suggested.</p>
+      </value>
     </enum>
   </type>
   <type name="DiagnosticMessage">
@@ -645,90 +649,76 @@
       <value><code>DIRECTIVE</code></value>
       <value>
         <code>DYNAMIC_TYPE</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>DYNAMIC_LOCAL_VARIABLE_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>DYNAMIC_LOCAL_VARIABLE_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>DYNAMIC_PARAMETER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>DYNAMIC_PARAMETER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value><code>ENUM</code></value>
       <value><code>ENUM_CONSTANT</code></value>
       <value>
         <code>FIELD</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>FIELD_STATIC</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>FUNCTION</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>FUNCTION_DECLARATION</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value><code>FUNCTION_TYPE_ALIAS</code></value>
       <value>
         <code>GETTER_DECLARATION</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value><code>IDENTIFIER_DEFAULT</code></value>
       <value><code>IMPORT_PREFIX</code></value>
       <value>
         <code>INSTANCE_FIELD_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INSTANCE_FIELD_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INSTANCE_GETTER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INSTANCE_GETTER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INSTANCE_METHOD_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INSTANCE_METHOD_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INSTANCE_SETTER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INSTANCE_SETTER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>INVALID_STRING_ESCAPE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value><code>KEYWORD</code></value>
       <value><code>LABEL</code></value>
       <value>
         <code>LIBRARY_NAME</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value><code>LITERAL_BOOLEAN</code></value>
       <value><code>LITERAL_DOUBLE</code></value>
@@ -738,122 +728,101 @@
       <value><code>LITERAL_STRING</code></value>
       <value>
         <code>LOCAL_FUNCTION_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>LOCAL_FUNCTION_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>LOCAL_VARIABLE</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value><code>LOCAL_VARIABLE_DECLARATION</code></value>
       <value>
         <code>LOCAL_VARIABLE_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>METHOD</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>METHOD_DECLARATION</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>METHOD_DECLARATION_STATIC</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>METHOD_STATIC</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>PARAMETER</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>SETTER_DECLARATION</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>TOP_LEVEL_VARIABLE</code>
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </value>
       <value>
         <code>PARAMETER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>PARAMETER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>STATIC_FIELD_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>STATIC_GETTER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>STATIC_GETTER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>STATIC_METHOD_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>STATIC_METHOD_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>STATIC_SETTER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>STATIC_SETTER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>TOP_LEVEL_FUNCTION_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>TOP_LEVEL_FUNCTION_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>TOP_LEVEL_GETTER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>TOP_LEVEL_GETTER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>TOP_LEVEL_SETTER_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>TOP_LEVEL_SETTER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>TOP_LEVEL_VARIABLE_DECLARATION</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value><code>TYPE_NAME_DYNAMIC</code></value>
       <value><code>TYPE_PARAMETER</code></value>
       <value>
         <code>UNRESOLVED_INSTANCE_MEMBER_REFERENCE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
       <value>
         <code>VALID_STRING_ESCAPE</code>
-        <p>Only for version 2 of highlight.</p>
       </value>
     </enum>
   </type>

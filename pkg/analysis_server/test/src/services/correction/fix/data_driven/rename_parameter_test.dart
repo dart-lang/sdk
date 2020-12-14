@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename_parameter.dart';
@@ -335,7 +336,7 @@ abstract class _AbstractRenameParameterInTest
               kind: ElementKindUtilities.fromName(_kind),
               components: components),
           bulkApply: false,
-          changes: [
+          changesSelector: UnconditionalChangesSelector([
             RenameParameter(newName: newName, oldName: oldName),
-          ]);
+          ]));
 }

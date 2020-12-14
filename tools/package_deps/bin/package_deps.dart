@@ -4,10 +4,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
-// TODO(devoncarew): Validate that publishable packages don't use relative sdk
-// paths in their pubspecs.
-
-// TODO(devoncarew): Find unused entries in the DEPS file.
 const validateDEPS = false;
 
 void main(List<String> arguments) {
@@ -20,6 +16,15 @@ void main(List<String> arguments) {
     exit(1);
   }
 
+  print('To run this script, execute:');
+  print('');
+  print('  dart tools/package_deps/bin/package_deps.dart');
+  print('');
+  print('See pkg/README.md for more information.');
+  print('');
+  print('----');
+  print('');
+
   // locate all pkg/ packages
   final packages = <Package>[];
   for (var entity in Directory('pkg').listSync()) {
@@ -30,6 +35,8 @@ void main(List<String> arguments) {
       }
     }
   }
+
+  List<String> pkgPackages = packages.map((p) => p.packageName).toList();
 
   // Manually added directories (outside of pkg/).
   List<String> alsoValidate = [
@@ -49,7 +56,7 @@ void main(List<String> arguments) {
     print('validating ${package.dir}'
         '${package.publishable ? ' [publishable]' : ''}');
 
-    if (!package.validate(logger)) {
+    if (!package.validate(logger, pkgPackages)) {
       validateFailure = true;
     }
 
@@ -59,19 +66,22 @@ void main(List<String> arguments) {
   // Read and display info about the sdk DEPS file.
   if (validateDEPS) {
     print('SDK DEPS');
+    print('');
+
     var sdkDeps = SdkDeps(File('DEPS'));
     sdkDeps.parse();
-    print('');
-    print('packages:');
-    for (var pkg in sdkDeps.pkgs) {
-      print('  package:$pkg');
+
+    List<String> deps = [...sdkDeps.pkgs, ...sdkDeps.testedPkgs]..sort();
+    for (var pkg in deps) {
+      final tested = sdkDeps.testedPkgs.contains(pkg);
+      print('package:$pkg${tested ? ' [tested]' : ''}');
     }
 
-    print('');
-    print('tested packages:');
-    for (var pkg in sdkDeps.testedPkgs) {
-      print('  package:$pkg');
-    }
+    // TODO(devoncarew): Validate that published packages solve against the
+    // versions brought in from the DEPS file.
+
+    // TODO(devoncarew): Find unused entries in the DEPS file.
+
   }
 
   if (validateFailure) {
@@ -93,13 +103,16 @@ class Package implements Comparable<Package> {
 
   String get packageName => _packageName;
   Set<String> _declaredDependencies;
+  List<PubDep> _declaredPubDeps;
   Set<String> _declaredDevDependencies;
+  List<PubDep> _declaredDevPubDeps;
 
   List<String> get regularDependencies => _regularDependencies.toList()..sort();
 
   List<String> get devDependencies => _devDependencies.toList()..sort();
 
   bool _publishToNone;
+
   bool get publishable => !_publishToNone;
 
   @override
@@ -111,9 +124,9 @@ class Package implements Comparable<Package> {
   @override
   int compareTo(Package other) => dir.compareTo(other.dir);
 
-  bool validate(Logger logger) {
+  bool validate(Logger logger, List<String> pkgPackages) {
     _parseImports();
-    return _validatePubspecDeps(logger);
+    return _validatePubspecDeps(logger, pkgPackages);
   }
 
   void _parseImports() {
@@ -155,21 +168,34 @@ class Package implements Comparable<Package> {
     _packageName = docContents['name'];
     _publishToNone = docContents['publish_to'] == 'none';
 
+    _declaredPubDeps = [];
     if (docContents['dependencies'] != null) {
       _declaredDependencies =
           Set<String>.from(docContents['dependencies'].keys);
+
+      var deps = docContents['dependencies'];
+      for (var package in deps.keys) {
+        _declaredPubDeps.add(PubDep.parse(package, deps[package]));
+      }
     } else {
       _declaredDependencies = {};
     }
+
+    _declaredDevPubDeps = [];
     if (docContents['dev_dependencies'] != null) {
       _declaredDevDependencies =
           Set<String>.from(docContents['dev_dependencies'].keys);
+
+      var deps = docContents['dev_dependencies'];
+      for (var package in deps.keys) {
+        _declaredDevPubDeps.add(PubDep.parse(package, deps[package]));
+      }
     } else {
       _declaredDevDependencies = {};
     }
   }
 
-  bool _validatePubspecDeps(Logger logger) {
+  bool _validatePubspecDeps(Logger logger, List<String> pkgPackages) {
     var fail = false;
 
     if (dirName != packageName) {
@@ -238,6 +264,47 @@ class Package implements Comparable<Package> {
       out("  ${_printSet(misplacedDeps)} declared in 'dependencies:' but "
           'only used in dev dirs.');
       fail = true;
+    }
+
+    // Validate that we don't have relative deps into third_party.
+    // TODO(devoncarew): This is currently just enforced for publishable
+    // packages.
+    if (publishable) {
+      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
+        if (dep is PathPubDep) {
+          var path = dep.path;
+
+          if (path.contains('third_party/pkg_tested/') ||
+              path.contains('third_party/pkg/')) {
+            out('  Prefer a semver dependency for packages brought in via DEPS:');
+            out('    $dep');
+            fail = true;
+          }
+        }
+      }
+    }
+
+    // Validate that published packages don't use path deps.
+    if (publishable) {
+      for (PubDep dep in _declaredPubDeps) {
+        if (dep is PathPubDep) {
+          out('  Published packages should use semver deps:');
+          out('    $dep');
+          fail = true;
+        }
+      }
+    }
+
+    // Validate that non-published packages use relative a (relative) path dep
+    // for pkg/ packages.
+    if (!publishable) {
+      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
+        if (pkgPackages.contains(dep.name) && dep is! PathPubDep) {
+          out('  Prefer a relative path dep for pkg/ packages:');
+          out('    $dep');
+          fail = true;
+        }
+      }
     }
 
     if (!fail) {
@@ -360,4 +427,46 @@ class SdkDeps {
     pkgs.sort();
     testedPkgs.sort();
   }
+}
+
+abstract class PubDep {
+  final String name;
+
+  PubDep(this.name);
+
+  String toString() => name;
+
+  static PubDep parse(String name, Object dep) {
+    if (dep is String) {
+      return SemverPubDep(name, dep);
+    } else if (dep is Map) {
+      if (dep.containsKey('path')) {
+        return PathPubDep(name, dep['path']);
+      } else {
+        return UnhandledPubDep(name);
+      }
+    } else {
+      return UnhandledPubDep(name);
+    }
+  }
+}
+
+class SemverPubDep extends PubDep {
+  final String value;
+
+  SemverPubDep(String name, this.value) : super(name);
+
+  String toString() => '$name: $value';
+}
+
+class PathPubDep extends PubDep {
+  final String path;
+
+  PathPubDep(String name, this.path) : super(name);
+
+  String toString() => '$name: $path';
+}
+
+class UnhandledPubDep extends PubDep {
+  UnhandledPubDep(String name) : super(name);
 }

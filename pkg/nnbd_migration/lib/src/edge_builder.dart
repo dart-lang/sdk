@@ -145,6 +145,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// being visited, or null.
   Element _currentClassOrExtension;
 
+  /// If an extension declaration is being visited, the decorated type of the
+  /// type appearing in the `on` clause (this is the type of `this` inside the
+  /// extension declaration).  Null if an extension declaration is not being
+  /// visited.
+  DecoratedType _currentExtendedType;
+
   /// The [DecoratedType] of the innermost list or set literal being visited, or
   /// `null` if the visitor is not inside any list or set.
   ///
@@ -217,7 +223,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final Map<Token, HintComment> _nullCheckHints = {};
 
   /// Helper that assists us in transforming Iterable methods to their "OrNull"
-  /// equivalents, or `null` if we are not doing such transformations.
+  /// equivalents.
   final WhereOrNullTransformer _whereOrNullTransformer;
 
   /// Deferred processing that should be performed once we have finished
@@ -225,20 +231,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final Map<MethodInvocation, DecoratedType Function(DecoratedType)>
       _deferredMethodInvocationProcessing = {};
 
-  EdgeBuilder(
-      this.typeProvider,
-      this._typeSystem,
-      this._variables,
-      this._graph,
-      this.source,
-      this.listener,
-      this._decoratedClassHierarchy,
-      bool transformWhereOrNull,
+  EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
+      this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
       : _inheritanceManager = InheritanceManager3(),
-        _whereOrNullTransformer = transformWhereOrNull
-            ? WhereOrNullTransformer(typeProvider, _typeSystem)
-            : null;
+        _whereOrNullTransformer =
+            WhereOrNullTransformer(typeProvider, _typeSystem);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -800,9 +798,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
-    visitClassOrMixinOrExtensionDeclaration(node);
     _dispatch(node.typeParameters);
     _dispatch(node.extendedType);
+    _currentExtendedType =
+        _variables.decoratedTypeAnnotation(source, node.extendedType);
+    visitClassOrMixinOrExtensionDeclaration(node);
+    _currentExtendedType = null;
     return null;
   }
 
@@ -1128,27 +1129,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var type = node.type;
     _dispatch(type);
     var decoratedType = _variables.decoratedTypeAnnotation(source, type);
-    if (type is NamedType) {
-      // The main type of the is check historically could not be nullable.
-      // Making it nullable could change runtime behavior.
-      _graph.makeNonNullable(
-          decoratedType.node, IsCheckMainTypeOrigin(source, type));
-      _conditionInfo = _ConditionInfo(node,
-          isPure: expression is SimpleIdentifier,
-          postDominatingIntent:
-              _postDominatedLocals.isReferenceInScope(expression),
-          trueDemonstratesNonNullIntent: expressionNode);
-      if (node.notOperator != null) {
-        _conditionInfo = _conditionInfo.not(node);
-      }
-      if (!_assumeNonNullabilityInCasts) {
-        // TODO(mfairhurst): wire this to handleDowncast if we do not assume
-        // nullability.
-        assert(false);
-      }
-    } else if (type is GenericFunctionType) {
-      // TODO(brianwilkerson)
-      _unimplemented(node, 'Is expression with GenericFunctionType');
+    // The main type of the is check historically could not be nullable.
+    // Making it nullable could change runtime behavior.
+    _graph.makeNonNullable(
+        decoratedType.node, IsCheckMainTypeOrigin(source, type));
+    _conditionInfo = _ConditionInfo(node,
+        isPure: expression is SimpleIdentifier,
+        postDominatingIntent:
+            _postDominatedLocals.isReferenceInScope(expression),
+        trueDemonstratesNonNullIntent: expressionNode);
+    if (node.notOperator != null) {
+      _conditionInfo = _conditionInfo.not(node);
+    }
+    if (!_assumeNonNullabilityInCasts) {
+      // TODO(mfairhurst): wire this to handleDowncast if we do not assume
+      // nullability.
+      assert(false);
     }
     _flowAnalysis.isExpression_end(
         node, expression, node.notOperator != null, decoratedType);
@@ -2148,15 +2144,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _dispatch(AstNode node, {bool skipNullCheckHint = false}) {
-    var type = node?.accept(this);
-    if (!skipNullCheckHint &&
-        node is Expression &&
-        // A /*!*/ hint following an AsExpression should be interpreted as a
-        // nullability hint for the type, not a null-check hint.
-        node is! AsExpression) {
-      type = _handleNullCheckHint(node, type);
+    try {
+      var type = node?.accept(this);
+      if (!skipNullCheckHint &&
+          node is Expression &&
+          // A /*!*/ hint following an AsExpression should be interpreted as a
+          // nullability hint for the type, not a null-check hint.
+          node is! AsExpression) {
+        type = _handleNullCheckHint(node, type);
+      }
+      return type;
+    } catch (exception, stackTrace) {
+      listener.reportException(source, node, exception, stackTrace);
+      return null;
     }
-    return type;
   }
 
   void _dispatchList(NodeList nodeList) {
@@ -2304,7 +2305,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       } else {
         var transformationInfo =
-            _whereOrNullTransformer?.tryTransformOrElseArgument(expression);
+            _whereOrNullTransformer.tryTransformOrElseArgument(expression);
         if (transformationInfo != null) {
           // Don't build any edges for this argument; if necessary we'll transform
           // it rather than make things nullable.  But do save the nullability of
@@ -2658,21 +2659,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           node is Statement ? node : null, parts.condition);
     } else if (parts is ForEachParts) {
       Element lhsElement;
+      DecoratedType lhsType;
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement;
         _flowAnalysis.declare(variableElement, true);
         lhsElement = variableElement;
         _dispatch(parts.loopVariable?.type);
+        lhsType = _variables.decoratedElementType(lhsElement);
       } else if (parts is ForEachPartsWithIdentifier) {
         lhsElement = parts.identifier.staticElement;
+        lhsType = _dispatch(parts.identifier);
       } else {
         throw StateError(
             'Unexpected ForEachParts subtype: ${parts.runtimeType}');
       }
       var iterableType = _checkExpressionNotNull(parts.iterable);
       DecoratedType elementType;
-      if (lhsElement != null) {
-        DecoratedType lhsType = _variables.decoratedElementType(lhsElement);
+      if (lhsType != null) {
         var iterableTypeType = iterableType.type;
         if (_typeSystem.isSubtypeOf(
             iterableTypeType, typeProvider.iterableDynamicType)) {
@@ -3156,22 +3159,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               .toList());
     } else {
       assert(_currentClassOrExtension is ExtensionElement);
-      final type = (_currentClassOrExtension as ExtensionElement).extendedType;
-
-      if (type is InterfaceType) {
-        var index = 0;
-        return DecoratedType(type, NullabilityNode.forInferredType(target),
-            typeArguments: type.typeArguments
-                .map((t) => DecoratedType(
-                    t,
-                    NullabilityNode.forInferredType(
-                        target.typeArgument(index++))))
-                .toList());
-      } else if (type is TypeParameterType) {
-        return DecoratedType(type, NullabilityNode.forInferredType(target));
-      } else {
-        _unimplemented(node, 'extension of $type (${type.runtimeType}');
-      }
+      assert(_currentExtendedType != null);
+      return _currentExtendedType;
     }
   }
 

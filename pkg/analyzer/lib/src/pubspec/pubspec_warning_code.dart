@@ -83,6 +83,14 @@ class PubspecWarningCode extends ErrorCode {
       correction:
           "Try creating the referenced path or using a path that exists.");
 
+  /// A code indicating that a path value is not is not posix-style.
+  ///
+  /// Parameters:
+  /// 0: the path as given in the file.
+  static const PubspecWarningCode PATH_NOT_POSIX = PubspecWarningCode(
+      'PATH_NOT_POSIX', "The path {0} is not posix.",
+      correction: "Try converting the value to a posix-style path.");
+
   /// A code indicating that a specified path dependency points to a directory
   /// that does not contain a pubspec.
   ///
@@ -109,7 +117,12 @@ class PubspecWarningCode extends ErrorCode {
   /// Initialize a newly created warning code to have the given [name],
   /// [message] and [correction].
   const PubspecWarningCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'PubspecWarningCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

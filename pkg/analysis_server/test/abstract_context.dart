@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -270,23 +269,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
 mixin WithNullSafetyMixin on AbstractContextTest {
   @override
-  String get testPackageLanguageVersion =>
-      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
-
-  bool get withPackageMeta => false;
-
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
-  /// Remove when Null Safety is enabled by default.
-  @nonVirtual
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      languageVersion: testPackageLanguageVersion,
-      meta: withPackageMeta,
-    );
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-  }
+  String get testPackageLanguageVersion => '2.12';
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

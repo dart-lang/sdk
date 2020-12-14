@@ -15,6 +15,7 @@ dependencies:
   dart2native:
     path: ../dart2native
   dart_style: any
+  intl: any
   meta:
     path: ../meta
   nnbd_migration:
@@ -23,7 +24,7 @@ dependencies:
   pedantic: ^1.9.0
   pub:
     path: ../../third_party/pkg/pub
-  stagehand: 3.3.7
+  stagehand: any
   telemetry:
     path: ../telemetry
   usage: ^3.4.0

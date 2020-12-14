@@ -11,12 +11,14 @@ import 'package:ffi/ffi.dart';
 
 /// WasmModule is a compiled module that can be instantiated.
 class WasmModule {
-  Pointer<WasmerStore> _store;
+  late Pointer<WasmerStore> _store;
   late Pointer<WasmerModule> _module;
 
   /// Compile a module.
-  WasmModule(Uint8List data) : _store = WasmRuntime().newStore() {
-    _module = WasmRuntime().compile(_store, data);
+  WasmModule(Uint8List data) {
+    var runtime = WasmRuntime();
+    _store = runtime.newStore(this);
+    _module = runtime.compile(this, _store, data);
   }
 
   /// Returns a WasmInstanceBuilder that is used to add all the imports that the
@@ -115,6 +117,7 @@ class WasmInstanceBuilder {
   Map<String, int> _importIndex;
   Pointer<WasmerExternVec> _imports = allocate<WasmerExternVec>();
   Pointer<WasmerWasiEnv> _wasiEnv = nullptr;
+  Object _importOwner = Object();
 
   WasmInstanceBuilder(this._module) : _importIndex = {} {
     _importDescs = WasmRuntime().importDescriptors(_module._module);
@@ -168,6 +171,7 @@ class WasmInstanceBuilder {
     wasmFnImport.ref.store = _module._store;
     _wasmFnImportToFn[wasmFnImport.address] = fn;
     var fnImp = runtime.newFunc(
+        _importOwner,
         _module._store,
         imp.funcType,
         _wasmFnImportTrampolineNative,
@@ -199,24 +203,26 @@ class WasmInstanceBuilder {
         throw Exception("Missing import: ${_importDescs[i]}");
       }
     }
-    return WasmInstance(_module, _imports, _wasiEnv);
+    return WasmInstance(_module, _imports, _wasiEnv, _importOwner);
   }
 }
 
 /// WasmInstance is an instantiated WasmModule.
 class WasmInstance {
   WasmModule _module;
-  Pointer<WasmerInstance> _instance;
+  late Pointer<WasmerInstance> _instance;
   Pointer<WasmerMemory>? _exportedMemory;
   Pointer<WasmerWasiEnv> _wasiEnv;
   Stream<List<int>>? _stdout;
   Stream<List<int>>? _stderr;
   Map<String, WasmFunction> _functions = {};
+  Object _importOwner;
 
-  WasmInstance(this._module, Pointer<WasmerExternVec> imports, this._wasiEnv)
-      : _instance = WasmRuntime()
-            .instantiate(_module._store, _module._module, imports) {
+  WasmInstance(this._module, Pointer<WasmerExternVec> imports, this._wasiEnv,
+      this._importOwner) {
     var runtime = WasmRuntime();
+    _instance =
+        runtime.instantiate(this, _module._store, _module._module, imports);
     var exports = runtime.exports(_instance);
     var exportDescs = runtime.exportDescriptors(_module._module);
     assert(exports.ref.length == exportDescs.length);
@@ -275,7 +281,7 @@ class WasmInstance {
 
 /// WasmMemory contains the memory of a WasmInstance.
 class WasmMemory {
-  Pointer<WasmerMemory> _mem;
+  late Pointer<WasmerMemory> _mem;
   late Uint8List _view;
 
   WasmMemory._fromExport(this._mem) {
@@ -284,8 +290,8 @@ class WasmMemory {
 
   /// Create a new memory with the given number of initial pages, and optional
   /// maximum number of pages.
-  WasmMemory._create(Pointer<WasmerStore> store, int pages, int? maxPages)
-      : _mem = WasmRuntime().newMemory(store, pages, maxPages) {
+  WasmMemory._create(Pointer<WasmerStore> store, int pages, int? maxPages) {
+    _mem = WasmRuntime().newMemory(this, store, pages, maxPages);
     _view = WasmRuntime().memoryView(_mem);
   }
 

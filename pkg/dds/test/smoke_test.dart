@@ -107,6 +107,8 @@ void main() {
       } on DartDevelopmentServiceException catch (e) {
         expect(e.message,
             'Existing VM service clients prevent DDS from taking control.');
+        expect(e.errorCode,
+            DartDevelopmentServiceException.existingDdsInstanceError);
       }
     });
   });

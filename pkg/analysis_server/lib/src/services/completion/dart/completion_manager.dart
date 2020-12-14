@@ -10,9 +10,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
-import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -38,7 +35,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -54,10 +50,6 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager {
-  /// The [contributionSorter] is a long-lived object that isn't allowed
-  /// to maintain state between calls to [DartContributionSorter#sort(...)].
-  static DartContributionSorter contributionSorter = CommonUsageSorter();
-
   /// The object used to resolve macros in Dartdoc comments.
   final DartdocDirectiveInfo dartdocDirectiveInfo;
 
@@ -122,10 +114,6 @@ class DartCompletionManager {
 
     request.checkAborted();
 
-    final ranking = CompletionRanking.instance;
-    var probabilityFuture =
-        ranking != null ? ranking.predict(dartRequest) : Future.value(null);
-
     var range = dartRequest.target.computeReplacementRange(dartRequest.offset);
     (request as CompletionRequestImpl)
       ..replacementOffset = range.offset
@@ -175,38 +163,7 @@ class DartCompletionManager {
       throw AbortCompletion();
     }
 
-    // Adjust suggestion relevance before returning
-    var suggestions = builder.suggestions.toList();
-    const SORT_TAG = 'DartCompletionManager - sort';
-    await performance.runAsync(SORT_TAG, (_) async {
-      if (ranking != null) {
-        request.checkAborted();
-        try {
-          suggestions = await ranking.rerank(
-              probabilityFuture,
-              suggestions,
-              includedElementNames,
-              includedSuggestionRelevanceTags,
-              dartRequest,
-              request.result.unit.featureSet);
-        } catch (exception, stackTrace) {
-          // TODO(brianwilkerson) Shutdown the isolates that have already been
-          //  started.
-          // Disable smart ranking if prediction fails.
-          CompletionRanking.instance = null;
-          AnalysisEngine.instance.instrumentationService.logException(
-              CaughtException.withMessage(
-                  'Failed to rerank completion suggestions',
-                  exception,
-                  stackTrace));
-          await contributionSorter.sort(dartRequest, suggestions);
-        }
-      } else if (!request.useNewRelevance) {
-        await contributionSorter.sort(dartRequest, suggestions);
-      }
-    });
-    request.checkAborted();
-    return suggestions;
+    return builder.suggestions.toList();
   }
 
   void _addIncludedElementKinds(DartCompletionRequestImpl request) {
@@ -242,22 +199,19 @@ class DartCompletionManager {
   }
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
-    if (request.useNewRelevance) {
-      var location = request.opType.completionLocation;
-      if (location != null) {
-        var locationTable = elementKindRelevance[location];
-        if (locationTable != null) {
-          var inConstantContext = request.inConstantContext;
-          for (var entry in locationTable.entries) {
-            var kind = entry.key.toString();
-            var elementBoost = (entry.value.upper * 100).floor();
-            includedSuggestionRelevanceTags
-                .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
-            if (inConstantContext) {
-              includedSuggestionRelevanceTags.add(
-                  IncludedSuggestionRelevanceTag(
-                      '$kind+const', elementBoost + 100));
-            }
+    var location = request.opType.completionLocation;
+    if (location != null) {
+      var locationTable = elementKindRelevance[location];
+      if (locationTable != null) {
+        var inConstantContext = request.inConstantContext;
+        for (var entry in locationTable.entries) {
+          var kind = entry.key.toString();
+          var elementBoost = (entry.value.upper * 100).floor();
+          includedSuggestionRelevanceTags
+              .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
+          if (inConstantContext) {
+            includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
+                '$kind+const', elementBoost + 100));
           }
         }
       }
@@ -268,13 +222,10 @@ class DartCompletionManager {
       var element = type.element;
       var tag = '${element.librarySource.uri}::${element.name}';
       if (element.isEnum) {
-        var relevance = request.useNewRelevance
-            ? RelevanceBoost.availableEnumConstant
-            : DART_RELEVANCE_BOOST_AVAILABLE_ENUM;
         includedSuggestionRelevanceTags.add(
           IncludedSuggestionRelevanceTag(
             tag,
-            relevance,
+            RelevanceBoost.availableEnumConstant,
           ),
         );
       } else {
@@ -284,13 +235,10 @@ class DartCompletionManager {
         //  boost will almost always be ignored because the element boost will
         //  be bigger. Find a way to use this boost without negating the element
         //  boost, which is how we get constructors to come before classes.
-        var relevance = request.useNewRelevance
-            ? RelevanceBoost.availableDeclaration
-            : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
         includedSuggestionRelevanceTags.add(
           IncludedSuggestionRelevanceTag(
             tag,
-            relevance,
+            RelevanceBoost.availableDeclaration,
           ),
         );
       }
@@ -369,8 +317,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  FeatureSet get featureSet =>
-      result.session.analysisContext.analysisOptions.contextFeatures;
+  FeatureSet get featureSet => result.libraryElement.featureSet;
 
   @override
   bool get includeIdentifiers {
@@ -426,9 +373,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     }
     return '';
   }
-
-  @override
-  bool get useNewRelevance => _originalRequest.useNewRelevance;
 
   /// Throw [AbortCompletion] if the completion request has been aborted.
   @override
