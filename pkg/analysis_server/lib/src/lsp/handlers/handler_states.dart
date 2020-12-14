@@ -29,6 +29,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_semantic_tokens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
@@ -102,6 +103,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(WorkspaceDidChangeConfigurationMessageHandler(server));
     registerHandler(ReanalyzeHandler(server));
     registerHandler(WillRenameFilesHandler(server));
+    registerHandler(SemanticTokensHandler(server));
   }
 }
 

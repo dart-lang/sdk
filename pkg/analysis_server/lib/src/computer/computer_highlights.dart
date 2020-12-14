@@ -38,7 +38,11 @@ class DartUnitHighlightsComputer {
           }
         }
         if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
-          highlightType = HighlightRegionType.COMMENT_END_OF_LINE;
+          if (commentToken.lexeme.startsWith('///')) {
+            highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
+          } else {
+            highlightType = HighlightRegionType.COMMENT_END_OF_LINE;
+          }
         }
         if (highlightType != null) {
           _addRegion_token(commentToken, highlightType);

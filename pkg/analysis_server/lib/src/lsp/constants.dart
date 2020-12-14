@@ -88,8 +88,20 @@ abstract class CustomMethods {
   static const super_ = Method('dart/textDocument/super');
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
-  // should be relying on it and we now support proper $/progress events.
+  // should be relying on it as we now support proper $/progress events.
   static const analyzerStatus = Method(r'$/analyzerStatus');
+
+  /// Semantic tokens are dynamically registered using a single string
+  /// "textDocument/semanticTokens" instead of for each individual method
+  /// (full, range, full/delta) so the built-in Method class does not contain
+  /// the required constant.
+  static const semanticTokenDynamicRegistration =
+      Method('textDocument/semanticTokens');
+}
+
+abstract class CustomSemanticTokenTypes {
+  static const annotation = SemanticTokenTypes('annotation');
+  static const boolean = SemanticTokenTypes('boolean');
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.

@@ -131,6 +131,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.foldingRangeProvider, isNotNull);
     expect(initResult.capabilities.workspace.fileOperations.willRename,
         equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
+    expect(initResult.capabilities.semanticTokensProvider, isNotNull);
 
     expect(didGetRegisterCapabilityRequest, isFalse);
   }
@@ -186,6 +187,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.renameProvider, isNull);
     expect(initResult.capabilities.foldingRangeProvider, isNull);
     expect(initResult.capabilities.workspace.fileOperations, isNull);
+    expect(initResult.capabilities.semanticTokensProvider, isNull);
 
     // Ensure all expected dynamic registrations.
     for (final expectedRegistration in ClientDynamicRegistrations.supported) {
