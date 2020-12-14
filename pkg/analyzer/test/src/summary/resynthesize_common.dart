@@ -4832,7 +4832,7 @@ class A {
         r'''
 class A {
   final int _f;
-  const A([int f = 0]);
+  const A([int f]);
     constantInitializers
       ConstructorFieldInitializer
         equals: =
@@ -4844,6 +4844,10 @@ class A {
           staticElement: self::@class::A::@field::_f
           staticType: null
           token: _f
+    f
+      IntegerLiteral
+        literal: 0
+        staticType: int
 }
 ''',
         withFullyResolvedAst: true);
@@ -5598,6 +5602,30 @@ class B {
         A/*location: test.dart;A*/<Function()>()}) {}
 }
 ''');
+  }
+
+  test_defaultValue_inFunctionTypedFormalParameter() async {
+    var library = await checkLibrary('''
+void f( g({a: 0 is int}) ) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f(dynamic Function({dynamic a}) g) {}
+    g::a
+      IsExpression
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        staticType: bool
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: dart:core::@class::int
+            staticType: null
+            token: int
+          type: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
