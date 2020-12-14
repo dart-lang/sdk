@@ -467,12 +467,20 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_strings() async {
     final content = r'''
+    String foo(String c) => c;
     const string1 = 'test';
-    const string2 = '$string1 ${string1.length}';
+    const string2 = 'test1 $string1 test2 ${foo('test3')}';
     const string3 = r'$string1 ${string1.length}';
     ''';
 
     final expected = [
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('foo', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('c', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('c', SemanticTokenTypes.parameter),
       _Token('const', SemanticTokenTypes.keyword),
       _Token('string1', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
@@ -480,17 +488,14 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('const', SemanticTokenTypes.keyword),
       _Token('string2', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
-      // TODO(dantup): Shold we expect String tokens for the non-interpolated
-      // parts of interpolated strings? Currently they do not produce highlight
-      // regions so they do not come through.
-      // _Token(r"'$", SemanticTokenTypes.string),
+      _Token(r"'test1 ", SemanticTokenTypes.string),
       _Token('string1', SemanticTokenTypes.property),
-      // _Token(r'${', SemanticTokenTypes.string),
-      _Token('string1', SemanticTokenTypes.property),
-      // _Token('.', SemanticTokenTypes.string),
-      _Token('length', SemanticTokenTypes.property),
-      // _Token("}'", SemanticTokenTypes.string),
+      _Token(' test2 ', SemanticTokenTypes.string),
+      _Token('foo', SemanticTokenTypes.function),
+      _Token("'test3'", SemanticTokenTypes.string),
+      _Token("'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
+      // string3 is raw and should be treated as a single string.
       _Token('string3', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token(r"r'$string1 ${string1.length}'", SemanticTokenTypes.string),

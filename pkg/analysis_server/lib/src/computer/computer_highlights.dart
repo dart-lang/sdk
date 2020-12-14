@@ -704,6 +704,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitInterpolationString(InterpolationString node) {
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
+    super.visitInterpolationString(node);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     computer._addRegion_token(node.isOperator, HighlightRegionType.KEYWORD);
     super.visitIsExpression(node);
