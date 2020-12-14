@@ -993,6 +993,8 @@ abstract class ElementVisitor<R> {
 
   R visitTopLevelVariableElement(TopLevelVariableElement element);
 
+  R visitTypeAliasElement(TypeAliasElement element);
+
   R visitTypeParameterElement(TypeParameterElement element);
 }
 

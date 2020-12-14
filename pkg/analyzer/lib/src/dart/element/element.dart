@@ -7107,8 +7107,7 @@ class TypeAliasElementImpl extends ElementImpl
 
   @override
   T accept<T>(ElementVisitor<T> visitor) {
-    // TODO(scheglov) `visitTypeAliasElement`
-    throw UnimplementedError();
+    return visitor.visitTypeAliasElement(this);
   }
 
   @override
