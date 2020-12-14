@@ -36,6 +36,7 @@ class Link<T> implements Iterable<T> {
 
   /// Invokes `fn` for every item in the linked list and returns the results
   /// in a [List].
+  /// TODO(scheglov) Rewrite to `List<E>`, or remove.
   List<E?> mapToList<E>(E fn(T item), {bool growable: true}) {
     List<E?> result;
     if (!growable) {

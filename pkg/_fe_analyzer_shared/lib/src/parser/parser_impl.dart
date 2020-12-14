@@ -788,8 +788,6 @@ class Parser {
         semicolon = ensureSemicolon(token);
       }
       listener.handleRecoverImport(semicolon);
-      // TODO(scheglov) Why do we need this?
-      // ignore: unnecessary_null_comparison
     } while (semicolon == null);
 
     if (firstDeferredKeyword != null && !hasPrefix) {
