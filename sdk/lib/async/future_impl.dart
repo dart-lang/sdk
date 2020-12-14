@@ -840,5 +840,5 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
       errorHandler,
       "onError",
       "Error handler must accept one Object or one Object and a StackTrace"
-          " as arguments, and return a a valid result");
+          " as arguments, and return a valid result");
 }
