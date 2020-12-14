@@ -616,7 +616,38 @@ void _testIfNullSuperIndexSet() {}
 
 void _testIfNullExtensionIndexSet() {}
 
-void _testCompoundIndexSet() {}
+void _testCompoundIndexSet() {
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(2),
+          forEffect: false, forPostIncDec: false),
+      '''
+0[1] += 2''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(1),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1]++''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('-'),
+          new IntLiteral(1),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1]--''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('*'),
+          new IntLiteral(1),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1] *= 1''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(2),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1] += 2''');
+}
 
 void _testNullAwareCompoundSet() {
   testExpression(

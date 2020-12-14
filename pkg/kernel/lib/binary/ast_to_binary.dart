@@ -80,6 +80,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _sink.flushAndDestroy();
   }
 
+  int _getVariableIndex(VariableDeclaration variable) {
+    _variableIndexer ??= new VariableIndexer();
+    int index = _variableIndexer[variable];
+    assert(index != null, "No index found for ${variable}");
+    return index;
+  }
+
   void writeByte(int byte) {
     assert((byte & 0xFF) == byte);
     _sink.addByte(byte);
@@ -1383,9 +1390,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitVariableGet(VariableGet node) {
-    _variableIndexer ??= new VariableIndexer();
-    int index = _variableIndexer[node.variable];
-    assert(index != null, "No index found for ${node.variable}");
+    int index = _getVariableIndex(node.variable);
     if (index & Tag.SpecializedPayloadMask == index &&
         node.promotedType == null) {
       writeByte(Tag.SpecializedVariableGet + index);
@@ -1402,9 +1407,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitVariableSet(VariableSet node) {
-    _variableIndexer ??= new VariableIndexer();
-    int index = _variableIndexer[node.variable];
-    assert(index != null, "No index found for ${node.variable}");
+    int index = _getVariableIndex(node.variable);
     if (index & Tag.SpecializedPayloadMask == index) {
       writeByte(Tag.SpecializedVariableSet + index);
       writeOffset(node.fileOffset);
@@ -1420,12 +1423,64 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitDynamicGet(DynamicGet node) {
+    writeByte(Tag.DynamicGet);
+    writeByte(node.kind.index);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+  }
+
+  @override
+  void visitInstanceGet(InstanceGet node) {
+    writeByte(Tag.InstanceGet);
+    writeByte(node.kind.index);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+    writeDartType(node.resultType);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    writeByte(Tag.InstanceTearOff);
+    writeByte(node.kind.index);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+    writeDartType(node.resultType);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
   void visitPropertyGet(PropertyGet node) {
     writeByte(Tag.PropertyGet);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);
     writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitDynamicSet(DynamicSet node) {
+    writeByte(Tag.DynamicSet);
+    writeByte(node.kind.index);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+    writeNode(node.value);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    writeByte(Tag.InstanceSet);
+    writeByte(node.kind.index);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+    writeNode(node.value);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1463,11 +1518,82 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitStaticTearOff(StaticTearOff node) {
+    writeByte(Tag.StaticTearOff);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.targetReference);
+  }
+
+  @override
   void visitStaticSet(StaticSet node) {
     writeByte(Tag.StaticSet);
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
     writeNode(node.value);
+  }
+
+  @override
+  void visitDynamicInvocation(DynamicInvocation node) {
+    writeByte(Tag.DynamicInvocation);
+    writeByte(node.kind.index);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+    writeArgumentsNode(node.arguments);
+  }
+
+  @override
+  void visitEqualsCall(EqualsCall node) {
+    writeByte(Tag.EqualsCall);
+    writeOffset(node.fileOffset);
+    writeNode(node.left);
+    writeNode(node.right);
+    writeByte(node.isNot ? 1 : 0);
+    writeDartType(node.functionType);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitEqualsNull(EqualsNull node) {
+    writeByte(Tag.EqualsNull);
+    writeOffset(node.fileOffset);
+    writeNode(node.expression);
+    writeByte(node.isNot ? 1 : 0);
+  }
+
+  @override
+  void visitFunctionInvocation(FunctionInvocation node) {
+    writeByte(Tag.FunctionInvocation);
+    writeByte(node.kind.index);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeArgumentsNode(node.arguments);
+    // `const DynamicType()` is used to encode a missing function type.
+    writeDartType(node.functionType ?? const DynamicType());
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    writeByte(Tag.InstanceInvocation);
+    writeByte(node.kind.index);
+    writeByte(node.flags);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+    writeArgumentsNode(node.arguments);
+    writeDartType(node.functionType);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    writeByte(Tag.LocalFunctionInvocation);
+    writeOffset(node.fileOffset);
+    int index = _getVariableIndex(node.variable);
+    writeUInt30(node.variable.binaryOffsetNoTag);
+    writeUInt30(index);
+    writeArgumentsNode(node.arguments);
+    writeDartType(node.functionType);
   }
 
   @override
@@ -2236,6 +2362,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByte(descriptor.flags);
       writeNonNullCanonicalNameReference(descriptor.member.canonicalName);
     }
+  }
+
+  @override
+  void visitFunctionTearOff(FunctionTearOff node) {
+    writeByte(Tag.FunctionTearOff);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
   }
 
   // ================================================================

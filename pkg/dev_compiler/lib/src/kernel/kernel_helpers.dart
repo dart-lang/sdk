@@ -190,8 +190,20 @@ List<Class> getImmediateSuperclasses(Class c) {
   return result;
 }
 
-Expression getInvocationReceiver(InvocationExpression node) =>
-    node is MethodInvocation ? node.receiver : null;
+Expression getInvocationReceiver(InvocationExpression node) {
+  if (node is MethodInvocation) {
+    return node.receiver;
+  } else if (node is InstanceInvocation) {
+    return node.receiver;
+  } else if (node is DynamicInvocation) {
+    return node.receiver;
+  } else if (node is FunctionInvocation) {
+    return node.receiver;
+  } else if (node is LocalFunctionInvocation) {
+    return VariableGet(node.variable);
+  }
+  return null;
+}
 
 bool isInlineJS(Member e) =>
     e is Procedure &&

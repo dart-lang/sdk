@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/none/property_set.dart:18:34: Error: Not a constant expression.
+//   const int set_instance_field = nonNullableClass1.field = 42;
+//                                  ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/none/property_set.dart:18:58: Error: Not a constant expression.
+//   const int set_instance_field = nonNullableClass1.field = 42;
+//                                                          ^
+//
+// pkg/front_end/testcases/none/property_set.dart:23:33: Error: Not a constant expression.
+//   const int set_dynamic_field = dyn.field = 42;
+//                                 ^^^
+//
+// pkg/front_end/testcases/none/property_set.dart:23:43: Error: Not a constant expression.
+//   const int set_dynamic_field = dyn.field = 42;
+//                                           ^
+//
+// pkg/front_end/testcases/none/property_set.dart:29:27: Error: Too few positional arguments: 1 required, 0 given.
+//   nonNullableClass1.method().field = 42;
+//                           ^
+//
+// pkg/front_end/testcases/none/property_set.dart:32:21: Error: The setter 'unresolved' isn't defined for the class 'Class1'.
+//  - 'Class1' is from 'pkg/front_end/testcases/none/property_set.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//   nonNullableClass1.unresolved = 42;
+//                     ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class1 extends core::Object {
+  field core::int field;
+  constructor •(core::int field) → self::Class1
+    : self::Class1::field = field, super core::Object::•()
+    ;
+  method method(dynamic o) → dynamic {}
+}
+static method test(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never) → dynamic {
+  core::print("InstanceSet");
+  nonNullableClass1.{self::Class1::field} = 42;
+  let final self::Class1? #t1 = nullableClass1 in #t1 == null ?{core::int?} null : #t1{self::Class1}.{self::Class1::field} = 42;
+  const core::int set_instance_field = invalid-expression "pkg/front_end/testcases/none/property_set.dart:18:58: Error: Not a constant expression.
+  const int set_instance_field = nonNullableClass1.field = 42;
+                                                         ^";
+  core::print("DynamicSet");
+  dyn{dynamic}.field = 42;
+  let final dynamic #t2 = dyn in #t2 == null ?{core::int?} null : #t2{dynamic}.field = 42;
+  const core::int set_dynamic_field = invalid-expression "pkg/front_end/testcases/none/property_set.dart:23:43: Error: Not a constant expression.
+  const int set_dynamic_field = dyn.field = 42;
+                                          ^";
+  core::print("DynamicSet (Never)");
+  (let final Never #t3 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.field = 42;
+  core::print("DynamicSet (Invalid)");
+  (let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/none/property_set.dart:29:27: Error: Too few positional arguments: 1 required, 0 given.
+  nonNullableClass1.method().field = 42;
+                          ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}){<invalid>}.field = 42;
+  core::print("DynamicSet (Unresolved)");
+  invalid-expression "pkg/front_end/testcases/none/property_set.dart:32:21: Error: The setter 'unresolved' isn't defined for the class 'Class1'.
+ - 'Class1' is from 'pkg/front_end/testcases/none/property_set.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+  nonNullableClass1.unresolved = 42;
+                    ^^^^^^^^^^";
+}
+static method main() → dynamic {}

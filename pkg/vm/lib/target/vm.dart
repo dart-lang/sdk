@@ -64,6 +64,9 @@ class VmTarget extends Target {
       !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
+  bool get supportsNewMethodInvocationEncoding => false;
+
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to

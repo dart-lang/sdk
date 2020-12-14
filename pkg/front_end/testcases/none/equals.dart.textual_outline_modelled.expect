@@ -1,0 +1,26 @@
+class Class<T> {
+  method(o) {}
+  operator ==(covariant Class<T> other) => true;
+}
+
+const Object? nullValue = null;
+main() {}
+nullEqualsIndexGet(Map<int, String> map) {}
+test<T1 extends Function, T2 extends int Function(int)>(
+    Object o,
+    Object nonNullableObject,
+    Object? nullableObject,
+    Class<String> nonNullableClass,
+    Class<String>? nullableClass,
+    dynamic dyn,
+    Never never,
+    Never? nullableNever,
+    Null nullTypedValue,
+    Function nonNullableFunction,
+    Function? nullableFunction,
+    int Function(int) nonNullableFunctionType,
+    int Function(int)? nullableFunctionType,
+    T1 nonNullableTypeVariable1,
+    T1? nullableTypeVariable1,
+    T2 nonNullableTypeVariable2,
+    T2? nullableTypeVariable2) {}

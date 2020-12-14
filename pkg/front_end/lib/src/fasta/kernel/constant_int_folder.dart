@@ -34,17 +34,17 @@ abstract class ConstantIntFolder {
   Constant makeIntConstant(int value, {bool unsigned: false});
 
   Constant foldUnaryOperator(
-      MethodInvocation node, String op, covariant Constant operand);
+      Expression node, String op, covariant Constant operand);
 
-  Constant foldBinaryOperator(MethodInvocation node, String op,
+  Constant foldBinaryOperator(Expression node, String op,
       covariant Constant left, covariant Constant right);
 
-  Constant truncatingDivide(MethodInvocation node, num left, num right);
+  Constant truncatingDivide(Expression node, num left, num right);
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
   AbortConstant _checkOperands(
-      MethodInvocation node, String op, num left, num right) {
+      Expression node, String op, num left, num right) {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
       return evaluator.createErrorConstant(node,
           templateConstEvalNegativeShift.withArguments(op, '$left', '$right'));
@@ -69,8 +69,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  Constant foldUnaryOperator(
-      MethodInvocation node, String op, IntConstant operand) {
+  Constant foldUnaryOperator(Expression node, String op, IntConstant operand) {
     switch (op) {
       case 'unary-':
         return new IntConstant(-operand.value);
@@ -85,7 +84,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
 
   @override
   Constant foldBinaryOperator(
-      MethodInvocation node, String op, IntConstant left, IntConstant right) {
+      Expression node, String op, IntConstant left, IntConstant right) {
     int a = left.value;
     int b = right.value;
     AbortConstant error = _checkOperands(node, op, a, b);
@@ -133,7 +132,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  Constant truncatingDivide(MethodInvocation node, num left, num right) {
+  Constant truncatingDivide(Expression node, num left, num right) {
     try {
       return new IntConstant(left ~/ right);
     } catch (e) {
@@ -174,7 +173,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
 
   @override
   Constant foldUnaryOperator(
-      MethodInvocation node, String op, DoubleConstant operand) {
+      Expression node, String op, DoubleConstant operand) {
     switch (op) {
       case 'unary-':
         return new DoubleConstant(-operand.value);
@@ -189,8 +188,8 @@ class JsConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  Constant foldBinaryOperator(MethodInvocation node, String op,
-      DoubleConstant left, DoubleConstant right) {
+  Constant foldBinaryOperator(
+      Expression node, String op, DoubleConstant left, DoubleConstant right) {
     double a = left.value;
     double b = right.value;
     AbortConstant error = _checkOperands(node, op, a, b);
@@ -244,7 +243,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  Constant truncatingDivide(MethodInvocation node, num left, num right) {
+  Constant truncatingDivide(Expression node, num left, num right) {
     double division = (left / right);
     if (division.isNaN || division.isInfinite) {
       return evaluator.createErrorConstant(node,

@@ -1,0 +1,9 @@
+class Class1 {
+  int field;
+  Class1(this.field);
+  method(o) {}
+}
+
+test(Class1 nonNullableClass1, Class1? nullableClass1, dynamic dyn,
+    Never never) {}
+main() {}

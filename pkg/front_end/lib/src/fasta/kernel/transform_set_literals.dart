@@ -6,26 +6,13 @@ library fasta.transform_set_literals;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        Block,
-        BlockExpression,
-        Expression,
-        ExpressionStatement,
-        InterfaceType,
-        Library,
-        MethodInvocation,
-        Name,
-        Procedure,
-        SetLiteral,
-        Statement,
-        StaticInvocation,
-        TreeNode,
-        VariableDeclaration,
-        VariableGet;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/src/legacy_erasure.dart' show legacyErasure;
+
+import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'package:kernel/visitor.dart' show Transformer;
 
@@ -38,6 +25,8 @@ class SetLiteralTransformer extends Transformer {
   final CoreTypes coreTypes;
   final Procedure setFactory;
   final Procedure addMethod;
+  FunctionType _addMethodFunctionType;
+  final bool useNewMethodInvocationEncoding;
 
   /// Library that contains the transformed nodes.
   ///
@@ -58,29 +47,45 @@ class SetLiteralTransformer extends Transformer {
   SetLiteralTransformer(SourceLoader loader)
       : coreTypes = loader.coreTypes,
         setFactory = _findSetFactory(loader.coreTypes),
-        addMethod = _findAddMethod(loader.coreTypes);
+        addMethod = _findAddMethod(loader.coreTypes),
+        useNewMethodInvocationEncoding =
+            loader.target.backendTarget.supportsNewMethodInvocationEncoding {
+    _addMethodFunctionType = addMethod.getterType;
+  }
 
   TreeNode visitSetLiteral(SetLiteral node) {
     if (node.isConst) return node;
 
     // Create the set: Set<E> setVar = new Set<E>();
+    DartType receiverType;
     VariableDeclaration setVar = new VariableDeclaration.forValue(
         new StaticInvocation(
             setFactory, new Arguments([], types: [node.typeArgument])),
-        type: new InterfaceType(coreTypes.setClass, _currentLibrary.nonNullable,
-            [node.typeArgument]));
+        type: receiverType = new InterfaceType(coreTypes.setClass,
+            _currentLibrary.nonNullable, [node.typeArgument]));
 
     // Now create a list of all statements needed.
     List<Statement> statements = [setVar];
     for (int i = 0; i < node.expressions.length; i++) {
       Expression entry = node.expressions[i].accept<TreeNode>(this);
-      MethodInvocation methodInvocation = new MethodInvocation(
-          new VariableGet(setVar),
-          new Name("add"),
-          new Arguments([entry]),
-          addMethod)
-        ..fileOffset = entry.fileOffset
-        ..isInvariant = true;
+      Expression methodInvocation;
+      if (useNewMethodInvocationEncoding) {
+        FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+            .substituteType(_addMethodFunctionType);
+        if (!_currentLibrary.isNonNullableByDefault) {
+          functionType = legacyErasure(functionType);
+        }
+        methodInvocation = new InstanceInvocation(InstanceAccessKind.Instance,
+            new VariableGet(setVar), new Name("add"), new Arguments([entry]),
+            functionType: functionType, interfaceTarget: addMethod)
+          ..fileOffset = entry.fileOffset
+          ..isInvariant = true;
+      } else {
+        methodInvocation = new MethodInvocation(new VariableGet(setVar),
+            new Name("add"), new Arguments([entry]), addMethod)
+          ..fileOffset = entry.fileOffset
+          ..isInvariant = true;
+      }
       statements.add(new ExpressionStatement(methodInvocation)
         ..fileOffset = methodInvocation.fileOffset);
     }

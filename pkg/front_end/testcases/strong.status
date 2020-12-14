@@ -175,7 +175,12 @@ nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
+none/equals: TypeCheckError
 none/mixin_covariant: TypeCheckError
+none/method_invocation: TypeCheckError
+none/operator: TypeCheckError
+none/property_get: TypeCheckError
+none/property_set: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

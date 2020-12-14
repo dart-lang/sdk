@@ -286,7 +286,11 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       internalProblem(
           messageInternalProblemAlreadyInitialized, charOffset, fileUri);
     }
-    _fieldEncoding.createBodies(coreTypes, initializer);
+    _fieldEncoding.createBodies(
+        coreTypes,
+        initializer,
+        library
+            .loader.target.backendTarget.supportsNewMethodInvocationEncoding);
   }
 
   @override
@@ -526,7 +530,8 @@ abstract class FieldEncoding {
   ///
   /// This method is not called for fields in outlines unless their are constant
   /// or part of a const constructor.
-  void createBodies(CoreTypes coreTypes, Expression initializer);
+  void createBodies(CoreTypes coreTypes, Expression initializer,
+      bool useNewMethodInvocationEncoding);
 
   List<Initializer> createInitializer(int fileOffset, Expression value,
       {bool isSynthetic});
@@ -605,7 +610,8 @@ class RegularFieldEncoding implements FieldEncoding {
   void completeSignature(CoreTypes coreTypes) {}
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression initializer) {
+  void createBodies(CoreTypes coreTypes, Expression initializer,
+      bool useNewMethodInvocationEncoding) {
     if (initializer != null) {
       _field.initializer = initializer..parent = _field;
     }
@@ -854,7 +860,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression initializer) {
+  void createBodies(CoreTypes coreTypes, Expression initializer,
+      bool useNewMethodInvocationEncoding) {
     assert(_type != null, "Type has not been computed for field $name.");
     if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
       _field.initializer = new StaticInvocation(coreTypes.createSentinelMethod,
@@ -870,11 +877,15 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..fileOffset = fileOffset
         ..parent = _lateIsSetField;
     }
-    _lateGetter.function.body = _createGetterBody(coreTypes, name, initializer)
+    _lateGetter.function.body = _createGetterBody(
+        coreTypes, name, initializer, useNewMethodInvocationEncoding)
       ..parent = _lateGetter.function;
     if (_lateSetter != null) {
       _lateSetter.function.body = _createSetterBody(
-          coreTypes, name, _lateSetter.function.positionalParameters.first)
+          coreTypes,
+          name,
+          _lateSetter.function.positionalParameters.first,
+          useNewMethodInvocationEncoding)
         ..parent = _lateSetter.function;
     }
   }
@@ -936,8 +947,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
   }
 
-  Statement _createGetterBody(
-      CoreTypes coreTypes, String name, Expression initializer);
+  Statement _createGetterBody(CoreTypes coreTypes, String name,
+      Expression initializer, bool useNewMethodInvocationEncoding);
 
   Procedure _createSetter(
       String name, Uri fileUri, int charOffset, Procedure referenceFrom,
@@ -960,8 +971,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..isNonNullableByDefault = true;
   }
 
-  Statement _createSetterBody(
-      CoreTypes coreTypes, String name, VariableDeclaration parameter);
+  Statement _createSetterBody(CoreTypes coreTypes, String name,
+      VariableDeclaration parameter, bool useNewMethodInvocationEncoding);
 
   @override
   DartType get type => _type;
@@ -1165,8 +1176,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
   @override
-  Statement _createSetterBody(
-      CoreTypes coreTypes, String name, VariableDeclaration parameter) {
+  Statement _createSetterBody(CoreTypes coreTypes, String name,
+      VariableDeclaration parameter, bool useNewMethodInvocationEncoding) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBody(
         coreTypes, fileOffset, name, parameter, _type,
@@ -1181,11 +1192,11 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
 
 mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   @override
-  Statement _createGetterBody(
-      CoreTypes coreTypes, String name, Expression initializer) {
+  Statement _createGetterBody(CoreTypes coreTypes, String name,
+      Expression initializer, bool useNewMethodInvocationEncoding) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterBodyWithoutInitializer(
-        coreTypes, fileOffset, name, type,
+        coreTypes, fileOffset, name, type, useNewMethodInvocationEncoding,
         createVariableRead: _createFieldRead,
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
         isSetEncoding: isSetEncoding,
@@ -1245,11 +1256,11 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
             isSetStrategy);
 
   @override
-  Statement _createGetterBody(
-      CoreTypes coreTypes, String name, Expression initializer) {
+  Statement _createGetterBody(CoreTypes coreTypes, String name,
+      Expression initializer, bool useNewMethodInvocationEncoding) {
     assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createGetterWithInitializer(
-        coreTypes, fileOffset, name, _type, initializer,
+    return late_lowering.createGetterWithInitializer(coreTypes, fileOffset,
+        name, _type, initializer, useNewMethodInvocationEncoding,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),
@@ -1286,11 +1297,11 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             isSetStrategy);
 
   @override
-  Statement _createSetterBody(
-      CoreTypes coreTypes, String name, VariableDeclaration parameter) {
+  Statement _createSetterBody(CoreTypes coreTypes, String name,
+      VariableDeclaration parameter, bool useNewMethodInvocationEncoding) {
     assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createSetterBodyFinal(
-        coreTypes, fileOffset, name, parameter, type,
+    return late_lowering.createSetterBodyFinal(coreTypes, fileOffset, name,
+        parameter, type, useNewMethodInvocationEncoding,
         shouldReturnValue: false,
         createVariableRead: () => _createFieldGet(_field),
         createVariableWrite: (Expression value) =>
@@ -1327,11 +1338,11 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
             isCovariant,
             isSetStrategy);
   @override
-  Statement _createGetterBody(
-      CoreTypes coreTypes, String name, Expression initializer) {
+  Statement _createGetterBody(CoreTypes coreTypes, String name,
+      Expression initializer, bool useNewMethodInvocationEncoding) {
     assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createGetterWithInitializerWithRecheck(
-        coreTypes, fileOffset, name, _type, initializer,
+    return late_lowering.createGetterWithInitializerWithRecheck(coreTypes,
+        fileOffset, name, _type, initializer, useNewMethodInvocationEncoding,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),
@@ -1349,8 +1360,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       null;
 
   @override
-  Statement _createSetterBody(
-          CoreTypes coreTypes, String name, VariableDeclaration parameter) =>
+  Statement _createSetterBody(CoreTypes coreTypes, String name,
+          VariableDeclaration parameter, bool useNewMethodInvocationEncoding) =>
       null;
 }
 
@@ -1571,7 +1582,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   void completeSignature(CoreTypes coreTypes) {}
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression initializer) {
+  void createBodies(CoreTypes coreTypes, Expression initializer,
+      bool useNewMethodInvocationEncoding) {
     //assert(initializer != null);
   }
 

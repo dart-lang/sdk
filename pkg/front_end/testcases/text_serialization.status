@@ -24,6 +24,8 @@ general/call: TypeCheckError
 general/callable_type_variable: TypeCheckError
 general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
+general/constants/with_unevaluated_agnostic/const_asserts: TextSerializationFailure
+general/constants/with_unevaluated_agnostic/various: TextSerializationFailure
 general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
@@ -138,6 +140,8 @@ general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError
 general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
+implicit_getter_calls/getter_call: TextSerializationFailure
+implicit_getter_calls/this_field_call: TextSerializationFailure
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError
@@ -173,7 +177,13 @@ nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
+none/equals: TypeCheckError
+none/method_invocation: TypeCheckError
 none/mixin_covariant: TypeCheckError
+none/operator: TypeCheckError
+none/property_get: TypeCheckError
+none/property_set: TypeCheckError
+none/tearoff_opt_out: TextSerializationFailure
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

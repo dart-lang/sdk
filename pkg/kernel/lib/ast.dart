@@ -3414,6 +3414,280 @@ class VariableSet extends Expression {
   }
 }
 
+enum DynamicAccessKind {
+  /// An access on a receiver of type dynamic.
+  ///
+  /// An access of this kind always results in a value of static type dynamic.
+  ///
+  /// Valid accesses to Object members on receivers of type dynamic are encoded
+  /// as an [InstanceInvocation] of kind [InstanceAccessKind.Object].
+  Dynamic,
+
+  /// An access on a receiver of type Never.
+  ///
+  /// An access of this kind always results in a value of static type Never.
+  ///
+  /// Valid accesses to Object members on receivers of type Never are also
+  /// encoded as [DynamicInvocation] of kind [DynamicAccessKind.Never] and _not_
+  /// as an [InstanceInvocation] of kind [InstanceAccessKind.Object].
+  Never,
+
+  /// An access on a receiver of an invalid type.
+  ///
+  /// An access of this kind always results in a value of an invalid static
+  /// type.
+  Invalid,
+
+  Unresolved,
+}
+
+class DynamicGet extends Expression {
+  final DynamicAccessKind kind;
+  Expression receiver;
+  Name name;
+
+  DynamicGet(this.kind, this.receiver, this.name) {
+    receiver?.parent = this;
+  }
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDynamicGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDynamicGet(this, arg);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    switch (kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return const NeverType(Nullability.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
+    return const DynamicType();
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "DynamicGet($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+  }
+}
+
+/// An property read of an instance getter or field with a statically known
+/// interface target.
+class InstanceGet extends Expression {
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+
+  /// The static type of result of the property read.
+  ///
+  /// This includes substituted type parameters from the static receiver type.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      T get t;
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.t; // The result type is `String`.
+  ///    }
+  ///
+  DartType resultType;
+
+  Reference interfaceTargetReference;
+
+  InstanceGet(InstanceAccessKind kind, Expression receiver, Name name,
+      {Member interfaceTarget, DartType resultType})
+      : this.byReference(kind, receiver, name,
+            interfaceTargetReference: getMemberReferenceGetter(interfaceTarget),
+            resultType: resultType);
+
+  InstanceGet.byReference(this.kind, this.receiver, this.name,
+      {this.interfaceTargetReference, this.resultType})
+      : assert(interfaceTargetReference != null),
+        assert(resultType != null) {
+    receiver?.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReferenceSetter(member);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceGet(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceGet($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+  }
+}
+
+/// A tear-off of the 'call' method on an expression whose static type is
+/// a function type or the type 'Function'.
+class FunctionTearOff extends Expression {
+  Expression receiver;
+
+  FunctionTearOff(this.receiver) {
+    receiver?.parent = this;
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      receiver.getStaticType(context);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionTearOff(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitFunctionTearOff(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "FunctionTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(Name.callName);
+  }
+}
+
+/// A tear-off of an instance method with a statically known interface target.
+class InstanceTearOff extends Expression {
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+
+  /// The static type of result of the tear-off.
+  ///
+  /// This includes substituted type parameters from the static receiver type.
+  ///
+  /// For instance
+  ///
+  ///    class A<T, S> {
+  ///      T method<U>(S s, U u) { ... }
+  ///    }
+  ///    m(A<String, int> a) {
+  ///      a.method; // The result type is `String Function<U>(int, U)`.
+  ///    }
+  ///
+  DartType resultType;
+
+  Reference interfaceTargetReference;
+
+  InstanceTearOff(InstanceAccessKind kind, Expression receiver, Name name,
+      {Procedure interfaceTarget, DartType resultType})
+      : this.byReference(kind, receiver, name,
+            interfaceTargetReference: getMemberReferenceGetter(interfaceTarget),
+            resultType: resultType);
+
+  InstanceTearOff.byReference(this.kind, this.receiver, this.name,
+      {this.interfaceTargetReference, this.resultType}) {
+    receiver?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReferenceSetter(member);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceTearOff(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceTearOff(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceTearOff($kind, ${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+  }
+}
+
 /// Expression of form `x.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
@@ -3438,7 +3712,6 @@ class PropertyGet extends Expression {
     interfaceTargetReference = getMemberReferenceGetter(member);
   }
 
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     Member interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
@@ -3489,6 +3762,128 @@ class PropertyGet extends Expression {
   }
 }
 
+class DynamicSet extends Expression {
+  final DynamicAccessKind kind;
+  Expression receiver;
+  Name name;
+  Expression value;
+
+  DynamicSet(this.kind, this.receiver, this.name, this.value) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      value.getStaticType(context);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDynamicSet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDynamicSet(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "DynamicSet($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+}
+
+/// An property write of an instance setter or field with a statically known
+/// interface target.
+class InstanceSet extends Expression {
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+  Expression value;
+
+  Reference interfaceTargetReference;
+
+  InstanceSet(
+      InstanceAccessKind kind, Expression receiver, Name name, Expression value,
+      {Member interfaceTarget})
+      : this.byReference(kind, receiver, name, value,
+            interfaceTargetReference:
+                getMemberReferenceSetter(interfaceTarget));
+
+  InstanceSet.byReference(this.kind, this.receiver, this.name, this.value,
+      {this.interfaceTargetReference})
+      : assert(interfaceTargetReference != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReferenceSetter(member);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      value.getStaticType(context);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceSet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceSet(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+}
+
 /// Expression of form `x.field = value`.
 ///
 /// This may invoke a setter or assign a field.
@@ -3518,10 +3913,6 @@ class PropertySet extends Expression {
     interfaceTargetReference = getMemberReferenceSetter(member);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
@@ -3648,10 +4039,6 @@ class SuperPropertySet extends Expression {
     interfaceTargetReference = getMemberReferenceSetter(member);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
@@ -3701,10 +4088,6 @@ class StaticGet extends Expression {
     targetReference = getMemberReferenceGetter(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       target.getterType;
 
@@ -3721,6 +4104,45 @@ class StaticGet extends Expression {
   @override
   String toString() {
     return "StaticGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
+  }
+}
+
+/// Tear-off of a static method.
+class StaticTearOff extends Expression {
+  Reference targetReference;
+
+  StaticTearOff(Procedure target)
+      : this.byReference(getMemberReferenceGetter(target));
+
+  StaticTearOff.byReference(this.targetReference);
+
+  Procedure get target => targetReference?.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getMemberReferenceGetter(target);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      target.getterType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitStaticTearOff(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitStaticTearOff(this, arg);
+
+  visitChildren(Visitor v) {
+    target?.acceptReference(v);
+  }
+
+  transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "StaticTearOff(${toStringInternal()})";
   }
 
   @override
@@ -3750,10 +4172,6 @@ class StaticSet extends Expression {
     targetReference = getMemberReferenceSetter(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
@@ -3916,12 +4334,572 @@ class NamedExpression extends TreeNode {
 /// [SuperMethodInvocation], [StaticInvocation], and [ConstructorInvocation].
 abstract class InvocationExpression extends Expression {
   Arguments get arguments;
-  set arguments(Arguments value);
+  void set arguments(Arguments value);
 
   /// Name of the invoked method.
   ///
   /// May be `null` if the target is a synthetic static member without a name.
   Name get name;
+}
+
+class DynamicInvocation extends InvocationExpression {
+  final DynamicAccessKind kind;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+
+  DynamicInvocation(this.kind, this.receiver, this.name, this.arguments) {
+    receiver?.parent = this;
+    arguments?.parent = this;
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    switch (kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return const NeverType(Nullability.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
+    return const DynamicType();
+  }
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDynamicInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDynamicInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "DynamicInvocation($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// Access kind used by [InstanceInvocation], [InstanceGet], [InstanceSet],
+/// and [InstanceTearOff].
+enum InstanceAccessKind {
+  /// An access to a member on a static receiver type which is an interface
+  /// type.
+  ///
+  /// In null safe libraries the static receiver type is non-nullable.
+  ///
+  /// For instance:
+  ///
+  ///     class C { void method() {} }
+  ///     main() => new C().method();
+  ///
+  Instance,
+
+  /// An access to a member defined on Object on a static receiver type that
+  /// is either a non-interface type or a nullable type.
+  ///
+  /// For instance:
+  ///
+  ///     test1(String? s) => s.toString();
+  ///     test1(dynamic s) => s.hashCode;
+  ///
+  Object,
+
+  /// An access to a method on a static receiver type which is an interface
+  /// type which is inapplicable, that is, whose arguments don't match the
+  /// required parameter structure.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     class C { void method() {} }
+  ///     main() => new C().method(0); // Too many arguments.
+  ///
+  Inapplicable,
+
+  /// An access to a non-Object member on a static receiver type which is a
+  /// nullable interface type.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     class C { void method() {} }
+  ///     test(C? c) => c.method(0); // 'c' is nullable.
+  ///
+  Nullable,
+}
+
+/// An invocation of an instance method with a statically known interface
+/// target.
+class InstanceInvocation extends InvocationExpression {
+  // Must match serialized bit positions.
+  static const int FlagInvariant = 1 << 0;
+  static const int FlagBoundsSafe = 1 << 1;
+
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+  int flags = 0;
+
+  /// The static type of the invocation.
+  ///
+  /// This includes substituted type parameters from the static receiver type
+  /// and generic type arguments.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      Map<T, S> map<S>(S s) { ... }
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.map(0); // The function type is `Map<String, int> Function(int)`.
+  ///    }
+  ///
+  FunctionType functionType;
+
+  Reference interfaceTargetReference;
+
+  InstanceInvocation(InstanceAccessKind kind, Expression receiver, Name name,
+      Arguments arguments, {Member interfaceTarget, FunctionType functionType})
+      : this.byReference(kind, receiver, name, arguments,
+            interfaceTargetReference: getMemberReferenceGetter(interfaceTarget),
+            functionType: functionType);
+
+  InstanceInvocation.byReference(
+      this.kind, this.receiver, this.name, this.arguments,
+      {this.interfaceTargetReference, this.functionType})
+      : assert(interfaceTargetReference != null),
+        assert(functionType != null),
+        assert(functionType.typeParameters.isEmpty) {
+    receiver?.parent = this;
+    arguments?.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member target) {
+    interfaceTargetReference = getMemberReferenceGetter(target);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List<int> list = <int>[];
+  ///     list.add(0);
+  ///
+  /// where the `list` variable is known to hold a value of the same type as
+  /// the static type. In contrast the would not be the case in code patterns
+  /// like this
+  ///
+  ///     List<num> list = <double>[];
+  ///     list.add(0); // Runtime error `int` is not a subtype of `double`.
+  ///
+  bool get isInvariant => flags & FlagInvariant != 0;
+
+  void set isInvariant(bool value) {
+    flags = value ? (flags | FlagInvariant) : (flags & ~FlagInvariant);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List list = new List.filled(2, 0);
+  ///     list[1] = 42;
+  ///
+  /// where the `list` is known to have a sufficient length for the update
+  /// in `list[1] = 42`.
+  bool get isBoundsSafe => flags & FlagBoundsSafe != 0;
+
+  void set isBoundsSafe(bool value) {
+    flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType.returnType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceInvocation($kind, ${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// Access kind used by [FunctionInvocation] and [FunctionTearOff].
+enum FunctionAccessKind {
+  /// An access to the 'call' method on an expression of static type `Function`.
+  ///
+  /// For instance
+  ///
+  ///     method(Function f) => f();
+  ///
+  Function,
+
+  /// An access to the 'call' method on an expression whose static type is a
+  /// function type.
+  ///
+  /// For instance
+  ///
+  ///     method(void Function() f) => f();
+  ///
+  FunctionType,
+
+  /// An access to the 'call' method on an expression whose static type is a
+  /// function type which is inapplicable, that is, whose arguments don't match
+  /// the required parameter structure.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     test(void Function() f) => f(0); // Too many arguments.
+  ///
+  Inapplicable,
+
+  /// An access to the 'call' method on an expression whose static type is a
+  /// nullable function type or `Function?`.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     test(void Function()? f) => f(); // 'f' is nullable.
+  ///
+  Nullable,
+}
+
+/// An invocation of the 'call' method on an expression whose static type is
+/// a function type or the type 'Function'.
+class FunctionInvocation extends InvocationExpression {
+  final FunctionAccessKind kind;
+
+  Expression receiver;
+
+  Arguments arguments;
+
+  /// The static type of the invocation.
+  ///
+  /// This is `null` if the static type of the receiver is not a function type
+  /// or is not bounded by a function type.
+  ///
+  /// For instance
+  ///
+  ///    m<T extends Function, S extends int Function()>(T t, S s, Function f) {
+  ///      X local<X>(X t) => t;
+  ///      t(); // The function type is `null`.
+  ///      s(); // The function type is `int Function()`.
+  ///      f(); // The function type is `null`.
+  ///      local(0); // The function type is `int Function(int)`.
+  ///    }
+  ///
+  FunctionType functionType;
+
+  FunctionInvocation(this.kind, this.receiver, this.arguments,
+      {this.functionType}) {
+    receiver?.parent = this;
+    arguments?.parent = this;
+  }
+
+  Name get name => Name.callName;
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType?.returnType ?? const DynamicType();
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitFunctionInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "FunctionInvocation(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// An invocation of a local function declaration.
+class LocalFunctionInvocation extends InvocationExpression {
+  /// The variable declaration for the function declaration.
+  VariableDeclaration variable;
+  Arguments arguments;
+
+  /// The static type of the invocation.
+  ///
+  /// This might differ from the static type of [variable] for generic
+  /// functions.
+  ///
+  /// For instance
+  ///
+  ///    m() {
+  ///      T local<T>(T t) => t;
+  ///      local(0); // The static type is `int Function(int)`.
+  ///    }
+  ///
+  FunctionType functionType;
+
+  LocalFunctionInvocation(this.variable, this.arguments, {this.functionType})
+      : assert(functionType != null) {
+    arguments?.parent = this;
+  }
+
+  Name get name => Name.callName;
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType.returnType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitLocalFunctionInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitLocalFunctionInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "LocalFunctionInvocation(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(printer.getVariableName(variable));
+    printer.writeArguments(arguments);
+  }
+}
+
+/// Nullness test of an expression, that is `e == null` or `e != null`.
+///
+/// This is generated for code like `e1 == e2` and `e1 != e2` where `e1` or `e2`
+/// is `null`.
+class EqualsNull extends Expression {
+  /// The expression tested for nullness.
+  Expression expression;
+
+  /// If `true` this is an `e != null` test. Otherwise it is an `e == null`
+  /// test.
+  final bool isNot;
+
+  EqualsNull(this.expression, {this.isNot}) : assert(isNot != null) {
+    expression?.parent = this;
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitEqualsNull(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitEqualsNull(this, arg);
+
+  visitChildren(Visitor v) {
+    expression?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "EqualsNull(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(expression, minimumPrecedence: precedence);
+    if (isNot) {
+      printer.write(' != null');
+    } else {
+      printer.write(' == null');
+    }
+  }
+}
+
+/// A test of equality, that is `e1 == e2` or `e1 != e2`.
+///
+/// This is generated for code like `e1 == e2` and `e1 != e2` where neither `e1`
+/// nor `e2` is `null`.
+class EqualsCall extends Expression {
+  Expression left;
+  Expression right;
+
+  /// The static type of the invocation.
+  ///
+  /// This might differ from the static type of [Object.==] for covariant
+  /// parameters.
+  ///
+  /// For instance
+  ///
+  ///    class C<T> {
+  ///      bool operator(covariant C<T> other) { ... }
+  ///    }
+  ///    // The function type is `bool Function(C<num>)`.
+  ///    method(C<num> a, C<int> b) => a == b;
+  ///
+  FunctionType functionType;
+
+  /// If `true` this is an `e1 != e2` test. Otherwise it is an `e1 == e2` test.
+  final bool isNot;
+
+  Reference interfaceTargetReference;
+
+  EqualsCall(Expression left, Expression right,
+      {bool isNot, FunctionType functionType, Procedure interfaceTarget})
+      : this.byReference(left, right,
+            isNot: isNot,
+            functionType: functionType,
+            interfaceTargetReference:
+                getMemberReferenceGetter(interfaceTarget));
+
+  EqualsCall.byReference(this.left, this.right,
+      {this.isNot, this.functionType, this.interfaceTargetReference})
+      : assert(isNot != null) {
+    left?.parent = this;
+    right?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+
+  void set interfaceTarget(Procedure target) {
+    interfaceTargetReference = getMemberReferenceGetter(target);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return functionType?.returnType ??
+        context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
+  }
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitEqualsCall(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitEqualsCall(this, arg);
+
+  visitChildren(Visitor v) {
+    left?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    right?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "EqualsCall(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    int minimumPrecedence = precedence;
+    printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
+    if (isNot) {
+      printer.write(' != ');
+    } else {
+      printer.write(' == ');
+    }
+    printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
+  }
 }
 
 /// Expression of form `x.foo(y)`.
@@ -7429,6 +8407,12 @@ abstract class Name extends Node {
   void toTextInternal(AstPrinter printer) {
     printer.writeName(this);
   }
+
+  /// The name of the `call` method on a function.
+  static final Name callName = new _PublicName('call');
+
+  /// The name of the `==` operator.
+  static final Name equalsName = new _PublicName('==');
 }
 
 class _PrivateName extends Name {

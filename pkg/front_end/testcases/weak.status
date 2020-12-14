@@ -72,7 +72,12 @@ nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 nnbd_mixed/super_access/main: Crash # Issue 43864
 nnbd_mixed/super_access/main.no_link: Crash # Issue 43864
+none/equals: TypeCheckError
+none/method_invocation: TypeCheckError
 none/mixin_covariant: TypeCheckError
+none/operator: TypeCheckError
+none/property_get: TypeCheckError
+none/property_set: TypeCheckError
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected

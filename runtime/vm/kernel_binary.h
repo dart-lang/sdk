@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 52;
-static const uint32_t kMaxSupportedKernelFormatVersion = 52;
+static const uint32_t kMinSupportedKernelFormatVersion = 53;
+static const uint32_t kMaxSupportedKernelFormatVersion = 53;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -42,6 +42,9 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 52;
   V(AssertInitializer, 12)                                                     \
   V(CheckLibraryIsLoaded, 13)                                                  \
   V(LoadLibrary, 14)                                                           \
+  V(EqualsNull, 15)                                                            \
+  V(EqualsCall, 16)                                                            \
+  V(StaticTearOff, 17)                                                         \
   V(ConstStaticInvocation, 18)                                                 \
   V(InvalidExpression, 19)                                                     \
   V(VariableGet, 20)                                                           \
@@ -126,6 +129,16 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 52;
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
   V(ConstantExpression, 106)                                                   \
+  V(InstanceGet, 118)                                                          \
+  V(InstanceSet, 119)                                                          \
+  V(InstanceInvocation, 120)                                                   \
+  V(InstanceTearOff, 121)                                                      \
+  V(DynamicGet, 122)                                                           \
+  V(DynamicSet, 123)                                                           \
+  V(DynamicInvocation, 124)                                                    \
+  V(FunctionInvocation, 125)                                                   \
+  V(FunctionTearOff, 126)                                                      \
+  V(LocalFunctionInvocation, 127)                                              \
   V(SpecializedVariableGet, 128)                                               \
   V(SpecializedVariableSet, 136)                                               \
   V(SpecializedIntLiteral, 144)

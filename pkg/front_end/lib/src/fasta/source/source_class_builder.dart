@@ -811,9 +811,19 @@ class SourceClassBuilder extends ClassBuilderImpl
         new Arguments.forwarded(procedure.function, library.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
-    Expression result = new MethodInvocation(new ThisExpression(),
-        noSuchMethodName, new Arguments([invocation]), noSuchMethodInterface)
-      ..fileOffset = procedure.fileOffset;
+    Expression result;
+    if (library
+        .loader.target.backendTarget.supportsNewMethodInvocationEncoding) {
+      result = new InstanceInvocation(InstanceAccessKind.Instance,
+          new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
+          functionType: noSuchMethodInterface.getterType,
+          interfaceTarget: noSuchMethodInterface)
+        ..fileOffset = procedure.fileOffset;
+    } else {
+      result = new MethodInvocation(new ThisExpression(), noSuchMethodName,
+          new Arguments([invocation]), noSuchMethodInterface)
+        ..fileOffset = procedure.fileOffset;
+    }
     if (procedure.function.returnType is! VoidType) {
       result = new AsExpression(result, procedure.function.returnType)
         ..isTypeError = true

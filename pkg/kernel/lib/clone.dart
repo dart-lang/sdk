@@ -615,6 +615,91 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   visitTypedef(Typedef node) {
     return defaultTreeNode(node);
   }
+
+  @override
+  TreeNode visitDynamicGet(DynamicGet node) {
+    return new DynamicGet(node.kind, clone(node.receiver), node.name);
+  }
+
+  @override
+  TreeNode visitDynamicInvocation(DynamicInvocation node) {
+    return new DynamicInvocation(
+        node.kind, clone(node.receiver), node.name, clone(node.arguments));
+  }
+
+  @override
+  TreeNode visitDynamicSet(DynamicSet node) {
+    return new DynamicSet(
+        node.kind, clone(node.receiver), node.name, clone(node.value));
+  }
+
+  @override
+  TreeNode visitEqualsCall(EqualsCall node) {
+    return new EqualsCall.byReference(clone(node.left), clone(node.right),
+        isNot: node.isNot,
+        functionType: visitOptionalType(node.functionType),
+        interfaceTargetReference: node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitEqualsNull(EqualsNull node) {
+    return new EqualsNull(clone(node.expression), isNot: node.isNot);
+  }
+
+  @override
+  TreeNode visitFunctionInvocation(FunctionInvocation node) {
+    return new FunctionInvocation(
+        node.kind, clone(node.receiver), clone(node.arguments),
+        functionType: visitOptionalType(node.functionType));
+  }
+
+  @override
+  TreeNode visitInstanceGet(InstanceGet node) {
+    return new InstanceGet.byReference(
+        node.kind, clone(node.receiver), node.name,
+        resultType: visitOptionalType(node.resultType),
+        interfaceTargetReference: node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitInstanceInvocation(InstanceInvocation node) {
+    return new InstanceInvocation.byReference(
+        node.kind, clone(node.receiver), node.name, clone(node.arguments),
+        functionType: visitOptionalType(node.functionType),
+        interfaceTargetReference: node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitInstanceSet(InstanceSet node) {
+    return new InstanceSet.byReference(
+        node.kind, clone(node.receiver), node.name, clone(node.value),
+        interfaceTargetReference: node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitInstanceTearOff(InstanceTearOff node) {
+    return new InstanceTearOff.byReference(
+        node.kind, clone(node.receiver), node.name,
+        resultType: visitOptionalType(node.resultType),
+        interfaceTargetReference: node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    return new LocalFunctionInvocation(
+        variables[node.variable], clone(node.arguments),
+        functionType: visitOptionalType(node.functionType));
+  }
+
+  @override
+  TreeNode visitStaticTearOff(StaticTearOff node) {
+    return new StaticTearOff.byReference(node.targetReference);
+  }
+
+  @override
+  TreeNode visitFunctionTearOff(FunctionTearOff node) {
+    return new FunctionTearOff(clone(node.receiver));
+  }
 }
 
 /// Visitor that return a clone of a tree, maintaining references to cloned
