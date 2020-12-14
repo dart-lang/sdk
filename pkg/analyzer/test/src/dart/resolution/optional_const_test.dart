@@ -196,10 +196,10 @@ var v = a;
 ''');
     _fillLibraries();
 
-    PropertyAccessorElement vg = findNode.simple('a;').staticElement;
+    var vg = findNode.simple('a;').staticElement as PropertyAccessorElement;
     var v = vg.variable as ConstVariableElement;
 
-    InstanceCreationExpression creation = v.constantInitializer;
+    InstanceCreationExpression /*!*/ creation = v.constantInitializer;
     return creation;
   }
 }

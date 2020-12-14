@@ -148,7 +148,7 @@ G<int> g;
 
 typedef G<T> = T Function(double);
 ''');
-    FunctionType type = findElement.topVar('g').type;
+    var type = findElement.topVar('g').type as FunctionType;
     assertType(type, 'int Function(double)');
 
     var typedefG = findElement.functionTypeAlias('G');

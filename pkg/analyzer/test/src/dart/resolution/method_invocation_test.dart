@@ -1622,7 +1622,7 @@ main() {
     assertElement(foo.propertyName, import.class_('C').getGetter('foo'));
     assertType(foo.propertyName, 'double Function(int)');
 
-    PrefixedIdentifier target = foo.target;
+    var target = foo.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
@@ -1651,7 +1651,7 @@ main() {
       'void Function(int)',
     );
 
-    PrefixedIdentifier target = invocation.target;
+    var target = invocation.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
