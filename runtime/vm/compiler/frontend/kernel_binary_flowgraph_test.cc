@@ -247,4 +247,45 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
   EXPECT(String::Cast(store3->value()->BoundConstant()).Equals("cd"));
 }
 
+ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_InvariantFlagInListLiterals) {
+  const char* kScript = R"(
+    test() {
+      return [...[], 42];
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "test"));
+
+  Invoke(root_library, "test");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  InstanceCallInstr* call_add = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  // clang-format off
+  RELEASE_ASSERT(cursor.TryMatch({
+    kMatchAndMoveFunctionEntry,
+    kMatchAndMoveCheckStackOverflow,
+    kMoveDebugStepChecks,
+    kMatchAndMoveStaticCall,
+    kMatchAndMoveStaticCall,
+    {kMatchAndMoveInstanceCall, &call_add},
+    kMoveDebugStepChecks,
+    kMatchReturn,
+  }));
+  // clang-format on
+
+  EXPECT(call_add != nullptr);
+  EXPECT(call_add->function_name().Equals("add"));
+  EXPECT(call_add->entry_kind() == Code::EntryKind::kUnchecked);
+}
+
 }  // namespace dart

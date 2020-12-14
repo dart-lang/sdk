@@ -191,6 +191,12 @@ enum IsExpressionFlags {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
+enum MethodInvocationFlags {
+  kMethodInvocationFlagInvariant = 1 << 0,
+  kMethodInvocationFlagBoundsSafe = 1 << 1,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
 enum class NamedTypeFlags : uint8_t {
   kIsRequired = 1 << 0,
 };
