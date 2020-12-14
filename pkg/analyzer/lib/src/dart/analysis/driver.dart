@@ -41,6 +41,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:meta/meta.dart';
 
 /// TODO(scheglov) We could use generalized Function in
@@ -85,7 +86,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 117;
+  static const int DATA_VERSION = 118;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -147,7 +148,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _declaredVariablesSignatureLength);
 
   /// The salt to mix into all hashes used as keys for linked data.
-  final Uint32List _saltForResolution = Uint32List(2 +
+  final Uint32List _saltForResolution = Uint32List(3 +
       AnalysisOptionsImpl.signatureLength +
       _declaredVariablesSignatureLength);
 
@@ -1594,6 +1595,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     index++;
 
     _saltForResolution[index] = enableIndex ? 1 : 0;
+    index++;
+
+    _saltForResolution[index] = enableDebugResolutionMarkers ? 1 : 0;
     index++;
 
     _saltForResolution.setAll(index, _analysisOptions.signature);

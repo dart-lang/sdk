@@ -466,6 +466,10 @@ class ResolutionSink {
     }
   }
 
+  void writeUInt30(int value) {
+    _sink.writeUInt30(value);
+  }
+
   int _indexOfElement(Element element) {
     if (element == null) return 0;
     if (element is MultiplyDefinedElement) return 0;
