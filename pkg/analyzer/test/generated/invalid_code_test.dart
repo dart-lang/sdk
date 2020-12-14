@@ -395,6 +395,14 @@ var v = <T>();
 ''');
   }
 
+  test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
+    // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
+    // we parse it as FunctionExpressionInvocation.
+    await _assertCanBeAnalyzed(r'''
+var v = a?.8(b);
+''');
+  }
+
   test_inAnnotation_noFlow_labeledStatement() async {
     await _assertCanBeAnalyzed('''
 @A(() { label: })

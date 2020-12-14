@@ -1471,6 +1471,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.function?.accept(this);
     _functionExpressionInvocationResolver
         .resolve(node as FunctionExpressionInvocationImpl);
+    nullShortingTermination(node);
   }
 
   @override
