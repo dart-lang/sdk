@@ -32,7 +32,6 @@ const Code<
         bool isNonNullableByDefault)> codeAmbiguousExtensionMethod = const Code<
     Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
   "AmbiguousExtensionMethod",
-  templateAmbiguousExtensionMethod,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -72,7 +71,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "AmbiguousExtensionOperator",
-  templateAmbiguousExtensionOperator,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -112,7 +110,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "AmbiguousExtensionProperty",
-  templateAmbiguousExtensionProperty,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -148,8 +145,7 @@ const Code<
             bool isNonNullableByDefault)> codeAmbiguousSupertypes =
     const Code<
             Message Function(String name, DartType _type, DartType _type2,
-                bool isNonNullableByDefault)>(
-        "AmbiguousSupertypes", templateAmbiguousSupertypes,
+                bool isNonNullableByDefault)>("AmbiguousSupertypes",
         analyzerCodes: <String>["AMBIGUOUS_SUPERTYPES"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -186,7 +182,7 @@ const Code<
     codeArgumentTypeNotAssignable = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "ArgumentTypeNotAssignable", templateArgumentTypeNotAssignable,
+        "ArgumentTypeNotAssignable",
         analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -223,7 +219,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "ArgumentTypeNotAssignableNullability",
-        templateArgumentTypeNotAssignableNullability,
         analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -254,7 +249,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeArgumentTypeNotAssignableNullabilityNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
         "ArgumentTypeNotAssignableNullabilityNull",
-        templateArgumentTypeNotAssignableNullabilityNull,
         analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -290,7 +284,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "ArgumentTypeNotAssignableNullabilityNullType",
-        templateArgumentTypeNotAssignableNullabilityNullType,
         analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -327,7 +320,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
         "ArgumentTypeNotAssignablePartNullability",
-        templateArgumentTypeNotAssignablePartNullability,
         analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -372,7 +364,6 @@ const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalCaseImplementsEqual = const Code<
         Message Function(Constant _constant, bool isNonNullableByDefault)>(
   "ConstEvalCaseImplementsEqual",
-  templateConstEvalCaseImplementsEqual,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -401,7 +392,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalDuplicateElement = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalDuplicateElement", templateConstEvalDuplicateElement,
+        "ConstEvalDuplicateElement",
         analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -430,7 +421,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalDuplicateKey = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalDuplicateKey", templateConstEvalDuplicateKey,
+        "ConstEvalDuplicateKey",
         analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -460,7 +451,6 @@ const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalElementImplementsEqual = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
         "ConstEvalElementImplementsEqual",
-        templateConstEvalElementImplementsEqual,
         analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -489,7 +479,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeConstEvalFreeTypeParameter =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "ConstEvalFreeTypeParameter",
-  templateConstEvalFreeTypeParameter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -524,7 +513,6 @@ const Code<
         Message Function(String stringOKEmpty, Constant _constant,
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "ConstEvalInvalidBinaryOperandType",
-  templateConstEvalInvalidBinaryOperandType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -574,7 +562,6 @@ const Code<
         Message Function(
             Constant _constant, DartType _type, bool isNonNullableByDefault)>(
   "ConstEvalInvalidEqualsOperandType",
-  templateConstEvalInvalidEqualsOperandType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -611,7 +598,6 @@ const Code<
             Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         "ConstEvalInvalidMethodInvocation",
-        templateConstEvalInvalidMethodInvocation,
         analyzerCodes: <String>["UNDEFINED_OPERATOR"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -646,8 +632,7 @@ const Code<
             bool isNonNullableByDefault)> codeConstEvalInvalidPropertyGet =
     const Code<
             Message Function(String stringOKEmpty, Constant _constant,
-                bool isNonNullableByDefault)>(
-        "ConstEvalInvalidPropertyGet", templateConstEvalInvalidPropertyGet,
+                bool isNonNullableByDefault)>("ConstEvalInvalidPropertyGet",
         analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -681,7 +666,6 @@ const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalInvalidStringInterpolationOperand = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
         "ConstEvalInvalidStringInterpolationOperand",
-        templateConstEvalInvalidStringInterpolationOperand,
         analyzerCodes: <String>["CONST_EVAL_TYPE_BOOL_NUM_STRING"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -711,7 +695,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalInvalidSymbolName = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalInvalidSymbolName", templateConstEvalInvalidSymbolName,
+        "ConstEvalInvalidSymbolName",
         analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -748,7 +732,6 @@ const Code<
     Message Function(Constant _constant, DartType _type, DartType _type2,
         bool isNonNullableByDefault)>(
   "ConstEvalInvalidType",
-  templateConstEvalInvalidType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -781,7 +764,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalKeyImplementsEqual = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalKeyImplementsEqual", templateConstEvalKeyImplementsEqual,
+        "ConstEvalKeyImplementsEqual",
         analyzerCodes: <String>[
       "CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS"
     ]);
@@ -821,7 +804,7 @@ const Code<
     codeDeferredTypeAnnotation = const Code<
             Message Function(
                 DartType _type, String name, bool isNonNullableByDefault)>(
-        "DeferredTypeAnnotation", templateDeferredTypeAnnotation,
+        "DeferredTypeAnnotation",
         analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -858,7 +841,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "FfiDartTypeMismatch",
-  templateFfiDartTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -888,7 +870,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeFfiExpectedExceptionalReturn =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "FfiExpectedExceptionalReturn",
-  templateFfiExpectedExceptionalReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -917,7 +898,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeFfiExpectedNoExceptionalReturn =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "FfiExpectedNoExceptionalReturn",
-  templateFfiExpectedNoExceptionalReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -949,7 +929,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeFfiTypeInvalid =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "FfiTypeInvalid",
-  templateFfiTypeInvalid,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -986,7 +965,6 @@ const Code<
     Message Function(DartType _type, DartType _type2, DartType _type3,
         bool isNonNullableByDefault)>(
   "FfiTypeMismatch",
-  templateFfiTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1026,7 +1004,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "FieldNonNullableNotInitializedByConstructorError",
-  templateFieldNonNullableNotInitializedByConstructorError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1063,7 +1040,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "FieldNonNullableWithoutInitializerError",
-  templateFieldNonNullableWithoutInitializerError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1101,7 +1077,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "ForInLoopElementTypeNotAssignable",
-        templateForInLoopElementTypeNotAssignable,
         analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1141,7 +1116,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "ForInLoopElementTypeNotAssignableNullability",
-        templateForInLoopElementTypeNotAssignableNullability,
         analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1181,7 +1155,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
         "ForInLoopElementTypeNotAssignablePartNullability",
-        templateForInLoopElementTypeNotAssignablePartNullability,
         analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1231,7 +1204,7 @@ const Code<
     codeForInLoopTypeNotIterable = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "ForInLoopTypeNotIterable", templateForInLoopTypeNotIterable,
+        "ForInLoopTypeNotIterable",
         analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1268,7 +1241,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "ForInLoopTypeNotIterableNullability",
-        templateForInLoopTypeNotIterableNullability,
         analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1305,7 +1277,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
         "ForInLoopTypeNotIterablePartNullability",
-        templateForInLoopTypeNotIterablePartNullability,
         analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1352,7 +1323,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeGenericFunctionTypeInferredAsActualTypeArgument =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
         "GenericFunctionTypeInferredAsActualTypeArgument",
-        templateGenericFunctionTypeInferredAsActualTypeArgument,
         analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1383,7 +1353,7 @@ const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
 const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeImplicitCallOfNonMethod =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-        "ImplicitCallOfNonMethod", templateImplicitCallOfNonMethod,
+        "ImplicitCallOfNonMethod",
         analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1416,7 +1386,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeImplicitReturnNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "ImplicitReturnNull",
-  templateImplicitReturnNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1451,7 +1420,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "IncompatibleRedirecteeFunctionType",
-        templateIncompatibleRedirecteeFunctionType,
         analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1487,9 +1455,12 @@ const Code<
         Message Function(DartType _type, DartType _type2, String name,
             String name2, bool isNonNullableByDefault)>
     codeIncorrectTypeArgument = const Code<
-            Message Function(DartType _type, DartType _type2, String name,
-                String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgument", templateIncorrectTypeArgument,
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgument",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1538,7 +1509,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, String name,
                 String name2, bool isNonNullableByDefault)>(
         "IncorrectTypeArgumentInReturnType",
-        templateIncorrectTypeArgumentInReturnType,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1610,7 +1580,7 @@ const Code<
                 String name3,
                 String name4,
                 bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInSupertype", templateIncorrectTypeArgumentInSupertype,
+        "IncorrectTypeArgumentInSupertype",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1695,7 +1665,7 @@ const Code<
                 String name3,
                 String name4,
                 bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInSupertypeInferred", templateIncorrectTypeArgumentInSupertypeInferred,
+        "IncorrectTypeArgumentInSupertypeInferred",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1754,9 +1724,12 @@ const Code<
         Message Function(DartType _type, DartType _type2, String name,
             String name2, bool isNonNullableByDefault)>
     codeIncorrectTypeArgumentInferred = const Code<
-            Message Function(DartType _type, DartType _type2, String name,
-                String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInferred", templateIncorrectTypeArgumentInferred,
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgumentInferred",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1802,10 +1775,13 @@ const Code<
         Message Function(DartType _type, DartType _type2, String name,
             DartType _type3, String name2, bool isNonNullableByDefault)>
     codeIncorrectTypeArgumentQualified = const Code<
-            Message Function(DartType _type, DartType _type2, String name,
-                DartType _type3, String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentQualified",
-        templateIncorrectTypeArgumentQualified,
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                DartType _type3,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgumentQualified",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1861,7 +1837,7 @@ const Code<
     codeIncorrectTypeArgumentQualifiedInferred = const Code<
             Message Function(DartType _type, DartType _type2, String name,
                 DartType _type3, String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentQualifiedInferred", templateIncorrectTypeArgumentQualifiedInferred,
+        "IncorrectTypeArgumentQualifiedInferred",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1917,7 +1893,6 @@ const Code<
     const Code<
             Message Function(String name, DartType _type, DartType _type2,
                 bool isNonNullableByDefault)>("InitializingFormalTypeMismatch",
-        templateInitializingFormalTypeMismatch,
         analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1957,7 +1932,6 @@ const Code<
             Message Function(
                 String string, DartType _type, bool isNonNullableByDefault)>(
         "InternalProblemUnsupportedNullability",
-        templateInternalProblemUnsupportedNullability,
         severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1992,7 +1966,7 @@ const Code<
     codeInvalidAssignmentError = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidAssignmentError", templateInvalidAssignmentError,
+        "InvalidAssignmentError",
         analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2029,7 +2003,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "InvalidAssignmentErrorNullability",
-        templateInvalidAssignmentErrorNullability,
         analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2060,7 +2033,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeInvalidAssignmentErrorNullabilityNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
         "InvalidAssignmentErrorNullabilityNull",
-        templateInvalidAssignmentErrorNullabilityNull,
         analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2095,7 +2067,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "InvalidAssignmentErrorNullabilityNullType",
-        templateInvalidAssignmentErrorNullabilityNullType,
         analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2132,7 +2103,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
         "InvalidAssignmentErrorPartNullability",
-        templateInvalidAssignmentErrorPartNullability,
         analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2185,7 +2155,7 @@ const Code<
     codeInvalidCastFunctionExpr = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastFunctionExpr", templateInvalidCastFunctionExpr,
+        "InvalidCastFunctionExpr",
         analyzerCodes: <String>["INVALID_CAST_FUNCTION_EXPR"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2229,7 +2199,7 @@ const Code<
     codeInvalidCastLiteralList = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLiteralList", templateInvalidCastLiteralList,
+        "InvalidCastLiteralList",
         analyzerCodes: <String>["INVALID_CAST_LITERAL_LIST"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2273,7 +2243,7 @@ const Code<
     codeInvalidCastLiteralMap = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLiteralMap", templateInvalidCastLiteralMap,
+        "InvalidCastLiteralMap",
         analyzerCodes: <String>["INVALID_CAST_LITERAL_MAP"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2317,7 +2287,7 @@ const Code<
     codeInvalidCastLiteralSet = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLiteralSet", templateInvalidCastLiteralSet,
+        "InvalidCastLiteralSet",
         analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2361,7 +2331,7 @@ const Code<
     codeInvalidCastLocalFunction = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLocalFunction", templateInvalidCastLocalFunction,
+        "InvalidCastLocalFunction",
         analyzerCodes: <String>["INVALID_CAST_FUNCTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2405,7 +2375,7 @@ const Code<
     codeInvalidCastNewExpr = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastNewExpr", templateInvalidCastNewExpr,
+        "InvalidCastNewExpr",
         analyzerCodes: <String>["INVALID_CAST_NEW_EXPR"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2446,7 +2416,7 @@ const Code<
     codeInvalidCastStaticMethod = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastStaticMethod", templateInvalidCastStaticMethod,
+        "InvalidCastStaticMethod",
         analyzerCodes: <String>["INVALID_CAST_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2485,7 +2455,7 @@ const Code<
     codeInvalidCastTopLevelFunction = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastTopLevelFunction", templateInvalidCastTopLevelFunction,
+        "InvalidCastTopLevelFunction",
         analyzerCodes: <String>["INVALID_CAST_FUNCTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2522,7 +2492,6 @@ const Code<
     Message Function(DartType _type, String name, DartType _type2, String name2,
         bool isNonNullableByDefault)>(
   "InvalidGetterSetterType",
-  templateInvalidGetterSetterType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2568,7 +2537,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeBothInheritedField",
-  templateInvalidGetterSetterTypeBothInheritedField,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2615,7 +2583,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeBothInheritedFieldLegacy",
-  templateInvalidGetterSetterTypeBothInheritedFieldLegacy,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2666,7 +2633,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeBothInheritedGetter",
-  templateInvalidGetterSetterTypeBothInheritedGetter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2713,7 +2679,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeBothInheritedGetterLegacy",
-  templateInvalidGetterSetterTypeBothInheritedGetterLegacy,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2763,7 +2728,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeFieldInherited",
-  templateInvalidGetterSetterTypeFieldInherited,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2810,7 +2774,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeFieldInheritedLegacy",
-  templateInvalidGetterSetterTypeFieldInheritedLegacy,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2860,7 +2823,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeGetterInherited",
-  templateInvalidGetterSetterTypeGetterInherited,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2907,7 +2869,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeGetterInheritedLegacy",
-  templateInvalidGetterSetterTypeGetterInheritedLegacy,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2957,7 +2918,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeLegacy",
-  templateInvalidGetterSetterTypeLegacy,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3004,7 +2964,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeSetterInheritedField",
-  templateInvalidGetterSetterTypeSetterInheritedField,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3055,7 +3014,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeSetterInheritedFieldLegacy",
-  templateInvalidGetterSetterTypeSetterInheritedFieldLegacy,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3106,7 +3064,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeSetterInheritedGetter",
-  templateInvalidGetterSetterTypeSetterInheritedGetter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3157,7 +3114,6 @@ const Code<
         Message Function(DartType _type, String name, DartType _type2,
             String name2, bool isNonNullableByDefault)>(
   "InvalidGetterSetterTypeSetterInheritedGetterLegacy",
-  templateInvalidGetterSetterTypeSetterInheritedGetterLegacy,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3209,7 +3165,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturn",
-  templateInvalidReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3248,7 +3203,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturnAsync",
-  templateInvalidReturnAsync,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3285,7 +3239,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturnAsyncNullability",
-  templateInvalidReturnAsyncNullability,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3316,7 +3269,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeInvalidReturnAsyncNullabilityNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "InvalidReturnAsyncNullabilityNull",
-  templateInvalidReturnAsyncNullabilityNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3351,7 +3303,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturnAsyncNullabilityNullType",
-  templateInvalidReturnAsyncNullabilityNullType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3388,7 +3339,6 @@ const Code<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             DartType _type4, bool isNonNullableByDefault)>(
   "InvalidReturnAsyncPartNullability",
-  templateInvalidReturnAsyncPartNullability,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3438,7 +3388,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturnNullability",
-  templateInvalidReturnNullability,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3469,7 +3418,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeInvalidReturnNullabilityNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "InvalidReturnNullabilityNull",
-  templateInvalidReturnNullabilityNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3504,7 +3452,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturnNullabilityNullType",
-  templateInvalidReturnNullabilityNullType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3541,7 +3488,6 @@ const Code<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             DartType _type4, bool isNonNullableByDefault)>(
   "InvalidReturnPartNullability",
-  templateInvalidReturnPartNullability,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3591,7 +3537,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "MainWrongParameterType",
-  templateMainWrongParameterType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3628,7 +3573,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "MainWrongParameterTypeExported",
-  templateMainWrongParameterTypeExported,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3665,7 +3609,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 bool isNonNullableByDefault)>(
         "MixinApplicationIncompatibleSupertype",
-        templateMixinApplicationIncompatibleSupertype,
         analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3703,8 +3646,7 @@ const Code<
             bool isNonNullableByDefault)> codeMixinInferenceNoMatchingClass =
     const Code<
             Message Function(String name, String name2, DartType _type,
-                bool isNonNullableByDefault)>(
-        "MixinInferenceNoMatchingClass", templateMixinInferenceNoMatchingClass,
+                bool isNonNullableByDefault)>("MixinInferenceNoMatchingClass",
         analyzerCodes: <String>["MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3736,7 +3678,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeNonNullAwareSpreadIsNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "NonNullAwareSpreadIsNull",
-  templateNonNullAwareSpreadIsNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3769,7 +3710,7 @@ const Code<
     codeNonNullableInNullAware = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "NonNullableInNullAware", templateNonNullableInNullAware,
+        "NonNullableInNullAware",
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3801,7 +3742,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeNullableExpressionCallError =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "NullableExpressionCallError",
-  templateNullableExpressionCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3836,7 +3776,6 @@ const Code<
         bool isNonNullableByDefault)> codeNullableMethodCallError = const Code<
     Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
   "NullableMethodCallError",
-  templateNullableMethodCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3874,7 +3813,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "NullableOperatorCallError",
-  templateNullableOperatorCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3912,7 +3850,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "NullablePropertyAccessError",
-  templateNullablePropertyAccessError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3953,7 +3890,6 @@ const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
         "OptionalNonNullableWithoutInitializerError",
-        templateOptionalNonNullableWithoutInitializerError,
         analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3990,9 +3926,13 @@ const Code<
         Message Function(String name, String name2, DartType _type,
             DartType _type2, String name3, bool isNonNullableByDefault)>
     codeOverrideTypeMismatchParameter = const Code<
-            Message Function(String name, String name2, DartType _type,
-                DartType _type2, String name3, bool isNonNullableByDefault)>(
-        "OverrideTypeMismatchParameter", templateOverrideTypeMismatchParameter,
+            Message Function(
+                String name,
+                String name2,
+                DartType _type,
+                DartType _type2,
+                String name3,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchParameter",
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4045,10 +3985,12 @@ const Code<
         Message Function(String name, DartType _type, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     codeOverrideTypeMismatchReturnType = const Code<
-            Message Function(String name, DartType _type, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
-        "OverrideTypeMismatchReturnType",
-        templateOverrideTypeMismatchReturnType,
+            Message Function(
+                String name,
+                DartType _type,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchReturnType",
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4096,9 +4038,12 @@ const Code<
         Message Function(String name, DartType _type, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     codeOverrideTypeMismatchSetter = const Code<
-            Message Function(String name, DartType _type, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
-        "OverrideTypeMismatchSetter", templateOverrideTypeMismatchSetter,
+            Message Function(
+                String name,
+                DartType _type,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchSetter",
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4144,7 +4089,6 @@ const Code<
         Message Function(DartType _type, String name, String name2,
             DartType _type2, String name3, bool isNonNullableByDefault)>(
   "OverrideTypeVariablesBoundMismatch",
-  templateOverrideTypeVariablesBoundMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4199,7 +4143,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "RedirectingFactoryIncompatibleTypeArgument",
-        templateRedirectingFactoryIncompatibleTypeArgument,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4235,7 +4178,7 @@ const Code<
     codeSpreadElementTypeMismatch = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "SpreadElementTypeMismatch", templateSpreadElementTypeMismatch,
+        "SpreadElementTypeMismatch",
         analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4272,7 +4215,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "SpreadElementTypeMismatchNullability",
-        templateSpreadElementTypeMismatchNullability,
         analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4309,7 +4251,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
         "SpreadElementTypeMismatchPartNullability",
-        templateSpreadElementTypeMismatchPartNullability,
         analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4359,7 +4300,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementKeyTypeMismatch",
-        templateSpreadMapEntryElementKeyTypeMismatch,
         analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4397,7 +4337,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementKeyTypeMismatchNullability",
-        templateSpreadMapEntryElementKeyTypeMismatchNullability,
         analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4436,7 +4375,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementKeyTypeMismatchPartNullability",
-        templateSpreadMapEntryElementKeyTypeMismatchPartNullability,
         analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4486,7 +4424,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementValueTypeMismatch",
-        templateSpreadMapEntryElementValueTypeMismatch,
         analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4524,7 +4461,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementValueTypeMismatchNullability",
-        templateSpreadMapEntryElementValueTypeMismatchNullability,
         analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4563,7 +4499,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 DartType _type4, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementValueTypeMismatchPartNullability",
-        templateSpreadMapEntryElementValueTypeMismatchPartNullability,
         analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4607,7 +4542,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeSpreadMapEntryTypeMismatch =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "SpreadMapEntryTypeMismatch",
-  templateSpreadMapEntryTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4639,7 +4573,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeSpreadTypeMismatch =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "SpreadTypeMismatch",
-  templateSpreadTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4673,7 +4606,7 @@ const Code<
     codeSwitchExpressionNotAssignable = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "SwitchExpressionNotAssignable", templateSwitchExpressionNotAssignable,
+        "SwitchExpressionNotAssignable",
         analyzerCodes: <String>["SWITCH_EXPRESSION_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4710,7 +4643,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "SwitchExpressionNotSubtype",
-  templateSwitchExpressionNotSubtype,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4741,7 +4673,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeThrowingNotAssignableToObjectError =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "ThrowingNotAssignableToObjectError",
-  templateThrowingNotAssignableToObjectError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4779,7 +4710,7 @@ const Code<
     codeUndefinedGetter = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedGetter", templateUndefinedGetter,
+        "UndefinedGetter",
         analyzerCodes: <String>["UNDEFINED_GETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4821,7 +4752,7 @@ const Code<
     codeUndefinedMethod = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedMethod", templateUndefinedMethod,
+        "UndefinedMethod",
         analyzerCodes: <String>["UNDEFINED_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4863,7 +4794,7 @@ const Code<
     codeUndefinedOperator = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedOperator", templateUndefinedOperator,
+        "UndefinedOperator",
         analyzerCodes: <String>["UNDEFINED_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4905,7 +4836,7 @@ const Code<
     codeUndefinedSetter = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedSetter", templateUndefinedSetter,
+        "UndefinedSetter",
         analyzerCodes: <String>["UNDEFINED_SETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

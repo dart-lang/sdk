@@ -92,8 +92,7 @@ abstract class StackListener extends Listener {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-            new Message(const Code<String>('Internal error', null),
-                message: message),
+            new Message(const Code<String>('Internal error'), message: message),
             token.charOffset,
             uri);
       } else {
@@ -195,8 +194,7 @@ abstract class StackListener extends Listener {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-            new Message(const Code<String>('Internal error', null),
-                message: message),
+            new Message(const Code<String>('Internal error'), message: message),
             token.charOffset,
             uri);
       } else {

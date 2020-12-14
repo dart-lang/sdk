@@ -467,7 +467,7 @@ const Template<Message Function(${parameters.join(', ')})> template$name =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(${parameters.join(', ')})> code$name =
     const Code<Message Function(${parameters.join(', ')})>(
-        \"$name\", template$name, ${codeArguments.join(', ')});
+        \"$name\", ${codeArguments.join(', ')});
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArguments$name(${parameters.join(', ')}) {

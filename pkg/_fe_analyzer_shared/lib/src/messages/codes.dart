@@ -26,13 +26,11 @@ class Code<T> {
   /// this error to its corresponding Analyzer error.
   final int index;
 
-  final Template<T>? template;
-
   final List<String>? analyzerCodes;
 
   final Severity severity;
 
-  const Code(this.name, this.template,
+  const Code(this.name,
       {this.index: -1, this.analyzerCodes, this.severity: Severity.error});
 
   String toString() => name;
@@ -74,7 +72,7 @@ class MessageCode extends Code<Null> implements Message {
       Severity severity: Severity.error,
       required this.message,
       this.tip})
-      : super(name, null,
+      : super(name,
             index: index, analyzerCodes: analyzerCodes, severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
