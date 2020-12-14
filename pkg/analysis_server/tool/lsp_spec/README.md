@@ -67,6 +67,7 @@ Below is a list of LSP methods and their implementation status.
 | workspace/symbol | ✅ | ✅ | | ✅ | ✅ |
 | workspace/executeCommand | ✅ | ✅ | | ✅ | ✅ |
 | workspace/applyEdit | ✅ | ✅ | | ✅ | ✅ |
+| workspace/onWillRenameFiles | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/didOpen | ✅ | ✅ | ✅ | ✅ | ✅ |
 | textDocument/didChange | ✅ | ✅ | ✅ | ✅ | ✅ |
 | textDocument/willSave | | | | | |

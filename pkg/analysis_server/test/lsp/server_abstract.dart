@@ -199,11 +199,12 @@ mixin ClientCapabilitiesHelperMixin {
     return ClientCapabilitiesWorkspace.fromJson(json);
   }
 
-  TextDocumentClientCapabilities withAllSupportedDynamicRegistrations(
+  TextDocumentClientCapabilities
+      withAllSupportedTextDocumentDynamicRegistrations(
     TextDocumentClientCapabilities source,
   ) {
-    // This list should match all of the fields listed in
-    // `ClientDynamicRegistrations.supported`.
+    // This list (when combined with the workspace list) should match all of
+    // the fields listed in `ClientDynamicRegistrations.supported`.
     return extendTextDocumentCapabilities(source, {
       'synchronization': {'dynamicRegistration': true},
       'completion': {'dynamicRegistration': true},
@@ -221,6 +222,16 @@ mixin ClientCapabilitiesHelperMixin {
       'codeAction': {'dynamicRegistration': true},
       'rename': {'dynamicRegistration': true},
       'foldingRange': {'dynamicRegistration': true},
+    });
+  }
+
+  ClientCapabilitiesWorkspace withAllSupportedWorkspaceDynamicRegistrations(
+    ClientCapabilitiesWorkspace source,
+  ) {
+    // This list (when combined with the textDocument list) should match all of
+    // the fields listed in `ClientDynamicRegistrations.supported`.
+    return extendWorkspaceCapabilities(source, {
+      'fileOperations': {'dynamicRegistration': true},
     });
   }
 
@@ -340,6 +351,14 @@ mixin ClientCapabilitiesHelperMixin {
       'documentSymbol': {
         'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
       }
+    });
+  }
+
+  ClientCapabilitiesWorkspace withFileOperationDynamicRegistration(
+    ClientCapabilitiesWorkspace source,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'fileOperations': {'dynamicRegistration': true}
     });
   }
 
@@ -1217,6 +1236,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
             .any((u) => u.id == element.id));
       },
     );
+  }
+
+  Future<WorkspaceEdit> onWillRename(List<FileRename> renames) {
+    final request = makeRequest(
+      Method.workspace_willRenameFiles,
+      RenameFilesParams(files: renames),
+    );
+    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
   }
 
   Future openFile(Uri uri, String content, {num version = 1}) async {
