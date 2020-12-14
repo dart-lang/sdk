@@ -8,7 +8,6 @@ import 'dart:collection';
 import 'package:meta/meta.dart';
 
 import '../compiler/js_names.dart' as js_ast;
-import '../compiler/module_containers.dart' show ModuleItemContainer;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 
@@ -25,10 +24,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Private member names in this module, organized by their library.
   final _privateNames = HashMap<Library, HashMap<String, js_ast.TemporaryId>>();
-
-  /// Holds all top-level JS symbols (used for caching or indexing fields).
-  final _symbolContainer = ModuleItemContainer<js_ast.Identifier>.asObject('S',
-      keyToString: (js_ast.Identifier i) => '${i.name}');
 
   /// Extension member symbols for adding Dart members to JS types.
   ///
@@ -56,17 +51,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Whether we're currently building the SDK, which may require special
   /// bootstrapping logic.
   ///
-  /// This is initialized by [emitModule], which must be called before
+  /// This is initialized by [startModule], which must be called before
   /// accessing this field.
   @protected
   bool isBuildingSdk;
-
-  /// Whether or not to move top level symbols into top-level containers.
-  ///
-  /// This is set in both [emitModule] and [emitLibrary].
-  /// Depends on [isBuildingSdk].
-  @protected
-  bool containerizeSymbols;
 
   /// The temporary variable that stores named arguments (these are passed via a
   /// JS object literal, to match JS conventions).
@@ -262,16 +250,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
       idName = idName.replaceAll(js_ast.invalidCharInIdentifier, '_');
       id ??= js_ast.TemporaryId(idName);
-      addSymbol(
-          id,
-          js.call('#.privateName(#, #)',
-              [runtimeModule, emitLibraryName(library), js.string(name)]));
-      if (!containerizeSymbols) {
-        // TODO(vsm): Change back to `const`.
-        // See https://github.com/dart-lang/sdk/issues/40380.
-        moduleItems.add(js.statement('var # = #.privateName(#, #)',
-            [id, runtimeModule, emitLibraryName(library), js.string(name)]));
-      }
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      moduleItems.add(js.statement('var # = #.privateName(#, #)',
+          [id, runtimeModule, emitLibraryName(library), js.string(name)]));
       return id;
     }
 
@@ -356,13 +338,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     var name = js.escapedString(symbolName, "'");
     js_ast.Expression result;
     if (last.startsWith('_')) {
-      var nativeSymbolAccessor =
-          getSymbol(emitPrivateNameSymbol(currentLibrary, last));
-      result = js.call('new #.new(#, #)', [
-        emitConstructorAccess(privateSymbolType),
-        name,
-        nativeSymbolAccessor
-      ]);
+      var nativeSymbol = emitPrivateNameSymbol(currentLibrary, last);
+      result = js.call('new #.new(#, #)',
+          [emitConstructorAccess(privateSymbolType), name, nativeSymbol]);
     } else {
       result = js.call(
           'new #.new(#)', [emitConstructorAccess(internalSymbolType), name]);
@@ -388,11 +366,12 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// symbols into the list returned by this method. Finally, [finishModule]
   /// can be called to complete the module and return the resulting JS AST.
   ///
-  /// This also initializes several fields: [runtimeModule],
-  /// [extensionSymbolsModule], and the [_libraries] map needed by
+  /// This also initializes several fields: [isBuildingSdk], [runtimeModule],
+  /// [extensionSymbolsModule], as well as the [_libraries] map needed by
   /// [emitLibraryName].
   @protected
   List<js_ast.ModuleItem> startModule(Iterable<Library> libraries) {
+    isBuildingSdk = libraries.any(isSdkInternalRuntime);
     if (isBuildingSdk) {
       // Don't allow these to be renamed when we're building the SDK.
       // There is JS code in dart:* that depends on their names.
@@ -526,13 +505,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       if (isBuildingSdk) {
         value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
       }
-      if (!_symbolContainer.canEmit(id)) {
-        // Extension symbols marked with noEmit are managed manually.
-        // TODO(vsm): Change back to `const`.
-        // See https://github.com/dart-lang/sdk/issues/40380.
-        items.add(js.statement('var # = #;', [id, value]));
-      }
-      _symbolContainer[id] = value;
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      items.add(js.statement('var # = #;', [id, value]));
     });
   }
 
@@ -559,28 +534,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
         [runtimeModule, js.string(name), module, partMap]));
   }
 
-  /// Returns an accessor for [id] via the symbol container.
-  /// E.g., transforms $sym to S$5.$sym.
-  ///
-  /// A symbol lookup on an id marked no emit omits the symbol accessor.
-  js_ast.Expression getSymbol(js_ast.Identifier id) {
-    return _symbolContainer.canEmit(id) ? _symbolContainer.access(id) : id;
-  }
-
-  /// Returns the raw JS value associated with [id].
-  js_ast.Expression getSymbolValue(js_ast.Identifier id) {
-    return _symbolContainer[id];
-  }
-
-  /// Inserts a symbol into the symbol table.
-  js_ast.Expression addSymbol(js_ast.Identifier id, js_ast.Expression symbol) {
-    _symbolContainer[id] = symbol;
-    if (!containerizeSymbols) {
-      _symbolContainer.setNoEmit(id);
-    }
-    return _symbolContainer[id];
-  }
-
   /// Finishes the module created by [startModule], by combining the preable
   /// [items] with the [moduleItems] that have been emitted.
   ///
@@ -598,9 +551,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     // between DDC's two backends, by moving more code into this method, as the
     // code between `startModule` and `finishModule` is very similar in both.
     _emitDebuggerExtensionInfo(moduleName);
-
-    // Emit all top-level JS symbol containers.
-    items.addAll(_symbolContainer.emit());
 
     // Add the module's code (produced by visiting compilation units, above)
     _copyAndFlattenBlocks(items, moduleItems);
@@ -632,13 +582,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// handle the many details involved in naming.
   @protected
   js_ast.TemporaryId getExtensionSymbolInternal(String name) {
-    if (!_extensionSymbols.containsKey(name)) {
-      var id = js_ast.TemporaryId(
-          '\$${js_ast.friendlyNameForDartOperator[name] ?? name}');
-      _extensionSymbols[name] = id;
-      addSymbol(id, id);
-    }
-    return _extensionSymbols[name];
+    return _extensionSymbols.putIfAbsent(
+        name,
+        () => js_ast.TemporaryId(
+            '\$${js_ast.friendlyNameForDartOperator[name] ?? name}'));
   }
 
   /// Shorthand for identifier-like property names.
