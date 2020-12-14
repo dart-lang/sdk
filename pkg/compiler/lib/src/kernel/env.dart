@@ -313,55 +313,6 @@ class KClassEnvImpl implements KClassEnv {
     return _isSuperMixinApplication;
   }
 
-  /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
-  ir.Constructor _buildForwardingConstructor(
-      CloneVisitorNotMembers cloner, ir.Constructor superclassConstructor) {
-    var superFunction = superclassConstructor.function;
-
-    // We keep types and default values for the parameters but always mark the
-    // parameters as final (since we just forward them to the super
-    // constructor).
-    ir.VariableDeclaration cloneVariable(ir.VariableDeclaration variable) {
-      ir.VariableDeclaration clone = cloner.clone(variable);
-      clone.isFinal = true;
-      return clone;
-    }
-
-    // Build a [FunctionNode] which has the same parameters as the one in the
-    // superclass constructor.
-    var positionalParameters =
-        superFunction.positionalParameters.map(cloneVariable).toList();
-    var namedParameters =
-        superFunction.namedParameters.map(cloneVariable).toList();
-    var function = new ir.FunctionNode(new ir.EmptyStatement(),
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: superFunction.requiredParameterCount,
-        returnType: const ir.VoidType());
-
-    // Build a [SuperInitializer] which takes all positional/named parameters
-    // and forward them to the super class constructor.
-    var positionalArguments = <ir.Expression>[];
-    for (var variable in positionalParameters) {
-      positionalArguments.add(new ir.VariableGet(variable));
-    }
-    var namedArguments = <ir.NamedExpression>[];
-    for (var variable in namedParameters) {
-      namedArguments.add(
-          new ir.NamedExpression(variable.name, new ir.VariableGet(variable)));
-    }
-    var superInitializer = new ir.SuperInitializer(superclassConstructor,
-        new ir.Arguments(positionalArguments, named: namedArguments));
-
-    // Assemble the constructor
-    // TODO(jensj): Provide a "reference" if we need to support
-    // the incremental compiler.
-    return new ir.Constructor(function,
-        name: superclassConstructor.name,
-        initializers: <ir.Initializer>[superInitializer],
-        reference: null);
-  }
-
   @override
   void ensureMembers(KernelToElementMapImpl elementMap) {
     _ensureMaps(elementMap);
@@ -465,31 +416,6 @@ class KClassEnvImpl implements KClassEnv {
     for (ir.Procedure member in cls.procedures) {
       addProcedure(member,
           includeStatic: true, includeNoSuchMethodForwarders: true);
-    }
-
-    if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
-      // Ensure that constructors are created for the superclass in case it
-      // is also an unnamed mixin application.
-      ClassEntity superclass = elementMap.getClass(cls.superclass);
-      elementMap.elementEnvironment.lookupConstructor(superclass, '');
-
-      // Unnamed mixin applications have no constructors when read from .dill.
-      // For each generative constructor in the superclass we make a
-      // corresponding forwarding constructor in the subclass.
-      //
-      // This code is copied from
-      // 'package:kernel/transformations/mixin_full_resolution.dart'
-      var superclassSubstitution = getSubstitutionMap(cls.supertype);
-      var superclassCloner =
-          new CloneVisitorNotMembers(typeSubstitution: superclassSubstitution);
-
-      for (var superclassConstructor in cls.superclass.constructors) {
-        var forwardingConstructor = _buildForwardingConstructor(
-            superclassCloner, superclassConstructor);
-        cls.addConstructor(forwardingConstructor);
-        _constructorMap[forwardingConstructor.name.text] =
-            forwardingConstructor;
-      }
     }
 
     mergeSort(members, start: mixinMemberCount, compare: orderByFileOffset);
