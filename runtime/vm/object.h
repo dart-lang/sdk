@@ -2477,6 +2477,7 @@ class Function : public Object {
   FunctionPtr FfiCSignature() const;
 
   bool FfiCSignatureContainsHandles() const;
+  bool FfiCSignatureReturnsStruct() const;
 
   // Can only be called on FFI trampolines.
   // -1 for Dart -> native calls.

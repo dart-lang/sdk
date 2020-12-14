@@ -4187,6 +4187,10 @@ void NativeEntryInstr::SaveArguments(FlowGraphCompiler* compiler) const {
   __ Comment("SaveArguments");
 
   // Save the argument registers, in reverse order.
+  const auto& return_loc = marshaller_.Location(compiler::ffi::kResultIndex);
+  if (return_loc.IsPointerToMemory()) {
+    SaveArgument(compiler, return_loc.AsPointerToMemory().pointer_location());
+  }
   for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
     SaveArgument(compiler, marshaller_.Location(i));
   }
@@ -4214,8 +4218,24 @@ void NativeEntryInstr::SaveArgument(
     const auto& dst = compiler::ffi::NativeStackLocation(
         nloc.payload_type(), nloc.payload_type(), SPREG, 0);
     compiler->EmitNativeMove(dst, nloc, &temp_alloc);
+  } else if (nloc.IsPointerToMemory()) {
+    const auto& pointer_loc = nloc.AsPointerToMemory().pointer_location();
+    if (pointer_loc.IsRegisters()) {
+      const auto& regs_loc = pointer_loc.AsRegisters();
+      ASSERT(regs_loc.num_regs() == 1);
+      __ PushRegister(regs_loc.reg_at(0));
+    } else {
+      ASSERT(pointer_loc.IsStack());
+      // It's already on the stack, so we don't have to save it.
+    }
   } else {
-    UNREACHABLE();
+    ASSERT(nloc.IsMultiple());
+    const auto& multiple = nloc.AsMultiple();
+    const intptr_t num = multiple.locations().length();
+    // Save the argument registers, in reverse order.
+    for (intptr_t i = num; i-- > 0;) {
+      SaveArgument(compiler, *multiple.locations().At(i));
+    }
   }
 }
 
@@ -4522,8 +4542,12 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       /*old_base=*/SPREG, /*new_base=*/FPREG,
       (-kExitLinkSlotFromEntryFp + kEntryFramePadding) *
           compiler::target::kWordSize);
+  const auto& location =
+      marshaller_.NativeLocationOfNativeParameter(def_index_);
   const auto& src =
-      rebase.Rebase(marshaller_.NativeLocationOfNativeParameter(index_));
+      rebase.Rebase(location.IsPointerToMemory()
+                        ? location.AsPointerToMemory().pointer_location()
+                        : location);
   NoTemporaryAllocator no_temp;
   const Location out_loc = locs()->out(0);
   const Representation out_rep = representation();
@@ -6187,7 +6211,7 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if !defined(TARGET_ARCH_ARM)
+#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
 
 LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   UNREACHABLE();
@@ -6197,13 +6221,16 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
-#endif  // defined(TARGET_ARCH_ARM)
+#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
-  if (idx == TargetAddressIndex()) {
+  if (idx < TargetAddressIndex()) {
+    return marshaller_.RepInFfiCall(idx);
+  } else if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
   } else {
-    return marshaller_.RepInFfiCall(idx);
+    ASSERT(idx == TypedDataIndex());
+    return kTagged;
   }
 }
 
@@ -6222,51 +6249,216 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, /*num_inputs=*/InputCount(),
                       /*num_temps=*/kNumTemps, LocationSummary::kCall);
 
+  const Register temp0 = CallingConventions::kSecondNonArgumentRegister;
+  const Register temp1 = CallingConventions::kFfiAnyNonAbiRegister;
+  ASSERT(temp0 != temp1);
+  summary->set_temp(0, Location::RegisterLocation(temp0));
+  summary->set_temp(1, Location::RegisterLocation(temp1));
+
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
-  summary->set_temp(0, Location::RegisterLocation(
-                           CallingConventions::kSecondNonArgumentRegister));
-  summary->set_temp(
-      1, Location::RegisterLocation(CallingConventions::kFfiAnyNonAbiRegister));
-  summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
-
-  for (intptr_t i = 0, n = marshaller_.num_args(); i < n; ++i) {
+  for (intptr_t i = 0, n = marshaller_.NumDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
+  }
+
+  if (marshaller_.PassTypedData()) {
+    // The register allocator already preserves this value across the call on
+    // a stack slot, so we'll use the spilled value directly.
+    summary->set_in(TypedDataIndex(), Location::RequiresStackSlot());
+
+    // We don't care about return location, but we need to pass a register.
+    summary->set_out(
+        0, Location::RegisterLocation(CallingConventions::kReturnReg));
+  } else {
+    summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
   }
 
   return summary;
 }
 
 void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler) {
+  if (compiler::Assembler::EmittingComments()) {
+    __ Comment("EmitParamMoves");
+  }
+
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp = locs()->temp(1).reg();
 
+  // Moves for return pointer.
+  const auto& return_location =
+      marshaller_.Location(compiler::ffi::kResultIndex);
+  if (return_location.IsPointerToMemory()) {
+    const auto& pointer_location =
+        return_location.AsPointerToMemory().pointer_location();
+    const auto& pointer_register =
+        pointer_location.IsRegisters()
+            ? pointer_location.AsRegisters().reg_at(0)
+            : temp;
+    __ MoveRegister(pointer_register, SPREG);
+    __ AddImmediate(pointer_register, marshaller_.PassByPointerStackOffset(
+                                          compiler::ffi::kResultIndex));
+
+    if (pointer_location.IsStack()) {
+      const auto& pointer_stack = pointer_location.AsStack();
+      __ StoreMemoryValue(pointer_register, pointer_stack.base_register(),
+                          pointer_stack.offset_in_bytes());
+    }
+  }
+
+  // Moves for arguments.
   compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
                                     /*stack_delta=*/0);
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    const Location origin = rebase.Rebase(locs()->in(i));
-    const Representation origin_rep = RequiredInputRepresentation(i);
-    const auto& target = marshaller_.Location(i);
-    ConstantTemporaryAllocator temp_alloc(temp);
-    if (origin.IsConstant()) {
-      compiler->EmitMoveConst(target, origin, origin_rep, &temp_alloc);
-    } else {
-      compiler->EmitMoveToNative(target, origin, origin_rep, &temp_alloc);
+  intptr_t def_index = 0;
+  for (intptr_t arg_index = 0; arg_index < marshaller_.num_args();
+       arg_index++) {
+    const intptr_t num_defs = marshaller_.NumDefinitions(arg_index);
+    const auto& arg_target = marshaller_.Location(arg_index);
+
+    // First deal with moving all individual definitions passed in to the
+    // FfiCall to the right native location based on calling convention.
+    for (intptr_t i = 0; i < num_defs; i++) {
+      const Location origin = rebase.Rebase(locs()->in(def_index));
+      const Representation origin_rep =
+          RequiredInputRepresentation(def_index) == kTagged
+              ? kUnboxedFfiIntPtr  // When arg_target.IsPointerToMemory().
+              : RequiredInputRepresentation(def_index);
+
+      // Find the native location where this individual definition should be
+      // moved to.
+      const auto& def_target =
+          arg_target.payload_type().IsPrimitive()
+              ? arg_target
+              : arg_target.IsMultiple()
+                    ? *arg_target.AsMultiple().locations()[i]
+                    : arg_target.IsPointerToMemory()
+                          ? arg_target.AsPointerToMemory().pointer_location()
+                          : /*arg_target.IsStack()*/ arg_target.Split(
+                                zone_, num_defs, i);
+
+      ConstantTemporaryAllocator temp_alloc(temp);
+      if (origin.IsConstant()) {
+        compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
+      } else {
+        compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
+      }
+      def_index++;
     }
+
+    // Then make sure that any pointers passed through the calling convention
+    // actually have a copy of the struct.
+    // Note that the step above has already moved the pointer into the expected
+    // native location.
+    if (arg_target.IsPointerToMemory()) {
+      NoTemporaryAllocator temp_alloc;
+      const auto& pointer_loc =
+          arg_target.AsPointerToMemory().pointer_location();
+
+      // TypedData/Pointer data pointed to in temp.
+      const auto& dst = compiler::ffi::NativeRegistersLocation(
+          zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
+          temp);
+      compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
+      __ LoadField(
+          temp,
+          compiler::FieldAddress(
+              temp, compiler::target::TypedDataBase::data_field_offset()));
+
+      // Copy chuncks.
+      const intptr_t sp_offset =
+          marshaller_.PassByPointerStackOffset(arg_index);
+      // Struct size is rounded up to a multiple of target::kWordSize.
+      // This is safe because we do the same rounding when we allocate the
+      // space on the stack.
+      for (intptr_t i = 0; i < arg_target.payload_type().SizeInBytes();
+           i += compiler::target::kWordSize) {
+        __ LoadMemoryValue(TMP, temp, i);
+        __ StoreMemoryValue(TMP, SPREG, i + sp_offset);
+      }
+
+      // Store the stack address in the argument location.
+      __ MoveRegister(temp, SPREG);
+      __ AddImmediate(temp, sp_offset);
+      const auto& src = compiler::ffi::NativeRegistersLocation(
+          zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
+          temp);
+      compiler->EmitNativeMove(pointer_loc, src, &temp_alloc);
+    }
+  }
+
+  if (compiler::Assembler::EmittingComments()) {
+    __ Comment("EmitParamMovesEnd");
   }
 }
 
 void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
-  const auto& src = marshaller_.Location(compiler::ffi::kResultIndex);
-  if (src.payload_type().IsVoid()) {
+  __ Comment("EmitReturnMoves");
+
+  const auto& returnLocation =
+      marshaller_.Location(compiler::ffi::kResultIndex);
+  if (returnLocation.payload_type().IsVoid()) {
     return;
   }
-  const Location dst_loc = locs()->out(0);
-  const Representation dst_type = representation();
+
   NoTemporaryAllocator no_temp;
-  compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
+  if (returnLocation.IsRegisters() || returnLocation.IsFpuRegisters()) {
+    const auto& src = returnLocation;
+    const Location dst_loc = locs()->out(0);
+    const Representation dst_type = representation();
+    compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
+  } else if (returnLocation.IsPointerToMemory() ||
+             returnLocation.IsMultiple()) {
+    ASSERT(returnLocation.payload_type().IsCompound());
+    ASSERT(marshaller_.PassTypedData());
+
+    const Register temp0 = TMP != kNoRegister ? TMP : locs()->temp(0).reg();
+    const Register temp1 = locs()->temp(1).reg();
+    ASSERT(temp0 != temp1);
+
+    // Get the typed data pointer which we have pinned to a stack slot.
+    const Location typed_data_loc = locs()->in(TypedDataIndex());
+    ASSERT(typed_data_loc.IsStackSlot());
+    ASSERT(typed_data_loc.base_reg() == FPREG);
+    __ LoadMemoryValue(temp0, FPREG, 0);
+    __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
+    __ LoadField(
+        temp0,
+        compiler::FieldAddress(
+            temp0, compiler::target::TypedDataBase::data_field_offset()));
+
+    if (returnLocation.IsPointerToMemory()) {
+      // Copy blocks from the stack location to TypedData.
+      // Struct size is rounded up to a multiple of target::kWordSize.
+      // This is safe because we do the same rounding when we allocate the
+      // TypedData in IL.
+      const intptr_t sp_offset =
+          marshaller_.PassByPointerStackOffset(compiler::ffi::kResultIndex);
+      for (intptr_t i = 0; i < marshaller_.TypedDataSizeInBytes();
+           i += compiler::target::kWordSize) {
+        __ LoadMemoryValue(temp1, SPREG, i + sp_offset);
+        __ StoreMemoryValue(temp1, temp0, i);
+      }
+    } else {
+      ASSERT(returnLocation.IsMultiple());
+      // Copy to the struct from the native locations.
+      const auto& multiple =
+          marshaller_.Location(compiler::ffi::kResultIndex).AsMultiple();
+
+      int offset_in_bytes = 0;
+      for (int i = 0; i < multiple.locations().length(); i++) {
+        const auto& src = *multiple.locations().At(i);
+        const auto& dst = compiler::ffi::NativeStackLocation(
+            src.payload_type(), src.container_type(), temp0, offset_in_bytes);
+        compiler->EmitNativeMove(dst, src, &no_temp);
+        offset_in_bytes += src.payload_type().SizeInBytes();
+      }
+    }
+  } else {
+    UNREACHABLE();
+  }
+
+  __ Comment("EmitReturnMovesEnd");
 }
 
 static Location FirstArgumentLocation() {
@@ -6397,10 +6589,37 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
-  const auto& dst = marshaller_.Location(compiler::ffi::kResultIndex);
-  if (dst.payload_type().IsVoid()) {
+  const auto& dst1 = marshaller_.Location(compiler::ffi::kResultIndex);
+  if (dst1.payload_type().IsVoid()) {
     return;
   }
+  if (dst1.IsMultiple()) {
+    Register typed_data_reg = locs()->in(0).reg();
+    // Load the data pointer out of the TypedData/Pointer.
+    __ LoadField(typed_data_reg,
+                 compiler::FieldAddress(
+                     typed_data_reg,
+                     compiler::target::TypedDataBase::data_field_offset()));
+
+    const auto& multiple = dst1.AsMultiple();
+    int offset_in_bytes = 0;
+    for (intptr_t i = 0; i < multiple.locations().length(); i++) {
+      const auto& dst = *multiple.locations().At(i);
+      ASSERT(!dst.IsRegisters() ||
+             dst.AsRegisters().reg_at(0) != typed_data_reg);
+      const auto& src = compiler::ffi::NativeStackLocation(
+          dst.payload_type(), dst.container_type(), typed_data_reg,
+          offset_in_bytes);
+      NoTemporaryAllocator no_temp;
+      compiler->EmitNativeMove(dst, src, &no_temp);
+      offset_in_bytes += dst.payload_type().SizeInBytes();
+    }
+    return;
+  }
+  const auto& dst = dst1.IsPointerToMemory()
+                        ? dst1.AsPointerToMemory().pointer_return_location()
+                        : dst1;
+
   const Location src_loc = locs()->in(0);
   const Representation src_type = RequiredInputRepresentation(0);
   NoTemporaryAllocator no_temp;
@@ -6413,14 +6632,32 @@ LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(
-      0, marshaller_.LocationOfNativeParameter(compiler::ffi::kResultIndex));
+  ASSERT(marshaller_.NumReturnDefinitions() == 1);
+  const auto& native_loc = marshaller_.Location(compiler::ffi::kResultIndex);
+  const auto& native_return_loc =
+      native_loc.IsPointerToMemory()
+          ? native_loc.AsPointerToMemory().pointer_return_location()
+          : native_loc;
+  if (native_loc.IsMultiple()) {
+    // We pass in a typed data for easy copying in machine code.
+    // Can be any register which does not conflict with return registers.
+    Register typed_data_reg = CallingConventions::kSecondNonArgumentRegister;
+    ASSERT(typed_data_reg != CallingConventions::kReturnReg);
+    ASSERT(typed_data_reg != CallingConventions::kSecondReturnReg);
+    locs->set_in(0, Location::RegisterLocation(typed_data_reg));
+  } else {
+    locs->set_in(0, native_return_loc.AsLocation());
+  }
   return locs;
 }
 
 #undef Z
 
 Representation FfiCallInstr::representation() const {
+  if (marshaller_.PassTypedData()) {
+    // Don't care, we're discarding the value.
+    return kTagged;
+  }
   return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
 }
 

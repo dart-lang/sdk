@@ -1060,7 +1060,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // but have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
   __ set_constant_pool_allowed(false);
-  __ EnterDartFrame(marshaller_.StackTopInBytes(), PP);
+  __ EnterDartFrame(marshaller_.RequiredStackSpaceInBytes(), PP);
 
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {

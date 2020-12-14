@@ -299,6 +299,16 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   ASSERT(!code.IsNull());
   thread->SetFfiCallbackCode(function.FfiCallbackId(), code);
 
+#ifdef TARGET_ARCH_IA32
+  // On ia32, store the stack delta that we need to use when returning.
+  const intptr_t stack_return_delta =
+      function.FfiCSignatureReturnsStruct() && CallingConventions::kUsesRet4
+          ? compiler::target::kWordSize
+          : 0;
+  thread->SetFfiCallbackStackReturn(function.FfiCallbackId(),
+                                    stack_return_delta);
+#endif
+
   uword entry_point = code.EntryPoint();
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (NativeCallbackTrampolines::Enabled()) {

@@ -351,6 +351,10 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, ffi_callback_code_);
   }
 
+  static intptr_t callback_stack_return_offset() {
+    return OFFSET_OF(Thread, ffi_callback_stack_return_);
+  }
+
   // Tag state is maintained on transitions.
   enum {
     // Always true in generated state.
@@ -829,8 +833,16 @@ class Thread : public ThreadState {
 
   // Store 'code' for the native callback identified by 'callback_id'.
   //
-  // Expands the callback code array as necessary to accomodate the callback ID.
+  // Expands the callback code array as necessary to accomodate the callback
+  // ID.
   void SetFfiCallbackCode(int32_t callback_id, const Code& code);
+
+  // Store 'stack_return' for the native callback identified by 'callback_id'.
+  //
+  // Expands the callback stack return array as necessary to accomodate the
+  // callback ID.
+  void SetFfiCallbackStackReturn(int32_t callback_id,
+                                 intptr_t stack_return_delta);
 
   // Ensure that 'callback_id' refers to a valid callback in this isolate.
   //
@@ -949,6 +961,7 @@ class Thread : public ThreadState {
   uword execution_state_;
   std::atomic<uword> safepoint_state_;
   GrowableObjectArrayPtr ffi_callback_code_;
+  TypedDataPtr ffi_callback_stack_return_;
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
 

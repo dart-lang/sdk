@@ -5,6 +5,8 @@
 #include "vm/compiler/frontend/kernel_to_il.h"
 
 #include "platform/assert.h"
+#include "platform/globals.h"
+#include "vm/class_id.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -12,13 +14,17 @@
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/abi.h"
 #include "vm/compiler/ffi/marshaller.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/ffi/recognized_method.h"
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
+#include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/native_entry.h"
 #include "vm/object_store.h"
@@ -26,6 +32,7 @@
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
 namespace kernel {
@@ -3558,6 +3565,67 @@ void FlowGraphBuilder::SetConstantRangeOfCurrentDefinition(
   fragment.current->AsDefinition()->set_range(range);
 }
 
+static classid_t TypedDataCidUnboxed(Representation unboxed_representation) {
+  switch (unboxed_representation) {
+    case kUnboxedFloat:
+      // Note kTypedDataFloat32ArrayCid loads kUnboxedDouble.
+      UNREACHABLE();
+      return kTypedDataFloat32ArrayCid;
+    case kUnboxedInt32:
+      return kTypedDataInt32ArrayCid;
+    case kUnboxedUint32:
+      return kTypedDataUint32ArrayCid;
+    case kUnboxedInt64:
+      return kTypedDataInt64ArrayCid;
+    case kUnboxedDouble:
+      return kTypedDataFloat64ArrayCid;
+    default:
+      UNREACHABLE();
+  }
+  UNREACHABLE();
+}
+
+Fragment FlowGraphBuilder::StoreIndexedTypedDataUnboxed(
+    Representation unboxed_representation,
+    intptr_t index_scale,
+    bool index_unboxed) {
+  ASSERT(unboxed_representation == kUnboxedInt32 ||
+         unboxed_representation == kUnboxedUint32 ||
+         unboxed_representation == kUnboxedInt64 ||
+         unboxed_representation == kUnboxedFloat ||
+         unboxed_representation == kUnboxedDouble);
+  Fragment fragment;
+  if (unboxed_representation == kUnboxedFloat) {
+    fragment += BitCast(kUnboxedFloat, kUnboxedInt32);
+    unboxed_representation = kUnboxedInt32;
+  }
+  fragment += StoreIndexedTypedData(TypedDataCidUnboxed(unboxed_representation),
+                                    index_scale, index_unboxed);
+  return fragment;
+}
+
+Fragment FlowGraphBuilder::LoadIndexedTypedDataUnboxed(
+    Representation unboxed_representation,
+    intptr_t index_scale,
+    bool index_unboxed) {
+  ASSERT(unboxed_representation == kUnboxedInt32 ||
+         unboxed_representation == kUnboxedUint32 ||
+         unboxed_representation == kUnboxedInt64 ||
+         unboxed_representation == kUnboxedFloat ||
+         unboxed_representation == kUnboxedDouble);
+  Representation representation_for_load = unboxed_representation;
+  if (unboxed_representation == kUnboxedFloat) {
+    representation_for_load = kUnboxedInt32;
+  }
+  Fragment fragment;
+  fragment += LoadIndexed(TypedDataCidUnboxed(representation_for_load),
+                          index_scale, index_unboxed);
+  if (unboxed_representation == kUnboxedFloat) {
+    fragment += BitCast(kUnboxedInt32, kUnboxedFloat);
+  }
+  return fragment;
+}
+
 Fragment FlowGraphBuilder::EnterHandleScope() {
   auto* instr = new (Z)
       EnterHandleScopeInstr(EnterHandleScopeInstr::Kind::kEnterHandleScope);
@@ -3661,7 +3729,7 @@ Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
   auto* instr = new (Z) NativeReturnInstr(TokenPosition::kNoSource, Pop(),
                                           marshaller, DeoptId::kNone);
-  return Fragment(instr);
+  return Fragment(instr).closed();
 }
 
 Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
@@ -3703,9 +3771,296 @@ Fragment FlowGraphBuilder::BitCast(Representation from, Representation to) {
   return Fragment(instr);
 }
 
-Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
+Fragment FlowGraphBuilder::WrapTypedDataBaseInStruct(
+    const AbstractType& struct_type) {
+  const auto& struct_sub_class = Class::ZoneHandle(Z, struct_type.type_class());
+  struct_sub_class.EnsureIsFinalized(thread_);
+  const auto& lib_ffi = Library::Handle(Z, Library::FfiLibrary());
+  const auto& struct_class =
+      Class::Handle(Z, lib_ffi.LookupClass(Symbols::Struct()));
+  const auto& struct_addressof = Field::ZoneHandle(
+      Z, struct_class.LookupInstanceFieldAllowPrivate(Symbols::_addressOf()));
+  ASSERT(!struct_addressof.IsNull());
+
+  Fragment body;
+  LocalVariable* typed_data = MakeTemporary("typed_data_base");
+  body += AllocateObject(TokenPosition::kNoSource, struct_sub_class, 0);
+  body += LoadLocal(MakeTemporary("struct"));  // Duplicate Struct.
+  body += LoadLocal(typed_data);
+  body += StoreInstanceField(struct_addressof,
+                             StoreInstanceFieldInstr::Kind::kInitializing);
+  body += DropTempsPreserveTop(1);  // Drop TypedData.
+  return body;
+}
+
+Fragment FlowGraphBuilder::LoadTypedDataBaseFromStruct() {
+  const Library& lib_ffi = Library::Handle(zone_, Library::FfiLibrary());
+  const Class& struct_class =
+      Class::Handle(zone_, lib_ffi.LookupClass(Symbols::Struct()));
+  const Field& struct_addressof = Field::ZoneHandle(
+      zone_,
+      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_addressOf()));
+  ASSERT(!struct_addressof.IsNull());
+
+  Fragment body;
+  body += LoadField(struct_addressof, /*calls_initializer=*/false);
+  return body;
+}
+
+Fragment FlowGraphBuilder::CopyFromStructToStack(
+    LocalVariable* variable,
+    const GrowableArray<Representation>& representations) {
+  Fragment body;
+  const intptr_t num_defs = representations.length();
+  int offset_in_bytes = 0;
+  for (intptr_t i = 0; i < num_defs; i++) {
+    body += LoadLocal(variable);
+    body += LoadTypedDataBaseFromStruct();
+    body += LoadUntagged(compiler::target::Pointer::data_field_offset());
+    body += IntConstant(offset_in_bytes);
+    const Representation representation = representations[i];
+    offset_in_bytes += RepresentationUtils::ValueSize(representation);
+    body += LoadIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
+                                        /*index_unboxed=*/false);
+  }
+  return body;
+}
+
+Fragment FlowGraphBuilder::PopFromStackToTypedDataBase(
+    ZoneGrowableArray<LocalVariable*>* definitions,
+    const GrowableArray<Representation>& representations) {
+  Fragment body;
+  const intptr_t num_defs = representations.length();
+  ASSERT(definitions->length() == num_defs);
+
+  LocalVariable* uint8_list = MakeTemporary("uint8_list");
+  int offset_in_bytes = 0;
+  for (intptr_t i = 0; i < num_defs; i++) {
+    const Representation representation = representations[i];
+    body += LoadLocal(uint8_list);
+    body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
+    body += IntConstant(offset_in_bytes);
+    body += LoadLocal(definitions->At(i));
+    body += StoreIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
+                                         /*index_unboxed=*/false);
+    offset_in_bytes += RepresentationUtils::ValueSize(representation);
+  }
+  body += DropTempsPreserveTop(num_defs);  // Drop chunck defs keep TypedData.
+  return body;
+}
+
+static intptr_t chunk_size(intptr_t bytes_left) {
+  ASSERT(bytes_left >= 1);
+  if (bytes_left >= 8 && compiler::target::kWordSize == 8) {
+    return 8;
+  }
+  if (bytes_left >= 4) {
+    return 4;
+  }
+  if (bytes_left >= 2) {
+    return 2;
+  }
+  return 1;
+}
+
+static classid_t typed_data_cid(intptr_t chunk_size) {
+  switch (chunk_size) {
+    case 8:
+      return kTypedDataInt64ArrayCid;
+    case 4:
+      return kTypedDataInt32ArrayCid;
+    case 2:
+      return kTypedDataInt16ArrayCid;
+    case 1:
+      return kTypedDataInt8ArrayCid;
+  }
+  UNREACHABLE();
+}
+
+Fragment FlowGraphBuilder::CopyFromTypedDataBaseToUnboxedAddress(
+    intptr_t length_in_bytes) {
+  Fragment body;
+  Value* unboxed_address_value = Pop();
+  LocalVariable* typed_data_base = MakeTemporary("typed_data_base");
+  Push(unboxed_address_value->definition());
+  LocalVariable* unboxed_address = MakeTemporary("unboxed_address");
+
+  intptr_t offset_in_bytes = 0;
+  while (offset_in_bytes < length_in_bytes) {
+    const intptr_t bytes_left = length_in_bytes - offset_in_bytes;
+    const intptr_t chunk_sizee = chunk_size(bytes_left);
+    const classid_t typed_data_cidd = typed_data_cid(chunk_sizee);
+
+    body += LoadLocal(typed_data_base);
+    body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
+    body += IntConstant(offset_in_bytes);
+    body += LoadIndexed(typed_data_cidd, /*index_scale=*/1,
+                        /*index_unboxed=*/false);
+    LocalVariable* chunk_value = MakeTemporary("chunk_value");
+
+    body += LoadLocal(unboxed_address);
+    body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
+    body += IntConstant(offset_in_bytes);
+    body += LoadLocal(chunk_value);
+    body += StoreIndexedTypedData(typed_data_cidd, /*index_scale=*/1,
+                                  /*index_unboxed=*/false);
+    body += DropTemporary(&chunk_value);
+
+    offset_in_bytes += chunk_sizee;
+  }
+  ASSERT(offset_in_bytes == length_in_bytes);
+
+  body += DropTemporary(&unboxed_address);
+  body += DropTemporary(&typed_data_base);
+  return body;
+}
+
+Fragment FlowGraphBuilder::CopyFromUnboxedAddressToTypedDataBase(
+    intptr_t length_in_bytes) {
+  Fragment body;
+  Value* typed_data_base_value = Pop();
+  LocalVariable* unboxed_address = MakeTemporary("unboxed_address");
+  Push(typed_data_base_value->definition());
+  LocalVariable* typed_data_base = MakeTemporary("typed_data_base");
+
+  intptr_t offset_in_bytes = 0;
+  while (offset_in_bytes < length_in_bytes) {
+    const intptr_t bytes_left = length_in_bytes - offset_in_bytes;
+    const intptr_t chunk_sizee = chunk_size(bytes_left);
+    const classid_t typed_data_cidd = typed_data_cid(chunk_sizee);
+
+    body += LoadLocal(unboxed_address);
+    body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
+    body += IntConstant(offset_in_bytes);
+    body += LoadIndexed(typed_data_cidd, /*index_scale=*/1,
+                        /*index_unboxed=*/false);
+    LocalVariable* chunk_value = MakeTemporary("chunk_value");
+
+    body += LoadLocal(typed_data_base);
+    body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
+    body += IntConstant(offset_in_bytes);
+    body += LoadLocal(chunk_value);
+    body += StoreIndexedTypedData(typed_data_cidd, /*index_scale=*/1,
+                                  /*index_unboxed=*/false);
+    body += DropTemporary(&chunk_value);
+
+    offset_in_bytes += chunk_sizee;
+  }
+  ASSERT(offset_in_bytes == length_in_bytes);
+
+  body += DropTemporary(&typed_data_base);
+  body += DropTemporary(&unboxed_address);
+  return body;
+}
+
+Fragment FlowGraphBuilder::FfiCallConvertStructArgumentToNative(
+    LocalVariable* variable,
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index) {
+  Fragment body;
+  const auto& native_loc = marshaller.Location(arg_index);
+  if (native_loc.IsStack() || native_loc.IsMultiple()) {
+    // Break struct in pieces to separate IL definitions to pass those
+    // separate definitions into the FFI call.
+    GrowableArray<Representation> representations;
+    marshaller.RepsInFfiCall(arg_index, &representations);
+    body += CopyFromStructToStack(variable, representations);
+  } else {
+    ASSERT(native_loc.IsPointerToMemory());
+    // Only load the typed data, do copying in the FFI call machine code.
+    body += LoadLocal(variable);  // User-defined struct.
+    body += LoadTypedDataBaseFromStruct();
+  }
+  return body;
+}
+
+Fragment FlowGraphBuilder::FfiCallConvertStructReturnToDart(
+    const compiler::ffi::BaseMarshaller& marshaller,
+    intptr_t arg_index) {
+  Fragment body;
+  // The typed data is allocated before the FFI call, and is populated in
+  // machine code. So, here, it only has to be wrapped in the struct class.
+  const auto& struct_type =
+      AbstractType::Handle(Z, marshaller.CType(arg_index));
+  body += WrapTypedDataBaseInStruct(struct_type);
+  return body;
+}
+
+Fragment FlowGraphBuilder::FfiCallbackConvertStructArgumentToDart(
+    const compiler::ffi::BaseMarshaller& marshaller,
+    intptr_t arg_index,
+    ZoneGrowableArray<LocalVariable*>* definitions) {
+  const intptr_t length_in_bytes =
+      marshaller.Location(arg_index).payload_type().SizeInBytes();
+
+  Fragment body;
+  if ((marshaller.Location(arg_index).IsMultiple() ||
+       marshaller.Location(arg_index).IsStack())) {
+    // Allocate and populate a TypedData from the individual NativeParameters.
+    body += IntConstant(length_in_bytes);
+    body +=
+        AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
+    GrowableArray<Representation> representations;
+    marshaller.RepsInFfiCall(arg_index, &representations);
+    body += PopFromStackToTypedDataBase(definitions, representations);
+  } else {
+    ASSERT(marshaller.Location(arg_index).IsPointerToMemory());
+    // Allocate a TypedData and copy contents pointed to by an address into it.
+    LocalVariable* address_of_struct = MakeTemporary("address_of_struct");
+    body += IntConstant(length_in_bytes);
+    body +=
+        AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
+    LocalVariable* typed_data_base = MakeTemporary("typed_data_base");
+    body += LoadLocal(address_of_struct);
+    body += LoadLocal(typed_data_base);
+    body += CopyFromUnboxedAddressToTypedDataBase(length_in_bytes);
+    body += DropTempsPreserveTop(1);  // address_of_struct.
+  }
+  // Wrap typed data in struct class.
+  const auto& struct_type =
+      AbstractType::Handle(Z, marshaller.CType(arg_index));
+  body += WrapTypedDataBaseInStruct(struct_type);
+  return body;
+}
+
+Fragment FlowGraphBuilder::FfiCallbackConvertStructReturnToNative(
+    const compiler::ffi::CallbackMarshaller& marshaller,
+    intptr_t arg_index) {
+  Fragment body;
+  const auto& native_loc = marshaller.Location(arg_index);
+  if (native_loc.IsMultiple()) {
+    // We pass in typed data to native return instruction, and do the copying
+    // in machine code.
+    body += LoadTypedDataBaseFromStruct();
+  } else {
+    ASSERT(native_loc.IsPointerToMemory());
+    // We copy the data into the right location in IL.
+    const intptr_t length_in_bytes =
+        marshaller.Location(arg_index).payload_type().SizeInBytes();
+
+    body += LoadTypedDataBaseFromStruct();
+    LocalVariable* typed_data_base = MakeTemporary("typed_data_base");
+
+    auto* pointer_to_return =
+        new (Z) NativeParameterInstr(marshaller, compiler::ffi::kResultIndex);
+    Push(pointer_to_return);  // Address where return value should be stored.
+    body <<= pointer_to_return;
+    body += UnboxTruncate(kUnboxedFfiIntPtr);
+    LocalVariable* unboxed_address = MakeTemporary("unboxed_address");
+
+    body += LoadLocal(typed_data_base);
+    body += LoadLocal(unboxed_address);
+    body += CopyFromTypedDataBaseToUnboxedAddress(length_in_bytes);
+    body += DropTempsPreserveTop(1);  // Keep address, drop typed_data_base.
+  }
+  return body;
+}
+
+Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
+    const compiler::ffi::BaseMarshaller& marshaller,
+    intptr_t arg_index) {
+  ASSERT(!marshaller.IsStruct(arg_index));
+
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
@@ -3718,8 +4073,9 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
     body += NullConstant();
   } else {
     if (marshaller.RequiresBitCast(arg_index)) {
-      body += BitCast(marshaller.RepInFfiCall(arg_index),
-                      marshaller.RepInDart(arg_index));
+      body += BitCast(
+          marshaller.RepInFfiCall(marshaller.FirstDefinitionIndex(arg_index)),
+          marshaller.RepInDart(arg_index));
     }
 
     body += Box(marshaller.RepInDart(arg_index));
@@ -3727,12 +4083,13 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
   return body;
 }
 
-Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
+Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index,
     LocalVariable* api_local_scope) {
-  Fragment body;
+  ASSERT(!marshaller.IsStruct(arg_index));
 
+  Fragment body;
   if (marshaller.IsPointer(arg_index)) {
     // This can only be Pointer, so it is always safe to LoadUntagged.
     body += LoadUntagged(compiler::target::Pointer::data_field_offset());
@@ -3744,8 +4101,9 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
   }
 
   if (marshaller.RequiresBitCast(arg_index)) {
-    body += BitCast(marshaller.RepInDart(arg_index),
-                    marshaller.RepInFfiCall(arg_index));
+    body += BitCast(
+        marshaller.RepInDart(arg_index),
+        marshaller.RepInFfiCall(marshaller.FirstDefinitionIndex(arg_index)));
   }
 
   return body;
@@ -3817,14 +4175,30 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     ++try_depth_;
 
     body += EnterHandleScope();
-    api_local_scope = MakeTemporary();
+    api_local_scope = MakeTemporary("api_local_scope");
+  }
+
+  // Allocate typed data before FfiCall and pass it in to ffi call if needed.
+  LocalVariable* typed_data = nullptr;
+  if (marshaller.PassTypedData()) {
+    body += IntConstant(marshaller.TypedDataSizeInBytes());
+    body +=
+        AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
+    typed_data = MakeTemporary();
   }
 
   // Unbox and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    body += LoadLocal(
-        parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
-    body += FfiConvertArgumentToNative(marshaller, i, api_local_scope);
+    if (marshaller.IsStruct(i)) {
+      body += FfiCallConvertStructArgumentToNative(
+          parsed_function_->ParameterVariable(kFirstArgumentParameterOffset +
+                                              i),
+          marshaller, i);
+    } else {
+      body += LoadLocal(parsed_function_->ParameterVariable(
+          kFirstArgumentParameterOffset + i));
+      body += FfiConvertPrimitiveToNative(marshaller, i, api_local_scope);
+    }
   }
 
   // Push the function pointer, which is stored (as Pointer object) in the
@@ -3840,6 +4214,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   // This can only be Pointer, so it is always safe to LoadUntagged.
   body += LoadUntagged(compiler::target::Pointer::data_field_offset());
   body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+
+  if (marshaller.PassTypedData()) {
+    body += LoadLocal(typed_data);
+  }
+
   body += FfiCall(marshaller);
 
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
@@ -3850,7 +4229,23 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     }
   }
 
-  body += FfiConvertArgumentToDart(marshaller, compiler::ffi::kResultIndex);
+  const intptr_t num_defs = marshaller.NumReturnDefinitions();
+  ASSERT(num_defs >= 1);
+  auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);
+  LocalVariable* def = MakeTemporary();
+  defs->Add(def);
+
+  if (marshaller.PassTypedData()) {
+    // Drop call result, typed data with contents is already on the stack.
+    body += Drop();
+  }
+
+  if (marshaller.IsStruct(compiler::ffi::kResultIndex)) {
+    body += FfiCallConvertStructReturnToDart(marshaller,
+                                             compiler::ffi::kResultIndex);
+  } else {
+    body += FfiConvertPrimitiveToDart(marshaller, compiler::ffi::kResultIndex);
+  }
 
   if (signature_contains_handles) {
     body += DropTempsPreserveTop(1);  // Drop api_local_scope.
@@ -3909,10 +4304,23 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
 
   // Box and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    auto* parameter = new (Z) NativeParameterInstr(marshaller, i);
-    Push(parameter);
-    body <<= parameter;
-    body += FfiConvertArgumentToDart(marshaller, i);
+    const intptr_t num_defs = marshaller.NumDefinitions(i);
+    auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);
+
+    for (intptr_t j = 0; j < num_defs; j++) {
+      const intptr_t def_index = marshaller.DefinitionIndex(j, i);
+      auto* parameter = new (Z) NativeParameterInstr(marshaller, def_index);
+      Push(parameter);
+      body <<= parameter;
+      LocalVariable* def = MakeTemporary();
+      defs->Add(def);
+    }
+
+    if (marshaller.IsStruct(i)) {
+      body += FfiCallbackConvertStructArgumentToDart(marshaller, i, defs);
+    } else {
+      body += FfiConvertPrimitiveToDart(marshaller, i);
+    }
   }
 
   // Call the target.
@@ -3923,7 +4331,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
                      Function::ZoneHandle(Z, function.FfiCallbackTarget()),
                      marshaller.num_args(), Array::empty_array(),
                      ICData::kNoRebind);
-
   if (marshaller.IsVoid(compiler::ffi::kResultIndex)) {
     body += Drop();
     body += IntConstant(0);
@@ -3932,8 +4339,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
         CheckNullOptimized(TokenPosition::kNoSource,
                            String::ZoneHandle(Z, marshaller.function_name()));
   }
-  body += FfiConvertArgumentToNative(marshaller, compiler::ffi::kResultIndex,
-                                     /*api_local_scope=*/nullptr);
+
+  if (marshaller.IsStruct(compiler::ffi::kResultIndex)) {
+    body += FfiCallbackConvertStructReturnToNative(marshaller,
+                                                   compiler::ffi::kResultIndex);
+  } else {
+    body += FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
+                                        /*api_local_scope=*/nullptr);
+  }
+
   body += NativeReturn(marshaller);
 
   --try_depth_;
@@ -3955,13 +4369,32 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     catch_body += UnboxTruncate(kUnboxedFfiIntPtr);
   } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
     catch_body += UnhandledException();
-    catch_body += FfiConvertArgumentToNative(
-        marshaller, compiler::ffi::kResultIndex, /*api_local_scope=*/nullptr);
+    catch_body +=
+        FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
+                                    /*api_local_scope=*/nullptr);
+
+  } else if (marshaller.IsStruct(compiler::ffi::kResultIndex)) {
+    ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
+    // Manufacture empty result.
+    const intptr_t size =
+        Utils::RoundUp(marshaller.Location(compiler::ffi::kResultIndex)
+                           .payload_type()
+                           .SizeInBytes(),
+                       compiler::target::kWordSize);
+    catch_body += IntConstant(size);
+    catch_body +=
+        AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
+    catch_body += WrapTypedDataBaseInStruct(
+        AbstractType::Handle(Z, marshaller.CType(compiler::ffi::kResultIndex)));
+    catch_body += FfiCallbackConvertStructReturnToNative(
+        marshaller, compiler::ffi::kResultIndex);
+
   } else {
     catch_body += Constant(
         Instance::ZoneHandle(Z, function.FfiCallbackExceptionalReturn()));
-    catch_body += FfiConvertArgumentToNative(
-        marshaller, compiler::ffi::kResultIndex, /*api_local_scope=*/nullptr);
+    catch_body +=
+        FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
+                                    /*api_local_scope=*/nullptr);
   }
 
   catch_body += NativeReturn(marshaller);

@@ -56,7 +56,7 @@ import 'ffi.dart';
 ///
 ///   static final int #sizeOf = 24;
 /// }
-ReplacedMembers transformLibraries(
+FfiTransformerData transformLibraries(
     Component component,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
@@ -70,17 +70,17 @@ ReplacedMembers transformLibraries(
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
     // for the VM target.
     // If dart:ffi is not loaded, do not do the transformation.
-    return ReplacedMembers({}, {});
+    return FfiTransformerData({}, {}, {});
   }
   if (index.tryGetClass('dart:ffi', 'NativeFunction') == null) {
     // If dart:ffi is not loaded (for real): do not do the transformation.
-    return ReplacedMembers({}, {});
+    return FfiTransformerData({}, {}, {});
   }
   final transformer = new _FfiDefinitionTransformer(index, coreTypes, hierarchy,
       diagnosticReporter, referenceFromIndex, changedStructureNotifier);
   libraries.forEach(transformer.visitLibrary);
-  return ReplacedMembers(
-      transformer.replacedGetters, transformer.replacedSetters);
+  return FfiTransformerData(transformer.replacedGetters,
+      transformer.replacedSetters, transformer.emptyStructs);
 }
 
 /// Checks and elaborates the dart:ffi structs and fields.
@@ -89,6 +89,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
+  Set<Class> emptyStructs = {};
 
   ChangedStructureNotifier changedStructureNotifier;
 
@@ -231,7 +232,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             Nullability.legacy);
         // TODO(dartbug.com/37271): Support structs inside structs.
         final DartType shouldBeDartType = convertNativeTypeToDartType(
-            nativeType, /*allowStructs=*/ false, /*allowHandle=*/ false);
+            nativeType,
+            allowStructs: false,
+            allowHandle: false);
         if (shouldBeDartType == null ||
             !env.isSubtypeOf(type, shouldBeDartType,
                 SubtypeCheckMode.ignoringNullabilities)) {
@@ -338,6 +341,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     _annoteStructWithFields(node, classes);
+    if (classes.isEmpty) {
+      emptyStructs.add(node);
+    }
 
     final sizeAndOffsets = <Abi, SizeAndOffsets>{};
     for (final Abi abi in Abi.values) {
@@ -565,6 +571,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return offset;
   }
 
+  // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
+  // NativeCompoundType::FromNativeTypes.
+  //
   // TODO(37271): Support nested structs.
   SizeAndOffsets _calculateSizeAndOffsets(List<NativeType> types, Abi abi) {
     int offset = 0;

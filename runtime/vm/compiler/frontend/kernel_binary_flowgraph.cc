@@ -557,7 +557,7 @@ Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
     dispatch += Constant(offsets);
     dispatch += LoadLocal(scopes()->switch_variable);
 
-    // Ideally this would just be LoadIndexedTypedData(kTypedDataInt32ArrayCid),
+    // Ideally this would just be LoadIndexed(kTypedDataInt32ArrayCid),
     // but that doesn't work in unoptimised code.
     // The optimiser will turn this into that in any case.
     dispatch += InstanceCall(TokenPosition::kNoSource, Symbols::IndexToken(),

@@ -315,6 +315,7 @@ FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
+FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail
 FfiExpectedExceptionalReturn/analyzerCode: Fail

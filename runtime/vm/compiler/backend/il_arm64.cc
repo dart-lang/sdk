@@ -1129,7 +1129,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterDartFrame(0, PP);
 
   // Make space for arguments and align the frame.
-  __ ReserveAlignedFrameSpace(marshaller_.StackTopInBytes());
+  __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
   EmitParamMoves(compiler);
 
@@ -1206,11 +1206,11 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // The dummy return address is in LR, no need to pop it as on Intel.
 
-  // These can be anything besides the return register (R0) and THR (R26).
-  const Register vm_tag_reg = R1;
-  const Register old_exit_frame_reg = R2;
-  const Register old_exit_through_ffi_reg = R3;
-  const Register tmp = R4;
+  // These can be anything besides the return registers (R0, R1) and THR (R26).
+  const Register vm_tag_reg = R2;
+  const Register old_exit_frame_reg = R3;
+  const Register old_exit_through_ffi_reg = R4;
+  const Register tmp = R5;
 
   __ PopPair(old_exit_frame_reg, old_exit_through_ffi_reg);
 
@@ -6465,6 +6465,74 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
+  }
+}
+
+LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/0, LocationSummary::kNoCall);
+  switch (from()) {
+    case kUnboxedInt32:
+    case kUnboxedInt64:
+      summary->set_in(0, Location::RequiresRegister());
+      break;
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      summary->set_in(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  switch (to()) {
+    case kUnboxedInt32:
+    case kUnboxedInt64:
+      summary->set_out(0, Location::RequiresRegister());
+      break;
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      summary->set_out(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return summary;
+}
+
+void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (from()) {
+    case kUnboxedInt32: {
+      ASSERT(to() == kUnboxedFloat);
+      const Register from_reg = locs()->in(0).reg();
+      const FpuRegister to_reg = locs()->out(0).fpu_reg();
+      __ fmovsr(to_reg, from_reg);
+      break;
+    }
+    case kUnboxedFloat: {
+      ASSERT(to() == kUnboxedInt32);
+      const FpuRegister from_reg = locs()->in(0).fpu_reg();
+      const Register to_reg = locs()->out(0).reg();
+      __ fmovrs(to_reg, from_reg);
+      break;
+    }
+    case kUnboxedInt64: {
+      ASSERT(to() == kUnboxedDouble);
+
+      const Register from_reg = locs()->in(0).reg();
+      const FpuRegister to_reg = locs()->out(0).fpu_reg();
+      __ fmovdr(to_reg, from_reg);
+      break;
+    }
+    case kUnboxedDouble: {
+      ASSERT(to() == kUnboxedInt64);
+      const FpuRegister from_reg = locs()->in(0).fpu_reg();
+      const Register to_reg = locs()->out(0).reg();
+      __ fmovrd(to_reg, from_reg);
+      break;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 

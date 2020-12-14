@@ -3790,6 +3790,31 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFfiEmptyStruct = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Struct '#name' is empty. Empty structs are undefined behavior.""",
+    withArguments: _withArgumentsFfiEmptyStruct);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiEmptyStruct =
+    const Code<Message Function(String name)>(
+  "FfiEmptyStruct",
+  templateFfiEmptyStruct,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiEmptyStruct(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiEmptyStruct,
+      message:
+          """Struct '${name}' is empty. Empty structs are undefined behavior.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiExceptionalReturnNull = messageFfiExceptionalReturnNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

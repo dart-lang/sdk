@@ -57,6 +57,10 @@ static const int kExitLinkSlotFromEntryFp = -8;
 // kNativeCallbackTrampolineStackDelta must be added as well.
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 0;
 
+// For FFI calls passing in TypedData, we save it on the stack before entering
+// a Dart frame. This denotes how to get to the backed up typed data.
+static const int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_STACK_FRAME_IA32_H_

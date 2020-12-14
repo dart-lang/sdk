@@ -2622,16 +2622,13 @@ class ParameterInstr : public Definition {
 class NativeParameterInstr : public Definition {
  public:
   NativeParameterInstr(const compiler::ffi::CallbackMarshaller& marshaller,
-                       intptr_t index)
-      : marshaller_(marshaller), index_(index) {
-    const auto& loc = marshaller.NativeLocationOfNativeParameter(index_);
-    ASSERT(loc.IsStack() && loc.AsStack().base_register() == SPREG);
-  }
+                       intptr_t def_index)
+      : marshaller_(marshaller), def_index_(def_index) {}
 
   DECLARE_INSTRUCTION(NativeParameter)
 
   virtual Representation representation() const {
-    return marshaller_.RepInFfiCall(index_);
+    return marshaller_.RepInFfiCall(def_index_);
   }
 
   intptr_t InputCount() const { return 0; }
@@ -2655,7 +2652,7 @@ class NativeParameterInstr : public Definition {
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   const compiler::ffi::CallbackMarshaller& marshaller_;
-  const intptr_t index_;
+  const intptr_t def_index_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeParameterInstr);
 };
@@ -5089,7 +5086,11 @@ class NativeCallInstr : public TemplateDartCall<0> {
 // are unboxed and passed through the native calling convention. However, not
 // all dart objects can be passed as arguments. Please see the FFI documentation
 // for more details.
-// TODO(35775): Add link to the documentation when it's written.
+//
+// Arguments to FfiCallInstr:
+// - The arguments to the native call, marshalled in IL as far as possible.
+// - The argument address.
+// - A TypedData for the return value to populate in machine code (optional).
 class FfiCallInstr : public Definition {
  public:
   FfiCallInstr(Zone* zone,
@@ -5098,17 +5099,23 @@ class FfiCallInstr : public Definition {
       : Definition(deopt_id),
         zone_(zone),
         marshaller_(marshaller),
-        inputs_(marshaller.num_args() + 1) {
-    inputs_.FillWith(nullptr, 0, marshaller.num_args() + 1);
+        inputs_(marshaller.NumDefinitions() + 1 +
+                (marshaller.PassTypedData() ? 1 : 0)) {
+    inputs_.FillWith(
+        nullptr, 0,
+        marshaller.NumDefinitions() + 1 + (marshaller.PassTypedData() ? 1 : 0));
   }
 
   DECLARE_INSTRUCTION(FfiCall)
 
-  // Number of arguments to the native function.
-  intptr_t NativeArgCount() const { return InputCount() - 1; }
-
   // Input index of the function pointer to invoke.
-  intptr_t TargetAddressIndex() const { return NativeArgCount(); }
+  intptr_t TargetAddressIndex() const { return marshaller_.NumDefinitions(); }
+
+  // Input index of the typed data to populate if return value is struct.
+  intptr_t TypedDataIndex() const {
+    ASSERT(marshaller_.PassTypedData());
+    return marshaller_.NumDefinitions() + 1;
+  }
 
   virtual intptr_t InputCount() const { return inputs_.length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }

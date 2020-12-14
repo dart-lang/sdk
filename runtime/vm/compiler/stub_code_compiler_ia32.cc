@@ -213,7 +213,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 void StubCodeCompiler::GenerateJITCallbackTrampolines(
     Assembler* assembler,
     intptr_t next_callback_id) {
-  Label done;
+  Label done, ret_4;
 
   // EAX is volatile and doesn't hold any arguments.
   COMPILE_ASSERT(!IsArgumentRegister(EAX) && !IsCalleeSavedRegister(EAX));
@@ -232,16 +232,20 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR which is callee-saved.
+  // Save THR and EBX which are callee-saved.
   __ pushl(THR);
+  __ pushl(EBX);
+
+  // We need the callback ID after the call for return stack.
+  __ pushl(EAX);
 
   // THR & return address
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to safe code size on this shared stub.
+  // in order to save code size on this shared stub.
   {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
@@ -278,13 +282,53 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // the saved THR and the return address. The target will know to skip them.
   __ call(ECX);
 
+  // Register state:
+  // - callee saved registers (should be restored)
+  //   - EBX available as scratch because we restore it later.
+  //   - ESI(THR) contains thread
+  //   - EDI
+  // - return registers (should not be touched)
+  //   - EAX
+  //   - EDX
+  // - available scratch registers
+  //   - ECX free
+
+  // Load the return stack delta from the thread.
+  __ movl(ECX,
+          compiler::Address(
+              THR, compiler::target::Thread::callback_stack_return_offset()));
+  __ popl(EBX);  // Compiler callback id.
+  __ movzxb(EBX, __ ElementAddressForRegIndex(
+                     /*external=*/false,
+                     /*array_cid=*/kTypedDataUint8ArrayCid,
+                     /*index=*/1,
+                     /*index_unboxed=*/false,
+                     /*array=*/ECX,
+                     /*index=*/EBX));
+#if defined(DEBUG)
+  // Stack delta should be either 0 or 4.
+  Label check_done;
+  __ BranchIfZero(EBX, &check_done);
+  __ CompareImmediate(EBX, compiler::target::kWordSize);
+  __ BranchIf(EQUAL, &check_done);
+  __ Breakpoint();
+  __ Bind(&check_done);
+#endif
+
   // EnterSafepoint takes care to not clobber *any* registers (besides scratch).
   __ EnterSafepoint(/*scratch=*/ECX);
 
-  // Restore THR (callee-saved).
+  // Restore callee-saved registers.
+  __ movl(ECX, EBX);
+  __ popl(EBX);
   __ popl(THR);
 
+  __ cmpl(ECX, compiler::Immediate(Smi::RawValue(0)));
+  __ j(NOT_EQUAL, &ret_4, compiler::Assembler::kNearJump);
   __ ret();
+
+  __ Bind(&ret_4);
+  __ ret(Immediate(4));
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.

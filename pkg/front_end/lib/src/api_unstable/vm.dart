@@ -47,6 +47,7 @@ export '../fasta/fasta_codes.dart'
         messageFfiExpectedConstant,
         noLength,
         templateFfiDartTypeMismatch,
+        templateFfiEmptyStruct,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,

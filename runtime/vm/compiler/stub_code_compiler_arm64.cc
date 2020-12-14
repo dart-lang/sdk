@@ -375,6 +375,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   RegisterSet all_registers;
   all_registers.AddAllArgumentRegisters();
+  all_registers.Add(Location::RegisterLocation(
+      CallingConventions::kPointerToReturnStructRegisterCall));
 
   // The call below might clobber R9 (volatile, holding callback_id).
   all_registers.Add(Location::RegisterLocation(R9));

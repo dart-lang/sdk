@@ -238,6 +238,7 @@ class Location : public ValueObject {
     kPrefersRegister,
     kRequiresRegister,
     kRequiresFpuRegister,
+    kRequiresStackSlot,
     kWritableRegister,
     kSameAsFirstInput,
   };
@@ -263,6 +264,10 @@ class Location : public ValueObject {
 
   static Location RequiresFpuRegister() {
     return UnallocatedLocation(kRequiresFpuRegister);
+  }
+
+  static Location RequiresStackSlot() {
+    return UnallocatedLocation(kRequiresStackSlot);
   }
 
   static Location WritableRegister() {

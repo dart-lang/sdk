@@ -1044,6 +1044,7 @@ class Thread : public AllStatic {
   static word unboxed_int64_runtime_arg_offset();
 
   static word callback_code_offset();
+  static word callback_stack_return_offset();
 
   static word AllocateArray_entry_point_offset();
   static word write_barrier_code_offset();
