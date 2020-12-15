@@ -1168,7 +1168,7 @@ class TypeInferrerImpl implements TypeInferrer {
                 .toList();
             Substitution substitution = Substitution.fromPairs(
                 extensionTypeParameters, target.inferredExtensionTypeArguments);
-            return substitution.substituteType(new FunctionType(
+            DartType resultType = substitution.substituteType(new FunctionType(
                 functionType.positionalParameters.skip(1).toList(),
                 functionType.returnType,
                 library.nonNullable,
@@ -1178,6 +1178,10 @@ class TypeInferrerImpl implements TypeInferrer {
                     .toList(),
                 requiredParameterCount:
                     functionType.requiredParameterCount - 1));
+            if (!isNonNullableByDefault) {
+              resultType = legacyErasure(resultType);
+            }
+            return resultType;
           case ProcedureKind.Getter:
             FunctionType functionType =
                 target.member.function.computeFunctionType(library.nonNullable);
@@ -1187,7 +1191,12 @@ class TypeInferrerImpl implements TypeInferrer {
                 .toList();
             Substitution substitution = Substitution.fromPairs(
                 extensionTypeParameters, target.inferredExtensionTypeArguments);
-            return substitution.substituteType(functionType.returnType);
+            DartType resultType =
+                substitution.substituteType(functionType.returnType);
+            if (!isNonNullableByDefault) {
+              resultType = legacyErasure(resultType);
+            }
+            return resultType;
           case ProcedureKind.Setter:
           case ProcedureKind.Factory:
             break;
@@ -1225,6 +1234,9 @@ class TypeInferrerImpl implements TypeInferrer {
                 memberClass.typeParameters, castedTypeArguments)
             .substituteType(calleeType);
       }
+    }
+    if (!isNonNullableByDefault) {
+      calleeType = legacyErasure(calleeType);
     }
     return calleeType;
   }
@@ -1269,8 +1281,12 @@ class TypeInferrerImpl implements TypeInferrer {
         switch (target.extensionMethodKind) {
           case ProcedureKind.Method:
           case ProcedureKind.Operator:
-            return target.member.function
-                .computeFunctionType(library.nonNullable);
+            FunctionType functionType =
+                target.member.function.computeFunctionType(library.nonNullable);
+            if (!isNonNullableByDefault) {
+              functionType = legacyErasure(functionType);
+            }
+            return functionType;
           case ProcedureKind.Getter:
             // TODO(johnniwinther): Handle implicit .call on extension getter.
             return _getFunctionType(target.member.function.returnType);
@@ -1318,7 +1334,10 @@ class TypeInferrerImpl implements TypeInferrer {
               Substitution substitution = Substitution.fromPairs(
                   functionType.typeParameters,
                   target.inferredExtensionTypeArguments);
-              return substitution.substituteType(returnType);
+              returnType = substitution.substituteType(returnType);
+            }
+            if (!isNonNullableByDefault) {
+              returnType = legacyErasure(returnType);
             }
             return returnType;
           default:
@@ -1361,7 +1380,10 @@ class TypeInferrerImpl implements TypeInferrer {
             Substitution substitution = Substitution.fromPairs(
                 functionType.typeParameters,
                 target.inferredExtensionTypeArguments);
-            return substitution.substituteType(keyType);
+            keyType = substitution.substituteType(keyType);
+          }
+          if (!isNonNullableByDefault) {
+            keyType = legacyErasure(keyType);
           }
           return keyType;
         }
@@ -1421,7 +1443,10 @@ class TypeInferrerImpl implements TypeInferrer {
                 Substitution substitution = Substitution.fromPairs(
                     functionType.typeParameters,
                     target.inferredExtensionTypeArguments);
-                return substitution.substituteType(keyType);
+                keyType = substitution.substituteType(keyType);
+              }
+              if (!isNonNullableByDefault) {
+                keyType = legacyErasure(keyType);
               }
               return keyType;
             }
@@ -1482,7 +1507,10 @@ class TypeInferrerImpl implements TypeInferrer {
                 Substitution substitution = Substitution.fromPairs(
                     functionType.typeParameters,
                     target.inferredExtensionTypeArguments);
-                return substitution.substituteType(indexType);
+                indexType = substitution.substituteType(indexType);
+              }
+              if (!isNonNullableByDefault) {
+                indexType = legacyErasure(indexType);
               }
               return indexType;
             }
@@ -1507,6 +1535,9 @@ class TypeInferrerImpl implements TypeInferrer {
   FunctionType _getFunctionType(DartType calleeType) {
     calleeType = resolveTypeParameter(calleeType);
     if (calleeType is FunctionType) {
+      if (!isNonNullableByDefault) {
+        calleeType = legacyErasure(calleeType);
+      }
       return calleeType;
     }
     return unknownFunction;
@@ -1515,6 +1546,9 @@ class TypeInferrerImpl implements TypeInferrer {
   FunctionType getFunctionTypeForImplicitCall(DartType calleeType) {
     calleeType = resolveTypeParameter(calleeType);
     if (calleeType is FunctionType) {
+      if (!isNonNullableByDefault) {
+        calleeType = legacyErasure(calleeType);
+      }
       return calleeType;
     } else if (calleeType is InterfaceType) {
       Member member =
@@ -1522,6 +1556,9 @@ class TypeInferrerImpl implements TypeInferrer {
       if (member != null) {
         DartType callType = getGetterTypeForMemberTarget(member, calleeType);
         if (callType is FunctionType) {
+          if (!isNonNullableByDefault) {
+            callType = legacyErasure(callType);
+          }
           return callType;
         }
       }
@@ -1587,6 +1624,9 @@ class TypeInferrerImpl implements TypeInferrer {
                 .substituteType(setterType);
           }
         }
+        if (!isNonNullableByDefault) {
+          setterType = legacyErasure(setterType);
+        }
         return setterType;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
@@ -1600,8 +1640,12 @@ class TypeInferrerImpl implements TypeInferrer {
                 .toList();
             Substitution substitution = Substitution.fromPairs(
                 extensionTypeParameters, target.inferredExtensionTypeArguments);
-            return substitution
+            DartType setterType = substitution
                 .substituteType(functionType.positionalParameters[1]);
+            if (!isNonNullableByDefault) {
+              setterType = legacyErasure(setterType);
+            }
+            return setterType;
           case ProcedureKind.Method:
           case ProcedureKind.Getter:
           case ProcedureKind.Factory:

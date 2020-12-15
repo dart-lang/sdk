@@ -3834,6 +3834,7 @@ class InferenceVisitor
               contextType, leftType, rightType,
               isNonNullableByDefault: inferrer.isNonNullableByDefault);
     }
+
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
         right, rightContextType, typeNeeded,
         isVoidAllowed: true);

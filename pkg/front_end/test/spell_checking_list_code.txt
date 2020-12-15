@@ -175,6 +175,7 @@ ck
 cl
 claim
 claimed
+claims
 clamp
 clarification
 clashes

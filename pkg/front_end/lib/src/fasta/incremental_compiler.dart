@@ -989,8 +989,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
-    for (int i = 0; i < reusedResult.directlyInvalidated.length; i++) {
-      LibraryBuilder builder = reusedResult.directlyInvalidated[i];
+    for (LibraryBuilder builder in reusedResult.directlyInvalidated) {
       if (builder.library.problemsAsJson != null) {
         assert(builder.library.problemsAsJson.isNotEmpty);
         return null;
@@ -1939,10 +1938,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       reusedLibraries.add(builder);
     }
     if (userCode == null && userBuilders == null) {
-      return new ReusageResult({}, [], false, reusedLibraries);
+      return new ReusageResult(const {}, const {}, false, reusedLibraries);
     }
     bool invalidatedBecauseOfPackageUpdate = false;
-    List<LibraryBuilder> directlyInvalidated = <LibraryBuilder>[];
+    Set<LibraryBuilder> directlyInvalidated = new Set<LibraryBuilder>();
     Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
 
     // Maps all non-platform LibraryBuilders from their import URI.
@@ -2004,7 +2003,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
           if (isInvalidated(partUri, fileUri)) {
             invalidatedImportUris.add(partUri);
-            builders[partUri] = libraryBuilder;
+            if (builders[partUri] == null) {
+              // Only add if entry doesn't already exist.
+              // For good cases it shouldn't exist, but if one library claims
+              // another library is a part (when it's not) we don't want to
+              // overwrite the real library builder.
+              builders[partUri] = libraryBuilder;
+            }
           }
         }
       }
@@ -2145,7 +2150,7 @@ class IncrementalCompilerData {
 
 class ReusageResult {
   final Set<LibraryBuilder> notReusedLibraries;
-  final List<LibraryBuilder> directlyInvalidated;
+  final Set<LibraryBuilder> directlyInvalidated;
   final bool invalidatedBecauseOfPackageUpdate;
   final List<LibraryBuilder> reusedLibraries;
 

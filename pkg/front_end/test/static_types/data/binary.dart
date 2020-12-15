@@ -26,7 +26,7 @@ main() {
 
   /*cfe.num*/ /*cfe:nnbd.num!*/ numTopLevel
       /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
-      /*as: num!*/ /*dynamic*/ dynamicTopLevel;
+      /*cfe.as: num*/ /*cfe:nnbd.as: num!*/ /*dynamic*/ dynamicTopLevel;
 
   /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel
       /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
@@ -42,7 +42,7 @@ main() {
 
   /*cfe.int*/ /*cfe:nnbd.int!*/ intTopLevel
       /*cfe.invoke: num*/ /*cfe:nnbd.invoke: num!*/ +
-      /*as: num!*/ /*dynamic*/ dynamicTopLevel;
+      /*cfe.as: num*/ /*cfe:nnbd.as: num!*/ /*dynamic*/ dynamicTopLevel;
 
   /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel
       /*cfe.invoke: double*/ /*cfe:nnbd.invoke: double!*/ +
@@ -58,7 +58,7 @@ main() {
 
   /*cfe.double*/ /*cfe:nnbd.double!*/ doubleTopLevel
       /*cfe.invoke: double*/ /*cfe:nnbd.invoke: double!*/ +
-      /*as: num!*/ /*dynamic*/ dynamicTopLevel;
+      /*cfe.as: num*/ /*cfe:nnbd.as: num!*/ /*dynamic*/ dynamicTopLevel;
 
   /*dynamic*/ dynamicTopLevel
       /*invoke: dynamic*/ +

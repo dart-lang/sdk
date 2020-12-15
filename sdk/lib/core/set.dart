@@ -96,6 +96,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * The new set behaves like the result of [Set.of],
    * except that the set returned by this constructor is not modifiable.
    */
+  @Since("2.12")
   factory Set.unmodifiable(Iterable<E> elements) =>
       UnmodifiableSetView<E>(<E>{...elements});
 

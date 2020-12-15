@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         Typedef;
 
 import 'package:kernel/type_algebra.dart' show substitute, uniteNullabilities;
+import 'package:kernel/src/legacy_erasure.dart';
 
 import '../fasta_codes.dart'
     show
@@ -163,12 +164,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       nullability = uniteNullabilities(
           thisType.declaredNullability, nullabilityBuilder.build(library));
     }
+    DartType result;
     if (typedef.typeParameters.isEmpty && arguments == null) {
-      return thisType.withDeclaredNullability(nullability);
+      result = thisType.withDeclaredNullability(nullability);
+    } else {
+      // Otherwise, substitute.
+      result = buildTypesWithBuiltArguments(
+          library, nullability, buildTypeArguments(library, arguments));
     }
-    // Otherwise, substitute.
-    return buildTypesWithBuiltArguments(
-        library, nullability, buildTypeArguments(library, arguments));
+    if (!library.isNonNullableByDefault) {
+      result = legacyErasure(result);
+    }
+    return result;
   }
 
   TypeDeclarationBuilder _cachedUnaliasedDeclaration;

@@ -21,3 +21,11 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 2
+
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib.dart
+    expectedLibraryCount: 2
