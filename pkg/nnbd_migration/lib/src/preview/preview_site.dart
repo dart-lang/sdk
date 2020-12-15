@@ -162,8 +162,8 @@ class IncrementalPlan {
           logger.stdout('    $path');
         }
       } else {
-        var what = '$count files';
-        logger.stdout('${template(what)}.');
+        var text = '$count files';
+        logger.stdout('${template(text)}.');
       }
     }
   }
