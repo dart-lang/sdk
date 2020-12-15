@@ -20,7 +20,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/parser_test.dart' show ParserTestCase;
+import '../../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../../util/ast_type_matchers.dart';
 
 main() {

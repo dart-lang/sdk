@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/parser_fasta_test.dart';
+import '../../generated/parser_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
