@@ -120,7 +120,7 @@ void main() {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
-    var alias = findElement.functionTypeAlias('F');
+    var alias = findElement.typeAlias('F');
     assertType(
         alias.instantiate(
           typeArguments: const [],
@@ -189,7 +189,7 @@ class C {
     await _assertCanBeAnalyzed(r'''
 typedef void F(int a, this.b);
 ''');
-    var alias = findElement.functionTypeAlias('F');
+    var alias = findElement.typeAlias('F');
     assertType(
         alias.instantiate(
           typeArguments: const [],

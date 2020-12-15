@@ -152,7 +152,7 @@ typedef G<T> = T Function(double);
     var type = findElement.topVar('g').type as FunctionType;
     assertType(type, 'int Function(double)');
 
-    var typedefG = findElement.functionTypeAlias('G');
+    var typedefG = findElement.typeAlias('G');
     var functionG = typedefG.aliasedElement as GenericFunctionTypeElement;
 
     expect(type.element, functionG);
@@ -169,7 +169,7 @@ class B {}
 
 typedef F<T extends A> = B Function<U extends B>(T a, U b);
 ''');
-    var f = findElement.functionTypeAlias('F');
+    var f = findElement.typeAlias('F');
     expect(f.typeParameters, hasLength(1));
 
     var t = f.typeParameters[0];

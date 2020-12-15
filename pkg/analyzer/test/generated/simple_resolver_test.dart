@@ -954,7 +954,7 @@ const A = null;
     verifyTestResolved();
 
     expect(
-      findElement.functionTypeAlias('F').metadata,
+      findElement.typeAlias('F').metadata,
       hasLength(1),
     );
 

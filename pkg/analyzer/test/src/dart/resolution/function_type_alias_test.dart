@@ -26,7 +26,7 @@ typedef T G<T>();
     FunctionType type = findElement.topVar('g').type;
     assertType(type, 'int Function()');
 
-    var typedefG = findElement.functionTypeAlias('G');
+    var typedefG = findElement.typeAlias('G');
     var functionG = typedefG.aliasedElement as GenericFunctionTypeElement;
 
     expect(type.element, functionG);

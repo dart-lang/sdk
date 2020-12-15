@@ -1756,7 +1756,7 @@ class NoMatchABCDEF {}
     var a = findElement.class_('A');
     var b = findElement.class_('B');
     var c = findElement.mixin('C');
-    var d = findElement.functionTypeAlias('D');
+    var d = findElement.typeAlias('D');
     var f = findElement.function('f');
     var g = findElement.topVar('g');
     RegExp regExp = RegExp(r'^[ABCDfg]$');

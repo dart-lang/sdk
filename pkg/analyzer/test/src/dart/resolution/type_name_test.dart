@@ -143,7 +143,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('int Function()', 'int* Function()*'),
     );
   }
@@ -157,7 +157,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('num Function()', 'num* Function()*'),
     );
   }
@@ -171,7 +171,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('dynamic Function()', 'dynamic Function()*'),
     );
   }
@@ -185,7 +185,7 @@ f(F<int> a) {}
 
     assertTypeName(
       findNode.typeName('F<int> a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('int Function()', 'int* Function()*'),
     );
   }
@@ -544,7 +544,7 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'int* Function(bool*)*');
@@ -568,7 +568,7 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'dynamic Function(bool*)*');
@@ -592,7 +592,7 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'num* Function(bool*)*');
@@ -616,7 +616,7 @@ import 'a.dart';
 f(F<int> a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F<int> a');
     assertTypeName(typeName, element, 'int* Function(bool*)*');
@@ -728,7 +728,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'int* Function()',
     );
   }
@@ -749,7 +749,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'num* Function()',
     );
   }
@@ -770,7 +770,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'dynamic Function()',
     );
   }
@@ -791,7 +791,7 @@ f(F<int> a) {}
 
     assertTypeName(
       findNode.typeName('F<int> a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'int* Function()',
     );
   }
