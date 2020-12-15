@@ -27,8 +27,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      readElement: dynamicElement,
-      writeElement: null,
+      element: dynamicElement,
       type: 'Type',
     );
   }
@@ -46,8 +45,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
   }
@@ -61,8 +59,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      readElement: dynamicElement,
-      writeElement: null,
+      element: dynamicElement,
       type: 'Type',
     );
   }

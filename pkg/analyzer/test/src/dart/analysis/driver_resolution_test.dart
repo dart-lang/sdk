@@ -8542,11 +8542,10 @@ main() {
       SimpleIdentifier identifier = prefixed.identifier;
       assertSimpleIdentifier(
         identifier,
-        readElement: elementMatcher(
+        element: elementMatcher(
           objectHashCode,
           isLegacy: isNullSafetySdkAndLegacyLibrary,
         ),
-        writeElement: null,
         type: 'int',
       );
     }
