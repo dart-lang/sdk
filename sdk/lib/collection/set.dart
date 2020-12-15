@@ -400,6 +400,7 @@ class _UnmodifiableSet<E> extends _SetBase<E> with _UnmodifiableSetMixin<E> {
 ///
 /// Methods that could change the set, such as [add] and [remove],
 /// must not be called.
+@Since("2.12")
 class UnmodifiableSetView<E> extends SetBase<E> with _UnmodifiableSetMixin<E> {
   final Set<E> _source;
 
