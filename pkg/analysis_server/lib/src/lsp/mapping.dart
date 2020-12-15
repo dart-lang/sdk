@@ -1297,6 +1297,14 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
   var insertText = completion;
   var insertTextFormat = lsp.InsertTextFormat.PlainText;
 
+  // SuggestionBuilder already does the equiv of completeFunctionCalls for
+  // some methods (for example Flutter's setState). If the completion already
+  // includes any `(` then disable our own insertion as the special-cased code
+  // will likely provide better code.
+  if (completion.contains('(')) {
+    completeFunctionCalls = false;
+  }
+
   // If the client supports snippets, we can support completeFunctionCalls or
   // setting a selection.
   if (supportsSnippets) {

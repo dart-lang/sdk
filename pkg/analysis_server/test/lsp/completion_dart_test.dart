@@ -31,6 +31,15 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    writePackageConfig(
+      projectFolderPath,
+      flutter: true,
+    );
+  }
+
   Future<void> test_commitCharacter_completionItem() async {
     await provideConfig(
       () => initialize(
@@ -117,6 +126,55 @@ main() {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b})'));
+    expect(item.textEdit.newText, equals(item.insertText));
+    expect(
+      item.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
+  }
+
+  Future<void> test_completeFunctionCalls_flutterSetState() async {
+    // Flutter's setState method has special handling inside SuggestionBuilder
+    // that already adds in a selection (which overlaps with completeFunctionCalls).
+    // Ensure we don't end up with two sets of parens/placeholders in this case.
+    final content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatefulWidget {
+  @override
+  _MyWidgetState createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    [[setSt^]]
+    return Container();
+  }
+}
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('setState('));
+
+    // Usually the label would be "setState(…)" but here it's slightly different
+    // to indicate a full statement is being inserted.
+    expect(item.label, equals('setState(() {});'));
+
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals('setState(() {\n      \${0:}\n    \\});'));
     expect(item.textEdit.newText, equals(item.insertText));
     expect(
       item.textEdit.range,
