@@ -156,7 +156,7 @@ class NavigationTarget extends NavigationRegion {
   int get hashCode => JenkinsSmiHash.hash3(filePath.hashCode, offset, length);
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is NavigationTarget &&
         other.filePath == filePath &&
         other.offset == offset &&

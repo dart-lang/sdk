@@ -254,13 +254,13 @@ class NullabilityFixDescription {
   }
 
   @override
-  operator ==(Object other) =>
+  bool operator ==(Object other) =>
       other is NullabilityFixDescription &&
       appliedMessage == other.appliedMessage &&
       kind == other.kind;
 
   @override
-  toString() =>
+  String toString() =>
       'NullabilityFixDescription(${json.encode(appliedMessage)}, $kind)';
 }
 

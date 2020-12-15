@@ -471,7 +471,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
+  DecoratedType visitMixinDeclaration(MixinDeclaration node) {
     node.metadata.accept(this);
     node.name?.accept(this);
     node.typeParameters?.accept(this);
