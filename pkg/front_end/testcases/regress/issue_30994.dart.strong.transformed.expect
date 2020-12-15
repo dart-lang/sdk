@@ -42,28 +42,77 @@ part org-dartlang-malformed-uri:bad348;
 static method main() → dynamic {}
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:6:6: Error: Expected a URI.
+// part '$foo';
+//      ^
+//
 import self as self2;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:7:6: Error: Expected a URI.
+// part '$foo/bar';
+//      ^
+//
 import self as self3;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:8:6: Error: Expected a URI.
+// part '$for/bar';
+//      ^
+//
 import self as self4;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:9:6: Error: Expected a URI.
+// part '${true}';
+//      ^
+//
 import self as self5;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:10:6: Error: Expected a URI.
+// part 'the${1}thing';
+//      ^
+//
 import self as self6;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:11:6: Error: Expected a URI.
+// part 'part_$foo${'a'}.dart';
+//      ^
+//
 import self as self7;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:12:6: Error: Expected a URI.
+// part 'part_${'a'}_$foo.dart';
+//      ^
+//
 import self as self8;

@@ -216,6 +216,7 @@ class SourceLoader extends Loader {
             -1,
             library.importUri);
       } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+        library.addProblemAtAccessors(messageExpectedUri);
         bytes = synthesizeSourceForMissingFile(library.importUri, null);
       }
       if (bytes != null) {

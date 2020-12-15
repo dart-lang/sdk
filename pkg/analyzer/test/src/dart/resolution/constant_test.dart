@@ -131,7 +131,7 @@ const v = a;
 
     // The element and type arguments are available for the function type.
     var importFind = findElement.importFind('package:test/a.dart');
-    var alias = importFind.functionTypeAlias('F');
+    var alias = importFind.typeAlias('F');
     var aliasedElement = alias.aliasedElement as GenericFunctionTypeElement;
     expect(typeArgument.element, aliasedElement);
     expect(typeArgument.element.enclosingElement, alias);

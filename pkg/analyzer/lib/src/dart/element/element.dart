@@ -1100,36 +1100,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return false;
   }
 
-  static void collectAllSupertypes(List<InterfaceType> supertypes,
-      InterfaceType startingType, InterfaceType excludeType) {
-    List<InterfaceType> typesToVisit = <InterfaceType>[];
-    List<ClassElement> visitedClasses = <ClassElement>[];
-    typesToVisit.add(startingType);
-    while (typesToVisit.isNotEmpty) {
-      InterfaceType currentType = typesToVisit.removeAt(0);
-      ClassElement currentElement = currentType.element;
-      if (!visitedClasses.contains(currentElement)) {
-        visitedClasses.add(currentElement);
-        if (!identical(currentType, excludeType)) {
-          supertypes.add(currentType);
-        }
-        InterfaceType supertype = currentType.superclass;
-        if (supertype != null) {
-          typesToVisit.add(supertype);
-        }
-        for (InterfaceType type in currentType.superclassConstraints) {
-          typesToVisit.add(type);
-        }
-        for (InterfaceType type in currentType.interfaces) {
-          typesToVisit.add(type);
-        }
-        for (InterfaceType type in currentType.mixins) {
-          typesToVisit.add(type);
-        }
-      }
-    }
-  }
-
   static ConstructorElement getNamedConstructorFromList(
       String name, List<ConstructorElement> constructors) {
     for (ConstructorElement element in constructors) {

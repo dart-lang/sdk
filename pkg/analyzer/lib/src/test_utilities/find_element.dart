@@ -405,15 +405,6 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  FunctionTypeAliasElement functionTypeAlias(String name) {
-    for (var element in unitElement.functionTypeAliases) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    throw StateError('Not found: $name');
-  }
-
   PropertyAccessorElement getter(String name, {String of}) {
     PropertyAccessorElement result;
 
