@@ -458,7 +458,7 @@ void loadNavigationTree() async {
     navTree.innerHtml = '';
     navigationTree = NavigationTreeNode.listFromJson(response);
     writeNavigationSubtree(navTree, navigationTree,
-        enablePartialMigration: false);
+        enablePartialMigration: true);
   } catch (e, st) {
     handleError('Could not load navigation tree', e, st);
   }

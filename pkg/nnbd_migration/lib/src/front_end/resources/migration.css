@@ -293,11 +293,12 @@ footer .sdk-version {
 }
 
 .file {
+  display: flex;
+  flex-direction: column;
   flex: 4 300px;
   font-family: "Google Sans","Roboto",sans-serif;
   background: #12202f;
-  margin: 6px;
-  overflow: scroll;
+  margin: 0 6px;
 }
 
 .title-bar h3 {
@@ -315,8 +316,7 @@ footer .sdk-version {
 }
 
 .title-bar #migrate-unit-status-icon-label.visible {
-  /* Change to 'inline' to enable the incremental migration feature. */
-  display: none;
+  display: inline;
 }
 
 .title-bar #migrate-unit-status-icon {
@@ -324,7 +324,9 @@ footer .sdk-version {
 }
 
 .content {
+  flex-grow: 1;
   font-family: "Roboto Mono",monospace;
+  overflow: scroll;
   position: relative;
   white-space: pre;
 }

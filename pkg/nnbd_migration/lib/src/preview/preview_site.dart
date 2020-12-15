@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:charcode/charcode.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -58,6 +59,7 @@ class IncrementalPlan {
   final Map<String, UnitInfo> unitInfoMap;
   final PathMapper pathMapper;
   final List<SourceFileEdit> edits;
+  final Logger logger;
 
   /// The set of units which are to be opted out in this migration.
   final Set<String> optOutUnitPaths;
@@ -69,7 +71,8 @@ class IncrementalPlan {
       Map<String, UnitInfo> unitInfoMap,
       PathMapper pathMapper,
       List<SourceFileEdit> edits,
-      Iterable<NavigationTreeNode> navigationTree) {
+      Iterable<NavigationTreeNode> navigationTree,
+      Logger logger) {
     var optOutUnitPaths = <String>{};
     void addUnitsToOptOut(NavigationTreeNode entity) {
       if (entity is NavigationTreeDirectoryNode) {
@@ -88,14 +91,16 @@ class IncrementalPlan {
     }
 
     return IncrementalPlan._(
-        migrationInfo, unitInfoMap, pathMapper, edits, optOutUnitPaths);
+        migrationInfo, unitInfoMap, pathMapper, edits, optOutUnitPaths, logger);
   }
 
   IncrementalPlan._(this.migrationInfo, this.unitInfoMap, this.pathMapper,
-      this.edits, this.optOutUnitPaths);
+      this.edits, this.optOutUnitPaths, this.logger);
 
   /// Applies this migration to disk.
   void apply() {
+    logger.stdout('Applying migration suggestions to disk...');
+    var migratedFiles = <String>[];
     for (final fileEdit in edits) {
       var unit = unitInfoMap[fileEdit.file];
       // Decide whether to opt out; default to `false` files not included in
@@ -108,18 +113,22 @@ class IncrementalPlan {
         var code = file.exists ? file.readAsStringSync() : '';
         code = SourceEdit.applySequence(code, fileEdit.edits);
         file.writeAsStringSync(code);
+        migratedFiles.add(migrationInfo.relativePathFromRoot(fileEdit.file));
       }
     }
 
     // A file which is to be opted out may not be found in [edits], if all types
     // were to be made non-nullable, etc. Iterate over [optOutUnitPaths] instead
     // of [edits] to opt files out.
+    var newlyOptedOutFiles = <String>[];
+    var keptOptedOutFiles = <String>[];
     for (var optOutUnitPath in optOutUnitPaths) {
       var absolutePath = migrationInfo.absolutePathFromRoot(optOutUnitPath);
       var unit = unitInfoMap[absolutePath];
       if (unit.wasExplicitlyOptedOut) {
         // This unit was explicitly opted out of null safety with a Dart
         // Language version comment. Leave the unit be.
+        keptOptedOutFiles.add(optOutUnitPath);
       } else {
         // This unit was not yet migrated at the start, was not explicitly
         // opted out at the start, and is being opted out now. Add a Dart
@@ -127,6 +136,49 @@ class IncrementalPlan {
         final file = pathMapper.provider.getFile(absolutePath);
         var code = file.exists ? file.readAsStringSync() : '';
         file.writeAsStringSync(optCodeOutOfNullSafety(code));
+        newlyOptedOutFiles.add(optOutUnitPath);
+      }
+    }
+
+    if (migratedFiles.isNotEmpty) {
+      var migratedCount = migratedFiles.length;
+      if (migratedCount <= 20) {
+        var s = migratedCount > 1 ? 's' : '';
+        logger.stdout('Migrated $migratedCount file$s:');
+        for (var path in migratedFiles) {
+          logger.stdout('    $path');
+        }
+      } else {
+        logger.stdout('Migrated $migratedCount files.');
+      }
+    }
+    if (newlyOptedOutFiles.isNotEmpty) {
+      var newlyOptedOutCount = newlyOptedOutFiles.length;
+      if (newlyOptedOutCount <= 20) {
+        var s = newlyOptedOutCount > 1 ? 's' : '';
+        logger.stdout(
+            'Opted $newlyOptedOutCount file$s out of null safety with a new '
+            'Dart language version comment:');
+        for (var path in newlyOptedOutFiles) {
+          logger.stdout('    $path');
+        }
+      } else {
+        logger.stdout(
+            'Opted $newlyOptedOutCount files out of null safety with a new '
+            'Dart language version comment.');
+      }
+    }
+    if (keptOptedOutFiles.isNotEmpty) {
+      var keptOptedOutCount = keptOptedOutFiles.length;
+      if (keptOptedOutCount <= 20) {
+        var s = keptOptedOutCount > 1 ? 's' : '';
+        logger
+            .stdout('Kept $keptOptedOutCount file$s opted out of null safety:');
+        for (var path in keptOptedOutFiles) {
+          logger.stdout('    $path');
+        }
+      } else {
+        logger.stdout('Kept $keptOptedOutCount files out of null safety.');
       }
     }
   }
@@ -252,11 +304,14 @@ class PreviewSite extends Site
   /// migration.
   final void Function() applyHook;
 
+  final Logger logger;
+
   final String serviceAuthToken = _makeAuthToken();
 
   /// Initialize a newly created site to serve a preview of the results of an
   /// NNBD migration.
-  PreviewSite(this.migrationState, this.rerunFunction, this.applyHook)
+  PreviewSite(
+      this.migrationState, this.rerunFunction, this.applyHook, this.logger)
       : super('NNBD Migration Preview') {
     reset();
   }
@@ -444,8 +499,8 @@ class PreviewSite extends Site
 
     // Eagerly mark the migration applied. If this throws, we cannot go back.
     migrationState.markApplied();
-    IncrementalPlan(
-            migrationInfo, unitInfoMap, pathMapper, edits, navigationTree)
+    IncrementalPlan(migrationInfo, unitInfoMap, pathMapper, edits,
+            navigationTree, logger)
         .apply();
     applyHook();
   }

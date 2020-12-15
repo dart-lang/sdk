@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../front_end/nnbd_migration_test_base.dart';
+import '../utilities/test_logger.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -45,9 +46,10 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     state = MigrationState(null, null, dartfixListener, null, {});
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
+    logger = TestLogger(false /*isVerbose*/);
     site = PreviewSite(state, () async {
       return state;
-    }, () {});
+    }, () {}, logger);
   }
 
   void test_apply_regress41391() async {
@@ -236,6 +238,7 @@ mixin PreviewSiteTestMixin {
   PreviewSite site;
   DartFixListener dartfixListener;
   MigrationState state;
+  TestLogger logger;
 
   Future<void> performEdit(String path, int offset, String replacement) {
     final pathUri = Uri.file(path).path;
@@ -259,9 +262,10 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
     nodeMapper = state.nodeMapper;
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
+    logger = TestLogger(false /*isVerbose*/);
     site = PreviewSite(state, () async {
       return state;
-    }, () {});
+    }, () {}, logger);
   }
 
   void test_applyHintAction() async {
@@ -372,6 +376,10 @@ void main() {}''';
         NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), 'void main() {}');
+    expect(logger.stdoutBuffer.toString(), contains('''
+Migrated 1 file:
+    lib/a.dart
+'''));
   }
 
   void test_applyMigration_optOutEmptyFile() async {
@@ -388,6 +396,10 @@ void main() {}''';
         UnitMigrationStatus.optingOut;
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), '// @dart=2.9');
+    expect(logger.stdoutBuffer.toString(), contains('''
+Opted 1 file out of null safety with a new Dart language version comment:
+    lib/a.dart
+'''));
   }
 
   void test_applyMigration_optOutFileWithEdits() async {
@@ -411,6 +423,10 @@ void main() {}''';
 // @dart=2.9
 
 void main() {}''');
+    expect(logger.stdoutBuffer.toString(), contains('''
+Opted 1 file out of null safety with a new Dart language version comment:
+    lib/a.dart
+'''));
   }
 
   void test_applyMigration_optOutFileWithoutEdits() async {
@@ -430,6 +446,10 @@ void main() {}''');
 // @dart=2.9
 
 void main() {}''');
+    expect(logger.stdoutBuffer.toString(), contains('''
+Opted 1 file out of null safety with a new Dart language version comment:
+    lib/a.dart
+'''));
   }
 
   void test_applyMigration_optOutOne_migrateAnother() async {
@@ -463,6 +483,12 @@ void main() {}''');
 void main() {}''');
     expect(getFile(pathB).readAsStringSync(), '''
 void main(List args) {}''');
+    expect(logger.stdoutBuffer.toString(), contains('''
+Migrated 1 file:
+    lib/b.dart
+Opted 1 file out of null safety with a new Dart language version comment:
+    lib/a.dart
+'''));
   }
 
   void test_applyMigration_optOutPreviouslyOptedOutFile() async {
@@ -486,6 +512,10 @@ int a;''';
         UnitMigrationStatus.optingOut;
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), content);
+    expect(logger.stdoutBuffer.toString(), contains('''
+Kept 1 file opted out of null safety:
+    lib/a.dart
+'''));
   }
 
   void test_performEdit_multiple() async {
