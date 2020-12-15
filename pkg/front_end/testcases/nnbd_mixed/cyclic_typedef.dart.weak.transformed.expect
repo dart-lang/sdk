@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/cyclic_typedef.dart:10:7: Error: Generic type 'Hest2' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Fisk2'.
+// Try providing type arguments to 'Fisk2' here or to some other raw types in the bounds along the reference chain.
+// class Hest2<TypeX extends Fisk2> {}
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/cyclic_typedef.dart:10:13: Context: Bound of this variable references raw type 'Fisk2'.
+// class Hest2<TypeX extends Fisk2> {}
+//             ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/cyclic_typedef_lib.dart:12:31: Context: Bound of this variable references raw type 'Hest2'.
+// typedef Fisk2 = void Function<TypeY extends Hest2>();
+//                               ^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/cyclic_typedef.dart:12:9: Error: Generic type 'Fisk1' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Hest1'.
+// Try providing type arguments to 'Hest1' here or to some other raw types in the bounds along the reference chain.
+// typedef Fisk1 = void Function<TypeY extends Hest1>();
+//         ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/cyclic_typedef.dart:12:31: Context: Bound of this variable references raw type 'Hest1'.
+// typedef Fisk1 = void Function<TypeY extends Hest1>();
+//                               ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/cyclic_typedef_lib.dart:10:13: Context: Bound of this variable references raw type 'Fisk1'.
+// class Hest1<TypeX extends Fisk1> {}
+//             ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///cyclic_typedef_lib.dart";
+
+typedef Fisk1 = <TypeY extends core::Object? = dynamic>() → void;
+class Hest2<TypeX extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hest2<self::Hest2::TypeX%>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "cyclic_typedef.dart" as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///cyclic_typedef.dart";
+
+typedef Fisk2 = <TypeY extends self::Hest2<dynamic> = dynamic>() → void;
+class Hest1<TypeX extends <TypeY extends core::Object? = dynamic>() → void = <TypeY extends core::Object? = dynamic>() → void> extends core::Object {
+  synthetic constructor •() → self2::Hest1<self2::Hest1::TypeX>
+    : super core::Object::•()
+    ;
+}

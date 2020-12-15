@@ -21,7 +21,11 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
     List<TypeParameter> newTypeParameters;
     for (int i = 0; i < node.typeParameters.length; i++) {
       TypeParameter typeParameter = node.typeParameters[i];
-      DartType newBound = typeParameter.bound.accept(this);
+      // TODO(johnniwinther): Bounds should not be null, even in case of
+      // cyclic typedefs. Currently
+      //   instantiate_to_bound/non_simple_class_parametrized_typedef_cycle
+      // fails with this.
+      DartType newBound = typeParameter.bound?.accept(this);
       DartType newDefaultType = typeParameter.defaultType?.accept(this);
       if (newBound != null || newDefaultType != null) {
         newTypeParameters ??= node.typeParameters.toList(growable: false);
