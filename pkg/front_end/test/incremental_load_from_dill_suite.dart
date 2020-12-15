@@ -1825,9 +1825,14 @@ class TestIncrementalCompiler extends IncrementalCompiler {
         invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
     Set<Uri> result = new Set<Uri>();
     for (Uri uri in invalidatedImportUrisForTesting) {
-      if (uri.pathSegments.last == "nonexisting.dart") continue;
+      if (uri.pathSegments.isNotEmpty &&
+          uri.pathSegments.last == "nonexisting.dart") {
+        continue;
+      }
       if (invalidatedFilenames.contains(entryPoint.pathSegments.last) ||
-          invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
+          invalidatedFilenames.contains(uri.pathSegments.last)) {
+        result.add(uri);
+      }
     }
 
     return result.isEmpty ? null : result;
