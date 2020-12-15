@@ -47,16 +47,17 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ImportElement import(String targetUri) {
+  ImportElement import(String targetUri, {bool mustBeUnique = true}) {
     ImportElement importElement;
 
     for (var import in unitElement.library.imports) {
       var importedUri = import.importedLibrary.source.uri.toString();
       if (importedUri == targetUri) {
-        if (importElement != null) {
+        if (importElement == null) {
+          importElement = import;
+        } else if (mustBeUnique) {
           throw StateError('Not unique: $targetUri');
         }
-        importElement = import;
       }
     }
 
@@ -66,8 +67,8 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $targetUri');
   }
 
-  ImportFindElement importFind(String targetUri) {
-    var import = this.import(targetUri);
+  ImportFindElement importFind(String targetUri, {bool mustBeUnique = true}) {
+    var import = this.import(targetUri, mustBeUnique: mustBeUnique);
     return ImportFindElement(import);
   }
 
@@ -190,8 +191,7 @@ class FindElement extends _FindElementBase {
     CompilationUnitElement partElement;
 
     for (var part in unitElement.library.parts) {
-      var partUri = part.source.uri.toString();
-      if (partUri == targetUri) {
+      if (part.uri == targetUri) {
         if (partElement != null) {
           throw StateError('Not unique: $targetUri');
         }

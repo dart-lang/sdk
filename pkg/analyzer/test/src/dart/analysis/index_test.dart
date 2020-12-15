@@ -4,18 +4,15 @@
 
 import 'dart:convert';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'base.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,28 +21,20 @@ main() {
 }
 
 class ExpectedLocation {
-  final CompilationUnitElement unitElement;
   final int offset;
   final int length;
   final bool isQualified;
 
-  ExpectedLocation(
-      this.unitElement, this.offset, this.length, this.isQualified);
+  ExpectedLocation(this.offset, this.length, this.isQualified);
 
   @override
   String toString() {
-    return '(unit=$unitElement; offset=$offset; length=$length;'
-        ' isQualified=$isQualified)';
+    return '(offset=$offset; length=$length; isQualified=$isQualified)';
   }
 }
 
 @reflectiveTest
-class IndexTest extends BaseAnalysisDriverTest {
-  CompilationUnit testUnit;
-  CompilationUnitElement testUnitElement;
-  LibraryElement testLibraryElement;
-  FindElement findElement;
-
+class IndexTest extends PubPackageResolutionTest {
   AnalysisDriverUnitIndex index;
 
   _ElementIndexAssert assertThat(Element element) {
@@ -57,9 +46,12 @@ class IndexTest extends BaseAnalysisDriverTest {
     return _NameIndexAssert(this, name);
   }
 
-  CompilationUnitElement importedUnit({int index = 0}) {
-    List<ImportElement> imports = testLibraryElement.imports;
-    return imports[index].importedLibrary.definingCompilationUnit;
+  /// Return [ImportFindElement] for 'package:test/lib.dart' import.
+  ImportFindElement importFindLib() {
+    return findElement.importFind(
+      'package:test/lib.dart',
+      mustBeUnique: false,
+    );
   }
 
   test_fieldFormalParameter_noSuchField() async {
@@ -134,14 +126,14 @@ mixin M5 on M2 {}
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' as p;
 class B extends p.A {} // 2
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA).isExtendedAt('A {} // 2', true);
   }
 
@@ -167,7 +159,7 @@ class C = A with B;
   }
 
   test_isExtendedBy_ClassTypeAlias_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -175,7 +167,7 @@ import 'lib.dart' as p;
 class B {}
 class C = p.A with B;
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA)
       ..isExtendedAt('A with', true)
       ..isReferencedAt('A with', true);
@@ -193,14 +185,14 @@ class B implements A {} // 2
   }
 
   test_isImplementedBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' as p;
 class B implements p.A {} // 2
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA)
       ..isImplementedAt('A {} // 2', true)
       ..isReferencedAt('A {} // 2', true);
@@ -241,7 +233,7 @@ mixin M on A {} // 2
   }
 
   test_isInvokedBy_FunctionElement() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 foo() {}
 ''');
@@ -252,7 +244,7 @@ main() {
   pref.foo(); // q
   foo(); // nq
 }''');
-    FunctionElement element = importedUnit().functions[0];
+    FunctionElement element = importFindLib().topFunction('foo');
     assertThat(element)
       ..isInvokedAt('foo(); // q', true)
       ..isInvokedAt('foo(); // nq', false);
@@ -266,7 +258,7 @@ main() {
   math.loadLibrary(); // 2
 }
 ''');
-    LibraryElement mathLib = testLibraryElement.imports[0].importedLibrary;
+    LibraryElement mathLib = findElement.import('dart:math').importedLibrary;
     FunctionElement element = mathLib.loadLibraryFunction;
     assertThat(element).isInvokedAt('loadLibrary(); // 1', true);
     assertThat(element).isInvokedAt('loadLibrary(); // 2', true);
@@ -330,7 +322,6 @@ main() {
   (1.2).foo(); // double ref
 }
 ''');
-    var findNode = FindNode(testCode, testUnit);
 
     var intMethod = findNode.methodDeclaration('foo() {} // int');
     assertThat(intMethod.declaredElement)
@@ -417,14 +408,14 @@ class B extends Object with A {} // 2
   }
 
   test_isMixedInBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' as p;
 class B extends Object with p.A {} // 2
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA).isMixedInAt('A {} // 2', true);
   }
 
@@ -545,7 +536,7 @@ main() {
   }
 
   test_isReferencedBy_ClassElement_invocation_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -553,7 +544,7 @@ import 'lib.dart' as p;
 main() {
   p.A(); // invalid code, but still a reference
 }''');
-    Element element = importedUnit().getType('A');
+    Element element = importFindLib().class_('A');
     assertThat(element).isReferencedAt('A();', true);
   }
 
@@ -584,40 +575,40 @@ main(B p) {
   }
 
   test_isReferencedBy_CompilationUnitElement_export() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
 export 'lib.dart';
 ''');
-    LibraryElement element = testLibraryElement.exports[0].exportedLibrary;
+    var element = findElement.export('package:test/lib.dart').exportedLibrary;
     assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
   }
 
   test_isReferencedBy_CompilationUnitElement_import() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
 import 'lib.dart';
 ''');
-    LibraryElement element = testLibraryElement.imports[0].importedLibrary;
+    var element = findElement.import('package:test/lib.dart').importedLibrary;
     assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
   }
 
   test_isReferencedBy_CompilationUnitElement_part() async {
-    newFile('$testProject2/my_unit.dart', content: 'part of my_lib;');
+    newFile('$testPackageLibPath/my_unit.dart', content: 'part of my_lib;');
     await _indexTestUnit('''
 library my_lib;
 part 'my_unit.dart';
 ''');
-    CompilationUnitElement element = testLibraryElement.parts[0];
+    var element = findElement.part('my_unit.dart');
     assertThat(element)..isReferencedAt("'my_unit.dart';", true, length: 14);
   }
 
   test_isReferencedBy_CompilationUnitElement_part_inPart() async {
-    newFile('$testProject2/a.dart', content: 'part of lib;');
-    newFile('$testProject2/b.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: 'part of lib;');
+    newFile('$testPackageLibPath/b.dart', content: '''
 library lib;
 part 'a.dart';
 ''');
@@ -707,8 +698,9 @@ main() {
 }
 ''');
     // has ".named()", but does not have "named()"
-    int offsetWithoutDot = findOffset('named();');
-    int offsetWithDot = findOffset('.named();');
+    var constructorName = findNode.constructorName('.named();');
+    var offsetWithoutDot = constructorName.name.offset;
+    var offsetWithDot = constructorName.period.offset;
     expect(index.usedElementOffsets, isNot(contains(offsetWithoutDot)));
     expect(index.usedElementOffsets, contains(offsetWithDot));
   }
@@ -893,7 +885,7 @@ main() {
   }
 
   test_isReferencedBy_FunctionElement_with_LibraryElement() async {
-    newFile('$testProject2/foo.dart', content: r'''
+    newFile('$testPackageLibPath/foo.dart', content: r'''
 bar() {}
 ''');
     await _indexTestUnit('''
@@ -902,12 +894,13 @@ main() {
   bar();
 }
 ''');
-    LibraryElement fooLibrary = testLibraryElement.imports[0].importedLibrary;
-    assertThat(fooLibrary)..isReferencedAt('"foo.dart";', true, length: 10);
-    {
-      FunctionElement bar = fooLibrary.definingCompilationUnit.functions[0];
-      assertThat(bar)..isInvokedAt('bar();', false);
-    }
+
+    var importFind = findElement.importFind('package:test/foo.dart');
+    assertThat(importFind.importedLibrary)
+      ..isReferencedAt('"foo.dart";', true, length: 10);
+
+    FunctionElement bar = importFind.topFunction('bar');
+    assertThat(bar)..isInvokedAt('bar();', false);
   }
 
   test_isReferencedBy_FunctionTypeAliasElement() async {
@@ -951,8 +944,8 @@ class A {
   }
 
   test_isReferencedBy_MultiplyDefinedElement() async {
-    newFile('$testProject2/a1.dart', content: 'class A {}');
-    newFile('$testProject2/a2.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a1.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a2.dart', content: 'class A {}');
     await _indexTestUnit('''
 import 'a1.dart';
 import 'a2.dart';
@@ -1117,7 +1110,6 @@ main() {
   (1.2).foo = 0; // double setter ref
 }
 ''');
-    var findNode = FindNode(testCode, testUnit);
 
     var intGetter = findNode.methodDeclaration('0; // int getter');
     var intSetter = findNode.methodDeclaration('{} // int setter');
@@ -1147,7 +1139,7 @@ main(bool b) {
   }
 
   test_isReferencedBy_TopLevelVariableElement() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -1160,7 +1152,7 @@ main() {
   V = 5; // nq
   print(V); // nq
 }''');
-    TopLevelVariableElement variable = importedUnit().topLevelVariables[0];
+    TopLevelVariableElement variable = importFindLib().topVar('V');
     assertThat(variable)..isReferencedAt('V; // imp', true);
     assertThat(variable.getter)
       ..isReferencedAt('V); // q', true)
@@ -1171,25 +1163,25 @@ main() {
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 int get V => 0;
 void set V(_) {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
-    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    TopLevelVariableElement element = importFindLib().topVar('V');
     assertThat(element).isReferencedAt('V;', true);
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 void set V(_) {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
-    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    TopLevelVariableElement element = importFindLib().topVar('V');
     assertThat(element).isReferencedAt('V;', true);
   }
 
@@ -1218,7 +1210,7 @@ class A {
 
   test_subtypes_classDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1268,7 +1260,7 @@ class Z implements E, D {
 
   test_subtypes_classTypeAlias() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1306,7 +1298,7 @@ class X extends dynamic {
 
   test_subtypes_mixinDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1352,14 +1344,14 @@ class C {
   var x;
 }
 main(C c) {
-  c.x;
+  c.x; // 1
   c.x = 1;
   c.x += 2;
   c.x();
 }
 ''');
     assertThatName('x')
-      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x; // 1', IndexRelationKind.IS_READ_BY)
       ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
       ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
@@ -1386,7 +1378,7 @@ main(p) {
 class C {
   var x;
   m() {
-    x;
+    x; // 1
     x = 1;
     x += 2;
     x();
@@ -1394,7 +1386,7 @@ class C {
 }
 ''');
     assertThatName('x')
-      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x; // 1', IndexRelationKind.IS_READ_BY)
       ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
       ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
@@ -1468,9 +1460,9 @@ main() {
 
   ExpectedLocation _expectedLocation(String search, bool isQualified,
       {int length}) {
-    int offset = findOffset(search);
-    length ??= getLeadingIdentifierLength(search);
-    return ExpectedLocation(testUnitElement, offset, length, isQualified);
+    int offset = findNode.offset(search);
+    length ??= findNode.simple(search).length;
+    return ExpectedLocation(offset, length, isQualified);
   }
 
   void _failWithIndexDump(String msg) {
@@ -1558,17 +1550,10 @@ main() {
   }
 
   Future<void> _indexTestUnit(String code) async {
-    addTestFile(code);
+    await resolveTestCode(code);
 
-    ResolvedUnitResult result = await driver.getResult(testFile);
-    testUnit = result.unit;
-    testUnitElement = testUnit.declaredElement;
-    testLibraryElement = testUnitElement.library;
-
-    findElement = FindElement(testUnit);
-
-    AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);
-    List<int> indexBytes = indexBuilder.toBuffer();
+    var indexBuilder = indexUnit(result.unit);
+    var indexBytes = indexBuilder.toBuffer();
     index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
   }
 }
