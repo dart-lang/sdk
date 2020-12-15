@@ -1702,7 +1702,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     {
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test2").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test2")
+              .cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[2]));
@@ -1713,14 +1714,16 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     {
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test3").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test3")
+              .cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
     }
 
     {
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test4").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test4")
+              .cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
       hasType(assertCOf([_isInt]), rhs(statements[2]));
@@ -1731,7 +1734,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     {
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test5").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test5")
+              .cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
     }
@@ -1741,7 +1745,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
       // context.  We could choose a tighter type, but currently
       // we just use dynamic.
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test6").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test6")
+              .cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
       hasType(assertDOf([_isInt, _isString]), rhs(statements[2]));
@@ -1752,20 +1757,23 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     {
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test7").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test7")
+              .cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
     }
 
     {
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test8").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test8")
+              .cast<VariableDeclarationStatement>();
       hasType(assertEOf([_isInt, _isString]), rhs(statements[0]));
     }
 
     {
       List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(unit, "test9").cast<VariableDeclarationStatement>();
+          AstFinder.getStatementsInTopLevelFunction(unit, "test9")
+              .cast<VariableDeclarationStatement>();
       hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[1]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[2]));
@@ -1810,9 +1818,12 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertListOfListOfInt(literal(2).staticType as InterfaceType);
     assertListOfListOfInt(literal(3).staticType as InterfaceType);
 
-    assertListOfInt((literal(1).elements[0] as Expression).staticType as InterfaceType);
-    assertListOfInt((literal(2).elements[0] as Expression).staticType as InterfaceType);
-    assertListOfInt((literal(3).elements[0] as Expression).staticType as InterfaceType);
+    assertListOfInt(
+        (literal(1).elements[0] as Expression).staticType as InterfaceType);
+    assertListOfInt(
+        (literal(2).elements[0] as Expression).staticType as InterfaceType);
+    assertListOfInt(
+        (literal(3).elements[0] as Expression).staticType as InterfaceType);
   }
 
   test_listLiteral_simple() async {
