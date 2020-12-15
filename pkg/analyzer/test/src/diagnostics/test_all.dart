@@ -267,6 +267,8 @@ import 'instance_member_access_from_static_test.dart'
     as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'instantiate_enum_test.dart' as instantiate_enum;
+import 'instantiate_type_alias_expands_to_type_parameter_test.dart'
+    as instantiate_type_alias_expands_to_type_parameter;
 import 'integer_literal_imprecise_as_double_test.dart'
     as integer_literal_imprecise_as_double;
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
@@ -527,6 +529,8 @@ import 'redirect_to_missing_constructor_test.dart'
 import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
 import 'redirect_to_non_const_constructor_test.dart'
     as redirect_to_non_const_constructor;
+import 'redirect_to_type_alias_expands_to_type_parameter_test.dart'
+    as redirect_to_type_alias_expands_to_type_parameter;
 import 'referenced_before_declaration_test.dart'
     as referenced_before_declaration;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
@@ -833,6 +837,7 @@ main() {
     instance_member_access_from_static.main();
     instantiate_abstract_class.main();
     instantiate_enum.main();
+    instantiate_type_alias_expands_to_type_parameter.main();
     integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
     invalid_annotation.main();
@@ -1005,6 +1010,7 @@ main() {
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
     redirect_to_non_const_constructor.main();
+    redirect_to_type_alias_expands_to_type_parameter.main();
     referenced_before_declaration.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();

@@ -79,7 +79,7 @@ class TypeNameResolver {
         return;
       }
 
-      if (prefixElement is ClassElement) {
+      if (prefixElement is ClassElement || prefixElement is TypeAliasElement) {
         _rewriteToConstructorName(node, typeIdentifier);
         return;
       }
@@ -206,7 +206,7 @@ class TypeNameResolver {
           nullabilitySuffix: nullability,
         );
         type = typeSystem.toLegacyType(type);
-        return _verifyTypeAliasForContext(node, type);
+        return _verifyTypeAliasForContext(node, element, type);
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(errorReporter).reportNewWithNonType(node);
         return dynamicType;
@@ -249,7 +249,7 @@ class TypeNameResolver {
         typeAliasElement: element,
         nullabilitySuffix: nullability,
       );
-      return _verifyTypeAliasForContext(node, type);
+      return _verifyTypeAliasForContext(node, element, type);
     } else if (_isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
       return dynamicType;
@@ -367,7 +367,19 @@ class TypeNameResolver {
     }
   }
 
-  DartType _verifyTypeAliasForContext(TypeName node, DartType type) {
+  DartType _verifyTypeAliasForContext(
+    TypeName node,
+    TypeAliasElement element,
+    DartType type,
+  ) {
+    if (element.aliasedType is TypeParameterType) {
+      var constructorName = node.parent;
+      if (constructorName is ConstructorName) {
+        _ErrorHelper(errorReporter)
+            .reportTypeAliasExpandsToTypeParameter(constructorName, element);
+        return dynamicType;
+      }
+    }
     if (type is! InterfaceType && _isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
       return dynamicType;
@@ -520,6 +532,28 @@ class _ErrorHelper {
       identifier,
       [identifier.name],
     );
+  }
+
+  void reportTypeAliasExpandsToTypeParameter(
+    ConstructorName constructorName,
+    TypeAliasElement element,
+  ) {
+    var errorNode = _getErrorNode(constructorName.type);
+    var constructorUsage = constructorName.parent;
+    if (constructorUsage is InstanceCreationExpression) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+        errorNode,
+      );
+    } else if (constructorUsage is ConstructorDeclaration &&
+        constructorUsage.redirectedConstructor == constructorName) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+        errorNode,
+      );
+    } else {
+      throw UnimplementedError('${constructorUsage.runtimeType}');
+    }
   }
 
   /// Returns the simple identifier of the given (maybe prefixed) identifier.
