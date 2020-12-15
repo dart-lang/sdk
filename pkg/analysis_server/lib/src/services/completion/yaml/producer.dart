@@ -59,11 +59,10 @@ class FilePathProducer extends Producer {
   @override
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
-    // This currently assumes that all paths will be posix paths, but we might
-    // want to support platform-specific paths at some point, in which case we
-    // should add a flag to the constructor and use that to choose between the
-    // hard-coded `path.posix` and `provider.pathContext`;
-    var provider = request.resourceProvider;
+    //
+    // This currently assumes that all of the paths in the assets section will
+    // be posix paths.
+    //
     var context = path.posix;
     var separator = context.separator;
     var precedingText = request.precedingText;
@@ -80,6 +79,16 @@ class FilePathProducer extends Producer {
       parentDirectory = parentDirectory.substring(
           0, parentDirectory.length - separator.length);
     }
+    //
+    // Convert from posix to the platform context.
+    //
+    var provider = request.resourceProvider;
+    context = provider.pathContext;
+    parentDirectory = context.joinAll(path.posix.split(parentDirectory));
+    //
+    // Resolve the relative path and access the disk to see what child entities
+    // exist within the [parentDirectory] that can be suggested.
+    //
     if (context.isRelative(parentDirectory)) {
       parentDirectory =
           context.join(context.dirname(request.filePath), parentDirectory);
