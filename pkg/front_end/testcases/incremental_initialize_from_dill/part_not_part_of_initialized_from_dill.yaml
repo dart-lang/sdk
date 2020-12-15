@@ -25,3 +25,15 @@ worlds:
       lib.dart: |
         methodFromLib() {}
     expectedLibraryCount: 2
+
+  - entry: main.dart
+    errors: true
+    invalidate:
+      - lib.dart
+    sources:
+      main.dart: |
+        part 'lib.dart';
+        main() {}
+      lib.dart: |
+        methodFromLib() {}
+    expectedLibraryCount: 2
