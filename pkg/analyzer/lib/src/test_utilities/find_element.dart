@@ -186,6 +186,30 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
+  CompilationUnitElement part(String targetUri) {
+    CompilationUnitElement partElement;
+
+    for (var part in unitElement.library.parts) {
+      var partUri = part.source.uri.toString();
+      if (partUri == targetUri) {
+        if (partElement != null) {
+          throw StateError('Not unique: $targetUri');
+        }
+        partElement = part;
+      }
+    }
+
+    if (partElement != null) {
+      return partElement;
+    }
+    throw StateError('Not found: $targetUri');
+  }
+
+  PartFindElement partFind(String targetUri) {
+    var part = this.part(targetUri);
+    return PartFindElement(part);
+  }
+
   PrefixElement prefix(String name) {
     for (var import_ in unitElement.library.imports) {
       var prefix = import_.prefix;
@@ -259,6 +283,13 @@ class ImportFindElement extends _FindElementBase {
   CompilationUnitElement get unitElement {
     return importedLibrary.definingCompilationUnit;
   }
+}
+
+class PartFindElement extends _FindElementBase {
+  @override
+  final CompilationUnitElement unitElement;
+
+  PartFindElement(this.unitElement);
 }
 
 abstract class _FindElementBase {
