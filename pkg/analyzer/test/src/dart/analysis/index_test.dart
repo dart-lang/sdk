@@ -17,6 +17,7 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexTest);
+    defineReflectiveTests(IndexWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -34,26 +35,7 @@ class ExpectedLocation {
 }
 
 @reflectiveTest
-class IndexTest extends PubPackageResolutionTest {
-  AnalysisDriverUnitIndex index;
-
-  _ElementIndexAssert assertThat(Element element) {
-    List<_Relation> relations = _getElementRelations(element);
-    return _ElementIndexAssert(this, element, relations);
-  }
-
-  _NameIndexAssert assertThatName(String name) {
-    return _NameIndexAssert(this, name);
-  }
-
-  /// Return [ImportFindElement] for 'package:test/lib.dart' import.
-  ImportFindElement importFindLib() {
-    return findElement.importFind(
-      'package:test/lib.dart',
-      mustBeUnique: false,
-    );
-  }
-
+class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   test_fieldFormalParameter_noSuchField() async {
     await _indexTestUnit('''
 class B<T> {
@@ -1407,6 +1389,166 @@ main() {
       ..isUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
+}
+
+@reflectiveTest
+class IndexWithNonFunctionTypeAliasesTest extends PubPackageResolutionTest
+    with WithNonFunctionTypeAliasesMixin, _IndexMixin {
+  test_isExtendedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C extends B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isExtendedAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
+  test_isImplementedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C implements B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isImplementedAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
+  test_isMixedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C extends Object with B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isMixedInAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
+  test_isReferencedBy_ClassElement_inTypeAlias() async {
+    await _indexTestUnit('''
+class A<T> {}
+
+typedef B = A<int>;
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A<int', false);
+    assertThat(intElement).isReferencedAt('int>;', false);
+  }
+
+  test_isReferencedBy_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {
+  static int field = 0;
+  static void method() {}
+}
+
+typedef B = A<int>;
+
+void f(B p) {
+  B v;
+  B(); // 2
+  B.field = 1;
+  B.field; // 3
+  B.method(); // 4
+}
+''');
+    var element = findElement.typeAlias('B');
+    assertThat(element)
+      ..isReferencedAt('B p) {', false)
+      ..isReferencedAt('B v;', false)
+      ..isReferencedAt('B(); // 2', false)
+      ..isReferencedAt('B.field = 1;', false)
+      ..isReferencedAt('B.field; // 3', false)
+      ..isReferencedAt('B.method(); // 4', false);
+  }
+}
+
+class _ElementIndexAssert {
+  final _IndexMixin test;
+  final Element element;
+  final List<_Relation> relations;
+
+  _ElementIndexAssert(this.test, this.element, this.relations);
+
+  void hasRelationCount(int expectedCount) {
+    expect(relations, hasLength(expectedCount));
+  }
+
+  void isAncestorOf(String search, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_ANCESTOR_OF,
+        test._expectedLocation(search, false, length: length));
+  }
+
+  void isExtendedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_EXTENDED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isImplementedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_IMPLEMENTED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isInvokedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(element, relations, IndexRelationKind.IS_INVOKED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isMixedInAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_MIXED_IN_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isReferencedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isWrittenAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(element, relations, IndexRelationKind.IS_WRITTEN_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+}
+
+mixin _IndexMixin on PubPackageResolutionTest {
+  AnalysisDriverUnitIndex index;
+
+  _ElementIndexAssert assertThat(Element element) {
+    List<_Relation> relations = _getElementRelations(element);
+    return _ElementIndexAssert(this, element, relations);
+  }
+
+  _NameIndexAssert assertThatName(String name) {
+    return _NameIndexAssert(this, name);
+  }
+
+  /// Return [ImportFindElement] for 'package:test/lib.dart' import.
+  ImportFindElement importFindLib() {
+    return findElement.importFind(
+      'package:test/lib.dart',
+      mustBeUnique: false,
+    );
+  }
 
   /// Asserts that [index] has an item with the expected properties.
   void _assertHasRelation(
@@ -1555,68 +1697,6 @@ main() {
     var indexBuilder = indexUnit(result.unit);
     var indexBytes = indexBuilder.toBuffer();
     index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
-  }
-}
-
-class _ElementIndexAssert {
-  final IndexTest test;
-  final Element element;
-  final List<_Relation> relations;
-
-  _ElementIndexAssert(this.test, this.element, this.relations);
-
-  void hasRelationCount(int expectedCount) {
-    expect(relations, hasLength(expectedCount));
-  }
-
-  void isAncestorOf(String search, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_ANCESTOR_OF,
-        test._expectedLocation(search, false, length: length));
-  }
-
-  void isExtendedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_EXTENDED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isImplementedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_IMPLEMENTED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isInvokedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, relations, IndexRelationKind.IS_INVOKED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isMixedInAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_MIXED_IN_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isReferencedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_REFERENCED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isWrittenAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, relations, IndexRelationKind.IS_WRITTEN_BY,
-        test._expectedLocation(search, isQualified, length: length));
   }
 }
 
