@@ -12,10 +12,13 @@ main() {
     test('asExpression_end promotes variables', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
     });
 
@@ -164,17 +167,33 @@ main() {
       ]);
     });
 
+    test('declare() sets Ssa', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      h.run([
+        declareInitialized(x, y.read.eq(nullLiteral)),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNotNull);
+        }),
+      ]);
+    });
+
     test('equalityOp(x != null) promotes true branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.read.notEq(nullLiteral), [
           checkReachable(true),
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkReachable(true),
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -232,14 +251,18 @@ main() {
     test('equalityOp(x == null) promotes false branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.read.eq(nullLiteral), [
           checkReachable(true),
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkReachable(true),
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -262,12 +285,16 @@ main() {
     test('equalityOp(null != x) promotes true branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(nullLiteral.notEq(x.read), [
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -288,12 +315,16 @@ main() {
     test('equalityOp(null == x) promotes false branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(nullLiteral.eq(x.read), [
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -381,14 +412,39 @@ main() {
       ]);
     });
 
+    test('declare(initialized: false) assigns new SSA ids', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      h.run([
+        declare(x, initialized: false),
+        declare(y, initialized: false),
+        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+      ]);
+    });
+
+    test('declare(initialized: true) assigns new SSA ids', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+      ]);
+    });
+
     test('doStatement_bodyBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         branchTarget((t) => do_([
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
               checkNotPromoted(x),
               x.write(expr('Null')).stmt,
             ], expr('bool'))),
@@ -457,13 +513,22 @@ main() {
     test('for_conditionBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
-        for_(null, checkNotPromoted(x).thenExpr(expr('bool')), null, [
-          x.write(expr('int?')).stmt,
-        ]),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        for_(
+            null,
+            block([
+              checkNotPromoted(x),
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+            ]).thenExpr(expr('bool')),
+            null,
+            [
+              x.write(expr('int?')).stmt,
+            ]),
       ]);
     });
 
@@ -587,15 +652,75 @@ main() {
       ]);
     });
 
+    test('for_end() with break updates Ssa of modified vars', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode xSsaInsideLoop;
+      late SsaNode ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => for_(null, expr('bool'), null, [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // of the loop.  y's should not, since it retains the value it had
+          // prior to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
+    test(
+        'for_end() with break updates Ssa of modified vars when types were '
+        'tested', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode xSsaInsideLoop;
+      late SsaNode ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => for_(null, expr('bool'), null, [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              if_(x.read.is_('int'), []),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // the loop.  y's should not, since it retains the value it had prior
+          // to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
     test('forEach_bodyBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         forEachWithNonVariable(expr('List<int?>'), [
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
           x.write(expr('int?')).stmt,
         ]),
       ]);
@@ -626,6 +751,20 @@ main() {
         checkAssigned(x, false),
         forEachWithVariableSet(x, expr('List<int?>'), [
           checkAssigned(x, true),
+        ]),
+        checkAssigned(x, false),
+      ]);
+    });
+
+    test('forEach_bodyBegin() does not write capture loop variable', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      h.run([
+        declare(x, initialized: false),
+        checkAssigned(x, false),
+        forEachWithVariableSet(x, expr('List<int?>'), [
+          checkAssigned(x, true),
+          if_(x.read.notEq(nullLiteral), [checkPromoted(x, 'int')]),
         ]),
         checkAssigned(x, false),
       ]);
@@ -675,13 +814,25 @@ main() {
         y.read.as_('int').stmt,
         checkPromoted(x, 'int'),
         checkPromoted(y, 'int'),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNotNull);
+          expect(nodes[y], isNotNull);
+        }),
         localFunction([
           // x is unpromoted within the local function
           checkNotPromoted(x), checkPromoted(y, 'int'),
+          getSsaNodes((nodes) {
+            expect(nodes[x], isNull);
+            expect(nodes[y], isNotNull);
+          }),
           x.write(expr('int?')).stmt, x.read.as_('int').stmt,
         ]),
         // x is unpromoted after the local function too
         checkNotPromoted(x), checkPromoted(y, 'int'),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNull);
+          expect(nodes[y], isNotNull);
+        }),
       ]);
     });
 
@@ -721,21 +872,28 @@ main() {
       var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
+      late SsaNode ssaBeforeFunction;
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
         x.read.as_('int').stmt, y.read.as_('int').stmt,
-        checkPromoted(x, 'int'), checkPromoted(y, 'int'),
+        checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeFunction = nodes[x]!),
+        checkPromoted(y, 'int'),
         localFunction([
           // x is unpromoted within the local function, because the write
           // might have happened by the time the local function executes.
-          checkNotPromoted(x), checkPromoted(y, 'int'),
+          checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeFunction))),
+          checkPromoted(y, 'int'),
           // But it can be re-promoted because the write isn't captured.
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'), checkPromoted(y, 'int'),
         ]),
         // x is still promoted after the local function, though, because the
         // write hasn't occurred yet.
-        checkPromoted(x, 'int'), checkPromoted(y, 'int'),
+        checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforeFunction))),
+        checkPromoted(y, 'int'),
         x.write(expr('int?')).stmt,
         // x is unpromoted now.
         checkNotPromoted(x), checkPromoted(y, 'int'),
@@ -762,7 +920,9 @@ main() {
       h.run([
         declare(y, initialized: true),
         y.read.as_('int').stmt,
+        getSsaNodes((nodes) => expect(nodes[x], null)),
         localFunction([
+          getSsaNodes((nodes) => expect(nodes[x], isNot(nodes[y]))),
           x.read.as_('int').stmt,
           // Promotion should not occur, because x might be write-captured by
           // the time this code is reached.
@@ -967,19 +1127,96 @@ main() {
       ]);
     });
 
+    test(
+        'ifStatement_end() discards non-matching expression info from joined '
+        'branches', () {
+      var h = Harness();
+      var w = Var('w', 'Object');
+      var x = Var('x', 'bool');
+      var y = Var('y', 'bool');
+      var z = Var('z', 'bool');
+      late SsaNode xSsaNodeBeforeIf;
+      h.run([
+        declare(w, initialized: true),
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        declare(z, initialized: true),
+        x.write(w.read.is_('int')).stmt,
+        getSsaNodes((nodes) {
+          xSsaNodeBeforeIf = nodes[x]!;
+        }),
+        if_(expr('bool'), [
+          y.write(w.read.is_('String')).stmt,
+        ], [
+          z.write(w.read.is_('bool')).stmt,
+        ]),
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaNodeBeforeIf));
+          expect(nodes[y], isNotNull);
+          expect(nodes[z], isNotNull);
+        }),
+      ]);
+    });
+
+    test(
+        'ifStatement_end() ignores non-matching SSA info from "then" path if '
+        'unreachable', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      late SsaNode xSsaNodeBeforeIf;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) {
+          xSsaNodeBeforeIf = nodes[x]!;
+        }),
+        if_(expr('bool'), [
+          x.write(expr('Object')).stmt,
+          return_(),
+        ]),
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaNodeBeforeIf));
+        }),
+      ]);
+    });
+
+    test(
+        'ifStatement_end() ignores non-matching SSA info from "else" path if '
+        'unreachable', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      late SsaNode xSsaNodeBeforeIf;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) {
+          xSsaNodeBeforeIf = nodes[x]!;
+        }),
+        if_(expr('bool'), [], [
+          x.write(expr('Object')).stmt,
+          return_(),
+        ]),
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaNodeBeforeIf));
+        }),
+      ]);
+    });
+
     void _checkIs(String declaredType, String tryPromoteType,
         String? expectedPromotedTypeThen, String? expectedPromotedTypeElse,
         {bool inverted = false}) {
       var h = Harness();
       var x = Var('x', declaredType);
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.read.is_(tryPromoteType, isInverted: inverted), [
           checkReachable(true),
           checkPromoted(x, expectedPromotedTypeThen),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkReachable(true),
           checkPromoted(x, expectedPromotedTypeElse),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ])
       ]);
     }
@@ -1176,25 +1413,33 @@ main() {
     test('nonNullAssert_end(x) promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.read.nonNullAssert.stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
     });
 
     test('nullAwareAccess temporarily promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.read
             .nullAwareAccess(block([
               checkReachable(true),
               checkPromoted(x, 'int'),
+              getSsaNodes(
+                  (nodes) => expect(nodes[x], same(ssaBeforePromotion))),
             ]).thenExpr(expr('Null')))
             .stmt,
         checkNotPromoted(x),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
     });
 
@@ -1380,14 +1625,20 @@ main() {
     test('switchStatement_beginCase(true) un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforeSwitch;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('Null').thenStmt(block([
+              checkPromoted(x, 'int'),
+              getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
+            ])),
             [
               case_([
                 checkNotPromoted(x),
+                getSsaNodes(
+                    (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
               ], hasLabel: true),
@@ -1527,6 +1778,7 @@ main() {
         () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaAfterTry;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
@@ -1535,9 +1787,11 @@ main() {
           x.write(expr('int?')).stmt,
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
         ], [
           catch_(body: [
             checkNotPromoted(x),
+            getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
           ]),
         ]),
       ]);
@@ -1673,16 +1927,27 @@ main() {
         'body', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaAtStartOfTry;
+      late SsaNode ssaAfterTry;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
         tryFinally([
+          getSsaNodes((nodes) => ssaAtStartOfTry = nodes[x]!),
           x.write(expr('int?')).stmt,
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
         ], [
           checkNotPromoted(x),
+          // The SSA node for X should be different from what it was at any time
+          // during the try block, because there is no telling at what point an
+          // exception might have occurred.
+          getSsaNodes((nodes) {
+            expect(nodes[x], isNot(ssaAtStartOfTry));
+            expect(nodes[x], isNot(ssaAfterTry));
+          }),
         ]),
       ]);
     });
@@ -1733,6 +1998,8 @@ main() {
       var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
+      late SsaNode xSsaAtEndOfFinally;
+      late SsaNode ySsaAtEndOfFinally;
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
         tryFinally([
@@ -1744,24 +2011,42 @@ main() {
           y.write(expr('int?')).stmt,
           y.read.as_('int').stmt,
           checkPromoted(y, 'int'),
+          getSsaNodes((nodes) {
+            xSsaAtEndOfFinally = nodes[x]!;
+            ySsaAtEndOfFinally = nodes[y]!;
+          }),
         ]),
         // x should not be re-promoted, because it might have been assigned a
         // non-promoted value in the "finally" block.  But y's promotion still
         // stands, because y was promoted in the finally block.
         checkNotPromoted(x), checkPromoted(y, 'int'),
+        // Both x and y should have the same SSA nodes they had at the end of
+        // the finally block, since the finally block is guaranteed to have
+        // executed.
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaAtEndOfFinally));
+          expect(nodes[y], same(ySsaAtEndOfFinally));
+        }),
       ]);
     });
 
     test('whileStatement_conditionBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
-        while_(checkNotPromoted(x).thenExpr(expr('bool')), [
-          x.write(expr('Null')).stmt,
-        ]),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        while_(
+            block([
+              checkNotPromoted(x),
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+            ]).thenExpr(expr('bool')),
+            [
+              x.write(expr('Null')).stmt,
+            ]),
       ]);
     });
 
@@ -1835,6 +2120,98 @@ main() {
       ]);
     });
 
+    test('whileStatement_end() with break updates Ssa of modified vars', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode xSsaInsideLoop;
+      late SsaNode ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => while_(expr('bool'), [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // the loop.  y's should not, since it retains the value it had prior
+          // to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
+    test(
+        'whileStatement_end() with break updates Ssa of modified vars when '
+        'types were tested', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode xSsaInsideLoop;
+      late SsaNode ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => while_(expr('bool'), [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              if_(x.read.is_('int'), []),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // the loop.  y's should not, since it retains the value it had prior
+          // to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
+    test('write() de-promotes and updates Ssa of a promoted variable', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      late SsaNode ssaBeforeWrite;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        x.read.as_('int').stmt,
+        checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        x.write(y.read.eq(nullLiteral)).stmt,
+        checkNotPromoted(x),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(ssaBeforeWrite));
+          expect(nodes[x], isNotNull);
+        }),
+      ]);
+    });
+
+    test('write() updates Ssa', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      late SsaNode ssaBeforeWrite;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        x.write(y.read.eq(nullLiteral)).stmt,
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(ssaBeforeWrite));
+        }),
+      ]);
+    });
+
     test('Infinite loop does not implicitly assign variables', () {
       var h = Harness();
       var x = Var('x', 'int');
@@ -1868,8 +2245,10 @@ main() {
         localFunction([
           x.write(expr('Object')).stmt,
         ]),
+        getSsaNodes((nodes) => expect(nodes[x], isNull)),
         x.read.as_('int').stmt,
         checkNotPromoted(x),
+        getSsaNodes((nodes) => expect(nodes[x], isNull)),
       ]);
     });
 
@@ -2153,7 +2532,15 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true);
         var s2 = s1.write(objectQVar, Type('Object?'), h);
-        expect(s2, same(s1));
+        expect(s2, isNot(same(s1)));
+        expect(s2.reachable, same(s1.reachable));
+        expect(
+            s2.infoFor(objectQVar),
+            _matchVariableModel(
+                chain: null,
+                ofInterest: isEmpty,
+                assigned: true,
+                unassigned: false));
       });
 
       test('marks as assigned', () {
@@ -2260,7 +2647,14 @@ main() {
         });
         var s2 = s1.write(objectQVar, Type('num'), h);
         expect(s2.reachable.overallReachable, true);
-        expect(s2.variableInfo, same(s1.variableInfo));
+        expect(s2.variableInfo, isNot(same(s1.variableInfo)));
+        expect(s2.variableInfo, {
+          objectQVar: _matchVariableModel(
+              chain: ['num?', 'num'],
+              ofInterest: ['num?', 'num'],
+              assigned: true,
+              unassigned: false)
+        });
       });
 
       test('leaves promoted, when writing a subtype', () {
@@ -2280,7 +2674,14 @@ main() {
         });
         var s2 = s1.write(objectQVar, Type('int'), h);
         expect(s2.reachable.overallReachable, true);
-        expect(s2.variableInfo, same(s1.variableInfo));
+        expect(s2.variableInfo, isNot(same(s1.variableInfo)));
+        expect(s2.variableInfo, {
+          objectQVar: _matchVariableModel(
+              chain: ['num?', 'num'],
+              ofInterest: ['num?', 'num'],
+              assigned: true,
+              unassigned: false)
+        });
       });
 
       group('Promotes to NonNull of a type of interest', () {
@@ -2545,7 +2946,13 @@ main() {
             var s2 = s1.write(objectQVar, Type('int'), h);
             // It's ambiguous whether to promote to num? or num*, so we don't
             // promote.
-            expect(s2, same(s1));
+            expect(s2, isNot(same(s1)));
+            expect(s2.variableInfo, {
+              objectQVar: _matchVariableModel(
+                chain: ['Object'],
+                ofInterest: ['num?', 'num*'],
+              ),
+            });
           });
         });
 
@@ -2682,7 +3089,12 @@ main() {
             .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
             .ifTrue;
         var s2 = s1.conservativeJoin([intQVar], []);
-        expect(s2, same(s1));
+        expect(s2, isNot(same(s1)));
+        expect(s2.reachable, same(s1.reachable));
+        expect(s2.variableInfo, {
+          objectQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int']),
+          intQVar: _matchVariableModel(chain: null, ofInterest: [])
+        });
       });
 
       test('written', () {
@@ -3075,12 +3487,11 @@ main() {
     VariableModel<Var, Type> model(List<Type>? promotionChain,
             {List<Type>? typesOfInterest, bool assigned = false}) =>
         VariableModel<Var, Type>(
-          promotionChain,
-          typesOfInterest ?? promotionChain ?? [],
-          assigned,
-          !assigned,
-          false,
-        );
+            promotionChain,
+            typesOfInterest ?? promotionChain ?? [],
+            assigned,
+            !assigned,
+            new SsaNode());
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
@@ -3259,18 +3670,12 @@ main() {
 
     VariableModel<Var, Type> varModel(List<Type>? promotionChain,
             {bool assigned = false}) =>
-        VariableModel<Var, Type>(
-          promotionChain,
-          promotionChain ?? [],
-          assigned,
-          !assigned,
-          false,
-        );
+        VariableModel<Var, Type>(promotionChain, promotionChain ?? [], assigned,
+            !assigned, new SsaNode());
 
     test('first is null', () {
       var h = Harness();
-      var s1 = FlowModel.withInfo(
-          Reachability.initial.split(), emptyMap);
+      var s1 = FlowModel.withInfo(Reachability.initial.split(), emptyMap);
       var result = FlowModel.merge(h, null, s1, emptyMap);
       expect(result.reachable, same(Reachability.initial));
     });
@@ -3353,7 +3758,8 @@ main() {
     const emptyMap = const <Var, VariableModel<Var, Type>>{};
 
     VariableModel<Var, Type> model(List<Type> typesOfInterest) =>
-        VariableModel<Var, Type>(null, typesOfInterest, true, false, false);
+        VariableModel<Var, Type>(
+            null, typesOfInterest, true, false, new SsaNode());
 
     test('inherits types of interest from other', () {
       var h = Harness();
