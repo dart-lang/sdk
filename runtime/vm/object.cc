@@ -19454,9 +19454,13 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
     // we have the instructions.
     ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid);
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, 0);
-  } else {
-    StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, stub.EntryPoint());
+    raw_ptr()->set_type_test_stub(stub.raw());
+    return;
   }
+
+  Thread* thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, stub.EntryPoint());
   raw_ptr()->set_type_test_stub(stub.raw());
 }
 

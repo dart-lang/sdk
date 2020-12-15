@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -152,7 +153,7 @@ typedef G<T> = T Function(double);
     assertType(type, 'int Function(double)');
 
     var typedefG = findElement.functionTypeAlias('G');
-    var functionG = typedefG.function;
+    var functionG = typedefG.aliasedElement as GenericFunctionTypeElement;
 
     expect(type.element, functionG);
     expect(type.element?.enclosingElement, typedefG);
@@ -175,7 +176,7 @@ typedef F<T extends A> = B Function<U extends B>(T a, U b);
     expect(t.name, 'T');
     assertType(t.bound, 'A');
 
-    var ff = f.function;
+    var ff = f.aliasedElement as GenericFunctionTypeElement;
     expect(ff.typeParameters, hasLength(1));
 
     var u = ff.typeParameters[0];

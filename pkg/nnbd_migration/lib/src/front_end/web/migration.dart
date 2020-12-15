@@ -464,7 +464,7 @@ void loadNavigationTree() async {
   }
 }
 
-void logError(e, st) {
+void logError(Object e, Object st) {
   window.console.error('$e');
   window.console.error('$st');
 }

@@ -57,9 +57,14 @@ String getReturnTypeString(engine.Element element) {
     return type != null
         ? type.getDisplayString(withNullability: false)
         : 'dynamic';
-  } else if (element is engine.FunctionTypeAliasElement) {
-    var returnType = element.function.returnType;
-    return returnType.getDisplayString(withNullability: false);
+  } else if (element is engine.TypeAliasElement) {
+    var aliasedElement = element.aliasedElement;
+    if (aliasedElement is engine.GenericFunctionTypeElement) {
+      var returnType = aliasedElement.returnType;
+      return returnType.getDisplayString(withNullability: false);
+    } else {
+      return null;
+    }
   } else {
     return null;
   }

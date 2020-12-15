@@ -94,15 +94,13 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
     assertSimpleIdentifier(
       prefixed.identifier,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -127,15 +125,13 @@ void f() {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.class_('A'),
-      writeElement: null,
+      element: findElement.class_('A'),
       type: null,
     );
 
     assertSimpleIdentifier(
       prefixed.identifier,
-      readElement: findElement.method('foo'),
-      writeElement: null,
+      element: findElement.method('foo'),
       type: 'void Function<U>(int, U)',
     );
   }
@@ -160,15 +156,13 @@ void f() {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.class_('A'),
-      writeElement: null,
+      element: findElement.class_('A'),
       type: null,
     );
 
     assertSimpleIdentifier(
       prefixed.identifier,
-      readElement: findElement.method('foo'),
-      writeElement: null,
+      element: findElement.method('foo'),
       type: 'void Function(int)',
     );
   }
@@ -209,19 +203,13 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefixed.identifier,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
   }
 
   test_write() async {
@@ -257,19 +245,13 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefixed.identifier,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
   }
 }
 
@@ -302,8 +284,7 @@ void f() {
 
     assertSimpleIdentifier(
       findNode.simple('foo;'),
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }

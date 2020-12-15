@@ -390,12 +390,12 @@ class Variables {
       element = element.declaration;
     }
 
-    if (element is FunctionTypeAliasElement) {
+    if (element is TypeAliasElement) {
       // For `typedef F<T> = Function(T)`, get the `function` which is (in this
       // case) `Function(T)`. Without this we would get `Function<T>(T)` which
       // is incorrect. This is a known issue with `.type` on typedefs in the
       // analyzer.
-      element = (element as FunctionTypeAliasElement).function;
+      element = (element as FunctionTypeAliasElement).aliasedElement;
     }
 
     var target = NullabilityNodeTarget.element(element, _getLineInfo);

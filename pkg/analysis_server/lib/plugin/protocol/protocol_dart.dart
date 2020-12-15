@@ -132,8 +132,13 @@ String _getParametersString(engine.Element element) {
       return null;
     }
     parameters = element.parameters.toList();
-  } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.function.parameters.toList();
+  } else if (element is engine.TypeAliasElement) {
+    var aliasedElement = element.aliasedElement;
+    if (aliasedElement is engine.GenericFunctionTypeElement) {
+      parameters = aliasedElement.parameters.toList();
+    } else {
+      return null;
+    }
   } else {
     return null;
   }

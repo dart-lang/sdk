@@ -47,16 +47,17 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ImportElement import(String targetUri) {
+  ImportElement import(String targetUri, {bool mustBeUnique = true}) {
     ImportElement importElement;
 
     for (var import in unitElement.library.imports) {
       var importedUri = import.importedLibrary.source.uri.toString();
       if (importedUri == targetUri) {
-        if (importElement != null) {
+        if (importElement == null) {
+          importElement = import;
+        } else if (mustBeUnique) {
           throw StateError('Not unique: $targetUri');
         }
-        importElement = import;
       }
     }
 
@@ -66,8 +67,8 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $targetUri');
   }
 
-  ImportFindElement importFind(String targetUri) {
-    var import = this.import(targetUri);
+  ImportFindElement importFind(String targetUri, {bool mustBeUnique = true}) {
+    var import = this.import(targetUri, mustBeUnique: mustBeUnique);
     return ImportFindElement(import);
   }
 
@@ -147,8 +148,11 @@ class FindElement extends _FindElementBase {
     findInExecutables(unitElement.accessors);
     findInExecutables(unitElement.functions);
 
-    for (var function in unitElement.functionTypeAliases) {
-      findIn(function.function.parameters);
+    for (var alias in unitElement.typeAliases) {
+      var aliasedElement = alias.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        findIn(aliasedElement.parameters);
+      }
     }
 
     for (var extension_ in unitElement.extensions) {
@@ -181,6 +185,29 @@ class FindElement extends _FindElementBase {
       return result;
     }
     throw StateError('Not found: $name');
+  }
+
+  CompilationUnitElement part(String targetUri) {
+    CompilationUnitElement partElement;
+
+    for (var part in unitElement.library.parts) {
+      if (part.uri == targetUri) {
+        if (partElement != null) {
+          throw StateError('Not unique: $targetUri');
+        }
+        partElement = part;
+      }
+    }
+
+    if (partElement != null) {
+      return partElement;
+    }
+    throw StateError('Not found: $targetUri');
+  }
+
+  PartFindElement partFind(String targetUri) {
+    var part = this.part(targetUri);
+    return PartFindElement(part);
   }
 
   PrefixElement prefix(String name) {
@@ -218,9 +245,13 @@ class FindElement extends _FindElementBase {
       findIn(type.typeParameters);
     }
 
-    for (var type in unitElement.functionTypeAliases) {
-      findIn(type.typeParameters);
-      findIn(type.function.typeParameters);
+    for (var alias in unitElement.typeAliases) {
+      findIn(alias.typeParameters);
+
+      var aliasedElement = alias.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        findIn(aliasedElement.typeParameters);
+      }
     }
 
     for (var class_ in unitElement.types) {
@@ -252,6 +283,13 @@ class ImportFindElement extends _FindElementBase {
   CompilationUnitElement get unitElement {
     return importedLibrary.definingCompilationUnit;
   }
+}
+
+class PartFindElement extends _FindElementBase {
+  @override
+  final CompilationUnitElement unitElement;
+
+  PartFindElement(this.unitElement);
 }
 
 abstract class _FindElementBase {

@@ -1115,7 +1115,7 @@ main() {
 ''');
     var element = findElement.prefix('ppp');
     var main = findElement.function('main');
-    Element c = findChildElement(testLibraryElement, 'c');
+    var c = findElement.partFind('my_part.dart').topVar('c');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
@@ -1145,7 +1145,7 @@ main() {
 ''', addToDriver: false);
     var element = findElement.prefix('ppp');
     var main = findElement.function('main');
-    Element c = findChildElement(testLibraryElement, 'c');
+    var c = findElement.partFind('my_part.dart').topVar('c');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),

@@ -250,8 +250,13 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
       return null;
     }
     type = element.returnType;
-  } else if (element is FunctionTypeAliasElement) {
-    type = element.function.returnType;
+  } else if (element is TypeAliasElement) {
+    var aliasedElement = element.aliasedElement;
+    if (aliasedElement is GenericFunctionTypeElement) {
+      type = aliasedElement.returnType;
+    } else {
+      return null;
+    }
   } else if (element is VariableElement) {
     type = element.type;
   } else {

@@ -218,7 +218,7 @@ abstract class NodeChange<N extends AstNode> {
   Iterable<String> get _toStringParts => const [];
 
   @override
-  toString() => '$runtimeType(${_toStringParts.join(', ')})';
+  String toString() => '$runtimeType(${_toStringParts.join(', ')})';
 
   /// Applies this change to the given [node], producing an [EditPlan].  The
   /// [aggregator] may be used to gather up any edits to the node's descendants

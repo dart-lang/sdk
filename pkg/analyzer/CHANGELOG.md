@@ -1,3 +1,7 @@
+## 0.41.2-dev
+* Deprecated `FunctionTypeAliasElement.function`.
+  Use `TypeAliasElement.aliasedElement` instead.
+
 ## 0.41.1
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop
   at the first directory with `pubspec.yaml`, and don't try to go up
