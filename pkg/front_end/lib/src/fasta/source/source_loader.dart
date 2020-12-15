@@ -457,7 +457,7 @@ class SourceLoader extends Loader {
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
       parser.parseUnit(tokens);
-      for (SourceLibraryBuilder part in library.parts) {
+      for (LibraryBuilder part in library.parts) {
         if (part.partOfLibrary != library) {
           // Part was included in multiple libraries. Skip it here.
           continue;
