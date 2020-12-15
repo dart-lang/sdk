@@ -12595,6 +12595,22 @@ void f(int a) {}
 ''');
   }
 
+  test_typedef_nonFunction_using_interface_noTypeParameters_legacy() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    newFile('/a.dart', content: r'''
+typedef A = List<int>;
+''');
+    var library = await checkLibrary(r'''
+// @dart = 2.9
+import 'a.dart';
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+void f(List<int*>* a) {}
+''');
+  }
+
   test_typedef_nonFunction_using_interface_noTypeParameters_question() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
