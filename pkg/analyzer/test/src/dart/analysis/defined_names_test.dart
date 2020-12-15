@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/parser_test.dart';
+import '../../../generated/parser_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
