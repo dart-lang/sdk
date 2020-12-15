@@ -949,8 +949,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ReusageResult reusedResult, UriTranslator uriTranslator) {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-      cleanupSourcesForBuilder(
-          builder, uriTranslator, CompilerContext.current.uriToSource);
+      cleanupSourcesForBuilder(reusedResult, builder, uriTranslator,
+          CompilerContext.current.uriToSource);
       incrementalSerializer?.invalidate(builder.fileUri);
 
       LibraryBuilder dillBuilder =
@@ -1494,7 +1494,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 getPartFileUri(library.fileUri, part, uriTranslator);
             partsUsed.add(partFileUri);
           }
-          partsUsed;
         }
       }
     }
@@ -1510,7 +1509,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (dillLoadedData.loader.builders.remove(uri) != null) {
           removedDillBuilders = true;
         }
-        cleanupSourcesForBuilder(builder, uriTranslator,
+        cleanupSourcesForBuilder(null, builder, uriTranslator,
             CompilerContext.current.uriToSource, uriToSource, partsUsed);
         userBuilders?.remove(uri);
         removeLibraryFromRemainingComponentProblems(
@@ -1545,15 +1544,43 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
   /// Those parts will not be cleaned up. This is useful when a part has been
   /// "moved" to be part of another library.
-  void cleanupSourcesForBuilder(LibraryBuilder builder,
-      UriTranslator uriTranslator, Map<Uri, Source> uriToSource,
-      [Map<Uri, Source> uriToSourceExtra, Set<Uri> partsUsed]) {
+  void cleanupSourcesForBuilder(
+      ReusageResult reusedResult,
+      LibraryBuilder builder,
+      UriTranslator uriTranslator,
+      Map<Uri, Source> uriToSource,
+      [Map<Uri, Source> uriToSourceExtra,
+      Set<Uri> partsUsed]) {
     uriToSource.remove(builder.fileUri);
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
       Uri partFileUri = getPartFileUri(lib.fileUri, part, uriTranslator);
       if (partsUsed != null && partsUsed.contains(partFileUri)) continue;
+
+      // If the builders map contain the "parts" import uri, it's a real library
+      // (erroneously) used as a part so we don't want to remove that.
+      if (userCode?.loader != null) {
+        Uri partImportUri = uriToSource[partFileUri]?.importUri;
+        if (partImportUri != null &&
+            userCode.loader.builders.containsKey(partImportUri)) {
+          continue;
+        }
+      } else if (reusedResult != null) {
+        // We've just launched and don't have userCode yet. Search reusedResult
+        // for a kept library with this uri.
+        bool found = false;
+        for (int i = 0; i < reusedResult.reusedLibraries.length; i++) {
+          LibraryBuilder reusedLibrary = reusedResult.reusedLibraries[i];
+          if (reusedLibrary.fileUri == partFileUri) {
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          continue;
+        }
+      }
       uriToSource.remove(partFileUri);
       uriToSourceExtra?.remove(partFileUri);
     }
