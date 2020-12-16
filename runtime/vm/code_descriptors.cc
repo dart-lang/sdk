@@ -437,7 +437,7 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
 
   int32_t current_pc_offset = 0;
   function_stack->Add(&root_);
-  token_positions->Add(CodeSourceMapBuilder::kInitialPosition);
+  token_positions->Add(InitialPosition());
 
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
@@ -459,7 +459,7 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
         int32_t func = stream.Read<int32_t>();
         function_stack->Add(
             &Function::Handle(Function::RawCast(functions_.At(func))));
-        token_positions->Add(CodeSourceMapBuilder::kInitialPosition);
+        token_positions->Add(InitialPosition());
         break;
       }
       case CodeSourceMapBuilder::kPopFunction: {
@@ -603,7 +603,7 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
 
   int32_t current_pc_offset = 0;
   function_stack.Add(&root_);
-  token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+  token_positions.Add(InitialPosition());
 
   THR_Print("Source positions for function '%s' {\n",
             root_.ToFullyQualifiedCString());
@@ -630,7 +630,7 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
         int32_t func = stream.Read<int32_t>();
         function_stack.Add(
             &Function::Handle(Function::RawCast(functions_.At(func))));
-        token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+        token_positions.Add(InitialPosition());
         break;
       }
       case CodeSourceMapBuilder::kPopFunction: {

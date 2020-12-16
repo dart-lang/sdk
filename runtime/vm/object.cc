@@ -24223,8 +24223,9 @@ static void PrintSymbolicStackFrameBody(BaseTextBuffer* buffer,
 static void PrintSymbolicStackFrame(Zone* zone,
                                     BaseTextBuffer* buffer,
                                     const Function& function,
-                                    TokenPosition token_pos,
-                                    intptr_t frame_index) {
+                                    TokenPosition token_pos_or_line,
+                                    intptr_t frame_index,
+                                    bool is_line = false) {
   ASSERT(!function.IsNull());
   const auto& script = Script::Handle(zone, function.script());
   const char* function_name = function.QualifiedUserVisibleNameCString();
@@ -24240,14 +24241,14 @@ static void PrintSymbolicStackFrame(Zone* zone,
 
   intptr_t line = -1;
   intptr_t column = -1;
-  if (FLAG_precompiled_mode) {
-    ASSERT(token_pos.IsNoSource() || token_pos.IsReal());
-    if (token_pos.IsReal()) {
-      line = token_pos.Pos();
+  if (is_line) {
+    ASSERT(token_pos_or_line.IsNoSource() || token_pos_or_line.IsReal());
+    if (token_pos_or_line.IsReal()) {
+      line = token_pos_or_line.Pos();
     }
   } else {
     ASSERT(!script.IsNull());
-    script.GetTokenLocation(token_pos, &line, &column);
+    script.GetTokenLocation(token_pos_or_line, &line, &column);
   }
   PrintSymbolicStackFrameIndex(buffer, frame_index);
   PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);
@@ -24401,7 +24402,8 @@ const char* StackTrace::ToCString() const {
         for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
           const auto& inlined = *inlined_functions[j];
           auto const pos = inlined_token_positions[j];
-          PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index);
+          PrintSymbolicStackFrame(zone, &buffer, inlined, pos, frame_index,
+                                  /*is_line=*/FLAG_precompiled_mode);
           frame_index++;
         }
         continue;
