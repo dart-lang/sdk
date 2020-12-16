@@ -259,8 +259,8 @@ class DartFixKind {
       'Convert to single quoted string');
   static const CONVERT_TO_SPREAD =
       FixKind('dart.fix.convert.toSpread', 50, 'Convert to a spread');
-  static const CONVERT_TO_WHERE_TYPE = FixKind(
-      'dart.fix.convert.toWhereType', 50, "Convert to a use 'whereType'");
+  static const CONVERT_TO_WHERE_TYPE =
+      FixKind('dart.fix.convert.toWhereType', 50, "Convert to use 'whereType'");
   static const CREATE_CLASS =
       FixKind('dart.fix.create.class', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
