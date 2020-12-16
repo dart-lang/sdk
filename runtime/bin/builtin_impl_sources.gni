@@ -77,4 +77,5 @@ builtin_impl_tests = [
   "eventhandler_test.cc",
   "file_test.cc",
   "hashmap_test.cc",
+  "priority_heap_test.cc",
 ]

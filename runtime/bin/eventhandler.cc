@@ -15,46 +15,6 @@
 namespace dart {
 namespace bin {
 
-void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
-  // Find port if present.
-  Timeout* last = NULL;
-  Timeout* current = timeouts_;
-  while (current != NULL) {
-    if (current->port() == port) {
-      // Found.
-      if (timeout < 0) {
-        // Remove from list and delete existing.
-        if (last != NULL) {
-          last->set_next(current->next());
-        } else {
-          timeouts_ = current->next();
-        }
-        delete current;
-      } else {
-        // Update timeout.
-        current->set_timeout(timeout);
-      }
-      break;
-    }
-    last = current;
-    current = current->next();
-  }
-  if (current == NULL && timeout >= 0) {
-    // Not found, create a new.
-    timeouts_ = new Timeout(port, timeout, timeouts_);
-  }
-  // Clear and find next timeout.
-  next_timeout_ = NULL;
-  current = timeouts_;
-  while (current != NULL) {
-    if ((next_timeout_ == NULL) ||
-        (current->timeout() < next_timeout_->timeout())) {
-      next_timeout_ = current;
-    }
-    current = current->next();
-  }
-}
-
 static EventHandler* event_handler = NULL;
 static Monitor* shutdown_monitor = NULL;
 
