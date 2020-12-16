@@ -140,45 +140,30 @@ class IncrementalPlan {
       }
     }
 
-    if (migratedFiles.isNotEmpty) {
-      var migratedCount = migratedFiles.length;
-      if (migratedCount <= 20) {
-        var s = migratedCount > 1 ? 's' : '';
-        logger.stdout('Migrated $migratedCount file$s:');
-        for (var path in migratedFiles) {
+    _logFileStatus(migratedFiles, (text) => 'Migrated $text');
+    _logFileStatus(
+        newlyOptedOutFiles,
+        (text) =>
+            'Opted $text out of null safety with a new Dart language version '
+            'comment');
+    _logFileStatus(
+        keptOptedOutFiles, (text) => 'Kept $text opted out of null safety');
+  }
+
+  void _logFileStatus(
+      List<String> files, String Function(String text) template) {
+    if (files.isNotEmpty) {
+      var count = files.length;
+      if (count <= 20) {
+        var s = count > 1 ? 's' : '';
+        var text = '$count file$s';
+        logger.stdout('${template(text)}:');
+        for (var path in files) {
           logger.stdout('    $path');
         }
       } else {
-        logger.stdout('Migrated $migratedCount files.');
-      }
-    }
-    if (newlyOptedOutFiles.isNotEmpty) {
-      var newlyOptedOutCount = newlyOptedOutFiles.length;
-      if (newlyOptedOutCount <= 20) {
-        var s = newlyOptedOutCount > 1 ? 's' : '';
-        logger.stdout(
-            'Opted $newlyOptedOutCount file$s out of null safety with a new '
-            'Dart language version comment:');
-        for (var path in newlyOptedOutFiles) {
-          logger.stdout('    $path');
-        }
-      } else {
-        logger.stdout(
-            'Opted $newlyOptedOutCount files out of null safety with a new '
-            'Dart language version comment.');
-      }
-    }
-    if (keptOptedOutFiles.isNotEmpty) {
-      var keptOptedOutCount = keptOptedOutFiles.length;
-      if (keptOptedOutCount <= 20) {
-        var s = keptOptedOutCount > 1 ? 's' : '';
-        logger
-            .stdout('Kept $keptOptedOutCount file$s opted out of null safety:');
-        for (var path in keptOptedOutFiles) {
-          logger.stdout('    $path');
-        }
-      } else {
-        logger.stdout('Kept $keptOptedOutCount files out of null safety.');
+        var text = '$count files';
+        logger.stdout('${template(text)}.');
       }
     }
   }

@@ -72,6 +72,30 @@ class FindElement extends _FindElementBase {
     return ImportFindElement(import);
   }
 
+  LabelElement label(String name) {
+    LabelElement result;
+
+    void updateResult(Element element) {
+      if (element is LabelElement && element.name == name) {
+        if (result != null) {
+          throw StateError('Not unique: $name');
+        }
+        result = element;
+      }
+    }
+
+    unit.accept(FunctionAstVisitor(
+      label: (node) {
+        updateResult(node.label.staticElement);
+      },
+    ));
+
+    if (result == null) {
+      throw StateError('Not found: $name');
+    }
+    return result;
+  }
+
   FunctionElement localFunction(String name) {
     FunctionElement result;
 

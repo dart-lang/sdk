@@ -378,7 +378,7 @@ void main() {}''';
     expect(getFile(path).readAsStringSync(), 'void main() {}');
     expect(logger.stdoutBuffer.toString(), contains('''
 Migrated 1 file:
-    lib/a.dart
+    ${convertPath('lib/a.dart')}
 '''));
   }
 
@@ -398,7 +398,7 @@ Migrated 1 file:
     expect(getFile(path).readAsStringSync(), '// @dart=2.9');
     expect(logger.stdoutBuffer.toString(), contains('''
 Opted 1 file out of null safety with a new Dart language version comment:
-    lib/a.dart
+    ${convertPath('lib/a.dart')}
 '''));
   }
 
@@ -425,7 +425,7 @@ Opted 1 file out of null safety with a new Dart language version comment:
 void main() {}''');
     expect(logger.stdoutBuffer.toString(), contains('''
 Opted 1 file out of null safety with a new Dart language version comment:
-    lib/a.dart
+    ${convertPath('lib/a.dart')}
 '''));
   }
 
@@ -448,7 +448,7 @@ Opted 1 file out of null safety with a new Dart language version comment:
 void main() {}''');
     expect(logger.stdoutBuffer.toString(), contains('''
 Opted 1 file out of null safety with a new Dart language version comment:
-    lib/a.dart
+    ${convertPath('lib/a.dart')}
 '''));
   }
 
@@ -485,9 +485,9 @@ void main() {}''');
 void main(List args) {}''');
     expect(logger.stdoutBuffer.toString(), contains('''
 Migrated 1 file:
-    lib/b.dart
+    ${convertPath('lib/b.dart')}
 Opted 1 file out of null safety with a new Dart language version comment:
-    lib/a.dart
+    ${convertPath('lib/a.dart')}
 '''));
   }
 
@@ -514,7 +514,7 @@ int a;''';
     expect(getFile(path).readAsStringSync(), content);
     expect(logger.stdoutBuffer.toString(), contains('''
 Kept 1 file opted out of null safety:
-    lib/a.dart
+    ${convertPath('lib/a.dart')}
 '''));
   }
 

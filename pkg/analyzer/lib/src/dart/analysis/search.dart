@@ -66,12 +66,11 @@ class Search {
     }
 
     ElementKind kind = element.kind;
-    if (kind == ElementKind.CLASS ||
-        kind == ElementKind.CONSTRUCTOR ||
-        kind == ElementKind.ENUM ||
-        kind == ElementKind.EXTENSION ||
-        kind == ElementKind.FUNCTION_TYPE_ALIAS ||
-        kind == ElementKind.SETTER) {
+    if (element is ClassElement ||
+        element is ConstructorElement ||
+        element is ExtensionElement ||
+        element is PropertyAccessorElement && element.isSetter ||
+        element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
     } else if (kind == ElementKind.COMPILATION_UNIT) {
       return _searchReferences_CompilationUnit(element);

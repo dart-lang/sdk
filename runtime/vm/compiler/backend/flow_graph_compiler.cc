@@ -2675,8 +2675,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, is_instance_lbl);
-    __ LoadFieldFromOffset(kScratchReg, kTypeArgumentsReg,
-                           TypeArguments::type_at_offset(type_param.index()));
+    __ LoadFieldFromOffset(
+        kScratchReg, kTypeArgumentsReg,
+        compiler::target::TypeArguments::type_at_offset(type_param.index()));
     // kScratchReg: Concrete type of type.
     // Check if type argument is dynamic, Object?, or void.
     __ CompareObject(kScratchReg, Object::dynamic_type());

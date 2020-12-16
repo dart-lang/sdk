@@ -346,44 +346,6 @@ void f() {
     );
   }
 
-  test_typeAlias_asParameter_Never_none() async {
-    await assertNoErrorsInCode(r'''
-typedef X = Never;
-void f(X a, X? b) {}
-''');
-
-    assertTypeName(
-      findNode.typeName('X a'),
-      findElement.typeAlias('X'),
-      'Never',
-    );
-
-    assertTypeName(
-      findNode.typeName('X? b'),
-      findElement.typeAlias('X'),
-      'Never?',
-    );
-  }
-
-  test_typeAlias_asParameter_Never_question() async {
-    await assertNoErrorsInCode(r'''
-typedef X = Never?;
-void f(X a, X? b) {}
-''');
-
-    assertTypeName(
-      findNode.typeName('X a'),
-      findElement.typeAlias('X'),
-      'Never?',
-    );
-
-    assertTypeName(
-      findNode.typeName('X? b'),
-      findElement.typeAlias('X'),
-      'Never?',
-    );
-  }
-
   test_typeAlias_asParameterType_interfaceType_none() async {
     await assertNoErrorsInCode(r'''
 typedef X<T> = Map<int, T>;
@@ -403,6 +365,23 @@ void f(X<String> a, X<String?> b) {}
     );
   }
 
+  test_typeAlias_asParameterType_interfaceType_none_inLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef X<T> = Map<int, T>;
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.9
+import 'a.dart';
+void f(X<String> a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<String>'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'Map<int*, String*>*',
+    );
+  }
+
   test_typeAlias_asParameterType_interfaceType_question() async {
     await assertNoErrorsInCode(r'''
 typedef X<T> = List<T?>;
@@ -419,6 +398,78 @@ void f(X<int> a, X<int?> b) {}
       findNode.typeName('X<int?>'),
       findElement.typeAlias('X'),
       'List<int?>',
+    );
+  }
+
+  test_typeAlias_asParameterType_interfaceType_question_inLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef X<T> = List<T?>;
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.9
+import 'a.dart';
+void f(X<int> a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<int>'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'List<int*>*',
+    );
+  }
+
+  test_typeAlias_asParameterType_Never_none() async {
+    await assertNoErrorsInCode(r'''
+typedef X = Never;
+void f(X a, X? b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.typeAlias('X'),
+      'Never',
+    );
+
+    assertTypeName(
+      findNode.typeName('X? b'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+  }
+
+  test_typeAlias_asParameterType_Never_none_inLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef X = Never;
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.9
+import 'a.dart';
+void f(X a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'Null*',
+    );
+  }
+
+  test_typeAlias_asParameterType_Never_question() async {
+    await assertNoErrorsInCode(r'''
+typedef X = Never?;
+void f(X a, X? b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+
+    assertTypeName(
+      findNode.typeName('X? b'),
+      findElement.typeAlias('X'),
+      'Never?',
     );
   }
 
