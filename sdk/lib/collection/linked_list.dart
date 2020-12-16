@@ -19,7 +19,7 @@ part of dart.collection;
 /// list, it must first be removed from its current list (if any).
 /// For the same reason, the [remove] and [contains] methods
 /// are based on *identity*, even if the [LinkedListEntry] chooses
-/// to override [Object.operator==].
+/// to override [Object.==].
 ///
 /// In return, each element knows its own place in the linked list, as well as
 /// which list it is in. This allows constant time
