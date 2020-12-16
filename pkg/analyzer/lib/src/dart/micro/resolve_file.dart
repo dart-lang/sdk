@@ -511,8 +511,9 @@ class FileResolver {
     YamlMap optionMap;
 
     var separator = resourceProvider.pathContext.separator;
-    var isThirdParty =
-        path.contains('${separator}third_party${separator}dart$separator');
+    var isThirdParty = path
+            .contains('${separator}third_party${separator}dart$separator') ||
+        path.contains('${separator}third_party${separator}dart_lang$separator');
 
     File optionsFile;
     if (!isThirdParty) {

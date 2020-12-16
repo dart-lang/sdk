@@ -273,6 +273,30 @@ int b = a;
     ]);
   }
 
+  test_analysisOptions_file_inThirdPartyDartLang() async {
+    newFile('/workspace/dart/analysis_options/lib/third_party.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''');
+
+    newFile('/workspace/thid_party/dart_lang/aaa/analysis_options.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: true
+''');
+
+    var aPath = convertPath('/workspace/third_party/dart_lang/aaa/lib/a.dart');
+    await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
+  }
+
   test_analysisOptions_lints() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 linter:
