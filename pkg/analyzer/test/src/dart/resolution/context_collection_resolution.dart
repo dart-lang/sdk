@@ -136,6 +136,10 @@ abstract class ContextResolutionTest
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
 
+  /// If not `null`, [resolveFile] will use the context that corresponds
+  /// to this path, instead of the given path.
+  String pathForContextSelection;
+
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   List<String> get collectionIncludedPaths;
@@ -204,7 +208,7 @@ abstract class ContextResolutionTest
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) {
-    var analysisContext = contextFor(path);
+    var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
     return session.getResolvedUnit(path);
   }
@@ -258,6 +262,9 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
 
   @override
   String get testFilePath => '$testPackageLibPath/test.dart';
