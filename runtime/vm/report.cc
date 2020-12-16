@@ -38,29 +38,20 @@ StringPtr Report::PrependSnippet(Kind kind,
       UNREACHABLE();
   }
   String& result = String::Handle();
-  if (!script.IsNull() && !String::Handle(script.Source()).IsNull()) {
+  if (!script.IsNull() && script.HasSource()) {
     const String& script_url = String::Handle(script.url());
-    if (token_pos.IsReal()) {
-      intptr_t line, column, token_len;
-      script.GetTokenLocation(token_pos, &line, &column, &token_len);
+    intptr_t line, column;
+    if (script.GetTokenLocation(token_pos, &line, &column)) {
+      const intptr_t token_len = script.GetTokenLength(token_pos);
       if (report_after_token) {
-        column += token_len;
+        column += token_len < 0 ? 1 : token_len;
       }
-      // Only report the line position if we have the original source. We still
-      // need to get a valid column so that we can report the ^ mark below the
-      // snippet.
       // Allocate formatted strings in old space as they may be created during
       // optimizing compilation. Those strings are created rarely and should not
       // polute old space.
-      if (script.HasSource()) {
-        result = String::NewFormatted(
-            Heap::kOld, "'%s': %s: line %" Pd " pos %" Pd ": ",
-            script_url.ToCString(), message_header, line, column);
-      } else {
-        result =
-            String::NewFormatted(Heap::kOld, "'%s': %s: line %" Pd ": ",
-                                 script_url.ToCString(), message_header, line);
-      }
+      result = String::NewFormatted(
+          Heap::kOld, "'%s': %s: line %" Pd " pos %" Pd ": ",
+          script_url.ToCString(), message_header, line, column);
       // Append the formatted error or warning message.
       const Array& strs = Array::Handle(Array::New(6, Heap::kOld));
       strs.SetAt(0, result);

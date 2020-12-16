@@ -82,23 +82,25 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   const Script& script = Script::Handle(FindScript(&iterator));
 
   // Initialize argument 'failed_assertion' with source snippet.
-  intptr_t from_line, from_column;
-  script.GetTokenLocation(assertion_start, &from_line, &from_column);
-  intptr_t to_line, to_column;
-  script.GetTokenLocation(assertion_end, &to_line, &to_column);
+  auto& condition_text = String::Handle();
   // Extract the assertion condition text (if source is available).
-  auto& condition_text = String::Handle(
-      script.GetSnippet(from_line, from_column, to_line, to_column));
+  intptr_t from_line = -1, from_column = -1;
+  if (script.GetTokenLocation(assertion_start, &from_line, &from_column)) {
+    // Extract the assertion condition text (if source is available).
+    intptr_t to_line, to_column;
+    script.GetTokenLocation(assertion_end, &to_line, &to_column);
+    condition_text =
+        script.GetSnippet(from_line, from_column, to_line, to_column);
+  }
   if (condition_text.IsNull()) {
     condition_text = Symbols::OptimizedOut().raw();
   }
   args.SetAt(0, condition_text);
 
   // Initialize location arguments starting at position 1.
-  // Do not set a column if the source has been generated as it will be wrong.
   args.SetAt(1, String::Handle(script.url()));
   args.SetAt(2, Smi::Handle(Smi::New(from_line)));
-  args.SetAt(3, Smi::Handle(Smi::New(script.HasSource() ? from_column : -1)));
+  args.SetAt(3, Smi::Handle(Smi::New(from_column)));
   args.SetAt(4, message);
 
   Exceptions::ThrowByType(Exceptions::kAssertion, args);
@@ -181,8 +183,8 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 0, 1) {
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
   args.SetAt(0, String::Handle(script.url()));
-  intptr_t line;
-  script.GetTokenLocation(fallthrough_pos, &line, NULL);
+  intptr_t line = -1;
+  script.GetTokenLocation(fallthrough_pos, &line);
   args.SetAt(1, Smi::Handle(Smi::New(line)));
 
   Exceptions::ThrowByType(Exceptions::kFallThrough, args);
@@ -208,8 +210,8 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 0, 2) {
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
   args.SetAt(0, class_name);
   args.SetAt(1, String::Handle(script.url()));
-  intptr_t line;
-  script.GetTokenLocation(error_pos, &line, NULL);
+  intptr_t line = -1;
+  script.GetTokenLocation(error_pos, &line);
   args.SetAt(2, Smi::Handle(Smi::New(line)));
 
   Exceptions::ThrowByType(Exceptions::kAbstractClassInstantiation, args);

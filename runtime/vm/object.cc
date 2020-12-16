@@ -9378,13 +9378,18 @@ StringPtr Function::GetSource() const {
   Zone* zone = Thread::Current()->zone();
   const Script& func_script = Script::Handle(zone, script());
 
-  intptr_t from_line;
-  intptr_t from_col;
-  intptr_t to_line;
-  intptr_t to_col;
-  intptr_t to_length;
-  func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
-  func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col, &to_length);
+  intptr_t from_line, from_col;
+  if (!func_script.GetTokenLocation(token_pos(), &from_line, &from_col)) {
+    return String::null();
+  }
+  intptr_t to_line, to_col;
+  if (!func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col)) {
+    return String::null();
+  }
+  intptr_t to_length = func_script.GetTokenLength(end_token_pos());
+  if (to_length < 0) {
+    return String::null();
+  }
 
   if (to_length == 1) {
     // Handle special cases for end tokens of closures (where we exclude the
@@ -11269,70 +11274,79 @@ static bool IsIdentChar(int32_t c) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-void Script::GetTokenLocation(TokenPosition token_pos,
+bool Script::GetTokenLocation(const TokenPosition& token_pos,
                               intptr_t* line,
-                              intptr_t* column,
-                              intptr_t* token_len) const {
+                              intptr_t* column) const {
   ASSERT(line != nullptr);
-  // Set up appropriate values for any early returns.
-  *line = -1;
-  if (column != nullptr) {
-    *column = -1;
-  }
-  if (token_len != nullptr) {
-    *token_len = 1;
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
   // Scripts in the AOT snapshot do not have a line starts array.
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!token_pos.IsReal()) return;
+  return false;
+#else
+  if (!token_pos.IsReal()) return false;
 
   auto const zone = Thread::Current()->zone();
   LookupSourceAndLineStarts(zone);
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  if (line_starts_data.IsNull()) return false;
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  const intptr_t pos = token_pos.Pos();
-  line_starts_reader.LocationForPosition(pos, line, column);
-  if (token_len == nullptr) return;
-  *token_len = 1;
-  // We don't explicitly save this data: Load the source
-  // and find it from there.
-  const String& source = String::Handle(zone, Source());
-  if (!source.IsNull()) {
-    intptr_t offset = pos;
-    if (offset < source.Length() && IsIdentStartChar(source.CharAt(offset))) {
-      for (intptr_t i = offset + 1;
-           i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
-        ++*token_len;
-      }
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return line_starts_reader.LocationForPosition(token_pos.Pos(), line, column);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void Script::TokenRangeAtLine(intptr_t line_number,
+intptr_t Script::GetTokenLength(const TokenPosition& token_pos) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Scripts in the AOT snapshot do not have their source.
+  return -1;
+#else
+  if (!HasSource() || !token_pos.IsReal()) return -1;
+  auto const zone = Thread::Current()->zone();
+  LookupSourceAndLineStarts(zone);
+  // We don't explicitly save this data: Load the source and find it from there.
+  const String& source = String::Handle(zone, Source());
+  const intptr_t start = token_pos.Pos();
+  if (start >= source.Length()) return -1;  // Can't determine token_len.
+  intptr_t end = start;
+  if (IsIdentStartChar(source.CharAt(end++))) {
+    for (; end < source.Length(); ++end) {
+      if (!IsIdentChar(source.CharAt(end))) break;
+    }
+  }
+  return end - start;
+#endif
+}
+
+bool Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* first_token_index,
                               TokenPosition* last_token_index) const {
-  ASSERT(first_token_index != NULL && last_token_index != NULL);
-  ASSERT(line_number > 0);
-
+  ASSERT(first_token_index != nullptr && last_token_index != nullptr);
+#if defined(DART_PRECOMPILED_RUNTIME)
   // Scripts in the AOT snapshot do not have a line starts array.
-#if !defined(DART_PRECOMPILED_RUNTIME)
+  return false;
+#else
+  // Line numbers are 1-indexed.
+  if (line_number <= 0) return false;
   Zone* zone = Thread::Current()->zone();
   LookupSourceAndLineStarts(zone);
-  const String& source = String::Handle(zone, Source());
+  const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  if (!line_starts_reader.TokenRangeAtLine(line_number, first_token_index,
+                                           last_token_index)) {
+    return false;
+  }
+#if defined(DEBUG)
   intptr_t source_length;
-  if (source.IsNull()) {
+  if (!HasSource()) {
     Smi& value = Smi::Handle(zone);
     const Array& debug_positions_array = Array::Handle(zone, debug_positions());
     value ^= debug_positions_array.At(debug_positions_array.Length() - 1);
     source_length = value.Value();
   } else {
+    const String& source = String::Handle(zone, Source());
     source_length = source.Length();
   }
-  const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  line_starts_reader.TokenRangeAtLine(source_length, line_number,
-                                      first_token_index, last_token_index);
+  ASSERT(last_token_index->Serialize() <= source_length);
+#endif
+  return true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -11349,7 +11363,8 @@ static intptr_t GetRelativeSourceIndex(const String& src,
                                        intptr_t column = 1,
                                        intptr_t column_offset = 0,
                                        intptr_t starting_index = 0) {
-  if (starting_index < 0 || line < 1 || column < 1) {
+  if (starting_index < 0 || line < 1 || column < 1 || line <= line_offset ||
+      (line == line_offset + 1 && column <= column_offset)) {
     return -1;
   }
   intptr_t len = src.Length();
@@ -11391,10 +11406,10 @@ static intptr_t GetRelativeSourceIndex(const String& src,
 }
 
 StringPtr Script::GetLine(intptr_t line_number, Heap::Space space) const {
-  const String& src = String::Handle(Source());
-  if (src.IsNull()) {
+  if (!HasSource()) {
     return Symbols::OptimizedOut().raw();
   }
+  const String& src = String::Handle(Source());
   const intptr_t start =
       GetRelativeSourceIndex(src, line_number, line_offset());
   if (start < 0) {
@@ -11414,11 +11429,10 @@ StringPtr Script::GetSnippet(intptr_t from_line,
                              intptr_t from_column,
                              intptr_t to_line,
                              intptr_t to_column) const {
-  const String& src = String::Handle(Source());
-  if (src.IsNull()) {
+  if (!HasSource()) {
     return Symbols::OptimizedOut().raw();
   }
-
+  const String& src = String::Handle(Source());
   const intptr_t start = GetRelativeSourceIndex(src, from_line, line_offset(),
                                                 from_column, col_offset());
   // Lines and columns are 1-based, so need to subtract one to get offsets.
@@ -24226,13 +24240,14 @@ static void PrintSymbolicStackFrame(Zone* zone,
 
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos.IsReal()) {
-    if (FLAG_precompiled_mode) {
+  if (FLAG_precompiled_mode) {
+    ASSERT(token_pos.IsNoSource() || token_pos.IsReal());
+    if (token_pos.IsReal()) {
       line = token_pos.Pos();
-    } else {
-      ASSERT(!script.IsNull());
-      script.GetTokenLocation(token_pos, &line, &column);
     }
+  } else {
+    ASSERT(!script.IsNull());
+    script.GetTokenLocation(token_pos, &line, &column);
   }
   PrintSymbolicStackFrameIndex(buffer, frame_index);
   PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);

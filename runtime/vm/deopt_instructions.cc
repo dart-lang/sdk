@@ -382,14 +382,15 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
     const TokenPosition token_pos = code.GetTokenIndexOfPC(top_frame->pc());
-    intptr_t line, column;
-    script.GetTokenLocation(token_pos, &line, &column);
-    String& line_string = String::Handle(script.GetLine(line));
     THR_Print("  Function: %s\n", top_function.ToFullyQualifiedCString());
-    char line_buffer[80];
-    Utils::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
-                   line, line_string.ToCString());
-    THR_Print("%s\n", line_buffer);
+    intptr_t line;
+    if (script.GetTokenLocation(token_pos, &line)) {
+      String& line_string = String::Handle(script.GetLine(line));
+      char line_buffer[80];
+      Utils::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
+                     line, line_string.ToCString());
+      THR_Print("%s\n", line_buffer);
+    }
     THR_Print("  Deopt args: %" Pd "\n", deopt_arg_count);
   }
 
