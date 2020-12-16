@@ -651,6 +651,12 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// is currently promoted.  Otherwise returns `null`.
   Type? promotedType(Variable variable);
 
+  /// Retrieves the SSA node associated with [variable], or `null` if [variable]
+  /// is not associated with an SSA node because it is write captured.  For
+  /// testing only.
+  @visibleForTesting
+  SsaNode? ssaNodeForTesting(Variable variable);
+
   /// Call this method just before visiting one of the cases in the body of a
   /// switch statement.  See [switchStatement_expressionEnd] for details.
   ///
@@ -1139,6 +1145,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  SsaNode? ssaNodeForTesting(Variable variable) {
+    return _wrap('ssaNodeForTesting($variable)',
+        () => _wrapped.ssaNodeForTesting(variable),
+        isQuery: true);
+  }
+
+  @override
   void switchStatement_beginCase(bool hasLabel, Node node) {
     _wrap('switchStatement_beginCase($hasLabel, $node)',
         () => _wrapped.switchStatement_beginCase(hasLabel, node));
@@ -1354,7 +1367,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
         (newVariableInfo ??=
             new Map<Variable, VariableModel<Variable, Type>>.from(
                 variableInfo))[variable] = new VariableModel<Variable, Type>(
-            null, const [], false, false, true);
+            null, const [], false, false, null);
       } else if (!info.writeCaptured) {
         (newVariableInfo ??=
             new Map<Variable, VariableModel<Variable, Type>>.from(
@@ -1685,7 +1698,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
         : _updateVariableInfo(
             variable,
             new VariableModel<Variable, Type>(newPromotedTypes, newTested,
-                info.assigned, info.unassigned, info.writeCaptured),
+                info.assigned, info.unassigned, info.ssaNode),
             reachable: newReachable);
   }
 
@@ -1949,6 +1962,29 @@ class Reachability {
   }
 }
 
+/// Data structure representing a unique value that a variable might take on
+/// during execution of the code being analyzed.  SSA nodes are immutable (so
+/// they can be safety shared among data structures) and have identity (so that
+/// it is possible to tell whether one SSA node is the same as another).
+///
+/// This is similar to the nodes used in traditional single assignment analysis
+/// (https://en.wikipedia.org/wiki/Static_single_assignment_form) except that it
+/// does not store a complete IR of the code being analyzed.
+@visibleForTesting
+class SsaNode {
+  /// Expando mapping SSA nodes to debug ids.  Only used by `toString`.
+  static final Expando<int> _debugIds = new Expando<int>();
+
+  static int _nextDebugId = 0;
+
+  @override
+  String toString() {
+    SsaNode self = this; // Work around #44475
+    int id = _debugIds[self] ??= _nextDebugId++;
+    return 'ssa$id';
+  }
+}
+
 /// Enum representing the different classifications of types that can be
 /// returned by [TypeOperations.classifyType].
 enum TypeClassification {
@@ -2043,11 +2079,17 @@ class VariableModel<Variable extends Object, Type extends Object> {
   /// Indicates whether the variable is unassigned.
   final bool unassigned;
 
-  /// Indicates whether the variable has been write captured.
-  final bool writeCaptured;
+  /// SSA node associated with this variable.  Every time the variable's value
+  /// potentially changes (either through an explicit write or a join with a
+  /// control flow path that contains a write), this field is updated to point
+  /// to a fresh node.  Thus, it can be used to detect whether a variable's
+  /// value has changed since a time in the past.
+  ///
+  /// `null` if the variable has been write captured.
+  final SsaNode? ssaNode;
 
   VariableModel(this.promotedTypes, this.tested, this.assigned, this.unassigned,
-      this.writeCaptured) {
+      this.ssaNode) {
     assert(!(assigned && unassigned),
         "Can't be both definitely assigned and unassigned");
     assert(promotedTypes == null || promotedTypes!.isNotEmpty);
@@ -2065,16 +2107,19 @@ class VariableModel<Variable extends Object, Type extends Object> {
       : promotedTypes = null,
         tested = const [],
         unassigned = !assigned,
-        writeCaptured = false;
+        ssaNode = new SsaNode();
+
+  /// Indicates whether the variable has been write captured.
+  bool get writeCaptured => ssaNode == null;
 
   /// Returns a new [VariableModel] in which any promotions present have been
   /// dropped, and the variable has been marked as "not unassigned".
+  ///
+  /// Used by [conservativeJoin] to update the state of variables at the top of
+  /// loops whose bodies write to them.
   VariableModel<Variable, Type> discardPromotionsAndMarkNotUnassigned() {
-    if (promotedTypes == null && !unassigned) {
-      return this;
-    }
     return new VariableModel<Variable, Type>(
-        null, tested, assigned, false, writeCaptured);
+        null, tested, assigned, false, writeCaptured ? null : new SsaNode());
   }
 
   /// Returns an updated model reflect a control path that is known to have
@@ -2141,7 +2186,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
       }
     }
     return _identicalOrNew(this, otherModel, newPromotedTypes, tested,
-        newAssigned, newUnassigned, newWriteCaptured);
+        newAssigned, newUnassigned, newWriteCaptured ? null : ssaNode);
   }
 
   @override
@@ -2171,7 +2216,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
       TypeOperations<Variable, Type> typeOperations) {
     if (writeCaptured) {
       return new VariableModel<Variable, Type>(
-          promotedTypes, tested, true, false, writeCaptured);
+          promotedTypes, tested, true, false, null);
     }
 
     List<Type>? newPromotedTypes = _demoteViaAssignment(
@@ -2182,7 +2227,10 @@ class VariableModel<Variable extends Object, Type extends Object> {
     Type declaredType = typeOperations.variableType(variable);
     newPromotedTypes = _tryPromoteToTypeOfInterest(
         typeOperations, declaredType, newPromotedTypes, writtenType);
-    if (identical(promotedTypes, newPromotedTypes) && assigned) return this;
+    if (identical(promotedTypes, newPromotedTypes) && assigned) {
+      return new VariableModel<Variable, Type>(
+          promotedTypes, tested, assigned, unassigned, new SsaNode());
+    }
 
     List<Type> newTested;
     if (newPromotedTypes == null && promotedTypes != null) {
@@ -2192,14 +2240,14 @@ class VariableModel<Variable extends Object, Type extends Object> {
     }
 
     return new VariableModel<Variable, Type>(
-        newPromotedTypes, newTested, true, false, writeCaptured);
+        newPromotedTypes, newTested, true, false, new SsaNode());
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable has
   /// been write-captured.
   VariableModel<Variable, Type> writeCapture() {
     return new VariableModel<Variable, Type>(
-        null, const [], assigned, false, true);
+        null, const [], assigned, false, null);
   }
 
   List<Type>? _demoteViaAssignment(
@@ -2356,7 +2404,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
     List<Type> newTested = joinTested(tested, model.tested, typeOperations);
     if (identical(newTested, model.tested)) return model;
     return new VariableModel<Variable, Type>(model.promotedTypes, newTested,
-        model.assigned, model.unassigned, model.writeCaptured);
+        model.assigned, model.unassigned, model.ssaNode);
   }
 
   /// Joins two variable models.  See [FlowModel.join] for details.
@@ -2375,8 +2423,13 @@ class VariableModel<Variable extends Object, Type extends Object> {
     List<Type> newTested = newWriteCaptured
         ? const []
         : joinTested(first.tested, second.tested, typeOperations);
+    SsaNode? newSsaNode = newWriteCaptured
+        ? null
+        : first.ssaNode == second.ssaNode
+            ? first.ssaNode
+            : new SsaNode();
     return _identicalOrNew(first, second, newPromotedTypes, newTested,
-        newAssigned, newUnassigned, newWriteCaptured);
+        newAssigned, newUnassigned, newWriteCaptured ? null : newSsaNode);
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
@@ -2487,22 +2540,22 @@ class VariableModel<Variable extends Object, Type extends Object> {
           List<Type> newTested,
           bool newAssigned,
           bool newUnassigned,
-          bool newWriteCaptured) {
+          SsaNode? newSsaNode) {
     if (identical(first.promotedTypes, newPromotedTypes) &&
         identical(first.tested, newTested) &&
         first.assigned == newAssigned &&
         first.unassigned == newUnassigned &&
-        first.writeCaptured == newWriteCaptured) {
+        first.ssaNode == newSsaNode) {
       return first;
     } else if (identical(second.promotedTypes, newPromotedTypes) &&
         identical(second.tested, newTested) &&
         second.assigned == newAssigned &&
         second.unassigned == newUnassigned &&
-        second.writeCaptured == newWriteCaptured) {
+        second.ssaNode == newSsaNode) {
       return second;
     } else {
-      return new VariableModel<Variable, Type>(newPromotedTypes, newTested,
-          newAssigned, newUnassigned, newWriteCaptured);
+      return new VariableModel<Variable, Type>(
+          newPromotedTypes, newTested, newAssigned, newUnassigned, newSsaNode);
     }
   }
 
@@ -3136,6 +3189,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? promotedType(Variable variable) {
     return _current.infoFor(variable).promotedTypes?.last;
   }
+
+  @override
+  SsaNode? ssaNodeForTesting(Variable variable) =>
+      _current.variableInfo[variable]?.ssaNode;
 
   @override
   void switchStatement_beginCase(bool hasLabel, Node node) {

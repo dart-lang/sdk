@@ -5119,6 +5119,30 @@ class D<T, U> extends C<U, T> {
 ''');
   }
 
+  test_constructor_redirected_factory_named_generic_viaTypeAlias() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef A<T, U> = C<T, U>;
+class B<T, U> {
+  factory B() = A<U, T>.named;
+  B._();
+}
+class C<T, U> extends A<U, T> {
+  C.named() : super._();
+}
+''');
+    checkElementText(library, r'''
+typedef A<T, U> = C<T, U>;
+class B<T, U> {
+  factory B() = C<U, T>.named;
+  B._();
+}
+class C<T, U> extends C<U, T> {
+  C.named();
+}
+''');
+  }
+
   test_constructor_redirected_factory_named_imported() async {
     addLibrarySource('/foo.dart', '''
 import 'test.dart';
@@ -5282,6 +5306,30 @@ class D<T, U> extends C<U, T> {
 ''');
   }
 
+  test_constructor_redirected_factory_unnamed_generic_viaTypeAlias() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef A<T, U> = C<T, U>;
+class B<T, U> {
+  factory B() = A<U, T>;
+  B_();
+}
+class C<T, U> extends B<U, T> {
+  C() : super._();
+}
+''');
+    checkElementText(library, r'''
+typedef A<T, U> = C<T, U>;
+class B<T, U> {
+  factory B() = C<U, T>;
+  dynamic B_();
+}
+class C<T, U> extends B<U, T> {
+  C();
+}
+''');
+  }
+
   test_constructor_redirected_factory_unnamed_imported() async {
     addLibrarySource('/foo.dart', '''
 import 'test.dart';
@@ -5323,6 +5371,31 @@ class C<T, U> {
 import 'foo.dart';
 class C<T, U> {
   factory C() = D<U, T>;
+  C._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_unnamed_imported_viaTypeAlias() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    addLibrarySource('/foo.dart', '''
+import 'test.dart';
+typedef A = B;
+class B extends C {
+  B() : super._();
+}
+''');
+    var library = await checkLibrary('''
+import 'foo.dart';
+class C {
+  factory C() = A;
+  C._();
+}
+''');
+    checkElementText(library, r'''
+import 'foo.dart';
+class C {
+  factory C() = B;
   C._();
 }
 ''');
@@ -5374,6 +5447,31 @@ class C<T, U> {
 ''');
   }
 
+  test_constructor_redirected_factory_unnamed_prefixed_viaTypeAlias() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    addLibrarySource('/foo.dart', '''
+import 'test.dart';
+typedef A = B;
+class B extends C {
+  B() : super._();
+}
+''');
+    var library = await checkLibrary('''
+import 'foo.dart' as foo;
+class C {
+  factory C() = foo.A;
+  C._();
+}
+''');
+    checkElementText(library, r'''
+import 'foo.dart' as foo;
+class C {
+  factory C() = B;
+  C._();
+}
+''');
+  }
+
   test_constructor_redirected_factory_unnamed_unresolved() async {
     var library = await checkLibrary('''
 class C<E> {
@@ -5383,6 +5481,30 @@ class C<E> {
     checkElementText(library, r'''
 class C<E> {
   factory C();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_unnamed_viaTypeAlias() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef A = C;
+class B {
+  factory B() = A;
+  B._();
+}
+class C extends B {
+  C() : super._();
+}
+''');
+    checkElementText(library, r'''
+typedef A = C;
+class B {
+  factory B() = C;
+  B._();
+}
+class C extends B {
+  C();
 }
 ''');
   }

@@ -67,8 +67,14 @@ Statement checkUnassigned(Var variable, bool expectedUnassignedState) =>
 Statement continue_(BranchTargetPlaceholder branchTargetPlaceholder) =>
     new _Continue(branchTargetPlaceholder);
 
-Statement declare(Var variable, {required bool initialized}) =>
-    new _Declare(variable, initialized);
+Statement declare(Var variable,
+        {required bool initialized, bool isFinal = false}) =>
+    new _Declare(
+        variable, initialized ? expr(variable.type.type) : null, isFinal);
+
+Statement declareInitialized(Var variable, Expression initializer,
+        {bool isFinal = false}) =>
+    new _Declare(variable, initializer, isFinal);
 
 Statement do_(List<Statement> body, Expression condition) =>
     _Do(body, condition);
@@ -125,6 +131,12 @@ Statement forEachWithVariableSet(
   assert(variable != null);
   return new _ForEach(variable, iterable, body, false);
 }
+
+/// Creates a [Statement] that, when analyzed, will cause [callback] to be
+/// passed an [SsaNodeHarness] allowing the test to examine the values of
+/// variables' SSA nodes.
+Statement getSsaNodes(void Function(SsaNodeHarness) callback) =>
+    new _GetSsaNodes(callback);
 
 Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
@@ -258,6 +270,8 @@ abstract class Expression implements _Visitable<Type> {
 /// needed for testing.
 class Harness extends TypeOperations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
+    'bool <: int': false,
+    'bool <: Object': true,
     'double <: Object': true,
     'double <: num': true,
     'double <: num?': true,
@@ -326,6 +340,7 @@ class Harness extends TypeOperations<Var, Type> {
     'String <: int': false,
     'String <: int?': false,
     'String <: num?': false,
+    'String <: Object': true,
     'String <: Object?': true,
   };
 
@@ -335,7 +350,9 @@ class Harness extends TypeOperations<Var, Type> {
     'Object? - num?': Type('Object'),
     'Object? - Object?': Type('Never?'),
     'Object? - String': Type('Object?'),
+    'Object - bool': Type('Object'),
     'Object - int': Type('Object'),
+    'Object - String': Type('Object'),
     'int - Object': Type('Never'),
     'int - String': Type('int'),
     'int - int': Type('Never'),
@@ -487,6 +504,17 @@ class Harness extends TypeOperations<Var, Type> {
 /// used for flow analysis testing.
 class Node {
   Node._();
+}
+
+/// Helper class allowing tests to examine the values of variables' SSA nodes.
+class SsaNodeHarness {
+  final FlowAnalysis<Node, Statement, Expression, Var, Type> _flow;
+
+  SsaNodeHarness(this._flow);
+
+  /// Gets the SSA node associated with [variable] at the current point in
+  /// control flow, or `null` if the variable has been write captured.
+  SsaNode? operator [](Var variable) => _flow.ssaNodeForTesting(variable);
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -812,20 +840,33 @@ class _Continue extends Statement {
 
 class _Declare extends Statement {
   final Var variable;
-  final bool initialized;
+  final Expression? initializer;
+  final bool isFinal;
 
-  _Declare(this.variable, this.initialized) : super._();
-
-  @override
-  String toString() => '$variable${initialized ? ' = ...' : ''};';
+  _Declare(this.variable, this.initializer, this.isFinal) : super._();
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  String toString() {
+    var finalPart = isFinal ? 'final ' : '';
+    var initializerPart = initializer != null ? ' = $initializer' : '';
+    return '$finalPart$variable${initializerPart};';
+  }
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    initializer?._preVisit(assignedVariables);
+  }
 
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.declare(variable, initialized);
+    var initializer = this.initializer;
+    if (initializer == null) {
+      flow.declare(variable, false);
+    } else {
+      initializer._visit(h, flow);
+      flow.declare(variable, true);
+    }
   }
 }
 
@@ -1003,6 +1044,21 @@ class _ForEach extends Statement {
     flow.forEach_bodyBegin(this, variable, iteratedType);
     body._visit(h, flow);
     flow.forEach_end();
+  }
+}
+
+class _GetSsaNodes extends Statement {
+  final void Function(SsaNodeHarness) callback;
+
+  _GetSsaNodes(this.callback) : super._();
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  void _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    callback(SsaNodeHarness(flow));
   }
 }
 

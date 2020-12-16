@@ -422,6 +422,19 @@ void f(X<int> a, X<int?> b) {}
     );
   }
 
+  test_typeAlias_asParameterType_question() async {
+    await assertNoErrorsInCode(r'''
+typedef X<T> = T?;
+void f(X<int> a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<int>'),
+      findElement.typeAlias('X'),
+      'int?',
+    );
+  }
+
   test_typeAlias_asReturnType_interfaceType() async {
     await assertNoErrorsInCode(r'''
 typedef X<T> = Map<int, T>;

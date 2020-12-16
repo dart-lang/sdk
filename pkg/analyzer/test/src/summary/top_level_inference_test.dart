@@ -2711,8 +2711,10 @@ class C extends A implements B {
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
     newFile(testFilePath, content: text);
-    var analysisSession = contextFor(testFilePath).currentSession;
-    var result = await analysisSession.getUnitElement(testFilePath);
+
+    var path = convertPath(testFilePath);
+    var analysisSession = contextFor(path).currentSession;
+    var result = await analysisSession.getUnitElement(path);
     return result.element.library /*!*/;
   }
 }

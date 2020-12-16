@@ -4922,6 +4922,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       correction: "Try using one of the defined constants.");
 
   /**
+   * It is a compile-time error for an instance creation `C<T1, .. Tk>(...)` or
+   * `C<T1, .. Tk>.name()` (where `k` may be zero, which means that the type
+   * argument list is absent) if `C` denotes a type alias that expands to a
+   * type variable.
+   */
+  static const CompileTimeErrorCode
+      INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
+          'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          "Type aliases that expand to a type parameter can't be instantiated.",
+          correction: "Try replacing it with a class.");
+
+  /**
    * An integer literal with static type `double` and numeric value `i`
    * evaluates to an instance of the `double` class representing the value `i`.
    * It is a compile-time error if the value `i` cannot be represented
@@ -8997,6 +9009,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Constant redirecting constructor can't redirect to a non-constant "
               "constructor.",
           correction: "Try redirecting to a different constructor.");
+
+  /**
+   * It is a compile-time error for a redirecting factory constructor to have
+   * a body which is a type alias that expands to a type variable, or a body
+   * which is a parameterized type of the form `F<T1, .. Tk>`, where `F` is
+   * a type alias that expands to a type variable.
+   */
+  static const CompileTimeErrorCode
+      REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
+          'REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          "Redirecting constructor can't redirect to a type alias "
+              "that expands to a type parameter.",
+          correction: "Try replacing it with a class.");
 
   /**
    * No parameters.
