@@ -40,10 +40,11 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
     prev_pc_offset = pc_offset;
 
     if (!FLAG_precompiled_mode) {
+      const int32_t encoded_pos = token_pos.Serialize();
       encoded_data_.WriteSLEB128(deopt_id - prev_deopt_id);
-      encoded_data_.WriteSLEB128(token_pos.value() - prev_token_pos);
+      encoded_data_.WriteSLEB128(encoded_pos - prev_token_pos);
       prev_deopt_id = deopt_id;
-      prev_token_pos = token_pos.value();
+      prev_token_pos = encoded_pos;
     }
   }
 }
@@ -197,8 +198,8 @@ TypedDataPtr CatchEntryMovesMapBuilder::FinalizeCatchEntryMovesMap() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-const TokenPosition CodeSourceMapBuilder::kInitialPosition =
-    TokenPosition(TokenPosition::kDartCodeProloguePos);
+const TokenPosition& CodeSourceMapBuilder::kInitialPosition =
+    TokenPosition::kDartCodePrologue;
 
 CodeSourceMapBuilder::CodeSourceMapBuilder(
     Zone* zone,
@@ -311,7 +312,7 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
   }
   for (intptr_t i = to_push.length() - 1; i >= 0; i--) {
     intptr_t callee_id = to_push[i];
-    TokenPosition call_token;
+    TokenPosition call_token = TokenPosition::kNoSource;
     if (callee_id != 0) {
       // TODO(rmacnak): Should make this array line up with the others.
       call_token = inline_id_to_token_pos_[callee_id - 1];
@@ -396,20 +397,19 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
 
 void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
   stream_.Write<uint8_t>(kChangePosition);
-  intptr_t position_or_line = pos.value();
+  intptr_t position_or_line = pos.Serialize();
 #if defined(DART_PRECOMPILER)
-  intptr_t column = TokenPosition::kNoSourcePos;
+  intptr_t column = TokenPosition::kNoSource.Serialize();
   if (FLAG_precompiled_mode) {
     // Don't use the raw position value directly in precompiled mode. Instead,
     // use the value of kNoSource as a fallback when no line or column
     // information is found.
-    position_or_line = TokenPosition::kNoSourcePos;
+    position_or_line = TokenPosition::kNoSource.Serialize();
     intptr_t inline_id = buffered_inline_id_stack_.Last();
     if (inline_id < inline_id_to_function_.length()) {
       const Function* function = inline_id_to_function_[inline_id];
       Script& script = Script::Handle(function->script());
-      script.GetTokenLocationUsingLineStarts(pos.SourcePosition(),
-                                             &position_or_line, &column);
+      script.GetTokenLocation(pos, &position_or_line, &column);
     }
   }
 #endif
@@ -619,8 +619,8 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
         THR_Print("%" Px "-%" Px ": ", start + current_pc_offset,
                   start + current_pc_offset + delta - 1);
         for (intptr_t i = 0; i < function_stack.length(); i++) {
-          THR_Print("%s@%" Pd " ", function_stack[i]->ToCString(),
-                    token_positions[i].value());
+          THR_Print("%s@%s", function_stack[i]->ToCString(),
+                    token_positions[i].ToCString());
         }
         THR_Print("\n");
         current_pc_offset += delta;
@@ -698,7 +698,8 @@ intptr_t CodeSourceMapReader::GetNullCheckNameIndexAt(int32_t pc_offset) {
 }
 
 TokenPosition CodeSourceMapReader::ReadPosition(ReadStream* stream) {
-  const intptr_t line = stream->Read<int32_t>();
+  const TokenPosition line =
+      TokenPosition::Deserialize(stream->Read<int32_t>());
 #if defined(DART_PRECOMPILER)
   // The special handling for non-symbolic stack trace mode only needs to
   // happen in the precompiler, because those CSMs are not serialized in
@@ -707,7 +708,7 @@ TokenPosition CodeSourceMapReader::ReadPosition(ReadStream* stream) {
     stream->Read<int32_t>();  // Discard the column information.
   }
 #endif
-  return TokenPosition(line);
+  return line;
 }
 
 }  // namespace dart

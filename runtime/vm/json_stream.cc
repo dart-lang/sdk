@@ -320,7 +320,7 @@ void JSONStream::PrintValue(Breakpoint* bpt) {
 
 void JSONStream::PrintValue(TokenPosition tp) {
   PrintCommaIfNeeded();
-  PrintValue(tp.value());
+  PrintValue(static_cast<intptr_t>(tp.Serialize()));
 }
 
 void JSONStream::PrintValue(const ServiceEvent* event) {

@@ -32,8 +32,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       function_level_(function_level),
       loop_level_(loop_level),
       context_level_(LocalScope::kUninitializedContextLevel),
-      begin_token_pos_(TokenPosition::kNoSourcePos),
-      end_token_pos_(TokenPosition::kNoSourcePos),
+      begin_token_pos_(TokenPosition::kNoSource),
+      end_token_pos_(TokenPosition::kNoSource),
       variables_(),
       labels_(),
       context_variables_(),
@@ -779,8 +779,9 @@ void LocalVarDescriptorsBuilder::AddDeoptIdToContextLevelMappings(
     desc.name = &Symbols::Empty();  // No name.
     desc.info.set_kind(LocalVarDescriptorsLayout::kContextLevel);
     desc.info.scope_id = 0;
-    desc.info.begin_pos = TokenPosition(start_deopt_id);
-    desc.info.end_pos = TokenPosition(end_deopt_id);
+    // We repurpose the token position fields to store deopt IDs in this case.
+    desc.info.begin_pos = TokenPosition::Deserialize(start_deopt_id);
+    desc.info.end_pos = TokenPosition::Deserialize(end_deopt_id);
     desc.info.set_index(start_context_level);
     Add(desc);
 

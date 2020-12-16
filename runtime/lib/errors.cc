@@ -67,9 +67,9 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  const TokenPosition assertion_start = TokenPosition(
+  const TokenPosition assertion_start = TokenPosition::Deserialize(
       Smi::CheckedHandle(zone, arguments->NativeArgAt(0)).Value());
-  const TokenPosition assertion_end = TokenPosition(
+  const TokenPosition assertion_end = TokenPosition::Deserialize(
       Smi::CheckedHandle(zone, arguments->NativeArgAt(1)).Value());
 
   const Instance& message =
@@ -151,7 +151,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNewSource, 0, 4) {
 DEFINE_NATIVE_ENTRY(TypeError_throwNew, 0, 4) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  const TokenPosition location = TokenPosition(
+  const TokenPosition location = TokenPosition::Deserialize(
       Smi::CheckedHandle(zone, arguments->NativeArgAt(0)).Value());
   const Instance& src_value =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
@@ -171,7 +171,7 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 0, 4) {
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
-  TokenPosition fallthrough_pos = TokenPosition(smi_pos.Value());
+  TokenPosition fallthrough_pos = TokenPosition::Deserialize(smi_pos.Value());
 
   const Array& args = Array::Handle(Array::New(2));
 
@@ -197,7 +197,7 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 0, 1) {
 DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, class_name, arguments->NativeArgAt(1));
-  TokenPosition error_pos = TokenPosition(smi_pos.Value());
+  TokenPosition error_pos = TokenPosition::Deserialize(smi_pos.Value());
 
   const Array& args = Array::Handle(Array::New(3));
 

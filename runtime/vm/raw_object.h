@@ -1919,9 +1919,12 @@ class LocalVarDescriptorsLayout : public ObjectLayout {
   struct VarInfo {
     int32_t index_kind = 0;  // Bitfield for slot index on stack or in context,
                              // and Entry kind of type VarInfoKind.
-    TokenPosition declaration_pos;  // Token position of declaration.
-    TokenPosition begin_pos;        // Token position of scope start.
-    TokenPosition end_pos;          // Token position of scope end.
+    TokenPosition declaration_pos =
+        TokenPosition::kNoSource;  // Token position of declaration.
+    TokenPosition begin_pos =
+        TokenPosition::kNoSource;  // Token position of scope start.
+    TokenPosition end_pos =
+        TokenPosition::kNoSource;   // Token position of scope end.
     int16_t scope_id;               // Scope to which the variable belongs.
 
     VarInfoKind kind() const {

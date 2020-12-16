@@ -78,11 +78,11 @@ void KernelLineStartsReader::TokenRangeAtLine(
   for (intptr_t i = 0; i < line_number; ++i) {
     cumulative += helper_->At(line_starts_data_, i);
   }
-  *first_token_index = dart::TokenPosition(cumulative);
+  *first_token_index = dart::TokenPosition::Deserialize(cumulative);
   if (line_number == line_starts_data_.Length()) {
-    *last_token_index = dart::TokenPosition(source_length);
+    *last_token_index = dart::TokenPosition::Deserialize(source_length);
   } else {
-    *last_token_index = dart::TokenPosition(
+    *last_token_index = dart::TokenPosition::Deserialize(
         cumulative + helper_->At(line_starts_data_, line_number) - 1);
   }
 }
@@ -168,7 +168,7 @@ void KernelTokenPositionCollector::CollectTokenPositions(
 void KernelTokenPositionCollector::RecordTokenPosition(TokenPosition position) {
   if (record_for_script_id_ == current_script_id_ &&
       record_token_positions_into_ != NULL && position.IsReal()) {
-    record_token_positions_into_->Add(position.value());
+    record_token_positions_into_->Add(position.Serialize());
   }
 }
 
@@ -259,8 +259,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
         if (klass.script() == interesting_script.raw()) {
-          token_positions.Add(klass.token_pos().value());
-          token_positions.Add(klass.end_token_pos().value());
+          token_positions.Add(klass.token_pos().Serialize());
+          token_positions.Add(klass.end_token_pos().Serialize());
         }
         if (klass.is_finalized()) {
           temp_array = klass.fields();

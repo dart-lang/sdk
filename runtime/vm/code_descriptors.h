@@ -42,7 +42,7 @@ class DescriptorList : public ZoneAllocated {
 
   intptr_t prev_pc_offset;
   intptr_t prev_deopt_id;
-  intptr_t prev_token_pos;
+  int32_t prev_token_pos;
 
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
@@ -186,7 +186,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   // The position at which a function implicitly starts, for both the root and
   // after a push bytecode. We use the classifying position kDartCodePrologue
   // since it is the most common.
-  static const TokenPosition kInitialPosition;
+  static const TokenPosition& kInitialPosition;
 
   static const uint8_t kChangePosition = 0;
   static const uint8_t kAdvancePC = 1;

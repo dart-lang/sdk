@@ -340,9 +340,7 @@ class Serializer : public ThreadStackResource {
     }
   }
 
-  void WriteTokenPosition(TokenPosition pos) {
-    Write<int32_t>(pos.SnapshotEncode());
-  }
+  void WriteTokenPosition(TokenPosition pos) { Write(pos.Serialize()); }
 
   void WriteCid(intptr_t cid) {
     COMPILE_ASSERT(ObjectLayout::kClassIdTagSize <= 32);
@@ -616,7 +614,7 @@ class Deserializer : public ThreadStackResource {
   }
 
   TokenPosition ReadTokenPosition() {
-    return TokenPosition::SnapshotDecode(Read<int32_t>());
+    return TokenPosition::Deserialize(Read<int32_t>());
   }
 
   intptr_t ReadCid() {

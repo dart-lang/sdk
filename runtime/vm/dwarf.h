@@ -60,7 +60,7 @@ struct FunctionIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.index_; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair.function_->raw() == key->raw();

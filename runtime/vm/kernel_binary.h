@@ -229,14 +229,18 @@ class Reader : public ValueObject {
         raw_buffer_(buffer),
         typed_data_(NULL),
         size_(size),
-        offset_(0) {}
+        offset_(0),
+        max_position_(TokenPosition::kNoSource),
+        min_position_(TokenPosition::kNoSource) {}
 
   explicit Reader(const ExternalTypedData& typed_data)
       : thread_(Thread::Current()),
         raw_buffer_(NULL),
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()),
-        offset_(0) {}
+        offset_(0),
+        max_position_(TokenPosition::kNoSource),
+        min_position_(TokenPosition::kNoSource) {}
 
   uint32_t ReadFromIndex(intptr_t end_offset,
                          intptr_t fields_before,
@@ -329,14 +333,9 @@ class Reader : public ValueObject {
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
     intptr_t value = ReadUInt() - 1;
-    TokenPosition result = TokenPosition(value);
-    max_position_ = Utils::Maximum(max_position_, result);
-    if (min_position_.IsNoSource()) {
-      min_position_ = result;
-    } else if (result.IsReal()) {
-      min_position_ = Utils::Minimum(min_position_, result);
-    }
-
+    TokenPosition result = TokenPosition::Deserialize(value);
+    max_position_ = TokenPosition::Max(max_position_, result);
+    min_position_ = TokenPosition::Min(min_position_, result);
     return result;
   }
 
@@ -553,12 +552,8 @@ class PositionScope {
   }
 
   ~PositionScope() {
-    if (reader_->min_position_.IsNoSource()) {
-      reader_->min_position_ = min_;
-    } else if (min_.IsReal()) {
-      reader_->min_position_ = Utils::Minimum(reader_->min_position_, min_);
-    }
-    reader_->max_position_ = Utils::Maximum(reader_->max_position_, max_);
+    reader_->min_position_ = TokenPosition::Min(reader_->min_position_, min_);
+    reader_->max_position_ = TokenPosition::Max(reader_->max_position_, max_);
   }
 
  private:

@@ -25,6 +25,10 @@ dominator_tree_vm_with_double_field_test: SkipByDesign
 developer_extension_test: SkipByDesign
 get_isolate_after_language_error_test: SkipByDesign
 
+# The _1 versions of this test can be slow due to stress testing flags.
+[ $mode == debug ]
+async_generator_breakpoint_test: Pass, Slow
+
 # Service protocol is not supported in product mode.
 [ $mode == product ]
 *: SkipByDesign

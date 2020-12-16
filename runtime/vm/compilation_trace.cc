@@ -516,7 +516,7 @@ void TypeFeedbackSaver::VisitFunction(const Function& function) {
   WriteString(str_);
 
   WriteInt(function.kind());
-  WriteInt(function.token_pos().value());
+  WriteInt(function.token_pos().Serialize());
 
   code_ = function.CurrentCode();
   intptr_t usage = function.usage_counter();
@@ -814,7 +814,7 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
 
   func_name_ = ReadString();  // Without private mangling.
   FunctionLayout::Kind kind = static_cast<FunctionLayout::Kind>(ReadInt());
-  intptr_t token_pos = ReadInt();
+  const TokenPosition& token_pos = TokenPosition::Deserialize(ReadInt());
   intptr_t usage = ReadInt();
   intptr_t inlining_depth = ReadInt();
   intptr_t num_call_sites = ReadInt();
@@ -926,7 +926,7 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
 }
 
 FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
-                                             intptr_t token_pos) {
+                                             const TokenPosition& token_pos) {
   if (cls_name_.Equals(Symbols::TopLevel())) {
     func_ = lib_.LookupFunctionAllowPrivate(func_name_);
   } else {
@@ -969,8 +969,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
     bool found = false;
     for (intptr_t i = 0; i < closure_functions.Length(); i++) {
       func_ ^= closure_functions.At(i);
-      if ((func_.Owner() == cls_.raw()) &&
-          (func_.token_pos().value() == token_pos)) {
+      if (func_.Owner() == cls_.raw() && func_.token_pos() == token_pos) {
         found = true;
         break;
       }

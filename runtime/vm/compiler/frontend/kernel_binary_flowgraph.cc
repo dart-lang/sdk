@@ -4839,8 +4839,9 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
 
   // Use position of equal sign if it exists. If the equal sign does not exist
   // use the position of the identifier.
-  TokenPosition debug_position =
-      Utils::Maximum(helper.position_, helper.equals_position_);
+  const TokenPosition debug_position = helper.equals_position_.IsReal()
+                                           ? helper.equals_position_
+                                           : helper.position_;
   if (NeedsDebugStepCheck(stack(), debug_position)) {
     instructions = DebugStepCheck(debug_position) + instructions;
   }
@@ -4882,7 +4883,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     // Positions has to be unique in regards to the parent.
     // A non-real at this point is probably -1, we cannot blindly use that
     // as others might use it too. Create a new dummy non-real TokenPosition.
-    position = TokenPosition(offset).ToSynthetic();
+    position = TokenPosition::Synthetic(offset);
   }
 
   // The VM has a per-isolate table of functions indexed by the enclosing

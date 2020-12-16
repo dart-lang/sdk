@@ -109,8 +109,7 @@ void BreakpointLocation::SetResolved(const Function& func,
                                      TokenPosition token_pos) {
   ASSERT(!IsLatent());
   ASSERT(func.script() == script_);
-  ASSERT((func.token_pos() <= token_pos) &&
-         (token_pos <= func.end_token_pos()));
+  ASSERT(token_pos.IsWithin(func.token_pos(), func.end_token_pos()));
   ASSERT(func.is_debuggable());
   function_ = func.raw();
   token_pos_ = token_pos;
@@ -394,11 +393,10 @@ static bool FunctionOverlaps(const Function& func,
                              const Script& script,
                              TokenPosition token_pos,
                              TokenPosition end_token_pos) {
-  TokenPosition func_start = func.token_pos();
-  if (((func_start <= token_pos) && (token_pos <= func.end_token_pos())) ||
-      ((token_pos <= func_start) && (func_start <= end_token_pos))) {
-    // Check script equality second because it allocates
-    // handles as a side effect.
+  const TokenPosition& func_start = func.token_pos();
+  if (token_pos.IsWithin(func_start, func.end_token_pos()) ||
+      func_start.IsWithin(token_pos, end_token_pos)) {
+    // Check script equality last because it allocates handles as a side effect.
     return func.script() == script.raw();
   }
   return false;
@@ -566,24 +564,20 @@ intptr_t ActivationFrame::DeoptId() {
 
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
-  if ((line_number_ < 0) && TokenPos().IsSourcePosition()) {
-    const TokenPosition token_pos = TokenPos().SourcePosition();
+  const TokenPosition& token_pos = TokenPos();
+  if ((line_number_ < 0) && token_pos.IsReal()) {
     const Script& script = Script::Handle(SourceScript());
-    script.GetTokenLocation(token_pos, &line_number_, NULL);
+    script.GetTokenLocation(token_pos, &line_number_, nullptr);
   }
   return line_number_;
 }
 
 intptr_t ActivationFrame::ColumnNumber() {
   // Compute column number lazily since it causes scanning of the script.
-  if ((column_number_ < 0) && TokenPos().IsSourcePosition()) {
-    const TokenPosition token_pos = TokenPos().SourcePosition();
+  const TokenPosition& token_pos = TokenPos();
+  if ((column_number_ < 0) && token_pos.IsReal()) {
     const Script& script = Script::Handle(SourceScript());
-    if (script.HasSource()) {
-      script.GetTokenLocation(token_pos, &line_number_, &column_number_);
-    } else {
-      column_number_ = -1;
-    }
+    script.GetTokenLocation(token_pos, &line_number_, &column_number_);
   }
   return column_number_;
 }
@@ -648,13 +642,14 @@ intptr_t ActivationFrame::ContextLevel() {
     }
     intptr_t var_desc_len = var_descriptors_.Length();
     bool found = false;
+    // We store the deopt ids as real token positions.
+    const auto to_compare = TokenPosition::Deserialize(deopt_id);
     for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
       LocalVarDescriptorsLayout::VarInfo var_info;
       var_descriptors_.GetInfo(cur_idx, &var_info);
       const int8_t kind = var_info.kind();
       if ((kind == LocalVarDescriptorsLayout::kContextLevel) &&
-          (deopt_id >= var_info.begin_pos.value()) &&
-          (deopt_id <= var_info.end_pos.value())) {
+          to_compare.IsWithin(var_info.begin_pos, var_info.end_pos)) {
         context_level_ = var_info.index();
         found = true;
         break;
@@ -925,51 +920,51 @@ void ActivationFrame::GetDescIndices() {
         (kind != LocalVarDescriptorsLayout::kContextVar)) {
       continue;
     }
-    if ((var_info.begin_pos <= activation_token_pos) &&
-        (activation_token_pos <= var_info.end_pos)) {
-      if ((kind == LocalVarDescriptorsLayout::kContextVar) &&
-          (ContextLevel() < var_info.scope_id)) {
-        // The variable is textually in scope but the context level
-        // at the activation frame's PC is lower than the context
-        // level of the variable. The context containing the variable
-        // has already been removed from the chain. This can happen when we
-        // break at a return statement, since the contexts get discarded
-        // before the debugger gets called.
-        continue;
-      }
-      // The current variable is textually in scope. Now check whether
-      // there is another local variable with the same name that shadows
-      // or is shadowed by this variable.
-      String& var_name = String::Handle(var_descriptors_.GetName(cur_idx));
-      intptr_t indices_len = desc_indices_.length();
-      bool name_match_found = false;
-      for (intptr_t i = 0; i < indices_len; i++) {
-        if (var_name.Equals(*var_names[i])) {
-          // Found two local variables with the same name. Now determine
-          // which one is shadowed.
-          name_match_found = true;
-          LocalVarDescriptorsLayout::VarInfo i_var_info;
-          var_descriptors_.GetInfo(desc_indices_[i], &i_var_info);
-          if (i_var_info.begin_pos < var_info.begin_pos) {
-            // The variable we found earlier is in an outer scope
-            // and is shadowed by the current variable. Replace the
-            // descriptor index of the previously found variable
-            // with the descriptor index of the current variable.
-            desc_indices_[i] = cur_idx;
-          } else {
-            // The variable we found earlier is in an inner scope
-            // and shadows the current variable. Skip the current
-            // variable. (Nothing to do.)
-          }
-          break;  // Stop looking for name matches.
+    if (!activation_token_pos.IsWithin(var_info.begin_pos, var_info.end_pos)) {
+      continue;
+    }
+    if ((kind == LocalVarDescriptorsLayout::kContextVar) &&
+        (ContextLevel() < var_info.scope_id)) {
+      // The variable is textually in scope but the context level
+      // at the activation frame's PC is lower than the context
+      // level of the variable. The context containing the variable
+      // has already been removed from the chain. This can happen when we
+      // break at a return statement, since the contexts get discarded
+      // before the debugger gets called.
+      continue;
+    }
+    // The current variable is textually in scope. Now check whether
+    // there is another local variable with the same name that shadows
+    // or is shadowed by this variable.
+    String& var_name = String::Handle(var_descriptors_.GetName(cur_idx));
+    intptr_t indices_len = desc_indices_.length();
+    bool name_match_found = false;
+    for (intptr_t i = 0; i < indices_len; i++) {
+      if (var_name.Equals(*var_names[i])) {
+        // Found two local variables with the same name. Now determine
+        // which one is shadowed.
+        name_match_found = true;
+        LocalVarDescriptorsLayout::VarInfo i_var_info;
+        var_descriptors_.GetInfo(desc_indices_[i], &i_var_info);
+        if (i_var_info.begin_pos < var_info.begin_pos) {
+          // The variable we found earlier is in an outer scope
+          // and is shadowed by the current variable. Replace the
+          // descriptor index of the previously found variable
+          // with the descriptor index of the current variable.
+          desc_indices_[i] = cur_idx;
+        } else {
+          // The variable we found earlier is in an inner scope
+          // and shadows the current variable. Skip the current
+          // variable. (Nothing to do.)
         }
+        break;  // Stop looking for name matches.
       }
-      if (!name_match_found) {
-        // No duplicate name found. Add the current descriptor index to the
-        // list of visible variables.
-        desc_indices_.Add(cur_idx);
-        var_names.Add(&var_name);
-      }
+    }
+    if (!name_match_found) {
+      // No duplicate name found. Add the current descriptor index to the
+      // list of visible variables.
+      desc_indices_.Add(cur_idx);
+      var_names.Add(&var_name);
     }
   }
   vars_initialized_ = true;
@@ -1167,7 +1162,7 @@ ArrayPtr ActivationFrame::GetLocalVariables() {
   Object& value = Instance::Handle();
   const Array& list = Array::Handle(Array::New(2 * num_variables));
   for (intptr_t i = 0; i < num_variables; i++) {
-    TokenPosition ignore;
+    TokenPosition ignore = TokenPosition::kNoSource;
     VariableAt(i, &var_name, &ignore, &ignore, &ignore, &value);
     list.SetAt(2 * i, var_name);
     list.SetAt((2 * i) + 1, value);
@@ -1181,7 +1176,7 @@ ObjectPtr ActivationFrame::GetReceiver() {
   String& var_name = String::Handle();
   Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < num_variables; i++) {
-    TokenPosition ignore;
+    TokenPosition ignore = TokenPosition::kNoSource;
     VariableAt(i, &var_name, &ignore, &ignore, &ignore, &value);
     if (var_name.Equals(Symbols::This())) {
       return value.raw();
@@ -1232,7 +1227,7 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
   TypeArguments& type_arguments = TypeArguments::Handle();
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
-    TokenPosition ignore;
+    TokenPosition ignore = TokenPosition::kNoSource;
     VariableAt(i, &name, &ignore, &ignore, &ignore, &value);
     if (name.Equals(Symbols::FunctionTypeArgumentsVar())) {
       type_arguments_available = true;
@@ -1347,7 +1342,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
-  const TokenPosition pos = TokenPos().SourcePosition();
+  const TokenPosition& pos = TokenPos();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   jsobj->AddProperty("code", code());
@@ -1357,9 +1352,9 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
     for (intptr_t v = 0; v < num_vars; v++) {
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
-      TokenPosition declaration_token_pos;
-      TokenPosition visible_start_token_pos;
-      TokenPosition visible_end_token_pos;
+      TokenPosition declaration_token_pos = TokenPosition::kNoSource;
+      TokenPosition visible_start_token_pos = TokenPosition::kNoSource;
+      TokenPosition visible_end_token_pos = TokenPosition::kNoSource;
       VariableAt(v, &var_name, &declaration_token_pos, &visible_start_token_pos,
                  &visible_end_token_pos, &var_value);
       if (!IsSyntheticVariableName(var_name)) {
@@ -1383,7 +1378,7 @@ void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj) {
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
-  const TokenPosition pos = TokenPos().SourcePosition();
+  const TokenPosition& pos = TokenPos();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   jsobj->AddProperty("code", code());
@@ -2239,16 +2234,14 @@ static void RefineBreakpointPos(const Script& script,
   intptr_t token_start_column = -1;
   intptr_t token_line = -1;
   if (requested_column >= 0) {
-    TokenPosition ignored;
-    TokenPosition end_of_line_pos;
+    TokenPosition ignored = TokenPosition::kNoSource;
+    TokenPosition end_of_line_pos = TokenPosition::kNoSource;
     script.GetTokenLocation(pos, &token_line, &token_start_column);
     script.TokenRangeAtLine(token_line, &ignored, &end_of_line_pos);
     TokenPosition token_end_pos =
-        (end_of_line_pos < next_closest_token_position)
-            ? end_of_line_pos
-            : next_closest_token_position;
+        TokenPosition::Min(next_closest_token_position, end_of_line_pos);
 
-    if ((token_end_pos < exact_token_pos) ||
+    if ((exact_token_pos.IsReal() && (token_end_pos < exact_token_pos)) ||
         (token_start_column > *best_column)) {
       // Prefer the token with the lowest column number compatible
       // with the requested column.
@@ -2261,9 +2254,11 @@ static void RefineBreakpointPos(const Script& script,
     *best_fit_pos = pos;
     *best_line = token_line;
     *best_column = token_start_column;
-    // best_token_pos is only used when column number is specified.
-    *best_token_pos = TokenPosition(exact_token_pos.value() -
-                                    (requested_column - *best_column));
+    // best_token_pos should only be real when the column number is specified.
+    if (requested_column >= 0 && exact_token_pos.IsReal()) {
+      *best_token_pos = TokenPosition::Deserialize(
+          exact_token_pos.Pos() - (requested_column - *best_column));
+    }
   }
 }
 
@@ -2330,12 +2325,9 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
                                              TokenPosition exact_token_pos) {
   ASSERT(!func.HasOptimizedCode());
 
-  if (requested_token_pos < func.token_pos()) {
-    requested_token_pos = func.token_pos();
-  }
-  if (last_token_pos > func.end_token_pos()) {
-    last_token_pos = func.end_token_pos();
-  }
+  requested_token_pos =
+      TokenPosition::Max(requested_token_pos, func.token_pos());
+  last_token_pos = TokenPosition::Min(last_token_pos, func.end_token_pos());
 
   Zone* zone = Thread::Current()->zone();
   Script& script = Script::Handle(zone, func.script());
@@ -2351,15 +2343,19 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   TokenPosition best_fit_pos = TokenPosition::kMaxSource;
   intptr_t best_column = INT_MAX;
   intptr_t best_line = INT_MAX;
-  // best_token_pos and exact_token_pos are only used
-  // if column number is provided.
+  // best_token_pos is only set to a real position if a real exact_token_pos
+  // and a column number are provided.
   TokenPosition best_token_pos = TokenPosition::kNoSource;
 
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
-    const TokenPosition pos = iter.TokenPos();
-    if ((!pos.IsReal()) || (pos < requested_token_pos) ||
-        (pos > last_token_pos)) {
+    const TokenPosition& pos = iter.TokenPos();
+    if (pos.IsSynthetic() && pos == requested_token_pos) {
+      // if there's a safepoint for a synthetic function start and the start
+      // was requested, we're done.
+      return pos;
+    }
+    if (!pos.IsWithin(requested_token_pos, last_token_pos)) {
       // Token is not in the target range.
       continue;
     }
@@ -2368,8 +2364,9 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
       // Find next closest safepoint
       PcDescriptors::Iterator iter2(desc, kSafepointKind);
       while (iter2.MoveNext()) {
-        const TokenPosition next = iter2.TokenPos();
-        if (next < next_closest_token_position && next > pos) {
+        const TokenPosition& next = iter2.TokenPos();
+        if (!next.IsReal()) continue;
+        if ((pos < next) && (next < next_closest_token_position)) {
           next_closest_token_position = next;
         }
       }
@@ -2384,33 +2381,31 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // the token on the line which is at the best fit column (if column
   // was specified) and has the lowest code address.
   if (best_fit_pos != TokenPosition::kMaxSource) {
+    ASSERT(best_fit_pos.IsReal());
     const Script& script = Script::Handle(zone, func.script());
     const TokenPosition begin_pos = best_fit_pos;
 
-    TokenPosition end_of_line_pos;
+    TokenPosition end_of_line_pos = TokenPosition::kNoSource;
     if (best_line == -1) {
-      script.GetTokenLocation(begin_pos, &best_line, NULL);
+      script.GetTokenLocation(begin_pos, &best_line, nullptr);
     }
     ASSERT(best_line > 0);
-    TokenPosition ignored;
+    TokenPosition ignored = TokenPosition::kNoSource;
     script.TokenRangeAtLine(best_line, &ignored, &end_of_line_pos);
-    if (end_of_line_pos < begin_pos) {
-      end_of_line_pos = begin_pos;
-    }
+    end_of_line_pos = TokenPosition::Max(end_of_line_pos, begin_pos);
 
     uword lowest_pc_offset = kUwordMax;
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
-      const TokenPosition pos = iter.TokenPos();
-      if (!pos.IsReal() || (pos < begin_pos) || (pos > end_of_line_pos)) {
-        // Token is not on same line as best fit.
-        continue;
-      }
-
-      if (requested_column >= 0) {
+      const TokenPosition& pos = iter.TokenPos();
+      if (best_token_pos.IsReal()) {
         if (pos != best_token_pos) {
+          // Not an match for the requested column.
           continue;
         }
+      } else if (!pos.IsWithin(begin_pos, end_of_line_pos)) {
+        // Token is not on same line as best fit.
+        continue;
       }
 
       // Prefer the lowest pc offset.
@@ -2557,14 +2552,14 @@ void Debugger::FindCompiledFunctions(
   }
 }
 
-static void SelectBestFit(Function* best_fit, Function* func) {
+static void UpdateBestFit(Function* best_fit, const Function& func) {
   if (best_fit->IsNull()) {
-    *best_fit = func->raw();
-  } else {
-    if ((func->token_pos() > best_fit->token_pos()) &&
-        ((func->end_token_pos() <= best_fit->end_token_pos()))) {
-      *best_fit = func->raw();
-    }
+    *best_fit = func.raw();
+  } else if ((best_fit->token_pos().IsSynthetic() ||
+              func.token_pos().IsSynthetic() ||
+              (best_fit->token_pos() < func.token_pos())) &&
+             (func.end_token_pos() <= best_fit->end_token_pos())) {
+    *best_fit = func.raw();
   }
 }
 
@@ -2623,7 +2618,7 @@ bool Debugger::FindBestFit(const Script& script,
       function ^= closures.At(i);
       if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
         // Select the inner most closure.
-        SelectBestFit(best_fit, &function);
+        UpdateBestFit(best_fit, function);
       }
     }
     if (!best_fit->IsNull()) {
@@ -2688,8 +2683,8 @@ bool Debugger::FindBestFit(const Script& script,
       if (!fields.IsNull()) {
         const intptr_t num_fields = fields.Length();
         for (intptr_t pos = 0; pos < num_fields; pos++) {
-          TokenPosition start;
-          TokenPosition end;
+          TokenPosition start = TokenPosition::kNoSource;
+          TokenPosition end = TokenPosition::kNoSource;
           field ^= fields.At(pos);
           ASSERT(!field.IsNull());
           if (field.Script() != script.raw()) {
@@ -2702,8 +2697,8 @@ bool Debugger::FindBestFit(const Script& script,
           }
           start = field.token_pos();
           end = field.end_token_pos();
-          if ((start <= token_pos && token_pos <= end) ||
-              (token_pos <= start && start <= last_token_pos)) {
+          if (token_pos.IsWithin(start, end) ||
+              start.IsWithin(token_pos, last_token_pos)) {
             return true;
           }
         }
@@ -2803,7 +2798,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
       // have already been compiled. We can resolve the breakpoint now.
       // If requested_column is larger than zero, [token_pos, last_token_pos]
       // governs one single line of code.
-      TokenPosition exact_token_pos = TokenPosition(-1);
+      TokenPosition exact_token_pos = TokenPosition::kNoSource;
       if (token_pos != last_token_pos && requested_column >= 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
         exact_token_pos =
@@ -3010,7 +3005,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     }
     return latent_bpt;
   }
-  TokenPosition first_token_idx, last_token_idx;
+  TokenPosition first_token_idx = TokenPosition::kNoSource;
+  TokenPosition last_token_idx = TokenPosition::kNoSource;
   script.TokenRangeAtLine(line_number, &first_token_idx, &last_token_idx);
   if (!first_token_idx.IsReal()) {
     // Script does not contain the given line number.
@@ -3825,6 +3821,8 @@ void Debugger::NotifyIsolateCreated() {
 // the given token position.
 FunctionPtr Debugger::FindInnermostClosure(const Function& function,
                                            TokenPosition token_pos) {
+  ASSERT(function.end_token_pos().IsReal());
+  const TokenPosition& func_start = function.token_pos();
   Zone* zone = Thread::Current()->zone();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
@@ -3834,12 +3832,16 @@ FunctionPtr Debugger::FindInnermostClosure(const Function& function,
   Function& best_fit = Function::Handle(zone);
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
-    if ((function.token_pos() < closure.token_pos()) &&
-        (closure.end_token_pos() < function.end_token_pos()) &&
-        (closure.token_pos() <= token_pos) &&
-        (token_pos <= closure.end_token_pos()) &&
+    const TokenPosition& closure_start = closure.token_pos();
+    const TokenPosition& closure_end = closure.end_token_pos();
+    // We're only interested in closures that have real ending token positions.
+    // The starting token position can be synthetic.
+    if (closure_end.IsReal() && (function.end_token_pos() > closure_end) &&
+        (!closure_start.IsReal() || !func_start.IsReal() ||
+         (closure_start > func_start)) &&
+        token_pos.IsWithin(closure_start, closure_end) &&
         (closure.script() == outer_origin.raw())) {
-      SelectBestFit(&best_fit, &closure);
+      UpdateBestFit(&best_fit, closure);
     }
   }
   return best_fit.raw();
@@ -3851,13 +3853,14 @@ FunctionPtr Debugger::FindInnermostClosure(const Function& function,
 TokenPosition Debugger::FindExactTokenPosition(const Script& script,
                                                TokenPosition start_of_line,
                                                intptr_t column_number) {
-  intptr_t line = -1;
-  intptr_t col = -1;
-  Zone* zone = Thread::Current()->zone();
-  kernel::KernelLineStartsReader line_starts_reader(
-      TypedData::Handle(zone, script.line_starts()), zone);
-  line_starts_reader.LocationForPosition(start_of_line.value(), &line, &col);
-  return TokenPosition(start_of_line.value() + (column_number - col));
+  intptr_t line;
+  intptr_t col;
+  script.GetTokenLocation(start_of_line, &line, &col);
+  if (line < 0) {
+    return TokenPosition::kNoSource;
+  }
+  return TokenPosition::Deserialize(start_of_line.Pos() +
+                                    (column_number - col));
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -3988,7 +3991,8 @@ void Debugger::NotifyDoneLoading() {
         intptr_t line_number = matched_loc->requested_line_number();
         intptr_t column_number = matched_loc->requested_column_number();
         ASSERT(line_number >= 0);
-        TokenPosition first_token_pos, last_token_pos;
+        TokenPosition first_token_pos = TokenPosition::kNoSource;
+        TokenPosition last_token_pos = TokenPosition::kNoSource;
         script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
         if (!first_token_pos.IsDebugPause() || !last_token_pos.IsDebugPause()) {
           // Script does not contain the given line number or there are no
