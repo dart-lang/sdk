@@ -21,8 +21,12 @@ class CodeFragment extends ValueGenerator {
   @override
   String evaluateIn(TemplateContext context) {
     Object target = context.node;
-    for (var accessor in accessors) {
-      target = accessor.getValue(target).result;
+    for (var i = 0; i < accessors.length; i++) {
+      var result = accessors[i].getValue(target);
+      if (!result.isValid) {
+        return '';
+      }
+      target = result.result;
     }
     if (target is AstNode) {
       return context.utils.getRangeText(range.node(target));
