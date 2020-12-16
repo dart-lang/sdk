@@ -1692,9 +1692,7 @@ class LoadOptimizer : public ValueObject {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return false;
     }
 
@@ -2850,9 +2848,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return;
     }
 

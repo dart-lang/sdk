@@ -162,7 +162,7 @@ class ScopeBuilder {
   intptr_t name_index_;
 
   bool needs_expr_temp_;
-  TokenPosition first_body_token_position_;
+  TokenPosition first_body_token_position_ = TokenPosition::kNoSource;
 
   KernelReaderHelper helper_;
   ConstantReader constant_reader_;

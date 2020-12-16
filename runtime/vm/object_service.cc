@@ -808,7 +808,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  jsobj.AddProperty("tokenPos", token_pos.value());
+  jsobj.AddProperty("tokenPos", static_cast<intptr_t>(token_pos.Serialize()));
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
 

@@ -94,7 +94,7 @@ class FieldKeyValueTrait {
   static inline intptr_t Hashcode(Key key) {
     const TokenPosition token_pos = key->token_pos();
     if (token_pos.IsReal()) {
-      return token_pos.value();
+      return token_pos.Hash();
     }
     return key->kernel_offset();
   }
@@ -117,7 +117,7 @@ class ClassKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();

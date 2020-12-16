@@ -123,7 +123,7 @@ TEST_CASE(StackMapGC) {
 ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
   DescriptorList* descriptors = new DescriptorList(thread->zone());
   ASSERT(descriptors != NULL);
-  const intptr_t token_positions[] = {
+  const int32_t token_positions[] = {
       kMinInt32,
       5,
       13,
@@ -141,12 +141,12 @@ ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
       TokenPosition::kMinSourcePos,
       TokenPosition::kMaxSourcePos,
   };
-  const intptr_t num_token_positions =
-      sizeof(token_positions) / sizeof(token_positions[0]);
+  const intptr_t num_token_positions = ARRAY_SIZE(token_positions);
 
   for (intptr_t i = 0; i < num_token_positions; i++) {
-    descriptors->AddDescriptor(PcDescriptorsLayout::kRuntimeCall, 0, 0,
-                               TokenPosition(token_positions[i]), 0, 1);
+    const TokenPosition& tp = TokenPosition::Deserialize(token_positions[i]);
+    descriptors->AddDescriptor(PcDescriptorsLayout::kRuntimeCall, 0, 0, tp, 0,
+                               1);
   }
 
   const PcDescriptors& finalized_descriptors =
@@ -158,11 +158,12 @@ ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
 
   intptr_t i = 0;
   while (it.MoveNext()) {
-    if (token_positions[i] != it.TokenPos().value()) {
-      OS::PrintErr("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
-                   token_positions[i], it.TokenPos().value());
+    const TokenPosition& tp = TokenPosition::Deserialize(token_positions[i]);
+    if (tp != it.TokenPos()) {
+      OS::PrintErr("[%" Pd "]: Expected: %s != %s\n", i, tp.ToCString(),
+                   it.TokenPos().ToCString());
     }
-    EXPECT(token_positions[i] == it.TokenPos().value());
+    EXPECT(tp == it.TokenPos());
     i++;
   }
 }

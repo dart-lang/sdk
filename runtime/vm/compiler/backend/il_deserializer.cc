@@ -768,7 +768,7 @@ Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
   TokenPosition token_pos = TokenPosition::kNoSource;
   if (auto const token_int =
           CheckInteger(list->ExtraLookupValue("token_pos"))) {
-    token_pos = TokenPosition(token_int->value());
+    token_pos = TokenPosition::Deserialize(token_int->value());
   }
   InstrInfo common_info = {deopt_id, token_pos};
 
@@ -1833,7 +1833,7 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
   }
   TokenPosition token_pos = TokenPosition::kNoSource;
   if (const auto pos_sexp = CheckInteger(list->ExtraLookupValue("token_pos"))) {
-    token_pos = TokenPosition(pos_sexp->value());
+    token_pos = TokenPosition::Deserialize(pos_sexp->value());
   }
   auto type_args_ptr = &Object::null_type_arguments();
   if (const auto ta_sexp = list->ExtraLookupValue("type_args")) {

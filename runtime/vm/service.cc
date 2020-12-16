@@ -3283,8 +3283,8 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
     }
   }
   SourceReport report(report_set, compile_mode);
-  report.PrintJSON(js, script, TokenPosition(start_pos),
-                   TokenPosition(end_pos));
+  report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
+                   TokenPosition::Deserialize(end_pos));
   return true;
 #endif  // !DART_PRECOMPILED_RUNTIME
 }

@@ -282,12 +282,9 @@ class ProfileStackWalker {
       return NULL;
     }
     TokenPosition token_pos = pfsp.token_pos();
-    if (!token_pos.IsSourcePosition()) {
+    if (!token_pos.IsReal()) {
       // Not a location in a script.
       return NULL;
-    }
-    if (token_pos.IsSynthetic()) {
-      token_pos = token_pos.FromSynthetic();
     }
 
     intptr_t line = 0, column = 0, token_len = 0;
@@ -2315,10 +2312,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
       "}\n";
 
   // Token position of * in `i * i`.
-  const TokenPosition squarePosition = TokenPosition(19);
+  const TokenPosition squarePosition = TokenPosition::Deserialize(19);
 
   // Token position of the call to `doWork`.
-  const TokenPosition callPosition = TokenPosition(95);
+  const TokenPosition callPosition = TokenPosition::Deserialize(95);
 
   DisableNativeProfileScope dnps;
   // Disable profiling for this thread.

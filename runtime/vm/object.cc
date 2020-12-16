@@ -3959,7 +3959,7 @@ static ObjectPtr ThrowTypeError(const TokenPosition token_pos,
                                 const AbstractType& dst_type,
                                 const String& dst_name) {
   const Array& args = Array::Handle(Array::New(4));
-  const Smi& pos = Smi::Handle(Smi::New(token_pos.value()));
+  const Smi& pos = Smi::Handle(Smi::New(token_pos.Serialize()));
   args.SetAt(0, pos);
   args.SetAt(1, src_value);
   args.SetAt(2, dst_type);
@@ -7640,9 +7640,8 @@ bool Function::IsOptimizable() const {
     // Native methods don't need to be optimized.
     return false;
   }
-  const intptr_t function_length = end_token_pos().Pos() - token_pos().Pos();
   if (is_optimizable() && (script() != Script::null()) &&
-      (function_length < FLAG_huge_method_cutoff_in_tokens)) {
+      SourceSize() < FLAG_huge_method_cutoff_in_tokens) {
     // Additional check needed for implicit getters.
     return (unoptimized_code() == Object::null()) ||
            (Code::Handle(unoptimized_code()).Size() <
@@ -9398,7 +9397,7 @@ StringPtr Function::GetSource() const {
     if (src.IsNull() || src.Length() == 0) {
       return Symbols::OptimizedOut().raw();
     }
-    uint16_t end_char = src.CharAt(end_token_pos().value());
+    uint16_t end_char = src.CharAt(end_token_pos().Pos());
     if ((end_char == ',') ||  // Case 1.
         (end_char == ')') ||  // Case 2.
         (end_char == ';' && String::Handle(zone, name())
@@ -9660,6 +9659,27 @@ bool Function::PrologueNeedsArgumentsDescriptor() const {
 bool Function::MayHaveUncheckedEntryPoint() const {
   return FLAG_enable_multiple_entrypoints &&
          (NeedsTypeArgumentTypeChecks() || NeedsArgumentTypeChecks());
+}
+
+intptr_t Function::SourceSize() const {
+  const TokenPosition& start = token_pos();
+  const TokenPosition& end = end_token_pos();
+  if (!end.IsReal() || start.IsNoSource() || start.IsClassifying()) {
+    // No source information, so just return 0.
+    return 0;
+  }
+  if (start.IsSynthetic()) {
+    // Try and approximate the source size using the parent's source size.
+    const auto& parent = Function::Handle(parent_function());
+    ASSERT(!parent.IsNull());
+    const intptr_t parent_size = parent.SourceSize();
+    if (parent_size == 0) {
+      return parent_size;
+    }
+    // Parent must have a real ending position.
+    return parent_size - (parent.end_token_pos().Pos() - end.Pos());
+  }
+  return end.Pos() - start.Pos();
 }
 
 const char* Function::ToCString() const {
@@ -11231,31 +11251,6 @@ void Script::SetLocationOffset(intptr_t line_offset,
   StoreNonPointer(&raw_ptr()->col_offset_, col_offset);
 }
 
-// Specialized for AOT compilation, which does this lookup for every token
-// position that could be part of a stack trace.
-bool Script::GetTokenLocationUsingLineStarts(TokenPosition target_token_pos,
-                                             intptr_t* line,
-                                             intptr_t* column) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return false;
-#else
-  // Negative positions denote positions that do not correspond to Dart code.
-  if (target_token_pos.value() < 0) return false;
-
-  Zone* zone = Thread::Current()->zone();
-  TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
-  ASSERT(!line_starts_data.IsNull());
-
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  line_starts_reader.LocationForPosition(target_token_pos.value(), line,
-                                         column);
-  // The line and column numbers returned are ordinals, so we shouldn't get 0.
-  ASSERT(*line > 0);
-  ASSERT(*column > 0);
-  return true;
-#endif
-}
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static bool IsLetter(int32_t c) {
   return (('A' <= c) && (c <= 'Z')) || (('a' <= c) && (c <= 'z'));
@@ -11278,37 +11273,36 @@ void Script::GetTokenLocation(TokenPosition token_pos,
                               intptr_t* line,
                               intptr_t* column,
                               intptr_t* token_len) const {
-  ASSERT(line != NULL);
-  Zone* zone = Thread::Current()->zone();
-
-  LookupSourceAndLineStarts(zone);
-  if (line_starts() == TypedData::null()) {
-    // Scripts in the AOT snapshot do not have a line starts array.
-    *line = -1;
-    if (column != NULL) {
-      *column = -1;
-    }
-    if (token_len != NULL) {
-      *token_len = 1;
-    }
-    return;
+  ASSERT(line != nullptr);
+  // Set up appropriate values for any early returns.
+  *line = -1;
+  if (column != nullptr) {
+    *column = -1;
   }
+  if (token_len != nullptr) {
+    *token_len = 1;
+  }
+  // Scripts in the AOT snapshot do not have a line starts array.
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (!token_pos.IsReal()) return;
+
+  auto const zone = Thread::Current()->zone();
+  LookupSourceAndLineStarts(zone);
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  line_starts_reader.LocationForPosition(token_pos.value(), line, column);
-  if (token_len != NULL) {
-    *token_len = 1;
-    // We don't explicitly save this data: Load the source
-    // and find it from there.
-    const String& source = String::Handle(zone, Source());
-    if (!source.IsNull()) {
-      intptr_t offset = token_pos.value();
-      if (offset < source.Length() && IsIdentStartChar(source.CharAt(offset))) {
-        for (intptr_t i = offset + 1;
-             i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
-          ++*token_len;
-        }
+  const intptr_t pos = token_pos.Pos();
+  line_starts_reader.LocationForPosition(pos, line, column);
+  if (token_len == nullptr) return;
+  *token_len = 1;
+  // We don't explicitly save this data: Load the source
+  // and find it from there.
+  const String& source = String::Handle(zone, Source());
+  if (!source.IsNull()) {
+    intptr_t offset = pos;
+    if (offset < source.Length() && IsIdentStartChar(source.CharAt(offset))) {
+      for (intptr_t i = offset + 1;
+           i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
+        ++*token_len;
       }
     }
   }
@@ -11321,16 +11315,10 @@ void Script::TokenRangeAtLine(intptr_t line_number,
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
 
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  LookupSourceAndLineStarts(zone);
-  if (line_starts() == TypedData::null()) {
-    // Scripts in the AOT snapshot do not have a line starts array.
-    *first_token_index = TokenPosition::kNoSource;
-    *last_token_index = TokenPosition::kNoSource;
-    return;
-  }
+  // Scripts in the AOT snapshot do not have a line starts array.
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  Zone* zone = Thread::Current()->zone();
+  LookupSourceAndLineStarts(zone);
   const String& source = String::Handle(zone, Source());
   intptr_t source_length;
   if (source.IsNull()) {
@@ -11342,8 +11330,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
     source_length = source.Length();
   }
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data,
-                                                    Thread::Current()->zone());
+  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
   line_starts_reader.TokenRangeAtLine(source_length, line_number,
                                       first_token_index, last_token_index);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -14359,8 +14346,8 @@ static int PrintVarInfo(char* buffer,
                           " %-13s level=%-3d"
                           " begin=%-3d end=%d\n",
                           i, LocalVarDescriptors::KindToCString(kind), index,
-                          static_cast<int>(info.begin_pos.value()),
-                          static_cast<int>(info.end_pos.value()));
+                          static_cast<int>(info.begin_pos.Pos()),
+                          static_cast<int>(info.end_pos.Pos()));
   } else if (kind == LocalVarDescriptorsLayout::kContextVar) {
     return Utils::SNPrint(
         buffer, len,
@@ -16810,18 +16797,19 @@ ContextScopePtr ContextScope::New(intptr_t num_variables, bool is_implicit) {
 }
 
 TokenPosition ContextScope::TokenIndexAt(intptr_t scope_index) const {
-  return TokenPosition(Smi::Value(VariableDescAddr(scope_index)->token_pos));
+  return TokenPosition::Deserialize(
+      Smi::Value(VariableDescAddr(scope_index)->token_pos));
 }
 
 void ContextScope::SetTokenIndexAt(intptr_t scope_index,
                                    TokenPosition token_pos) const {
   StoreSmi(&VariableDescAddr(scope_index)->token_pos,
-           Smi::New(token_pos.value()));
+           Smi::New(token_pos.Serialize()));
 }
 
 TokenPosition ContextScope::DeclarationTokenIndexAt(
     intptr_t scope_index) const {
-  return TokenPosition(
+  return TokenPosition::Deserialize(
       Smi::Value(VariableDescAddr(scope_index)->declaration_token_pos));
 }
 
@@ -16829,7 +16817,7 @@ void ContextScope::SetDeclarationTokenIndexAt(
     intptr_t scope_index,
     TokenPosition declaration_token_pos) const {
   StoreSmi(&VariableDescAddr(scope_index)->declaration_token_pos,
-           Smi::New(declaration_token_pos.value()));
+           Smi::New(declaration_token_pos.Serialize()));
 }
 
 StringPtr ContextScope::NameAt(intptr_t scope_index) const {
@@ -24238,13 +24226,14 @@ static void PrintSymbolicStackFrame(Zone* zone,
 
   intptr_t line = -1;
   intptr_t column = -1;
-  if (FLAG_precompiled_mode) {
-    line = token_pos.value();
-  } else if (token_pos.IsSourcePosition()) {
-    ASSERT(!script.IsNull());
-    script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
+  if (token_pos.IsReal()) {
+    if (FLAG_precompiled_mode) {
+      line = token_pos.Pos();
+    } else {
+      ASSERT(!script.IsNull());
+      script.GetTokenLocation(token_pos, &line, &column);
+    }
   }
-
   PrintSymbolicStackFrameIndex(buffer, frame_index);
   PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);
 }

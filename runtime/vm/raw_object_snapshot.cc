@@ -87,7 +87,7 @@ TypePtr Type::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type, kIsDeserialized);
 
   // Set all non object fields.
-  type.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
+  type.set_token_pos(TokenPosition::Deserialize(reader->Read<int32_t>()));
   const uint8_t combined = reader->Read<uint8_t>();
   type.set_type_state(combined >> 4);
   type.set_nullability(static_cast<Nullability>(combined & 0xf));
@@ -160,7 +160,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->Write<bool>(typeclass_is_in_fullsnapshot);
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(token_pos_.SnapshotEncode());
+  writer->Write<int32_t>(token_pos_.Serialize());
   const uint8_t combined = (type_state_ << 4) | nullability_;
   ASSERT(type_state_ == (combined >> 4));
   ASSERT(nullability_ == (combined & 0xf));
@@ -234,7 +234,7 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   type_parameter.set_token_pos(
-      TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
+      TokenPosition::Deserialize(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
   const uint8_t combined = reader->Read<uint8_t>();
   type_parameter.set_flags(combined >> 4);
@@ -285,7 +285,7 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(token_pos_.SnapshotEncode());
+  writer->Write<int32_t>(token_pos_.Serialize());
   writer->Write<int16_t>(index_);
   const uint8_t combined = (flags_ << 4) | nullability_;
   ASSERT(flags_ == (combined >> 4));
@@ -637,7 +637,7 @@ LanguageErrorPtr LanguageError::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   language_error.set_token_pos(
-      TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
+      TokenPosition::Deserialize(reader->Read<int32_t>()));
   language_error.set_report_after_token(reader->Read<bool>());
   language_error.set_kind(reader->Read<uint8_t>());
 
@@ -662,7 +662,7 @@ void LanguageErrorLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->Write<int32_t>(token_pos_.SnapshotEncode());
+  writer->Write<int32_t>(token_pos_.Serialize());
   writer->Write<bool>(report_after_token_);
   writer->Write<uint8_t>(kind_);
 

@@ -2954,7 +2954,7 @@ class Function : public Object {
 
   TokenPosition token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return TokenPosition();
+    return TokenPosition::kNoSource;
 #else
     return raw_ptr()->token_pos_;
 #endif
@@ -2963,7 +2963,7 @@ class Function : public Object {
 
   TokenPosition end_token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return TokenPosition();
+    return TokenPosition::kNoSource;
 #else
     return raw_ptr()->end_token_pos_;
 #endif
@@ -2975,6 +2975,9 @@ class Function : public Object {
     StoreNonPointer(&raw_ptr()->end_token_pos_, value);
 #endif
   }
+
+  // Returns the size of the source for this function.
+  intptr_t SourceSize() const;
 
   intptr_t num_fixed_parameters() const {
     return FunctionLayout::PackedNumFixedParameters::decode(
@@ -4540,9 +4543,6 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
-  bool GetTokenLocationUsingLineStarts(TokenPosition token_pos,
-                                       intptr_t* line,
-                                       intptr_t* column) const;
   void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,
@@ -5587,7 +5587,7 @@ class PcDescriptors : public Object {
 
         if (!FLAG_precompiled_mode) {
           cur_deopt_id_ += stream.ReadSLEB128();
-          cur_token_pos_ += stream.ReadSLEB128();
+          cur_token_pos_ += stream.ReadSLEB128<int32_t>();
         }
         byte_index_ = stream.Position();
 
@@ -5600,7 +5600,9 @@ class PcDescriptors : public Object {
 
     uword PcOffset() const { return cur_pc_offset_; }
     intptr_t DeoptId() const { return cur_deopt_id_; }
-    TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
+    TokenPosition TokenPos() const {
+      return TokenPosition::Deserialize(cur_token_pos_);
+    }
     intptr_t TryIndex() const { return cur_try_index_; }
     intptr_t YieldIndex() const { return cur_yield_index_; }
     PcDescriptorsLayout::Kind Kind() const {
@@ -5630,7 +5632,7 @@ class PcDescriptors : public Object {
     intptr_t cur_pc_offset_;
     intptr_t cur_kind_;
     intptr_t cur_deopt_id_;
-    intptr_t cur_token_pos_;
+    int32_t cur_token_pos_;
     intptr_t cur_try_index_;
     intptr_t cur_yield_index_;
   };

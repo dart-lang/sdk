@@ -174,7 +174,12 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
   intptr_t i = 0;
   for (; i < source_position_ticks_.length(); i++) {
     ProfileFunctionSourcePosition& position = source_position_ticks_[i];
-    if (position.token_pos().value() == token_position.value()) {
+    const intptr_t cmp =
+        TokenPosition::CompareForSorting(position.token_pos(), token_position);
+    if (cmp > 0) {
+      // Found insertion point.
+      break;
+    } else if (cmp == 0) {
       if (FLAG_trace_profiler_verbose) {
         OS::PrintErr("Ticking source position %s %s\n",
                      exclusive ? "exclusive" : "inclusive",
@@ -183,9 +188,6 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
       // Found existing position, tick it.
       position.Tick(exclusive);
       return;
-    }
-    if (position.token_pos().value() > token_position.value()) {
-      break;
     }
   }
 
@@ -934,7 +936,7 @@ void ProfileCodeInlinedFunctionsCache::Add(
   if (cache_entry->inlined_functions.length() == 0) {
     *inlined_functions = NULL;
     *inlined_token_positions = NULL;
-    *token_position = cache_entry->token_position = TokenPosition();
+    *token_position = cache_entry->token_position = TokenPosition::kNoSource;
     return;
   }
 

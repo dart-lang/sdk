@@ -2914,18 +2914,18 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(thread->zone());
 
   // kind, pc_offset, deopt_id, token_pos, try_index, yield_index
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 1, TokenPosition(20),
-                         1, 1);
-  builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 20, 2, TokenPosition(30),
-                         0, -1);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 30, 3, TokenPosition(40),
-                         1, 10);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 4, TokenPosition(40),
-                         2, 20);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 5, TokenPosition(80),
-                         3, 30);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 80, 6, TokenPosition(150),
-                         3, 30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 1,
+                         TokenPosition::Deserialize(20), 1, 1);
+  builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 20, 2,
+                         TokenPosition::Deserialize(30), 0, -1);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 30, 3,
+                         TokenPosition::Deserialize(40), 1, 10);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 4,
+                         TokenPosition::Deserialize(40), 2, 20);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 5,
+                         TokenPosition::Deserialize(80), 3, 30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 80, 6,
+                         TokenPosition::Deserialize(150), 3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2945,7 +2945,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(1, iter.YieldIndex());
-  EXPECT_EQ(20, iter.TokenPos().value());
+  EXPECT_EQ(20, iter.TokenPos().Pos());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
@@ -2953,28 +2953,28 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(-1, iter.YieldIndex());
-  EXPECT_EQ(30, iter.TokenPos().value());
+  EXPECT_EQ(30, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
-  EXPECT_EQ(40, iter.TokenPos().value());
+  EXPECT_EQ(40, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(20, iter.YieldIndex());
-  EXPECT_EQ(40, iter.TokenPos().value());
+  EXPECT_EQ(40, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(80, iter.TokenPos().value());
+  EXPECT_EQ(80, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
@@ -2985,17 +2985,17 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   // kind, pc_offset, deopt_id, token_pos, try_index
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 1,
-                         TokenPosition(200), 1, 10);
+                         TokenPosition::Deserialize(200), 1, 10);
   builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 200, 2,
-                         TokenPosition(300), 0, -1);
+                         TokenPosition::Deserialize(300), 0, -1);
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 300, 3,
-                         TokenPosition(400), 1, 10);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 4, TokenPosition(0),
-                         2, 20);
+                         TokenPosition::Deserialize(400), 1, 10);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 4,
+                         TokenPosition::Deserialize(0), 2, 20);
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 5,
-                         TokenPosition(800), 3, 30);
+                         TokenPosition::Deserialize(800), 3, 30);
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 800, 6,
-                         TokenPosition(150), 3, 30);
+                         TokenPosition::Deserialize(150), 3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -3015,7 +3015,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
-  EXPECT_EQ(200, iter.TokenPos().value());
+  EXPECT_EQ(200, iter.TokenPos().Pos());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
@@ -3023,28 +3023,28 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(-1, iter.YieldIndex());
-  EXPECT_EQ(300, iter.TokenPos().value());
+  EXPECT_EQ(300, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
-  EXPECT_EQ(400, iter.TokenPos().value());
+  EXPECT_EQ(400, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(20, iter.YieldIndex());
-  EXPECT_EQ(0, iter.TokenPos().value());
+  EXPECT_EQ(0, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(800, iter.TokenPos().value());
+  EXPECT_EQ(800, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(800), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());

@@ -447,7 +447,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
     if (!AbstractType::InstantiateAndTestSubtype(
             &subtype, &supertype, instantiator_type_args, function_type_args)) {
       // Throw a dynamic type error.
-      TokenPosition location;
+      TokenPosition location = TokenPosition::kNoSource;
       {
         DartFrameIterator iterator(Thread::Current(),
                                    StackFrameIterator::kNoCrossThreadIteration);

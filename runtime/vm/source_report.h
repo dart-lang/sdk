@@ -47,8 +47,8 @@ class SourceReport {
   // in the isolate.
   void PrintJSON(JSONStream* js,
                  const Script& script,
-                 TokenPosition start_pos = TokenPosition::kNoSource,
-                 TokenPosition end_pos = TokenPosition::kNoSource);
+                 TokenPosition start_pos = TokenPosition::kMinSource,
+                 TokenPosition end_pos = TokenPosition::kMaxSource);
 
  private:
   void ClearScriptTable();

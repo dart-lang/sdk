@@ -296,8 +296,8 @@ class FunctionNodeHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   AsyncMarker async_marker_;
   AsyncMarker dart_async_marker_;
   intptr_t total_parameter_count_ = 0;
@@ -352,7 +352,7 @@ class TypeParameterHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  TokenPosition position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   StringIndex name_index_;
 
@@ -415,8 +415,8 @@ class VariableDeclarationHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  TokenPosition position_;
-  TokenPosition equals_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition equals_position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   StringIndex name_index_;
   intptr_t annotation_count_ = 0;
@@ -488,8 +488,8 @@ class FieldHelper {
 
   NameIndex canonical_name_getter_;
   NameIndex canonical_name_setter_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -589,9 +589,9 @@ class ProcedureHelper {
   }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   Kind kind_;
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
@@ -655,9 +655,9 @@ class ConstructorHelper {
   bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -733,9 +733,9 @@ class ClassHelper {
   }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   StringIndex name_index_;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;

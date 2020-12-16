@@ -724,8 +724,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
     ParsedFunction* parsed_function = new (zone)
         ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
     if (trace_compiler) {
-      const intptr_t token_size =
-          function.end_token_pos().Pos() - function.token_pos().Pos();
+      const intptr_t token_size = function.SourceSize();
       THR_Print("Compiling %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
@@ -1300,9 +1299,9 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
+  FATAL3("Precompilation missed function %s (%s, %s)\n",
          function.ToLibNamePrefixedQualifiedCString(),
-         function.token_pos().value(),
+         function.token_pos().ToCString(),
          Function::KindToCString(function.kind()));
 }
 
