@@ -919,7 +919,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
       zone, script.IsNull() ? Symbols::OptimizedOut().raw() : script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (!script.IsNull() && location.IsReal()) {
+  if (!script.IsNull()) {
     script.GetTokenLocation(location, &line, &column);
   }
   // Initialize '_url', '_line', and '_column' arguments.

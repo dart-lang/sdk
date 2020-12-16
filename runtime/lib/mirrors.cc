@@ -1628,17 +1628,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
   }
 
   const String& uri = String::Handle(zone, script.url());
-  intptr_t from_line = 0;
-  intptr_t from_col = 0;
-  if (script.HasSource()) {
-    script.GetTokenLocation(token_pos, &from_line, &from_col);
-  } else {
-    // Avoid the slow path of printing the token stream when precise source
-    // information is not available.
-    script.GetTokenLocation(token_pos, &from_line, NULL);
-  }
-  // We should always have at least the line number.
-  ASSERT(from_line != 0);
+  intptr_t from_line = 0, from_col = 0;
+  script.GetTokenLocation(token_pos, &from_line, &from_col);
   return CreateSourceLocation(uri, from_line, from_col);
 }
 

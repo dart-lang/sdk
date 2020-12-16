@@ -292,6 +292,16 @@ class CodeSourceMapReader : public ValueObject {
   intptr_t GetNullCheckNameIndexAt(int32_t pc_offset);
 
  private:
+  static const TokenPosition& InitialPosition() {
+    if (FLAG_precompiled_mode) {
+      // In precompiled mode, the CodeSourceMap stores lines instead of
+      // real token positions and uses kNoSourcePos for no line information.
+      return TokenPosition::kNoSource;
+    } else {
+      return CodeSourceMapBuilder::kInitialPosition;
+    }
+  }
+
   // Reads a TokenPosition value from a CSM, handling the different encoding for
   // when non-symbolic stack traces are enabled.
   static TokenPosition ReadPosition(ReadStream* stream);

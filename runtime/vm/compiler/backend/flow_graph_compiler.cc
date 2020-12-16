@@ -535,13 +535,13 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
   }
   const Script& script =
       Script::Handle(zone(), instr->env()->function().script());
-  intptr_t line_nr;
-  intptr_t column_nr;
-  script.GetTokenLocation(instr->token_pos(), &line_nr, &column_nr);
-  const String& line = String::Handle(zone(), script.GetLine(line_nr));
-  assembler()->Comment("Line %" Pd " in '%s':\n           %s", line_nr,
-                       instr->env()->function().ToFullyQualifiedCString(),
-                       line.ToCString());
+  intptr_t line_nr, column_nr;
+  if (script.GetTokenLocation(instr->token_pos(), &line_nr, &column_nr)) {
+    const String& line = String::Handle(zone(), script.GetLine(line_nr));
+    assembler()->Comment("Line %" Pd " in '%s':\n           %s", line_nr,
+                         instr->env()->function().ToFullyQualifiedCString(),
+                         line.ToCString());
+  }
 }
 
 static bool IsPusher(Instruction* instr) {

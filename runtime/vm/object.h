@@ -4543,16 +4543,20 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
-  void GetTokenLocation(TokenPosition token_pos,
+  // Returns whether a line and column could be computed for the given token
+  // position and, if so, sets *line and *column (if not nullptr).
+  bool GetTokenLocation(const TokenPosition& token_pos,
                         intptr_t* line,
-                        intptr_t* column,
-                        intptr_t* token_len = NULL) const;
+                        intptr_t* column = nullptr) const;
 
-  // Returns index of first and last token on the given line. Returns both
-  // indices < 0 if no token exists on or after the line. If a token exists
-  // after, but not on given line, returns in *first_token_index the index of
-  // the first token after the line, and a negative value in *last_token_index.
-  void TokenRangeAtLine(intptr_t line_number,
+  // Returns the length of the token at the given position. If the length cannot
+  // be determined, returns a negative value.
+  intptr_t GetTokenLength(const TokenPosition& token_pos) const;
+
+  // Returns whether any tokens were found for the given line. When found,
+  // *first_token_index and *last_token_index are set to the first and
+  // last token on the line, respectively.
+  bool TokenRangeAtLine(intptr_t line_number,
                         TokenPosition* first_token_index,
                         TokenPosition* last_token_index) const;
 

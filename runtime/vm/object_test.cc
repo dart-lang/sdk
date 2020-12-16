@@ -292,7 +292,7 @@ TEST_CASE(Class_EndTokenPos) {
   const Script& scr = Script::Handle(cls.script());
   intptr_t line;
   intptr_t col;
-  scr.GetTokenLocation(end_token_pos, &line, &col);
+  EXPECT(scr.GetTokenLocation(end_token_pos, &line, &col));
   EXPECT_EQ(9, line);
   EXPECT_EQ(1, col);
 }

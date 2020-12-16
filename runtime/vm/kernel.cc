@@ -35,7 +35,7 @@ KernelLineStartsReader::KernelLineStartsReader(
   }
 }
 
-void KernelLineStartsReader::LocationForPosition(intptr_t position,
+bool KernelLineStartsReader::LocationForPosition(intptr_t position,
                                                  intptr_t* line,
                                                  intptr_t* col) const {
   intptr_t line_count = line_starts_data_.Length();
@@ -45,46 +45,43 @@ void KernelLineStartsReader::LocationForPosition(intptr_t position,
     current_start += helper_->At(line_starts_data_, i);
     if (current_start > position) {
       *line = i;
-      if (col != NULL) {
+      if (col != nullptr) {
         *col = position - previous_start + 1;
       }
-      return;
+      return true;
     }
     if (current_start == position) {
       *line = i + 1;
-      if (col != NULL) {
+      if (col != nullptr) {
         *col = 1;
       }
-      return;
+      return true;
     }
     previous_start = current_start;
   }
 
-  // If the start of any of the lines did not cross |position|,
-  // then it means the position falls on the last line.
-  *line = line_count;
-  if (col != NULL) {
-    *col = position - current_start + 1;
-  }
+  return false;
 }
 
-void KernelLineStartsReader::TokenRangeAtLine(
-    intptr_t source_length,
+bool KernelLineStartsReader::TokenRangeAtLine(
     intptr_t line_number,
     TokenPosition* first_token_index,
     TokenPosition* last_token_index) const {
-  ASSERT(line_number <= line_starts_data_.Length());
+  if (line_number < 0 || line_number > line_starts_data_.Length()) {
+    return false;
+  }
   intptr_t cumulative = 0;
   for (intptr_t i = 0; i < line_number; ++i) {
     cumulative += helper_->At(line_starts_data_, i);
   }
   *first_token_index = dart::TokenPosition::Deserialize(cumulative);
   if (line_number == line_starts_data_.Length()) {
-    *last_token_index = dart::TokenPosition::Deserialize(source_length);
+    *last_token_index = *first_token_index;
   } else {
     *last_token_index = dart::TokenPosition::Deserialize(
         cumulative + helper_->At(line_starts_data_, line_number) - 1);
   }
+  return true;
 }
 
 int32_t KernelLineStartsReader::KernelInt8LineStartsHelper::At(
