@@ -288,7 +288,7 @@ const List<Suite> suites = [
       "../../testing.json"),
 ];
 
-const Duration timeoutDuration = Duration(minutes: 25);
+const Duration timeoutDuration = Duration(minutes: 30);
 
 class SuiteConfiguration {
   final String name;
