@@ -15,6 +15,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
     defineReflectiveTests(SearchWithNullSafetyTest);
+    defineReflectiveTests(SearchWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -1846,6 +1847,102 @@ class NoMatchABCDEF {}
   static void _assertResults(
       List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
     expect(matches, unorderedEquals(expectedMatches));
+  }
+}
+
+@reflectiveTest
+class SearchWithNonFunctionTypeAliasesTest extends SearchTest
+    with WithNonFunctionTypeAliasesMixin {
+  test_searchReferences_ConstructorElement_named_viaTypeAlias() async {
+    await resolveTestCode('''
+class A<T> {
+  A.named();
+}
+
+typedef B = A<int>;
+
+void f() {
+  B.named(); // ref
+}
+''');
+
+    var element = findElement.constructor('named');
+    var f = findElement.topFunction('f');
+    await _verifyReferences(element, [
+      _expectIdQ(f, SearchResultKind.REFERENCE, '.named(); // ref',
+          length: '.named'.length),
+    ]);
+  }
+
+  test_searchReferences_TypeAliasElement() async {
+    await resolveTestCode('''
+class A<T> {
+  static int field = 0;
+  static void method() {}
+}
+
+typedef B = A<int>;
+
+class C extends B {} // extends
+
+void f(B p) {
+  B v;
+  B.field = 1;
+  B.field;
+  B.method();
+}
+''');
+
+    var element = findElement.typeAlias('B');
+    var f = findElement.topFunction('f');
+    await _verifyReferences(element, [
+      _expectId(findElement.class_('C'), SearchResultKind.REFERENCE,
+          'B {} // extends'),
+      _expectId(findElement.parameter('p'), SearchResultKind.REFERENCE, 'B p'),
+      _expectId(f, SearchResultKind.REFERENCE, 'B v'),
+      _expectId(f, SearchResultKind.REFERENCE, 'B.field ='),
+      _expectId(f, SearchResultKind.REFERENCE, 'B.field;'),
+      _expectId(f, SearchResultKind.REFERENCE, 'B.method();'),
+    ]);
+  }
+
+  test_searchReferences_TypeAliasElement_fromLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A<T> = Map<int, T>;
+''');
+    await resolveTestCode('''
+// @dart = 2.9
+import 'a.dart';
+
+void f(A<String> a) {}
+''');
+
+    var A = findElement.importFind('package:test/a.dart').typeAlias('A');
+    await _verifyReferences(A, [
+      _expectId(
+        findElement.parameter('a'),
+        SearchResultKind.REFERENCE,
+        'A<String>',
+      ),
+    ]);
+  }
+
+  test_searchReferences_TypeAliasElement_inConstructorName() async {
+    await resolveTestCode('''
+class A<T> {}
+
+typedef B = A<int>;
+
+void f() {
+  B();
+}
+''');
+
+    var element = findElement.typeAlias('B');
+    var f = findElement.topFunction('f');
+    await _verifyReferences(element, [
+      _expectId(f, SearchResultKind.REFERENCE, 'B();'),
+    ]);
   }
 }
 
