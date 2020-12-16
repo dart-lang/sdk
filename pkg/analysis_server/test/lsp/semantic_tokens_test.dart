@@ -429,6 +429,44 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_manyImports_sortBug() async {
+    // This test is for a bug where some "import" tokens would not be highlighted
+    // correctly. Imports are made up of a DIRECTIVE token that spans a
+    // BUILT_IN ("import") and LITERAL_STRING. The original code sorted by only
+    // offset when handling overlapping tokens, which for certain lists (such as
+    // the one created for the code below) would result in the BUILTIN coming before
+    // the DIRECTIVE, which resulted in the DIRECTIVE overwriting it.
+    final content = '''
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+import 'dart:async';
+    ''';
+
+    final expected = [
+      for (var i = 0; i < 13; i++) ...[
+        _Token('import', SemanticTokenTypes.keyword),
+        _Token("'dart:async'", SemanticTokenTypes.string),
+      ],
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_multilineRegions() async {
     final content = '''
     /**

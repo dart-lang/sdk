@@ -33,21 +33,22 @@ class SemanticTokenEncoder {
 
     Iterable<HighlightRegion> translatedRegions = regions;
 
+    // Remove any tokens that will not be mapped as there's no point further processing
+    // them (eg. splitting multiline/overlaps) if they will be dropped.
+    translatedRegions = translatedRegions
+        .where((region) => highlightRegionTokenTypes.containsKey(region.type));
+
     if (!allowMultilineTokens) {
       translatedRegions = translatedRegions.expand(
           (region) => _splitMultilineRegions(region, lineInfo, fileContent));
     }
+
     if (!allowOverlappingTokens) {
       translatedRegions = _splitOverlappingTokens(translatedRegions);
     }
 
     for (final region in translatedRegions) {
       final tokenType = highlightRegionTokenTypes[region.type];
-      if (tokenType == null) {
-        // Skip over tokens we don't have mappings for.
-        continue;
-      }
-
       final start = lineInfo.getLocation(region.offset);
 
       tokens.add(SemanticTokenInfo(
@@ -142,8 +143,12 @@ class SemanticTokenEncoder {
       return;
     }
 
+    // When tokens have the same offset, the longest should come first so
+    // the nested token "overwrites" it during the flattening.
     final sortedRegions = regions.toList()
-      ..sort((r1, r2) => r1.offset.compareTo(r2.offset));
+      ..sort((r1, r2) => r1.offset != r2.offset
+          ? r1.offset.compareTo(r2.offset)
+          : -r1.length.compareTo(r2.length));
 
     final firstRegion = sortedRegions.first;
     final stack = ListQueue<HighlightRegion>()..add(firstRegion);
