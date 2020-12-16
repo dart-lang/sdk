@@ -1681,7 +1681,7 @@ class A {
       expect(results, not ? isNot(matcher) : matcher);
     }
 
-    assertHasResult(testFilePath, 'T');
+    assertHasResult(convertPath(testFilePath), 'T');
     assertHasResult(aaaFilePath, 'A');
     assertHasResult(bbbFilePath, 'B');
     assertHasResult(cccFilePath, 'C', not: true);
