@@ -14,6 +14,17 @@ var cell_1_0;
 var cell_1_1;
 var cell_10_11;
 
+// See: #2378
+class _F {
+  void _m() {} //OK
+  void _mBar() {} //OK
+  void _m_bar() {} //LINT
+}
+
+void _fun() {} //OK
+void _funBar() {} //OK
+void _fun_bar() {} //LINT
+
 abstract class A {
   int _x; //OK
   int __x; //OK
