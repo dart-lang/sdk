@@ -334,6 +334,7 @@ class Harness extends TypeOperations<Var, Type> {
     'Object <: num': false,
     'Object <: num?': false,
     'Object <: Object?': true,
+    'Object <: String': false,
     'Object? <: Object': false,
     'Object? <: int': false,
     'Object? <: int?': false,
@@ -379,11 +380,15 @@ class Harness extends TypeOperations<Var, Type> {
     'num* - Object': Type('Never'),
   };
 
+  final bool allowLocalBooleanVarsToPromote;
+
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
 
   Node? _currentSwitch;
+
+  Harness({this.allowLocalBooleanVarsToPromote = false});
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
@@ -450,7 +455,8 @@ class Harness extends TypeOperations<Var, Type> {
     var assignedVariables = AssignedVariables<Node, Var>();
     statements._preVisit(assignedVariables);
     var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
-        this, assignedVariables);
+        this, assignedVariables,
+        allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
     statements._visit(this, flow);
     flow.finish();
   }

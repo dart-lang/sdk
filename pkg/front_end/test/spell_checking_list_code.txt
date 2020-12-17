@@ -20,6 +20,7 @@ accumulating
 acon
 acov
 across
+activated
 adi
 affecting
 afterwards
@@ -327,6 +328,7 @@ disambiguator
 disjoint
 dispatched
 distribute
+diverged
 divided
 dmitryas
 doc
@@ -419,6 +421,7 @@ field2
 fieldformal
 file's
 filenames
+finally's
 finv
 firsts
 fishy
@@ -485,6 +488,7 @@ gzipped
 h
 hadn't
 hang
+hardcode
 harness
 hashes
 hashing
@@ -537,6 +541,7 @@ indexing
 indirection
 individual
 inequality
+influence
 informative
 infos
 init
@@ -558,6 +563,7 @@ interior
 interleaved
 intermediate
 interpolations
+interrupted
 intersects
 interval
 intervals
@@ -932,6 +938,7 @@ regis
 registering
 rehash
 reindexed
+reinstate
 reissued
 rejoin
 relatively
@@ -1003,6 +1010,7 @@ serializers
 serve
 server
 service
+session
 setaf
 sh
 sha1hash
@@ -1270,6 +1278,7 @@ variances
 variant
 variants
 variation
+vars
 vary
 vb
 vector
@@ -1279,6 +1288,7 @@ versa
 vice
 video
 violated
+violating
 visit*
 visitors
 visits

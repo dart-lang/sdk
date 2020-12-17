@@ -2030,6 +2030,364 @@ main() {
       ]);
     });
 
+    group('allowLocalBooleanVarsToPromote', () {
+      test(
+          'tryFinallyStatement_end() restores SSA nodes from try block when it'
+          'is sound to do so', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        var y = Var('y', 'int?');
+        late SsaNode xSsaAtEndOfTry;
+        late SsaNode ySsaAtEndOfTry;
+        late SsaNode xSsaAtEndOfFinally;
+        late SsaNode ySsaAtEndOfFinally;
+        h.run([
+          declare(x, initialized: true), declare(y, initialized: true),
+          tryFinally([
+            x.write(expr('int?')).stmt,
+            y.write(expr('int?')).stmt,
+            getSsaNodes((nodes) {
+              xSsaAtEndOfTry = nodes[x]!;
+              ySsaAtEndOfTry = nodes[y]!;
+            }),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('int?')).stmt,
+            ]),
+            if_(expr('bool'), [
+              y.write(expr('int?')).stmt,
+              return_(),
+            ]),
+            getSsaNodes((nodes) {
+              xSsaAtEndOfFinally = nodes[x]!;
+              ySsaAtEndOfFinally = nodes[y]!;
+              expect(xSsaAtEndOfFinally, isNot(same(xSsaAtEndOfTry)));
+              expect(ySsaAtEndOfFinally, isNot(same(ySsaAtEndOfTry)));
+            }),
+          ]),
+          // x's SSA node should still match what it was at the end of the
+          // finally block, because it might have been written to.  But y
+          // can't have been written to, because once we reach here, we know
+          // that the finally block completed normally, and the write to y
+          // always leads to the explicit return.  So y's SSA node should be
+          // restored back to match that from the end of the try block.
+          getSsaNodes((nodes) {
+            expect(nodes[x], same(xSsaAtEndOfFinally));
+            expect(nodes[y], same(ySsaAtEndOfTry));
+          }),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() sets unreachable if end of try block '
+          'unreachable', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        h.run([
+          tryFinally([
+            return_(),
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+          checkReachable(false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() sets unreachable if end of finally block '
+          'unreachable', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        h.run([
+          tryFinally([
+            checkReachable(true),
+          ], [
+            return_(),
+            checkReachable(false),
+          ]),
+          checkReachable(false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable declared only in the '
+          'try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          tryFinally([
+            declare(x, initialized: true),
+          ], []),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable declared only in the '
+          'finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          tryFinally([], [
+            declare(x, initialized: true),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable that was write '
+          'captured in the try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            localFunction([
+              x.write(expr('int?')).stmt,
+            ]),
+          ], []),
+          if_(x.read.notEq(nullLiteral), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable that was write '
+          'captured in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([], [
+            localFunction([
+              x.write(expr('int?')).stmt,
+            ]),
+          ]),
+          if_(x.read.notEq(nullLiteral), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable that was promoted in '
+          'the try block and write captured in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.eq(nullLiteral), [
+              return_(),
+            ]),
+            checkPromoted(x, 'int'),
+          ], [
+            localFunction([
+              x.write(expr('int?')).stmt,
+            ]),
+          ]),
+          // The capture in the `finally` cancels old promotions and prevents
+          // future promotions.
+          checkNotPromoted(x),
+          if_(x.read.notEq(nullLiteral), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() keeps promotions from both try and '
+          'finally blocks when there is no write in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.is_('num', isInverted: true), [
+              return_(),
+            ]),
+            checkPromoted(x, 'num'),
+          ], [
+            if_(x.read.is_('int', isInverted: true), [
+              return_(),
+            ]),
+          ]),
+          // The promotion chain now contains both `num` and `int`.
+          checkPromoted(x, 'int'),
+          x.write(expr('num')).stmt,
+          checkPromoted(x, 'num'),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() keeps promotions from the finally block '
+          'when there is a write in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.is_('String', isInverted: true), [
+              return_(),
+            ]),
+            checkPromoted(x, 'String'),
+          ], [
+            x.write(expr('Object')).stmt,
+            if_(x.read.is_('int', isInverted: true), [
+              return_(),
+            ]),
+          ]),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() keeps tests from both the try and finally '
+          'blocks', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.is_('String', isInverted: true), []),
+            checkNotPromoted(x),
+          ], [
+            if_(x.read.is_('int', isInverted: true), []),
+            checkNotPromoted(x),
+          ]),
+          checkNotPromoted(x),
+          if_(expr('bool'), [
+            x.write(expr('String')).stmt,
+            checkPromoted(x, 'String'),
+          ], [
+            x.write(expr('int')).stmt,
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables not definitely assigned '
+          'in either the try or finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkAssigned(x, false),
+          tryFinally([
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ]),
+          checkAssigned(x, false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely assigned in '
+          'the try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkAssigned(x, false),
+          tryFinally([
+            x.write(expr('Object')).stmt,
+            checkAssigned(x, true),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely assigned in '
+          'the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkAssigned(x, false),
+          tryFinally([
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ], [
+            x.write(expr('Object')).stmt,
+            checkAssigned(x, true),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely unassigned '
+          'in both the try and finally blocks', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkUnassigned(x, true),
+          tryFinally([
+            checkUnassigned(x, true),
+          ], [
+            checkUnassigned(x, true),
+          ]),
+          checkUnassigned(x, true),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely unassigned '
+          'in the try but not the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkUnassigned(x, true),
+          tryFinally([
+            checkUnassigned(x, true),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkUnassigned(x, false),
+          ]),
+          checkUnassigned(x, false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely unassigned '
+          'in the finally but not the try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkUnassigned(x, true),
+          tryFinally([
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkUnassigned(x, false),
+          ], [
+            checkUnassigned(x, false),
+          ]),
+          checkUnassigned(x, false),
+        ]);
+      });
+    });
+
     test('whileStatement_conditionBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
@@ -2344,6 +2702,30 @@ main() {
           Reachability.restrict(unreachable, unreachable), same(unreachable));
     });
 
+    test('rebaseForward', () {
+      var previous = Reachability.initial;
+      var reachable = previous.split();
+      var reachable2 = previous.split();
+      var unreachable = reachable.setUnreachable();
+      var unreachablePrevious = previous.setUnreachable();
+      var reachable3 = unreachablePrevious.split();
+      expect(reachable.rebaseForward(reachable), same(reachable));
+      expect(reachable.rebaseForward(reachable2), same(reachable2));
+      expect(reachable.rebaseForward(unreachable), same(unreachable));
+      expect(unreachable.rebaseForward(reachable).parent, same(previous));
+      expect(unreachable.rebaseForward(reachable).locallyReachable, false);
+      expect(unreachable.rebaseForward(unreachable), same(unreachable));
+      expect(reachable.rebaseForward(unreachablePrevious),
+          same(unreachablePrevious));
+      expect(
+          unreachablePrevious.rebaseForward(reachable).parent, same(previous));
+      expect(
+          unreachablePrevious.rebaseForward(reachable).locallyReachable, false);
+      expect(reachable.rebaseForward(reachable3), same(reachable3));
+      expect(reachable3.rebaseForward(reachable).parent, same(previous));
+      expect(reachable3.rebaseForward(reachable).locallyReachable, false);
+    });
+
     test('join', () {
       var previous = Reachability.initial.split();
       var reachable = previous.split();
@@ -2352,6 +2734,40 @@ main() {
       expect(Reachability.join(reachable, unreachable), same(reachable));
       expect(Reachability.join(unreachable, reachable), same(reachable));
       expect(Reachability.join(unreachable, unreachable), same(unreachable));
+    });
+
+    test('commonAncestor', () {
+      var parent1 = Reachability.initial;
+      var parent2 = parent1.setUnreachable();
+      var child1 = parent1.split();
+      var child2 = parent1.split();
+      var child3 = child1.split();
+      var child4 = child2.split();
+      expect(Reachability.commonAncestor(null, null), null);
+      expect(Reachability.commonAncestor(null, parent1), null);
+      expect(Reachability.commonAncestor(parent1, null), null);
+      expect(Reachability.commonAncestor(null, child1), null);
+      expect(Reachability.commonAncestor(child1, null), null);
+      expect(Reachability.commonAncestor(null, child3), null);
+      expect(Reachability.commonAncestor(child3, null), null);
+      expect(Reachability.commonAncestor(parent1, parent1), same(parent1));
+      expect(Reachability.commonAncestor(parent1, parent2), null);
+      expect(Reachability.commonAncestor(parent2, child1), null);
+      expect(Reachability.commonAncestor(child1, parent2), null);
+      expect(Reachability.commonAncestor(parent2, child3), null);
+      expect(Reachability.commonAncestor(child3, parent2), null);
+      expect(Reachability.commonAncestor(parent1, child1), same(parent1));
+      expect(Reachability.commonAncestor(child1, parent1), same(parent1));
+      expect(Reachability.commonAncestor(parent1, child3), same(parent1));
+      expect(Reachability.commonAncestor(child3, parent1), same(parent1));
+      expect(Reachability.commonAncestor(child1, child1), same(child1));
+      expect(Reachability.commonAncestor(child1, child2), same(parent1));
+      expect(Reachability.commonAncestor(child1, child3), same(child1));
+      expect(Reachability.commonAncestor(child3, child1), same(child1));
+      expect(Reachability.commonAncestor(child1, child4), same(parent1));
+      expect(Reachability.commonAncestor(child4, child1), same(parent1));
+      expect(Reachability.commonAncestor(child3, child3), same(child3));
+      expect(Reachability.commonAncestor(child3, child4), same(parent1));
     });
   });
 
