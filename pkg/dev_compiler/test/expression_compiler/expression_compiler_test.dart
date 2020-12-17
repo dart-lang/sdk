@@ -65,7 +65,8 @@ class SetupCompilerOptions {
       ..omitPlatform = true
       ..sdkSummary = sdkRoot.resolve(
           soundNullSafety ? sdkSoundSummaryPath : sdkUnsoundSummaryPath)
-      ..environmentDefines = const {};
+      ..environmentDefines = const {}
+      ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak;
     return options;
   }
 
