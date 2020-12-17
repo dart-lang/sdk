@@ -224,15 +224,16 @@ static void TestAliasingViaRedefinition(
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
-  const Field& field = Field::Handle(
+  const Field& original_field = Field::Handle(
       cls.LookupField(String::Handle(Symbols::New(thread, "field"))));
-  EXPECT(!field.IsNull());
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
 
   const Function& blackhole =
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -387,15 +388,16 @@ static void TestAliasingViaStore(
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
-  const Field& field = Field::Handle(
+  const Field& original_field = Field::Handle(
       cls.LookupField(String::Handle(Symbols::New(thread, "field"))));
-  EXPECT(!field.IsNull());
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
 
   const Function& blackhole =
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -550,7 +552,7 @@ ISOLATE_UNIT_TEST_CASE(
 // https://github.com/flutter/flutter/issues/48114.
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   const auto& lib = Library::Handle(Library::TypedDataLibrary());

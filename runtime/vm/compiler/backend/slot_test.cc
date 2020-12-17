@@ -63,7 +63,8 @@ TEST_CASE(SlotFromGuardedField) {
   field.set_is_nullable_unsafe(false);
 
   // Enter compiler state.
-  CompilerState compiler_state(thread, /*is_aot=*/false);
+  CompilerState compiler_state(thread, /*is_aot=*/false,
+                               /*is_optimizing=*/true);
 
   const Field& field_clone_1 = Field::ZoneHandle(field.CloneFromOriginal());
   const Field& field_clone_2 = Field::ZoneHandle(field.CloneFromOriginal());

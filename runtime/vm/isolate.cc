@@ -418,7 +418,7 @@ void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
   SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return isolate_count_ == 0;
+  return isolate_count_ == 1;
 }
 
 void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {

@@ -237,7 +237,7 @@ void Precompiler::DoCompileAll() {
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
 
       {
-        CompilerState state(thread_, /*is_aot=*/true);
+        CompilerState state(thread_, /*is_aot=*/true, /*is_optimizing=*/true);
         PrecompileConstructors();
       }
 
@@ -2523,7 +2523,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
       const Function& function = parsed_function()->function();
 
-      CompilerState compiler_state(thread(), /*is_aot=*/true,
+      CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
                                    CompilerState::ShouldTrace(function));
 
       {

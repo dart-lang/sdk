@@ -26,7 +26,7 @@ namespace dart {
 using compiler::BlockBuilder;
 
 ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
   FlowGraphBuilderHelper H;
 
@@ -101,7 +101,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
 
 ISOLATE_UNIT_TEST_CASE(
     TypePropagator_RedefinitionAfterStrictCompareWithLoadClassId) {
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
   FlowGraphBuilderHelper H;
 
@@ -164,7 +164,7 @@ ISOLATE_UNIT_TEST_CASE(
 }
 
 ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
   const Class& object_class =
       Class::Handle(thread->isolate()->object_store()->object_class());
@@ -271,7 +271,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
 // This test verifies that mutable compile types are not incorrectly cached
 // as reaching types after inference.
 ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -402,7 +402,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CompileType_CanBeSmi) {
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
   const char* late_tag = TestCase::LateTag();
   auto script_chars = Utils::CStringUniquePtr(

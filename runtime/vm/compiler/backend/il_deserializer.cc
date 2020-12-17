@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/call_specializer.h"
+#include "vm/compiler/frontend/base_flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/json_writer.h"
@@ -2149,17 +2150,6 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
   return true;
 }
 
-// Following the lead of BaseFlowGraphBuilder::MayCloneField here.
-const Field& FlowGraphDeserializer::MayCloneField(const Field& field) const {
-  if ((Compiler::IsBackgroundCompilation() ||
-       FLAG_force_clone_compiler_objects) &&
-      field.IsOriginal()) {
-    return Field::ZoneHandle(zone(), field.CloneFromOriginal());
-  }
-  ASSERT(field.IsZoneHandle());
-  return field;
-}
-
 bool FlowGraphDeserializer::ParseSlot(SExpList* list, const Slot** out) {
   ASSERT(out != nullptr);
   const auto offset_sexp = CheckInteger(Retrieve(list, 1));
@@ -2180,7 +2170,9 @@ bool FlowGraphDeserializer::ParseSlot(SExpList* list, const Slot** out) {
       const auto field_sexp = CheckTaggedList(Retrieve(list, "field"), "Field");
       if (!ParseDartValue(field_sexp, &field)) return false;
       ASSERT(parsed_function_ != nullptr);
-      *out = &Slot::Get(MayCloneField(field), parsed_function_);
+      *out =
+          &Slot::Get(kernel::BaseFlowGraphBuilder::MayCloneField(zone(), field),
+                     parsed_function_);
       break;
     }
     case Slot::Kind::kTypeArguments:

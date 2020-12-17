@@ -3962,10 +3962,9 @@ class Field : public Object {
     return !raw_ptr()->owner()->IsField();
   }
 
-  // Returns whether fields must be cloned via [CloneFromOriginal] for the
-  // current compilation thread.
-  static bool ShouldCloneFields();
-
+  // Mark previously unboxed field boxed. Only operates on clones, updates
+  // original as well as this clone.
+  void DisableFieldUnboxing() const;
   // Returns a field cloned from 'this'. 'this' is set as the
   // original field of result.
   FieldPtr CloneFromOriginal() const;
@@ -3975,62 +3974,66 @@ class Field : public Object {
   const char* UserVisibleNameCString() const;
   virtual StringPtr DictionaryName() const { return name(); }
 
-  bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
+  uint16_t kind_bits() const {
+    return LoadNonPointer<uint16_t, std::memory_order_acquire>(
+        &raw_ptr()->kind_bits_);
+  }
+
+  bool is_static() const { return StaticBit::decode(kind_bits()); }
   bool is_instance() const { return !is_static(); }
-  bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
-  bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
-  bool is_late() const { return IsLateBit::decode(raw_ptr()->kind_bits_); }
+  bool is_final() const { return FinalBit::decode(kind_bits()); }
+  bool is_const() const { return ConstBit::decode(kind_bits()); }
+  bool is_late() const { return IsLateBit::decode(kind_bits()); }
   bool is_extension_member() const {
-    return IsExtensionMemberBit::decode(raw_ptr()->kind_bits_);
+    return IsExtensionMemberBit::decode(kind_bits());
   }
   bool needs_load_guard() const {
-    return NeedsLoadGuardBit::decode(raw_ptr()->kind_bits_);
+    return NeedsLoadGuardBit::decode(kind_bits());
   }
-  bool is_reflectable() const {
-    return ReflectableBit::decode(raw_ptr()->kind_bits_);
-  }
+  bool is_reflectable() const { return ReflectableBit::decode(kind_bits()); }
   void set_is_reflectable(bool value) const {
     ASSERT(IsOriginal());
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
   }
   bool is_double_initialized() const {
-    return DoubleInitializedBit::decode(raw_ptr()->kind_bits_);
+    return DoubleInitializedBit::decode(kind_bits());
   }
   // Called in parser after allocating field, immutable property otherwise.
   // Marks fields that are initialized with a simple double constant.
   void set_is_double_initialized(bool value) const {
     ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(IsOriginal());
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
   bool initializer_changed_after_initialization() const {
-    return InitializerChangedAfterInitializatonBit::decode(
-        raw_ptr()->kind_bits_);
+    return InitializerChangedAfterInitializatonBit::decode(kind_bits());
   }
   void set_initializer_changed_after_initialization(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(InitializerChangedAfterInitializatonBit::update(
         value, raw_ptr()->kind_bits_));
   }
 
-  bool has_pragma() const {
-    return HasPragmaBit::decode(raw_ptr()->kind_bits_);
-  }
+  bool has_pragma() const { return HasPragmaBit::decode(kind_bits()); }
   void set_has_pragma(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(HasPragmaBit::update(value, raw_ptr()->kind_bits_));
   }
 
-  bool is_covariant() const {
-    return CovariantBit::decode(raw_ptr()->kind_bits_);
-  }
+  bool is_covariant() const { return CovariantBit::decode(kind_bits()); }
   void set_is_covariant(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(CovariantBit::update(value, raw_ptr()->kind_bits_));
   }
 
   bool is_generic_covariant_impl() const {
-    return GenericCovariantImplBit::decode(raw_ptr()->kind_bits_);
+    return GenericCovariantImplBit::decode(kind_bits());
   }
   void set_is_generic_covariant_impl(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(
         GenericCovariantImplBit::update(value, raw_ptr()->kind_bits_));
   }
@@ -4128,23 +4131,25 @@ class Field : public Object {
   StringPtr InitializingExpression() const;
 
   bool has_nontrivial_initializer() const {
-    return HasNontrivialInitializerBit::decode(raw_ptr()->kind_bits_);
+    return HasNontrivialInitializerBit::decode(kind_bits());
   }
   // Called by parser after allocating field.
   void set_has_nontrivial_initializer(bool has_nontrivial_initializer) const {
     ASSERT(IsOriginal());
     ASSERT(Thread::Current()->IsMutatorThread());
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(HasNontrivialInitializerBit::update(
         has_nontrivial_initializer, raw_ptr()->kind_bits_));
   }
 
   bool has_initializer() const {
-    return HasInitializerBit::decode(raw_ptr()->kind_bits_);
+    return HasInitializerBit::decode(kind_bits());
   }
   // Called by parser after allocating field.
   void set_has_initializer(bool has_initializer) const {
     ASSERT(IsOriginal());
     ASSERT(Thread::Current()->IsMutatorThread());
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(
         HasInitializerBit::update(has_initializer, raw_ptr()->kind_bits_));
   }
@@ -4154,11 +4159,12 @@ class Field : public Object {
   }
 
   bool is_non_nullable_integer() const {
-    return IsNonNullableIntBit::decode(raw_ptr()->kind_bits_);
+    return IsNonNullableIntBit::decode(kind_bits());
   }
 
   void set_is_non_nullable_integer(bool is_non_nullable_integer) const {
     ASSERT(Thread::Current()->IsMutatorThread());
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(IsNonNullableIntBit::update(is_non_nullable_integer,
                                               raw_ptr()->kind_bits_));
   }
@@ -4179,18 +4185,7 @@ class Field : public Object {
   // Return class id that any non-null value read from this field is guaranteed
   // to have or kDynamicCid if such class id is not known.
   // Stores to this field must update this information hence the name.
-  intptr_t guarded_cid() const {
-#if defined(DEBUG)
-    // This assertion ensures that the cid seen by the background compiler is
-    // consistent. So the assertion passes if the field is a clone. It also
-    // passes if the field is static, because we don't use field guards on
-    // static fields.
-    Thread* thread = Thread::Current();
-    ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
-           thread->IsAtSafepoint());
-#endif
-    return raw_ptr()->guarded_cid_;
-  }
+  intptr_t guarded_cid() const;
 
   void set_guarded_cid(intptr_t cid) const {
     DEBUG_ASSERT(
@@ -4198,11 +4193,6 @@ class Field : public Object {
     set_guarded_cid_unsafe(cid);
   }
   void set_guarded_cid_unsafe(intptr_t cid) const {
-#if defined(DEBUG)
-    Thread* thread = Thread::Current();
-    ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
-           thread->IsAtSafepoint());
-#endif
     StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
@@ -4251,13 +4241,19 @@ class Field : public Object {
   intptr_t UnboxedFieldCid() const { return guarded_cid(); }
 
   bool is_unboxing_candidate() const {
-    return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);
+    return UnboxingCandidateBit::decode(kind_bits());
   }
+
   // Default 'true', set to false once optimizing compiler determines it should
   // be boxed.
-  void set_is_unboxing_candidate(bool b) const {
-    ASSERT(IsOriginal());
+  void set_is_unboxing_candidate_unsafe(bool b) const {
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
+  }
+
+  void set_is_unboxing_candidate(bool b) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_is_unboxing_candidate_unsafe(b);
   }
 
   enum {
@@ -4266,12 +4262,15 @@ class Field : public Object {
     kNoFixedLength = -2,
   };
   void set_is_late(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(IsLateBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_is_extension_member(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(IsExtensionMemberBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_needs_load_guard(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(NeedsLoadGuardBit::update(value, raw_ptr()->kind_bits_));
   }
   // Returns false if any value read from this field is guaranteed to be
@@ -4454,12 +4453,15 @@ class Field : public Object {
 
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(StaticBit::update(is_static, raw_ptr()->kind_bits_));
   }
   void set_is_final(bool is_final) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(FinalBit::update(is_final, raw_ptr()->kind_bits_));
   }
   void set_is_const(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Object& value) const {
@@ -4472,7 +4474,8 @@ class Field : public Object {
     StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
   }
   void set_kind_bits(uint16_t value) const {
-    StoreNonPointer(&raw_ptr()->kind_bits_, value);
+    StoreNonPointer<uint16_t, uint16_t, std::memory_order_release>(
+        &raw_ptr()->kind_bits_, value);
   }
 
   static FieldPtr New();

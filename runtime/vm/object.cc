@@ -4257,6 +4257,7 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   if (is_finalized()) {
     return Error::null();
   }
+  LeaveCompilerScope ncs(thread);
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
   const Error& error =
@@ -9904,11 +9905,6 @@ const char* FfiTrampolineData::ToCString() const {
       signature_type_name.IsNull() ? "null" : signature_type_name.ToCString());
 }
 
-bool Field::ShouldCloneFields() {
-  return Compiler::IsBackgroundCompilation() ||
-         FLAG_force_clone_compiler_objects;
-}
-
 FieldPtr Field::CloneFromOriginal() const {
   return this->Clone(*this);
 }
@@ -9938,6 +9934,39 @@ const Object* Field::CloneForUnboxed(const Object& value) const {
     }
   }
   return &value;
+}
+
+void Field::DisableFieldUnboxing() const {
+  Thread* thread = Thread::Current();
+  ASSERT(!IsOriginal());
+  const Field& original = Field::Handle(Original());
+  if (!original.is_unboxing_candidate()) {
+    return;
+  }
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  if (!original.is_unboxing_candidate()) {
+    return;
+  }
+  original.set_is_unboxing_candidate(false);
+  set_is_unboxing_candidate(false);
+  original.DeoptimizeDependentCode();
+}
+
+intptr_t Field::guarded_cid() const {
+#if defined(DEBUG)
+  // This assertion ensures that the cid seen by the background compiler is
+  // consistent. So the assertion passes if the field is a clone. It also
+  // passes if the field is static, because we don't use field guards on
+  // static fields.
+  Thread* thread = Thread::Current();
+  ASSERT(!thread->IsInsideCompiler() ||
+#if !defined(DART_PRECOMPILED_RUNTIME)
+         ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
+#endif
+         is_static());
+#endif
+  return LoadNonPointer<ClassIdTagType, std::memory_order_relaxed>(
+      &raw_ptr()->guarded_cid_);
 }
 
 void Field::SetOriginal(const Field& value) const {
@@ -10132,9 +10161,10 @@ void Field::InitializeNew(const Field& result,
   result.set_has_initializer(false);
   if (FLAG_precompiled_mode) {
     // May be updated by KernelLoader::ReadInferredType
-    result.set_is_unboxing_candidate(false);
+    result.set_is_unboxing_candidate_unsafe(false);
   } else {
-    result.set_is_unboxing_candidate(!is_final && !is_late && !is_static);
+    result.set_is_unboxing_candidate_unsafe(!is_final && !is_late &&
+                                            !is_static);
   }
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));

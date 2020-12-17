@@ -1143,7 +1143,7 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
   ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
 
   auto& field = Field::Handle(zone, function.accessor_field());
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
   ASSERT(field.is_instance() && !field.is_late() && !field.needs_load_guard());
@@ -1186,7 +1186,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
 
   auto& field = Field::Handle(zone, function.accessor_field());
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
   ASSERT(field.is_instance() && !field.is_final());
