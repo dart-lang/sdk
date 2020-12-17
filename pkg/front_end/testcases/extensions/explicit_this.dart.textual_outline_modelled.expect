@@ -1,0 +1,12 @@
+class A1 {
+  Object field;
+  void method1() {}
+}
+
+extension A2 on A1 {
+  Object method3() => this.field;
+  void method2() => this.method1();
+  void method4(Object o) {}
+}
+
+main() {}

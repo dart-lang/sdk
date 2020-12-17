@@ -1,0 +1,22 @@
+class Class {
+  int field1 = 42;
+  int field2 = 87;
+}
+
+expect(expected, actual) {}
+
+extension Extension1 on Class {
+  int genericMethod<T extends num>(T t) => field1 + t;
+  int get field => field1;
+  int method() => field1;
+  void set field(int value) {}
+}
+
+extension Extension2 on Class {
+  int genericMethod<T extends num>(T t) => field2 + t;
+  int get field => field2;
+  int method() => field2;
+  void set field(int value) {}
+}
+
+main() {}

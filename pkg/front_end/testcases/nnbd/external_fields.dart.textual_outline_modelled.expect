@@ -1,0 +1,70 @@
+class A {
+  @Annotation()
+  external covariant num covariantInstanceField;
+  external covariant var untypedCovariantInstanceField;
+  @Annotation()
+  external final int finalInstanceField;
+  external final untypedFinalInstanceField;
+  @Annotation()
+  external int instanceField;
+  @Annotation()
+  external static final int finalStaticField;
+  external static final untypedFinalStaticField;
+  @Annotation()
+  external static int staticField;
+  external static var untypedStaticField;
+  external var untypedInstanceField;
+}
+
+class Annotation {
+  const Annotation();
+}
+
+class C implements A {
+  external final finalInstanceField;
+  external final untypedFinalInstanceField;
+  external var covariantInstanceField;
+  external var instanceField;
+  external var untypedCovariantInstanceField;
+  external var untypedInstanceField;
+}
+
+extension Extension on A {
+  @Annotation()
+  external final int finalExtensionInstanceField;
+  external final untypedFinalExtensionInstanceField;
+  @Annotation()
+  external int extensionInstanceField;
+  @Annotation()
+  external static final int finalExtensionStaticField;
+  external static final untypedFinalExtensionStaticField;
+  @Annotation()
+  external static int extensionStaticField;
+  external static var untypedExtensionStaticField;
+  external var untypedExtensionInstanceField;
+}
+
+@Annotation()
+external final int finalTopLevelField;
+external final untypedFinalTopLevelField;
+@Annotation()
+external int topLevelField;
+external var untypedTopLevelField;
+main() {}
+mixin B {
+  @Annotation()
+  external covariant num covariantInstanceField;
+  external covariant var untypedCovariantInstanceField;
+  @Annotation()
+  external final int finalInstanceField;
+  external final untypedFinalInstanceField;
+  @Annotation()
+  external int instanceField;
+  @Annotation()
+  external static final int finalStaticField;
+  external static final untypedFinalStaticField;
+  @Annotation()
+  external static int staticField;
+  external static var untypedStaticField;
+  external var untypedInstanceField;
+}

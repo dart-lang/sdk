@@ -1,0 +1,199 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  operator [](self::Class* cls) → self::Class*
+    return new self::Class::•();
+  operator []=(self::Class* cls, self::Class* value) → void {}
+  operator +(self::Class* cls) → self::Class*
+    return cls;
+  method indexGetSetForEffect(core::Map<self::Class*, self::Class*>* map) → void {
+    final self::Class* self = this;
+    let final core::Map<self::Class*, self::Class*>* #t1 = map in #t1.{core::Map::[]}(this).{self::Class::==}(null) ?{self::Class*} #t1.{core::Map::[]=}(this, this) : null;
+    let final core::Map<self::Class*, self::Class*>* #t2 = map in #t2.{core::Map::[]}(self).{self::Class::==}(null) ?{self::Class*} #t2.{core::Map::[]=}(self, self) : null;
+    map.{core::Map::[]=}(this, this);
+    map.{core::Map::[]=}(self, self);
+    map.{core::Map::[]}(this);
+    map.{core::Map::[]}(self);
+    let final core::Map<self::Class*, self::Class*>* #t3 = map in #t3.{core::Map::[]=}(this, #t3.{core::Map::[]}(this).{self::Class::+}(this));
+    let final core::Map<self::Class*, self::Class*>* #t4 = map in #t4.{core::Map::[]=}(self, #t4.{core::Map::[]}(self).{self::Class::+}(self));
+  }
+  method indexGetSetForValue(core::Map<self::Class*, self::Class*>* map) → void {
+    final self::Class* self = this;
+    dynamic v;
+    v = let final core::Map<self::Class*, self::Class*>* #t5 = map in let final self::Class* #t6 = #t5.{core::Map::[]}(this) in #t6.{self::Class::==}(null) ?{self::Class*} let final void #t7 = #t5.{core::Map::[]=}(this, this) in this : #t6;
+    v = let final core::Map<self::Class*, self::Class*>* #t8 = map in let final self::Class* #t9 = #t8.{core::Map::[]}(self) in #t9.{self::Class::==}(null) ?{self::Class*} let final void #t10 = #t8.{core::Map::[]=}(self, self) in self : #t9;
+    v = let final core::Map<self::Class*, self::Class*>* #t11 = map in let final void #t12 = #t11.{core::Map::[]=}(this, this) in this;
+    v = let final core::Map<self::Class*, self::Class*>* #t13 = map in let final void #t14 = #t13.{core::Map::[]=}(self, self) in self;
+    v = map.{core::Map::[]}(this);
+    v = map.{core::Map::[]}(self);
+    v = let final core::Map<self::Class*, self::Class*>* #t15 = map in let final self::Class* #t16 = #t15.{core::Map::[]}(this).{self::Class::+}(this) in let final void #t17 = #t15.{core::Map::[]=}(this, #t16) in #t16;
+    v = let final core::Map<self::Class*, self::Class*>* #t18 = map in let final self::Class* #t19 = #t18.{core::Map::[]}(self).{self::Class::+}(self) in let final void #t20 = #t18.{core::Map::[]=}(self, #t19) in #t19;
+  }
+  method implicitExtensionGetSetForEffect(core::int* i) → void {
+    final self::Class* self = this;
+    let final core::int* #t21 = i in self::Extension|[](#t21, this).{self::Class::==}(null) ?{self::Class*} self::Extension|[]=(#t21, this, this) : null;
+    let final core::int* #t22 = i in self::Extension|[](#t22, self).{self::Class::==}(null) ?{self::Class*} self::Extension|[]=(#t22, self, self) : null;
+    self::Extension|[]=(i, this, this);
+    self::Extension|[]=(i, self, self);
+    self::Extension|[](i, this);
+    self::Extension|[](i, self);
+    let final core::int* #t23 = i in self::Extension|[]=(#t23, this, self::Extension|[](#t23, this).{self::Class::+}(this));
+    let final core::int* #t24 = i in self::Extension|[]=(#t24, self, self::Extension|[](#t24, self).{self::Class::+}(self));
+  }
+  method implicitExtensionGetSetForValue(core::int* i) → void {
+    final self::Class* self = this;
+    dynamic v;
+    v = let final core::int* #t25 = i in let final self::Class* #t26 = self::Extension|[](#t25, this) in #t26.{self::Class::==}(null) ?{self::Class*} let final void #t27 = self::Extension|[]=(#t25, this, this) in this : #t26;
+    v = let final core::int* #t28 = i in let final self::Class* #t29 = self::Extension|[](#t28, self) in #t29.{self::Class::==}(null) ?{self::Class*} let final void #t30 = self::Extension|[]=(#t28, self, self) in self : #t29;
+    v = let final core::int* #t31 = i in let final void #t32 = self::Extension|[]=(#t31, this, this) in this;
+    v = let final core::int* #t33 = i in let final void #t34 = self::Extension|[]=(#t33, self, self) in self;
+    v = self::Extension|[](i, this);
+    v = self::Extension|[](i, self);
+    v = let final core::int* #t35 = i in let final self::Class* #t36 = self::Extension|[](#t35, this).{self::Class::+}(this) in let final void #t37 = self::Extension|[]=(#t35, this, #t36) in #t36;
+    v = let final core::int* #t38 = i in let final self::Class* #t39 = self::Extension|[](#t38, self).{self::Class::+}(self) in let final void #t40 = self::Extension|[]=(#t38, self, #t39) in #t39;
+  }
+  method explicitExtensionGetSetForEffect(core::int* i) → void {
+    final self::Class* self = this;
+    let final core::int* #t41 = i in self::Extension|[](#t41, this).{self::Class::==}(null) ?{self::Class*} self::Extension|[]=(#t41, this, this) : null;
+    let final core::int* #t42 = i in self::Extension|[](#t42, self).{self::Class::==}(null) ?{self::Class*} self::Extension|[]=(#t42, self, self) : null;
+    self::Extension|[]=(i, this, this);
+    self::Extension|[]=(i, self, self);
+    self::Extension|[](i, this);
+    self::Extension|[](i, self);
+    let final core::int* #t43 = i in self::Extension|[]=(#t43, this, self::Extension|[](#t43, this).{self::Class::+}(this));
+    let final core::int* #t44 = i in self::Extension|[]=(#t44, self, self::Extension|[](#t44, self).{self::Class::+}(self));
+  }
+  method explicitExtensionGetSetForValue(core::int* i) → void {
+    final self::Class* self = this;
+    dynamic v;
+    v = let final core::int* #t45 = i in let final self::Class* #t46 = self::Extension|[](#t45, this) in #t46.{self::Class::==}(null) ?{self::Class*} let final void #t47 = self::Extension|[]=(#t45, this, this) in this : #t46;
+    v = let final core::int* #t48 = i in let final self::Class* #t49 = self::Extension|[](#t48, self) in #t49.{self::Class::==}(null) ?{self::Class*} let final void #t50 = self::Extension|[]=(#t48, self, self) in self : #t49;
+    v = let final core::int* #t51 = i in let final void #t52 = self::Extension|[]=(#t51, this, this) in this;
+    v = let final core::int* #t53 = i in let final void #t54 = self::Extension|[]=(#t53, self, self) in self;
+    v = self::Extension|[](i, this);
+    v = self::Extension|[](i, self);
+    v = let final core::int* #t55 = i in let final self::Class* #t56 = self::Extension|[](#t55, this).{self::Class::+}(this) in let final void #t57 = self::Extension|[]=(#t55, this, #t56) in #t56;
+    v = let final core::int* #t58 = i in let final self::Class* #t59 = self::Extension|[](#t58, self).{self::Class::+}(self) in let final void #t60 = self::Extension|[]=(#t58, self, #t59) in #t59;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass*
+    : super self::Class::•()
+    ;
+  method superIndexGetSetForEffect() → void {
+    final self::Class* self = this;
+    super.{self::Class::[]}(this).{self::Class::==}(null) ?{self::Class*} super.{self::Class::[]=}(this, this) : null;
+    super.{self::Class::[]}(self).{self::Class::==}(null) ?{self::Class*} super.{self::Class::[]=}(self, self) : null;
+    super.{self::Class::[]=}(this, this);
+    super.{self::Class::[]=}(self, self);
+    super.{self::Class::[]}(this);
+    super.{self::Class::[]}(self);
+    super.{self::Class::[]=}(this, super.{self::Class::[]}(this).{self::Class::+}(this));
+    super.{self::Class::[]=}(self, super.{self::Class::[]}(self).{self::Class::+}(self));
+  }
+  method superIndexGetSetForValue() → void {
+    final self::Class* self = this;
+    dynamic v;
+    v = let final self::Class* #t61 = super.{self::Class::[]}(this) in #t61.{self::Class::==}(null) ?{self::Class*} let final void #t62 = super.{self::Class::[]=}(this, this) in this : #t61;
+    v = let final self::Class* #t63 = super.{self::Class::[]}(self) in #t63.{self::Class::==}(null) ?{self::Class*} let final void #t64 = super.{self::Class::[]=}(self, self) in self : #t63;
+    v = let final void #t65 = super.{self::Class::[]=}(this, this) in this;
+    v = let final void #t66 = super.{self::Class::[]=}(self, self) in self;
+    v = super.{self::Class::[]}(this);
+    v = super.{self::Class::[]}(self);
+    v = let final self::Class* #t67 = super.{self::Class::[]}(this).{self::Class::+}(this) in let final void #t68 = super.{self::Class::[]=}(this, #t67) in #t67;
+    v = let final self::Class* #t69 = super.{self::Class::[]}(self).{self::Class::+}(self) in let final void #t70 = super.{self::Class::[]=}(self, #t69) in #t69;
+  }
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2*
+    : super core::Object::•()
+    ;
+  operator +(self::Class2* cls) → self::Class2*
+    return cls;
+  method implicitExtensionGetSetForEffect() → void {
+    final self::Class2* self = this;
+    self::Extension2|[](this, this).{self::Class2::==}(null) ?{self::Class2*} self::Extension2|[]=(this, this, this) : null;
+    self::Extension2|[](self, self).{self::Class2::==}(null) ?{self::Class2*} self::Extension2|[]=(self, self, self) : null;
+    self::Extension2|[]=(this, this, this);
+    self::Extension2|[]=(self, self, self);
+    self::Extension2|[](this, this);
+    self::Extension2|[](self, self);
+    self::Extension2|[]=(this, this, self::Extension2|[](this, this).{self::Class2::+}(this));
+    self::Extension2|[]=(self, self, self::Extension2|[](self, self).{self::Class2::+}(self));
+  }
+  method implicitExtensionGetSetForValue() → void {
+    final self::Class2* self = this;
+    dynamic v;
+    v = let final self::Class2* #t71 = self::Extension2|[](this, this) in #t71.{self::Class2::==}(null) ?{self::Class2*} let final void #t72 = self::Extension2|[]=(this, this, this) in this : #t71;
+    v = let final self::Class2* #t73 = self::Extension2|[](self, self) in #t73.{self::Class2::==}(null) ?{self::Class2*} let final void #t74 = self::Extension2|[]=(self, self, self) in self : #t73;
+    v = let final void #t75 = self::Extension2|[]=(this, this, this) in this;
+    v = let final void #t76 = self::Extension2|[]=(self, self, self) in self;
+    v = self::Extension2|[](this, this);
+    v = self::Extension2|[](self, self);
+    v = let final self::Class2* #t77 = self::Extension2|[](this, this).{self::Class2::+}(this) in let final void #t78 = self::Extension2|[]=(this, this, #t77) in #t77;
+    v = let final self::Class2* #t79 = self::Extension2|[](self, self).{self::Class2::+}(self) in let final void #t80 = self::Extension2|[]=(self, self, #t79) in #t79;
+  }
+  method explicitExtensionGetSetForEffect() → void {
+    final self::Class2* self = this;
+    self::Extension2|[](this, this).{self::Class2::==}(null) ?{self::Class2*} self::Extension2|[]=(this, this, this) : null;
+    self::Extension2|[](self, self).{self::Class2::==}(null) ?{self::Class2*} self::Extension2|[]=(self, self, self) : null;
+    self::Extension2|[]=(this, this, this);
+    self::Extension2|[]=(self, self, self);
+    self::Extension2|[](this, this);
+    self::Extension2|[](self, self);
+    self::Extension2|[]=(this, this, self::Extension2|[](this, this).{self::Class2::+}(this));
+    self::Extension2|[]=(self, self, self::Extension2|[](self, self).{self::Class2::+}(self));
+  }
+  method explicitExtensionGetSetForValue() → void {
+    final self::Class2* self = this;
+    dynamic v;
+    v = let final self::Class2* #t81 = self::Extension2|[](this, this) in #t81.{self::Class2::==}(null) ?{self::Class2*} let final void #t82 = self::Extension2|[]=(this, this, this) in this : #t81;
+    v = let final self::Class2* #t83 = self::Extension2|[](self, self) in #t83.{self::Class2::==}(null) ?{self::Class2*} let final void #t84 = self::Extension2|[]=(self, self, self) in self : #t83;
+    v = let final void #t85 = self::Extension2|[]=(this, this, this) in this;
+    v = let final void #t86 = self::Extension2|[]=(self, self, self) in self;
+    v = self::Extension2|[](this, this);
+    v = self::Extension2|[](self, self);
+    v = let final self::Class2* #t87 = self::Extension2|[](this, this).{self::Class2::+}(this) in let final void #t88 = self::Extension2|[]=(this, this, #t87) in #t87;
+    v = let final self::Class2* #t89 = self::Extension2|[](self, self).{self::Class2::+}(self) in let final void #t90 = self::Extension2|[]=(self, self, #t89) in #t89;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on core::int* {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+extension Extension2 on self::Class2* {
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+}
+static method Extension|[](lowered final core::int* #this, self::Class* cls) → self::Class*
+  return new self::Class::•();
+static method Extension|[]=(lowered final core::int* #this, self::Class* cls, self::Class* value) → void {}
+static method Extension2|[](lowered final self::Class2* #this, self::Class2* cls) → self::Class2*
+  return new self::Class2::•();
+static method Extension2|[]=(lowered final self::Class2* #this, self::Class2* cls, self::Class2* value) → void {}
+static method main() → dynamic {}

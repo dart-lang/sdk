@@ -1,0 +1,25 @@
+class Class {
+  int field;
+}
+
+class GenericClass<T> {}
+
+expect(expected, actual) {}
+
+extension Extension on Class {
+  int get mutatingSetter => field;
+  int get setterWithClosure => field;
+  int get setterWithReturn => field;
+  int get simpleSetter => field;
+  set mutatingSetter(int value) {}
+  set setterWithClosure(int value) {}
+  set setterWithReturn(int value) {}
+  set simpleSetter(int value) {}
+  testInternal() {}
+}
+
+extension GenericExtension<T> on GenericClass<T> {
+  set setter(T value) {}
+}
+
+main() {}

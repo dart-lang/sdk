@@ -1,0 +1,24 @@
+class Complex {
+  Complex add(Complex other) {}
+  Complex negate() {}
+  Complex sub(Complex other) {}
+  String toString() => 'Complex($real,$imaginary)';
+  bool operator ==(Object other) {}
+  const Complex(this.real, this.imaginary);
+  final double imaginary;
+  final double real;
+  int get hashCode => real.hashCode * 13 + imaginary.hashCode * 19;
+}
+
+expect(expected, actual) {}
+explicit() {}
+
+extension Operators on Complex {
+  Complex operator +(Complex other) => add(other);
+  Complex operator -() => negate();
+  Complex operator -(Complex other) => sub(other);
+}
+
+implicit() {}
+main() {}
+void errors(Complex c) {}

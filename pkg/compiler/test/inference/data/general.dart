@@ -809,8 +809,9 @@ testCascade2() {
   return new CascadeHelper()
     .. /*update: [exact=CascadeHelper]*/ a = "hello"
     .. /*update: [exact=CascadeHelper]*/ b = 42
-    .. /*[exact=CascadeHelper]*/ /*update: [exact=CascadeHelper]*/ i
-        /*invoke: [subclass=JSPositiveInt]*/ += 1;
+    .. /*[exact=CascadeHelper]*/ i
+        /*invoke: [subclass=JSPositiveInt]*/ /*update: [exact=CascadeHelper]*/ +=
+        1;
 }
 
 /*member: CascadeHelper.:[exact=CascadeHelper]*/

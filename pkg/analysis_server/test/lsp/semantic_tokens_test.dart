@@ -104,7 +104,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('/// field docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('myField', SemanticTokenTypes.property,
+      _Token('myField', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token("'FieldVal'", SemanticTokenTypes.string),
       _Token('/// static field docs', SemanticTokenTypes.comment,

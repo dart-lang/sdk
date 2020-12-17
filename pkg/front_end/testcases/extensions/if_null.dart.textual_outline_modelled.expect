@@ -1,0 +1,11 @@
+class Class {
+  int field;
+}
+
+extension Extension on Class {
+  int get property => field;
+  int method() => field;
+  void set property(int value) {}
+}
+
+main() {}

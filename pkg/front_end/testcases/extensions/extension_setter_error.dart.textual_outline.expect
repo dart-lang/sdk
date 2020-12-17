@@ -1,5 +1,8 @@
 class GenericClass<T> {}
-extension GenericExtension<T> (){}
-on GenericClass<T> (){}
+
+extension GenericExtension<T> on GenericClass<T> {
+  set setter(T value) {}
+}
+
 error() {}
 expect(expected, actual) {}

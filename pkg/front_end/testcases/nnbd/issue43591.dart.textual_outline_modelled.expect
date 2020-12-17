@@ -1,0 +1,8 @@
+extension E<T> on T {
+  T Function(T) get f => (T t) => t;
+}
+
+main() {}
+method1<S>(S s) {}
+method2<S extends dynamic>(S s) {}
+throws(void Function() f) {}

@@ -6,8 +6,20 @@ class Class {
   Function get functionGetter => () {};
   void Function() get functionTypeGetter => () {};
 }
-extension Extension ;
-on Class (){}
+
+extension Extension on Class {
+  int operator +(int value) => 0;
+  int operator -() => 0;
+  int operator [](int index) => 0;
+  void operator []=(int index, int value) {}
+  int call() => 0;
+  int get extensionProperty => 0;
+  void set extensionProperty(int value) {}
+  int extensionMethod() => 0;
+  Function get extensionFunctionGetter => () {};
+  void Function() get extensionFunctionTypeGetter => () {};
+}
+
 Function? get nullableFunction => () {};
 void Function()? get nullableFunctionType => () {};
 int? get nullableInt => 0;
@@ -47,6 +59,7 @@ var topLevelExtensionFunctionTypeImplicitCall = nullableClass();
 var topLevelExtensionFunctionTypeExplicitCall = nullableClass.call();
 var topLevelExtensionFunctionTypeTearOff = nullableClass.call;
 var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
-var topLevelExtensionFunctionTypeGetter = nullableClass.extensionFunctionTypeGetter();
+var topLevelExtensionFunctionTypeGetter =
+    nullableClass.extensionFunctionTypeGetter();
 test() {}
 main() {}

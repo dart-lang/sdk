@@ -3949,13 +3949,11 @@ class TypeInferrerImpl implements TypeInferrer {
   Expression createMissingIndexSet(int fileOffset, Expression receiver,
       DartType receiverType, Expression index, Expression value,
       {bool forEffect,
-      bool readOnlyReceiver,
       List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     assert(forEffect != null);
-    assert(readOnlyReceiver != null);
     if (isTopLevel) {
       return engine.forest.createIndexSet(fileOffset, receiver, index, value,
-          forEffect: forEffect, readOnlyReceiver: readOnlyReceiver);
+          forEffect: forEffect);
     } else {
       return _reportMissingOrAmbiguousMember(
           fileOffset,

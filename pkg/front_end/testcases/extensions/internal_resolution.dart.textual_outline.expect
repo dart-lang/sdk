@@ -1,9 +1,16 @@
 class Class {
   int field;
 }
-extension on ;
-Class (){}
-extension on ;
-Class (){}
+
+extension on Class {
+  int get property1 => property2;
+  void set property1(int value) => field = value;
+}
+
+extension on Class {
+  int get property2 => field;
+  void set property2(int value) => property1 = value;
+}
+
 main() {}
 expect(expected, actual) {}

@@ -26,6 +26,10 @@ mixin B {
   external abstract final int externalFinalInstanceField;
   external abstract covariant num externalCovariantInstanceField;
 }
-extension Extension ;
-on A (){}
+extension Extension on A {
+  abstract int extensionInstanceField;
+  abstract final int finalExtensionInstanceField;
+  abstract static int extensionStaticField = 0;
+  abstract static final int finalExtensionStaticField = 0;
+}
 main() {}

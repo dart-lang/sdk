@@ -1,0 +1,11 @@
+class Class<T> {
+  T method(T a) => a;
+}
+
+expect(expected, actual) {}
+
+extension Extension<T> on Class<T> {
+  T call(T a) => method(a);
+}
+
+main() {}

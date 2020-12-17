@@ -1,0 +1,32 @@
+A a = new A();
+B b = new B();
+
+class A {
+  String get call => "My name is A";
+}
+
+class B {
+  String Function() get call => () => "My name is B";
+}
+
+errors() {}
+
+extension on String {
+  String Function() get call => () => "My name is String";
+}
+
+extension on int {
+  String get call => "My name is int";
+}
+
+extension on num {
+  String get call => "My name is num";
+}
+
+main() {}
+var topLevel1 = 1(10);
+var topLevel2 = 1("10");
+var topLevel3 = 1.0(10);
+var topLevel4 = 1.0("10");
+var topLevel5 = a(2);
+var topLevel6 = a(2, "3");

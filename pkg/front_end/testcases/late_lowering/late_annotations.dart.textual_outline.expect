@@ -56,6 +56,15 @@ mixin B {
   static late ;
   final int finalStaticFieldWithInitializer = 0;
 }
-extension Extension ;
-on A (){}
+extension Extension on A {
+  @Annotation()
+  static late int ;
+  extensionStaticField;
+  @Annotation()
+  static late ;
+  final int finalExtensionStaticField;
+  @Annotation()
+  static late ;
+  final int finalExtensionStaticFieldWithInitializer = 0;
+}
 main() {}

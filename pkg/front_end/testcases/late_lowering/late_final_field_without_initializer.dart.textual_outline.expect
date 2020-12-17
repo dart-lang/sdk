@@ -10,8 +10,13 @@ class Class {
   final int lateInstanceField;
   instanceMethod() {}
 }
-extension Extension ;
-on Class (){}
+extension Extension on Class {
+  static late ;
+  final int lateExtensionField1;
+  static late ;
+  final int lateExtensionField2;
+  static staticMethod() {}
+}
 main() {}
 expect(expected, actual) {}
 throws(f(), String message) {}

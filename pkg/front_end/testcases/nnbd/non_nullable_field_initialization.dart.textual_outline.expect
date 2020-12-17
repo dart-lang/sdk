@@ -20,8 +20,9 @@ mixin N<X extends Object?, Y extends Object> {
   X fieldOfN;
   Y fieldOfN2;
 }
-extension P ;
-on Foo (){}
+extension P on Foo {
+  static int staticFieldOfE;
+}
 int? nullableTopLevelField;
 late
 int lateTopLevelField;
@@ -65,6 +66,10 @@ mixin L<X extends Object?, Y extends Object> {
   late
   Y fieldOfM9;
 }
-extension Q ;
-on Foo (){}
+extension Q on Foo {
+  static int? staticFieldOfQ;
+  static late int ;
+  lateStaticFieldOfQ;
+  static int staticFieldOfQInitialized = 42;
+}
 main() {}

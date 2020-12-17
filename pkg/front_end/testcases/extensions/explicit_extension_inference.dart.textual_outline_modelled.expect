@@ -1,0 +1,15 @@
+class A {}
+
+class B extends A {}
+
+class C extends B {}
+
+class GenericClass<T> {}
+
+extension GenericExtension<T> on GenericClass<T> {
+  S genericMethod1<S>(S s) => null;
+  T get property => null;
+  T method(T t) => null;
+}
+
+main() {}

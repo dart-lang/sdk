@@ -9,8 +9,13 @@ class Complex {
   bool operator ==(Object other) {}
   String toString() => 'Complex($real,$imaginary)';
 }
-extension Operators ;
-on Complex (){}
+
+extension Operators on Complex {
+  Complex operator +(Complex other) => add(other);
+  Complex operator -(Complex other) => sub(other);
+  Complex operator -() => negate();
+}
+
 main() {}
 implicit() {}
 explicit() {}

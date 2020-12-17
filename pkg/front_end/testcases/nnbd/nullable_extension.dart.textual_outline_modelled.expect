@@ -1,0 +1,11 @@
+class A {
+  String text = "";
+}
+
+expect(expected, actual) {}
+
+extension on A? {
+  String get text => "Lily was here";
+}
+
+void main() {}
