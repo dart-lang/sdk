@@ -368,12 +368,17 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
 }
 
 void CodeSourceMapBuilder::BeginCodeSourceRange(int32_t pc_offset,
-                                                intptr_t inline_id) {
-  StartInliningInterval(pc_offset, inline_id);
+                                                intptr_t inline_id,
+                                                const TokenPosition& pos) {
+  if (pos.IsReal() || pos.IsSynthetic()) {
+    // Only record inlining intervals for token positions that might need
+    // to be checked against the appropriate function and/or script.
+    StartInliningInterval(pc_offset, inline_id);
+  }
 }
 
 void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
-                                              TokenPosition pos) {
+                                              const TokenPosition& pos) {
   if (pc_offset == buffered_pc_offset_) {
     return;  // Empty intermediate instruction.
   }

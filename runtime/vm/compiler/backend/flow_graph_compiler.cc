@@ -618,7 +618,7 @@ void FlowGraphCompiler::VisitBlocks() {
       }
     }
 
-    BeginCodeSourceRange(entry->inlining_id());
+    BeginCodeSourceRange(entry->inlining_id(), entry->token_pos());
     ASSERT(pending_deoptimization_env_ == NULL);
     pending_deoptimization_env_ = entry->env();
     set_current_instruction(entry);
@@ -650,7 +650,7 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
-        BeginCodeSourceRange(instr->inlining_id());
+        BeginCodeSourceRange(instr->inlining_id(), instr->token_pos());
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
@@ -755,7 +755,8 @@ void FlowGraphCompiler::GenerateDeferredCode() {
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     set_current_instruction(slow_path->instruction());
     SpecialStatsBegin(stats_tag);
-    BeginCodeSourceRange(slow_path->instruction()->inlining_id());
+    BeginCodeSourceRange(slow_path->instruction()->inlining_id(),
+                         slow_path->instruction()->token_pos());
     DEBUG_ONLY(current_instruction_ = slow_path->instruction());
     slow_path->GenerateCode(this);
     DEBUG_ONLY(current_instruction_ = nullptr);
@@ -766,7 +767,7 @@ void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     // Code generated from CompilerDeoptInfo objects is considered in the
     // root function.
-    BeginCodeSourceRange(/*inline_id=*/0);
+    BeginCodeSourceRange(/*inline_id=*/0, TokenPosition::kDeferredDeoptInfo);
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     assembler()->set_lr_state(lr_state);
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
@@ -1710,7 +1711,8 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
     const MoveOperands& move = *moves_[i];
     if (!move.IsEliminated()) {
       ASSERT(move.src().IsConstant());
-      compiler_->BeginCodeSourceRange(inlining_id_);
+      compiler_->BeginCodeSourceRange(inlining_id_,
+                                      TokenPosition::kParallelMove);
       EmitMove(i);
       compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
     }
@@ -1787,7 +1789,8 @@ void ParallelMoveResolver::PerformMove(int index) {
     const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination)) {
       ASSERT(other_move.IsPending());
-      compiler_->BeginCodeSourceRange(inlining_id_);
+      compiler_->BeginCodeSourceRange(inlining_id_,
+                                      TokenPosition::kParallelMove);
       EmitSwap(index);
       compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
       return;
@@ -1795,7 +1798,7 @@ void ParallelMoveResolver::PerformMove(int index) {
   }
 
   // This move is not blocked.
-  compiler_->BeginCodeSourceRange(inlining_id_);
+  compiler_->BeginCodeSourceRange(inlining_id_, TokenPosition::kParallelMove);
   EmitMove(index);
   compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
@@ -2072,12 +2075,13 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   }
 }
 
-void FlowGraphCompiler::BeginCodeSourceRange(intptr_t inline_id) {
+void FlowGraphCompiler::BeginCodeSourceRange(intptr_t inline_id,
+                                             const TokenPosition& token_pos) {
   code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize(),
-                                                 inline_id);
+                                                 inline_id, token_pos);
 }
 
-void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
+void FlowGraphCompiler::EndCodeSourceRange(const TokenPosition& token_pos) {
   code_source_map_builder_->EndCodeSourceRange(assembler()->CodeSize(),
                                                token_pos);
 }

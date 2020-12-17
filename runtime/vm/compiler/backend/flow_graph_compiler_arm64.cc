@@ -322,7 +322,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 }
 
 void FlowGraphCompiler::EmitPrologue() {
-  BeginCodeSourceRange(/*inlining_id=*/0);  // Prologue is in the root function.
+  // Prologue is in the root function.
+  BeginCodeSourceRange(/*inlining_id=*/0, TokenPosition::kDartCodePrologue);
 
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());

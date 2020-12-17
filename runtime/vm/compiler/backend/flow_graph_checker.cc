@@ -274,13 +274,13 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
          instruction->deopt_id() != DeoptId::kNone);
 #endif  // !defined(DART_PRECOMPILER)
 
-  // If checking token positions, check both the inlining ID and token position
-  // if the inlining ID of the graph has been set.
+  // If checking token positions and the flow graph has an inlining ID,
+  // check the inlining ID and token position for instructions with real or
+  // synthetic token positions.
   if (FLAG_check_token_positions && flow_graph_->inlining_id() >= 0) {
-    ASSERT(instruction->has_inlining_id());
-
     const TokenPosition& pos = instruction->token_pos();
-    if (pos.IsReal()) {
+    if (pos.IsReal() || pos.IsSynthetic()) {
+      ASSERT(instruction->has_inlining_id());
       const intptr_t inlining_id = instruction->inlining_id();
       const auto& function = *inline_id_to_function_[inlining_id];
       if (!pos.IsWithin(function.token_pos(), function.end_token_pos())) {
@@ -297,7 +297,8 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
       }
       script_ = function.script();
       intptr_t line;
-      if (!script_.IsNull() && !script_.GetTokenLocation(pos, &line)) {
+      if (!script_.IsNull() && pos.IsReal() &&
+          !script_.GetTokenLocation(pos, &line)) {
         TextBuffer buffer(256);
         buffer.Printf(
             "Token position %s is invalid for script %s of function %s",

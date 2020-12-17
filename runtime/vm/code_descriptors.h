@@ -194,8 +194,10 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   static const uint8_t kPopFunction = 3;
   static const uint8_t kNullCheck = 4;
 
-  void BeginCodeSourceRange(int32_t pc_offset, intptr_t inline_id);
-  void EndCodeSourceRange(int32_t pc_offset, TokenPosition pos);
+  void BeginCodeSourceRange(int32_t pc_offset,
+                            intptr_t inline_id,
+                            const TokenPosition& token_pos);
+  void EndCodeSourceRange(int32_t pc_offset, const TokenPosition& token_pos);
   void NoteDescriptor(PcDescriptorsLayout::Kind kind,
                       int32_t pc_offset,
                       TokenPosition pos);
