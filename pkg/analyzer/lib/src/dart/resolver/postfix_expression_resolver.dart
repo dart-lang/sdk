@@ -180,7 +180,7 @@ class PostfixExpressionResolver {
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;
         if (element is PromotableElement) {
-          _flowAnalysis?.flow?.write(element, operatorReturnType);
+          _flowAnalysis?.flow?.write(element, operatorReturnType, null);
         }
       }
     }

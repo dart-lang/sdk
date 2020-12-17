@@ -530,6 +530,7 @@ imply
 implying
 importantly
 imprecise
+improperly
 inapplicable
 inc
 incomparable
@@ -1057,6 +1058,7 @@ spaced
 sparse
 spec
 spec'ed
+specialization
 specially
 specifics
 speeding

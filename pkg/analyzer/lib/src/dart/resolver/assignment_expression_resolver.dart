@@ -91,7 +91,7 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement is VariableElement) {
-        flow.write(writeElement, node.staticType);
+        flow.write(writeElement, node.staticType, hasRead ? null : right);
       }
       if (isIfNull) {
         flow.ifNullExpression_end();

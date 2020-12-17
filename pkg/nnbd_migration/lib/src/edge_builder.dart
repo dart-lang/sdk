@@ -1347,7 +1347,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (operand is SimpleIdentifier) {
         var element = getWriteOrReadElement(operand);
         if (element is PromotableElement) {
-          _flowAnalysis.write(element, writeType);
+          _flowAnalysis.write(element, writeType, null);
         }
       }
       return targetType;
@@ -1398,7 +1398,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (operand is SimpleIdentifier) {
           var element = getWriteOrReadElement(operand);
           if (element is PromotableElement) {
-            _flowAnalysis.write(element, staticType);
+            _flowAnalysis.write(element, staticType, null);
           }
         }
       }
@@ -2342,7 +2342,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       if (destinationLocalVariable != null) {
-        _flowAnalysis.write(destinationLocalVariable, sourceType);
+        _flowAnalysis.write(destinationLocalVariable, sourceType,
+            compoundOperatorInfo == null ? expression : null);
       }
       if (questionAssignNode != null) {
         _flowAnalysis.ifNullExpression_end();

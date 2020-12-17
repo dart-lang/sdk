@@ -68,13 +68,15 @@ Statement continue_(BranchTargetPlaceholder branchTargetPlaceholder) =>
     new _Continue(branchTargetPlaceholder);
 
 Statement declare(Var variable,
-        {required bool initialized, bool isFinal = false}) =>
-    new _Declare(
-        variable, initialized ? expr(variable.type.type) : null, isFinal);
+        {required bool initialized,
+        bool isFinal = false,
+        bool isLate = false}) =>
+    new _Declare(variable, initialized ? expr(variable.type.type) : null,
+        isFinal, isLate);
 
 Statement declareInitialized(Var variable, Expression initializer,
-        {bool isFinal = false}) =>
-    new _Declare(variable, initializer, isFinal);
+        {bool isFinal = false, bool isLate = false}) =>
+    new _Declare(variable, initializer, isFinal, isLate);
 
 Statement do_(List<Statement> body, Expression condition) =>
     _Do(body, condition);
@@ -211,6 +213,9 @@ abstract class Expression implements _Visitable<Type> {
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert => new _NonNullAssert(this);
 
+  /// If `this` is an expression `x`, creates the expression `!x`.
+  Expression get not => new _Not(this);
+
   /// If `this` is an expression `x`, creates the expression `(x)`.
   Expression get parenthesized => new _ParenthesizedExpression(this);
 
@@ -230,6 +235,15 @@ abstract class Expression implements _Visitable<Type> {
 
   /// If `this` is an expression `x`, creates the expression `x == other`.
   Expression eq(Expression other) => new _Equal(this, other, false);
+
+  /// Creates an [Expression] that, when analyzed, will behave the same as
+  /// `this`, but after visiting it, will cause [callback] to be passed the
+  /// [ExpressionInfo] associated with it.  If the expression has no flow
+  /// analysis information associated with it, `null` will be passed to
+  /// [callback].
+  Expression getExpressionInfo(
+          void Function(ExpressionInfo<Var, Type>?) callback) =>
+      new _GetExpressionInfo(this, callback);
 
   /// If `this` is an expression `x`, creates the expression `x ?? other`.
   Expression ifNull(Expression other) => new _IfNull(this, other);
@@ -520,7 +534,8 @@ class SsaNodeHarness {
 
   /// Gets the SSA node associated with [variable] at the current point in
   /// control flow, or `null` if the variable has been write captured.
-  SsaNode? operator [](Var variable) => _flow.ssaNodeForTesting(variable);
+  SsaNode<Var, Type>? operator [](Var variable) =>
+      _flow.ssaNodeForTesting(variable);
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -591,7 +606,7 @@ class Var {
   String toString() => '$type $name';
 
   /// Creates an expression representing a write to this variable.
-  Expression write(Expression value) => new _Write(this, value);
+  Expression write(Expression? value) => new _Write(this, value);
 }
 
 class _As extends Expression {
@@ -848,14 +863,17 @@ class _Declare extends Statement {
   final Var variable;
   final Expression? initializer;
   final bool isFinal;
+  final bool isLate;
 
-  _Declare(this.variable, this.initializer, this.isFinal) : super._();
+  _Declare(this.variable, this.initializer, this.isFinal, this.isLate)
+      : super._();
 
   @override
   String toString() {
+    var latePart = isLate ? 'late ' : '';
     var finalPart = isFinal ? 'final ' : '';
     var initializerPart = initializer != null ? ' = $initializer' : '';
-    return '$finalPart$variable${initializerPart};';
+    return '$latePart$finalPart$variable${initializerPart};';
   }
 
   @override
@@ -870,8 +888,10 @@ class _Declare extends Statement {
     if (initializer == null) {
       flow.declare(variable, false);
     } else {
-      initializer._visit(h, flow);
+      var initializerType = initializer._visit(h, flow);
       flow.declare(variable, true);
+      flow.initialize(variable, initializerType, initializer,
+          isFinal: isFinal, isLate: isLate);
     }
   }
 }
@@ -1050,6 +1070,28 @@ class _ForEach extends Statement {
     flow.forEach_bodyBegin(this, variable, iteratedType);
     body._visit(h, flow);
     flow.forEach_end();
+  }
+}
+
+class _GetExpressionInfo extends Expression {
+  final Expression target;
+
+  final void Function(ExpressionInfo<Var, Type>?) callback;
+
+  _GetExpressionInfo(this.target, this.callback);
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    target._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    var type = target._visit(h, flow);
+    flow.forwardExpression(this, target);
+    callback(flow.expressionInfoForTesting(this));
+    return type;
   }
 }
 
@@ -1243,6 +1285,27 @@ class _NonNullAssert extends Expression {
     var type = operand._visit(h, flow);
     flow.nonNullAssert_end(operand);
     return h.promoteToNonNull(type);
+  }
+}
+
+class _Not extends Expression {
+  final Expression operand;
+
+  _Not(this.operand);
+
+  @override
+  String toString() => '!$operand';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    operand._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    flow.logicalNot_end(this, operand.._visit(h, flow));
+    return Type('bool');
   }
 }
 
@@ -1540,7 +1603,7 @@ class _WrappedExpression extends Expression {
 
 class _Write extends Expression {
   final Var variable;
-  final Expression rhs;
+  final Expression? rhs;
 
   _Write(this.variable, this.rhs);
 
@@ -1550,14 +1613,15 @@ class _Write extends Expression {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     assignedVariables.write(variable);
-    rhs._preVisit(assignedVariables);
+    rhs?._preVisit(assignedVariables);
   }
 
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    var type = rhs._visit(h, flow);
-    flow.write(variable, type);
+    var rhs = this.rhs;
+    var type = rhs == null ? variable.type : rhs._visit(h, flow);
+    flow.write(variable, type, rhs);
     return type;
   }
 }

@@ -293,15 +293,14 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
 
   ExpressionInfo(this.after, this.ifTrue, this.ifFalse);
 
+  /// Computes a new [ExpressionInfo] based on this one, but with the roles of
+  /// [ifTrue] and [ifFalse] reversed.
+  ExpressionInfo<Variable, Type> invert() =>
+      new ExpressionInfo<Variable, Type>(after, ifFalse, ifTrue);
+
   @override
   String toString() =>
       'ExpressionInfo(after: $after, _ifTrue: $ifTrue, ifFalse: $ifFalse)';
-
-  /// Compute a new [ExpressionInfo] based on this one, but with the roles of
-  /// [ifTrue] and [ifFalse] reversed.
-  static ExpressionInfo<Variable, Type> invert<Variable extends Object,
-          Type extends Object>(ExpressionInfo<Variable, Type> info) =>
-      new ExpressionInfo<Variable, Type>(info.after, info.ifFalse, info.ifTrue);
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the
@@ -408,6 +407,12 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting the left hand side of a binary `==`
   /// or `!=` expression.
   void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType);
+
+  /// Retrieves the [ExpressionInfo] associated with [target], if known.  Will
+  /// return `null` if (a) no info is associated with [target], or (b) another
+  /// expression with info has been visited more recently than [target].  For
+  /// testing only.
+  ExpressionInfo<Variable, Type>? expressionInfoForTesting(Expression target);
 
   /// This method should be called at the conclusion of flow analysis for a top
   /// level function or method.  Performs assertion checks.
@@ -567,6 +572,11 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [condition] should be the if statement's condition.
   void ifStatement_thenBegin(Expression condition);
 
+  /// Call this method after visiting the initializer of a variable declaration.
+  void initialize(
+      Variable variable, Type initializerType, Expression initializerExpression,
+      {required bool isFinal, required bool isLate});
+
   /// Return whether the [variable] is definitely assigned in the current state.
   bool isAssigned(Variable variable);
 
@@ -667,7 +677,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// is not associated with an SSA node because it is write captured.  For
   /// testing only.
   @visibleForTesting
-  SsaNode? ssaNodeForTesting(Variable variable);
+  SsaNode<Variable, Type>? ssaNodeForTesting(Variable variable);
 
   /// Call this method just before visiting one of the cases in the body of a
   /// switch statement.  See [switchStatement_expressionEnd] for details.
@@ -805,12 +815,16 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
+  /// [writtenExpression] should be the expression that was written, or `null`
+  /// if the expression that was written is not directly represented in the
+  /// source code (this happens, for example, with compound assignments and with
+  /// for-each loops).
   ///
   /// This should also be used for the implicit write to a non-final variable in
   /// its initializer, to ensure that the type is promoted to non-nullable if
   /// necessary; in this case, [viaInitializer] should be `true`.
-  void write(Variable variable, Type writtenType,
-      {bool viaInitializer = false});
+  void write(
+      Variable variable, Type writtenType, Expression? writtenExpression);
 }
 
 /// Alternate implementation of [FlowAnalysis] that prints out inputs and output
@@ -933,6 +947,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  ExpressionInfo<Variable, Type>? expressionInfoForTesting(Expression target) {
+    return _wrap('expressionInfoForTesting($target)',
+        () => _wrapped.expressionInfoForTesting(target),
+        isQuery: true);
+  }
+
+  @override
   void finish() {
     if (_exceptionOccurred) {
       _wrap('finish() (skipped)', () {}, isPure: true);
@@ -1041,6 +1062,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void ifStatement_thenBegin(Expression condition) {
     _wrap('ifStatement_thenBegin($condition)',
         () => _wrapped.ifStatement_thenBegin(condition));
+  }
+
+  @override
+  void initialize(
+      Variable variable, Type initializerType, Expression initializerExpression,
+      {required bool isFinal, required bool isLate}) {
+    _wrap(
+        'initialize($variable, $initializerType, $initializerExpression, '
+        'isFinal: $isFinal, isLate: $isLate)',
+        () => _wrapped.initialize(
+            variable, initializerType, initializerExpression,
+            isFinal: isFinal, isLate: isLate));
   }
 
   @override
@@ -1159,7 +1192,7 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  SsaNode? ssaNodeForTesting(Variable variable) {
+  SsaNode<Variable, Type>? ssaNodeForTesting(Variable variable) {
     return _wrap('ssaNodeForTesting($variable)',
         () => _wrapped.ssaNodeForTesting(variable),
         isQuery: true);
@@ -1260,12 +1293,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void write(Variable variable, Type writtenType,
-      {bool viaInitializer = false}) {
-    _wrap(
-        'write($variable, $writtenType, viaInitializer: $viaInitializer)',
-        () => _wrapped.write(variable, writtenType,
-            viaInitializer: viaInitializer));
+  void write(
+      Variable variable, Type writtenType, Expression? writtenExpression) {
+    _wrap('write($variable, $writtenType, $writtenExpression)',
+        () => _wrapped.write(variable, writtenType, writtenExpression));
   }
 
   T _wrap<T>(String description, T callback(),
@@ -1388,7 +1419,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
       // because any write captures in the `try` block are conservatively
       // considered to take effect in the `finally` block too.
       List<Type>? newPromotedTypes;
-      SsaNode? newSsaNode;
+      SsaNode<Variable, Type>? newSsaNode;
       if (beforeFinallyModel.ssaNode == afterFinallyModel.ssaNode) {
         // The finally clause doesn't write to the variable, so we want to keep
         // all promotions that were done to it in both the try and finally
@@ -1663,7 +1694,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
       TypeOperations<Variable, Type> typeOperations, Variable variable) {
     VariableModel<Variable, Type> info = infoFor(variable);
     if (info.writeCaptured) {
-      return new ExpressionInfo<Variable, Type>(this, this, this);
+      return new _TrivialExpressionInfo<Variable, Type>(this);
     }
 
     Type? previousType = info.promotedTypes?.last;
@@ -1671,7 +1702,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
     Type newType = typeOperations.promoteToNonNull(previousType);
     if (typeOperations.isSameType(newType, previousType)) {
-      return new ExpressionInfo<Variable, Type>(this, this, this);
+      return new _TrivialExpressionInfo<Variable, Type>(this);
     }
     assert(typeOperations.isSubtypeOf(newType, previousType));
 
@@ -1729,7 +1760,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
       Type type) {
     VariableModel<Variable, Type> info = infoFor(variable);
     if (info.writeCaptured) {
-      return new ExpressionInfo<Variable, Type>(this, this, this);
+      return new _TrivialExpressionInfo<Variable, Type>(this);
     }
 
     Type? previousType = info.promotedTypes?.last;
@@ -1783,13 +1814,16 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// Updates the state to indicate that an assignment was made to the given
   /// [variable].  The variable is marked as definitely assigned, and any
   /// previous type promotion is removed.
-  FlowModel<Variable, Type> write(Variable variable, Type writtenType,
+  FlowModel<Variable, Type> write(
+      Variable variable,
+      Type writtenType,
+      SsaNode<Variable, Type> newSsaNode,
       TypeOperations<Variable, Type> typeOperations) {
     VariableModel<Variable, Type>? infoForVar = variableInfo[variable];
     if (infoForVar == null) return this;
 
     VariableModel<Variable, Type> newInfoForVar =
-        infoForVar.write(variable, writtenType, typeOperations);
+        infoForVar.write(variable, writtenType, typeOperations, newSsaNode);
     if (identical(newInfoForVar, infoForVar)) return this;
 
     return _updateVariableInfo(variable, newInfoForVar);
@@ -2158,11 +2192,24 @@ class Reachability {
 /// (https://en.wikipedia.org/wiki/Static_single_assignment_form) except that it
 /// does not store a complete IR of the code being analyzed.
 @visibleForTesting
-class SsaNode {
+class SsaNode<Variable extends Object, Type extends Object> {
   /// Expando mapping SSA nodes to debug ids.  Only used by `toString`.
   static final Expando<int> _debugIds = new Expando<int>();
 
   static int _nextDebugId = 0;
+
+  /// Flow analysis information was associated with the expression that
+  /// produced the value represented by this SSA node, if it was non-trivial.
+  /// This can be used at a later time to perform promotions if the value is
+  /// used in a control flow construct.
+  ///
+  /// We don't bother storing flow analysis information if it's trivial (see
+  /// [_TrivialExpressionInfo]) because such information does not lead to
+  /// promotions.
+  @visibleForTesting
+  final ExpressionInfo<Variable, Type>? expressionInfo;
+
+  SsaNode(this.expressionInfo);
 
   @override
   String toString() {
@@ -2273,7 +2320,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
   /// value has changed since a time in the past.
   ///
   /// `null` if the variable has been write captured.
-  final SsaNode? ssaNode;
+  final SsaNode<Variable, Type>? ssaNode;
 
   VariableModel(
       {required this.promotedTypes,
@@ -2298,7 +2345,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
       : promotedTypes = null,
         tested = const [],
         unassigned = !assigned,
-        ssaNode = new SsaNode();
+        ssaNode = new SsaNode<Variable, Type>(null);
 
   /// Indicates whether the variable has been write captured.
   bool get writeCaptured => ssaNode == null;
@@ -2314,7 +2361,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
         tested: tested,
         assigned: assigned,
         unassigned: false,
-        ssaNode: writeCaptured ? null : new SsaNode());
+        ssaNode: writeCaptured ? null : new SsaNode<Variable, Type>(null));
   }
 
   /// Returns an updated model reflect a control path that is known to have
@@ -2393,8 +2440,11 @@ class VariableModel<Variable extends Object, Type extends Object> {
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just written to.
-  VariableModel<Variable, Type> write(Variable variable, Type writtenType,
-      TypeOperations<Variable, Type> typeOperations) {
+  VariableModel<Variable, Type> write(
+      Variable variable,
+      Type writtenType,
+      TypeOperations<Variable, Type> typeOperations,
+      SsaNode<Variable, Type> newSsaNode) {
     if (writeCaptured) {
       return new VariableModel<Variable, Type>(
           promotedTypes: promotedTypes,
@@ -2418,7 +2468,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
           tested: tested,
           assigned: assigned,
           unassigned: unassigned,
-          ssaNode: new SsaNode());
+          ssaNode: newSsaNode);
     }
 
     List<Type> newTested;
@@ -2433,7 +2483,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
         tested: newTested,
         assigned: true,
         unassigned: false,
-        ssaNode: new SsaNode());
+        ssaNode: newSsaNode);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable has
@@ -2624,11 +2674,11 @@ class VariableModel<Variable extends Object, Type extends Object> {
     List<Type> newTested = newWriteCaptured
         ? const []
         : joinTested(first.tested, second.tested, typeOperations);
-    SsaNode? newSsaNode = newWriteCaptured
+    SsaNode<Variable, Type>? newSsaNode = newWriteCaptured
         ? null
         : first.ssaNode == second.ssaNode
             ? first.ssaNode
-            : new SsaNode();
+            : new SsaNode<Variable, Type>(null);
     return _identicalOrNew(first, second, newPromotedTypes, newTested,
         newAssigned, newUnassigned, newWriteCaptured ? null : newSsaNode);
   }
@@ -2780,7 +2830,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
           List<Type> newTested,
           bool newAssigned,
           bool newUnassigned,
-          SsaNode? newSsaNode) {
+          SsaNode<Variable, Type>? newSsaNode) {
     if (identical(first.promotedTypes, newPromotedTypes) &&
         identical(first.tested, newTested) &&
         first.assigned == newAssigned &&
@@ -3095,13 +3145,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           leftOperandTypeClassification == TypeClassification.nullOrEquivalent);
       ExpressionInfo<Variable, Type> equalityInfo =
           _current.tryMarkNonNullable(typeOperations, rhsVariable);
-      _storeExpressionInfo(wholeExpression,
-          notEqual ? equalityInfo : ExpressionInfo.invert(equalityInfo));
+      _storeExpressionInfo(
+          wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
     } else if (rhsInfo is _NullInfo<Variable, Type> && lhsVariable != null) {
       ExpressionInfo<Variable, Type> equalityInfo =
           _current.tryMarkNonNullable(typeOperations, lhsVariable);
-      _storeExpressionInfo(wholeExpression,
-          notEqual ? equalityInfo : ExpressionInfo.invert(equalityInfo));
+      _storeExpressionInfo(
+          wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
     }
   }
 
@@ -3112,6 +3162,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         leftOperandType,
         _getExpressionVariable(leftOperand)));
   }
+
+  @override
+  ExpressionInfo<Variable, Type>? expressionInfoForTesting(Expression target) =>
+      identical(target, _expressionWithInfo) ? _expressionInfo : null;
 
   @override
   void finish() {
@@ -3169,7 +3223,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
             _current.reachable.parent!, _current);
     _stack.add(context);
     if (loopVariable != null) {
-      _current = _current.write(loopVariable, writtenType, typeOperations);
+      _current = _current.write(loopVariable, writtenType,
+          new SsaNode<Variable, Type>(null), typeOperations);
     }
   }
 
@@ -3296,6 +3351,26 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void initialize(
+      Variable variable, Type initializerType, Expression initializerExpression,
+      {required bool isFinal, required bool isLate}) {
+    ExpressionInfo<Variable, Type>? expressionInfo =
+        _getExpressionInfo(initializerExpression);
+    SsaNode<Variable, Type> newSsaNode = new SsaNode<Variable, Type>(isLate
+        ? null
+        : expressionInfo is _TrivialExpressionInfo
+            ? null
+            : expressionInfo);
+    if (isFinal) {
+      // We don't promote final variables on initialization, so pretend the
+      // written type is the variable's declared type.
+      initializerType = typeOperations.variableType(variable);
+    }
+    _current =
+        _current.write(variable, initializerType, newSsaNode, typeOperations);
+  }
+
+  @override
   bool isAssigned(Variable variable) {
     return _current.infoFor(variable).assigned;
   }
@@ -3307,8 +3382,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (subExpressionVariable != null) {
       ExpressionInfo<Variable, Type> expressionInfo = _current
           .tryPromoteForTypeCheck(typeOperations, subExpressionVariable, type);
-      _storeExpressionInfo(isExpression,
-          isNot ? ExpressionInfo.invert(expressionInfo) : expressionInfo);
+      _storeExpressionInfo(
+          isExpression, isNot ? expressionInfo.invert() : expressionInfo);
     }
   }
 
@@ -3391,7 +3466,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void logicalNot_end(Expression notExpression, Expression operand) {
     ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(operand);
-    _storeExpressionInfo(notExpression, ExpressionInfo.invert(conditionInfo));
+    _storeExpressionInfo(notExpression, conditionInfo.invert());
   }
 
   @override
@@ -3446,7 +3521,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  SsaNode? ssaNodeForTesting(Variable variable) =>
+  SsaNode<Variable, Type>? ssaNodeForTesting(Variable variable) =>
       _current.variableInfo[variable]?.ssaNode;
 
   @override
@@ -3607,15 +3682,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void write(Variable variable, Type writtenType,
-      {bool viaInitializer = false}) {
-    if (!viaInitializer) {
-      assert(
-          _assignedVariables._anywhere._written.contains(variable),
-          "Variable is written to, but was not included in "
-          "_variablesWrittenAnywhere: $variable");
-    }
-    _current = _current.write(variable, writtenType, typeOperations);
+  void write(
+      Variable variable, Type writtenType, Expression? writtenExpression) {
+    ExpressionInfo<Variable, Type>? expressionInfo = writtenExpression == null
+        ? null
+        : _getExpressionInfo(writtenExpression);
+    SsaNode<Variable, Type> newSsaNode = new SsaNode<Variable, Type>(
+        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
+    _current =
+        _current.write(variable, writtenType, newSsaNode, typeOperations);
   }
 
   void _dumpState() {
@@ -3635,8 +3710,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// [ExpressionInfo] associated with the [expression], then a fresh
   /// [ExpressionInfo] is created recording the current flow analysis state.
   ExpressionInfo<Variable, Type> _expressionEnd(Expression expression) =>
-      _getExpressionInfo(expression) ??
-      new ExpressionInfo(_current, _current, _current);
+      _getExpressionInfo(expression) ?? new _TrivialExpressionInfo(_current);
 
   /// Gets the [ExpressionInfo] associated with the [expression] (which should
   /// be the last expression that was traversed).  If there is no
@@ -3754,6 +3828,14 @@ class _NullInfo<Variable extends Object, Type extends Object>
 
   @override
   FlowModel<Variable, Type> get ifTrue => after;
+
+  @override
+  ExpressionInfo<Variable, Type> invert() {
+    // This should only happen if `!null` is encountered.  That should never
+    // happen for a properly typed program, but we need to handle it so we can
+    // give reasonable errors for an improperly typed program.
+    return this;
+  }
 }
 
 /// [_FlowContext] representing a language construct for which flow analysis
@@ -3789,6 +3871,26 @@ class _SimpleStatementContext<Variable extends Object, Type extends Object>
   String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
       'continueModel: $_continueModel, previous: $_previous, '
       'checkpoint: $_checkpoint)';
+}
+
+/// Specialization of [ExpressionInfo] for the case where the information we
+/// have about the expression is trivial (meaning we know by construction that
+/// the expression's [after], [ifTrue], and [ifFalse] models are all the same).
+class _TrivialExpressionInfo<Variable extends Object, Type extends Object>
+    implements ExpressionInfo<Variable, Type> {
+  @override
+  final FlowModel<Variable, Type> after;
+
+  _TrivialExpressionInfo(this.after);
+
+  @override
+  FlowModel<Variable, Type> get ifFalse => after;
+
+  @override
+  FlowModel<Variable, Type> get ifTrue => after;
+
+  @override
+  ExpressionInfo<Variable, Type> invert() => this;
 }
 
 /// [_FlowContext] representing a try statement.

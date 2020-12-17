@@ -2028,10 +2028,10 @@ class ResolverVisitor extends ScopedVisitor {
           _flowAnalysis?.flow?.promote(
               declaredElement as PromotableElement, initializerStaticType);
         }
-      } else if (!parent.isFinal) {
-        _flowAnalysis?.flow?.write(
-            declaredElement as PromotableElement, initializerStaticType,
-            viaInitializer: true);
+      } else {
+        _flowAnalysis?.flow?.initialize(declaredElement as PromotableElement,
+            initializerStaticType, initializer,
+            isFinal: parent.isFinal, isLate: parent.isLate);
       }
     }
   }

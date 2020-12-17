@@ -217,7 +217,7 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _flowAnalysis?.flow?.write(element, staticType);
+            _flowAnalysis?.flow?.write(element, staticType, null);
           }
         }
       }
