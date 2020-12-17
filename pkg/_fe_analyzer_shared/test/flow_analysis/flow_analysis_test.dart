@@ -2586,18 +2586,11 @@ main() {
       ]);
     });
 
-    test('variableRead() restores the notion of whether a value is null', () {
-      // This is not a necessary part of the design of
-      // https://github.com/dart-lang/language/issues/1274; it's more of a happy
-      // accident of how it was implemented: since we store an ExpressionInfo
-      // object in the SSA node to keep track of the consequences of the
-      // variable's value on flow analysis, and since the _NullInfo type is a
-      // subtype of ExpressionInfo, that means that when a literal `null` is
-      // written to a variable, and we read it later, we recognize the value as
-      // being `null` for purposes of comparison to other other variables.  Even
-      // though this feature is a happy accident of the implementation strategy,
-      // it's important to test it to make sure it doesn't regress, since users
-      // might come to rely on it.
+    test("variableRead() doesn't restore the notion of whether a value is null",
+        () {
+      // Note: we have the available infrastructure to do this if we want, but
+      // we think it will give an inconsistent feel because comparisons like
+      // `if (i == null)` *don't* promote.
       var h = Harness(allowLocalBooleanVarsToPromote: true);
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
@@ -2611,7 +2604,9 @@ main() {
           checkNotPromoted(x),
           checkNotPromoted(y),
         ], [
-          checkPromoted(x, 'int'),
+          // Even though x != y and y is known to contain the value `null`, we
+          // don't promote x.
+          checkNotPromoted(x),
           checkNotPromoted(y),
         ]),
       ]);

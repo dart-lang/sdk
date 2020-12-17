@@ -298,7 +298,7 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
   ExpressionInfo<Variable, Type> invert() =>
       new ExpressionInfo<Variable, Type>(after, ifFalse, ifTrue);
 
-  ExpressionInfo<Variable, Type> rebaseForward(
+  ExpressionInfo<Variable, Type>? rebaseForward(
           TypeOperations<Variable, Type> typeOperations,
           FlowModel<Variable, Type> base) =>
       new ExpressionInfo(base, ifTrue.rebaseForward(typeOperations, base),
@@ -3757,11 +3757,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _storeExpressionVariable(expression, variable);
     VariableModel<Variable, Type> variableModel = _current.infoFor(variable);
     if (allowLocalBooleanVarsToPromote) {
-      ExpressionInfo<Variable, Type>? expressionInfo =
-          variableModel.ssaNode?.expressionInfo;
+      ExpressionInfo<Variable, Type>? expressionInfo = variableModel
+          .ssaNode?.expressionInfo
+          ?.rebaseForward(typeOperations, _current);
       if (expressionInfo != null) {
-        _storeExpressionInfo(
-            expression, expressionInfo.rebaseForward(typeOperations, _current));
+        _storeExpressionInfo(expression, expressionInfo);
       }
     }
     return variableModel.promotedTypes?.last;
@@ -3951,10 +3951,10 @@ class _NullInfo<Variable extends Object, Type extends Object>
   }
 
   @override
-  ExpressionInfo<Variable, Type> rebaseForward(
+  ExpressionInfo<Variable, Type>? rebaseForward(
           TypeOperations<Variable, Type> typeOperations,
           FlowModel<Variable, Type> base) =>
-      new _NullInfo(base);
+      null;
 }
 
 /// [_FlowContext] representing a language construct for which flow analysis
