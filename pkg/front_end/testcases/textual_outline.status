@@ -121,6 +121,7 @@ general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/many_errors: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
+general/pure_index_expressions: FormatterCrash
 general/type_parameter_usage_in_static_method_in_extension: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/var_as_type_name: FormatterCrash
@@ -207,6 +208,7 @@ nnbd/nullable_setter: FormatterCrash
 nnbd/opt_out: FormatterCrash
 nnbd/potentially_non_nullable_field: FormatterCrash
 nnbd/potentially_nullable_access: FormatterCrash
+nnbd/pure_index_expressions: FormatterCrash
 nnbd/strictly_non_nullable_warnings: FormatterCrash
 nnbd/uninitialized_non_nullable_late_fields: FormatterCrash
 nnbd_mixed/inheritance_from_opt_in: FormatterCrash

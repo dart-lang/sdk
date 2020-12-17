@@ -61,20 +61,6 @@ class InferenceVisitor
 
   InferenceVisitor(this.inferrer);
 
-  Expression _clone(Expression node) {
-    if (node is ThisExpression) {
-      return new ThisExpression()..fileOffset = node.fileOffset;
-    } else if (node is VariableGet) {
-      assert(
-          node.variable.isFinal,
-          "Trying to clone VariableGet of non-final variable"
-          " ${node.variable}.");
-      return new VariableGet(node.variable, node.promotedType)
-        ..fileOffset = node.fileOffset;
-    }
-    throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
-  }
-
   ExpressionInferenceResult _unhandledExpression(
       Expression node, DartType typeContext) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
@@ -500,7 +486,7 @@ class InferenceVisitor
     }
 
     VariableDeclaration receiverVariable;
-    if (node.forEffect || node.readOnlyReceiver) {
+    if (node.forEffect || isPureExpression(receiver)) {
       // No need for receiver variable.
     } else {
       receiverVariable = createVariable(receiver, receiverResult.inferredType);
@@ -551,9 +537,9 @@ class InferenceVisitor
     VariableDeclaration receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
-    if (node.readOnlyReceiver && identical(receiver, node.receiver)) {
+    if (isPureExpression(receiver)) {
       readReceiver = receiver;
-      writeReceiver = _clone(receiver);
+      writeReceiver = clonePureExpression(receiver);
     } else {
       receiverVariable = createVariable(receiver, receiverType);
       readReceiver = createVariableGet(receiverVariable);
@@ -2749,9 +2735,9 @@ class InferenceVisitor
     VariableDeclaration receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
-    if (node.readOnlyReceiver && identical(receiver, node.receiver)) {
+    if (isPureExpression(receiver)) {
       readReceiver = receiver;
-      writeReceiver = _clone(receiver);
+      writeReceiver = clonePureExpression(receiver);
     } else {
       receiverVariable = createVariable(receiver, receiverType);
       inferrer.instrumentation?.record(
@@ -3004,7 +2990,7 @@ class InferenceVisitor
     DartType receiverType = receiverResult.nullAwareActionType;
 
     VariableDeclaration receiverVariable;
-    if (!node.forEffect && !node.readOnlyReceiver) {
+    if (!node.forEffect && !isPureExpression(receiver)) {
       receiverVariable = createVariable(receiver, receiverType);
       receiver = createVariableGet(receiverVariable);
     }
@@ -3023,7 +3009,7 @@ class InferenceVisitor
     Expression index = inferrer.ensureAssignableResult(indexType, indexResult);
 
     VariableDeclaration indexVariable;
-    if (!node.forEffect) {
+    if (!node.forEffect && !isPureExpression(index)) {
       indexVariable = createVariable(index, indexResult.inferredType);
       index = createVariableGet(indexVariable);
     }
@@ -3033,9 +3019,14 @@ class InferenceVisitor
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
 
     VariableDeclaration valueVariable;
-    if (!node.forEffect) {
+    Expression returnedValue;
+    if (node.forEffect) {
+    } else if (isPureExpression(value)) {
+      returnedValue = clonePureExpression(value);
+    } else {
       valueVariable = createVariable(value, valueResult.inferredType);
       value = createVariableGet(valueVariable);
+      returnedValue = createVariableGet(valueVariable);
     }
 
     // The inferred type is that inferred type of the value expression and not
@@ -3049,14 +3040,15 @@ class InferenceVisitor
     if (node.forEffect) {
       replacement = assignment;
     } else {
-      assert(indexVariable != null);
-      assert(valueVariable != null);
       VariableDeclaration assignmentVariable =
           createVariable(assignment, const VoidType());
-      replacement = createLet(
-          indexVariable,
-          createLet(valueVariable,
-              createLet(assignmentVariable, createVariableGet(valueVariable))));
+      replacement = createLet(assignmentVariable, returnedValue);
+      if (valueVariable != null) {
+        replacement = createLet(valueVariable, replacement);
+      }
+      if (indexVariable != null) {
+        replacement = createLet(indexVariable, replacement);
+      }
       if (receiverVariable != null) {
         replacement = createLet(receiverVariable, replacement);
       }
@@ -3083,14 +3075,25 @@ class InferenceVisitor
 
     Expression index = inferrer.ensureAssignableResult(indexType, indexResult);
 
-    VariableDeclaration indexVariable =
-        createVariable(index, indexResult.inferredType);
+    VariableDeclaration indexVariable;
+    if (!isPureExpression(index)) {
+      indexVariable = createVariable(index, indexResult.inferredType);
+      index = createVariableGet(indexVariable);
+    }
 
     ExpressionInferenceResult valueResult = inferrer
         .inferExpression(node.value, valueType, true, isVoidAllowed: true);
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
-    VariableDeclaration valueVariable =
-        createVariable(value, valueResult.inferredType);
+
+    VariableDeclaration valueVariable;
+    Expression returnedValue;
+    if (isPureExpression(value)) {
+      returnedValue = clonePureExpression(value);
+    } else {
+      valueVariable = createVariable(value, valueResult.inferredType);
+      value = createVariableGet(valueVariable);
+      returnedValue = createVariableGet(valueVariable);
+    }
 
     // The inferred type is that inferred type of the value expression and not
     // the type of the value parameter.
@@ -3098,8 +3101,8 @@ class InferenceVisitor
 
     Expression assignment;
     if (indexSetTarget.isMissing) {
-      assignment = inferrer.createMissingSuperIndexSet(node.fileOffset,
-          createVariableGet(indexVariable), createVariableGet(valueVariable));
+      assignment =
+          inferrer.createMissingSuperIndexSet(node.fileOffset, index, value);
     } else {
       assert(indexSetTarget.isInstanceMember || indexSetTarget.isObjectMember);
       inferrer.instrumentation?.record(
@@ -3109,21 +3112,20 @@ class InferenceVisitor
           new InstrumentationValueForMember(node.setter));
       assignment = new SuperMethodInvocation(
           indexSetName,
-          new Arguments(<Expression>[
-            createVariableGet(indexVariable),
-            createVariableGet(valueVariable)
-          ])
+          new Arguments(<Expression>[index, value])
             ..fileOffset = node.fileOffset,
           indexSetTarget.member)
         ..fileOffset = node.fileOffset;
     }
     VariableDeclaration assignmentVariable =
         createVariable(assignment, const VoidType());
-    Expression replacement = new Let(
-        indexVariable,
-        createLet(valueVariable,
-            createLet(assignmentVariable, createVariableGet(valueVariable))))
-      ..fileOffset = node.fileOffset;
+    Expression replacement = createLet(assignmentVariable, returnedValue);
+    if (valueVariable != null) {
+      replacement = createLet(valueVariable, replacement);
+    }
+    if (indexVariable != null) {
+      replacement = createLet(indexVariable, replacement);
+    }
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -3143,8 +3145,11 @@ class InferenceVisitor
     Expression receiver =
         inferrer.ensureAssignableResult(receiverType, receiverResult);
 
-    VariableDeclaration receiverVariable =
-        createVariable(receiver, receiverType);
+    VariableDeclaration receiverVariable;
+    if (!isPureExpression(receiver)) {
+      receiverVariable = createVariable(receiver, receiverType);
+      receiver = createVariableGet(receiverVariable);
+    }
 
     ObjectAccessTarget target = new ExtensionAccessTarget(
         node.setter, null, ProcedureKind.Operator, extensionTypeArguments);
@@ -3157,40 +3162,38 @@ class InferenceVisitor
 
     Expression index = inferrer.ensureAssignableResult(indexType, indexResult);
 
-    VariableDeclaration indexVariable =
-        createVariable(index, indexResult.inferredType);
-
     ExpressionInferenceResult valueResult = inferrer
         .inferExpression(node.value, valueType, true, isVoidAllowed: true);
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
-    VariableDeclaration valueVariable =
-        createVariable(value, valueResult.inferredType);
+
+    VariableDeclaration valueVariable;
+    Expression returnedValue;
+    if (isPureExpression(value)) {
+      returnedValue = clonePureExpression(value);
+    } else {
+      valueVariable = createVariable(value, valueResult.inferredType);
+      value = createVariableGet(valueVariable);
+      returnedValue = createVariableGet(valueVariable);
+    }
 
     // The inferred type is that inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
-    Expression assignment = _computeIndexSet(
-        node.fileOffset,
-        createVariableGet(receiverVariable),
-        receiverType,
-        target,
-        createVariableGet(indexVariable),
-        indexType,
-        createVariableGet(valueVariable),
-        valueType);
+    Expression assignment = _computeIndexSet(node.fileOffset, receiver,
+        receiverType, target, index, indexType, value, valueType);
 
     VariableDeclaration assignmentVariable =
         createVariable(assignment, const VoidType());
-    Expression replacement = new Let(
-        receiverVariable,
-        createLet(
-            indexVariable,
-            createLet(
-                valueVariable,
-                createLet(
-                    assignmentVariable, createVariableGet(valueVariable)))))
-      ..fileOffset = node.fileOffset;
+    Expression replacement = createLet(assignmentVariable, returnedValue);
+    if (valueVariable != null) {
+      replacement = createLet(valueVariable, replacement);
+    }
+    if (receiverVariable != null) {
+      replacement = createLet(receiverVariable, replacement);
+    }
+    replacement.fileOffset = node.fileOffset;
+
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -3207,8 +3210,8 @@ class InferenceVisitor
     VariableDeclaration receiverVariable;
     Expression readReceiver = receiver;
     Expression writeReceiver;
-    if (node.readOnlyReceiver && identical(receiver, node.receiver)) {
-      writeReceiver = _clone(readReceiver);
+    if (isPureExpression(readReceiver)) {
+      writeReceiver = clonePureExpression(readReceiver);
     } else {
       receiverVariable = createVariable(readReceiver, receiverType);
       readReceiver = createVariableGet(receiverVariable);
@@ -3237,9 +3240,17 @@ class InferenceVisitor
     ExpressionInferenceResult indexResult = inferrer
         .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
 
-    VariableDeclaration indexVariable = createVariableForResult(indexResult);
+    VariableDeclaration indexVariable;
+    Expression readIndex = indexResult.expression;
+    Expression writeIndex;
+    if (isPureExpression(readIndex)) {
+      writeIndex = clonePureExpression(readIndex);
+    } else {
+      indexVariable = createVariable(readIndex, indexResult.inferredType);
+      readIndex = createVariableGet(indexVariable);
+      writeIndex = createVariableGet(indexVariable);
+    }
 
-    Expression readIndex = createVariableGet(indexVariable);
     readIndex = inferrer.ensureAssignable(
         readIndexType, indexResult.inferredType, readIndex);
 
@@ -3261,7 +3272,6 @@ class InferenceVisitor
         .findInterfaceMember(readType, equalsName, node.testOffset)
         .member;
 
-    Expression writeIndex = createVariableGet(indexVariable);
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);
 
@@ -3276,11 +3286,15 @@ class InferenceVisitor
             inferrer.library.library);
 
     VariableDeclaration valueVariable;
+    Expression returnedValue;
     if (node.forEffect) {
       // No need for value variable.
+    } else if (isPureExpression(value)) {
+      returnedValue = clonePureExpression(value);
     } else {
       valueVariable = createVariable(value, valueResult.inferredType);
       value = createVariableGet(valueVariable);
+      returnedValue = createVariableGet(valueVariable);
     }
 
     Expression write = _computeIndexSet(
@@ -3313,7 +3327,7 @@ class InferenceVisitor
       ConditionalExpression conditional = new ConditionalExpression(equalsNull,
           write, new NullLiteral()..fileOffset = node.testOffset, inferredType)
         ..fileOffset = node.testOffset;
-      inner = createLet(indexVariable, conditional);
+      inner = conditional;
     } else {
       // Encode `Extension(o)[a] ??= b` as, if `node.readOnlyReceiver` is false,
       // as:
@@ -3339,8 +3353,6 @@ class InferenceVisitor
       //        : readVariable
       //
       //
-      assert(valueVariable != null);
-
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
           node.testOffset, createVariableGet(readVariable), equalsMember);
@@ -3351,14 +3363,17 @@ class InferenceVisitor
           !identical(nonNullableReadType, readType)) {
         variableGet.promotedType = nonNullableReadType;
       }
+      Expression result = createLet(writeVariable, returnedValue);
+      if (valueVariable != null) {
+        result = createLet(valueVariable, result);
+      }
       ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull,
-          createLet(valueVariable,
-              createLet(writeVariable, createVariableGet(valueVariable))),
-          variableGet,
-          inferredType)
+          equalsNull, result, variableGet, inferredType)
         ..fileOffset = node.fileOffset;
-      inner = createLet(indexVariable, createLet(readVariable, conditional));
+      inner = createLet(readVariable, conditional);
+    }
+    if (indexVariable != null) {
+      inner = createLet(indexVariable, inner);
     }
 
     Expression replacement;
@@ -3402,13 +3417,20 @@ class InferenceVisitor
     ExpressionInferenceResult indexResult = inferrer
         .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
 
-    VariableDeclaration indexVariable = createVariableForResult(indexResult);
+    VariableDeclaration indexVariable;
+    Expression readIndex = indexResult.expression;
+    Expression writeIndex;
+    if (isPureExpression(readIndex)) {
+      writeIndex = clonePureExpression(readIndex);
+    } else {
+      indexVariable = createVariable(readIndex, indexResult.inferredType);
+      readIndex = createVariableGet(indexVariable);
+      writeIndex = createVariableGet(indexVariable);
+    }
 
-    Expression readIndex = createVariableGet(indexVariable);
     readIndex = inferrer.ensureAssignable(
         readIndexType, indexResult.inferredType, readIndex);
 
-    Expression writeIndex = createVariableGet(indexVariable);
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);
 
@@ -3445,11 +3467,15 @@ class InferenceVisitor
             inferrer.library.library);
 
     VariableDeclaration valueVariable;
+    Expression returnedValue;
     if (node.forEffect) {
       // No need for a value variable.
+    } else if (isPureExpression(value)) {
+      returnedValue = clonePureExpression(value);
     } else {
       valueVariable = createVariable(value, valueResult.inferredType);
       value = createVariableGet(valueVariable);
+      returnedValue = createVariableGet(valueVariable);
     }
 
     Expression write;
@@ -3479,12 +3505,12 @@ class InferenceVisitor
       //     let v1 = a in
       //        super[v1] == null ? super.[]=(v1, b) : null
       //
+      assert(valueVariable == null);
       Expression equalsNull =
           inferrer.createEqualsNull(node.testOffset, read, equalsMember);
-      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          write, new NullLiteral()..fileOffset = node.testOffset, inferredType)
+      replacement = new ConditionalExpression(equalsNull, write,
+          new NullLiteral()..fileOffset = node.testOffset, inferredType)
         ..fileOffset = node.testOffset;
-      replacement = createLet(indexVariable, conditional);
     } else {
       // Encode `o[a] ??= b` as:
       //
@@ -3496,29 +3522,29 @@ class InferenceVisitor
       //           v3)
       //        : v2
       //
-      assert(valueVariable != null);
 
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
           node.testOffset, createVariableGet(readVariable), equalsMember);
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      VariableGet variableGet = createVariableGet(readVariable);
+      VariableGet readVariableGet = createVariableGet(readVariable);
       if (inferrer.library.isNonNullableByDefault &&
           !identical(nonNullableReadType, readType)) {
-        variableGet.promotedType = nonNullableReadType;
+        readVariableGet.promotedType = nonNullableReadType;
+      }
+      Expression result = createLet(writeVariable, returnedValue);
+      if (valueVariable != null) {
+        result = createLet(valueVariable, result);
       }
       ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull,
-          createLet(valueVariable,
-              createLet(writeVariable, createVariableGet(valueVariable))),
-          variableGet,
-          inferredType)
+          equalsNull, result, readVariableGet, inferredType)
         ..fileOffset = node.fileOffset;
-      replacement =
-          createLet(indexVariable, createLet(readVariable, conditional));
+      replacement = createLet(readVariable, conditional);
     }
-
+    if (indexVariable != null) {
+      replacement = createLet(indexVariable, replacement);
+    }
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -3541,9 +3567,9 @@ class InferenceVisitor
     VariableDeclaration receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
-    if (node.readOnlyReceiver && identical(receiver, node.receiver)) {
+    if (isPureExpression(receiver)) {
       readReceiver = receiver;
-      writeReceiver = _clone(receiver);
+      writeReceiver = clonePureExpression(receiver);
     } else {
       receiverVariable = createVariable(receiver, receiverType);
       readReceiver = createVariableGet(receiverVariable);
@@ -3570,9 +3596,17 @@ class InferenceVisitor
     ExpressionInferenceResult indexResult = inferrer
         .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
 
-    VariableDeclaration indexVariable = createVariableForResult(indexResult);
+    VariableDeclaration indexVariable;
+    Expression readIndex = indexResult.expression;
+    Expression writeIndex;
+    if (isPureExpression(readIndex)) {
+      writeIndex = clonePureExpression(readIndex);
+    } else {
+      indexVariable = createVariable(readIndex, indexResult.inferredType);
+      readIndex = createVariableGet(indexVariable);
+      writeIndex = createVariableGet(indexVariable);
+    }
 
-    Expression readIndex = createVariableGet(indexVariable);
     readIndex = inferrer.ensureAssignable(
         readIndexType, indexResult.inferredType, readIndex);
 
@@ -3594,7 +3628,6 @@ class InferenceVisitor
         .findInterfaceMember(readType, equalsName, node.testOffset)
         .member;
 
-    Expression writeIndex = createVariableGet(indexVariable);
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);
 
@@ -3609,11 +3642,15 @@ class InferenceVisitor
             inferrer.library.library);
 
     VariableDeclaration valueVariable;
+    Expression returnedValue;
     if (node.forEffect) {
       // No need for a value variable.
+    } else if (isPureExpression(value)) {
+      returnedValue = clonePureExpression(value);
     } else {
       valueVariable = createVariable(value, valueResult.inferredType);
       value = createVariableGet(valueVariable);
+      returnedValue = createVariableGet(valueVariable);
     }
 
     Expression write = _computeIndexSet(
@@ -3635,12 +3672,12 @@ class InferenceVisitor
       //        receiverVariable[indexVariable] == null
       //          ? receiverVariable.[]=(indexVariable, b) : null
       //
+      assert(valueVariable == null);
       Expression equalsNull =
           inferrer.createEqualsNull(node.testOffset, read, equalsMember);
-      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          write, new NullLiteral()..fileOffset = node.testOffset, inferredType)
+      replacement = new ConditionalExpression(equalsNull, write,
+          new NullLiteral()..fileOffset = node.testOffset, inferredType)
         ..fileOffset = node.testOffset;
-      replacement = createLet(indexVariable, conditional);
     } else {
       // Encode `Extension(o)[a] ??= b` as:
       //
@@ -3654,27 +3691,27 @@ class InferenceVisitor
       //           valueVariable)
       //        : readVariable
       //
-      assert(valueVariable != null);
-
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
           node.testOffset, createVariableGet(readVariable), equalsMember);
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      VariableGet variableGet = createVariableGet(readVariable);
+      VariableGet readVariableGet = createVariableGet(readVariable);
       if (inferrer.library.isNonNullableByDefault &&
           !identical(nonNullableReadType, readType)) {
-        variableGet.promotedType = nonNullableReadType;
+        readVariableGet.promotedType = nonNullableReadType;
+      }
+      Expression result = createLet(writeVariable, returnedValue);
+      if (valueVariable != null) {
+        result = createLet(valueVariable, result);
       }
       ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull,
-          createLet(valueVariable,
-              createLet(writeVariable, createVariableGet(valueVariable))),
-          variableGet,
-          inferredType)
+          equalsNull, result, readVariableGet, inferredType)
         ..fileOffset = node.fileOffset;
-      replacement =
-          createLet(indexVariable, createLet(readVariable, conditional));
+      replacement = createLet(readVariable, conditional);
+    }
+    if (indexVariable != null) {
+      replacement = createLet(indexVariable, replacement);
     }
     if (receiverVariable != null) {
       replacement = new Let(receiverVariable, replacement);
@@ -4384,14 +4421,12 @@ class InferenceVisitor
       case ObjectAccessTargetKind.missing:
         write = inferrer.createMissingIndexSet(
             fileOffset, receiver, receiverType, index, value,
-            forEffect: true, readOnlyReceiver: true);
+            forEffect: true);
         break;
       case ObjectAccessTargetKind.ambiguous:
         write = inferrer.createMissingIndexSet(
             fileOffset, receiver, receiverType, index, value,
-            forEffect: true,
-            readOnlyReceiver: true,
-            extensionAccessCandidates: writeTarget.candidates);
+            forEffect: true, extensionAccessCandidates: writeTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
@@ -4858,8 +4893,8 @@ class InferenceVisitor
     VariableDeclaration receiverVariable;
     Expression readReceiver = receiver;
     Expression writeReceiver;
-    if (node.readOnlyReceiver) {
-      writeReceiver = _clone(readReceiver);
+    if (isPureExpression(readReceiver)) {
+      writeReceiver = clonePureExpression(readReceiver);
     } else {
       receiverVariable = createVariable(readReceiver, receiverType);
       readReceiver = createVariableGet(receiverVariable);
@@ -4878,9 +4913,18 @@ class InferenceVisitor
 
     ExpressionInferenceResult indexResult = inferrer
         .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
-    VariableDeclaration indexVariable = createVariableForResult(indexResult);
 
-    Expression readIndex = createVariableGet(indexVariable);
+    VariableDeclaration indexVariable;
+    Expression readIndex = indexResult.expression;
+    Expression writeIndex;
+    if (isPureExpression(readIndex)) {
+      writeIndex = clonePureExpression(readIndex);
+    } else {
+      indexVariable = createVariable(readIndex, indexResult.inferredType);
+      readIndex = createVariableGet(indexVariable);
+      writeIndex = createVariableGet(indexVariable);
+    }
+
     readIndex = inferrer.ensureAssignable(
         readIndexType, indexResult.inferredType, readIndex);
 
@@ -4926,7 +4970,6 @@ class InferenceVisitor
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
-    Expression writeIndex = createVariableGet(indexVariable);
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);
 
@@ -4960,7 +5003,7 @@ class InferenceVisitor
       //
       //     let v1 = o in let v2 = a in v1.[]=(v2, v1.[](v2) + b)
       //
-      inner = createLet(indexVariable, write);
+      inner = write;
     } else if (node.forPostIncDec) {
       // Encode `o[a]++` as:
       //
@@ -4974,10 +5017,8 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      inner = createLet(
-          indexVariable,
-          createLet(leftVariable,
-              createLet(writeVariable, createVariableGet(leftVariable))));
+      inner = createLet(leftVariable,
+          createLet(writeVariable, createVariableGet(leftVariable)));
     } else {
       // Encode `o[a] += b` as:
       //
@@ -4991,10 +5032,11 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      inner = createLet(
-          indexVariable,
-          createLet(valueVariable,
-              createLet(writeVariable, createVariableGet(valueVariable))));
+      inner = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
+    }
+    if (indexVariable != null) {
+      inner = createLet(indexVariable, inner);
     }
 
     Expression replacement;
@@ -5156,9 +5198,18 @@ class InferenceVisitor
 
     ExpressionInferenceResult indexResult = inferrer
         .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
-    VariableDeclaration indexVariable = createVariableForResult(indexResult);
 
-    Expression readIndex = createVariableGet(indexVariable);
+    VariableDeclaration indexVariable;
+    Expression readIndex = indexResult.expression;
+    Expression writeIndex;
+    if (isPureExpression(readIndex)) {
+      writeIndex = clonePureExpression(readIndex);
+    } else {
+      indexVariable = createVariable(readIndex, indexResult.inferredType);
+      readIndex = createVariableGet(indexVariable);
+      writeIndex = createVariableGet(indexVariable);
+    }
+
     readIndex = inferrer.ensureAssignable(
         readIndexType, indexResult.inferredType, readIndex);
 
@@ -5213,7 +5264,6 @@ class InferenceVisitor
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
-    Expression writeIndex = createVariableGet(indexVariable);
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);
 
@@ -5260,7 +5310,7 @@ class InferenceVisitor
       //
       //     let v1 = a in super.[]=(v1, super.[](v1) + b)
       //
-      replacement = createLet(indexVariable, write);
+      replacement = write;
     } else if (node.forPostIncDec) {
       // Encode `super[a]++` as:
       //
@@ -5273,10 +5323,8 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      replacement = createLet(
-          indexVariable,
-          createLet(leftVariable,
-              createLet(writeVariable, createVariableGet(leftVariable))));
+      replacement = createLet(leftVariable,
+          createLet(writeVariable, createVariableGet(leftVariable)));
     } else {
       // Encode `super[a] += b` as:
       //
@@ -5290,12 +5338,12 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      replacement = createLet(
-          indexVariable,
-          createLet(valueVariable,
-              createLet(writeVariable, createVariableGet(valueVariable))));
+      replacement = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
     }
-
+    if (indexVariable != null) {
+      replacement = createLet(indexVariable, replacement);
+    }
     return new ExpressionInferenceResult(
         node.forPostIncDec ? readType : binaryType, replacement);
   }
@@ -5324,9 +5372,9 @@ class InferenceVisitor
     VariableDeclaration receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
-    if (node.readOnlyReceiver && identical(receiver, node.receiver)) {
+    if (isPureExpression(receiver)) {
       readReceiver = receiver;
-      writeReceiver = _clone(receiver);
+      writeReceiver = clonePureExpression(receiver);
     } else {
       receiverVariable = createVariable(receiver, receiverType);
       readReceiver = createVariableGet(receiverVariable);
@@ -5337,9 +5385,18 @@ class InferenceVisitor
 
     ExpressionInferenceResult indexResult = inferrer
         .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
-    VariableDeclaration indexVariable = createVariableForResult(indexResult);
 
-    Expression readIndex = createVariableGet(indexVariable);
+    VariableDeclaration indexVariable;
+    Expression readIndex = indexResult.expression;
+    Expression writeIndex;
+    if (isPureExpression(readIndex)) {
+      writeIndex = clonePureExpression(readIndex);
+    } else {
+      indexVariable = createVariable(readIndex, indexResult.inferredType);
+      readIndex = createVariableGet(indexVariable);
+      writeIndex = createVariableGet(indexVariable);
+    }
+
     readIndex = inferrer.ensureAssignable(
         readIndexType, indexResult.inferredType, readIndex);
 
@@ -5387,7 +5444,6 @@ class InferenceVisitor
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
-    Expression writeIndex = createVariableGet(indexVariable);
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);
     binary = inferrer.ensureAssignable(valueType, binaryType, binary,
@@ -5422,7 +5478,7 @@ class InferenceVisitor
       //     let indexVariable = a in
       //         receiverVariable.[]=(receiverVariable, o.[](indexVariable) + b)
       //
-      replacement = createLet(indexVariable, write);
+      replacement = write;
     } else if (node.forPostIncDec) {
       // Encode `Extension(o)[a]++` as:
       //
@@ -5438,10 +5494,8 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      replacement = createLet(
-          indexVariable,
-          createLet(leftVariable,
-              createLet(writeVariable, createVariableGet(leftVariable))));
+      replacement = createLet(leftVariable,
+          createLet(writeVariable, createVariableGet(leftVariable)));
     } else {
       // Encode `Extension(o)[a] += b` as:
       //
@@ -5457,12 +5511,12 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      replacement = createLet(
-          indexVariable,
-          createLet(valueVariable,
-              createLet(writeVariable, createVariableGet(valueVariable))));
+      replacement = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
     }
-
+    if (indexVariable != null) {
+      replacement = createLet(indexVariable, replacement);
+    }
     if (receiverVariable != null) {
       replacement = new Let(receiverVariable, replacement);
     }

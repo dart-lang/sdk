@@ -706,12 +706,10 @@ class Forest {
 
   IndexSet createIndexSet(
       int fileOffset, Expression receiver, Expression index, Expression value,
-      {bool forEffect, bool readOnlyReceiver}) {
+      {bool forEffect}) {
     assert(fileOffset != null);
     assert(forEffect != null);
-    assert(readOnlyReceiver != null);
-    return new IndexSet(receiver, index, value,
-        forEffect: forEffect, readOnlyReceiver: readOnlyReceiver)
+    return new IndexSet(receiver, index, value, forEffect: forEffect)
       ..fileOffset = fileOffset;
   }
 

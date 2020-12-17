@@ -1,0 +1,73 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Map<self::Map::K%, self::Map::V%>
+    ;
+  abstract operator [](generic-covariant-impl self::Map::K% index) → self::Map::V%;
+  abstract operator []=(generic-covariant-impl self::Map::K% index, generic-covariant-impl self::Map::V% value) → void;
+}
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  operator [](self::Class cls) → self::Class
+    ;
+  operator []=(self::Class cls, self::Class value) → void
+    ;
+  operator +(self::Class cls) → self::Class
+    ;
+  method indexGetSetForEffect(self::Map<self::Class, self::Class> map) → void
+    ;
+  method indexGetSetForValue(self::Map<self::Class, self::Class> map) → void
+    ;
+  method implicitExtensionGetSetForEffect(core::int i) → void
+    ;
+  method implicitExtensionGetSetForValue(core::int i) → void
+    ;
+  method explicitExtensionGetSetForEffect(core::int i) → void
+    ;
+  method explicitExtensionGetSetForValue(core::int i) → void
+    ;
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    ;
+  method superIndexGetSetForEffect() → void
+    ;
+  method superIndexGetSetForValue() → void
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    ;
+  operator +(self::Class2 cls) → self::Class2
+    ;
+  method implicitExtensionGetSetForEffect() → void
+    ;
+  method implicitExtensionGetSetForValue() → void
+    ;
+  method explicitExtensionGetSetForEffect() → void
+    ;
+  method explicitExtensionGetSetForValue() → void
+    ;
+}
+extension Extension on core::int {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+extension Extension2 on self::Class2 {
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+}
+static field core::bool b;
+static method Extension|[](lowered final core::int #this, self::Class cls) → self::Class
+  ;
+static method Extension|[]=(lowered final core::int #this, self::Class cls, self::Class value) → void
+  ;
+static method Extension2|[](lowered final self::Class2 #this, self::Class2 cls) → self::Class2
+  ;
+static method Extension2|[]=(lowered final self::Class2 #this, self::Class2 cls, self::Class2 value) → void
+  ;
+static method main() → dynamic
+  ;
