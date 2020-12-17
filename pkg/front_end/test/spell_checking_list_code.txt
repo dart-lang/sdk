@@ -36,6 +36,7 @@ alive
 allocate
 altered
 analogous
+analogy
 annotate
 ansi
 answering
@@ -502,6 +503,7 @@ highlighting
 highlights
 hillerstrom
 histogram
+history
 hit
 hoc
 hopefully
@@ -906,7 +908,10 @@ reachability
 react
 realign
 realise
+reapplies
 reassigned
+rebased
+rebasing
 rebind
 rebuild
 rebuilds
@@ -970,6 +975,7 @@ restriction
 resumed
 ret
 reusage
+rewinds
 rewrites
 rewrote
 rf

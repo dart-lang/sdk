@@ -298,6 +298,12 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
   ExpressionInfo<Variable, Type> invert() =>
       new ExpressionInfo<Variable, Type>(after, ifFalse, ifTrue);
 
+  ExpressionInfo<Variable, Type> rebaseForward(
+          TypeOperations<Variable, Type> typeOperations,
+          FlowModel<Variable, Type> base) =>
+      new ExpressionInfo(base, ifTrue.rebaseForward(typeOperations, base),
+          ifFalse.rebaseForward(typeOperations, base));
+
   @override
   String toString() =>
       'ExpressionInfo(after: $after, _ifTrue: $ifTrue, ifFalse: $ifFalse)';
@@ -1596,6 +1602,106 @@ class FlowModel<Variable extends Object, Type extends Object> {
     }
   }
 
+  /// Updates `this` flow model to account for any promotions and assignments
+  /// present in [base].
+  ///
+  /// This is called "rebasing" the flow model by analogy to "git rebase"; in
+  /// effect, it rewinds any flow analysis state present in `this` but not in
+  /// the history of [base], and then reapplies that state using [base] as a
+  /// starting point, to the extent possible without creating unsoundness.  For
+  /// example, if a variable is promoted in `this` but not in [base], then it
+  /// will be promoted in the output model, provided that hasn't been reassigned
+  /// since then (which would make the promotion unsound).
+  FlowModel<Variable, Type> rebaseForward(
+      TypeOperations<Variable, Type> typeOperations,
+      FlowModel<Variable, Type> base) {
+    // The rebased model is reachable iff both `this` and the new base are
+    // reachable.
+    Reachability newReachable = reachable.rebaseForward(base.reachable);
+
+    // Consider each variable in the new base model.
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+        <Variable, VariableModel<Variable, Type>>{};
+    bool variableInfoMatchesThis = true;
+    bool variableInfoMatchesBase = true;
+    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+        in base.variableInfo.entries) {
+      Variable variable = entry.key;
+      VariableModel<Variable, Type> baseModel = entry.value;
+      VariableModel<Variable, Type>? thisModel = variableInfo[variable];
+      if (thisModel == null) {
+        // The variable has newly came into scope since `thisModel`, so the
+        // information in `baseModel` is up to date.
+        newVariableInfo[variable] = baseModel;
+        variableInfoMatchesThis = false;
+        continue;
+      }
+      // If the variable was write captured in either `this` or the new base,
+      // it's captured now.
+      bool newWriteCaptured =
+          thisModel.writeCaptured || baseModel.writeCaptured;
+      List<Type>? newPromotedTypes;
+      if (newWriteCaptured) {
+        // Write captured variables can't be promoted.
+        newPromotedTypes = null;
+      } else if (baseModel.ssaNode != thisModel.ssaNode) {
+        // The variable may have been written to since `thisModel`, so we can't
+        // use any of the promotions from `thisModel`.
+        newPromotedTypes = baseModel.promotedTypes;
+      } else {
+        // The variable hasn't been written to since `thisModel`, so we can keep
+        // all of the promotions from `thisModel`, provided that we retain the
+        // usual "promotion chain" invariant (each promoted type is a subtype of
+        // the previous).
+        newPromotedTypes = VariableModel.rebasePromotedTypes(
+            typeOperations, thisModel.promotedTypes, baseModel.promotedTypes);
+      }
+      // Tests are kept regardless of whether they are in `this` model or the
+      // new base model.
+      List<Type> newTested = VariableModel.joinTested(
+          thisModel.tested, baseModel.tested, typeOperations);
+      // The variable is definitely assigned if it was definitely assigned
+      // either in `this` model or the new base model.
+      bool newAssigned = thisModel.assigned || baseModel.assigned;
+      // The variable is definitely unassigned if it was definitely unassigned
+      // in both `this` model and the new base model.
+      bool newUnassigned = thisModel.unassigned && baseModel.unassigned;
+      VariableModel<Variable, Type> newModel = VariableModel._identicalOrNew(
+          thisModel,
+          baseModel,
+          newPromotedTypes,
+          newTested,
+          newAssigned,
+          newUnassigned,
+          newWriteCaptured ? null : baseModel.ssaNode);
+      newVariableInfo[variable] = newModel;
+      if (!identical(newModel, thisModel)) variableInfoMatchesThis = false;
+      if (!identical(newModel, baseModel)) variableInfoMatchesBase = false;
+    }
+    // newVariableInfo is now correct.  However, if there are any variables
+    // present in `this` that aren't present in `base`, we may erroneously think
+    // that `newVariableInfo` matches `this`.  If so, correct that.
+    if (variableInfoMatchesThis) {
+      for (Variable variable in variableInfo.keys) {
+        if (!base.variableInfo.containsKey(variable)) {
+          variableInfoMatchesThis = false;
+          break;
+        }
+      }
+    }
+    assert(variableInfoMatchesThis ==
+        _variableInfosEqual(newVariableInfo, variableInfo));
+    assert(variableInfoMatchesBase ==
+        _variableInfosEqual(newVariableInfo, base.variableInfo));
+    if (variableInfoMatchesThis) {
+      newVariableInfo = variableInfo;
+    } else if (variableInfoMatchesBase) {
+      newVariableInfo = base.variableInfo;
+    }
+
+    return _identicalOrNew(this, base, newReachable, newVariableInfo);
+  }
+
   /// Updates the state to reflect a control path that is known to have
   /// previously passed through some [other] state.
   ///
@@ -2419,7 +2525,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
 
   @override
   String toString() {
-    List<String> parts = [];
+    List<String> parts = [ssaNode.toString()];
     if (promotedTypes != null) {
       parts.add('promotedTypes: $promotedTypes');
     }
@@ -3141,8 +3247,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // analysis behavior to depend on mode, so we conservatively assume that
       // either result is possible.
     } else if (lhsInfo is _NullInfo<Variable, Type> && rhsVariable != null) {
-      assert(
-          leftOperandTypeClassification == TypeClassification.nullOrEquivalent);
       ExpressionInfo<Variable, Type> equalityInfo =
           _current.tryMarkNonNullable(typeOperations, rhsVariable);
       _storeExpressionInfo(
@@ -3651,7 +3755,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   Type? variableRead(Expression expression, Variable variable) {
     _storeExpressionVariable(expression, variable);
-    return _current.infoFor(variable).promotedTypes?.last;
+    VariableModel<Variable, Type> variableModel = _current.infoFor(variable);
+    if (allowLocalBooleanVarsToPromote) {
+      ExpressionInfo<Variable, Type>? expressionInfo =
+          variableModel.ssaNode?.expressionInfo;
+      if (expressionInfo != null) {
+        _storeExpressionInfo(
+            expression, expressionInfo.rebaseForward(typeOperations, _current));
+      }
+    }
+    return variableModel.promotedTypes?.last;
   }
 
   @override
@@ -3836,6 +3949,12 @@ class _NullInfo<Variable extends Object, Type extends Object>
     // give reasonable errors for an improperly typed program.
     return this;
   }
+
+  @override
+  ExpressionInfo<Variable, Type> rebaseForward(
+          TypeOperations<Variable, Type> typeOperations,
+          FlowModel<Variable, Type> base) =>
+      new _NullInfo(base);
 }
 
 /// [_FlowContext] representing a language construct for which flow analysis
@@ -3891,6 +4010,12 @@ class _TrivialExpressionInfo<Variable extends Object, Type extends Object>
 
   @override
   ExpressionInfo<Variable, Type> invert() => this;
+
+  @override
+  ExpressionInfo<Variable, Type> rebaseForward(
+          TypeOperations<Variable, Type> typeOperations,
+          FlowModel<Variable, Type> base) =>
+      new _TrivialExpressionInfo(base);
 }
 
 /// [_FlowContext] representing a try statement.

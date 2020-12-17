@@ -2481,6 +2481,142 @@ main() {
       });
     });
 
+    test('variableRead() restores promotions from previous write()', () {
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      var z = Var('z', 'bool');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        declare(z, initialized: true),
+        // Create a variable that promotes x if its value is true, and y if its
+        // value is false.
+        z
+            .write(x.read.notEq(nullLiteral).conditional(
+                booleanLiteral(true),
+                y.read.notEq(nullLiteral).conditional(
+                    booleanLiteral(false), throw_(expr('Object')))))
+            .stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // Simply reading the variable shouldn't promote anything.
+        z.read.stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // But reading it in an "if" condition should promote.
+        if_(z.read, [
+          checkPromoted(x, 'int'),
+          checkNotPromoted(y),
+        ], [
+          checkNotPromoted(x),
+          checkPromoted(y, 'int'),
+        ]),
+      ]);
+    });
+
+    test('variableRead() restores promotions from previous initialization', () {
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      var z = Var('z', 'bool');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        // Create a variable that promotes x if its value is true, and y if its
+        // value is false.
+        declareInitialized(
+            z,
+            x.read.notEq(nullLiteral).conditional(
+                booleanLiteral(true),
+                y.read.notEq(nullLiteral).conditional(
+                    booleanLiteral(false), throw_(expr('Object'))))),
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // Simply reading the variable shouldn't promote anything.
+        z.read.stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // But reading it in an "if" condition should promote.
+        if_(z.read, [
+          checkPromoted(x, 'int'),
+          checkNotPromoted(y),
+        ], [
+          checkNotPromoted(x),
+          checkPromoted(y, 'int'),
+        ]),
+      ]);
+    });
+
+    test('variableRead() rebases old promotions', () {
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var w = Var('w', 'int?');
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      var z = Var('z', 'bool');
+      h.run([
+        declare(w, initialized: true),
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        declare(z, initialized: true),
+        // Create a variable that promotes x if its value is true, and y if its
+        // value is false.
+        z
+            .write(x.read.notEq(nullLiteral).conditional(
+                booleanLiteral(true),
+                y.read.notEq(nullLiteral).conditional(
+                    booleanLiteral(false), throw_(expr('Object')))))
+            .stmt,
+        checkNotPromoted(w),
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        w.read.nonNullAssert.stmt,
+        checkPromoted(w, 'int'),
+        // Reading the value of z in an "if" condition should promote x or y,
+        // and keep the promotion of w.
+        if_(z.read, [
+          checkPromoted(w, 'int'),
+          checkPromoted(x, 'int'),
+          checkNotPromoted(y),
+        ], [
+          checkPromoted(w, 'int'),
+          checkNotPromoted(x),
+          checkPromoted(y, 'int'),
+        ]),
+      ]);
+    });
+
+    test('variableRead() restores the notion of whether a value is null', () {
+      // This is not a necessary part of the design of
+      // https://github.com/dart-lang/language/issues/1274; it's more of a happy
+      // accident of how it was implemented: since we store an ExpressionInfo
+      // object in the SSA node to keep track of the consequences of the
+      // variable's value on flow analysis, and since the _NullInfo type is a
+      // subtype of ExpressionInfo, that means that when a literal `null` is
+      // written to a variable, and we read it later, we recognize the value as
+      // being `null` for purposes of comparison to other other variables.  Even
+      // though this feature is a happy accident of the implementation strategy,
+      // it's important to test it to make sure it doesn't regress, since users
+      // might come to rely on it.
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        y.write(nullLiteral).stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        if_(x.read.eq(y.read), [
+          checkNotPromoted(x),
+          checkNotPromoted(y),
+        ], [
+          checkPromoted(x, 'int'),
+          checkNotPromoted(y),
+        ]),
+      ]);
+    });
+
     test('whileStatement_conditionBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
@@ -2672,6 +2808,38 @@ main() {
         getSsaNodes((nodes) {
           expect(nodes[x], isNot(ssaBeforeWrite));
           expect(nodes[x]!.expressionInfo, same(writtenValueInfo));
+        }),
+      ]);
+    });
+
+    test('write() does not copy Ssa from one variable to another', () {
+      // We could do so, and it would enable us to promote in slightly more
+      // situations, e.g.:
+      //   bool b = x != null;
+      //   if (b) { /* x promoted here */ }
+      //   var tmp = x;
+      //   x = ...;
+      //   if (b) { /* x not promoted here */ }
+      //   x = tmp;
+      //   if (b) { /* x promoted again */ }
+      // But there are a lot of corner cases to test and it's not clear how much
+      // the benefit will be, so for now we're not doing it.
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      late SsaNode<Var, Type> xSsaBeforeWrite;
+      late SsaNode<Var, Type> ySsa;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        getSsaNodes((nodes) {
+          xSsaBeforeWrite = nodes[x]!;
+          ySsa = nodes[y]!;
+        }),
+        x.write(y.read).stmt,
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(xSsaBeforeWrite));
+          expect(nodes[x], isNot(ySsa));
         }),
       ]);
     });
@@ -3890,6 +4058,233 @@ main() {
         expect(s0.restrict(h, s1, {x}), same(s0));
         expect(s1.restrict(h, s0, {}), same(s0));
         expect(s1.restrict(h, s0, {x}), same(s0));
+      });
+    });
+
+    group('rebaseForward', () {
+      test('reachability', () {
+        var h = Harness();
+        var reachable = FlowModel<Var, Type>(Reachability.initial);
+        var unreachable = reachable.setUnreachable();
+        expect(reachable.rebaseForward(h, reachable), same(reachable));
+        expect(reachable.rebaseForward(h, unreachable), same(unreachable));
+        expect(
+            unreachable.rebaseForward(h, reachable).reachable.overallReachable,
+            false);
+        expect(unreachable.rebaseForward(h, reachable).variableInfo,
+            same(unreachable.variableInfo));
+        expect(unreachable.rebaseForward(h, unreachable), same(unreachable));
+      });
+
+      test('assignments', () {
+        var h = Harness();
+        var a = Var('a', 'int');
+        var b = Var('b', 'int');
+        var c = Var('c', 'int');
+        var d = Var('d', 'int');
+        var s0 = FlowModel<Var, Type>(Reachability.initial)
+            .declare(a, false)
+            .declare(b, false)
+            .declare(c, false)
+            .declare(d, false);
+        var s1 = s0
+            .write(a, Type('int'), new SsaNode<Var, Type>(null), h)
+            .write(b, Type('int'), new SsaNode<Var, Type>(null), h);
+        var s2 = s0
+            .write(a, Type('int'), new SsaNode<Var, Type>(null), h)
+            .write(c, Type('int'), new SsaNode<Var, Type>(null), h);
+        var result = s1.rebaseForward(h, s2);
+        expect(result.infoFor(a).assigned, true);
+        expect(result.infoFor(b).assigned, true);
+        expect(result.infoFor(c).assigned, true);
+        expect(result.infoFor(d).assigned, false);
+      });
+
+      test('write captured', () {
+        var h = Harness();
+        var a = Var('a', 'int');
+        var b = Var('b', 'int');
+        var c = Var('c', 'int');
+        var d = Var('d', 'int');
+        var s0 = FlowModel<Var, Type>(Reachability.initial)
+            .declare(a, false)
+            .declare(b, false)
+            .declare(c, false)
+            .declare(d, false);
+        // In s1, a and b are write captured.  In s2, a and c are.
+        var s1 = s0.conservativeJoin([a, b], [a, b]);
+        var s2 = s1.conservativeJoin([a, c], [a, c]);
+        var result = s1.rebaseForward(h, s2);
+        expect(
+          result.infoFor(a),
+          _matchVariableModel(writeCaptured: true, unassigned: false),
+        );
+        expect(
+          result.infoFor(b),
+          _matchVariableModel(writeCaptured: true, unassigned: false),
+        );
+        expect(
+          result.infoFor(c),
+          _matchVariableModel(writeCaptured: true, unassigned: false),
+        );
+        expect(
+          result.infoFor(d),
+          _matchVariableModel(writeCaptured: false, unassigned: true),
+        );
+      });
+
+      test('write captured and promoted', () {
+        var h = Harness();
+        var a = Var('a', 'num');
+        var s0 = FlowModel<Var, Type>(Reachability.initial).declare(a, false);
+        // In s1, a is write captured.  In s2 it's promoted.
+        var s1 = s0.conservativeJoin([a], [a]);
+        var s2 = s0.tryPromoteForTypeCheck(h, a, Type('int')).ifTrue;
+        expect(
+          s1.rebaseForward(h, s2).infoFor(a),
+          _matchVariableModel(writeCaptured: true, chain: isNull),
+        );
+        expect(
+          s2.rebaseForward(h, s1).infoFor(a),
+          _matchVariableModel(writeCaptured: true, chain: isNull),
+        );
+      });
+
+      test('promotion', () {
+        void _check(String? thisType, String? otherType, bool unsafe,
+            List<String>? expectedChain) {
+          var h = Harness();
+          var x = Var('x', 'Object?');
+          var s0 = FlowModel<Var, Type>(Reachability.initial).declare(x, true);
+          var s1 = s0;
+          if (unsafe) {
+            s1 = s1.write(x, Type('Object?'), new SsaNode<Var, Type>(null), h);
+          }
+          if (thisType != null) {
+            s1 = s1.tryPromoteForTypeCheck(h, x, Type(thisType)).ifTrue;
+          }
+          var s2 = otherType == null
+              ? s0
+              : s0.tryPromoteForTypeCheck(h, x, Type(otherType)).ifTrue;
+          var result = s2.rebaseForward(h, s1);
+          if (expectedChain == null) {
+            expect(result.variableInfo, contains(x));
+            expect(result.infoFor(x).promotedTypes, isNull);
+          } else {
+            expect(result.infoFor(x).promotedTypes!.map((t) => t.type).toList(),
+                expectedChain);
+          }
+        }
+
+        _check(null, null, false, null);
+        _check(null, null, true, null);
+        _check('int', null, false, ['int']);
+        _check('int', null, true, ['int']);
+        _check(null, 'int', false, ['int']);
+        _check(null, 'int', true, null);
+        _check('int?', 'int', false, ['int?', 'int']);
+        _check('int', 'int?', false, ['int']);
+        _check('int', 'String', false, ['int']);
+        _check('int?', 'int', true, ['int?']);
+        _check('int', 'int?', true, ['int']);
+        _check('int', 'String', true, ['int']);
+      });
+
+      test('promotion chains', () {
+        // Verify that the given promotion chain matches the expected list of
+        // strings.
+        void _checkChain(List<Type>? chain, List<String> expected) {
+          var strings = (chain ?? <Type>[]).map((t) => t.type).toList();
+          expect(strings, expected);
+        }
+
+        // Test the following scenario:
+        // - Prior to the try/finally block, the sequence of promotions in
+        //   [before] is done.
+        // - During the try block, the sequence of promotions in [inTry] is
+        //   done.
+        // - During the finally block, the sequence of promotions in
+        //   [inFinally] is done.
+        // - After calling `restrict` to refine the state from the finally
+        //   block, the expected promotion chain is [expectedResult].
+        void _check(List<String> before, List<String> inTry,
+            List<String> inFinally, List<String> expectedResult) {
+          var h = Harness();
+          var x = Var('x', 'Object?');
+          var initialModel =
+              FlowModel<Var, Type>(Reachability.initial).declare(x, true);
+          for (var t in before) {
+            initialModel =
+                initialModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+          }
+          _checkChain(initialModel.infoFor(x).promotedTypes, before);
+          var tryModel = initialModel;
+          for (var t in inTry) {
+            tryModel = tryModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+          }
+          var expectedTryChain = before.toList()..addAll(inTry);
+          _checkChain(tryModel.infoFor(x).promotedTypes, expectedTryChain);
+          var finallyModel = initialModel;
+          for (var t in inFinally) {
+            finallyModel =
+                finallyModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+          }
+          var expectedFinallyChain = before.toList()..addAll(inFinally);
+          _checkChain(
+              finallyModel.infoFor(x).promotedTypes, expectedFinallyChain);
+          var result = tryModel.rebaseForward(h, finallyModel);
+          _checkChain(result.infoFor(x).promotedTypes, expectedResult);
+          // And verify that the inputs are unchanged.
+          _checkChain(initialModel.infoFor(x).promotedTypes, before);
+          _checkChain(tryModel.infoFor(x).promotedTypes, expectedTryChain);
+          _checkChain(
+              finallyModel.infoFor(x).promotedTypes, expectedFinallyChain);
+        }
+
+        _check(['Object'], ['num', 'int'], ['Iterable', 'List'],
+            ['Object', 'Iterable', 'List']);
+        _check([], ['num', 'int'], ['Iterable', 'List'], ['Iterable', 'List']);
+        _check(['Object'], [], ['Iterable', 'List'],
+            ['Object', 'Iterable', 'List']);
+        _check([], [], ['Iterable', 'List'], ['Iterable', 'List']);
+        _check(['Object'], ['num', 'int'], [], ['Object', 'num', 'int']);
+        _check([], ['num', 'int'], [], ['num', 'int']);
+        _check(['Object'], [], [], ['Object']);
+        _check([], [], [], []);
+        _check(
+            [], ['num', 'int'], ['Object', 'Iterable'], ['Object', 'Iterable']);
+        _check([], ['num', 'int'], ['Object'], ['Object', 'num', 'int']);
+        _check([], ['Object', 'Iterable'], ['num', 'int'], ['num', 'int']);
+        _check([], ['Object'], ['num', 'int'], ['num', 'int']);
+        _check([], ['num'], ['Object', 'int'], ['Object', 'int']);
+        _check([], ['int'], ['Object', 'num'], ['Object', 'num', 'int']);
+        _check([], ['Object', 'int'], ['num'], ['num', 'int']);
+        _check([], ['Object', 'num'], ['int'], ['int']);
+      });
+
+      test('types of interest', () {
+        var h = Harness();
+        var a = Var('a', 'Object');
+        var s0 = FlowModel<Var, Type>(Reachability.initial).declare(a, false);
+        var s1 = s0.tryPromoteForTypeCheck(h, a, Type('int')).ifFalse;
+        var s2 = s0.tryPromoteForTypeCheck(h, a, Type('String')).ifFalse;
+        expect(
+          s1.rebaseForward(h, s2).infoFor(a),
+          _matchVariableModel(ofInterest: ['int', 'String']),
+        );
+        expect(
+          s2.rebaseForward(h, s1).infoFor(a),
+          _matchVariableModel(ofInterest: ['int', 'String']),
+        );
+      });
+
+      test('variable present in one state but not the other', () {
+        var h = Harness();
+        var x = Var('x', 'Object?');
+        var s0 = FlowModel<Var, Type>(Reachability.initial);
+        var s1 = s0.declare(x, true);
+        expect(s1.rebaseForward(h, s0), same(s0));
+        expect(s0.rebaseForward(h, s1), same(s1));
       });
     });
   });

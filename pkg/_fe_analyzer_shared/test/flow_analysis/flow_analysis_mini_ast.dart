@@ -154,6 +154,8 @@ Statement switch_(Expression expression, List<SwitchCase> cases,
         {required bool isExhaustive}) =>
     new _Switch(expression, cases, isExhaustive);
 
+Expression throw_(Expression operand) => new _Throw(operand);
+
 Statement tryCatch(List<Statement> body, List<CatchClause> catches) =>
     new _TryCatch(body, catches);
 
@@ -512,6 +514,10 @@ class Harness extends TypeOperations<Var, Type> {
     } else if (type2.type == 'Null' &&
         !isSameType(promoteToNonNull(type1), type1)) {
       // type1 is already nullable
+      return type1;
+    } else if (type1.type == 'Never') {
+      return type2;
+    } else if (type2.type == 'Never') {
       return type1;
     } else {
       throw UnimplementedError(
@@ -1446,6 +1452,28 @@ class _Switch extends Statement {
     cases._visit(h, flow);
     h._currentSwitch = oldSwitch;
     flow.switchStatement_end(isExhaustive);
+  }
+}
+
+class _Throw extends Expression {
+  final Expression operand;
+
+  _Throw(this.operand);
+
+  @override
+  String toString() => 'throw ...';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    operand._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    operand._visit(h, flow);
+    flow.handleExit();
+    return Type('Never');
   }
 }
 
