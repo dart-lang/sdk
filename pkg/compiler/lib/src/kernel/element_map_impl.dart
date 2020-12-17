@@ -853,7 +853,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         requiredNamedParameters.add(variable.name);
       }
     }
-    return new ParameterStructure(
+    return ParameterStructure(
         requiredPositionalParameters,
         positionalParameters,
         namedParameters,

@@ -506,7 +506,7 @@ class JGetter extends JFunction {
   JGetter(JLibrary library, JClass enclosingClass, Name name,
       AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(library, enclosingClass, name, const ParameterStructure.getter(),
+      : super(library, enclosingClass, name, ParameterStructure.getter,
             asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
@@ -571,7 +571,7 @@ class JSetter extends JFunction {
 
   JSetter(JLibrary library, JClass enclosingClass, Name name,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(library, enclosingClass, name, const ParameterStructure.setter(),
+      : super(library, enclosingClass, name, ParameterStructure.setter,
             AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
 
@@ -733,15 +733,9 @@ class JSignatureMethod extends JMethod {
   static const String tag = 'signature-method';
 
   JSignatureMethod(ClassEntity enclosingClass)
-      : super(
-            enclosingClass.library,
-            enclosingClass,
-            Names.signature,
-            const ParameterStructure(0, 0, const [], const {}, 0),
-            AsyncMarker.SYNC,
-            isStatic: false,
-            isExternal: false,
-            isAbstract: false);
+      : super(enclosingClass.library, enclosingClass, Names.signature,
+            ParameterStructure.zeroArguments, AsyncMarker.SYNC,
+            isStatic: false, isExternal: false, isAbstract: false);
 
   factory JSignatureMethod.readFromDataSource(DataSource source) {
     source.begin(tag);

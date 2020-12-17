@@ -359,6 +359,10 @@ class BazelWorkspace extends Workspace
   /// The absolute path to the `bazel-genfiles` folder.
   final String genfiles;
 
+  /// The cache of packages. The key is the directory path, the value is
+  /// the corresponding package.
+  final Map<String, BazelWorkspacePackage> _directoryToPackage = {};
+
   final _bazelCandidateFiles =
       StreamController<BazelFileNotification>.broadcast();
 
@@ -441,7 +445,14 @@ class BazelWorkspace extends Workspace
   @override
   WorkspacePackage findPackageFor(String filePath) {
     path.Context context = provider.pathContext;
-    Folder folder = provider.getFolder(context.dirname(filePath));
+    var directoryPath = context.dirname(filePath);
+
+    var cachedPackage = _directoryToPackage[directoryPath];
+    if (cachedPackage != null) {
+      return cachedPackage;
+    }
+
+    Folder folder = provider.getFolder(directoryPath);
     if (!context.isWithin(root, folder.path)) {
       return null;
     }
@@ -471,11 +482,13 @@ class BazelWorkspace extends Workspace
       BazelWorkspacePackage packageRootedHere() {
         List<String> uriParts = (packageUriResolver as BazelPackageUriResolver)
             ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
-        if (uriParts == null || uriParts.isEmpty) {
-          return BazelWorkspacePackage(null, folder.path, this);
-        } else {
-          return BazelWorkspacePackage(uriParts[0], folder.path, this);
+        String packageName;
+        if (uriParts != null && uriParts.isNotEmpty) {
+          packageName = uriParts[0];
         }
+        var package = BazelWorkspacePackage(packageName, folder.path, this);
+        _directoryToPackage[directoryPath] = package;
+        return package;
       }
 
       // In some distributed build environments, BUILD files are not preserved.
