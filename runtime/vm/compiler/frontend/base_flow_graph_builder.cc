@@ -462,7 +462,7 @@ Fragment BaseFlowGraphBuilder::DoubleToFloat() {
 
 Fragment BaseFlowGraphBuilder::LoadField(const Field& field,
                                          bool calls_initializer) {
-  return LoadNativeField(Slot::Get(MayCloneField(field), parsed_function_),
+  return LoadNativeField(Slot::Get(MayCloneField(Z, field), parsed_function_),
                          calls_initializer);
 }
 
@@ -497,11 +497,10 @@ Fragment BaseFlowGraphBuilder::GuardFieldClass(const Field& field,
   return Fragment(new (Z) GuardFieldClassInstr(Pop(), field, deopt_id));
 }
 
-const Field& BaseFlowGraphBuilder::MayCloneField(const Field& field) {
-  if ((Compiler::IsBackgroundCompilation() ||
-       FLAG_force_clone_compiler_objects) &&
-      field.IsOriginal()) {
-    return Field::ZoneHandle(Z, field.CloneFromOriginal());
+const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
+                                                 const Field& field) {
+  if (CompilerState::Current().should_clone_fields() && field.IsOriginal()) {
+    return Field::ZoneHandle(zone, field.CloneFromOriginal());
   } else {
     ASSERT(field.IsZoneHandle());
     return field;
@@ -534,7 +533,7 @@ Fragment BaseFlowGraphBuilder::StoreInstanceField(
   }
 
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      MayCloneField(field), Pop(), value, emit_store_barrier,
+      MayCloneField(Z, field), Pop(), value, emit_store_barrier,
       TokenPosition::kNoSource, parsed_function_, kind);
 
   return Fragment(store);
@@ -545,7 +544,7 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
     StoreInstanceFieldInstr::Kind
         kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
   Fragment instructions;
-  const Field& field_clone = MayCloneField(field);
+  const Field& field_clone = MayCloneField(Z, field);
   if (I->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
@@ -609,7 +608,7 @@ Fragment BaseFlowGraphBuilder::Utf8Scan() {
       compiler::LookupConvertUtf8DecoderScanFlagsField();
   auto scan = new (Z) Utf8ScanInstr(
       decoder, bytes, start, end, table,
-      Slot::Get(MayCloneField(scan_flags_field), parsed_function_));
+      Slot::Get(MayCloneField(Z, scan_flags_field), parsed_function_));
   Push(scan);
   return Fragment(scan);
 }
@@ -617,7 +616,7 @@ Fragment BaseFlowGraphBuilder::Utf8Scan() {
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                 const Field& field) {
   return Fragment(
-      new (Z) StoreStaticFieldInstr(MayCloneField(field), Pop(), position));
+      new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(), position));
 }
 
 Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {

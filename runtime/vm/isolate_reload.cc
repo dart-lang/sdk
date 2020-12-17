@@ -163,7 +163,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     if (new_field) {
       const Field& field = Field::Handle(to_field.raw());
       field.set_needs_load_guard(true);
-      field.set_is_unboxing_candidate(false);
+      field.set_is_unboxing_candidate_unsafe(false);
       new_fields_offsets->Add(field.HostOffset());
     }
   }

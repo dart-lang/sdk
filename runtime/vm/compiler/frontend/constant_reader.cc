@@ -90,6 +90,7 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
 
   // On miss, evaluate, and insert value.
   if (result_.IsNull()) {
+    LeaveCompilerScope cs(H.thread());
     result_ = ReadConstantInternal(constant_offset);
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());

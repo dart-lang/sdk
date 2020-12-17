@@ -91,7 +91,7 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
   // If we intrinsify, the intrinsified code therefore does not depend on the
   // field guard and we do not add it to the guarded fields via
   // [ParsedFunction::AddToGuardedFields].
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
 

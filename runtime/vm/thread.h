@@ -428,6 +428,10 @@ class Thread : public ThreadState {
 
   bool IsMutatorThread() const { return is_mutator_thread_; }
 
+#if defined(DEBUG)
+  bool IsInsideCompiler() const { return inside_compiler_; }
+#endif
+
   bool CanCollectGarbage() const;
 
   // Offset of Dart TimelineStream object.
@@ -481,6 +485,18 @@ class Thread : public ThreadState {
     ASSERT(no_callback_scope_depth_ > 0);
     no_callback_scope_depth_ -= 1;
   }
+
+#if defined(DEBUG)
+  void EnterCompiler() {
+    ASSERT(!IsInsideCompiler());
+    inside_compiler_ = true;
+  }
+
+  void LeaveCompiler() {
+    ASSERT(IsInsideCompiler());
+    inside_compiler_ = false;
+  }
+#endif
 
   void StoreBufferAddObject(ObjectPtr obj);
   void StoreBufferAddObjectGC(ObjectPtr obj);
@@ -1027,6 +1043,10 @@ class Thread : public ThreadState {
   Thread* next_;  // Used to chain the thread structures in an isolate.
   bool is_mutator_thread_ = false;
 
+#if defined(DEBUG)
+  bool inside_compiler_ = false;
+#endif
+
   explicit Thread(bool is_vm_isolate);
 
   void StoreBufferRelease(
@@ -1108,6 +1128,68 @@ class NoSafepointScope : public ValueObject {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#endif  // defined(DEBUG)
+
+// Within a EnterCompilerScope, the thread must operate on cloned fields.
+#if defined(DEBUG)
+class EnterCompilerScope : public ThreadStackResource {
+ public:
+  explicit EnterCompilerScope(Thread* thread = nullptr)
+      : ThreadStackResource(thread != nullptr ? thread : Thread::Current()) {
+    previously_is_inside_compiler_ = this->thread()->IsInsideCompiler();
+    if (!previously_is_inside_compiler_) {
+      this->thread()->EnterCompiler();
+    }
+  }
+  ~EnterCompilerScope() {
+    if (!previously_is_inside_compiler_) {
+      thread()->LeaveCompiler();
+    }
+  }
+
+ private:
+  bool previously_is_inside_compiler_;
+  DISALLOW_COPY_AND_ASSIGN(EnterCompilerScope);
+};
+#else   // defined(DEBUG)
+class EnterCompilerScope : public ValueObject {
+ public:
+  explicit EnterCompilerScope(Thread* thread = nullptr) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(EnterCompilerScope);
+};
+#endif  // defined(DEBUG)
+
+// Within a LeaveCompilerScope, the thread must operate on cloned fields.
+#if defined(DEBUG)
+class LeaveCompilerScope : public ThreadStackResource {
+ public:
+  explicit LeaveCompilerScope(Thread* thread = nullptr)
+      : ThreadStackResource(thread != nullptr ? thread : Thread::Current()) {
+    previously_is_inside_compiler_ = this->thread()->IsInsideCompiler();
+    if (previously_is_inside_compiler_) {
+      this->thread()->LeaveCompiler();
+    }
+  }
+  ~LeaveCompilerScope() {
+    if (previously_is_inside_compiler_) {
+      thread()->EnterCompiler();
+    }
+  }
+
+ private:
+  bool previously_is_inside_compiler_;
+  DISALLOW_COPY_AND_ASSIGN(LeaveCompilerScope);
+};
+#else   // defined(DEBUG)
+class LeaveCompilerScope : public ValueObject {
+ public:
+  explicit LeaveCompilerScope(Thread* thread = nullptr) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LeaveCompilerScope);
 };
 #endif  // defined(DEBUG)
 

@@ -19,7 +19,7 @@ namespace dart {
 // its uses (which includes comparison and the phi itself).
 ISOLATE_UNIT_TEST_CASE(ConstantPropagation_PhiUnwrappingAndConvergence) {
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -114,7 +114,7 @@ static void ConstantPropagatorUnboxedOpTest(
     FoldingResult expected) {
   using compiler::BlockBuilder;
 
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // Add a variable into the scope which would provide static type for the

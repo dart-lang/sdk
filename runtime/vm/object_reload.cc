@@ -233,7 +233,7 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
           if (old_field.needs_load_guard()) {
             ASSERT(!old_field.is_unboxing_candidate());
             field.set_needs_load_guard(true);
-            field.set_is_unboxing_candidate(false);
+            field.set_is_unboxing_candidate_unsafe(false);
           }
         }
       }
@@ -677,7 +677,7 @@ void Class::CheckReload(const Class& replacement,
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
 
   if (!is_declaration_loaded()) {
-    // The old class hasn't been used in any meanfully way, so the VM is okay
+    // The old class hasn't been used in any meaningful way, so the VM is okay
     // with any change.
     return;
   }

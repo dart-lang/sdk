@@ -6535,7 +6535,8 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  CompilerState state(Thread::Current(), /*is_aot=*/true);
+  CompilerState state(Thread::Current(), /*is_aot=*/true,
+                      /*is_optimizing=*/true);
   CHECK_ERROR_HANDLE(Precompiler::CompileAll());
   return Api::Success();
 #endif

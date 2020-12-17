@@ -379,64 +379,64 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     function.AttachCode(code);
     function.SetWasCompiled(true);
   } else if (optimized()) {
-    // Installs code while at safepoint.
-    if (thread()->IsMutatorThread()) {
-      const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
-      if (!is_osr) {
+    // We cannot execute generated code while installing code.
+    ASSERT(Thread::Current()->IsAtSafepoint() ||
+           (Thread::Current()->IsMutatorThread() &&
+            IsolateGroup::Current()->ContainsOnlyOneIsolate()));
+    // We are validating our CHA / field guard / ... assumptions. To prevent
+    // another thread from concurrently changing them, we have to guarantee
+    // mutual exclusion.
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+
+    const bool trace_compiler =
+        FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
+    bool code_is_valid = true;
+    if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
+      const ZoneGrowableArray<const Field*>& guarded_fields =
+          *flow_graph->parsed_function().guarded_fields();
+      Field& original = Field::Handle();
+      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+        const Field& field = *guarded_fields[i];
+        ASSERT(!field.IsOriginal());
+        original = field.Original();
+        if (!field.IsConsistentWith(original)) {
+          code_is_valid = false;
+          if (trace_compiler) {
+            THR_Print("--> FAIL: Field %s guarded state changed.",
+                      field.ToCString());
+          }
+          break;
+        }
+      }
+    }
+
+    if (!thread()->compiler_state().cha().IsConsistentWithCurrentHierarchy()) {
+      code_is_valid = false;
+      if (trace_compiler) {
+        THR_Print("--> FAIL: Class hierarchy has new subclasses.");
+      }
+    }
+
+    // Setting breakpoints at runtime could make a function non-optimizable.
+    if (code_is_valid && Compiler::CanOptimizeFunction(thread(), function)) {
+      if (osr_id() == Compiler::kNoOSRDeoptId) {
         function.InstallOptimizedCode(code);
+      } else {
+        // OSR is not compiled in background.
+        ASSERT(!Compiler::IsBackgroundCompilation());
       }
       ASSERT(code.owner() == function.raw());
     } else {
-      // Background compilation.
-      // Before installing code check generation counts if the code may
-      // have become invalid.
-      const bool trace_compiler =
-          FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
-      bool code_is_valid = true;
-      if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
-        const ZoneGrowableArray<const Field*>& guarded_fields =
-            *flow_graph->parsed_function().guarded_fields();
-        Field& original = Field::Handle();
-        for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-          const Field& field = *guarded_fields[i];
-          ASSERT(!field.IsOriginal());
-          original = field.Original();
-          if (!field.IsConsistentWith(original)) {
-            code_is_valid = false;
-            if (trace_compiler) {
-              THR_Print("--> FAIL: Field %s guarded state changed.",
-                        field.ToCString());
-            }
-            break;
-          }
-        }
-      }
-      if (!thread()
-               ->compiler_state()
-               .cha()
-               .IsConsistentWithCurrentHierarchy()) {
-        code_is_valid = false;
-        if (trace_compiler) {
-          THR_Print("--> FAIL: Class hierarchy has new subclasses.");
-        }
-      }
-
-      // Setting breakpoints at runtime could make a function non-optimizable.
-      if (code_is_valid && Compiler::CanOptimizeFunction(thread(), function)) {
-        const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
-        ASSERT(!is_osr);  // OSR is not compiled in background.
-        function.InstallOptimizedCode(code);
+      code = Code::null();
+    }
+    if (function.usage_counter() < 0) {
+      // Reset to 0 so that it can be recompiled if needed.
+      if (code_is_valid) {
+        function.SetUsageCounter(0);
       } else {
-        code = Code::null();
-      }
-      if (function.usage_counter() < 0) {
-        // Reset to 0 so that it can be recompiled if needed.
-        if (code_is_valid) {
-          function.SetUsageCounter(0);
-        } else {
-          // Trigger another optimization pass soon.
-          function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
-        }
+        // Trigger another optimization pass soon.
+        function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
       }
     }
 
@@ -493,6 +493,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   }
   Zone* const zone = thread()->zone();
   HANDLESCOPE(thread());
+  EnterCompilerScope cs(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM. In the else branch of the setjmp call, done is set to
@@ -515,7 +516,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      CompilerState compiler_state(thread(), /*is_aot=*/false,
+      CompilerState compiler_state(thread(), /*is_aot=*/false, optimized(),
                                    CompilerState::ShouldTrace(function));
 
       {
@@ -943,7 +944,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   // if state changed while compiling in background.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  CompilerState state(thread, /*is_aot=*/false);
+  CompilerState state(thread, /*is_aot=*/false, /*is_optimizing=*/false);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =
