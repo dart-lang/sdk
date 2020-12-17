@@ -1,0 +1,88 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue44476.dart:7:12: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+// foo(A<num> x) {
+//            ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue44476.dart:9:19: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//     barbar(A<num> yy) => null;
+//                   ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue44476.dart:8:14: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   bar(A<num> y) {
+//              ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue44476.dart:12:26: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//     var bazbaz = (A<num> zz) => null;
+//                          ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue44476.dart:12:9: Error: Inferred type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     var bazbaz = (A<num> zz) => null;
+//         ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue44476.dart:11:21: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   var baz = (A<num> z) {
+//                     ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue44476.dart:11:7: Error: Inferred type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   var baz = (A<num> z) {
+//       ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::int* = core::int*> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method foo(self::A<core::num*>* x) → dynamic {
+  function bar(self::A<core::num*>* y) → Null {
+    function barbar(self::A<core::num*>* yy) → Null
+      return null;
+  }
+  (self::A<core::num*>*) →* Null baz = (self::A<core::num*>* z) → Null {
+    (self::A<core::num*>*) →* Null bazbaz = (self::A<core::num*>* zz) → Null => null;
+  };
+}
+static method main() → dynamic {}

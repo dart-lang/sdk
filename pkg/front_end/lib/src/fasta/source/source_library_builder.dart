@@ -3431,7 +3431,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       DartType returnType,
-      int requiredParameterCount}) {
+      int requiredParameterCount,
+      bool skipReturnType = false}) {
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
         checkBoundsInType(
@@ -3455,7 +3456,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             allowSuperBounded: true);
       }
     }
-    if (returnType != null) {
+    if (!skipReturnType && returnType != null) {
       final DartType bottomType = isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
           : const NullType();
@@ -3528,14 +3529,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkBoundsInFunctionNode(
-      FunctionNode function, TypeEnvironment typeEnvironment, Uri fileUri) {
+      FunctionNode function, TypeEnvironment typeEnvironment, Uri fileUri,
+      {bool skipReturnType = false}) {
     checkBoundsInFunctionNodeParts(
         typeEnvironment, fileUri, function.fileOffset,
         typeParameters: function.typeParameters,
         positionalParameters: function.positionalParameters,
         namedParameters: function.namedParameters,
         returnType: function.returnType,
-        requiredParameterCount: function.requiredParameterCount);
+        requiredParameterCount: function.requiredParameterCount,
+        skipReturnType: skipReturnType);
   }
 
   void checkBoundsInListLiteral(

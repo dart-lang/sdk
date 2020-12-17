@@ -1105,6 +1105,8 @@ class InferenceVisitor
         node.hasImplicitReturnType ? null : node.function.returnType;
     DartType inferredType =
         visitFunctionNode(node.function, null, returnContext, node.fileOffset);
+    inferrer.library.checkBoundsInFunctionNode(node.function,
+        inferrer.typeSchemaEnvironment, inferrer.library.fileUri);
     node.variable.type = inferredType;
     inferrer.flowAnalysis.functionExpression_end();
     return const StatementInferenceResult();
@@ -1116,6 +1118,11 @@ class InferenceVisitor
     inferrer.flowAnalysis.functionExpression_begin(node);
     DartType inferredType =
         visitFunctionNode(node.function, typeContext, null, node.fileOffset);
+    // In anonymous functions the return type isn't declared, so
+    // it shouldn't be checked.
+    inferrer.library.checkBoundsInFunctionNode(
+        node.function, inferrer.typeSchemaEnvironment, inferrer.library.fileUri,
+        skipReturnType: true);
     inferrer.flowAnalysis.functionExpression_end();
     return new ExpressionInferenceResult(inferredType, node);
   }
