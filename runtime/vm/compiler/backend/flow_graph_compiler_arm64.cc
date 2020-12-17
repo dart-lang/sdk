@@ -322,6 +322,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 }
 
 void FlowGraphCompiler::EmitPrologue() {
+  BeginCodeSourceRange(/*inlining_id=*/0);  // Prologue is in the root function.
+
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());
 

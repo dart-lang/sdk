@@ -162,6 +162,8 @@ class ParallelMoveResolver : public ValueObject {
 
   // List of moves not yet resolved.
   GrowableArray<MoveOperands*> moves_;
+  // Inlining id for the current instruction (while moves is not empty).
+  intptr_t inlining_id_;
 };
 
 // Used for describing a deoptimization point after call (lazy deoptimization).
@@ -954,7 +956,7 @@ class FlowGraphCompiler : public ValueObject {
 
   ArrayPtr InliningIdToFunction() const;
 
-  void BeginCodeSourceRange();
+  void BeginCodeSourceRange(intptr_t inline_id);
   void EndCodeSourceRange(TokenPosition token_pos);
 
   static bool LookupMethodFor(int class_id,

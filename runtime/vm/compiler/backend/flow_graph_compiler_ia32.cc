@@ -475,6 +475,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 }
 
 void FlowGraphCompiler::EmitPrologue() {
+  BeginCodeSourceRange(/*inlining_id=*/0);  // Prologue is in the root function.
+
   EmitFrameEntry();
 
   // In unoptimized code, initialize (non-argument) stack allocated slots.

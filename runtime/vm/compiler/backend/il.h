@@ -1080,6 +1080,7 @@ class Instruction : public ZoneAllocated {
   intptr_t inlining_id() const { return inlining_id_; }
   void set_inlining_id(intptr_t value) {
     ASSERT(value >= 0);
+    ASSERT_EQUAL(inlining_id_, -1);
     inlining_id_ = value;
   }
   bool has_inlining_id() const { return inlining_id_ >= 0; }

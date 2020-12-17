@@ -194,8 +194,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   static const uint8_t kPopFunction = 3;
   static const uint8_t kNullCheck = 4;
 
-  void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
-  void BeginCodeSourceRange(int32_t pc_offset);
+  void BeginCodeSourceRange(int32_t pc_offset, intptr_t inline_id);
   void EndCodeSourceRange(int32_t pc_offset, TokenPosition pos);
   void NoteDescriptor(PcDescriptorsLayout::Kind kind,
                       int32_t pc_offset,
@@ -211,6 +210,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
  private:
   intptr_t GetFunctionId(intptr_t inline_id);
+  void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
 
   void BufferChangePosition(TokenPosition pos);
   void WriteChangePosition(TokenPosition pos);

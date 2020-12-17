@@ -618,7 +618,7 @@ void FlowGraphCompiler::VisitBlocks() {
       }
     }
 
-    BeginCodeSourceRange();
+    BeginCodeSourceRange(entry->inlining_id());
     ASSERT(pending_deoptimization_env_ == NULL);
     pending_deoptimization_env_ = entry->env();
     set_current_instruction(entry);
@@ -640,9 +640,6 @@ void FlowGraphCompiler::VisitBlocks() {
       set_current_instruction(instr);
       StatsBegin(instr);
 
-      // Compose intervals.
-      code_source_map_builder_->StartInliningInterval(assembler()->CodeSize(),
-                                                      instr->inlining_id());
       if (FLAG_code_comments || FLAG_disassemble ||
           FLAG_disassemble_optimized) {
         if (FLAG_source_lines) {
@@ -653,7 +650,7 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
-        BeginCodeSourceRange();
+        BeginCodeSourceRange(instr->inlining_id());
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
@@ -758,7 +755,7 @@ void FlowGraphCompiler::GenerateDeferredCode() {
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     set_current_instruction(slow_path->instruction());
     SpecialStatsBegin(stats_tag);
-    BeginCodeSourceRange();
+    BeginCodeSourceRange(slow_path->instruction()->inlining_id());
     DEBUG_ONLY(current_instruction_ = slow_path->instruction());
     slow_path->GenerateCode(this);
     DEBUG_ONLY(current_instruction_ = nullptr);
@@ -767,7 +764,9 @@ void FlowGraphCompiler::GenerateDeferredCode() {
     set_current_instruction(nullptr);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
-    BeginCodeSourceRange();
+    // Code generated from CompilerDeoptInfo objects is considered in the
+    // root function.
+    BeginCodeSourceRange(/*inline_id=*/0);
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     assembler()->set_lr_state(lr_state);
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
@@ -1687,10 +1686,12 @@ static uword RegMaskBit(Register reg) {
 }
 
 ParallelMoveResolver::ParallelMoveResolver(FlowGraphCompiler* compiler)
-    : compiler_(compiler), moves_(32) {}
+    : compiler_(compiler), moves_(32), inlining_id_(-1) {}
 
 void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
   ASSERT(moves_.is_empty());
+  inlining_id_ = parallel_move->inlining_id();
+
   // Build up a worklist of moves.
   BuildInitialMoveList(parallel_move);
 
@@ -1699,7 +1700,9 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
     // Skip constants to perform them last.  They don't block other moves
     // and skipping such moves with register destinations keeps those
     // registers free for the whole algorithm.
-    if (!move.IsEliminated() && !move.src().IsConstant()) PerformMove(i);
+    if (!move.IsEliminated() && !move.src().IsConstant()) {
+      PerformMove(i);
+    }
   }
 
   // Perform the moves with constant sources.
@@ -1707,13 +1710,14 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
     const MoveOperands& move = *moves_[i];
     if (!move.IsEliminated()) {
       ASSERT(move.src().IsConstant());
-      compiler_->BeginCodeSourceRange();
+      compiler_->BeginCodeSourceRange(inlining_id_);
       EmitMove(i);
       compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
     }
   }
 
   moves_.Clear();
+  inlining_id_ = -1;
 }
 
 void ParallelMoveResolver::BuildInitialMoveList(
@@ -1783,7 +1787,7 @@ void ParallelMoveResolver::PerformMove(int index) {
     const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination)) {
       ASSERT(other_move.IsPending());
-      compiler_->BeginCodeSourceRange();
+      compiler_->BeginCodeSourceRange(inlining_id_);
       EmitSwap(index);
       compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
       return;
@@ -1791,7 +1795,7 @@ void ParallelMoveResolver::PerformMove(int index) {
   }
 
   // This move is not blocked.
-  compiler_->BeginCodeSourceRange();
+  compiler_->BeginCodeSourceRange(inlining_id_);
   EmitMove(index);
   compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
@@ -2068,8 +2072,9 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   }
 }
 
-void FlowGraphCompiler::BeginCodeSourceRange() {
-  code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize());
+void FlowGraphCompiler::BeginCodeSourceRange(intptr_t inline_id) {
+  code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize(),
+                                                 inline_id);
 }
 
 void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {

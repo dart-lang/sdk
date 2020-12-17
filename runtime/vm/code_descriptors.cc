@@ -365,7 +365,10 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
   }
 }
 
-void CodeSourceMapBuilder::BeginCodeSourceRange(int32_t pc_offset) {}
+void CodeSourceMapBuilder::BeginCodeSourceRange(int32_t pc_offset,
+                                                intptr_t inline_id) {
+  StartInliningInterval(pc_offset, inline_id);
+}
 
 void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
                                               TokenPosition pos) {
