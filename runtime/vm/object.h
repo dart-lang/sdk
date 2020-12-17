@@ -5594,7 +5594,8 @@ class PcDescriptors : public Object {
 
         if (!FLAG_precompiled_mode) {
           cur_deopt_id_ += stream.ReadSLEB128();
-          cur_token_pos_ += stream.ReadSLEB128<int32_t>();
+          cur_token_pos_ = Utils::AddWithWrapAround(
+              cur_token_pos_, stream.ReadSLEB128<int32_t>());
         }
         byte_index_ = stream.Position();
 

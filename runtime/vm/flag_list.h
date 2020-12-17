@@ -90,6 +90,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "-1 means never.")                                                         \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
+  P(check_token_positions, bool, false,                                        \
+    "Check validity of token positions while compiling flow graphs")           \
   R(code_comments, false, bool, false,                                         \
     "Include comments into code and disassembly.")                             \
   P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \

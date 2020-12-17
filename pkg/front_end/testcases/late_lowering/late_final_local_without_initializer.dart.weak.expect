@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method main() → dynamic {
-  core::bool b = false;
+  core::bool b = (() → core::bool => false).call();
   lowered final core::int? #lateLocal;
   lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int

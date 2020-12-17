@@ -625,6 +625,9 @@ class TypeInferrerImpl implements TypeInferrer {
             fileOffset, helper.uri);
     }
 
+    if (!identical(result, expression)) {
+      flowAnalysis?.forwardExpression(result, expression);
+    }
     return result;
   }
 

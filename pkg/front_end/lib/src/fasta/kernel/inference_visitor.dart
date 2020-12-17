@@ -6227,7 +6227,8 @@ class InferenceVisitor
         declaredOrInferredType, rhsResult,
         fileOffset: node.fileOffset,
         isVoidAllowed: declaredOrInferredType is VoidType);
-    inferrer.flowAnalysis.write(variable, rhsResult.inferredType);
+    inferrer.flowAnalysis
+        .write(variable, rhsResult.inferredType, rhsResult.expression);
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;
     if (variable.lateSetter != null) {
@@ -6324,12 +6325,13 @@ class InferenceVisitor
         if (initializerType is TypeParameterType) {
           inferrer.flowAnalysis.promote(node, initializerType);
         }
-      } else if (!node.isFinal) {
+      } else {
         // TODO(paulberry): `initializerType` is sometimes `null` during top
         // level inference.  Figure out how to prevent this.
         if (initializerType != null) {
-          inferrer.flowAnalysis
-              .write(node, initializerType, viaInitializer: true);
+          inferrer.flowAnalysis.initialize(
+              node, initializerType, initializerResult.expression,
+              isFinal: node.isFinal, isLate: node.isLate);
         }
       }
       Expression initializer = inferrer.ensureAssignableResult(
@@ -6947,7 +6949,7 @@ class LocalForInVariable implements ForInVariable {
         isVoidAllowed: true);
 
     variableSet.value = rhs..parent = variableSet;
-    inferrer.flowAnalysis.write(variableSet.variable, rhsType);
+    inferrer.flowAnalysis.write(variableSet.variable, rhsType, null);
     return variableSet;
   }
 }

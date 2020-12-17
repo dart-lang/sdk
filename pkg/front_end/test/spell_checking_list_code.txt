@@ -20,6 +20,7 @@ accumulating
 acon
 acov
 across
+activated
 adi
 affecting
 afterwards
@@ -35,6 +36,7 @@ alive
 allocate
 altered
 analogous
+analogy
 annotate
 ansi
 answering
@@ -327,6 +329,7 @@ disambiguator
 disjoint
 dispatched
 distribute
+diverged
 divided
 dmitryas
 doc
@@ -419,6 +422,7 @@ field2
 fieldformal
 file's
 filenames
+finally's
 finv
 firsts
 fishy
@@ -483,8 +487,10 @@ gz
 gzip
 gzipped
 h
+hacky
 hadn't
 hang
+hardcode
 harness
 hashes
 hashing
@@ -498,6 +504,7 @@ highlighting
 highlights
 hillerstrom
 histogram
+history
 hit
 hoc
 hopefully
@@ -526,6 +533,7 @@ imply
 implying
 importantly
 imprecise
+improperly
 inapplicable
 inc
 incomparable
@@ -537,6 +545,7 @@ indexing
 indirection
 individual
 inequality
+influence
 informative
 infos
 init
@@ -558,6 +567,7 @@ interior
 interleaved
 intermediate
 interpolations
+interrupted
 intersects
 interval
 intervals
@@ -599,6 +609,7 @@ kv
 k’s
 l
 lacks
+lags
 lang
 largest
 lattice
@@ -841,6 +852,7 @@ prebuilt
 preexisted
 preexisting
 preorder
+presubmit
 prev
 prime
 printer
@@ -899,7 +911,10 @@ reachability
 react
 realign
 realise
+reapplies
 reassigned
+rebased
+rebasing
 rebind
 rebuild
 rebuilds
@@ -932,6 +947,7 @@ regis
 registering
 rehash
 reindexed
+reinstate
 reissued
 rejoin
 relatively
@@ -962,6 +978,7 @@ restriction
 resumed
 ret
 reusage
+rewinds
 rewrites
 rewrote
 rf
@@ -1003,6 +1020,7 @@ serializers
 serve
 server
 service
+session
 setaf
 sh
 sha1hash
@@ -1049,6 +1067,7 @@ spaced
 sparse
 spec
 spec'ed
+specialization
 specially
 specifics
 speeding
@@ -1270,6 +1289,7 @@ variances
 variant
 variants
 variation
+vars
 vary
 vb
 vector
@@ -1279,6 +1299,7 @@ versa
 vice
 video
 violated
+violating
 visit*
 visitors
 visits

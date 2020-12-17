@@ -48,6 +48,31 @@
 
 namespace dart {
 
+CompilerPassState::CompilerPassState(
+    Thread* thread,
+    FlowGraph* flow_graph,
+    SpeculativeInliningPolicy* speculative_policy,
+    Precompiler* precompiler)
+    : thread(thread),
+      precompiler(precompiler),
+      inlining_depth(0),
+      sinking(NULL),
+      call_specializer(NULL),
+      speculative_policy(speculative_policy),
+      reorder_blocks(false),
+      sticky_flags(0),
+      flow_graph_(flow_graph) {
+  // Top scope function is at inlining id 0.
+  inline_id_to_function.Add(&flow_graph->parsed_function().function());
+  // Top scope function has no caller (-1).
+  caller_inline_id.Add(-1);
+  // We do not add a token position for the top scope function to
+  // |inline_id_to_token_pos| because it is not (currently) inlined into
+  // another graph at a given token position. A side effect of this is that
+  // the length of |inline_id_to_function| and |caller_inline_id| is always
+  // larger than the length of |inline_id_to_token_pos| by one.
+}
+
 CompilerPass* CompilerPass::passes_[CompilerPass::kNumPasses] = {NULL};
 
 DEFINE_OPTION_HANDLER(CompilerPass::ParseFilters,
@@ -197,7 +222,8 @@ void CompilerPass::Run(CompilerPassState* state) const {
     }
     PrintGraph(state, kTraceAfter, round);
 #if defined(DEBUG)
-    FlowGraphChecker(state->flow_graph()).Check(name());
+    FlowGraphChecker(state->flow_graph(), state->inline_id_to_function)
+        .Check(name());
 #endif
   }
 }
@@ -263,6 +289,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   if (FLAG_early_round_trip_serialization) {
     INVOKE_PASS(RoundTripSerialization);
   }
+  INVOKE_PASS(SetOuterInliningId);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(BranchSimplify);

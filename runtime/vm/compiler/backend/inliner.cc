@@ -1052,7 +1052,12 @@ class CallSiteInliner : public ValueObject {
         {
           callee_graph = builder.BuildGraph();
 #if defined(DEBUG)
-          FlowGraphChecker(callee_graph).Check("Builder (callee)");
+          // The inlining IDs of instructions in the callee graph are unset
+          // until we call SetInliningID later.
+          GrowableArray<const Function*> callee_inline_id_to_function;
+          callee_inline_id_to_function.Add(&function);
+          FlowGraphChecker(callee_graph, callee_inline_id_to_function)
+              .Check("Builder (callee)");
 #endif
           CalleeGraphValidator::Validate(callee_graph);
         }
@@ -1135,7 +1140,12 @@ class CallSiteInliner : public ValueObject {
           callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                    param_stubs);
 #if defined(DEBUG)
-          FlowGraphChecker(callee_graph).Check("SSA (callee)");
+          // The inlining IDs of instructions in the callee graph are unset
+          // until we call SetInliningID later.
+          GrowableArray<const Function*> callee_inline_id_to_function;
+          callee_inline_id_to_function.Add(&function);
+          FlowGraphChecker(callee_graph, callee_inline_id_to_function)
+              .Check("SSA (callee)");
 #endif
         }
 

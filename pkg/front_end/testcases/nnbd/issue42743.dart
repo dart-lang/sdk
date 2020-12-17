@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() async {
-  bool b = true;
+  bool b = (() => true)();
   (_) {
     if (b) return 42;
   };
