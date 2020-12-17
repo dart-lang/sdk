@@ -17,7 +17,7 @@ const _desc = r'Private field could be final.';
 const _details = r'''
 
 **DO** prefer declaring private fields as final if they are not reassigned later
-in the class.
+in the library.
 
 Declaring fields as final when possible is a good practice because it helps
 avoid accidental reassignments and allows the compiler to do optimizations.

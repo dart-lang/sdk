@@ -15,13 +15,13 @@ class PrefixOps {
     if (!_initialized) {
       return 0;
     }
-    if (-_num  == -1) {
+    if (-_num == -1) {
       return 0;
     }
     if (~_bits == 0) {
       return 0;
     }
-    if (--_num2  == 0) {
+    if (--_num2 == 0) {
       return 0;
     }
     return 1;
@@ -38,10 +38,10 @@ class PostfixOps {
   Predicate _predicate = () => false; // LINT
 
   int getValue() {
-    if (_num--  == -1) {
+    if (_num-- == -1) {
       return 0;
     }
-    if (_num2++  == 1) {
+    if (_num2++ == 1) {
       return 0;
     }
     if (_predicate()) {
@@ -186,4 +186,13 @@ class GenericSub extends GenericBase<int> {
   void test() {
     _current = 1;
   }
+}
+
+class Z {
+  /// Set in the top level [z] function below.
+  int _z = 1; //OK
+}
+
+void z(Z z) {
+  z._z = 0;
 }
