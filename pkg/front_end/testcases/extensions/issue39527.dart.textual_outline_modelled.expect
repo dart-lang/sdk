@@ -1,0 +1,12 @@
+class C {
+  int value = 0;
+}
+
+extension Extension1 on C {
+  C operator -(int val) => this;
+  C operator [](int index) => this..value += index + 1;
+  void operator []=(int index, C other) =>
+      this.value += other.value + index + 1;
+}
+
+main() {}

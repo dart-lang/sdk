@@ -11,6 +11,9 @@ import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
 
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner;
 
@@ -418,7 +421,8 @@ class BoxedInt {
 //              "show A, B, C hide A show A" would be empty.
 
 String textualOutline(List<int> rawBytes,
-    {bool throwOnUnexpected: false,
+    {ScannerConfiguration configuration,
+    bool throwOnUnexpected: false,
     bool performModelling: false,
     bool addMarkerForUnknownForTest: false}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
@@ -428,8 +432,9 @@ String textualOutline(List<int> rawBytes,
 
   BoxedInt originalPosition = new BoxedInt(0);
 
-  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes, includeComments: false,
-      languageVersionChanged:
+  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
+      includeComments: false,
+      configuration: configuration, languageVersionChanged:
           (Scanner scanner, LanguageVersionToken languageVersion) {
     parsedChunks.add(
         new _LanguageVersionChunk(languageVersion.major, languageVersion.minor)

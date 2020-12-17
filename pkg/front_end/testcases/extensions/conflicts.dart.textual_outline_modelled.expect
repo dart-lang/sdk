@@ -1,0 +1,22 @@
+class Class1 {}
+
+class Class2 {}
+
+errors() {}
+
+extension DuplicateExtensionName on Class1 {
+  duplicateMethodName2() => 1;
+  uniqueMethod1() {}
+}
+
+extension DuplicateExtensionName on Class2 {
+  duplicateMethodName2() => 2;
+  uniqueMethod2() {}
+}
+
+extension UniqueExtensionName on Class1 {
+  duplicateMethodName1() => 1;
+  duplicateMethodName1() => 2;
+}
+
+main() {}

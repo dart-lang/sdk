@@ -1,10 +1,15 @@
 bool b = true;
+
 abstract class Map<K, V> {
   V operator [](K index);
   void operator []=(K index, V value);
 }
-extension Extension ;
-on int (){}
+
+extension Extension on int {
+  Class operator [](Class cls) => new Class();
+  void operator []=(Class cls, Class value) {}
+}
+
 class Class {
   Class operator [](Class cls) => new Class();
   void operator []=(Class cls, Class value) {}
@@ -16,12 +21,17 @@ class Class {
   void explicitExtensionGetSetForEffect(int i) {}
   void explicitExtensionGetSetForValue(int i) {}
 }
+
 class Subclass extends Class {
   void superIndexGetSetForEffect() {}
   void superIndexGetSetForValue() {}
 }
-extension Extension2 ;
-on Class2 (){}
+
+extension Extension2 on Class2 {
+  Class2 operator [](Class2 cls) => new Class2();
+  void operator []=(Class2 cls, Class2 value) {}
+}
+
 class Class2 {
   Class2 operator +(Class2 cls) => cls;
   void implicitExtensionGetSetForEffect() {}
@@ -29,4 +39,5 @@ class Class2 {
   void explicitExtensionGetSetForEffect() {}
   void explicitExtensionGetSetForValue() {}
 }
+
 main() {}

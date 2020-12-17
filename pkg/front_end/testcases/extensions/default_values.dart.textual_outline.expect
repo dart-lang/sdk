@@ -1,5 +1,12 @@
 class Class {}
-extension Extension ;
-on Class (){}
+
+extension Extension on Class {
+  method0([a]) => a;
+  method1([a = 42]) => a;
+  method2({b = 87}) => b;
+  method3({c = staticMethod}) => c();
+  static staticMethod() => 123;
+}
+
 main() {}
 expect(expected, actual) {}

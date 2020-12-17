@@ -34,7 +34,16 @@ class Class<T> {
   Class(this.field);
   instanceMethod() {}
 }
-extension Extension<T> (){}
-on Class<T> (){}
+extension Extension<T> on Class<T> {
+  static int? lateExtensionField1Init;
+  static int initLateExtensionField1(int value) {}
+  static late ;
+  final int lateExtensionField1 = initLateExtensionField1(87);
+  static int? lateExtensionField2Init;
+  static int initLateExtensionField2(int value) {}
+  static late ;
+  final int lateExtensionField2 = initLateExtensionField2(42);
+  static staticMethod() {}
+}
 main() {}
 expect(expected, actual) {}

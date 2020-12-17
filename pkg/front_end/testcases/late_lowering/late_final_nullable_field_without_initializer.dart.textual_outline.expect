@@ -12,8 +12,13 @@ class Class<T> {
   final T? lateGenericInstanceField;
   instanceMethod(T value) {}
 }
-extension Extension<T> (){}
-on Class<T> (){}
+extension Extension<T> on Class<T> {
+  static late ;
+  final int? lateExtensionField1;
+  static late ;
+  final int? lateExtensionField2;
+  static staticMethod() {}
+}
 main() {}
 expect(expected, actual) {}
 throws(f(), String message) {}

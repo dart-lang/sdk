@@ -21,7 +21,16 @@ class Class<T> {
   Class(this.field);
   instanceMethod(T? value) {}
 }
-extension Extension<T> (){}
-on Class<T> (){}
+extension Extension<T> on Class<T> {
+  static int? lateExtensionField1Init() => 87;
+  static late int;
+  operator? (){}
+  lateExtensionField1 = lateExtensionField1Init();
+  static int? lateExtensionField2Init() => 42;
+  static late int;
+  operator? (){}
+  lateExtensionField2 = lateExtensionField2Init();
+  static staticMethod() {}
+}
 main() {}
 expect(expected, actual) {}

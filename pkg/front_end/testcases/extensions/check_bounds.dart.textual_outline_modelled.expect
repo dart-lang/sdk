@@ -1,0 +1,47 @@
+part 'check_bounds_lib.dart';
+
+class A {}
+
+class B extends A {}
+
+class Class<T extends A> {}
+
+extension Extension<T extends B> on Class<T> {
+  genericMethod<S extends B>(S s) {}
+  method() {}
+}
+
+final A a = new A();
+final Class<A> classA = new Class<A>();
+final Class<B> classB = new Class<B>();
+final field1 = classA.method();
+final field10 = Extension<A>(classA).genericMethod<B>(a);
+final field11 = Extension<B>(classA).genericMethod(a);
+final field12 = Extension<B>(classA).genericMethod<A>(a);
+final field13 = Extension<B>(classA).genericMethod<B>(a);
+final field14 = classB.method();
+final field15 = Extension(classB).method();
+final field16 = Extension<A>(classB).method();
+final field17 = Extension<B>(classB).method();
+final field18 = classB.genericMethod(a);
+final field19 = classB.genericMethod<A>(a);
+final field2 = Extension(classA).method();
+final field20 = classB.genericMethod<B>(a);
+final field21 = Extension(classB).genericMethod(a);
+final field22 = Extension(classB).genericMethod<A>(a);
+final field23 = Extension(classB).genericMethod<B>(a);
+final field24 = Extension<A>(classB).genericMethod(a);
+final field25 = Extension<A>(classB).genericMethod<A>(a);
+final field26 = Extension<A>(classB).genericMethod<B>(a);
+final field27 = Extension<B>(classB).genericMethod(a);
+final field28 = Extension<B>(classB).genericMethod<A>(a);
+final field29 = Extension<B>(classB).genericMethod<B>(a);
+final field3 = Extension<A>(classA).method();
+final field4 = Extension<B>(classA).method();
+final field5 = Extension(classA).genericMethod(a);
+final field6 = Extension(classA).genericMethod<A>(a);
+final field7 = Extension(classA).genericMethod<B>(a);
+final field8 = Extension<A>(classA).genericMethod(a);
+final field9 = Extension<A>(classA).genericMethod<A>(a);
+main() {}
+test() {}
