@@ -4,6 +4,7 @@
 
 #include "vm/code_descriptors.h"
 
+#include "platform/utils.h"
 #include "vm/compiler/api/deopt_id.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
@@ -78,7 +79,8 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
       }
       const int32_t encoded_pos = token_pos.Serialize();
       encoded_data_.WriteSLEB128(deopt_id - prev_deopt_id);
-      encoded_data_.WriteSLEB128(encoded_pos - prev_token_pos);
+      encoded_data_.WriteSLEB128(
+          Utils::SubWithWrapAround(encoded_pos, prev_token_pos));
       prev_deopt_id = deopt_id;
       prev_token_pos = encoded_pos;
     }
