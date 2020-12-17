@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 static method main() → dynamic async {
-  core::bool b = true;
+  core::bool b = (() → core::bool => true).call();
   (dynamic _) → core::int? {
     if(b)
       return 42;

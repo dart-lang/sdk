@@ -2839,10 +2839,25 @@ class Parser {
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, codes.messageSetterNotSync);
     }
-    bool isExternal = externalToken != null;
-    if (isExternal && !optional(';', token.next!)) {
-      reportRecoverableError(
-          externalToken!, codes.messageExternalMethodWithBody);
+    // TODO(paulberry): code below is slightly hacky to allow for implementing
+    // the feature "Infer non-nullability from local boolean variables"
+    // (https://github.com/dart-lang/language/issues/1274).  Since the version
+    // of Dart that is used for presubmit checks lags slightly behind master,
+    // we need the code to analyze correctly regardless of whether local boolean
+    // variables cause promotion or not.  Once the version of dart used for
+    // presubmit checks has been updated, this can be cleaned up to:
+    //   bool isExternal = externalToken != null;
+    //   if (externalToken != null && !optional(';', token.next!)) {
+    //     reportRecoverableError(
+    //         externalToken, codes.messageExternalMethodWithBody);
+    //   }
+    bool isExternal = false;
+    if (externalToken != null) {
+      isExternal = true;
+      if (!optional(';', token.next!)) {
+        reportRecoverableError(
+            externalToken, codes.messageExternalMethodWithBody);
+      }
     }
     token = parseFunctionBody(
         token, /* ofFunctionExpression = */ false, isExternal);

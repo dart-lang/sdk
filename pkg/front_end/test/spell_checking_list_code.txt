@@ -487,6 +487,7 @@ gz
 gzip
 gzipped
 h
+hacky
 hadn't
 hang
 hardcode
@@ -608,6 +609,7 @@ kv
 k’s
 l
 lacks
+lags
 lang
 largest
 lattice
@@ -850,6 +852,7 @@ prebuilt
 preexisted
 preexisting
 preorder
+presubmit
 prev
 prime
 printer
