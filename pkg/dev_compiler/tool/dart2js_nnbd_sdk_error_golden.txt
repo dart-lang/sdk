@@ -3,8 +3,6 @@ ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/i
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '>>': JSNumber.>> (num Function(num)), int.>> (int Function(int)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '\|': JSNumber.\| (num Function(num)), int.\| (int Function(int)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '^': JSNumber.^ (num Function(num)), int.^ (int Function(int)).
-ERROR|COMPILE_TIME_ERROR|RETURN_OF_INVALID_TYPE|lib/_internal/js_runtime/lib/interceptors.dart|1573|14|45|A value of type 'double' can't be returned from method '%' because it has a return type of 'JSNumber'.
-ERROR|COMPILE_TIME_ERROR|RETURN_OF_INVALID_TYPE|lib/_internal/js_runtime/lib/interceptors.dart|1575|14|45|A value of type 'double' can't be returned from method '%' because it has a return type of 'JSNumber'.
 ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1735|28|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1737|27|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1740|17|1|The operator '&' isn't defined for the type 'JSInt'.
