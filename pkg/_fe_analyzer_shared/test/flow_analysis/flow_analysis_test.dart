@@ -3903,11 +3903,11 @@ main() {
     VariableModel<Var, Type> model(List<Type>? promotionChain,
             {List<Type>? typesOfInterest, bool assigned = false}) =>
         VariableModel<Var, Type>(
-            promotionChain,
-            typesOfInterest ?? promotionChain ?? [],
-            assigned,
-            !assigned,
-            new SsaNode());
+            promotedTypes: promotionChain,
+            tested: typesOfInterest ?? promotionChain ?? [],
+            assigned: assigned,
+            unassigned: !assigned,
+            ssaNode: new SsaNode());
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
@@ -4086,8 +4086,12 @@ main() {
 
     VariableModel<Var, Type> varModel(List<Type>? promotionChain,
             {bool assigned = false}) =>
-        VariableModel<Var, Type>(promotionChain, promotionChain ?? [], assigned,
-            !assigned, new SsaNode());
+        VariableModel<Var, Type>(
+            promotedTypes: promotionChain,
+            tested: promotionChain ?? [],
+            assigned: assigned,
+            unassigned: !assigned,
+            ssaNode: new SsaNode());
 
     test('first is null', () {
       var h = Harness();
@@ -4175,7 +4179,11 @@ main() {
 
     VariableModel<Var, Type> model(List<Type> typesOfInterest) =>
         VariableModel<Var, Type>(
-            null, typesOfInterest, true, false, new SsaNode());
+            promotedTypes: null,
+            tested: typesOfInterest,
+            assigned: true,
+            unassigned: false,
+            ssaNode: new SsaNode());
 
     test('inherits types of interest from other', () {
       var h = Harness();

@@ -1495,7 +1495,11 @@ class FlowModel<Variable extends Object, Type extends Object> {
         (newVariableInfo ??=
             new Map<Variable, VariableModel<Variable, Type>>.from(
                 variableInfo))[variable] = new VariableModel<Variable, Type>(
-            null, const [], false, false, null);
+            promotedTypes: null,
+            tested: const [],
+            assigned: false,
+            unassigned: false,
+            ssaNode: null);
       } else if (!info.writeCaptured) {
         (newVariableInfo ??=
             new Map<Variable, VariableModel<Variable, Type>>.from(
@@ -1831,8 +1835,12 @@ class FlowModel<Variable extends Object, Type extends Object> {
         ? this
         : _updateVariableInfo(
             variable,
-            new VariableModel<Variable, Type>(newPromotedTypes, newTested,
-                info.assigned, info.unassigned, info.ssaNode),
+            new VariableModel<Variable, Type>(
+                promotedTypes: newPromotedTypes,
+                tested: newTested,
+                assigned: info.assigned,
+                unassigned: info.unassigned,
+                ssaNode: info.ssaNode),
             reachable: newReachable);
   }
 
@@ -2267,8 +2275,12 @@ class VariableModel<Variable extends Object, Type extends Object> {
   /// `null` if the variable has been write captured.
   final SsaNode? ssaNode;
 
-  VariableModel(this.promotedTypes, this.tested, this.assigned, this.unassigned,
-      this.ssaNode) {
+  VariableModel(
+      {required this.promotedTypes,
+      required this.tested,
+      required this.assigned,
+      required this.unassigned,
+      required this.ssaNode}) {
     assert(!(assigned && unassigned),
         "Can't be both definitely assigned and unassigned");
     assert(promotedTypes == null || promotedTypes!.isNotEmpty);
@@ -2298,7 +2310,11 @@ class VariableModel<Variable extends Object, Type extends Object> {
   /// loops whose bodies write to them.
   VariableModel<Variable, Type> discardPromotionsAndMarkNotUnassigned() {
     return new VariableModel<Variable, Type>(
-        null, tested, assigned, false, writeCaptured ? null : new SsaNode());
+        promotedTypes: null,
+        tested: tested,
+        assigned: assigned,
+        unassigned: false,
+        ssaNode: writeCaptured ? null : new SsaNode());
   }
 
   /// Returns an updated model reflect a control path that is known to have
@@ -2381,7 +2397,11 @@ class VariableModel<Variable extends Object, Type extends Object> {
       TypeOperations<Variable, Type> typeOperations) {
     if (writeCaptured) {
       return new VariableModel<Variable, Type>(
-          promotedTypes, tested, true, false, null);
+          promotedTypes: promotedTypes,
+          tested: tested,
+          assigned: true,
+          unassigned: false,
+          ssaNode: null);
     }
 
     List<Type>? newPromotedTypes = _demoteViaAssignment(
@@ -2394,7 +2414,11 @@ class VariableModel<Variable extends Object, Type extends Object> {
         typeOperations, declaredType, newPromotedTypes, writtenType);
     if (identical(promotedTypes, newPromotedTypes) && assigned) {
       return new VariableModel<Variable, Type>(
-          promotedTypes, tested, assigned, unassigned, new SsaNode());
+          promotedTypes: promotedTypes,
+          tested: tested,
+          assigned: assigned,
+          unassigned: unassigned,
+          ssaNode: new SsaNode());
     }
 
     List<Type> newTested;
@@ -2405,14 +2429,22 @@ class VariableModel<Variable extends Object, Type extends Object> {
     }
 
     return new VariableModel<Variable, Type>(
-        newPromotedTypes, newTested, true, false, new SsaNode());
+        promotedTypes: newPromotedTypes,
+        tested: newTested,
+        assigned: true,
+        unassigned: false,
+        ssaNode: new SsaNode());
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable has
   /// been write-captured.
   VariableModel<Variable, Type> writeCapture() {
     return new VariableModel<Variable, Type>(
-        null, const [], assigned, false, null);
+        promotedTypes: null,
+        tested: const [],
+        assigned: assigned,
+        unassigned: false,
+        ssaNode: null);
   }
 
   List<Type>? _demoteViaAssignment(
@@ -2568,8 +2600,12 @@ class VariableModel<Variable extends Object, Type extends Object> {
           List<Type> tested) {
     List<Type> newTested = joinTested(tested, model.tested, typeOperations);
     if (identical(newTested, model.tested)) return model;
-    return new VariableModel<Variable, Type>(model.promotedTypes, newTested,
-        model.assigned, model.unassigned, model.ssaNode);
+    return new VariableModel<Variable, Type>(
+        promotedTypes: model.promotedTypes,
+        tested: newTested,
+        assigned: model.assigned,
+        unassigned: model.unassigned,
+        ssaNode: model.ssaNode);
   }
 
   /// Joins two variable models.  See [FlowModel.join] for details.
@@ -2759,7 +2795,11 @@ class VariableModel<Variable extends Object, Type extends Object> {
       return second;
     } else {
       return new VariableModel<Variable, Type>(
-          newPromotedTypes, newTested, newAssigned, newUnassigned, newSsaNode);
+          promotedTypes: newPromotedTypes,
+          tested: newTested,
+          assigned: newAssigned,
+          unassigned: newUnassigned,
+          ssaNode: newSsaNode);
     }
   }
 
