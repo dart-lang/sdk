@@ -228,7 +228,8 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 void FlowGraphCompiler::InitCompiler() {
   compressed_stackmaps_builder_ =
       new (zone()) CompressedStackMapsBuilder(zone());
-  pc_descriptors_list_ = new (zone()) DescriptorList(zone());
+  pc_descriptors_list_ = new (zone()) DescriptorList(
+      zone(), &code_source_map_builder_->inline_id_to_function());
   exception_handlers_list_ = new (zone()) ExceptionHandlerList();
 #if defined(DART_PRECOMPILER)
   catch_entry_moves_maps_builder_ = new (zone()) CatchEntryMovesMapBuilder();

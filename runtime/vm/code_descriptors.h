@@ -18,11 +18,9 @@ static const intptr_t kInvalidTryIndex = -1;
 
 class DescriptorList : public ZoneAllocated {
  public:
-  explicit DescriptorList(Zone* zone)
-      : encoded_data_(zone, kInitialStreamSize),
-        prev_pc_offset(0),
-        prev_deopt_id(0),
-        prev_token_pos(0) {}
+  explicit DescriptorList(
+      Zone* zone,
+      const GrowableArray<const Function*>* inline_id_to_function = nullptr);
 
   ~DescriptorList() {}
 
@@ -38,6 +36,8 @@ class DescriptorList : public ZoneAllocated {
  private:
   static constexpr intptr_t kInitialStreamSize = 64;
 
+  const Function& function_;
+  const Script& script_;
   ZoneWriteStream encoded_data_;
 
   intptr_t prev_pc_offset;
@@ -205,12 +205,14 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   ArrayPtr InliningIdToFunction();
   CodeSourceMapPtr Finalize();
 
+  const GrowableArray<const Function*>& inline_id_to_function() const {
+    return inline_id_to_function_;
+  }
+
  private:
   intptr_t GetFunctionId(intptr_t inline_id);
 
-  void BufferChangePosition(TokenPosition pos) {
-    buffered_token_pos_stack_.Last() = pos;
-  }
+  void BufferChangePosition(TokenPosition pos);
   void WriteChangePosition(TokenPosition pos);
   void BufferAdvancePC(int32_t distance) { buffered_pc_offset_ += distance; }
   void WriteAdvancePC(int32_t distance) {
@@ -268,6 +270,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
   const GrowableObjectArray& inlined_functions_;
 
+  Script& script_;
   ZoneWriteStream stream_;
 
   const bool stack_traces_only_;

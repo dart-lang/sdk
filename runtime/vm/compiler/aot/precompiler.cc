@@ -2561,16 +2561,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
-        pass_state.inline_id_to_function.Add(&function);
-        // We do not add the token position now because we don't know the
-        // position of the inlined call until later. A side effect of this
-        // is that the length of |inline_id_to_function| is always larger
-        // than the length of |inline_id_to_token_pos| by one.
-        // Top scope function has no caller (-1). We do this because we expect
-        // all token positions to be at an inlined call.
-        // Top scope function has no caller (-1).
-        pass_state.caller_inline_id.Add(-1);
-
         AotCallSpecializer call_specializer(precompiler_, flow_graph,
                                             &speculative_policy);
         pass_state.call_specializer = &call_specializer;

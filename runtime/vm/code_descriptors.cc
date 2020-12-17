@@ -11,6 +11,22 @@
 
 namespace dart {
 
+DescriptorList::DescriptorList(
+    Zone* zone,
+    const GrowableArray<const Function*>* inline_id_to_function)
+    : function_(Function::Handle(
+          zone,
+          FLAG_check_token_positions && (inline_id_to_function != nullptr)
+              ? inline_id_to_function->At(0)->raw()
+              : Function::null())),
+      script_(Script::Handle(
+          zone,
+          function_.IsNull() ? Script::null() : function_.script())),
+      encoded_data_(zone, kInitialStreamSize),
+      prev_pc_offset(0),
+      prev_deopt_id(0),
+      prev_token_pos(0) {}
+
 void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
@@ -40,6 +56,26 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
     prev_pc_offset = pc_offset;
 
     if (!FLAG_precompiled_mode) {
+      if (FLAG_check_token_positions && token_pos.IsReal()) {
+        if (!function_.IsNull() &&
+            !token_pos.IsWithin(function_.token_pos(),
+                                function_.end_token_pos())) {
+          FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
+                " invalid for function %s (%s, %s)",
+                token_pos.ToCString(), PcDescriptorsLayout::KindToCString(kind),
+                pc_offset, function_.ToFullyQualifiedCString(),
+                function_.token_pos().ToCString(),
+                function_.end_token_pos().ToCString());
+        }
+        intptr_t line;
+        if (!script_.IsNull() && !script_.GetTokenLocation(token_pos, &line)) {
+          FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
+                " invalid for script %s of function %s",
+                token_pos.ToCString(), PcDescriptorsLayout::KindToCString(kind),
+                pc_offset, script_.ToCString(),
+                function_.ToFullyQualifiedCString());
+        }
+      }
       const int32_t encoded_pos = token_pos.Serialize();
       encoded_data_.WriteSLEB128(deopt_id - prev_deopt_id);
       encoded_data_.WriteSLEB128(encoded_pos - prev_token_pos);
@@ -218,6 +254,7 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
       inline_id_to_function_(inline_id_to_function),
       inlined_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld))),
+      script_(Script::Handle(zone)),
       stream_(zone, 64),
       stack_traces_only_(stack_traces_only) {
   buffered_inline_id_stack_.Add(0);
@@ -283,7 +320,8 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
     return;
   }
   if (inline_id == -1) {
-    // Basic blocking missing an inline_id.
+    // We're missing an inlining ID for some reason: for now, just assume it
+    // should have the current inlining ID.
     return;
   }
 
@@ -395,6 +433,39 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
   return map.raw();
 }
 
+void CodeSourceMapBuilder::BufferChangePosition(TokenPosition pos) {
+  if (FLAG_check_token_positions && pos.IsReal()) {
+    const intptr_t inline_id = buffered_inline_id_stack_.Last();
+    const auto& function = *inline_id_to_function_[inline_id];
+    if (!pos.IsWithin(function.token_pos(), function.end_token_pos())) {
+      TextBuffer buffer(256);
+      buffer.Printf("Token position %s is invalid for function %s (%s, %s)",
+                    pos.ToCString(), function.ToFullyQualifiedCString(),
+                    function.token_pos().ToCString(),
+                    function.end_token_pos().ToCString());
+      if (inline_id > 0) {
+        buffer.Printf(" while compiling function %s",
+                      inline_id_to_function_[0]->ToFullyQualifiedCString());
+      }
+      FATAL("%s", buffer.buffer());
+    }
+    script_ = function.script();
+    intptr_t line;
+    if (!script_.IsNull() && !script_.GetTokenLocation(pos, &line)) {
+      TextBuffer buffer(256);
+      buffer.Printf("Token position %s is invalid for script %s of function %s",
+                    pos.ToCString(), script_.ToCString(),
+                    function.ToFullyQualifiedCString());
+      if (inline_id > 0) {
+        buffer.Printf(" while compiling function %s",
+                      inline_id_to_function_[0]->ToFullyQualifiedCString());
+      }
+      FATAL("%s", buffer.buffer());
+    }
+  }
+  buffered_token_pos_stack_.Last() = pos;
+}
+
 void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
   stream_.Write<uint8_t>(kChangePosition);
   intptr_t position_or_line = pos.Serialize();
@@ -405,12 +476,10 @@ void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
     // use the value of kNoSource as a fallback when no line or column
     // information is found.
     position_or_line = TokenPosition::kNoSource.Serialize();
-    intptr_t inline_id = buffered_inline_id_stack_.Last();
-    if (inline_id < inline_id_to_function_.length()) {
-      const Function* function = inline_id_to_function_[inline_id];
-      Script& script = Script::Handle(function->script());
-      script.GetTokenLocation(pos, &position_or_line, &column);
-    }
+    const intptr_t inline_id = written_inline_id_stack_.Last();
+    ASSERT(inline_id < inline_id_to_function_.length());
+    script_ = inline_id_to_function_[inline_id]->script();
+    script_.GetTokenLocation(pos, &position_or_line, &column);
   }
 #endif
   stream_.Write<int32_t>(position_or_line);

@@ -274,6 +274,44 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
          instruction->deopt_id() != DeoptId::kNone);
 #endif  // !defined(DART_PRECOMPILER)
 
+  // If checking token positions, check both the inlining ID and token position
+  // if the inlining ID of the graph has been set.
+  if (FLAG_check_token_positions && flow_graph_->inlining_id() >= 0) {
+    ASSERT(instruction->has_inlining_id());
+
+    const TokenPosition& pos = instruction->token_pos();
+    if (pos.IsReal()) {
+      const intptr_t inlining_id = instruction->inlining_id();
+      const auto& function = *inline_id_to_function_[inlining_id];
+      if (!pos.IsWithin(function.token_pos(), function.end_token_pos())) {
+        TextBuffer buffer(256);
+        buffer.Printf("Token position %s is invalid for function %s (%s, %s)",
+                      pos.ToCString(), function.ToFullyQualifiedCString(),
+                      function.token_pos().ToCString(),
+                      function.end_token_pos().ToCString());
+        if (inlining_id > 0) {
+          buffer.Printf(" while compiling function %s",
+                        inline_id_to_function_[0]->ToFullyQualifiedCString());
+        }
+        FATAL("%s", buffer.buffer());
+      }
+      script_ = function.script();
+      intptr_t line;
+      if (!script_.IsNull() && !script_.GetTokenLocation(pos, &line)) {
+        TextBuffer buffer(256);
+        buffer.Printf(
+            "Token position %s is invalid for script %s of function %s",
+            pos.ToCString(), script_.ToCString(),
+            function.ToFullyQualifiedCString());
+        if (inlining_id > 0) {
+          buffer.Printf(" while compiling function %s",
+                        inline_id_to_function_[0]->ToFullyQualifiedCString());
+        }
+        FATAL("%s", buffer.buffer());
+      }
+    }
+  }
+
   // Check all regular inputs.
   for (intptr_t i = 0, n = instruction->InputCount(); i < n; ++i) {
     VisitUseDef(instruction, instruction->InputAt(i), i, /*is_env*/ false);

@@ -125,15 +125,6 @@ FlowGraph* TestPipeline::RunPasses(
   pass_state_->reorder_blocks = reorder_blocks;
 
   if (optimized) {
-    pass_state_->inline_id_to_function.Add(&function_);
-    // We do not add the token position now because we don't know the
-    // position of the inlined call until later. A side effect of this
-    // is that the length of |inline_id_to_function| is always larger
-    // than the length of |inline_id_to_token_pos| by one.
-    // Top scope function has no caller (-1). We do this because we expect
-    // all token positions to be at an inlined call.
-    pass_state_->caller_inline_id.Add(-1);
-
     JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
     AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr,
                                             flow_graph_, &speculative_policy);
