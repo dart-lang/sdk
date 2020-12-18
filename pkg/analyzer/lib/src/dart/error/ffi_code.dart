@@ -23,6 +23,15 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try removing the annotation.");
 
   /**
+   * Parameters:
+   * 0: the name of the struct class
+   */
+  static const FfiCode EMPTY_STRUCT = FfiCode(
+      name: 'EMPTY_STRUCT',
+      message: "Struct '{0}' is empty. Empty structs are undefined behavior.",
+      correction: "Try adding a field to '{0}' or use a different Struct.");
+
+  /**
    * No parameters.
    */
   static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
@@ -76,8 +85,9 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'INVALID_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
-          "be declared as 'int', 'double' or 'Pointer'.",
-      correction: "Try using 'int', 'double' or 'Pointer'.");
+          "be declared as 'int', 'double', 'Pointer', or subtype of 'Struct'.",
+      correction:
+          "Try using 'int', 'double', 'Pointer', or subtype of 'Struct'.");
 
   /**
    * No parameters.

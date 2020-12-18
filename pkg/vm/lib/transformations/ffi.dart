@@ -193,10 +193,16 @@ class FfiTransformer extends Transformer {
   final Class doubleClass;
   final Class listClass;
   final Class typeClass;
+  final Procedure unsafeCastMethod;
+  final Class typedDataClass;
+  final Procedure typedDataBufferGetter;
+  final Procedure typedDataOffsetInBytesGetter;
+  final Procedure byteBufferAsUint8List;
   final Class pragmaClass;
   final Field pragmaName;
   final Field pragmaOptions;
   final Procedure listElementAt;
+  final Procedure numAddition;
 
   final Library ffiLibrary;
   final Class nativeFunctionClass;
@@ -221,6 +227,7 @@ class FfiTransformer extends Transformer {
   final Map<NativeType, Procedure> storeMethods;
   final Map<NativeType, Procedure> elementAtMethods;
   final Procedure loadStructMethod;
+  final Procedure memCopy;
   final Procedure asFunctionTearoff;
   final Procedure lookupFunctionTearoff;
 
@@ -235,10 +242,20 @@ class FfiTransformer extends Transformer {
         doubleClass = coreTypes.doubleClass,
         listClass = coreTypes.listClass,
         typeClass = coreTypes.typeClass,
+        unsafeCastMethod =
+            index.getTopLevelMember('dart:_internal', 'unsafeCast'),
+        typedDataClass = index.getClass('dart:typed_data', 'TypedData'),
+        typedDataBufferGetter =
+            index.getMember('dart:typed_data', 'TypedData', 'get:buffer'),
+        typedDataOffsetInBytesGetter = index.getMember(
+            'dart:typed_data', 'TypedData', 'get:offsetInBytes'),
+        byteBufferAsUint8List =
+            index.getMember('dart:typed_data', 'ByteBuffer', 'asUint8List'),
         pragmaClass = coreTypes.pragmaClass,
         pragmaName = coreTypes.pragmaName,
         pragmaOptions = coreTypes.pragmaOptions,
         listElementAt = coreTypes.index.getMember('dart:core', 'List', '[]'),
+        numAddition = coreTypes.index.getMember('dart:core', 'num', '+'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
@@ -283,6 +300,7 @@ class FfiTransformer extends Transformer {
           return index.getTopLevelMember('dart:ffi', "_elementAt$name");
         }),
         loadStructMethod = index.getTopLevelMember('dart:ffi', '_loadStruct'),
+        memCopy = index.getTopLevelMember('dart:ffi', '_memCopy'),
         asFunctionTearoff = index.getMember('dart:ffi', 'NativeFunctionPointer',
             LibraryIndex.tearoffPrefix + 'asFunction'),
         lookupFunctionTearoff = index.getMember(

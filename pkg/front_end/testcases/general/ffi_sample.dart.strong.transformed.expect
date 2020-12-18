@@ -13,7 +13,7 @@ class Coordinate extends ffi::Struct {
   @#C3
   static final field core::int* #sizeOf = (#C11).{core::List::[]}(ffi::_abi());
   @#C3
-  constructor #fromPointer(dynamic #pointer) → dynamic
+  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
     : super ffi::Struct::_fromPointer(#pointer)
     ;
   static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {

@@ -117,6 +117,11 @@ class NativeType : public ZoneAllocated {
   const char* ToCString() const;
 #endif
 
+  virtual intptr_t NumPrimitiveMembersRecursive() const { UNREACHABLE(); }
+  virtual const NativePrimitiveType& FirstPrimitiveMember() const {
+    UNREACHABLE();
+  }
+
   virtual ~NativeType() {}
 
  protected:
@@ -177,6 +182,9 @@ class NativePrimitiveType : public NativeType {
                        bool multi_line = false,
                        bool verbose = true) const;
 
+  virtual intptr_t NumPrimitiveMembersRecursive() const;
+  virtual const NativePrimitiveType& FirstPrimitiveMember() const;
+
   virtual ~NativePrimitiveType() {}
 
  private:
@@ -188,7 +196,6 @@ using NativeTypes = ZoneGrowableArray<const NativeType*>;
 // Struct
 //
 // TODO(dartbug.com/38491): Support unions.
-// TODO(dartbug.com/37271): Support nested compound types.
 // TODO(dartbug.com/35763): Support inline fixed-length arrays.
 class NativeCompoundType : public NativeType {
  public:
@@ -233,6 +240,9 @@ class NativeCompoundType : public NativeType {
   // Useful for determining whether struct is passed in FP registers in hardfp
   // and arm64.
   bool ContainsHomogenuousFloats() const;
+
+  virtual intptr_t NumPrimitiveMembersRecursive() const;
+  virtual const NativePrimitiveType& FirstPrimitiveMember() const;
 
  private:
   NativeCompoundType(const NativeTypes& members,

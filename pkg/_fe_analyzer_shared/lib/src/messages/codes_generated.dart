@@ -3789,6 +3789,31 @@ Message _withArgumentsFfiFieldAnnotation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, List<String> _names)>
+    templateFfiFieldCyclic =
+    const Template<Message Function(String name, List<String> _names)>(
+        messageTemplate: r"""Struct '#name' contains itself. Cycle elements:
+#names""", withArguments: _withArgumentsFfiFieldCyclic);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, List<String> _names)>
+    codeFfiFieldCyclic =
+    const Code<Message Function(String name, List<String> _names)>(
+  "FfiFieldCyclic",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiFieldCyclic(String name, List<String> _names) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (_names.isEmpty) throw 'No names provided';
+  String names = itemizeNames(_names);
+  return new Message(codeFfiFieldCyclic,
+      message: """Struct '${name}' contains itself. Cycle elements:
+${names}""", arguments: {'name': name, 'names': _names});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiFieldInitializer = const Template<
         Message Function(String name)>(

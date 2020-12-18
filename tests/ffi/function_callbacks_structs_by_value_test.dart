@@ -18,6 +18,7 @@ void main() {
   for (int i = 0; i < 10; i++) {
     recursiveTest(10);
     recursiveTest(11);
+    testCopyLogic();
   }
 }
 
@@ -69,3 +70,65 @@ final cPassStructRecursive = ffiTestFunctions.lookupFunction<
         Struct20BytesHomogeneousInt32 struct, Pointer callbackAddress),
     Struct20BytesHomogeneousInt32 Function(int recursionCounter,
         Struct20BytesHomogeneousInt32, Pointer)>("PassStructRecursive");
+
+Struct8BytesNestedInt typedDataBackedStruct = Struct8BytesNestedInt();
+bool typedDataBackedStructSet = false;
+void _receiveStructByValue(Struct8BytesNestedInt struct) {
+  typedDataBackedStruct = struct;
+  typedDataBackedStructSet = true;
+}
+
+final _receiveStructByValuePointer =
+    Pointer.fromFunction<Void Function(Struct8BytesNestedInt)>(
+        _receiveStructByValue);
+
+final _invokeReceiveStructByValue = ffiTestFunctions.lookupFunction<
+        Void Function(
+            Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>),
+        void Function(
+            Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>)>(
+    "CallbackWithStruct");
+
+void testCopyLogic() {
+  _invokeReceiveStructByValue(_receiveStructByValuePointer);
+  Expect.isTrue(typedDataBackedStructSet);
+
+  final pointerBackedStruct = allocate<Struct8BytesNestedInt>().ref;
+
+  void reset() {
+    pointerBackedStruct.a0.a0 = 1;
+    pointerBackedStruct.a0.a1 = 2;
+    pointerBackedStruct.a1.a0 = 3;
+    pointerBackedStruct.a1.a1 = 4;
+    typedDataBackedStruct.a0.a0 = 5;
+    typedDataBackedStruct.a0.a1 = 6;
+    typedDataBackedStruct.a1.a0 = 7;
+    typedDataBackedStruct.a1.a1 = 8;
+  }
+
+  // Pointer -> Pointer.
+  reset();
+  pointerBackedStruct.a1 = pointerBackedStruct.a0;
+  Expect.equals(1, pointerBackedStruct.a1.a0);
+  Expect.equals(2, pointerBackedStruct.a1.a1);
+
+  // Pointer -> TypedData.
+  reset();
+  typedDataBackedStruct.a1 = pointerBackedStruct.a0;
+  Expect.equals(1, typedDataBackedStruct.a1.a0);
+  Expect.equals(2, typedDataBackedStruct.a1.a1);
+
+  // TypedData -> Pointer.
+  reset();
+  pointerBackedStruct.a1 = typedDataBackedStruct.a0;
+  Expect.equals(5, pointerBackedStruct.a1.a0);
+  Expect.equals(6, pointerBackedStruct.a1.a1);
+
+  // TypedData -> TypedData.
+  reset();
+  typedDataBackedStruct.a1 = typedDataBackedStruct.a0;
+  Expect.equals(5, typedDataBackedStruct.a1.a0);
+  Expect.equals(6, typedDataBackedStruct.a1.a1);
+
+  free(pointerBackedStruct.addressOf);
+}

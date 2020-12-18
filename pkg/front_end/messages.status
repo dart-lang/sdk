@@ -322,6 +322,7 @@ FfiExpectedExceptionalReturn/analyzerCode: Fail
 FfiExpectedNoExceptionalReturn/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
 FfiFieldAnnotation/analyzerCode: Fail
+FfiFieldCyclic/analyzerCode: Fail
 FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail

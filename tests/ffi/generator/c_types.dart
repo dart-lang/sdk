@@ -140,11 +140,19 @@ class StructType extends CType {
   /// To disambiguate same size structs.
   final String suffix;
 
+  /// To override names.
+  final String overrideName;
+
   StructType(List<CType> memberTypes)
       : this.members = generateMemberNames(memberTypes),
-        this.suffix = "";
+        this.suffix = "",
+        this.overrideName = "";
   StructType.disambiguate(List<CType> memberTypes, this.suffix)
-      : this.members = generateMemberNames(memberTypes);
+      : this.members = generateMemberNames(memberTypes),
+        this.overrideName = "";
+  StructType.override(List<CType> memberTypes, this.overrideName)
+      : this.members = generateMemberNames(memberTypes),
+        this.suffix = "";
 
   List<CType> get memberTypes => members.map((a) => a.type).toList();
 
@@ -191,6 +199,9 @@ class StructType extends CType {
 
   String get name {
     String result = "Struct";
+    if (overrideName != "") {
+      return result + overrideName;
+    }
     if (hasSize) {
       result += "${size}Byte" + (size != 1 ? "s" : "");
     }

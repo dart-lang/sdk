@@ -52,6 +52,16 @@ void main() {
     testPassStructAlignmentInt16();
     testPassStructAlignmentInt32();
     testPassStructAlignmentInt64();
+    testPassStruct8BytesNestedIntx10();
+    testPassStruct8BytesNestedFloatx10();
+    testPassStruct8BytesNestedFloat2x10();
+    testPassStruct8BytesNestedMixedx10();
+    testPassStruct16BytesNestedIntx2();
+    testPassStruct32BytesNestedIntx2();
+    testPassStructNestedIntStructAlignmentInt16();
+    testPassStructNestedIntStructAlignmentInt32();
+    testPassStructNestedIntStructAlignmentInt64();
+    testPassStructNestedIrregularEvenBiggerx4();
     testReturnStruct1ByteInt();
     testReturnStruct3BytesHomogeneousUint8();
     testReturnStruct3BytesInt2ByteAligned();
@@ -82,6 +92,16 @@ void main() {
     testReturnStructAlignmentInt16();
     testReturnStructAlignmentInt32();
     testReturnStructAlignmentInt64();
+    testReturnStruct8BytesNestedInt();
+    testReturnStruct8BytesNestedFloat();
+    testReturnStruct8BytesNestedFloat2();
+    testReturnStruct8BytesNestedMixed();
+    testReturnStruct16BytesNestedInt();
+    testReturnStruct32BytesNestedInt();
+    testReturnStructNestedIntStructAlignmentInt16();
+    testReturnStructNestedIntStructAlignmentInt32();
+    testReturnStructNestedIntStructAlignmentInt64();
+    testReturnStructNestedIrregularEvenBigger();
   }
 }
 
@@ -127,6 +147,13 @@ class Struct4BytesHomogeneousInt16 extends Struct {
   int a1;
 
   String toString() => "(${a0}, ${a1})";
+}
+
+class Struct4BytesFloat extends Struct {
+  @Float()
+  double a0;
+
+  String toString() => "(${a0})";
 }
 
 class Struct7BytesHomogeneousUint8 extends Struct {
@@ -874,6 +901,129 @@ class StructAlignmentInt64 extends Struct {
   int a2;
 
   String toString() => "(${a0}, ${a1}, ${a2})";
+}
+
+class Struct8BytesNestedInt extends Struct {
+  Struct4BytesHomogeneousInt16 a0;
+
+  Struct4BytesHomogeneousInt16 a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Struct8BytesNestedFloat extends Struct {
+  Struct4BytesFloat a0;
+
+  Struct4BytesFloat a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Struct8BytesNestedFloat2 extends Struct {
+  Struct4BytesFloat a0;
+
+  @Float()
+  double a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Struct8BytesNestedMixed extends Struct {
+  Struct4BytesHomogeneousInt16 a0;
+
+  Struct4BytesFloat a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Struct16BytesNestedInt extends Struct {
+  Struct8BytesNestedInt a0;
+
+  Struct8BytesNestedInt a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Struct32BytesNestedInt extends Struct {
+  Struct16BytesNestedInt a0;
+
+  Struct16BytesNestedInt a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class StructNestedIntStructAlignmentInt16 extends Struct {
+  StructAlignmentInt16 a0;
+
+  StructAlignmentInt16 a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class StructNestedIntStructAlignmentInt32 extends Struct {
+  StructAlignmentInt32 a0;
+
+  StructAlignmentInt32 a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class StructNestedIntStructAlignmentInt64 extends Struct {
+  StructAlignmentInt64 a0;
+
+  StructAlignmentInt64 a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class StructNestedIrregularBig extends Struct {
+  @Uint16()
+  int a0;
+
+  Struct8BytesNestedMixed a1;
+
+  @Uint16()
+  int a2;
+
+  Struct8BytesNestedFloat2 a3;
+
+  @Uint16()
+  int a4;
+
+  Struct8BytesNestedFloat a5;
+
+  @Uint16()
+  int a6;
+
+  String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})";
+}
+
+class StructNestedIrregularBigger extends Struct {
+  StructNestedIrregularBig a0;
+
+  Struct8BytesNestedMixed a1;
+
+  @Float()
+  double a2;
+
+  @Double()
+  double a3;
+
+  String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
+}
+
+class StructNestedIrregularEvenBigger extends Struct {
+  @Uint64()
+  int a0;
+
+  StructNestedIrregularBigger a1;
+
+  StructNestedIrregularBigger a2;
+
+  @Double()
+  double a3;
+
+  String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
 }
 
 final passStruct1ByteIntx10 = ffiTestFunctions.lookupFunction<
@@ -3660,6 +3810,691 @@ void testPassStructAlignmentInt64() {
   free(a0.addressOf);
 }
 
+final passStruct8BytesNestedIntx10 = ffiTestFunctions.lookupFunction<
+    Int64 Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt),
+    int Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt)>("PassStruct8BytesNestedIntx10");
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust registers on all platforms.
+void testPassStruct8BytesNestedIntx10() {
+  Struct8BytesNestedInt a0 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a1 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a2 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a3 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a4 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a5 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a6 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a7 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a8 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a9 = allocate<Struct8BytesNestedInt>().ref;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3;
+  a0.a1.a1 = 4;
+  a1.a0.a0 = -5;
+  a1.a0.a1 = 6;
+  a1.a1.a0 = -7;
+  a1.a1.a1 = 8;
+  a2.a0.a0 = -9;
+  a2.a0.a1 = 10;
+  a2.a1.a0 = -11;
+  a2.a1.a1 = 12;
+  a3.a0.a0 = -13;
+  a3.a0.a1 = 14;
+  a3.a1.a0 = -15;
+  a3.a1.a1 = 16;
+  a4.a0.a0 = -17;
+  a4.a0.a1 = 18;
+  a4.a1.a0 = -19;
+  a4.a1.a1 = 20;
+  a5.a0.a0 = -21;
+  a5.a0.a1 = 22;
+  a5.a1.a0 = -23;
+  a5.a1.a1 = 24;
+  a6.a0.a0 = -25;
+  a6.a0.a1 = 26;
+  a6.a1.a0 = -27;
+  a6.a1.a1 = 28;
+  a7.a0.a0 = -29;
+  a7.a0.a1 = 30;
+  a7.a1.a0 = -31;
+  a7.a1.a1 = 32;
+  a8.a0.a0 = -33;
+  a8.a0.a1 = 34;
+  a8.a1.a0 = -35;
+  a8.a1.a1 = 36;
+  a9.a0.a0 = -37;
+  a9.a0.a1 = 38;
+  a9.a1.a0 = -39;
+  a9.a1.a1 = 40;
+
+  final result =
+      passStruct8BytesNestedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.equals(20, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+  free(a4.addressOf);
+  free(a5.addressOf);
+  free(a6.addressOf);
+  free(a7.addressOf);
+  free(a8.addressOf);
+  free(a9.addressOf);
+}
+
+final passStruct8BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
+    Float Function(
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat),
+    double Function(
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat)>("PassStruct8BytesNestedFloatx10");
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust fpu registers on all platforms.
+void testPassStruct8BytesNestedFloatx10() {
+  Struct8BytesNestedFloat a0 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a1 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a2 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a3 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a4 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a5 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a6 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a7 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a8 = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat a9 = allocate<Struct8BytesNestedFloat>().ref;
+
+  a0.a0.a0 = -1.0;
+  a0.a1.a0 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a1.a0 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a1.a0 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a1.a0 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a1.a0 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a1.a0 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a1.a0 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a1.a0 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a1.a0 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a1.a0 = 20.0;
+
+  final result =
+      passStruct8BytesNestedFloatx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(10.0, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+  free(a4.addressOf);
+  free(a5.addressOf);
+  free(a6.addressOf);
+  free(a7.addressOf);
+  free(a8.addressOf);
+  free(a9.addressOf);
+}
+
+final passStruct8BytesNestedFloat2x10 = ffiTestFunctions.lookupFunction<
+    Float Function(
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2),
+    double Function(
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2)>("PassStruct8BytesNestedFloat2x10");
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust fpu registers on all platforms.
+/// The nesting is irregular, testing homogenous float rules on arm and arm64,
+/// and the fpu register usage on x64.
+void testPassStruct8BytesNestedFloat2x10() {
+  Struct8BytesNestedFloat2 a0 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a1 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a2 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a3 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a4 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a5 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a6 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a7 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a8 = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 a9 = allocate<Struct8BytesNestedFloat2>().ref;
+
+  a0.a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a1 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a1 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a1 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a1 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a1 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a1 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a1 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a1 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a1 = 20.0;
+
+  final result =
+      passStruct8BytesNestedFloat2x10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(10.0, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+  free(a4.addressOf);
+  free(a5.addressOf);
+  free(a6.addressOf);
+  free(a7.addressOf);
+  free(a8.addressOf);
+  free(a9.addressOf);
+}
+
+final passStruct8BytesNestedMixedx10 = ffiTestFunctions.lookupFunction<
+    Double Function(
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed),
+    double Function(
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed)>("PassStruct8BytesNestedMixedx10");
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust all registers on all platforms.
+void testPassStruct8BytesNestedMixedx10() {
+  Struct8BytesNestedMixed a0 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a1 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a2 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a3 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a4 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a5 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a6 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a7 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a8 = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed a9 = allocate<Struct8BytesNestedMixed>().ref;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3.0;
+  a1.a0.a0 = 4;
+  a1.a0.a1 = -5;
+  a1.a1.a0 = 6.0;
+  a2.a0.a0 = -7;
+  a2.a0.a1 = 8;
+  a2.a1.a0 = -9.0;
+  a3.a0.a0 = 10;
+  a3.a0.a1 = -11;
+  a3.a1.a0 = 12.0;
+  a4.a0.a0 = -13;
+  a4.a0.a1 = 14;
+  a4.a1.a0 = -15.0;
+  a5.a0.a0 = 16;
+  a5.a0.a1 = -17;
+  a5.a1.a0 = 18.0;
+  a6.a0.a0 = -19;
+  a6.a0.a1 = 20;
+  a6.a1.a0 = -21.0;
+  a7.a0.a0 = 22;
+  a7.a0.a1 = -23;
+  a7.a1.a0 = 24.0;
+  a8.a0.a0 = -25;
+  a8.a0.a1 = 26;
+  a8.a1.a0 = -27.0;
+  a9.a0.a0 = 28;
+  a9.a0.a1 = -29;
+  a9.a1.a0 = 30.0;
+
+  final result =
+      passStruct8BytesNestedMixedx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(15.0, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+  free(a4.addressOf);
+  free(a5.addressOf);
+  free(a6.addressOf);
+  free(a7.addressOf);
+  free(a8.addressOf);
+  free(a9.addressOf);
+}
+
+final passStruct16BytesNestedIntx2 = ffiTestFunctions.lookupFunction<
+    Int64 Function(Struct16BytesNestedInt, Struct16BytesNestedInt),
+    int Function(Struct16BytesNestedInt,
+        Struct16BytesNestedInt)>("PassStruct16BytesNestedIntx2");
+
+/// Deeper nested struct to test recursive member access.
+void testPassStruct16BytesNestedIntx2() {
+  Struct16BytesNestedInt a0 = allocate<Struct16BytesNestedInt>().ref;
+  Struct16BytesNestedInt a1 = allocate<Struct16BytesNestedInt>().ref;
+
+  a0.a0.a0.a0 = -1;
+  a0.a0.a0.a1 = 2;
+  a0.a0.a1.a0 = -3;
+  a0.a0.a1.a1 = 4;
+  a0.a1.a0.a0 = -5;
+  a0.a1.a0.a1 = 6;
+  a0.a1.a1.a0 = -7;
+  a0.a1.a1.a1 = 8;
+  a1.a0.a0.a0 = -9;
+  a1.a0.a0.a1 = 10;
+  a1.a0.a1.a0 = -11;
+  a1.a0.a1.a1 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15;
+  a1.a1.a1.a1 = 16;
+
+  final result = passStruct16BytesNestedIntx2(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(8, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final passStruct32BytesNestedIntx2 = ffiTestFunctions.lookupFunction<
+    Int64 Function(Struct32BytesNestedInt, Struct32BytesNestedInt),
+    int Function(Struct32BytesNestedInt,
+        Struct32BytesNestedInt)>("PassStruct32BytesNestedIntx2");
+
+/// Even deeper nested struct to test recursive member access.
+void testPassStruct32BytesNestedIntx2() {
+  Struct32BytesNestedInt a0 = allocate<Struct32BytesNestedInt>().ref;
+  Struct32BytesNestedInt a1 = allocate<Struct32BytesNestedInt>().ref;
+
+  a0.a0.a0.a0.a0 = -1;
+  a0.a0.a0.a0.a1 = 2;
+  a0.a0.a0.a1.a0 = -3;
+  a0.a0.a0.a1.a1 = 4;
+  a0.a0.a1.a0.a0 = -5;
+  a0.a0.a1.a0.a1 = 6;
+  a0.a0.a1.a1.a0 = -7;
+  a0.a0.a1.a1.a1 = 8;
+  a0.a1.a0.a0.a0 = -9;
+  a0.a1.a0.a0.a1 = 10;
+  a0.a1.a0.a1.a0 = -11;
+  a0.a1.a0.a1.a1 = 12;
+  a0.a1.a1.a0.a0 = -13;
+  a0.a1.a1.a0.a1 = 14;
+  a0.a1.a1.a1.a0 = -15;
+  a0.a1.a1.a1.a1 = 16;
+  a1.a0.a0.a0.a0 = -17;
+  a1.a0.a0.a0.a1 = 18;
+  a1.a0.a0.a1.a0 = -19;
+  a1.a0.a0.a1.a1 = 20;
+  a1.a0.a1.a0.a0 = -21;
+  a1.a0.a1.a0.a1 = 22;
+  a1.a0.a1.a1.a0 = -23;
+  a1.a0.a1.a1.a1 = 24;
+  a1.a1.a0.a0.a0 = -25;
+  a1.a1.a0.a0.a1 = 26;
+  a1.a1.a0.a1.a0 = -27;
+  a1.a1.a0.a1.a1 = 28;
+  a1.a1.a1.a0.a0 = -29;
+  a1.a1.a1.a0.a1 = 30;
+  a1.a1.a1.a1.a0 = -31;
+  a1.a1.a1.a1.a1 = 32;
+
+  final result = passStruct32BytesNestedIntx2(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(16, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final passStructNestedIntStructAlignmentInt16 = ffiTestFunctions.lookupFunction<
+        Int64 Function(StructNestedIntStructAlignmentInt16),
+        int Function(StructNestedIntStructAlignmentInt16)>(
+    "PassStructNestedIntStructAlignmentInt16");
+
+/// Test alignment and padding of nested struct with 16 byte int.
+void testPassStructNestedIntStructAlignmentInt16() {
+  StructNestedIntStructAlignmentInt16 a0 =
+      allocate<StructNestedIntStructAlignmentInt16>().ref;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  final result = passStructNestedIntStructAlignmentInt16(a0);
+
+  print("result = $result");
+
+  Expect.equals(3, result);
+
+  free(a0.addressOf);
+}
+
+final passStructNestedIntStructAlignmentInt32 = ffiTestFunctions.lookupFunction<
+        Int64 Function(StructNestedIntStructAlignmentInt32),
+        int Function(StructNestedIntStructAlignmentInt32)>(
+    "PassStructNestedIntStructAlignmentInt32");
+
+/// Test alignment and padding of nested struct with 32 byte int.
+void testPassStructNestedIntStructAlignmentInt32() {
+  StructNestedIntStructAlignmentInt32 a0 =
+      allocate<StructNestedIntStructAlignmentInt32>().ref;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  final result = passStructNestedIntStructAlignmentInt32(a0);
+
+  print("result = $result");
+
+  Expect.equals(3, result);
+
+  free(a0.addressOf);
+}
+
+final passStructNestedIntStructAlignmentInt64 = ffiTestFunctions.lookupFunction<
+        Int64 Function(StructNestedIntStructAlignmentInt64),
+        int Function(StructNestedIntStructAlignmentInt64)>(
+    "PassStructNestedIntStructAlignmentInt64");
+
+/// Test alignment and padding of nested struct with 64 byte int.
+void testPassStructNestedIntStructAlignmentInt64() {
+  StructNestedIntStructAlignmentInt64 a0 =
+      allocate<StructNestedIntStructAlignmentInt64>().ref;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  final result = passStructNestedIntStructAlignmentInt64(a0);
+
+  print("result = $result");
+
+  Expect.equals(3, result);
+
+  free(a0.addressOf);
+}
+
+final passStructNestedIrregularEvenBiggerx4 = ffiTestFunctions.lookupFunction<
+        Double Function(
+            StructNestedIrregularEvenBigger,
+            StructNestedIrregularEvenBigger,
+            StructNestedIrregularEvenBigger,
+            StructNestedIrregularEvenBigger),
+        double Function(
+            StructNestedIrregularEvenBigger,
+            StructNestedIrregularEvenBigger,
+            StructNestedIrregularEvenBigger,
+            StructNestedIrregularEvenBigger)>(
+    "PassStructNestedIrregularEvenBiggerx4");
+
+/// Return big irregular struct as smoke test.
+void testPassStructNestedIrregularEvenBiggerx4() {
+  StructNestedIrregularEvenBigger a0 =
+      allocate<StructNestedIrregularEvenBigger>().ref;
+  StructNestedIrregularEvenBigger a1 =
+      allocate<StructNestedIrregularEvenBigger>().ref;
+  StructNestedIrregularEvenBigger a2 =
+      allocate<StructNestedIrregularEvenBigger>().ref;
+  StructNestedIrregularEvenBigger a3 =
+      allocate<StructNestedIrregularEvenBigger>().ref;
+
+  a0.a0 = 1;
+  a0.a1.a0.a0 = 2;
+  a0.a1.a0.a1.a0.a0 = -3;
+  a0.a1.a0.a1.a0.a1 = 4;
+  a0.a1.a0.a1.a1.a0 = -5.0;
+  a0.a1.a0.a2 = 6;
+  a0.a1.a0.a3.a0.a0 = -7.0;
+  a0.a1.a0.a3.a1 = 8.0;
+  a0.a1.a0.a4 = 9;
+  a0.a1.a0.a5.a0.a0 = 10.0;
+  a0.a1.a0.a5.a1.a0 = -11.0;
+  a0.a1.a0.a6 = 12;
+  a0.a1.a1.a0.a0 = -13;
+  a0.a1.a1.a0.a1 = 14;
+  a0.a1.a1.a1.a0 = -15.0;
+  a0.a1.a2 = 16.0;
+  a0.a1.a3 = -17.0;
+  a0.a2.a0.a0 = 18;
+  a0.a2.a0.a1.a0.a0 = -19;
+  a0.a2.a0.a1.a0.a1 = 20;
+  a0.a2.a0.a1.a1.a0 = -21.0;
+  a0.a2.a0.a2 = 22;
+  a0.a2.a0.a3.a0.a0 = -23.0;
+  a0.a2.a0.a3.a1 = 24.0;
+  a0.a2.a0.a4 = 25;
+  a0.a2.a0.a5.a0.a0 = 26.0;
+  a0.a2.a0.a5.a1.a0 = -27.0;
+  a0.a2.a0.a6 = 28;
+  a0.a2.a1.a0.a0 = -29;
+  a0.a2.a1.a0.a1 = 30;
+  a0.a2.a1.a1.a0 = -31.0;
+  a0.a2.a2 = 32.0;
+  a0.a2.a3 = -33.0;
+  a0.a3 = 34.0;
+  a1.a0 = 35;
+  a1.a1.a0.a0 = 36;
+  a1.a1.a0.a1.a0.a0 = -37;
+  a1.a1.a0.a1.a0.a1 = 38;
+  a1.a1.a0.a1.a1.a0 = -39.0;
+  a1.a1.a0.a2 = 40;
+  a1.a1.a0.a3.a0.a0 = -41.0;
+  a1.a1.a0.a3.a1 = 42.0;
+  a1.a1.a0.a4 = 43;
+  a1.a1.a0.a5.a0.a0 = 44.0;
+  a1.a1.a0.a5.a1.a0 = -45.0;
+  a1.a1.a0.a6 = 46;
+  a1.a1.a1.a0.a0 = -47;
+  a1.a1.a1.a0.a1 = 48;
+  a1.a1.a1.a1.a0 = -49.0;
+  a1.a1.a2 = 50.0;
+  a1.a1.a3 = -51.0;
+  a1.a2.a0.a0 = 52;
+  a1.a2.a0.a1.a0.a0 = -53;
+  a1.a2.a0.a1.a0.a1 = 54;
+  a1.a2.a0.a1.a1.a0 = -55.0;
+  a1.a2.a0.a2 = 56;
+  a1.a2.a0.a3.a0.a0 = -57.0;
+  a1.a2.a0.a3.a1 = 58.0;
+  a1.a2.a0.a4 = 59;
+  a1.a2.a0.a5.a0.a0 = 60.0;
+  a1.a2.a0.a5.a1.a0 = -61.0;
+  a1.a2.a0.a6 = 62;
+  a1.a2.a1.a0.a0 = -63;
+  a1.a2.a1.a0.a1 = 64;
+  a1.a2.a1.a1.a0 = -65.0;
+  a1.a2.a2 = 66.0;
+  a1.a2.a3 = -67.0;
+  a1.a3 = 68.0;
+  a2.a0 = 69;
+  a2.a1.a0.a0 = 70;
+  a2.a1.a0.a1.a0.a0 = -71;
+  a2.a1.a0.a1.a0.a1 = 72;
+  a2.a1.a0.a1.a1.a0 = -73.0;
+  a2.a1.a0.a2 = 74;
+  a2.a1.a0.a3.a0.a0 = -75.0;
+  a2.a1.a0.a3.a1 = 76.0;
+  a2.a1.a0.a4 = 77;
+  a2.a1.a0.a5.a0.a0 = 78.0;
+  a2.a1.a0.a5.a1.a0 = -79.0;
+  a2.a1.a0.a6 = 80;
+  a2.a1.a1.a0.a0 = -81;
+  a2.a1.a1.a0.a1 = 82;
+  a2.a1.a1.a1.a0 = -83.0;
+  a2.a1.a2 = 84.0;
+  a2.a1.a3 = -85.0;
+  a2.a2.a0.a0 = 86;
+  a2.a2.a0.a1.a0.a0 = -87;
+  a2.a2.a0.a1.a0.a1 = 88;
+  a2.a2.a0.a1.a1.a0 = -89.0;
+  a2.a2.a0.a2 = 90;
+  a2.a2.a0.a3.a0.a0 = -91.0;
+  a2.a2.a0.a3.a1 = 92.0;
+  a2.a2.a0.a4 = 93;
+  a2.a2.a0.a5.a0.a0 = 94.0;
+  a2.a2.a0.a5.a1.a0 = -95.0;
+  a2.a2.a0.a6 = 96;
+  a2.a2.a1.a0.a0 = -97;
+  a2.a2.a1.a0.a1 = 98;
+  a2.a2.a1.a1.a0 = -99.0;
+  a2.a2.a2 = 100.0;
+  a2.a2.a3 = -101.0;
+  a2.a3 = 102.0;
+  a3.a0 = 103;
+  a3.a1.a0.a0 = 104;
+  a3.a1.a0.a1.a0.a0 = -105;
+  a3.a1.a0.a1.a0.a1 = 106;
+  a3.a1.a0.a1.a1.a0 = -107.0;
+  a3.a1.a0.a2 = 108;
+  a3.a1.a0.a3.a0.a0 = -109.0;
+  a3.a1.a0.a3.a1 = 110.0;
+  a3.a1.a0.a4 = 111;
+  a3.a1.a0.a5.a0.a0 = 112.0;
+  a3.a1.a0.a5.a1.a0 = -113.0;
+  a3.a1.a0.a6 = 114;
+  a3.a1.a1.a0.a0 = -115;
+  a3.a1.a1.a0.a1 = 116;
+  a3.a1.a1.a1.a0 = -117.0;
+  a3.a1.a2 = 118.0;
+  a3.a1.a3 = -119.0;
+  a3.a2.a0.a0 = 120;
+  a3.a2.a0.a1.a0.a0 = -121;
+  a3.a2.a0.a1.a0.a1 = 122;
+  a3.a2.a0.a1.a1.a0 = -123.0;
+  a3.a2.a0.a2 = 124;
+  a3.a2.a0.a3.a0.a0 = -125.0;
+  a3.a2.a0.a3.a1 = 126.0;
+  a3.a2.a0.a4 = 127;
+  a3.a2.a0.a5.a0.a0 = 128.0;
+  a3.a2.a0.a5.a1.a0 = -129.0;
+  a3.a2.a0.a6 = 130;
+  a3.a2.a1.a0.a0 = -131;
+  a3.a2.a1.a0.a1 = 132;
+  a3.a2.a1.a1.a0 = -133.0;
+  a3.a2.a2 = 134.0;
+  a3.a2.a3 = -135.0;
+  a3.a3 = 136.0;
+
+  final result = passStructNestedIrregularEvenBiggerx4(a0, a1, a2, a3);
+
+  print("result = $result");
+
+  Expect.approxEquals(1572.0, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+}
+
 final returnStruct1ByteInt = ffiTestFunctions.lookupFunction<
     Struct1ByteInt Function(Int8),
     Struct1ByteInt Function(int)>("ReturnStruct1ByteInt");
@@ -5318,4 +6153,397 @@ void testReturnStructAlignmentInt64() {
   Expect.equals(a0, result.a0);
   Expect.equals(a1, result.a1);
   Expect.equals(a2, result.a2);
+}
+
+final returnStruct8BytesNestedInt = ffiTestFunctions.lookupFunction<
+    Struct8BytesNestedInt Function(
+        Struct4BytesHomogeneousInt16, Struct4BytesHomogeneousInt16),
+    Struct8BytesNestedInt Function(Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16)>("ReturnStruct8BytesNestedInt");
+
+/// Simple nested struct.
+void testReturnStruct8BytesNestedInt() {
+  Struct4BytesHomogeneousInt16 a0 =
+      allocate<Struct4BytesHomogeneousInt16>().ref;
+  Struct4BytesHomogeneousInt16 a1 =
+      allocate<Struct4BytesHomogeneousInt16>().ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+
+  final result = returnStruct8BytesNestedInt(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0, result.a0.a0);
+  Expect.equals(a0.a1, result.a0.a1);
+  Expect.equals(a1.a0, result.a1.a0);
+  Expect.equals(a1.a1, result.a1.a1);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStruct8BytesNestedFloat = ffiTestFunctions.lookupFunction<
+    Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat),
+    Struct8BytesNestedFloat Function(
+        Struct4BytesFloat, Struct4BytesFloat)>("ReturnStruct8BytesNestedFloat");
+
+/// Simple nested struct with floats.
+void testReturnStruct8BytesNestedFloat() {
+  Struct4BytesFloat a0 = allocate<Struct4BytesFloat>().ref;
+  Struct4BytesFloat a1 = allocate<Struct4BytesFloat>().ref;
+
+  a0.a0 = -1.0;
+  a1.a0 = 2.0;
+
+  final result = returnStruct8BytesNestedFloat(a0, a1);
+
+  print("result = $result");
+
+  Expect.approxEquals(a0.a0, result.a0.a0);
+  Expect.approxEquals(a1.a0, result.a1.a0);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStruct8BytesNestedFloat2 = ffiTestFunctions.lookupFunction<
+    Struct8BytesNestedFloat2 Function(Struct4BytesFloat, Float),
+    Struct8BytesNestedFloat2 Function(
+        Struct4BytesFloat, double)>("ReturnStruct8BytesNestedFloat2");
+
+/// The nesting is irregular, testing homogenous float rules on arm and arm64,
+/// and the fpu register usage on x64.
+void testReturnStruct8BytesNestedFloat2() {
+  Struct4BytesFloat a0 = allocate<Struct4BytesFloat>().ref;
+  double a1;
+
+  a0.a0 = -1.0;
+  a1 = 2.0;
+
+  final result = returnStruct8BytesNestedFloat2(a0, a1);
+
+  print("result = $result");
+
+  Expect.approxEquals(a0.a0, result.a0.a0);
+  Expect.approxEquals(a1, result.a1);
+
+  free(a0.addressOf);
+}
+
+final returnStruct8BytesNestedMixed = ffiTestFunctions.lookupFunction<
+    Struct8BytesNestedMixed Function(
+        Struct4BytesHomogeneousInt16, Struct4BytesFloat),
+    Struct8BytesNestedMixed Function(Struct4BytesHomogeneousInt16,
+        Struct4BytesFloat)>("ReturnStruct8BytesNestedMixed");
+
+/// Simple nested struct with mixed members.
+void testReturnStruct8BytesNestedMixed() {
+  Struct4BytesHomogeneousInt16 a0 =
+      allocate<Struct4BytesHomogeneousInt16>().ref;
+  Struct4BytesFloat a1 = allocate<Struct4BytesFloat>().ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3.0;
+
+  final result = returnStruct8BytesNestedMixed(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0, result.a0.a0);
+  Expect.equals(a0.a1, result.a0.a1);
+  Expect.approxEquals(a1.a0, result.a1.a0);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStruct16BytesNestedInt = ffiTestFunctions.lookupFunction<
+    Struct16BytesNestedInt Function(
+        Struct8BytesNestedInt, Struct8BytesNestedInt),
+    Struct16BytesNestedInt Function(Struct8BytesNestedInt,
+        Struct8BytesNestedInt)>("ReturnStruct16BytesNestedInt");
+
+/// Deeper nested struct to test recursive member access.
+void testReturnStruct16BytesNestedInt() {
+  Struct8BytesNestedInt a0 = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt a1 = allocate<Struct8BytesNestedInt>().ref;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3;
+  a0.a1.a1 = 4;
+  a1.a0.a0 = -5;
+  a1.a0.a1 = 6;
+  a1.a1.a0 = -7;
+  a1.a1.a1 = 8;
+
+  final result = returnStruct16BytesNestedInt(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0.a0, result.a0.a0.a0);
+  Expect.equals(a0.a0.a1, result.a0.a0.a1);
+  Expect.equals(a0.a1.a0, result.a0.a1.a0);
+  Expect.equals(a0.a1.a1, result.a0.a1.a1);
+  Expect.equals(a1.a0.a0, result.a1.a0.a0);
+  Expect.equals(a1.a0.a1, result.a1.a0.a1);
+  Expect.equals(a1.a1.a0, result.a1.a1.a0);
+  Expect.equals(a1.a1.a1, result.a1.a1.a1);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStruct32BytesNestedInt = ffiTestFunctions.lookupFunction<
+    Struct32BytesNestedInt Function(
+        Struct16BytesNestedInt, Struct16BytesNestedInt),
+    Struct32BytesNestedInt Function(Struct16BytesNestedInt,
+        Struct16BytesNestedInt)>("ReturnStruct32BytesNestedInt");
+
+/// Even deeper nested struct to test recursive member access.
+void testReturnStruct32BytesNestedInt() {
+  Struct16BytesNestedInt a0 = allocate<Struct16BytesNestedInt>().ref;
+  Struct16BytesNestedInt a1 = allocate<Struct16BytesNestedInt>().ref;
+
+  a0.a0.a0.a0 = -1;
+  a0.a0.a0.a1 = 2;
+  a0.a0.a1.a0 = -3;
+  a0.a0.a1.a1 = 4;
+  a0.a1.a0.a0 = -5;
+  a0.a1.a0.a1 = 6;
+  a0.a1.a1.a0 = -7;
+  a0.a1.a1.a1 = 8;
+  a1.a0.a0.a0 = -9;
+  a1.a0.a0.a1 = 10;
+  a1.a0.a1.a0 = -11;
+  a1.a0.a1.a1 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15;
+  a1.a1.a1.a1 = 16;
+
+  final result = returnStruct32BytesNestedInt(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0.a0.a0, result.a0.a0.a0.a0);
+  Expect.equals(a0.a0.a0.a1, result.a0.a0.a0.a1);
+  Expect.equals(a0.a0.a1.a0, result.a0.a0.a1.a0);
+  Expect.equals(a0.a0.a1.a1, result.a0.a0.a1.a1);
+  Expect.equals(a0.a1.a0.a0, result.a0.a1.a0.a0);
+  Expect.equals(a0.a1.a0.a1, result.a0.a1.a0.a1);
+  Expect.equals(a0.a1.a1.a0, result.a0.a1.a1.a0);
+  Expect.equals(a0.a1.a1.a1, result.a0.a1.a1.a1);
+  Expect.equals(a1.a0.a0.a0, result.a1.a0.a0.a0);
+  Expect.equals(a1.a0.a0.a1, result.a1.a0.a0.a1);
+  Expect.equals(a1.a0.a1.a0, result.a1.a0.a1.a0);
+  Expect.equals(a1.a0.a1.a1, result.a1.a0.a1.a1);
+  Expect.equals(a1.a1.a0.a0, result.a1.a1.a0.a0);
+  Expect.equals(a1.a1.a0.a1, result.a1.a1.a0.a1);
+  Expect.equals(a1.a1.a1.a0, result.a1.a1.a1.a0);
+  Expect.equals(a1.a1.a1.a1, result.a1.a1.a1.a1);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStructNestedIntStructAlignmentInt16 =
+    ffiTestFunctions.lookupFunction<
+        StructNestedIntStructAlignmentInt16 Function(
+            StructAlignmentInt16, StructAlignmentInt16),
+        StructNestedIntStructAlignmentInt16 Function(StructAlignmentInt16,
+            StructAlignmentInt16)>("ReturnStructNestedIntStructAlignmentInt16");
+
+/// Test alignment and padding of nested struct with 16 byte int.
+void testReturnStructNestedIntStructAlignmentInt16() {
+  StructAlignmentInt16 a0 = allocate<StructAlignmentInt16>().ref;
+  StructAlignmentInt16 a1 = allocate<StructAlignmentInt16>().ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  final result = returnStructNestedIntStructAlignmentInt16(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0, result.a0.a0);
+  Expect.equals(a0.a1, result.a0.a1);
+  Expect.equals(a0.a2, result.a0.a2);
+  Expect.equals(a1.a0, result.a1.a0);
+  Expect.equals(a1.a1, result.a1.a1);
+  Expect.equals(a1.a2, result.a1.a2);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStructNestedIntStructAlignmentInt32 =
+    ffiTestFunctions.lookupFunction<
+        StructNestedIntStructAlignmentInt32 Function(
+            StructAlignmentInt32, StructAlignmentInt32),
+        StructNestedIntStructAlignmentInt32 Function(StructAlignmentInt32,
+            StructAlignmentInt32)>("ReturnStructNestedIntStructAlignmentInt32");
+
+/// Test alignment and padding of nested struct with 32 byte int.
+void testReturnStructNestedIntStructAlignmentInt32() {
+  StructAlignmentInt32 a0 = allocate<StructAlignmentInt32>().ref;
+  StructAlignmentInt32 a1 = allocate<StructAlignmentInt32>().ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  final result = returnStructNestedIntStructAlignmentInt32(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0, result.a0.a0);
+  Expect.equals(a0.a1, result.a0.a1);
+  Expect.equals(a0.a2, result.a0.a2);
+  Expect.equals(a1.a0, result.a1.a0);
+  Expect.equals(a1.a1, result.a1.a1);
+  Expect.equals(a1.a2, result.a1.a2);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStructNestedIntStructAlignmentInt64 =
+    ffiTestFunctions.lookupFunction<
+        StructNestedIntStructAlignmentInt64 Function(
+            StructAlignmentInt64, StructAlignmentInt64),
+        StructNestedIntStructAlignmentInt64 Function(StructAlignmentInt64,
+            StructAlignmentInt64)>("ReturnStructNestedIntStructAlignmentInt64");
+
+/// Test alignment and padding of nested struct with 64 byte int.
+void testReturnStructNestedIntStructAlignmentInt64() {
+  StructAlignmentInt64 a0 = allocate<StructAlignmentInt64>().ref;
+  StructAlignmentInt64 a1 = allocate<StructAlignmentInt64>().ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  final result = returnStructNestedIntStructAlignmentInt64(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0, result.a0.a0);
+  Expect.equals(a0.a1, result.a0.a1);
+  Expect.equals(a0.a2, result.a0.a2);
+  Expect.equals(a1.a0, result.a1.a0);
+  Expect.equals(a1.a1, result.a1.a1);
+  Expect.equals(a1.a2, result.a1.a2);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+}
+
+final returnStructNestedIrregularEvenBigger = ffiTestFunctions.lookupFunction<
+    StructNestedIrregularEvenBigger Function(Uint64,
+        StructNestedIrregularBigger, StructNestedIrregularBigger, Double),
+    StructNestedIrregularEvenBigger Function(
+        int,
+        StructNestedIrregularBigger,
+        StructNestedIrregularBigger,
+        double)>("ReturnStructNestedIrregularEvenBigger");
+
+/// Return big irregular struct as smoke test.
+void testReturnStructNestedIrregularEvenBigger() {
+  int a0;
+  StructNestedIrregularBigger a1 = allocate<StructNestedIrregularBigger>().ref;
+  StructNestedIrregularBigger a2 = allocate<StructNestedIrregularBigger>().ref;
+  double a3;
+
+  a0 = 1;
+  a1.a0.a0 = 2;
+  a1.a0.a1.a0.a0 = -3;
+  a1.a0.a1.a0.a1 = 4;
+  a1.a0.a1.a1.a0 = -5.0;
+  a1.a0.a2 = 6;
+  a1.a0.a3.a0.a0 = -7.0;
+  a1.a0.a3.a1 = 8.0;
+  a1.a0.a4 = 9;
+  a1.a0.a5.a0.a0 = 10.0;
+  a1.a0.a5.a1.a0 = -11.0;
+  a1.a0.a6 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15.0;
+  a1.a2 = 16.0;
+  a1.a3 = -17.0;
+  a2.a0.a0 = 18;
+  a2.a0.a1.a0.a0 = -19;
+  a2.a0.a1.a0.a1 = 20;
+  a2.a0.a1.a1.a0 = -21.0;
+  a2.a0.a2 = 22;
+  a2.a0.a3.a0.a0 = -23.0;
+  a2.a0.a3.a1 = 24.0;
+  a2.a0.a4 = 25;
+  a2.a0.a5.a0.a0 = 26.0;
+  a2.a0.a5.a1.a0 = -27.0;
+  a2.a0.a6 = 28;
+  a2.a1.a0.a0 = -29;
+  a2.a1.a0.a1 = 30;
+  a2.a1.a1.a0 = -31.0;
+  a2.a2 = 32.0;
+  a2.a3 = -33.0;
+  a3 = 34.0;
+
+  final result = returnStructNestedIrregularEvenBigger(a0, a1, a2, a3);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+  Expect.equals(a1.a0.a0, result.a1.a0.a0);
+  Expect.equals(a1.a0.a1.a0.a0, result.a1.a0.a1.a0.a0);
+  Expect.equals(a1.a0.a1.a0.a1, result.a1.a0.a1.a0.a1);
+  Expect.approxEquals(a1.a0.a1.a1.a0, result.a1.a0.a1.a1.a0);
+  Expect.equals(a1.a0.a2, result.a1.a0.a2);
+  Expect.approxEquals(a1.a0.a3.a0.a0, result.a1.a0.a3.a0.a0);
+  Expect.approxEquals(a1.a0.a3.a1, result.a1.a0.a3.a1);
+  Expect.equals(a1.a0.a4, result.a1.a0.a4);
+  Expect.approxEquals(a1.a0.a5.a0.a0, result.a1.a0.a5.a0.a0);
+  Expect.approxEquals(a1.a0.a5.a1.a0, result.a1.a0.a5.a1.a0);
+  Expect.equals(a1.a0.a6, result.a1.a0.a6);
+  Expect.equals(a1.a1.a0.a0, result.a1.a1.a0.a0);
+  Expect.equals(a1.a1.a0.a1, result.a1.a1.a0.a1);
+  Expect.approxEquals(a1.a1.a1.a0, result.a1.a1.a1.a0);
+  Expect.approxEquals(a1.a2, result.a1.a2);
+  Expect.approxEquals(a1.a3, result.a1.a3);
+  Expect.equals(a2.a0.a0, result.a2.a0.a0);
+  Expect.equals(a2.a0.a1.a0.a0, result.a2.a0.a1.a0.a0);
+  Expect.equals(a2.a0.a1.a0.a1, result.a2.a0.a1.a0.a1);
+  Expect.approxEquals(a2.a0.a1.a1.a0, result.a2.a0.a1.a1.a0);
+  Expect.equals(a2.a0.a2, result.a2.a0.a2);
+  Expect.approxEquals(a2.a0.a3.a0.a0, result.a2.a0.a3.a0.a0);
+  Expect.approxEquals(a2.a0.a3.a1, result.a2.a0.a3.a1);
+  Expect.equals(a2.a0.a4, result.a2.a0.a4);
+  Expect.approxEquals(a2.a0.a5.a0.a0, result.a2.a0.a5.a0.a0);
+  Expect.approxEquals(a2.a0.a5.a1.a0, result.a2.a0.a5.a1.a0);
+  Expect.equals(a2.a0.a6, result.a2.a0.a6);
+  Expect.equals(a2.a1.a0.a0, result.a2.a1.a0.a0);
+  Expect.equals(a2.a1.a0.a1, result.a2.a1.a0.a1);
+  Expect.approxEquals(a2.a1.a1.a0, result.a2.a1.a1.a0);
+  Expect.approxEquals(a2.a2, result.a2.a2);
+  Expect.approxEquals(a2.a3, result.a2.a3);
+  Expect.approxEquals(a3, result.a3);
+
+  free(a1.addressOf);
+  free(a2.addressOf);
 }

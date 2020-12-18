@@ -174,6 +174,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         structFieldCount++;
       } else if (_isPointer(declaredType.element)) {
         structFieldCount++;
+      } else if (_isStructClass(declaredType)) {
+        structFieldCount++;
       }
     }
     return structFieldCount == 0;
@@ -228,7 +230,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Returns `true` iff [nativeType] is a struct type.
   bool _isStructClass(DartType nativeType) {
     if (nativeType is InterfaceType) {
-      final superClassElement = nativeType.element.supertype.element;
+      final superType = nativeType.element.supertype;
+      if (superType == null) {
+        return false;
+      }
+      final superClassElement = superType.element;
       if (superClassElement.library.name == 'dart.ffi') {
         return superClassElement.name == 'Struct' &&
             nativeType.typeArguments?.isEmpty == true;
@@ -518,6 +524,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.double);
       } else if (_isPointer(declaredType.element)) {
         _validateNoAnnotations(annotations);
+      } else if (_isStructClass(declaredType)) {
+        final clazz = (declaredType as InterfaceType).element;
+        if (_isEmptyStruct(clazz)) {
+          _errorReporter
+              .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
+        }
       } else {
         _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
             fieldType, [fieldType.toSource()]);

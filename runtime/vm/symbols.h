@@ -262,7 +262,7 @@ class ObjectPointerVisitor;
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(StringBase, "_StringBase")                                                 \
   V(Struct, "Struct")                                                          \
-  V(StructFromPointer, "#fromPointer")                                         \
+  V(StructFromTypedDataBase, "#fromTypedDataBase")                             \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
   V(LoadingUnit, "LoadingUnit")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
