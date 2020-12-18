@@ -255,6 +255,41 @@ Test alignment and padding of 32 byte int within struct."""),
       int64,
       """
 Test alignment and padding of 64 byte int within struct."""),
+  FunctionType(List.filled(10, struct8bytesNestedInt), int64, """
+Simple nested struct. No alignment gaps on any architectures.
+10 arguments exhaust registers on all platforms."""),
+  FunctionType(List.filled(10, struct8bytesNestedFloat), float, """
+Simple nested struct. No alignment gaps on any architectures.
+10 arguments exhaust fpu registers on all platforms."""),
+  FunctionType(List.filled(10, struct8bytesNestedFloat2), float, """
+Simple nested struct. No alignment gaps on any architectures.
+10 arguments exhaust fpu registers on all platforms.
+The nesting is irregular, testing homogenous float rules on arm and arm64,
+and the fpu register usage on x64."""),
+  FunctionType(List.filled(10, struct8bytesNestedMixed), double_, """
+Simple nested struct. No alignment gaps on any architectures.
+10 arguments exhaust all registers on all platforms."""),
+  FunctionType(List.filled(2, struct16bytesNestedInt), int64, """
+Deeper nested struct to test recursive member access."""),
+  FunctionType(List.filled(2, struct32bytesNestedInt), int64, """
+Even deeper nested struct to test recursive member access."""),
+  FunctionType(
+      [structNestedAlignmentInt16],
+      int64,
+      """
+Test alignment and padding of nested struct with 16 byte int."""),
+  FunctionType(
+      [structNestedAlignmentInt32],
+      int64,
+      """
+Test alignment and padding of nested struct with 32 byte int."""),
+  FunctionType(
+      [structNestedAlignmentInt64],
+      int64,
+      """
+Test alignment and padding of nested struct with 64 byte int."""),
+  FunctionType(List.filled(4, structNestedEvenBigger), double_, """
+Return big irregular struct as smoke test."""),
   FunctionType(struct1byteInt.memberTypes, struct1byteInt, """
 Smallest struct with data."""),
   FunctionType(struct3bytesInt.memberTypes, struct3bytesInt, """
@@ -358,6 +393,31 @@ Test alignment and padding of 16 byte int within struct."""),
 Test alignment and padding of 32 byte int within struct."""),
   FunctionType(structAlignmentInt64.memberTypes, structAlignmentInt64, """
 Test alignment and padding of 64 byte int within struct."""),
+  FunctionType(struct8bytesNestedInt.memberTypes, struct8bytesNestedInt, """
+Simple nested struct."""),
+  FunctionType(struct8bytesNestedFloat.memberTypes, struct8bytesNestedFloat, """
+Simple nested struct with floats."""),
+  FunctionType(
+      struct8bytesNestedFloat2.memberTypes, struct8bytesNestedFloat2, """
+The nesting is irregular, testing homogenous float rules on arm and arm64,
+and the fpu register usage on x64."""),
+  FunctionType(struct8bytesNestedMixed.memberTypes, struct8bytesNestedMixed, """
+Simple nested struct with mixed members."""),
+  FunctionType(struct16bytesNestedInt.memberTypes, struct16bytesNestedInt, """
+Deeper nested struct to test recursive member access."""),
+  FunctionType(struct32bytesNestedInt.memberTypes, struct32bytesNestedInt, """
+Even deeper nested struct to test recursive member access."""),
+  FunctionType(
+      structNestedAlignmentInt16.memberTypes, structNestedAlignmentInt16, """
+Test alignment and padding of nested struct with 16 byte int."""),
+  FunctionType(
+      structNestedAlignmentInt32.memberTypes, structNestedAlignmentInt32, """
+Test alignment and padding of nested struct with 32 byte int."""),
+  FunctionType(
+      structNestedAlignmentInt64.memberTypes, structNestedAlignmentInt64, """
+Test alignment and padding of nested struct with 64 byte int."""),
+  FunctionType(structNestedEvenBigger.memberTypes, structNestedEvenBigger, """
+Return big irregular struct as smoke test."""),
 ];
 
 final structs = [
@@ -366,6 +426,7 @@ final structs = [
   struct3bytesInt,
   struct3bytesInt2,
   struct4bytesInt,
+  struct4bytesFloat,
   struct7bytesInt,
   struct7bytesInt2,
   struct8bytesInt,
@@ -387,6 +448,18 @@ final structs = [
   structAlignmentInt16,
   structAlignmentInt32,
   structAlignmentInt64,
+  struct8bytesNestedInt,
+  struct8bytesNestedFloat,
+  struct8bytesNestedFloat2,
+  struct8bytesNestedMixed,
+  struct16bytesNestedInt,
+  struct32bytesNestedInt,
+  structNestedAlignmentInt16,
+  structNestedAlignmentInt32,
+  structNestedAlignmentInt64,
+  structNestedBig,
+  structNestedBigger,
+  structNestedEvenBigger,
 ];
 
 /// Using empty structs is undefined behavior in C.
@@ -396,6 +469,7 @@ final struct1byteInt = StructType([int8]);
 final struct3bytesInt = StructType(List.filled(3, uint8));
 final struct3bytesInt2 = StructType.disambiguate([int16, int8], "2ByteAligned");
 final struct4bytesInt = StructType([int16, int16]);
+final struct4bytesFloat = StructType([float]);
 final struct7bytesInt = StructType(List.filled(7, uint8));
 final struct7bytesInt2 =
     StructType.disambiguate([int32, int16, int8], "4ByteAligned");
@@ -444,3 +518,39 @@ final struct1024bytesInt = StructType(List.filled(128, uint64));
 final structAlignmentInt16 = StructType([int8, int16, int8]);
 final structAlignmentInt32 = StructType([int8, int32, int8]);
 final structAlignmentInt64 = StructType([int8, int64, int8]);
+
+final struct8bytesNestedInt = StructType([struct4bytesInt, struct4bytesInt]);
+final struct8bytesNestedFloat =
+    StructType([struct4bytesFloat, struct4bytesFloat]);
+final struct8bytesNestedFloat2 =
+    StructType.disambiguate([struct4bytesFloat, float], "2");
+final struct8bytesNestedMixed =
+    StructType([struct4bytesInt, struct4bytesFloat]);
+
+final struct16bytesNestedInt =
+    StructType([struct8bytesNestedInt, struct8bytesNestedInt]);
+final struct32bytesNestedInt =
+    StructType([struct16bytesNestedInt, struct16bytesNestedInt]);
+
+final structNestedAlignmentInt16 = StructType.disambiguate(
+    List.filled(2, structAlignmentInt16), structAlignmentInt16.name);
+final structNestedAlignmentInt32 = StructType.disambiguate(
+    List.filled(2, structAlignmentInt32), structAlignmentInt32.name);
+final structNestedAlignmentInt64 = StructType.disambiguate(
+    List.filled(2, structAlignmentInt64), structAlignmentInt64.name);
+
+final structNestedBig = StructType.override([
+  uint16,
+  struct8bytesNestedMixed,
+  uint16,
+  struct8bytesNestedFloat2,
+  uint16,
+  struct8bytesNestedFloat,
+  uint16
+], "NestedIrregularBig");
+final structNestedBigger = StructType.override(
+    [structNestedBig, struct8bytesNestedMixed, float, double_],
+    "NestedIrregularBigger");
+final structNestedEvenBigger = StructType.override(
+    [uint64, structNestedBigger, structNestedBigger, double_],
+    "NestedIrregularEvenBigger");

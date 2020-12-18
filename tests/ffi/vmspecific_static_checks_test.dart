@@ -526,3 +526,7 @@ void testEmptyStructFromFunctionReturn() {
   Pointer.fromFunction<EmptyStruct Function()>(//# 1105: compile-time error
       _returnEmptyStruct); //# 1105: compile-time error
 }
+
+class HasNestedEmptyStruct extends Struct {
+  external EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
+}

@@ -52,6 +52,7 @@ export '../fasta/fasta_codes.dart'
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
         templateFfiFieldAnnotation,
+        templateFfiFieldCyclic,
         templateFfiFieldInitializer,
         templateFfiFieldNoAnnotation,
         templateFfiNotStatic,

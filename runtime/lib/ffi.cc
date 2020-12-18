@@ -91,14 +91,14 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
 static ObjectPtr LoadValueStruct(Zone* zone,
                                  const Pointer& target,
                                  const AbstractType& instance_type_arg) {
-  // Result is a struct class -- find <class name>.#fromPointer
+  // Result is a struct class -- find <class name>.#fromTypedDataBase
   // constructor and call it.
   const Class& cls = Class::Handle(zone, instance_type_arg.type_class());
   const Function& constructor =
       Function::Handle(cls.LookupFunctionAllowPrivate(String::Handle(
           String::Concat(String::Handle(String::Concat(
                              String::Handle(cls.Name()), Symbols::Dot())),
-                         Symbols::StructFromPointer()))));
+                         Symbols::StructFromTypedDataBase()))));
   ASSERT(!constructor.IsNull());
   ASSERT(constructor.IsGenerativeConstructor());
   ASSERT(!Object::Handle(constructor.VerifyCallEntryPoint()).IsError());

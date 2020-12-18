@@ -37,7 +37,8 @@ void transformLibraries(
     DiagnosticReporter diagnosticReporter,
     FfiTransformerData ffiTransformerData,
     ReferenceFromIndex referenceFromIndex) {
-  final index = new LibraryIndex(component, ["dart:ffi"]);
+  final index = new LibraryIndex(
+      component, ["dart:ffi", "dart:_internal", "dart:typed_data"]);
   if (!index.containsLibrary("dart:ffi")) {
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
     // for the VM target.

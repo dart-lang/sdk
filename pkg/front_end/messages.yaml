@@ -4253,6 +4253,13 @@ FfiFieldNoAnnotation:
   template: "Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code."
   external: test/ffi_test.dart
 
+FfiFieldCyclic:
+  # Used by dart:ffi
+  template: |
+    Struct '#name' contains itself. Cycle elements:
+    #names
+  external: test/ffi_test.dart
+
 FfiNotStatic:
   # Used by dart:ffi
   template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."

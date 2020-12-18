@@ -156,7 +156,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesField() const {
 static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types);
 
 // Keep consistent with
-// pkg/vm/lib/transformations/ffi_definitions.dart:_calculateSizeAndOffsets.
+// pkg/vm/lib/transformations/ffi_definitions.dart:_calculateStructLayout.
 NativeCompoundType& NativeCompoundType::FromNativeTypes(
     Zone* zone,
     const NativeTypes& members) {
@@ -512,6 +512,32 @@ void NativeFunctionType::PrintTo(BaseTextBuffer* f) const {
   }
   f->AddString(") => ");
   return_type_.PrintTo(f);
+}
+
+intptr_t NativePrimitiveType::NumPrimitiveMembersRecursive() const {
+  return 1;
+}
+
+intptr_t NativeCompoundType::NumPrimitiveMembersRecursive() const {
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    count += members_[i]->NumPrimitiveMembersRecursive();
+  }
+  return count;
+}
+
+const NativePrimitiveType& NativePrimitiveType::FirstPrimitiveMember() const {
+  return *this;
+}
+
+const NativePrimitiveType& NativeCompoundType::FirstPrimitiveMember() const {
+  ASSERT(NumPrimitiveMembersRecursive() >= 1);
+  for (intptr_t i = 0; i < members().length(); i++) {
+    if (members_[i]->NumPrimitiveMembersRecursive() >= 1) {
+      return members_[i]->FirstPrimitiveMember();
+    }
+  }
+  UNREACHABLE();
 }
 
 bool NativeCompoundType::ContainsOnlyFloats(intptr_t offset_in_bytes,

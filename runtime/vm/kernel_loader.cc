@@ -1646,6 +1646,22 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       fields_.Add(&deleted_enum_sentinel);
     }
 
+    // TODO(https://dartbug.com/44454): Make VM recognize the Struct class.
+    //
+    // The FfiTrampolines currently allocate subtypes of structs and store
+    // TypedData in them, without using guards because they are force
+    // optimized. We immediately set the guarded_cid_ to kDynamicCid, which
+    // is effectively the same as calling this method first with Pointer and
+    // subsequently with TypedData with field guards.
+    if (klass.Name() == Symbols::Struct().raw() &&
+        Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().raw()) {
+      ASSERT(fields_.length() == 1);
+      ASSERT(String::Handle(Z, fields_[0]->name())
+                 .StartsWith(Symbols::_addressOf()));
+      fields_[0]->set_guarded_cid(kDynamicCid);
+      fields_[0]->set_is_nullable(true);
+    }
+
     // Due to ReadVMAnnotations(), the klass may have been loaded at this point
     // (loading the class while evaluating annotations).
     if (klass.is_loaded()) {

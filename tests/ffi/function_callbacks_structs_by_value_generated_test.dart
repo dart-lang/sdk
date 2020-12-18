@@ -193,6 +193,56 @@ final testCases = [
           passStructAlignmentInt64, 0),
       passStructAlignmentInt64AfterCallback),
   CallbackTest.withCheck(
+      "PassStruct8BytesNestedIntx10",
+      Pointer.fromFunction<PassStruct8BytesNestedIntx10Type>(
+          passStruct8BytesNestedIntx10, 0),
+      passStruct8BytesNestedIntx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct8BytesNestedFloatx10",
+      Pointer.fromFunction<PassStruct8BytesNestedFloatx10Type>(
+          passStruct8BytesNestedFloatx10, 0.0),
+      passStruct8BytesNestedFloatx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct8BytesNestedFloat2x10",
+      Pointer.fromFunction<PassStruct8BytesNestedFloat2x10Type>(
+          passStruct8BytesNestedFloat2x10, 0.0),
+      passStruct8BytesNestedFloat2x10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct8BytesNestedMixedx10",
+      Pointer.fromFunction<PassStruct8BytesNestedMixedx10Type>(
+          passStruct8BytesNestedMixedx10, 0.0),
+      passStruct8BytesNestedMixedx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct16BytesNestedIntx2",
+      Pointer.fromFunction<PassStruct16BytesNestedIntx2Type>(
+          passStruct16BytesNestedIntx2, 0),
+      passStruct16BytesNestedIntx2AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct32BytesNestedIntx2",
+      Pointer.fromFunction<PassStruct32BytesNestedIntx2Type>(
+          passStruct32BytesNestedIntx2, 0),
+      passStruct32BytesNestedIntx2AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructNestedIntStructAlignmentInt16",
+      Pointer.fromFunction<PassStructNestedIntStructAlignmentInt16Type>(
+          passStructNestedIntStructAlignmentInt16, 0),
+      passStructNestedIntStructAlignmentInt16AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructNestedIntStructAlignmentInt32",
+      Pointer.fromFunction<PassStructNestedIntStructAlignmentInt32Type>(
+          passStructNestedIntStructAlignmentInt32, 0),
+      passStructNestedIntStructAlignmentInt32AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructNestedIntStructAlignmentInt64",
+      Pointer.fromFunction<PassStructNestedIntStructAlignmentInt64Type>(
+          passStructNestedIntStructAlignmentInt64, 0),
+      passStructNestedIntStructAlignmentInt64AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructNestedIrregularEvenBiggerx4",
+      Pointer.fromFunction<PassStructNestedIrregularEvenBiggerx4Type>(
+          passStructNestedIrregularEvenBiggerx4, 0.0),
+      passStructNestedIrregularEvenBiggerx4AfterCallback),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -342,6 +392,56 @@ final testCases = [
       Pointer.fromFunction<ReturnStructAlignmentInt64Type>(
           returnStructAlignmentInt64),
       returnStructAlignmentInt64AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct8BytesNestedInt",
+      Pointer.fromFunction<ReturnStruct8BytesNestedIntType>(
+          returnStruct8BytesNestedInt),
+      returnStruct8BytesNestedIntAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct8BytesNestedFloat",
+      Pointer.fromFunction<ReturnStruct8BytesNestedFloatType>(
+          returnStruct8BytesNestedFloat),
+      returnStruct8BytesNestedFloatAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct8BytesNestedFloat2",
+      Pointer.fromFunction<ReturnStruct8BytesNestedFloat2Type>(
+          returnStruct8BytesNestedFloat2),
+      returnStruct8BytesNestedFloat2AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct8BytesNestedMixed",
+      Pointer.fromFunction<ReturnStruct8BytesNestedMixedType>(
+          returnStruct8BytesNestedMixed),
+      returnStruct8BytesNestedMixedAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct16BytesNestedInt",
+      Pointer.fromFunction<ReturnStruct16BytesNestedIntType>(
+          returnStruct16BytesNestedInt),
+      returnStruct16BytesNestedIntAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct32BytesNestedInt",
+      Pointer.fromFunction<ReturnStruct32BytesNestedIntType>(
+          returnStruct32BytesNestedInt),
+      returnStruct32BytesNestedIntAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructNestedIntStructAlignmentInt16",
+      Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt16Type>(
+          returnStructNestedIntStructAlignmentInt16),
+      returnStructNestedIntStructAlignmentInt16AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructNestedIntStructAlignmentInt32",
+      Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt32Type>(
+          returnStructNestedIntStructAlignmentInt32),
+      returnStructNestedIntStructAlignmentInt32AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructNestedIntStructAlignmentInt64",
+      Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt64Type>(
+          returnStructNestedIntStructAlignmentInt64),
+      returnStructNestedIntStructAlignmentInt64AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructNestedIrregularEvenBigger",
+      Pointer.fromFunction<ReturnStructNestedIrregularEvenBiggerType>(
+          returnStructNestedIrregularEvenBigger),
+      returnStructNestedIrregularEvenBiggerAfterCallback),
 ];
 typedef PassStruct1ByteIntx10Type = Int64 Function(
     Struct1ByteInt,
@@ -4128,6 +4228,1013 @@ void passStructAlignmentInt64AfterCallback() {
   Expect.equals(-2, result);
 }
 
+typedef PassStruct8BytesNestedIntx10Type = Int64 Function(
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a0 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a1 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a2 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a3 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a4 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a5 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a6 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a7 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a8 = Struct8BytesNestedInt();
+Struct8BytesNestedInt passStruct8BytesNestedIntx10_a9 = Struct8BytesNestedInt();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct8BytesNestedIntx10Result = 0;
+
+int passStruct8BytesNestedIntx10CalculateResult() {
+  int result = 0;
+
+  result += passStruct8BytesNestedIntx10_a0.a0.a0;
+  result += passStruct8BytesNestedIntx10_a0.a0.a1;
+  result += passStruct8BytesNestedIntx10_a0.a1.a0;
+  result += passStruct8BytesNestedIntx10_a0.a1.a1;
+  result += passStruct8BytesNestedIntx10_a1.a0.a0;
+  result += passStruct8BytesNestedIntx10_a1.a0.a1;
+  result += passStruct8BytesNestedIntx10_a1.a1.a0;
+  result += passStruct8BytesNestedIntx10_a1.a1.a1;
+  result += passStruct8BytesNestedIntx10_a2.a0.a0;
+  result += passStruct8BytesNestedIntx10_a2.a0.a1;
+  result += passStruct8BytesNestedIntx10_a2.a1.a0;
+  result += passStruct8BytesNestedIntx10_a2.a1.a1;
+  result += passStruct8BytesNestedIntx10_a3.a0.a0;
+  result += passStruct8BytesNestedIntx10_a3.a0.a1;
+  result += passStruct8BytesNestedIntx10_a3.a1.a0;
+  result += passStruct8BytesNestedIntx10_a3.a1.a1;
+  result += passStruct8BytesNestedIntx10_a4.a0.a0;
+  result += passStruct8BytesNestedIntx10_a4.a0.a1;
+  result += passStruct8BytesNestedIntx10_a4.a1.a0;
+  result += passStruct8BytesNestedIntx10_a4.a1.a1;
+  result += passStruct8BytesNestedIntx10_a5.a0.a0;
+  result += passStruct8BytesNestedIntx10_a5.a0.a1;
+  result += passStruct8BytesNestedIntx10_a5.a1.a0;
+  result += passStruct8BytesNestedIntx10_a5.a1.a1;
+  result += passStruct8BytesNestedIntx10_a6.a0.a0;
+  result += passStruct8BytesNestedIntx10_a6.a0.a1;
+  result += passStruct8BytesNestedIntx10_a6.a1.a0;
+  result += passStruct8BytesNestedIntx10_a6.a1.a1;
+  result += passStruct8BytesNestedIntx10_a7.a0.a0;
+  result += passStruct8BytesNestedIntx10_a7.a0.a1;
+  result += passStruct8BytesNestedIntx10_a7.a1.a0;
+  result += passStruct8BytesNestedIntx10_a7.a1.a1;
+  result += passStruct8BytesNestedIntx10_a8.a0.a0;
+  result += passStruct8BytesNestedIntx10_a8.a0.a1;
+  result += passStruct8BytesNestedIntx10_a8.a1.a0;
+  result += passStruct8BytesNestedIntx10_a8.a1.a1;
+  result += passStruct8BytesNestedIntx10_a9.a0.a0;
+  result += passStruct8BytesNestedIntx10_a9.a0.a1;
+  result += passStruct8BytesNestedIntx10_a9.a1.a0;
+  result += passStruct8BytesNestedIntx10_a9.a1.a1;
+
+  passStruct8BytesNestedIntx10Result = result;
+
+  return result;
+}
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust registers on all platforms.
+int passStruct8BytesNestedIntx10(
+    Struct8BytesNestedInt a0,
+    Struct8BytesNestedInt a1,
+    Struct8BytesNestedInt a2,
+    Struct8BytesNestedInt a3,
+    Struct8BytesNestedInt a4,
+    Struct8BytesNestedInt a5,
+    Struct8BytesNestedInt a6,
+    Struct8BytesNestedInt a7,
+    Struct8BytesNestedInt a8,
+    Struct8BytesNestedInt a9) {
+  print(
+      "passStruct8BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct8BytesNestedIntx10 throwing on purpuse!");
+  }
+
+  passStruct8BytesNestedIntx10_a0 = a0;
+  passStruct8BytesNestedIntx10_a1 = a1;
+  passStruct8BytesNestedIntx10_a2 = a2;
+  passStruct8BytesNestedIntx10_a3 = a3;
+  passStruct8BytesNestedIntx10_a4 = a4;
+  passStruct8BytesNestedIntx10_a5 = a5;
+  passStruct8BytesNestedIntx10_a6 = a6;
+  passStruct8BytesNestedIntx10_a7 = a7;
+  passStruct8BytesNestedIntx10_a8 = a8;
+  passStruct8BytesNestedIntx10_a9 = a9;
+
+  final result = passStruct8BytesNestedIntx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct8BytesNestedIntx10AfterCallback() {
+  final result = passStruct8BytesNestedIntx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(20, result);
+}
+
+typedef PassStruct8BytesNestedFloatx10Type = Float Function(
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a0 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a1 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a2 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a3 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a4 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a5 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a6 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a7 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a8 =
+    Struct8BytesNestedFloat();
+Struct8BytesNestedFloat passStruct8BytesNestedFloatx10_a9 =
+    Struct8BytesNestedFloat();
+
+// Result variable also global, so we can delete it after the callback.
+double passStruct8BytesNestedFloatx10Result = 0.0;
+
+double passStruct8BytesNestedFloatx10CalculateResult() {
+  double result = 0;
+
+  result += passStruct8BytesNestedFloatx10_a0.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a0.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a1.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a1.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a2.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a2.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a3.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a3.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a4.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a4.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a5.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a5.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a6.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a6.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a7.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a7.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a8.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a8.a1.a0;
+  result += passStruct8BytesNestedFloatx10_a9.a0.a0;
+  result += passStruct8BytesNestedFloatx10_a9.a1.a0;
+
+  passStruct8BytesNestedFloatx10Result = result;
+
+  return result;
+}
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust fpu registers on all platforms.
+double passStruct8BytesNestedFloatx10(
+    Struct8BytesNestedFloat a0,
+    Struct8BytesNestedFloat a1,
+    Struct8BytesNestedFloat a2,
+    Struct8BytesNestedFloat a3,
+    Struct8BytesNestedFloat a4,
+    Struct8BytesNestedFloat a5,
+    Struct8BytesNestedFloat a6,
+    Struct8BytesNestedFloat a7,
+    Struct8BytesNestedFloat a8,
+    Struct8BytesNestedFloat a9) {
+  print(
+      "passStruct8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct8BytesNestedFloatx10 throwing on purpuse!");
+  }
+
+  passStruct8BytesNestedFloatx10_a0 = a0;
+  passStruct8BytesNestedFloatx10_a1 = a1;
+  passStruct8BytesNestedFloatx10_a2 = a2;
+  passStruct8BytesNestedFloatx10_a3 = a3;
+  passStruct8BytesNestedFloatx10_a4 = a4;
+  passStruct8BytesNestedFloatx10_a5 = a5;
+  passStruct8BytesNestedFloatx10_a6 = a6;
+  passStruct8BytesNestedFloatx10_a7 = a7;
+  passStruct8BytesNestedFloatx10_a8 = a8;
+  passStruct8BytesNestedFloatx10_a9 = a9;
+
+  final result = passStruct8BytesNestedFloatx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct8BytesNestedFloatx10AfterCallback() {
+  final result = passStruct8BytesNestedFloatx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(10.0, result);
+}
+
+typedef PassStruct8BytesNestedFloat2x10Type = Float Function(
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a0 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a1 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a2 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a3 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a4 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a5 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a6 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a7 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a8 =
+    Struct8BytesNestedFloat2();
+Struct8BytesNestedFloat2 passStruct8BytesNestedFloat2x10_a9 =
+    Struct8BytesNestedFloat2();
+
+// Result variable also global, so we can delete it after the callback.
+double passStruct8BytesNestedFloat2x10Result = 0.0;
+
+double passStruct8BytesNestedFloat2x10CalculateResult() {
+  double result = 0;
+
+  result += passStruct8BytesNestedFloat2x10_a0.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a0.a1;
+  result += passStruct8BytesNestedFloat2x10_a1.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a1.a1;
+  result += passStruct8BytesNestedFloat2x10_a2.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a2.a1;
+  result += passStruct8BytesNestedFloat2x10_a3.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a3.a1;
+  result += passStruct8BytesNestedFloat2x10_a4.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a4.a1;
+  result += passStruct8BytesNestedFloat2x10_a5.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a5.a1;
+  result += passStruct8BytesNestedFloat2x10_a6.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a6.a1;
+  result += passStruct8BytesNestedFloat2x10_a7.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a7.a1;
+  result += passStruct8BytesNestedFloat2x10_a8.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a8.a1;
+  result += passStruct8BytesNestedFloat2x10_a9.a0.a0;
+  result += passStruct8BytesNestedFloat2x10_a9.a1;
+
+  passStruct8BytesNestedFloat2x10Result = result;
+
+  return result;
+}
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust fpu registers on all platforms.
+/// The nesting is irregular, testing homogenous float rules on arm and arm64,
+/// and the fpu register usage on x64.
+double passStruct8BytesNestedFloat2x10(
+    Struct8BytesNestedFloat2 a0,
+    Struct8BytesNestedFloat2 a1,
+    Struct8BytesNestedFloat2 a2,
+    Struct8BytesNestedFloat2 a3,
+    Struct8BytesNestedFloat2 a4,
+    Struct8BytesNestedFloat2 a5,
+    Struct8BytesNestedFloat2 a6,
+    Struct8BytesNestedFloat2 a7,
+    Struct8BytesNestedFloat2 a8,
+    Struct8BytesNestedFloat2 a9) {
+  print(
+      "passStruct8BytesNestedFloat2x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct8BytesNestedFloat2x10 throwing on purpuse!");
+  }
+
+  passStruct8BytesNestedFloat2x10_a0 = a0;
+  passStruct8BytesNestedFloat2x10_a1 = a1;
+  passStruct8BytesNestedFloat2x10_a2 = a2;
+  passStruct8BytesNestedFloat2x10_a3 = a3;
+  passStruct8BytesNestedFloat2x10_a4 = a4;
+  passStruct8BytesNestedFloat2x10_a5 = a5;
+  passStruct8BytesNestedFloat2x10_a6 = a6;
+  passStruct8BytesNestedFloat2x10_a7 = a7;
+  passStruct8BytesNestedFloat2x10_a8 = a8;
+  passStruct8BytesNestedFloat2x10_a9 = a9;
+
+  final result = passStruct8BytesNestedFloat2x10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct8BytesNestedFloat2x10AfterCallback() {
+  final result = passStruct8BytesNestedFloat2x10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(10.0, result);
+}
+
+typedef PassStruct8BytesNestedMixedx10Type = Double Function(
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a0 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a1 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a2 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a3 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a4 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a5 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a6 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a7 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a8 =
+    Struct8BytesNestedMixed();
+Struct8BytesNestedMixed passStruct8BytesNestedMixedx10_a9 =
+    Struct8BytesNestedMixed();
+
+// Result variable also global, so we can delete it after the callback.
+double passStruct8BytesNestedMixedx10Result = 0.0;
+
+double passStruct8BytesNestedMixedx10CalculateResult() {
+  double result = 0;
+
+  result += passStruct8BytesNestedMixedx10_a0.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a0.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a0.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a1.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a1.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a1.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a2.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a2.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a2.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a3.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a3.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a3.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a4.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a4.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a4.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a5.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a5.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a5.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a6.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a6.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a6.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a7.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a7.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a7.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a8.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a8.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a8.a1.a0;
+  result += passStruct8BytesNestedMixedx10_a9.a0.a0;
+  result += passStruct8BytesNestedMixedx10_a9.a0.a1;
+  result += passStruct8BytesNestedMixedx10_a9.a1.a0;
+
+  passStruct8BytesNestedMixedx10Result = result;
+
+  return result;
+}
+
+/// Simple nested struct. No alignment gaps on any architectures.
+/// 10 arguments exhaust all registers on all platforms.
+double passStruct8BytesNestedMixedx10(
+    Struct8BytesNestedMixed a0,
+    Struct8BytesNestedMixed a1,
+    Struct8BytesNestedMixed a2,
+    Struct8BytesNestedMixed a3,
+    Struct8BytesNestedMixed a4,
+    Struct8BytesNestedMixed a5,
+    Struct8BytesNestedMixed a6,
+    Struct8BytesNestedMixed a7,
+    Struct8BytesNestedMixed a8,
+    Struct8BytesNestedMixed a9) {
+  print(
+      "passStruct8BytesNestedMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct8BytesNestedMixedx10 throwing on purpuse!");
+  }
+
+  passStruct8BytesNestedMixedx10_a0 = a0;
+  passStruct8BytesNestedMixedx10_a1 = a1;
+  passStruct8BytesNestedMixedx10_a2 = a2;
+  passStruct8BytesNestedMixedx10_a3 = a3;
+  passStruct8BytesNestedMixedx10_a4 = a4;
+  passStruct8BytesNestedMixedx10_a5 = a5;
+  passStruct8BytesNestedMixedx10_a6 = a6;
+  passStruct8BytesNestedMixedx10_a7 = a7;
+  passStruct8BytesNestedMixedx10_a8 = a8;
+  passStruct8BytesNestedMixedx10_a9 = a9;
+
+  final result = passStruct8BytesNestedMixedx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct8BytesNestedMixedx10AfterCallback() {
+  final result = passStruct8BytesNestedMixedx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(15.0, result);
+}
+
+typedef PassStruct16BytesNestedIntx2Type = Int64 Function(
+    Struct16BytesNestedInt, Struct16BytesNestedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct16BytesNestedInt passStruct16BytesNestedIntx2_a0 =
+    Struct16BytesNestedInt();
+Struct16BytesNestedInt passStruct16BytesNestedIntx2_a1 =
+    Struct16BytesNestedInt();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct16BytesNestedIntx2Result = 0;
+
+int passStruct16BytesNestedIntx2CalculateResult() {
+  int result = 0;
+
+  result += passStruct16BytesNestedIntx2_a0.a0.a0.a0;
+  result += passStruct16BytesNestedIntx2_a0.a0.a0.a1;
+  result += passStruct16BytesNestedIntx2_a0.a0.a1.a0;
+  result += passStruct16BytesNestedIntx2_a0.a0.a1.a1;
+  result += passStruct16BytesNestedIntx2_a0.a1.a0.a0;
+  result += passStruct16BytesNestedIntx2_a0.a1.a0.a1;
+  result += passStruct16BytesNestedIntx2_a0.a1.a1.a0;
+  result += passStruct16BytesNestedIntx2_a0.a1.a1.a1;
+  result += passStruct16BytesNestedIntx2_a1.a0.a0.a0;
+  result += passStruct16BytesNestedIntx2_a1.a0.a0.a1;
+  result += passStruct16BytesNestedIntx2_a1.a0.a1.a0;
+  result += passStruct16BytesNestedIntx2_a1.a0.a1.a1;
+  result += passStruct16BytesNestedIntx2_a1.a1.a0.a0;
+  result += passStruct16BytesNestedIntx2_a1.a1.a0.a1;
+  result += passStruct16BytesNestedIntx2_a1.a1.a1.a0;
+  result += passStruct16BytesNestedIntx2_a1.a1.a1.a1;
+
+  passStruct16BytesNestedIntx2Result = result;
+
+  return result;
+}
+
+/// Deeper nested struct to test recursive member access.
+int passStruct16BytesNestedIntx2(
+    Struct16BytesNestedInt a0, Struct16BytesNestedInt a1) {
+  print("passStruct16BytesNestedIntx2(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0.a0 == 42 || a0.a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct16BytesNestedIntx2 throwing on purpuse!");
+  }
+
+  passStruct16BytesNestedIntx2_a0 = a0;
+  passStruct16BytesNestedIntx2_a1 = a1;
+
+  final result = passStruct16BytesNestedIntx2CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct16BytesNestedIntx2AfterCallback() {
+  final result = passStruct16BytesNestedIntx2CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(8, result);
+}
+
+typedef PassStruct32BytesNestedIntx2Type = Int64 Function(
+    Struct32BytesNestedInt, Struct32BytesNestedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct32BytesNestedInt passStruct32BytesNestedIntx2_a0 =
+    Struct32BytesNestedInt();
+Struct32BytesNestedInt passStruct32BytesNestedIntx2_a1 =
+    Struct32BytesNestedInt();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct32BytesNestedIntx2Result = 0;
+
+int passStruct32BytesNestedIntx2CalculateResult() {
+  int result = 0;
+
+  result += passStruct32BytesNestedIntx2_a0.a0.a0.a0.a0;
+  result += passStruct32BytesNestedIntx2_a0.a0.a0.a0.a1;
+  result += passStruct32BytesNestedIntx2_a0.a0.a0.a1.a0;
+  result += passStruct32BytesNestedIntx2_a0.a0.a0.a1.a1;
+  result += passStruct32BytesNestedIntx2_a0.a0.a1.a0.a0;
+  result += passStruct32BytesNestedIntx2_a0.a0.a1.a0.a1;
+  result += passStruct32BytesNestedIntx2_a0.a0.a1.a1.a0;
+  result += passStruct32BytesNestedIntx2_a0.a0.a1.a1.a1;
+  result += passStruct32BytesNestedIntx2_a0.a1.a0.a0.a0;
+  result += passStruct32BytesNestedIntx2_a0.a1.a0.a0.a1;
+  result += passStruct32BytesNestedIntx2_a0.a1.a0.a1.a0;
+  result += passStruct32BytesNestedIntx2_a0.a1.a0.a1.a1;
+  result += passStruct32BytesNestedIntx2_a0.a1.a1.a0.a0;
+  result += passStruct32BytesNestedIntx2_a0.a1.a1.a0.a1;
+  result += passStruct32BytesNestedIntx2_a0.a1.a1.a1.a0;
+  result += passStruct32BytesNestedIntx2_a0.a1.a1.a1.a1;
+  result += passStruct32BytesNestedIntx2_a1.a0.a0.a0.a0;
+  result += passStruct32BytesNestedIntx2_a1.a0.a0.a0.a1;
+  result += passStruct32BytesNestedIntx2_a1.a0.a0.a1.a0;
+  result += passStruct32BytesNestedIntx2_a1.a0.a0.a1.a1;
+  result += passStruct32BytesNestedIntx2_a1.a0.a1.a0.a0;
+  result += passStruct32BytesNestedIntx2_a1.a0.a1.a0.a1;
+  result += passStruct32BytesNestedIntx2_a1.a0.a1.a1.a0;
+  result += passStruct32BytesNestedIntx2_a1.a0.a1.a1.a1;
+  result += passStruct32BytesNestedIntx2_a1.a1.a0.a0.a0;
+  result += passStruct32BytesNestedIntx2_a1.a1.a0.a0.a1;
+  result += passStruct32BytesNestedIntx2_a1.a1.a0.a1.a0;
+  result += passStruct32BytesNestedIntx2_a1.a1.a0.a1.a1;
+  result += passStruct32BytesNestedIntx2_a1.a1.a1.a0.a0;
+  result += passStruct32BytesNestedIntx2_a1.a1.a1.a0.a1;
+  result += passStruct32BytesNestedIntx2_a1.a1.a1.a1.a0;
+  result += passStruct32BytesNestedIntx2_a1.a1.a1.a1.a1;
+
+  passStruct32BytesNestedIntx2Result = result;
+
+  return result;
+}
+
+/// Even deeper nested struct to test recursive member access.
+int passStruct32BytesNestedIntx2(
+    Struct32BytesNestedInt a0, Struct32BytesNestedInt a1) {
+  print("passStruct32BytesNestedIntx2(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0.a0.a0 == 42 || a0.a0.a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct32BytesNestedIntx2 throwing on purpuse!");
+  }
+
+  passStruct32BytesNestedIntx2_a0 = a0;
+  passStruct32BytesNestedIntx2_a1 = a1;
+
+  final result = passStruct32BytesNestedIntx2CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct32BytesNestedIntx2AfterCallback() {
+  final result = passStruct32BytesNestedIntx2CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(16, result);
+}
+
+typedef PassStructNestedIntStructAlignmentInt16Type = Int64 Function(
+    StructNestedIntStructAlignmentInt16);
+
+// Global variables to be able to test inputs after callback returned.
+StructNestedIntStructAlignmentInt16 passStructNestedIntStructAlignmentInt16_a0 =
+    StructNestedIntStructAlignmentInt16();
+
+// Result variable also global, so we can delete it after the callback.
+int passStructNestedIntStructAlignmentInt16Result = 0;
+
+int passStructNestedIntStructAlignmentInt16CalculateResult() {
+  int result = 0;
+
+  result += passStructNestedIntStructAlignmentInt16_a0.a0.a0;
+  result += passStructNestedIntStructAlignmentInt16_a0.a0.a1;
+  result += passStructNestedIntStructAlignmentInt16_a0.a0.a2;
+  result += passStructNestedIntStructAlignmentInt16_a0.a1.a0;
+  result += passStructNestedIntStructAlignmentInt16_a0.a1.a1;
+  result += passStructNestedIntStructAlignmentInt16_a0.a1.a2;
+
+  passStructNestedIntStructAlignmentInt16Result = result;
+
+  return result;
+}
+
+/// Test alignment and padding of nested struct with 16 byte int.
+int passStructNestedIntStructAlignmentInt16(
+    StructNestedIntStructAlignmentInt16 a0) {
+  print("passStructNestedIntStructAlignmentInt16(${a0})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStructNestedIntStructAlignmentInt16 throwing on purpuse!");
+  }
+
+  passStructNestedIntStructAlignmentInt16_a0 = a0;
+
+  final result = passStructNestedIntStructAlignmentInt16CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructNestedIntStructAlignmentInt16AfterCallback() {
+  final result = passStructNestedIntStructAlignmentInt16CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(3, result);
+}
+
+typedef PassStructNestedIntStructAlignmentInt32Type = Int64 Function(
+    StructNestedIntStructAlignmentInt32);
+
+// Global variables to be able to test inputs after callback returned.
+StructNestedIntStructAlignmentInt32 passStructNestedIntStructAlignmentInt32_a0 =
+    StructNestedIntStructAlignmentInt32();
+
+// Result variable also global, so we can delete it after the callback.
+int passStructNestedIntStructAlignmentInt32Result = 0;
+
+int passStructNestedIntStructAlignmentInt32CalculateResult() {
+  int result = 0;
+
+  result += passStructNestedIntStructAlignmentInt32_a0.a0.a0;
+  result += passStructNestedIntStructAlignmentInt32_a0.a0.a1;
+  result += passStructNestedIntStructAlignmentInt32_a0.a0.a2;
+  result += passStructNestedIntStructAlignmentInt32_a0.a1.a0;
+  result += passStructNestedIntStructAlignmentInt32_a0.a1.a1;
+  result += passStructNestedIntStructAlignmentInt32_a0.a1.a2;
+
+  passStructNestedIntStructAlignmentInt32Result = result;
+
+  return result;
+}
+
+/// Test alignment and padding of nested struct with 32 byte int.
+int passStructNestedIntStructAlignmentInt32(
+    StructNestedIntStructAlignmentInt32 a0) {
+  print("passStructNestedIntStructAlignmentInt32(${a0})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStructNestedIntStructAlignmentInt32 throwing on purpuse!");
+  }
+
+  passStructNestedIntStructAlignmentInt32_a0 = a0;
+
+  final result = passStructNestedIntStructAlignmentInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructNestedIntStructAlignmentInt32AfterCallback() {
+  final result = passStructNestedIntStructAlignmentInt32CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(3, result);
+}
+
+typedef PassStructNestedIntStructAlignmentInt64Type = Int64 Function(
+    StructNestedIntStructAlignmentInt64);
+
+// Global variables to be able to test inputs after callback returned.
+StructNestedIntStructAlignmentInt64 passStructNestedIntStructAlignmentInt64_a0 =
+    StructNestedIntStructAlignmentInt64();
+
+// Result variable also global, so we can delete it after the callback.
+int passStructNestedIntStructAlignmentInt64Result = 0;
+
+int passStructNestedIntStructAlignmentInt64CalculateResult() {
+  int result = 0;
+
+  result += passStructNestedIntStructAlignmentInt64_a0.a0.a0;
+  result += passStructNestedIntStructAlignmentInt64_a0.a0.a1;
+  result += passStructNestedIntStructAlignmentInt64_a0.a0.a2;
+  result += passStructNestedIntStructAlignmentInt64_a0.a1.a0;
+  result += passStructNestedIntStructAlignmentInt64_a0.a1.a1;
+  result += passStructNestedIntStructAlignmentInt64_a0.a1.a2;
+
+  passStructNestedIntStructAlignmentInt64Result = result;
+
+  return result;
+}
+
+/// Test alignment and padding of nested struct with 64 byte int.
+int passStructNestedIntStructAlignmentInt64(
+    StructNestedIntStructAlignmentInt64 a0) {
+  print("passStructNestedIntStructAlignmentInt64(${a0})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStructNestedIntStructAlignmentInt64 throwing on purpuse!");
+  }
+
+  passStructNestedIntStructAlignmentInt64_a0 = a0;
+
+  final result = passStructNestedIntStructAlignmentInt64CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructNestedIntStructAlignmentInt64AfterCallback() {
+  final result = passStructNestedIntStructAlignmentInt64CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(3, result);
+}
+
+typedef PassStructNestedIrregularEvenBiggerx4Type = Double Function(
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger);
+
+// Global variables to be able to test inputs after callback returned.
+StructNestedIrregularEvenBigger passStructNestedIrregularEvenBiggerx4_a0 =
+    StructNestedIrregularEvenBigger();
+StructNestedIrregularEvenBigger passStructNestedIrregularEvenBiggerx4_a1 =
+    StructNestedIrregularEvenBigger();
+StructNestedIrregularEvenBigger passStructNestedIrregularEvenBiggerx4_a2 =
+    StructNestedIrregularEvenBigger();
+StructNestedIrregularEvenBigger passStructNestedIrregularEvenBiggerx4_a3 =
+    StructNestedIrregularEvenBigger();
+
+// Result variable also global, so we can delete it after the callback.
+double passStructNestedIrregularEvenBiggerx4Result = 0.0;
+
+double passStructNestedIrregularEvenBiggerx4CalculateResult() {
+  double result = 0;
+
+  result += passStructNestedIrregularEvenBiggerx4_a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a1.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a2.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a0.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a1.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a2.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a1.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a1.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a2.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a2.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a1.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a3.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a3.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a4;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a5.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a5.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a0.a6;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a1.a0.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a1.a0.a1;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a1.a1.a0;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a2;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a2.a3;
+  result += passStructNestedIrregularEvenBiggerx4_a3.a3;
+
+  passStructNestedIrregularEvenBiggerx4Result = result;
+
+  return result;
+}
+
+/// Return big irregular struct as smoke test.
+double passStructNestedIrregularEvenBiggerx4(
+    StructNestedIrregularEvenBigger a0,
+    StructNestedIrregularEvenBigger a1,
+    StructNestedIrregularEvenBigger a2,
+    StructNestedIrregularEvenBigger a3) {
+  print("passStructNestedIrregularEvenBiggerx4(${a0}, ${a1}, ${a2}, ${a3})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStructNestedIrregularEvenBiggerx4 throwing on purpuse!");
+  }
+
+  passStructNestedIrregularEvenBiggerx4_a0 = a0;
+  passStructNestedIrregularEvenBiggerx4_a1 = a1;
+  passStructNestedIrregularEvenBiggerx4_a2 = a2;
+  passStructNestedIrregularEvenBiggerx4_a3 = a3;
+
+  final result = passStructNestedIrregularEvenBiggerx4CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructNestedIrregularEvenBiggerx4AfterCallback() {
+  final result = passStructNestedIrregularEvenBiggerx4CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(1572.0, result);
+}
+
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);
 
 // Global variables to be able to test inputs after callback returned.
@@ -6665,4 +7772,658 @@ void returnStructAlignmentInt64AfterCallback() {
   print("after callback result = $result");
 
   free(returnStructAlignmentInt64Result.addressOf);
+}
+
+typedef ReturnStruct8BytesNestedIntType = Struct8BytesNestedInt Function(
+    Struct4BytesHomogeneousInt16, Struct4BytesHomogeneousInt16);
+
+// Global variables to be able to test inputs after callback returned.
+Struct4BytesHomogeneousInt16 returnStruct8BytesNestedInt_a0 =
+    Struct4BytesHomogeneousInt16();
+Struct4BytesHomogeneousInt16 returnStruct8BytesNestedInt_a1 =
+    Struct4BytesHomogeneousInt16();
+
+// Result variable also global, so we can delete it after the callback.
+Struct8BytesNestedInt returnStruct8BytesNestedIntResult =
+    Struct8BytesNestedInt();
+
+Struct8BytesNestedInt returnStruct8BytesNestedIntCalculateResult() {
+  Struct8BytesNestedInt result = allocate<Struct8BytesNestedInt>().ref;
+
+  result.a0.a0 = returnStruct8BytesNestedInt_a0.a0;
+  result.a0.a1 = returnStruct8BytesNestedInt_a0.a1;
+  result.a1.a0 = returnStruct8BytesNestedInt_a1.a0;
+  result.a1.a1 = returnStruct8BytesNestedInt_a1.a1;
+
+  returnStruct8BytesNestedIntResult = result;
+
+  return result;
+}
+
+/// Simple nested struct.
+Struct8BytesNestedInt returnStruct8BytesNestedInt(
+    Struct4BytesHomogeneousInt16 a0, Struct4BytesHomogeneousInt16 a1) {
+  print("returnStruct8BytesNestedInt(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct8BytesNestedInt throwing on purpuse!");
+  }
+
+  returnStruct8BytesNestedInt_a0 = a0;
+  returnStruct8BytesNestedInt_a1 = a1;
+
+  final result = returnStruct8BytesNestedIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct8BytesNestedIntAfterCallback() {
+  free(returnStruct8BytesNestedIntResult.addressOf);
+
+  final result = returnStruct8BytesNestedIntCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct8BytesNestedIntResult.addressOf);
+}
+
+typedef ReturnStruct8BytesNestedFloatType = Struct8BytesNestedFloat Function(
+    Struct4BytesFloat, Struct4BytesFloat);
+
+// Global variables to be able to test inputs after callback returned.
+Struct4BytesFloat returnStruct8BytesNestedFloat_a0 = Struct4BytesFloat();
+Struct4BytesFloat returnStruct8BytesNestedFloat_a1 = Struct4BytesFloat();
+
+// Result variable also global, so we can delete it after the callback.
+Struct8BytesNestedFloat returnStruct8BytesNestedFloatResult =
+    Struct8BytesNestedFloat();
+
+Struct8BytesNestedFloat returnStruct8BytesNestedFloatCalculateResult() {
+  Struct8BytesNestedFloat result = allocate<Struct8BytesNestedFloat>().ref;
+
+  result.a0.a0 = returnStruct8BytesNestedFloat_a0.a0;
+  result.a1.a0 = returnStruct8BytesNestedFloat_a1.a0;
+
+  returnStruct8BytesNestedFloatResult = result;
+
+  return result;
+}
+
+/// Simple nested struct with floats.
+Struct8BytesNestedFloat returnStruct8BytesNestedFloat(
+    Struct4BytesFloat a0, Struct4BytesFloat a1) {
+  print("returnStruct8BytesNestedFloat(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct8BytesNestedFloat throwing on purpuse!");
+  }
+
+  returnStruct8BytesNestedFloat_a0 = a0;
+  returnStruct8BytesNestedFloat_a1 = a1;
+
+  final result = returnStruct8BytesNestedFloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct8BytesNestedFloatAfterCallback() {
+  free(returnStruct8BytesNestedFloatResult.addressOf);
+
+  final result = returnStruct8BytesNestedFloatCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct8BytesNestedFloatResult.addressOf);
+}
+
+typedef ReturnStruct8BytesNestedFloat2Type = Struct8BytesNestedFloat2 Function(
+    Struct4BytesFloat, Float);
+
+// Global variables to be able to test inputs after callback returned.
+Struct4BytesFloat returnStruct8BytesNestedFloat2_a0 = Struct4BytesFloat();
+double returnStruct8BytesNestedFloat2_a1 = 0.0;
+
+// Result variable also global, so we can delete it after the callback.
+Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2Result =
+    Struct8BytesNestedFloat2();
+
+Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2CalculateResult() {
+  Struct8BytesNestedFloat2 result = allocate<Struct8BytesNestedFloat2>().ref;
+
+  result.a0.a0 = returnStruct8BytesNestedFloat2_a0.a0;
+  result.a1 = returnStruct8BytesNestedFloat2_a1;
+
+  returnStruct8BytesNestedFloat2Result = result;
+
+  return result;
+}
+
+/// The nesting is irregular, testing homogenous float rules on arm and arm64,
+/// and the fpu register usage on x64.
+Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2(
+    Struct4BytesFloat a0, double a1) {
+  print("returnStruct8BytesNestedFloat2(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct8BytesNestedFloat2 throwing on purpuse!");
+  }
+
+  returnStruct8BytesNestedFloat2_a0 = a0;
+  returnStruct8BytesNestedFloat2_a1 = a1;
+
+  final result = returnStruct8BytesNestedFloat2CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct8BytesNestedFloat2AfterCallback() {
+  free(returnStruct8BytesNestedFloat2Result.addressOf);
+
+  final result = returnStruct8BytesNestedFloat2CalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct8BytesNestedFloat2Result.addressOf);
+}
+
+typedef ReturnStruct8BytesNestedMixedType = Struct8BytesNestedMixed Function(
+    Struct4BytesHomogeneousInt16, Struct4BytesFloat);
+
+// Global variables to be able to test inputs after callback returned.
+Struct4BytesHomogeneousInt16 returnStruct8BytesNestedMixed_a0 =
+    Struct4BytesHomogeneousInt16();
+Struct4BytesFloat returnStruct8BytesNestedMixed_a1 = Struct4BytesFloat();
+
+// Result variable also global, so we can delete it after the callback.
+Struct8BytesNestedMixed returnStruct8BytesNestedMixedResult =
+    Struct8BytesNestedMixed();
+
+Struct8BytesNestedMixed returnStruct8BytesNestedMixedCalculateResult() {
+  Struct8BytesNestedMixed result = allocate<Struct8BytesNestedMixed>().ref;
+
+  result.a0.a0 = returnStruct8BytesNestedMixed_a0.a0;
+  result.a0.a1 = returnStruct8BytesNestedMixed_a0.a1;
+  result.a1.a0 = returnStruct8BytesNestedMixed_a1.a0;
+
+  returnStruct8BytesNestedMixedResult = result;
+
+  return result;
+}
+
+/// Simple nested struct with mixed members.
+Struct8BytesNestedMixed returnStruct8BytesNestedMixed(
+    Struct4BytesHomogeneousInt16 a0, Struct4BytesFloat a1) {
+  print("returnStruct8BytesNestedMixed(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct8BytesNestedMixed throwing on purpuse!");
+  }
+
+  returnStruct8BytesNestedMixed_a0 = a0;
+  returnStruct8BytesNestedMixed_a1 = a1;
+
+  final result = returnStruct8BytesNestedMixedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct8BytesNestedMixedAfterCallback() {
+  free(returnStruct8BytesNestedMixedResult.addressOf);
+
+  final result = returnStruct8BytesNestedMixedCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct8BytesNestedMixedResult.addressOf);
+}
+
+typedef ReturnStruct16BytesNestedIntType = Struct16BytesNestedInt Function(
+    Struct8BytesNestedInt, Struct8BytesNestedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesNestedInt returnStruct16BytesNestedInt_a0 = Struct8BytesNestedInt();
+Struct8BytesNestedInt returnStruct16BytesNestedInt_a1 = Struct8BytesNestedInt();
+
+// Result variable also global, so we can delete it after the callback.
+Struct16BytesNestedInt returnStruct16BytesNestedIntResult =
+    Struct16BytesNestedInt();
+
+Struct16BytesNestedInt returnStruct16BytesNestedIntCalculateResult() {
+  Struct16BytesNestedInt result = allocate<Struct16BytesNestedInt>().ref;
+
+  result.a0.a0.a0 = returnStruct16BytesNestedInt_a0.a0.a0;
+  result.a0.a0.a1 = returnStruct16BytesNestedInt_a0.a0.a1;
+  result.a0.a1.a0 = returnStruct16BytesNestedInt_a0.a1.a0;
+  result.a0.a1.a1 = returnStruct16BytesNestedInt_a0.a1.a1;
+  result.a1.a0.a0 = returnStruct16BytesNestedInt_a1.a0.a0;
+  result.a1.a0.a1 = returnStruct16BytesNestedInt_a1.a0.a1;
+  result.a1.a1.a0 = returnStruct16BytesNestedInt_a1.a1.a0;
+  result.a1.a1.a1 = returnStruct16BytesNestedInt_a1.a1.a1;
+
+  returnStruct16BytesNestedIntResult = result;
+
+  return result;
+}
+
+/// Deeper nested struct to test recursive member access.
+Struct16BytesNestedInt returnStruct16BytesNestedInt(
+    Struct8BytesNestedInt a0, Struct8BytesNestedInt a1) {
+  print("returnStruct16BytesNestedInt(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct16BytesNestedInt throwing on purpuse!");
+  }
+
+  returnStruct16BytesNestedInt_a0 = a0;
+  returnStruct16BytesNestedInt_a1 = a1;
+
+  final result = returnStruct16BytesNestedIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct16BytesNestedIntAfterCallback() {
+  free(returnStruct16BytesNestedIntResult.addressOf);
+
+  final result = returnStruct16BytesNestedIntCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct16BytesNestedIntResult.addressOf);
+}
+
+typedef ReturnStruct32BytesNestedIntType = Struct32BytesNestedInt Function(
+    Struct16BytesNestedInt, Struct16BytesNestedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct16BytesNestedInt returnStruct32BytesNestedInt_a0 =
+    Struct16BytesNestedInt();
+Struct16BytesNestedInt returnStruct32BytesNestedInt_a1 =
+    Struct16BytesNestedInt();
+
+// Result variable also global, so we can delete it after the callback.
+Struct32BytesNestedInt returnStruct32BytesNestedIntResult =
+    Struct32BytesNestedInt();
+
+Struct32BytesNestedInt returnStruct32BytesNestedIntCalculateResult() {
+  Struct32BytesNestedInt result = allocate<Struct32BytesNestedInt>().ref;
+
+  result.a0.a0.a0.a0 = returnStruct32BytesNestedInt_a0.a0.a0.a0;
+  result.a0.a0.a0.a1 = returnStruct32BytesNestedInt_a0.a0.a0.a1;
+  result.a0.a0.a1.a0 = returnStruct32BytesNestedInt_a0.a0.a1.a0;
+  result.a0.a0.a1.a1 = returnStruct32BytesNestedInt_a0.a0.a1.a1;
+  result.a0.a1.a0.a0 = returnStruct32BytesNestedInt_a0.a1.a0.a0;
+  result.a0.a1.a0.a1 = returnStruct32BytesNestedInt_a0.a1.a0.a1;
+  result.a0.a1.a1.a0 = returnStruct32BytesNestedInt_a0.a1.a1.a0;
+  result.a0.a1.a1.a1 = returnStruct32BytesNestedInt_a0.a1.a1.a1;
+  result.a1.a0.a0.a0 = returnStruct32BytesNestedInt_a1.a0.a0.a0;
+  result.a1.a0.a0.a1 = returnStruct32BytesNestedInt_a1.a0.a0.a1;
+  result.a1.a0.a1.a0 = returnStruct32BytesNestedInt_a1.a0.a1.a0;
+  result.a1.a0.a1.a1 = returnStruct32BytesNestedInt_a1.a0.a1.a1;
+  result.a1.a1.a0.a0 = returnStruct32BytesNestedInt_a1.a1.a0.a0;
+  result.a1.a1.a0.a1 = returnStruct32BytesNestedInt_a1.a1.a0.a1;
+  result.a1.a1.a1.a0 = returnStruct32BytesNestedInt_a1.a1.a1.a0;
+  result.a1.a1.a1.a1 = returnStruct32BytesNestedInt_a1.a1.a1.a1;
+
+  returnStruct32BytesNestedIntResult = result;
+
+  return result;
+}
+
+/// Even deeper nested struct to test recursive member access.
+Struct32BytesNestedInt returnStruct32BytesNestedInt(
+    Struct16BytesNestedInt a0, Struct16BytesNestedInt a1) {
+  print("returnStruct32BytesNestedInt(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0.a0 == 42 || a0.a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct32BytesNestedInt throwing on purpuse!");
+  }
+
+  returnStruct32BytesNestedInt_a0 = a0;
+  returnStruct32BytesNestedInt_a1 = a1;
+
+  final result = returnStruct32BytesNestedIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct32BytesNestedIntAfterCallback() {
+  free(returnStruct32BytesNestedIntResult.addressOf);
+
+  final result = returnStruct32BytesNestedIntCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct32BytesNestedIntResult.addressOf);
+}
+
+typedef ReturnStructNestedIntStructAlignmentInt16Type
+    = StructNestedIntStructAlignmentInt16 Function(
+        StructAlignmentInt16, StructAlignmentInt16);
+
+// Global variables to be able to test inputs after callback returned.
+StructAlignmentInt16 returnStructNestedIntStructAlignmentInt16_a0 =
+    StructAlignmentInt16();
+StructAlignmentInt16 returnStructNestedIntStructAlignmentInt16_a1 =
+    StructAlignmentInt16();
+
+// Result variable also global, so we can delete it after the callback.
+StructNestedIntStructAlignmentInt16
+    returnStructNestedIntStructAlignmentInt16Result =
+    StructNestedIntStructAlignmentInt16();
+
+StructNestedIntStructAlignmentInt16
+    returnStructNestedIntStructAlignmentInt16CalculateResult() {
+  StructNestedIntStructAlignmentInt16 result =
+      allocate<StructNestedIntStructAlignmentInt16>().ref;
+
+  result.a0.a0 = returnStructNestedIntStructAlignmentInt16_a0.a0;
+  result.a0.a1 = returnStructNestedIntStructAlignmentInt16_a0.a1;
+  result.a0.a2 = returnStructNestedIntStructAlignmentInt16_a0.a2;
+  result.a1.a0 = returnStructNestedIntStructAlignmentInt16_a1.a0;
+  result.a1.a1 = returnStructNestedIntStructAlignmentInt16_a1.a1;
+  result.a1.a2 = returnStructNestedIntStructAlignmentInt16_a1.a2;
+
+  returnStructNestedIntStructAlignmentInt16Result = result;
+
+  return result;
+}
+
+/// Test alignment and padding of nested struct with 16 byte int.
+StructNestedIntStructAlignmentInt16 returnStructNestedIntStructAlignmentInt16(
+    StructAlignmentInt16 a0, StructAlignmentInt16 a1) {
+  print("returnStructNestedIntStructAlignmentInt16(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructNestedIntStructAlignmentInt16 throwing on purpuse!");
+  }
+
+  returnStructNestedIntStructAlignmentInt16_a0 = a0;
+  returnStructNestedIntStructAlignmentInt16_a1 = a1;
+
+  final result = returnStructNestedIntStructAlignmentInt16CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructNestedIntStructAlignmentInt16AfterCallback() {
+  free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
+
+  final result = returnStructNestedIntStructAlignmentInt16CalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
+}
+
+typedef ReturnStructNestedIntStructAlignmentInt32Type
+    = StructNestedIntStructAlignmentInt32 Function(
+        StructAlignmentInt32, StructAlignmentInt32);
+
+// Global variables to be able to test inputs after callback returned.
+StructAlignmentInt32 returnStructNestedIntStructAlignmentInt32_a0 =
+    StructAlignmentInt32();
+StructAlignmentInt32 returnStructNestedIntStructAlignmentInt32_a1 =
+    StructAlignmentInt32();
+
+// Result variable also global, so we can delete it after the callback.
+StructNestedIntStructAlignmentInt32
+    returnStructNestedIntStructAlignmentInt32Result =
+    StructNestedIntStructAlignmentInt32();
+
+StructNestedIntStructAlignmentInt32
+    returnStructNestedIntStructAlignmentInt32CalculateResult() {
+  StructNestedIntStructAlignmentInt32 result =
+      allocate<StructNestedIntStructAlignmentInt32>().ref;
+
+  result.a0.a0 = returnStructNestedIntStructAlignmentInt32_a0.a0;
+  result.a0.a1 = returnStructNestedIntStructAlignmentInt32_a0.a1;
+  result.a0.a2 = returnStructNestedIntStructAlignmentInt32_a0.a2;
+  result.a1.a0 = returnStructNestedIntStructAlignmentInt32_a1.a0;
+  result.a1.a1 = returnStructNestedIntStructAlignmentInt32_a1.a1;
+  result.a1.a2 = returnStructNestedIntStructAlignmentInt32_a1.a2;
+
+  returnStructNestedIntStructAlignmentInt32Result = result;
+
+  return result;
+}
+
+/// Test alignment and padding of nested struct with 32 byte int.
+StructNestedIntStructAlignmentInt32 returnStructNestedIntStructAlignmentInt32(
+    StructAlignmentInt32 a0, StructAlignmentInt32 a1) {
+  print("returnStructNestedIntStructAlignmentInt32(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructNestedIntStructAlignmentInt32 throwing on purpuse!");
+  }
+
+  returnStructNestedIntStructAlignmentInt32_a0 = a0;
+  returnStructNestedIntStructAlignmentInt32_a1 = a1;
+
+  final result = returnStructNestedIntStructAlignmentInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructNestedIntStructAlignmentInt32AfterCallback() {
+  free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
+
+  final result = returnStructNestedIntStructAlignmentInt32CalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
+}
+
+typedef ReturnStructNestedIntStructAlignmentInt64Type
+    = StructNestedIntStructAlignmentInt64 Function(
+        StructAlignmentInt64, StructAlignmentInt64);
+
+// Global variables to be able to test inputs after callback returned.
+StructAlignmentInt64 returnStructNestedIntStructAlignmentInt64_a0 =
+    StructAlignmentInt64();
+StructAlignmentInt64 returnStructNestedIntStructAlignmentInt64_a1 =
+    StructAlignmentInt64();
+
+// Result variable also global, so we can delete it after the callback.
+StructNestedIntStructAlignmentInt64
+    returnStructNestedIntStructAlignmentInt64Result =
+    StructNestedIntStructAlignmentInt64();
+
+StructNestedIntStructAlignmentInt64
+    returnStructNestedIntStructAlignmentInt64CalculateResult() {
+  StructNestedIntStructAlignmentInt64 result =
+      allocate<StructNestedIntStructAlignmentInt64>().ref;
+
+  result.a0.a0 = returnStructNestedIntStructAlignmentInt64_a0.a0;
+  result.a0.a1 = returnStructNestedIntStructAlignmentInt64_a0.a1;
+  result.a0.a2 = returnStructNestedIntStructAlignmentInt64_a0.a2;
+  result.a1.a0 = returnStructNestedIntStructAlignmentInt64_a1.a0;
+  result.a1.a1 = returnStructNestedIntStructAlignmentInt64_a1.a1;
+  result.a1.a2 = returnStructNestedIntStructAlignmentInt64_a1.a2;
+
+  returnStructNestedIntStructAlignmentInt64Result = result;
+
+  return result;
+}
+
+/// Test alignment and padding of nested struct with 64 byte int.
+StructNestedIntStructAlignmentInt64 returnStructNestedIntStructAlignmentInt64(
+    StructAlignmentInt64 a0, StructAlignmentInt64 a1) {
+  print("returnStructNestedIntStructAlignmentInt64(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructNestedIntStructAlignmentInt64 throwing on purpuse!");
+  }
+
+  returnStructNestedIntStructAlignmentInt64_a0 = a0;
+  returnStructNestedIntStructAlignmentInt64_a1 = a1;
+
+  final result = returnStructNestedIntStructAlignmentInt64CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructNestedIntStructAlignmentInt64AfterCallback() {
+  free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
+
+  final result = returnStructNestedIntStructAlignmentInt64CalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
+}
+
+typedef ReturnStructNestedIrregularEvenBiggerType
+    = StructNestedIrregularEvenBigger Function(Uint64,
+        StructNestedIrregularBigger, StructNestedIrregularBigger, Double);
+
+// Global variables to be able to test inputs after callback returned.
+int returnStructNestedIrregularEvenBigger_a0 = 0;
+StructNestedIrregularBigger returnStructNestedIrregularEvenBigger_a1 =
+    StructNestedIrregularBigger();
+StructNestedIrregularBigger returnStructNestedIrregularEvenBigger_a2 =
+    StructNestedIrregularBigger();
+double returnStructNestedIrregularEvenBigger_a3 = 0.0;
+
+// Result variable also global, so we can delete it after the callback.
+StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBiggerResult =
+    StructNestedIrregularEvenBigger();
+
+StructNestedIrregularEvenBigger
+    returnStructNestedIrregularEvenBiggerCalculateResult() {
+  StructNestedIrregularEvenBigger result =
+      allocate<StructNestedIrregularEvenBigger>().ref;
+
+  result.a0 = returnStructNestedIrregularEvenBigger_a0;
+  result.a1.a0.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a0;
+  result.a1.a0.a1.a0.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a1.a0.a0;
+  result.a1.a0.a1.a0.a1 = returnStructNestedIrregularEvenBigger_a1.a0.a1.a0.a1;
+  result.a1.a0.a1.a1.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a1.a1.a0;
+  result.a1.a0.a2 = returnStructNestedIrregularEvenBigger_a1.a0.a2;
+  result.a1.a0.a3.a0.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a3.a0.a0;
+  result.a1.a0.a3.a1 = returnStructNestedIrregularEvenBigger_a1.a0.a3.a1;
+  result.a1.a0.a4 = returnStructNestedIrregularEvenBigger_a1.a0.a4;
+  result.a1.a0.a5.a0.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a5.a0.a0;
+  result.a1.a0.a5.a1.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a5.a1.a0;
+  result.a1.a0.a6 = returnStructNestedIrregularEvenBigger_a1.a0.a6;
+  result.a1.a1.a0.a0 = returnStructNestedIrregularEvenBigger_a1.a1.a0.a0;
+  result.a1.a1.a0.a1 = returnStructNestedIrregularEvenBigger_a1.a1.a0.a1;
+  result.a1.a1.a1.a0 = returnStructNestedIrregularEvenBigger_a1.a1.a1.a0;
+  result.a1.a2 = returnStructNestedIrregularEvenBigger_a1.a2;
+  result.a1.a3 = returnStructNestedIrregularEvenBigger_a1.a3;
+  result.a2.a0.a0 = returnStructNestedIrregularEvenBigger_a2.a0.a0;
+  result.a2.a0.a1.a0.a0 = returnStructNestedIrregularEvenBigger_a2.a0.a1.a0.a0;
+  result.a2.a0.a1.a0.a1 = returnStructNestedIrregularEvenBigger_a2.a0.a1.a0.a1;
+  result.a2.a0.a1.a1.a0 = returnStructNestedIrregularEvenBigger_a2.a0.a1.a1.a0;
+  result.a2.a0.a2 = returnStructNestedIrregularEvenBigger_a2.a0.a2;
+  result.a2.a0.a3.a0.a0 = returnStructNestedIrregularEvenBigger_a2.a0.a3.a0.a0;
+  result.a2.a0.a3.a1 = returnStructNestedIrregularEvenBigger_a2.a0.a3.a1;
+  result.a2.a0.a4 = returnStructNestedIrregularEvenBigger_a2.a0.a4;
+  result.a2.a0.a5.a0.a0 = returnStructNestedIrregularEvenBigger_a2.a0.a5.a0.a0;
+  result.a2.a0.a5.a1.a0 = returnStructNestedIrregularEvenBigger_a2.a0.a5.a1.a0;
+  result.a2.a0.a6 = returnStructNestedIrregularEvenBigger_a2.a0.a6;
+  result.a2.a1.a0.a0 = returnStructNestedIrregularEvenBigger_a2.a1.a0.a0;
+  result.a2.a1.a0.a1 = returnStructNestedIrregularEvenBigger_a2.a1.a0.a1;
+  result.a2.a1.a1.a0 = returnStructNestedIrregularEvenBigger_a2.a1.a1.a0;
+  result.a2.a2 = returnStructNestedIrregularEvenBigger_a2.a2;
+  result.a2.a3 = returnStructNestedIrregularEvenBigger_a2.a3;
+  result.a3 = returnStructNestedIrregularEvenBigger_a3;
+
+  returnStructNestedIrregularEvenBiggerResult = result;
+
+  return result;
+}
+
+/// Return big irregular struct as smoke test.
+StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBigger(int a0,
+    StructNestedIrregularBigger a1, StructNestedIrregularBigger a2, double a3) {
+  print("returnStructNestedIrregularEvenBigger(${a0}, ${a1}, ${a2}, ${a3})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructNestedIrregularEvenBigger throwing on purpuse!");
+  }
+
+  returnStructNestedIrregularEvenBigger_a0 = a0;
+  returnStructNestedIrregularEvenBigger_a1 = a1;
+  returnStructNestedIrregularEvenBigger_a2 = a2;
+  returnStructNestedIrregularEvenBigger_a3 = a3;
+
+  final result = returnStructNestedIrregularEvenBiggerCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructNestedIrregularEvenBiggerAfterCallback() {
+  free(returnStructNestedIrregularEvenBiggerResult.addressOf);
+
+  final result = returnStructNestedIrregularEvenBiggerCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStructNestedIrregularEvenBiggerResult.addressOf);
 }
