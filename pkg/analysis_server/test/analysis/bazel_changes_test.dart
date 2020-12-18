@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -36,6 +37,8 @@ class BazelChangesTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
 
+    experimentalEnableBazelWatching = true;
+
     projectPath = convertPath('/workspaceRoot/third_party/dart/project');
     testFile =
         convertPath('/workspaceRoot/third_party/dart/project/lib/test.dart');
@@ -49,6 +52,8 @@ class BazelChangesTest extends AbstractAnalysisTest {
     // Make sure to destroy all the contexts and cancel all subscriptions to
     // file watchers.
     server.contextManager.setRoots([], []);
+
+    experimentalEnableBazelWatching = false;
 
     super.tearDown();
   }
