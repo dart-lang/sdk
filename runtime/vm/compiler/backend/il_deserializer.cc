@@ -771,7 +771,12 @@ Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
           CheckInteger(list->ExtraLookupValue("token_pos"))) {
     token_pos = TokenPosition::Deserialize(token_int->value());
   }
-  InstrInfo common_info = {deopt_id, token_pos};
+  intptr_t inlining_id = -1;
+  if (auto const inlining_int =
+          CheckInteger(list->ExtraLookupValue("inlining_id"))) {
+    inlining_id = inlining_int->value();
+  }
+  InstrInfo common_info = {deopt_id, InstructionSource(token_pos, inlining_id)};
 
   // Parse the environment before handling the instruction, as we may have
   // references to PushArguments and parsing the instruction may pop
@@ -860,7 +865,7 @@ AllocateObjectInstr* FlowGraphDeserializer::DeserializeAllocateObject(
   }
 
   auto const inst =
-      new (zone()) AllocateObjectInstr(info.token_pos, cls, type_arguments);
+      new (zone()) AllocateObjectInstr(info.source, cls, type_arguments);
 
   if (auto const closure_sexp = CheckTaggedList(
           sexp->ExtraLookupValue("closure_function"), "Function")) {
@@ -908,7 +913,7 @@ AssertAssignableInstr* FlowGraphDeserializer::DeserializeAssertAssignable(
   }
 
   return new (zone())
-      AssertAssignableInstr(info.token_pos, val, dst_type, inst_type_args,
+      AssertAssignableInstr(info.source, val, dst_type, inst_type_args,
                             func_type_args, dst_name, info.deopt_id, kind);
 }
 
@@ -918,7 +923,7 @@ AssertBooleanInstr* FlowGraphDeserializer::DeserializeAssertBoolean(
   auto const val = ParseValue(Retrieve(sexp, 1));
   if (val == nullptr) return nullptr;
 
-  return new (zone()) AssertBooleanInstr(info.token_pos, val, info.deopt_id);
+  return new (zone()) AssertBooleanInstr(info.source, val, info.deopt_id);
 }
 
 BooleanNegateInstr* FlowGraphDeserializer::DeserializeBooleanNegate(
@@ -974,7 +979,7 @@ CheckNullInstr* FlowGraphDeserializer::DeserializeCheckNull(
   }
 
   return new (zone())
-      CheckNullInstr(val, func_name, info.deopt_id, info.token_pos);
+      CheckNullInstr(val, func_name, info.deopt_id, info.source);
 }
 
 CheckStackOverflowInstr* FlowGraphDeserializer::DeserializeCheckStackOverflow(
@@ -998,7 +1003,7 @@ CheckStackOverflowInstr* FlowGraphDeserializer::DeserializeCheckStackOverflow(
     kind = CheckStackOverflowInstr::kOsrOnly;
   }
 
-  return new (zone()) CheckStackOverflowInstr(info.token_pos, stack_depth,
+  return new (zone()) CheckStackOverflowInstr(info.source, stack_depth,
                                               loop_depth, info.deopt_id, kind);
 }
 
@@ -1007,7 +1012,7 @@ ConstantInstr* FlowGraphDeserializer::DeserializeConstant(
     const InstrInfo& info) {
   Object& obj = Object::ZoneHandle(zone());
   if (!ParseDartValue(Retrieve(sexp, 1), &obj)) return nullptr;
-  return new (zone()) ConstantInstr(obj, info.token_pos);
+  return new (zone()) ConstantInstr(obj, info.source);
 }
 
 DebugStepCheckInstr* FlowGraphDeserializer::DeserializeDebugStepCheck(
@@ -1020,7 +1025,7 @@ DebugStepCheckInstr* FlowGraphDeserializer::DeserializeDebugStepCheck(
       return nullptr;
     }
   }
-  return new (zone()) DebugStepCheckInstr(info.token_pos, kind, info.deopt_id);
+  return new (zone()) DebugStepCheckInstr(info.source, kind, info.deopt_id);
 }
 
 GotoInstr* FlowGraphDeserializer::DeserializeGoto(SExpList* sexp,
@@ -1076,7 +1081,7 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
   }
 
   auto const inst = new (zone()) InstanceCallInstr(
-      info.token_pos, function_name, token_kind, call_info.inputs,
+      info.source, function_name, token_kind, call_info.inputs,
       call_info.type_args_len, call_info.argument_names, checked_arg_count,
       info.deopt_id, interface_target, tearoff_interface_target);
 
@@ -1118,7 +1123,7 @@ LoadFieldInstr* FlowGraphDeserializer::DeserializeLoadField(
     calls_initializer = calls_initializer_sexp->value();
   }
 
-  return new (zone()) LoadFieldInstr(instance, *slot, info.token_pos,
+  return new (zone()) LoadFieldInstr(instance, *slot, info.source,
                                      calls_initializer, info.deopt_id);
 }
 
@@ -1146,7 +1151,7 @@ NativeCallInstr* FlowGraphDeserializer::DeserializeNativeCall(
   if (!ParseCallInfo(sexp, &call_info)) return nullptr;
 
   return new (zone()) NativeCallInstr(&name, &function, link_lazily,
-                                      info.token_pos, call_info.inputs);
+                                      info.source, call_info.inputs);
 }
 
 ParameterInstr* FlowGraphDeserializer::DeserializeParameter(
@@ -1175,7 +1180,7 @@ ReturnInstr* FlowGraphDeserializer::DeserializeReturn(SExpList* list,
                                                       const InstrInfo& info) {
   Value* val = ParseValue(Retrieve(list, 1));
   if (val == nullptr) return nullptr;
-  return new (zone()) ReturnInstr(info.token_pos, val, info.deopt_id);
+  return new (zone()) ReturnInstr(info.source, val, info.deopt_id);
 }
 
 SpecialParameterInstr* FlowGraphDeserializer::DeserializeSpecialParameter(
@@ -1219,10 +1224,9 @@ StaticCallInstr* FlowGraphDeserializer::DeserializeStaticCall(
     }
   }
 
-  auto const inst = new (zone())
-      StaticCallInstr(info.token_pos, function, call_info.type_args_len,
-                      call_info.argument_names, call_info.inputs, info.deopt_id,
-                      call_count, rebind_rule);
+  auto const inst = new (zone()) StaticCallInstr(
+      info.source, function, call_info.type_args_len, call_info.argument_names,
+      call_info.inputs, info.deopt_id, call_count, rebind_rule);
 
   if (call_info.result_type != nullptr) {
     inst->SetResultType(zone(), *call_info.result_type);
@@ -1262,8 +1266,8 @@ StoreInstanceFieldInstr* FlowGraphDeserializer::DeserializeStoreInstanceField(
     if (init_sexp->value()) kind = StoreInstanceFieldInstr::Kind::kInitializing;
   }
 
-  return new (zone()) StoreInstanceFieldInstr(
-      *slot, instance, value, barrier_type, info.token_pos, kind);
+  return new (zone()) StoreInstanceFieldInstr(*slot, instance, value,
+                                              barrier_type, info.source, kind);
 }
 
 StrictCompareInstr* FlowGraphDeserializer::DeserializeStrictCompare(
@@ -1285,7 +1289,7 @@ StrictCompareInstr* FlowGraphDeserializer::DeserializeStrictCompare(
     needs_check = check_sexp->value();
   }
 
-  return new (zone()) StrictCompareInstr(info.token_pos, kind, left, right,
+  return new (zone()) StrictCompareInstr(info.source, kind, left, right,
                                          needs_check, info.deopt_id);
 }
 
@@ -1293,7 +1297,7 @@ ThrowInstr* FlowGraphDeserializer::DeserializeThrow(SExpList* sexp,
                                                     const InstrInfo& info) {
   Value* exception = ParseValue(Retrieve(sexp, 1));
   if (exception == nullptr) return nullptr;
-  return new (zone()) ThrowInstr(info.token_pos, info.deopt_id, exception);
+  return new (zone()) ThrowInstr(info.source, info.deopt_id, exception);
 }
 
 bool FlowGraphDeserializer::ParseCallInfo(SExpList* call,

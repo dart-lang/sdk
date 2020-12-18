@@ -140,6 +140,8 @@ class KernelLineStartsReader {
     return helper_->At(line_starts_data_, index);
   }
 
+  int32_t MaxPosition() const;
+
   // Returns whether the given offset corresponds to a valid source offset
   // If it does, then *line and *column (if column is not nullptr) are set
   // to the line and column the token starts at.

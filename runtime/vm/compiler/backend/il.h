@@ -790,13 +790,19 @@ class Instruction : public ZoneAllocated {
     kNotSpeculative
   };
 
-  explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
+  // If the source has the inlining ID of the root function, then don't set
+  // the inlining ID to that; instead, treat it as unset.
+  explicit Instruction(const InstructionSource& source,
+                       intptr_t deopt_id = DeoptId::kNone)
       : deopt_id_(deopt_id),
         previous_(NULL),
         next_(NULL),
         env_(NULL),
         locs_(NULL),
-        inlining_id_(-1) {}
+        inlining_id_(source.inlining_id) {}
+
+  explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
+      : Instruction(InstructionSource(), deopt_id) {}
 
   virtual ~Instruction() {}
 
@@ -816,6 +822,11 @@ class Instruction : public ZoneAllocated {
       bool is_static_call);
 
   virtual TokenPosition token_pos() const { return TokenPosition::kNoSource; }
+
+  // Returns the source information for this instruction.
+  InstructionSource source() const {
+    return InstructionSource(token_pos(), inlining_id());
+  }
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
@@ -1077,13 +1088,13 @@ class Instruction : public ZoneAllocated {
   // Get the block entry for this instruction.
   virtual BlockEntryInstr* GetBlock();
 
-  intptr_t inlining_id() const { return inlining_id_; }
-  void set_inlining_id(intptr_t value) {
+  virtual intptr_t inlining_id() const { return inlining_id_; }
+  virtual void set_inlining_id(intptr_t value) {
     ASSERT(value >= 0);
-    ASSERT_EQUAL(inlining_id_, -1);
+    ASSERT(!has_inlining_id() || inlining_id_ == value);
     inlining_id_ = value;
   }
-  bool has_inlining_id() const { return inlining_id_ >= 0; }
+  virtual bool has_inlining_id() const { return inlining_id_ >= 0; }
 
   // Returns a hash code for use with hash maps.
   virtual intptr_t Hashcode() const;
@@ -1215,6 +1226,8 @@ struct BranchLabels {
 class PureInstruction : public Instruction {
  public:
   explicit PureInstruction(intptr_t deopt_id) : Instruction(deopt_id) {}
+  explicit PureInstruction(const InstructionSource& source, intptr_t deopt_id)
+      : Instruction(source, deopt_id) {}
 
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -1250,6 +1263,11 @@ class TemplateInstruction
  public:
   explicit TemplateInstruction(intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<Instruction, PureInstruction>::Base(deopt_id), inputs_() {}
+
+  TemplateInstruction(const InstructionSource& source,
+                      intptr_t deopt_id = DeoptId::kNone)
+      : CSETrait<Instruction, PureInstruction>::Base(source, deopt_id),
+        inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -2196,7 +2214,12 @@ class AliasIdentity : public ValueObject {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  explicit Definition(intptr_t deopt_id = DeoptId::kNone);
+  explicit Definition(intptr_t deopt_id = DeoptId::kNone)
+      : Instruction(deopt_id) {}
+
+  explicit Definition(const InstructionSource& source,
+                      intptr_t deopt_id = DeoptId::kNone)
+      : Instruction(source, deopt_id) {}
 
   // Overridden by definitions that have call counts.
   virtual intptr_t CallCount() const { return -1; }
@@ -2408,6 +2431,8 @@ inline void Value::BindToEnvironment(Definition* def) {
 class PureDefinition : public Definition {
  public:
   explicit PureDefinition(intptr_t deopt_id) : Definition(deopt_id) {}
+  explicit PureDefinition(const InstructionSource& source, intptr_t deopt_id)
+      : Definition(source, deopt_id) {}
 
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -2420,6 +2445,10 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
  public:
   explicit TemplateDefinition(intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<Definition, PureDefinition>::Base(deopt_id), inputs_() {}
+  TemplateDefinition(const InstructionSource& source,
+                     intptr_t deopt_id = DeoptId::kNone)
+      : CSETrait<Definition, PureDefinition>::Base(source, deopt_id),
+        inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -2940,13 +2969,13 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
  public:
   // The [yield_index], if provided, will cause the instruction to emit extra
   // yield_index -> pc offset into the [PcDescriptors].
-  ReturnInstr(TokenPosition token_pos,
+  ReturnInstr(const InstructionSource& source,
               Value* value,
               intptr_t deopt_id,
               intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex,
               Representation representation = kTagged)
-      : TemplateInstruction(deopt_id),
-        token_pos_(token_pos),
+      : TemplateInstruction(source, deopt_id),
+        token_pos_(source.token_pos),
         yield_index_(yield_index),
         representation_(representation) {
     SetInputAt(0, value);
@@ -3001,11 +3030,11 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 // Represents a return from a Dart function into native code.
 class NativeReturnInstr : public ReturnInstr {
  public:
-  NativeReturnInstr(TokenPosition token_pos,
+  NativeReturnInstr(const InstructionSource& source,
                     Value* value,
                     const compiler::ffi::CallbackMarshaller& marshaller,
                     intptr_t deopt_id)
-      : ReturnInstr(token_pos, value, deopt_id), marshaller_(marshaller) {}
+      : ReturnInstr(source, value, deopt_id), marshaller_(marshaller) {}
 
   DECLARE_INSTRUCTION(NativeReturn)
 
@@ -3032,10 +3061,10 @@ class NativeReturnInstr : public ReturnInstr {
 
 class ThrowInstr : public TemplateInstruction<1, Throws> {
  public:
-  explicit ThrowInstr(TokenPosition token_pos,
+  explicit ThrowInstr(const InstructionSource& source,
                       intptr_t deopt_id,
                       Value* exception)
-      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+      : TemplateInstruction(source, deopt_id), token_pos_(source.token_pos) {
     SetInputAt(0, exception);
   }
 
@@ -3060,13 +3089,13 @@ class ReThrowInstr : public TemplateInstruction<2, Throws> {
  public:
   // 'catch_try_index' can be kInvalidTryIndex if the
   // rethrow has been artificially generated by the parser.
-  ReThrowInstr(TokenPosition token_pos,
+  ReThrowInstr(const InstructionSource& source,
                intptr_t catch_try_index,
                intptr_t deopt_id,
                Value* exception,
                Value* stacktrace)
-      : TemplateInstruction(deopt_id),
-        token_pos_(token_pos),
+      : TemplateInstruction(source, deopt_id),
+        token_pos_(source.token_pos),
         catch_try_index_(catch_try_index) {
     SetInputAt(0, exception);
     SetInputAt(1, stacktrace);
@@ -3281,11 +3310,11 @@ class ComparisonInstr : public Definition {
   DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
  protected:
-  ComparisonInstr(TokenPosition token_pos,
+  ComparisonInstr(const InstructionSource& source,
                   Token::Kind kind,
                   intptr_t deopt_id = DeoptId::kNone)
-      : Definition(deopt_id),
-        token_pos_(token_pos),
+      : Definition(source, deopt_id),
+        token_pos_(source.token_pos),
         kind_(kind),
         operation_cid_(kIllegalCid) {}
 
@@ -3303,8 +3332,10 @@ class PureComparison : public ComparisonInstr {
   virtual bool HasUnknownSideEffects() const { return false; }
 
  protected:
-  PureComparison(TokenPosition token_pos, Token::Kind kind, intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, deopt_id) {}
+  PureComparison(const InstructionSource& source,
+                 Token::Kind kind,
+                 intptr_t deopt_id)
+      : ComparisonInstr(source, kind, deopt_id) {}
 };
 
 template <intptr_t N,
@@ -3313,12 +3344,10 @@ template <intptr_t N,
 class TemplateComparison
     : public CSETrait<ComparisonInstr, PureComparison>::Base {
  public:
-  TemplateComparison(TokenPosition token_pos,
+  TemplateComparison(const InstructionSource& source,
                      Token::Kind kind,
                      intptr_t deopt_id = DeoptId::kNone)
-      : CSETrait<ComparisonInstr, PureComparison>::Base(token_pos,
-                                                        kind,
-                                                        deopt_id),
+      : CSETrait<ComparisonInstr, PureComparison>::Base(source, kind, deopt_id),
         inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -3360,6 +3389,13 @@ class BranchInstr : public Instruction {
   Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
 
   virtual TokenPosition token_pos() const { return comparison_->token_pos(); }
+  virtual intptr_t inlining_id() const { return comparison_->inlining_id(); }
+  virtual void set_inlining_id(intptr_t value) {
+    return comparison_->set_inlining_id(value);
+  }
+  virtual bool has_inlining_id() const {
+    return comparison_->has_inlining_id();
+  }
 
   virtual bool ComputeCanDeoptimize() const {
     return comparison()->ComputeCanDeoptimize();
@@ -3532,8 +3568,9 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
 class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
-  ConstantInstr(const Object& value,
-                TokenPosition token_pos = TokenPosition::kConstant);
+  explicit ConstantInstr(const Object& value)
+      : ConstantInstr(value, InstructionSource(TokenPosition::kConstant)) {}
+  ConstantInstr(const Object& value, const InstructionSource& source);
 
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
@@ -3601,14 +3638,14 @@ class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
     kDstNamePos = 4,
   };
 
-  AssertSubtypeInstr(TokenPosition token_pos,
+  AssertSubtypeInstr(const InstructionSource& source,
                      Value* instantiator_type_arguments,
                      Value* function_type_arguments,
                      Value* sub_type,
                      Value* super_type,
                      Value* dst_name,
                      intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+      : TemplateInstruction(source, deopt_id), token_pos_(source.token_pos) {
     SetInputAt(kInstantiatorTAVPos, instantiator_type_arguments);
     SetInputAt(kFunctionTAVPos, function_type_arguments);
     SetInputAt(kSubTypePos, sub_type);
@@ -3668,7 +3705,7 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
     kFunctionTAVPos = 3,
   };
 
-  AssertAssignableInstr(TokenPosition token_pos,
+  AssertAssignableInstr(const InstructionSource& source,
                         Value* value,
                         Value* dst_type,
                         Value* instantiator_type_arguments,
@@ -3676,8 +3713,8 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
                         const String& dst_name,
                         intptr_t deopt_id,
                         Kind kind = kUnknown)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
+      : TemplateDefinition(source, deopt_id),
+        token_pos_(source.token_pos),
         dst_name_(dst_name),
         kind_(kind) {
     ASSERT(!dst_name.IsNull());
@@ -3732,8 +3769,10 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
 class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
-  AssertBooleanInstr(TokenPosition token_pos, Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), token_pos_(token_pos) {
+  AssertBooleanInstr(const InstructionSource& source,
+                     Value* value,
+                     intptr_t deopt_id)
+      : TemplateDefinition(source, deopt_id), token_pos_(source.token_pos) {
     SetInputAt(0, value);
   }
 
@@ -3850,12 +3889,12 @@ class TemplateDartCall : public Definition {
                    intptr_t type_args_len,
                    const Array& argument_names,
                    InputsArray* inputs,
-                   TokenPosition token_pos)
-      : Definition(deopt_id),
+                   const InstructionSource& source)
+      : Definition(source, deopt_id),
         type_args_len_(type_args_len),
         argument_names_(argument_names),
         inputs_(inputs),
-        token_pos_(token_pos) {
+        token_pos_(source.token_pos) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
     ASSERT(inputs_->length() >= kExtraInputs);
     for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
@@ -3939,14 +3978,14 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   ClosureCallInstr(InputsArray* inputs,
                    intptr_t type_args_len,
                    const Array& argument_names,
-                   TokenPosition token_pos,
+                   const InstructionSource& source,
                    intptr_t deopt_id,
                    Code::EntryKind entry_kind = Code::EntryKind::kNormal)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          inputs,
-                         token_pos),
+                         source),
         entry_kind_(entry_kind) {}
 
   DECLARE_INSTRUCTION(ClosureCall)
@@ -3975,7 +4014,7 @@ class ClosureCallInstr : public TemplateDartCall<1> {
 // (InstanceCallInstr, PolymorphicInstanceCallInstr).
 class InstanceCallBaseInstr : public TemplateDartCall<0> {
  public:
-  InstanceCallBaseInstr(TokenPosition token_pos,
+  InstanceCallBaseInstr(const InstructionSource& source,
                         const String& function_name,
                         Token::Kind token_kind,
                         InputsArray* arguments,
@@ -3989,7 +4028,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
+                         source),
         ic_data_(ic_data),
         function_name_(function_name),
         token_kind_(token_kind),
@@ -4115,7 +4154,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
 class InstanceCallInstr : public InstanceCallBaseInstr {
  public:
   InstanceCallInstr(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const String& function_name,
       Token::Kind token_kind,
       InputsArray* arguments,
@@ -4127,7 +4166,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
       const Function& interface_target = Function::null_function(),
       const Function& tearoff_interface_target = Function::null_function())
       : InstanceCallBaseInstr(
-            token_pos,
+            source,
             function_name,
             token_kind,
             arguments,
@@ -4140,7 +4179,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
         checked_argument_count_(checked_argument_count) {}
 
   InstanceCallInstr(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const String& function_name,
       Token::Kind token_kind,
       InputsArray* arguments,
@@ -4150,7 +4189,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
       intptr_t deopt_id,
       const Function& interface_target = Function::null_function(),
       const Function& tearoff_interface_target = Function::null_function())
-      : InstanceCallBaseInstr(token_pos,
+      : InstanceCallBaseInstr(source,
                               function_name,
                               token_kind,
                               arguments,
@@ -4212,13 +4251,10 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
       args->Add(call->ArgumentValueAt(i)->CopyWithType(zone));
     }
     auto new_call = new (zone) PolymorphicInstanceCallInstr(
-        call->token_pos(), call->function_name(), call->token_kind(), args,
+        call->source(), call->function_name(), call->token_kind(), args,
         call->type_args_len(), call->argument_names(), call->ic_data(),
         call->deopt_id(), call->interface_target(),
         call->tearoff_interface_target(), targets, complete);
-    if (call->has_inlining_id()) {
-      new_call->set_inlining_id(call->inlining_id());
-    }
     new_call->set_result_type(call->result_type());
     new_call->set_entry_kind(call->entry_kind());
     new_call->set_has_unique_selector(call->has_unique_selector());
@@ -4259,7 +4295,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
-  PolymorphicInstanceCallInstr(TokenPosition token_pos,
+  PolymorphicInstanceCallInstr(const InstructionSource& source,
                                const String& function_name,
                                Token::Kind token_kind,
                                InputsArray* arguments,
@@ -4271,7 +4307,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
                                const Function& tearoff_interface_target,
                                const CallTargets& targets,
                                bool complete)
-      : InstanceCallBaseInstr(token_pos,
+      : InstanceCallBaseInstr(source,
                               function_name,
                               token_kind,
                               arguments,
@@ -4301,7 +4337,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
 // Takes untagged ClassId of the receiver as extra input.
 class DispatchTableCallInstr : public TemplateDartCall<1> {
  public:
-  DispatchTableCallInstr(TokenPosition token_pos,
+  DispatchTableCallInstr(const InstructionSource& source,
                          const Function& interface_target,
                          const compiler::TableSelector* selector,
                          InputsArray* arguments,
@@ -4311,7 +4347,7 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
+                         source),
         interface_target_(interface_target),
         selector_(selector) {
     ASSERT(selector != nullptr);
@@ -4373,7 +4409,7 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
 
 class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
-  StrictCompareInstr(TokenPosition token_pos,
+  StrictCompareInstr(const InstructionSource& source,
                      Token::Kind kind,
                      Value* left,
                      Value* right,
@@ -4420,11 +4456,11 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 // comparison pattern.
 class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
-  TestSmiInstr(TokenPosition token_pos,
+  TestSmiInstr(const InstructionSource& source,
                Token::Kind kind,
                Value* left,
                Value* right)
-      : TemplateComparison(token_pos, kind) {
+      : TemplateComparison(source, kind) {
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
     SetInputAt(0, left);
     SetInputAt(1, right);
@@ -4455,7 +4491,7 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
 // other results even in the no-deopt case.
 class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
  public:
-  TestCidsInstr(TokenPosition token_pos,
+  TestCidsInstr(const InstructionSource& source,
                 Token::Kind kind,
                 Value* value,
                 const ZoneGrowableArray<intptr_t>& cid_results,
@@ -4495,14 +4531,14 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 
 class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
-  EqualityCompareInstr(TokenPosition token_pos,
+  EqualityCompareInstr(const InstructionSource& source,
                        Token::Kind kind,
                        Value* left,
                        Value* right,
                        intptr_t cid,
                        intptr_t deopt_id,
                        SpeculativeMode speculative_mode = kGuardInputs)
-      : TemplateComparison(token_pos, kind, deopt_id),
+      : TemplateComparison(source, kind, deopt_id),
         speculative_mode_(speculative_mode) {
     ASSERT(Token::IsEqualityOperator(kind));
     SetInputAt(0, left);
@@ -4543,14 +4579,14 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
 class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
-  RelationalOpInstr(TokenPosition token_pos,
+  RelationalOpInstr(const InstructionSource& source,
                     Token::Kind kind,
                     Value* left,
                     Value* right,
                     intptr_t cid,
                     intptr_t deopt_id,
                     SpeculativeMode speculative_mode = kGuardInputs)
-      : TemplateComparison(token_pos, kind, deopt_id),
+      : TemplateComparison(source, kind, deopt_id),
         speculative_mode_(speculative_mode) {
     ASSERT(Token::IsRelationalOperator(kind));
     SetInputAt(0, left);
@@ -4674,7 +4710,7 @@ class IfThenElseInstr : public Definition {
 
 class StaticCallInstr : public TemplateDartCall<0> {
  public:
-  StaticCallInstr(TokenPosition token_pos,
+  StaticCallInstr(const InstructionSource& source,
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
@@ -4686,20 +4722,19 @@ class StaticCallInstr : public TemplateDartCall<0> {
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
-        ic_data_(NULL),
+                         source),
+        ic_data_(GetICData(ic_data_array, deopt_id, /*is_static_call=*/true)),
         call_count_(0),
         function_(function),
         rebind_rule_(rebind_rule),
         result_type_(NULL),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
-    ic_data_ = GetICData(ic_data_array, deopt_id, /*is_static_call=*/true);
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
   }
 
-  StaticCallInstr(TokenPosition token_pos,
+  StaticCallInstr(const InstructionSource& source,
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
@@ -4711,7 +4746,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
+                         source),
         ic_data_(NULL),
         call_count_(call_count),
         function_(function),
@@ -4735,15 +4770,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
       args->Add(call->ArgumentValueAt(i)->CopyWithType());
     }
-    StaticCallInstr* new_call = new (zone)
-        StaticCallInstr(call->token_pos(), target, call->type_args_len(),
-                        call->argument_names(), args, call->deopt_id(),
-                        call_count, ICData::kNoRebind);
+    StaticCallInstr* new_call = new (zone) StaticCallInstr(
+        call->source(), target, call->type_args_len(), call->argument_names(),
+        args, call->deopt_id(), call_count, ICData::kNoRebind);
     if (call->result_type() != NULL) {
       new_call->result_type_ = call->result_type();
-    }
-    if (call->has_inlining_id()) {
-      new_call->set_inlining_id(call->inlining_id());
     }
     new_call->set_entry_kind(call->entry_kind());
     return new_call;
@@ -4858,8 +4889,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
 class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  LoadLocalInstr(const LocalVariable& local, TokenPosition token_pos)
-      : local_(local), is_last_(false), token_pos_(token_pos) {}
+  LoadLocalInstr(const LocalVariable& local, const InstructionSource& source)
+      : TemplateDefinition(source),
+        local_(local),
+        is_last_(false),
+        token_pos_(source.token_pos) {}
 
   DECLARE_INSTRUCTION(LoadLocal)
   virtual CompileType ComputeType() const;
@@ -4980,8 +5014,12 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
  public:
   StoreLocalInstr(const LocalVariable& local,
                   Value* value,
-                  TokenPosition token_pos)
-      : local_(local), is_dead_(false), is_last_(false), token_pos_(token_pos) {
+                  const InstructionSource& source)
+      : TemplateDefinition(source),
+        local_(local),
+        is_dead_(false),
+        is_last_(false),
+        token_pos_(source.token_pos) {
     SetInputAt(0, value);
   }
 
@@ -5023,20 +5061,16 @@ class NativeCallInstr : public TemplateDartCall<0> {
   NativeCallInstr(const String* name,
                   const Function* function,
                   bool link_lazily,
-                  TokenPosition position,
+                  const InstructionSource& source,
                   InputsArray* args)
-      : TemplateDartCall(DeoptId::kNone,
-                         0,
-                         Array::null_array(),
-                         args,
-                         position),
+      : TemplateDartCall(DeoptId::kNone, 0, Array::null_array(), args, source),
         native_name_(name),
         function_(function),
         native_c_function_(NULL),
         is_bootstrap_native_(false),
         is_auto_scope_(true),
         link_lazily_(link_lazily),
-        token_pos_(position) {
+        token_pos_(source.token_pos) {
     ASSERT(name->IsZoneHandle());
     ASSERT(function->IsZoneHandle());
   }
@@ -5241,11 +5275,11 @@ class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  DebugStepCheckInstr(TokenPosition token_pos,
+  DebugStepCheckInstr(const InstructionSource& source,
                       PcDescriptorsLayout::Kind stub_kind,
                       intptr_t deopt_id)
-      : TemplateInstruction<0, NoThrow>(deopt_id),
-        token_pos_(token_pos),
+      : TemplateInstruction(source, deopt_id),
+        token_pos_(source.token_pos),
         stub_kind_(stub_kind) {}
 
   DECLARE_INSTRUCTION(DebugStepCheck)
@@ -5301,11 +5335,12 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                           Value* instance,
                           Value* value,
                           StoreBarrierType emit_store_barrier,
-                          TokenPosition token_pos,
+                          const InstructionSource& source,
                           Kind kind = Kind::kOther)
-      : slot_(slot),
+      : TemplateInstruction(source),
+        slot_(slot),
         emit_store_barrier_(emit_store_barrier),
-        token_pos_(token_pos),
+        token_pos_(source.token_pos),
         is_initialization_(kind == Kind::kInitializing) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
@@ -5316,14 +5351,14 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                           Value* instance,
                           Value* value,
                           StoreBarrierType emit_store_barrier,
-                          TokenPosition token_pos,
+                          const InstructionSource& source,
                           const ParsedFunction* parsed_function,
                           Kind kind = Kind::kOther)
       : StoreInstanceFieldInstr(Slot::Get(field, parsed_function),
                                 instance,
                                 value,
                                 emit_store_barrier,
-                                token_pos,
+                                source,
                                 kind) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
@@ -5495,12 +5530,12 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
 class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
  public:
   LoadStaticFieldInstr(const Field& field,
-                       TokenPosition token_pos,
+                       const InstructionSource& source,
                        bool calls_initializer = false,
                        intptr_t deopt_id = DeoptId::kNone)
-      : TemplateDefinition(deopt_id),
+      : TemplateDefinition(source, deopt_id),
         field_(field),
-        token_pos_(token_pos),
+        token_pos_(source.token_pos),
         calls_initializer_(calls_initializer) {
     ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
   }
@@ -5544,8 +5579,10 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
   StoreStaticFieldInstr(const Field& field,
                         Value* value,
-                        TokenPosition token_pos)
-      : field_(field), token_pos_(token_pos) {
+                        const InstructionSource& source)
+      : TemplateDefinition(source),
+        field_(field),
+        token_pos_(source.token_pos) {
     ASSERT(field.IsZoneHandle());
     SetInputAt(kValuePos, value);
     CheckField(field);
@@ -5596,7 +5633,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    intptr_t class_id,
                    AlignmentType alignment,
                    intptr_t deopt_id,
-                   TokenPosition token_pos,
+                   const InstructionSource& source,
                    CompileType* result_type = nullptr);
 
   TokenPosition token_pos() const { return token_pos_; }
@@ -5668,9 +5705,10 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
                      Value* index,
                      intptr_t element_count,
                      intptr_t class_id,
-                     TokenPosition token_pos)
-      : class_id_(class_id),
-        token_pos_(token_pos),
+                     const InstructionSource& source)
+      : TemplateDefinition(source),
+        class_id_(class_id),
+        token_pos_(source.token_pos),
         element_count_(element_count),
         representation_(kTagged) {
     ASSERT(element_count == 1 || element_count == 2 || element_count == 4);
@@ -5775,10 +5813,10 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
 class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
  public:
   StringInterpolateInstr(Value* value,
-                         TokenPosition token_pos,
+                         const InstructionSource& source,
                          intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
+      : TemplateDefinition(source, deopt_id),
+        token_pos_(source.token_pos),
         function_(Function::ZoneHandle()) {
     SetInputAt(0, value);
   }
@@ -5888,7 +5926,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
                     intptr_t class_id,
                     AlignmentType alignment,
                     intptr_t deopt_id,
-                    TokenPosition token_pos,
+                    const InstructionSource& source,
                     SpeculativeMode speculative_mode = kGuardInputs);
   DECLARE_INSTRUCTION(StoreIndexed)
 
@@ -5984,13 +6022,15 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
 
 class InstanceOfInstr : public TemplateDefinition<3, Throws> {
  public:
-  InstanceOfInstr(TokenPosition token_pos,
+  InstanceOfInstr(const InstructionSource& source,
                   Value* value,
                   Value* instantiator_type_arguments,
                   Value* function_type_arguments,
                   const AbstractType& type,
                   intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
+      : TemplateDefinition(source, deopt_id),
+        token_pos_(source.token_pos),
+        type_(type) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
@@ -6029,10 +6069,10 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 // either reside in new space or be in the store buffer.
 class AllocationInstr : public Definition {
  public:
-  explicit AllocationInstr(TokenPosition token_pos,
+  explicit AllocationInstr(const InstructionSource& source,
                            intptr_t deopt_id = DeoptId::kNone)
-      : Definition(deopt_id),
-        token_pos_(token_pos),
+      : Definition(source, deopt_id),
+        token_pos_(source.token_pos),
         identity_(AliasIdentity::Unknown()) {}
 
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -6056,9 +6096,9 @@ class AllocationInstr : public Definition {
 template <intptr_t N, typename ThrowsTrait>
 class TemplateAllocation : public AllocationInstr {
  public:
-  explicit TemplateAllocation(TokenPosition token_pos,
+  explicit TemplateAllocation(const InstructionSource& source,
                               intptr_t deopt_id = DeoptId::kNone)
-      : AllocationInstr(token_pos, deopt_id), inputs_() {}
+      : AllocationInstr(source, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -6077,10 +6117,10 @@ class TemplateAllocation : public AllocationInstr {
 
 class AllocateObjectInstr : public AllocationInstr {
  public:
-  AllocateObjectInstr(TokenPosition token_pos,
+  AllocateObjectInstr(const InstructionSource& source,
                       const Class& cls,
                       Value* type_arguments = nullptr)
-      : AllocationInstr(token_pos),
+      : AllocationInstr(source),
         cls_(cls),
         type_arguments_(type_arguments),
         closure_function_(Function::ZoneHandle()) {
@@ -6144,7 +6184,7 @@ class AllocateObjectInstr : public AllocationInstr {
 class AllocateUninitializedContextInstr
     : public TemplateAllocation<0, NoThrow> {
  public:
-  AllocateUninitializedContextInstr(TokenPosition token_pos,
+  AllocateUninitializedContextInstr(const InstructionSource& source,
                                     intptr_t num_context_variables);
 
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
@@ -6256,8 +6296,9 @@ class MaterializeObjectInstr : public Definition {
 
 class ArrayAllocationInstr : public AllocationInstr {
  public:
-  explicit ArrayAllocationInstr(TokenPosition token_pos, intptr_t deopt_id)
-      : AllocationInstr(token_pos, deopt_id) {}
+  explicit ArrayAllocationInstr(const InstructionSource& source,
+                                intptr_t deopt_id)
+      : AllocationInstr(source, deopt_id) {}
 
   virtual Value* num_elements() const = 0;
 
@@ -6277,8 +6318,9 @@ class ArrayAllocationInstr : public AllocationInstr {
 template <intptr_t N, typename ThrowsTrait>
 class TemplateArrayAllocation : public ArrayAllocationInstr {
  public:
-  explicit TemplateArrayAllocation(TokenPosition token_pos, intptr_t deopt_id)
-      : ArrayAllocationInstr(token_pos, deopt_id), inputs_() {}
+  explicit TemplateArrayAllocation(const InstructionSource& source,
+                                   intptr_t deopt_id)
+      : ArrayAllocationInstr(source, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -6294,11 +6336,11 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
 
 class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
  public:
-  CreateArrayInstr(TokenPosition token_pos,
+  CreateArrayInstr(const InstructionSource& source,
                    Value* element_type,
                    Value* num_elements,
                    intptr_t deopt_id)
-      : TemplateArrayAllocation(token_pos, deopt_id) {
+      : TemplateArrayAllocation(source, deopt_id) {
     SetInputAt(kElementTypePos, element_type);
     SetInputAt(kLengthPos, num_elements);
   }
@@ -6332,11 +6374,11 @@ class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
 
 class AllocateTypedDataInstr : public TemplateArrayAllocation<1, Throws> {
  public:
-  AllocateTypedDataInstr(TokenPosition token_pos,
+  AllocateTypedDataInstr(const InstructionSource& source,
                          classid_t class_id,
                          Value* num_elements,
                          intptr_t deopt_id)
-      : TemplateArrayAllocation(token_pos, deopt_id), class_id_(class_id) {
+      : TemplateArrayAllocation(source, deopt_id), class_id_(class_id) {
     SetInputAt(kLengthPos, num_elements);
   }
 
@@ -6501,12 +6543,12 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
  public:
   LoadFieldInstr(Value* instance,
                  const Slot& slot,
-                 TokenPosition token_pos,
+                 const InstructionSource& source,
                  bool calls_initializer = false,
                  intptr_t deopt_id = DeoptId::kNone)
-      : TemplateDefinition(deopt_id),
+      : TemplateDefinition(source, deopt_id),
         slot_(slot),
-        token_pos_(token_pos),
+        token_pos_(source.token_pos),
         calls_initializer_(calls_initializer),
         throw_exception_on_initialization_(false) {
     ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
@@ -6609,12 +6651,14 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
 class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
  public:
-  InstantiateTypeInstr(TokenPosition token_pos,
+  InstantiateTypeInstr(const InstructionSource& source,
                        const AbstractType& type,
                        Value* instantiator_type_arguments,
                        Value* function_type_arguments,
                        intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
+      : TemplateDefinition(source, deopt_id),
+        token_pos_(source.token_pos),
+        type_(type) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
@@ -6644,15 +6688,15 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
 
 class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
  public:
-  InstantiateTypeArgumentsInstr(TokenPosition token_pos,
+  InstantiateTypeArgumentsInstr(const InstructionSource& source,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
                                 Value* type_arguments,
                                 const Class& instantiator_class,
                                 const Function& function,
                                 intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
+      : TemplateDefinition(source, deopt_id),
+        token_pos_(source.token_pos),
         instantiator_class_(instantiator_class),
         function_(function) {
     ASSERT(instantiator_class.IsReadOnlyHandle() ||
@@ -6729,9 +6773,9 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
 // for the given [context_variables].
 class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
  public:
-  AllocateContextInstr(TokenPosition token_pos,
+  AllocateContextInstr(const InstructionSource& source,
                        const ZoneGrowableArray<const Slot*>& context_slots)
-      : TemplateAllocation(token_pos), context_slots_(context_slots) {}
+      : TemplateAllocation(source), context_slots_(context_slots) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
@@ -6763,12 +6807,12 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
 // it contains exactly the provided [context_variables].
 class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  CloneContextInstr(TokenPosition token_pos,
+  CloneContextInstr(const InstructionSource& source,
                     Value* context_value,
                     const ZoneGrowableArray<const Slot*>& context_slots,
                     intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
+      : TemplateDefinition(source, deopt_id),
+        token_pos_(source.token_pos),
         context_slots_(context_slots) {
     SetInputAt(0, context_value);
   }
@@ -7338,11 +7382,11 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
                       Value* left,
                       Value* right,
                       intptr_t deopt_id,
-                      TokenPosition token_pos,
+                      const InstructionSource& source,
                       SpeculativeMode speculative_mode = kGuardInputs)
-      : TemplateDefinition(deopt_id),
+      : TemplateDefinition(source, deopt_id),
         op_kind_(op_kind),
-        token_pos_(token_pos),
+        token_pos_(source.token_pos),
         speculative_mode_(speculative_mode) {
     SetInputAt(0, left);
     SetInputAt(1, right);
@@ -7400,8 +7444,8 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
   DoubleTestOpInstr(MethodRecognizer::Kind op_kind,
                     Value* value,
                     intptr_t deopt_id,
-                    TokenPosition token_pos)
-      : TemplateComparison(token_pos, Token::kEQ, deopt_id), op_kind_(op_kind) {
+                    const InstructionSource& source)
+      : TemplateComparison(source, Token::kEQ, deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
   }
 
@@ -7606,7 +7650,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
                             Value* left,
                             Value* right,
                             TemplateDartCall<0>* call)
-      : TemplateComparison(call->token_pos(), op_kind, call->deopt_id()),
+      : TemplateComparison(call->source(), op_kind, call->deopt_id()),
         call_(call),
         is_negated_(false) {
     ASSERT(call->type_args_len() == 0);
@@ -8133,13 +8177,13 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
     kOsrOnly,
   };
 
-  CheckStackOverflowInstr(TokenPosition token_pos,
+  CheckStackOverflowInstr(const InstructionSource& source,
                           intptr_t stack_depth,
                           intptr_t loop_depth,
                           intptr_t deopt_id,
                           Kind kind)
-      : TemplateInstruction(deopt_id),
-        token_pos_(token_pos),
+      : TemplateInstruction(source, deopt_id),
+        token_pos_(source.token_pos),
         stack_depth_(stack_depth),
         loop_depth_(loop_depth),
         kind_(kind) {
@@ -8180,8 +8224,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 // TODO(vegorov): remove this instruction in favor of Int32ToDouble.
 class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  SmiToDoubleInstr(Value* value, TokenPosition token_pos)
-      : token_pos_(token_pos) {
+  SmiToDoubleInstr(Value* value, const InstructionSource& source)
+      : TemplateDefinition(source), token_pos_(source.token_pos) {
     SetInputAt(0, value);
   }
 
@@ -8448,7 +8492,7 @@ class InvokeMathCFunctionInstr : public PureDefinition {
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
                            intptr_t deopt_id,
                            MethodRecognizer::Kind recognized_kind,
-                           TokenPosition token_pos);
+                           const InstructionSource& source);
 
   static intptr_t ArgumentCountFor(MethodRecognizer::Kind recognized_kind_);
 
@@ -8595,7 +8639,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   CheckClassInstr(Value* value,
                   intptr_t deopt_id,
                   const Cids& cids,
-                  TokenPosition token_pos);
+                  const InstructionSource& source);
 
   DECLARE_INSTRUCTION(CheckClass)
 
@@ -8654,9 +8698,11 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
 class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
  public:
-  CheckSmiInstr(Value* value, intptr_t deopt_id, TokenPosition token_pos)
-      : TemplateInstruction(deopt_id),
-        token_pos_(token_pos),
+  CheckSmiInstr(Value* value,
+                intptr_t deopt_id,
+                const InstructionSource& source)
+      : TemplateInstruction(source, deopt_id),
+        token_pos_(source.token_pos),
         licm_hoisted_(false) {
     SetInputAt(0, value);
   }
@@ -8696,10 +8742,10 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   CheckNullInstr(Value* value,
                  const String& function_name,
                  intptr_t deopt_id,
-                 TokenPosition token_pos,
+                 const InstructionSource& source,
                  ExceptionType exception_type = kNoSuchMethod)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
+      : TemplateDefinition(source, deopt_id),
+        token_pos_(source.token_pos),
         function_name_(function_name),
         exception_type_(exception_type) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());

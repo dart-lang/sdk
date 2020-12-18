@@ -230,7 +230,7 @@ void JitCallSpecializer::LowerContextAllocation(
   ASSERT(alloc->IsAllocateContext() || alloc->IsCloneContext());
 
   AllocateUninitializedContextInstr* replacement =
-      new AllocateUninitializedContextInstr(alloc->token_pos(),
+      new AllocateUninitializedContextInstr(alloc->source(),
                                             context_variables.length());
   alloc->ReplaceWith(replacement, current_iterator());
 
@@ -240,7 +240,7 @@ void JitCallSpecializer::LowerContextAllocation(
   if (context_value != NULL) {
     LoadFieldInstr* load =
         new (Z) LoadFieldInstr(context_value->CopyWithType(Z),
-                               Slot::Context_parent(), alloc->token_pos());
+                               Slot::Context_parent(), alloc->source());
     flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
     cursor = load;
     initial_value = new (Z) Value(load);
@@ -249,7 +249,7 @@ void JitCallSpecializer::LowerContextAllocation(
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
       Slot::Context_parent(), new (Z) Value(replacement), initial_value,
-      kNoStoreBarrier, alloc->token_pos(),
+      kNoStoreBarrier, alloc->source(),
       StoreInstanceFieldInstr::Kind::kInitializing);
   flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
   cursor = replacement;
@@ -257,7 +257,7 @@ void JitCallSpecializer::LowerContextAllocation(
   for (auto& slot : context_variables) {
     if (context_value != nullptr) {
       LoadFieldInstr* load = new (Z) LoadFieldInstr(
-          context_value->CopyWithType(Z), *slot, alloc->token_pos());
+          context_value->CopyWithType(Z), *slot, alloc->source());
       flow_graph()->InsertAfter(cursor, load, nullptr, FlowGraph::kValue);
       cursor = load;
       initial_value = new (Z) Value(load);
@@ -267,7 +267,7 @@ void JitCallSpecializer::LowerContextAllocation(
 
     store = new (Z) StoreInstanceFieldInstr(
         *slot, new (Z) Value(replacement), initial_value, kNoStoreBarrier,
-        alloc->token_pos(), StoreInstanceFieldInstr::Kind::kInitializing);
+        alloc->source(), StoreInstanceFieldInstr::Kind::kInitializing);
     flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
     cursor = store;
   }

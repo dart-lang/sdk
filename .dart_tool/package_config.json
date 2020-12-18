@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-12-03T14:26:48.568312",
+  "generated": "2020-12-16T11:30:30.799202",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -740,7 +740,7 @@
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "web_components",

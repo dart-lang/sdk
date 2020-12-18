@@ -11148,10 +11148,10 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
       script = lib.LookupScript(uri, /* useResolvedUri = */ true);
       if (!script.IsNull()) {
         const auto& source = String::Handle(zone, script.Source());
-        const auto& line_starts = TypedData::Handle(zone, script.line_starts());
-        if (!source.IsNull() || !line_starts.IsNull()) {
+        const auto& starts = TypedData::Handle(zone, script.line_starts());
+        if (!source.IsNull() || !starts.IsNull()) {
           set_source(source);
-          set_line_starts(line_starts);
+          set_line_starts(starts);
           break;
         }
       }
@@ -11215,6 +11215,27 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   return info.raw();
 }
 
+TokenPosition Script::MaxPosition() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (HasCachedMaxPosition()) {
+    return TokenPosition::Deserialize(
+        ScriptLayout::CachedMaxPositionBitField::decode(
+            raw_ptr()->flags_and_max_position_));
+  }
+  auto const zone = Thread::Current()->zone();
+  LookupSourceAndLineStarts(zone);
+  if (!HasCachedMaxPosition() && line_starts() != TypedData::null()) {
+    const auto& starts = TypedData::Handle(zone, line_starts());
+    kernel::KernelLineStartsReader reader(starts, zone);
+    const intptr_t max_position = reader.MaxPosition();
+    SetCachedMaxPosition(max_position);
+    SetHasCachedMaxPosition(true);
+    return TokenPosition::Deserialize(max_position);
+  }
+#endif
+  return TokenPosition::kNoSource;
+}
+
 void Script::set_url(const String& value) const {
   raw_ptr()->set_url(value.raw());
 }
@@ -11260,19 +11281,35 @@ ArrayPtr Script::debug_positions() const {
   return raw_ptr()->debug_positions();
 }
 
-void Script::set_flags(uint8_t value) const {
-  StoreNonPointer(&raw_ptr()->flags_, value);
-}
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void Script::SetLazyLookupSourceAndLineStarts(bool value) const {
-  set_flags(ScriptLayout::LazyLookupSourceAndLineStartsBit::update(
-      value, raw_ptr()->flags_));
+  StoreNonPointer(&raw_ptr()->flags_and_max_position_,
+                  ScriptLayout::LazyLookupSourceAndLineStartsBit::update(
+                      value, raw_ptr()->flags_and_max_position_));
 }
 
 bool Script::IsLazyLookupSourceAndLineStarts() const {
   return ScriptLayout::LazyLookupSourceAndLineStartsBit::decode(
-      raw_ptr()->flags_);
+      raw_ptr()->flags_and_max_position_);
 }
+
+bool Script::HasCachedMaxPosition() const {
+  return ScriptLayout::HasCachedMaxPositionBit::decode(
+      raw_ptr()->flags_and_max_position_);
+}
+
+void Script::SetHasCachedMaxPosition(bool value) const {
+  StoreNonPointer(&raw_ptr()->flags_and_max_position_,
+                  ScriptLayout::HasCachedMaxPositionBit::update(
+                      value, raw_ptr()->flags_and_max_position_));
+}
+
+void Script::SetCachedMaxPosition(intptr_t value) const {
+  StoreNonPointer(&raw_ptr()->flags_and_max_position_,
+                  ScriptLayout::CachedMaxPositionBitField::update(
+                      value, raw_ptr()->flags_and_max_position_));
+}
+#endif
 
 void Script::set_load_timestamp(int64_t value) const {
   StoreNonPointer(&raw_ptr()->load_timestamp_, value);
@@ -11284,6 +11321,15 @@ void Script::SetLocationOffset(intptr_t line_offset,
   ASSERT(col_offset >= 0);
   StoreNonPointer(&raw_ptr()->line_offset_, line_offset);
   StoreNonPointer(&raw_ptr()->col_offset_, col_offset);
+}
+
+bool Script::IsValidTokenPosition(TokenPosition token_pos) const {
+  const TokenPosition& max_position = MaxPosition();
+  // We may end up with scripts that have the empty string as a source file
+  // in testing and the like, so allow any token position when the max position
+  // is 0 as well as when it is kNoSource.
+  return !max_position.IsReal() || !token_pos.IsReal() ||
+         max_position.Pos() == 0 || token_pos <= max_position;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -11497,7 +11543,8 @@ ScriptPtr Script::New(const String& url,
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
   result.SetLocationOffset(0, 0);
-  result.set_flags(0);
+  NOT_IN_PRECOMPILED(result.SetLazyLookupSourceAndLineStarts(false));
+  NOT_IN_PRECOMPILED(result.SetHasCachedMaxPosition(false));
   result.set_kernel_script_index(0);
   result.set_load_timestamp(
       FLAG_remove_script_timestamps_for_test ? 0 : OS::GetCurrentTimeMillis());

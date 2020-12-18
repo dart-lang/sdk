@@ -3553,10 +3553,10 @@ void AllocationSinking::CreateMaterializationAt(
               flow_graph_->GetConstant(Smi::ZoneHandle(Z, Smi::New(index)))),
           /*index_unboxed=*/false,
           /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
-          array_cid, kAlignedAccess, DeoptId::kNone, alloc->token_pos());
+          array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
     } else {
-      load = new (Z)
-          LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->token_pos());
+      load =
+          new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values->Add(new (Z) Value(load));

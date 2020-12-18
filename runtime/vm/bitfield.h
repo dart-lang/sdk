@@ -14,7 +14,10 @@ static const uword kUwordOne = 1U;
 
 // BitField is a template for encoding and decoding a value of type T
 // inside a storage of type S.
-template <typename S, typename T, int position, int size>
+template <typename S,
+          typename T,
+          int position,
+          int size = (sizeof(S) * kBitsPerByte) - position>
 class BitField {
  public:
   typedef T Type;

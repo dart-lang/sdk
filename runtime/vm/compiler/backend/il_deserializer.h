@@ -196,8 +196,8 @@ class FlowGraphDeserializer : ValueObject {
 #undef HANDLER_DECL
 
   struct InstrInfo {
-    intptr_t deopt_id;
-    TokenPosition token_pos;
+    const intptr_t deopt_id;
+    const InstructionSource source;
   };
 
   enum HandledInstruction {

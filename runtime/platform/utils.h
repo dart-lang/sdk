@@ -361,15 +361,17 @@ class Utils {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
   }
 
+  static constexpr uword NBitMaskUnsafe(uint32_t n) {
+    static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
+                  "Unexpected uword size");
+    return n == kBitsPerWord ? std::numeric_limits<uword>::max()
+                             : (static_cast<uword>(1) << n) - 1;
+  }
+
   // The lowest n bits are 1, the others are 0.
   static uword NBitMask(uint32_t n) {
     ASSERT(n <= kBitsPerWord);
-    if (n == kBitsPerWord) {
-      static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
-                            "Unexpected uword size");
-      return std::numeric_limits<uword>::max();
-    }
-    return (static_cast<uword>(1) << n) - 1;
+    return NBitMaskUnsafe(n);
   }
 
   static word SignedNBitMask(uint32_t n) {

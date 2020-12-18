@@ -203,7 +203,7 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
     args->Add(right->ArgumentValueAt(0)->CopyWithType(Z));
     const intptr_t kTypeArgsLen = 0;
     StaticCallInstr* static_call = new (Z) StaticCallInstr(
-        call->token_pos(), have_same_runtime_type, kTypeArgsLen,
+        call->source(), have_same_runtime_type, kTypeArgsLen,
         Object::null_array(),  // argument_names
         args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
     static_call->SetResultType(Z, CompileType::FromCid(kBoolCid));
@@ -311,7 +311,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
     Definition* conversion = NULL;
 
     if (input->Type()->ToNullableCid() == kSmiCid) {
-      conversion = new (Z) SmiToDoubleInstr(input, call->token_pos());
+      conversion = new (Z) SmiToDoubleInstr(input, call->source());
     } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
                FlowGraphCompiler::CanConvertInt64ToDouble()) {
       conversion = new (Z) Int64ToDoubleInstr(input, DeoptId::kNone,
@@ -512,7 +512,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         // We prefer equality compare, since it doesn't require boxing.
         if (!can_use_equality_compare && can_use_strict_compare) {
           replacement = new (Z) StrictCompareInstr(
-              instr->token_pos(),
+              instr->source(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
               left_value->CopyWithType(Z), right_value->CopyWithType(Z),
               /*needs_number_check=*/false, DeoptId::kNone);
@@ -522,7 +522,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         if (supports_unboxed_int) {
           if (can_use_equality_compare) {
             replacement = new (Z) EqualityCompareInstr(
-                instr->token_pos(), op_kind, left_value->CopyWithType(Z),
+                instr->source(), op_kind, left_value->CopyWithType(Z),
                 right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
                 Instruction::kNotSpeculative);
             break;
@@ -530,7 +530,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
             replacement = new (Z) RelationalOpInstr(
-                instr->token_pos(), op_kind, left_value, right_value, kMintCid,
+                instr->source(), op_kind, left_value, right_value, kMintCid,
                 DeoptId::kNone, Instruction::kNotSpeculative);
             break;
           } else {
@@ -672,7 +672,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) EqualityCompareInstr(
-              instr->token_pos(), op_kind, left_value, right_value, kDoubleCid,
+              instr->source(), op_kind, left_value, right_value, kDoubleCid,
               DeoptId::kNone, Instruction::kNotSpeculative);
           break;
         }
@@ -688,7 +688,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
         left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
         right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
         replacement = new (Z) RelationalOpInstr(
-            instr->token_pos(), op_kind, left_value, right_value, kDoubleCid,
+            instr->source(), op_kind, left_value, right_value, kDoubleCid,
             DeoptId::kNone, Instruction::kNotSpeculative);
         break;
       }
@@ -706,8 +706,8 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
         left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
         right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
         replacement = new (Z) BinaryDoubleOpInstr(
-            op_kind, left_value, right_value, DeoptId::kNone,
-            instr->token_pos(), Instruction::kNotSpeculative);
+            op_kind, left_value, right_value, DeoptId::kNone, instr->source(),
+            Instruction::kNotSpeculative);
         break;
       }
 
@@ -903,7 +903,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       }
       if (is_object_eq) {
         auto* replacement = new (Z) StrictCompareInstr(
-            instr->token_pos(),
+            instr->source(),
             (instr->token_kind() == Token::kEQ) ? Token::kEQ_STRICT
                                                 : Token::kNE_STRICT,
             instr->ArgumentValueAt(0)->CopyWithType(Z),
@@ -1098,12 +1098,12 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   InputsArray* get_arguments = new (Z) InputsArray(Z, 1);
   get_arguments->Add(call->ArgumentValueAt(receiver_idx)->CopyWithType(Z));
-  InstanceCallInstr* invoke_get = new (Z) InstanceCallInstr(
-      call->token_pos(), getter_name, Token::kGET, get_arguments,
-      /*type_args_len=*/0,
-      /*argument_names=*/Object::empty_array(),
-      /*checked_argument_count=*/1,
-      thread()->compiler_state().GetNextDeoptId());
+  InstanceCallInstr* invoke_get = new (Z)
+      InstanceCallInstr(call->source(), getter_name, Token::kGET, get_arguments,
+                        /*type_args_len=*/0,
+                        /*argument_names=*/Object::empty_array(),
+                        /*checked_argument_count=*/1,
+                        thread()->compiler_state().GetNextDeoptId());
 
   // Arguments to the .call() are the same as arguments to the
   // original call (including type arguments), but receiver
@@ -1118,7 +1118,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   }
 
   InstanceCallInstr* invoke_call = new (Z) InstanceCallInstr(
-      call->token_pos(), Symbols::Call(), Token::kILLEGAL, call_arguments,
+      call->source(), Symbols::Call(), Token::kILLEGAL, call_arguments,
       call->type_args_len(), call->argument_names(),
       /*checked_argument_count=*/1,
       thread()->compiler_state().GetNextDeoptId());
@@ -1204,7 +1204,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 
   if (lower_limit == upper_limit) {
     StrictCompareInstr* check_cid = new (Z)
-        StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+        StrictCompareInstr(call->source(), Token::kEQ_STRICT,
                            new (Z) Value(left_cid), new (Z) Value(lower_cid),
                            /* number_check = */ false, DeoptId::kNone);
     ReplaceCall(call, check_cid);
@@ -1229,7 +1229,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 
   const intptr_t kTypeArgsLen = 0;
   StaticCallInstr* new_call = new (Z) StaticCallInstr(
-      call->token_pos(), target, kTypeArgsLen,
+      call->source(), target, kTypeArgsLen,
       Object::null_array(),  // argument_names
       args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
   Environment* copy =

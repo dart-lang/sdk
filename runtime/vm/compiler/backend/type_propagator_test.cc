@@ -61,7 +61,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
     v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
     builder.AddBranch(
         new StrictCompareInstr(
-            TokenPosition::kNoSource, Token::kEQ_STRICT, new Value(v0),
+            InstructionSource(), Token::kEQ_STRICT, new Value(v0),
             new Value(H.flow_graph()->GetConstant(Object::Handle())),
             /*needs_number_check=*/false, S.GetNextDeoptId()),
         b2, b3);
@@ -128,7 +128,7 @@ ISOLATE_UNIT_TEST_CASE(
     auto load_cid = builder.AddDefinition(new LoadClassIdInstr(new Value(v0)));
     builder.AddBranch(
         new StrictCompareInstr(
-            TokenPosition::kNoSource, Token::kEQ_STRICT, new Value(load_cid),
+            InstructionSource(), Token::kEQ_STRICT, new Value(load_cid),
             new Value(H.IntConstant(kDoubleCid)),
             /*needs_number_check=*/false, S.GetNextDeoptId()),
         b2, b3);
@@ -223,8 +223,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
     BlockBuilder builder(H.flow_graph(), b1);
     v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
     builder.AddBranch(new StrictCompareInstr(
-                          TokenPosition::kNoSource, Token::kEQ_STRICT,
-                          new Value(v0), new Value(H.IntConstant(1)),
+                          InstructionSource(), Token::kEQ_STRICT, new Value(v0),
+                          new Value(H.IntConstant(1)),
                           /*needs_number_check=*/false, S.GetNextDeoptId()),
                       b2, b3);
   }
@@ -232,7 +232,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   {
     BlockBuilder builder(H.flow_graph(), b2);
     v2 = builder.AddDefinition(
-        new StaticCallInstr(TokenPosition::kNoSource, target_func,
+        new StaticCallInstr(InstructionSource(), target_func,
                             /*type_args_len=*/0,
                             /*argument_names=*/Array::empty_array(),
                             new InputsArray(0), S.GetNextDeoptId(),
@@ -258,7 +258,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   EXPECT_PROPERTY(v2->Type(), it.IsNullableInt());
   EXPECT_PROPERTY(v3->Type(), it.IsNullableInt());
 
-  auto v4 = new LoadStaticFieldInstr(field, TokenPosition::kNoSource);
+  auto v4 = new LoadStaticFieldInstr(field, InstructionSource());
   H.flow_graph()->InsertBefore(v2, v4, nullptr, FlowGraph::kValue);
   v2->ReplaceUsesWith(v4);
   v2->RemoveFromGraph();
@@ -313,8 +313,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
     BlockBuilder builder(H.flow_graph(), b1);
     v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
     builder.AddBranch(new StrictCompareInstr(
-                          TokenPosition::kNoSource, Token::kEQ_STRICT,
-                          new Value(v0), new Value(H.IntConstant(1)),
+                          InstructionSource(), Token::kEQ_STRICT, new Value(v0),
+                          new Value(H.IntConstant(1)),
                           /*needs_number_check=*/false, S.GetNextDeoptId()),
                       b6, b2);
   }
@@ -322,8 +322,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
   {
     BlockBuilder builder(H.flow_graph(), b2);
     builder.AddBranch(new StrictCompareInstr(
-                          TokenPosition::kNoSource, Token::kEQ_STRICT,
-                          new Value(v0), new Value(H.IntConstant(2)),
+                          InstructionSource(), Token::kEQ_STRICT, new Value(v0),
+                          new Value(H.IntConstant(2)),
                           /*needs_number_check=*/false, S.GetNextDeoptId()),
                       b3, b4);
   }
@@ -354,8 +354,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
     BlockBuilder builder(H.flow_graph(), b7);
     v5 = H.Phi(b7, {{b5, v3}, {b6, H.DoubleConstant(1.0)}});
     builder.AddPhi(v5);
-    builder.AddInstruction(new ReturnInstr(TokenPosition::kNoSource,
-                                           new Value(v5), S.GetNextDeoptId()));
+    builder.AddInstruction(new ReturnInstr(InstructionSource(), new Value(v5),
+                                           S.GetNextDeoptId()));
   }
 
   H.FinishGraph();

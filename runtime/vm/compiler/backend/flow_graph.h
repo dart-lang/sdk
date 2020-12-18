@@ -211,7 +211,7 @@ class FlowGraph : public ZoneAllocated {
   Instruction* CreateCheckClass(Definition* to_check,
                                 const Cids& cids,
                                 intptr_t deopt_id,
-                                TokenPosition token_pos);
+                                const InstructionSource& source);
 
   Definition* CreateCheckBound(Definition* length,
                                Definition* index,

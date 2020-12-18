@@ -1184,7 +1184,15 @@ class ScriptSerializationCluster : public SerializationCluster {
       WriteFromTo(script);
       s->Write<int32_t>(script->ptr()->line_offset_);
       s->Write<int32_t>(script->ptr()->col_offset_);
-      s->Write<uint8_t>(script->ptr()->flags_);
+      if (s->kind() != Snapshot::kFullAOT) {
+        // Clear out the max position cache in snapshots to ensure no
+        // differences in the snapshot due to triggering caching vs. not.
+        int32_t written_flags = ScriptLayout::CachedMaxPositionBitField::update(
+            0, script->ptr()->flags_and_max_position_);
+        written_flags =
+            ScriptLayout::HasCachedMaxPositionBit::update(false, written_flags);
+        s->Write<int32_t>(written_flags);
+      }
       s->Write<int32_t>(script->ptr()->kernel_script_index_);
     }
   }
@@ -1217,7 +1225,9 @@ class ScriptDeserializationCluster : public DeserializationCluster {
       ReadFromTo(script);
       script->ptr()->line_offset_ = d->Read<int32_t>();
       script->ptr()->col_offset_ = d->Read<int32_t>();
-      script->ptr()->flags_ = d->Read<uint8_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      script->ptr()->flags_and_max_position_ = d->Read<int32_t>();
+#endif
       script->ptr()->kernel_script_index_ = d->Read<int32_t>();
       script->ptr()->load_timestamp_ = 0;
     }

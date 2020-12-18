@@ -825,6 +825,9 @@ void Instruction::AddExtraInfoToSExpression(SExpList* sexp,
   if (!token_pos().IsNoSource()) {
     s->AddExtraInteger(sexp, "token_pos", token_pos().Serialize());
   }
+  if (has_inlining_id()) {
+    s->AddExtraInteger(sexp, "inlining_id", inlining_id());
+  }
 }
 
 SExpression* Range::ToSExpression(FlowGraphSerializer* s) {

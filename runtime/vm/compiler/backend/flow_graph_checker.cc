@@ -283,7 +283,8 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
       ASSERT(instruction->has_inlining_id());
       const intptr_t inlining_id = instruction->inlining_id();
       const auto& function = *inline_id_to_function_[inlining_id];
-      if (!pos.IsWithin(function.token_pos(), function.end_token_pos())) {
+      if (function.end_token_pos().IsReal() &&
+          !pos.IsWithin(function.token_pos(), function.end_token_pos())) {
         TextBuffer buffer(256);
         buffer.Printf("Token position %s is invalid for function %s (%s, %s)",
                       pos.ToCString(), function.ToFullyQualifiedCString(),
@@ -296,9 +297,7 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
         FATAL("%s", buffer.buffer());
       }
       script_ = function.script();
-      intptr_t line;
-      if (!script_.IsNull() && pos.IsReal() &&
-          !script_.GetTokenLocation(pos, &line)) {
+      if (!script_.IsNull() && !script_.IsValidTokenPosition(pos)) {
         TextBuffer buffer(256);
         buffer.Printf(
             "Token position %s is invalid for script %s of function %s",

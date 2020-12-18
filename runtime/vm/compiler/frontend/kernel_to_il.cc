@@ -326,7 +326,7 @@ Fragment FlowGraphBuilder::CloneContext(
   Fragment instructions = LoadLocal(context_variable);
 
   CloneContextInstr* clone_instruction = new (Z) CloneContextInstr(
-      TokenPosition::kNoSource, Pop(), context_slots, GetNextDeoptId());
+      InstructionSource(), Pop(), context_slots, GetNextDeoptId());
   instructions <<= clone_instruction;
   Push(clone_instruction);
 
@@ -352,8 +352,8 @@ Fragment FlowGraphBuilder::InstanceCall(
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray* arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      position, name, kind, arguments, type_args_len, argument_names,
-      checked_argument_count, ic_data_array_, GetNextDeoptId(),
+      InstructionSource(position), name, kind, arguments, type_args_len,
+      argument_names, checked_argument_count, ic_data_array_, GetNextDeoptId(),
       interface_target, tearoff_interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
@@ -401,9 +401,9 @@ Fragment FlowGraphBuilder::FfiCall(
 Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   Fragment instructions;
   Value* exception = Pop();
-  instructions +=
-      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId(), exception))
-          .closed();
+  instructions += Fragment(new (Z) ThrowInstr(InstructionSource(position),
+                                              GetNextDeoptId(), exception))
+                      .closed();
   // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -416,10 +416,10 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
   Fragment instructions;
   Value* stacktrace = Pop();
   Value* exception = Pop();
-  instructions +=
-      Fragment(new (Z) ReThrowInstr(position, catch_try_index, GetNextDeoptId(),
-                                    exception, stacktrace))
-          .closed();
+  instructions += Fragment(new (Z) ReThrowInstr(
+                               InstructionSource(position), catch_try_index,
+                               GetNextDeoptId(), exception, stacktrace))
+                      .closed();
   // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -531,9 +531,9 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
   const intptr_t num_args =
       function->NumParameters() + (function->IsGeneric() ? 1 : 0);
   InputsArray* arguments = GetArguments(num_args);
-  NativeCallInstr* call =
-      new (Z) NativeCallInstr(name, function, FLAG_link_natives_lazily,
-                              function->end_token_pos(), arguments);
+  NativeCallInstr* call = new (Z)
+      NativeCallInstr(name, function, FLAG_link_natives_lazily,
+                      InstructionSource(function->end_token_pos()), arguments);
   Push(call);
   return Fragment(call);
 }
@@ -594,9 +594,9 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       bool use_unchecked_entry) {
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   InputsArray* arguments = GetArguments(total_count);
-  StaticCallInstr* call = new (Z)
-      StaticCallInstr(position, target, type_args_count, argument_names,
-                      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
+  StaticCallInstr* call = new (Z) StaticCallInstr(
+      InstructionSource(position), target, type_args_count, argument_names,
+      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
   SetResultTypeForStaticCall(call, target, argument_count, result_type);
   if (use_unchecked_entry) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
@@ -1755,9 +1755,9 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position) {
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
 
-  AssertSubtypeInstr* instr = new (Z)
-      AssertSubtypeInstr(position, instantiator_type_args, function_type_args,
-                         sub_type, super_type, dst_name, GetNextDeoptId());
+  AssertSubtypeInstr* instr = new (Z) AssertSubtypeInstr(
+      InstructionSource(position), instantiator_type_args, function_type_args,
+      sub_type, super_type, dst_name, GetNextDeoptId());
   instructions += Fragment(instr);
 
   return instructions;
@@ -3727,8 +3727,8 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
 
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
-  auto* instr = new (Z) NativeReturnInstr(TokenPosition::kNoSource, Pop(),
-                                          marshaller, DeoptId::kNone);
+  auto* instr = new (Z)
+      NativeReturnInstr(InstructionSource(), Pop(), marshaller, DeoptId::kNone);
   return Fragment(instr).closed();
 }
 

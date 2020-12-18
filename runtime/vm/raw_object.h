@@ -1314,13 +1314,6 @@ class FieldLayout : public ObjectLayout {
 };
 
 class alignas(8) ScriptLayout : public ObjectLayout {
- public:
-  enum {
-    kLazyLookupSourceAndLineStartsPos = 0,
-    kLazyLookupSourceAndLineStartsSize = 1,
-  };
-
- private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Script);
 
   VISIT_FROM(ObjectPtr, url)
@@ -1354,13 +1347,23 @@ class alignas(8) ScriptLayout : public ObjectLayout {
 
   int32_t line_offset_;
   int32_t col_offset_;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  int32_t flags_and_max_position_;
 
+ public:
   using LazyLookupSourceAndLineStartsBit =
-      BitField<uint8_t,
+      BitField<decltype(flags_and_max_position_), bool, 0, 1>;
+  using HasCachedMaxPositionBit =
+      BitField<decltype(flags_and_max_position_),
                bool,
-               kLazyLookupSourceAndLineStartsPos,
-               kLazyLookupSourceAndLineStartsSize>;
-  uint8_t flags_;
+               LazyLookupSourceAndLineStartsBit::kNextBit,
+               1>;
+  using CachedMaxPositionBitField = BitField<decltype(flags_and_max_position_),
+                                             intptr_t,
+                                             HasCachedMaxPositionBit::kNextBit>;
+
+ private:
+#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t load_timestamp_;

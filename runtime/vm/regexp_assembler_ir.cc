@@ -243,7 +243,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   Value* type = Bind(new (Z) ConstantInstr(TypeArguments::ZoneHandle(
       Z, Isolate::Current()->object_store()->type_argument_int())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
-  Value* array = Bind(new (Z) CreateArrayInstr(TokenPosition::kNoSource, type,
+  Value* array = Bind(new (Z) CreateArrayInstr(InstructionSource(), type,
                                                length, GetNextDeoptId()));
   StoreLocal(result_, array);
 
@@ -267,7 +267,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
 
   // Return true on success.
   AppendInstruction(new (Z) ReturnInstr(
-      TokenPosition::kNoSource, Bind(LoadLocal(result_)), GetNextDeoptId()));
+      InstructionSource(), Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 
 void IRRegExpMacroAssembler::GenerateExitBlock() {
@@ -276,7 +276,7 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
 
   // Return false on failure.
   AppendInstruction(new (Z) ReturnInstr(
-      TokenPosition::kNoSource, Bind(LoadLocal(result_)), GetNextDeoptId()));
+      InstructionSource(), Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 
 void IRRegExpMacroAssembler::FinalizeRegistersArray() {
@@ -426,7 +426,7 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
   Value* rhs_value = Bind(BoolConstant(true));
 
   return new (Z)
-      StrictCompareInstr(TokenPosition::kNoSource, strict_comparison, lhs_value,
+      StrictCompareInstr(InstructionSource(), strict_comparison, lhs_value,
                          rhs_value, true, GetNextDeoptId());
 }
 
@@ -472,8 +472,8 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     InputsArray* arguments,
     ICData::RebindRule rebind_rule) const {
   const intptr_t kTypeArgsLen = 0;
-  return new (Z) StaticCallInstr(TokenPosition::kNoSource, function,
-                                 kTypeArgsLen, Object::null_array(), arguments,
+  return new (Z) StaticCallInstr(InstructionSource(), function, kTypeArgsLen,
+                                 Object::null_array(), arguments,
                                  ic_data_array_, GetNextDeoptId(), rebind_rule);
 }
 
@@ -515,17 +515,17 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     InputsArray* arguments) const {
   const intptr_t kTypeArgsLen = 0;
   return new (Z) InstanceCallInstr(
-      TokenPosition::kNoSource, desc.name, desc.token_kind, arguments,
-      kTypeArgsLen, Object::null_array(), desc.checked_argument_count,
-      ic_data_array_, GetNextDeoptId());
+      InstructionSource(), desc.name, desc.token_kind, arguments, kTypeArgsLen,
+      Object::null_array(), desc.checked_argument_count, ic_data_array_,
+      GetNextDeoptId());
 }
 
 LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
-  return new (Z) LoadLocalInstr(*local, TokenPosition::kNoSource);
+  return new (Z) LoadLocalInstr(*local, InstructionSource());
 }
 
 void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local, Value* value) {
-  Do(new (Z) StoreLocalInstr(*local, value, TokenPosition::kNoSource));
+  Do(new (Z) StoreLocalInstr(*local, value, InstructionSource()));
 }
 
 void IRRegExpMacroAssembler::set_current_instruction(Instruction* instruction) {
@@ -548,7 +548,7 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
     return Bind(new (Z) ConstantInstr(*local.ConstValue()));
   }
   ASSERT(!local.is_captured());
-  return Bind(new (Z) LoadLocalInstr(local, TokenPosition::kNoSource));
+  return Bind(new (Z) LoadLocalInstr(local, InstructionSource()));
 }
 
 // In some cases, the V8 irregexp engine generates unreachable code by emitting
@@ -1691,7 +1691,7 @@ void IRRegExpMacroAssembler::CheckPreemption(bool is_backtrack) {
   // we set loop_depth to a non-zero value because this instruction does
   // not act as an OSR entry outside loops.
   AppendInstruction(new (Z) CheckStackOverflowInstr(
-      TokenPosition::kNoSource,
+      InstructionSource(),
       /*stack_depth=*/0,
       /*loop_depth=*/1, GetNextDeoptId(),
       is_backtrack ? CheckStackOverflowInstr::kOsrAndPreemption
@@ -1761,9 +1761,9 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
   // Here pattern_val might be untagged so this must not trigger a GC.
   Value* index_val = BindLoadLocal(*index);
 
-  return Bind(new (Z) LoadCodeUnitsInstr(pattern_val, index_val, characters,
-                                         specialization_cid_,
-                                         TokenPosition::kNoSource));
+  return Bind(new (Z)
+                  LoadCodeUnitsInstr(pattern_val, index_val, characters,
+                                     specialization_cid_, InstructionSource()));
 }
 
 #undef __

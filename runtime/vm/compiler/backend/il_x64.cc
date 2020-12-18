@@ -327,7 +327,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   ASSERT(__ constant_pool_allowed());
   if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
-    compiler->EmitYieldPositionMetadata(token_pos(), yield_index());
+    compiler->EmitYieldPositionMetadata(source(), yield_index());
   }
   __ LeaveDartFrame();  // Disallows constant pool use.
   __ ret();
@@ -1023,7 +1023,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler::ExternalLabel label(NativeEntry::LinkNativeCallEntry());
     __ LoadNativeEntry(RBX, &label,
                        compiler::ObjectPoolBuilderEntry::kPatchable);
-    compiler->GeneratePatchableCall(token_pos(), *stub,
+    compiler->GeneratePatchableCall(source(), *stub,
                                     PcDescriptorsLayout::kOther, locs());
   } else {
     if (is_bootstrap_native()) {
@@ -1037,7 +1037,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         reinterpret_cast<uword>(native_c_function()));
     __ LoadNativeEntry(RBX, &label,
                        compiler::ObjectPoolBuilderEntry::kNotPatchable);
-    compiler->GenerateStubCall(token_pos(), *stub, PcDescriptorsLayout::kOther,
+    compiler->GenerateStubCall(source(), *stub, PcDescriptorsLayout::kOther,
                                locs());
   }
   __ popq(result);
@@ -1074,7 +1074,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // instruction, so 'AddressRIPRelative' loads the address of the following
   // 'movq'.
   __ leaq(TMP, compiler::Address::AddressRIPRelative(0));
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
+  compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
   __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
@@ -1318,9 +1318,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
                           kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               args_info, locs(), ICData::Handle(),
-                               ICData::kStatic);
+  compiler->GenerateStaticCall(deopt_id(), source(), CallFunction(), args_info,
+                               locs(), ICData::Handle(), ICData::kStatic);
   ASSERT(locs()->out(0).reg() == RAX);
 }
 
@@ -1519,7 +1518,7 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateStubCall(TokenPosition::kNoSource,  // No token position.
+    compiler->GenerateStubCall(InstructionSource(),  // No token position.
                                stub, PcDescriptorsLayout::kOther, locs);
     __ MoveRegister(result_, RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2645,7 +2644,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == TypeTestABI::kInstantiatorTypeArgumentsReg);
   ASSERT(locs()->in(2).reg() == TypeTestABI::kFunctionTypeArgumentsReg);
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
+  compiler->GenerateInstanceOf(source(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == RAX);
 }
 
@@ -2747,7 +2746,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto object_store = compiler->isolate()->object_store();
   const auto& allocate_array_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
-  compiler->GenerateStubCall(token_pos(), allocate_array_stub,
+  compiler->GenerateStubCall(source(), allocate_array_stub,
                              PcDescriptorsLayout::kOther, locs(), deopt_id());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
@@ -3015,7 +3014,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(type());
   __ pushq(instantiator_type_args_reg);  // Push instantiator type arguments.
   __ pushq(function_type_args_reg);      // Push function type arguments.
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
+  compiler->GenerateRuntimeCall(source(), deopt_id(),
                                 kInstantiateTypeRuntimeEntry, 3, locs());
   __ Drop(3);           // Drop 2 type vectors, and uninstantiated type.
   __ popq(result_reg);  // Pop instantiated type.
@@ -3081,8 +3080,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ Bind(&non_null_type_args);
   }
   // Lookup cache in stub before calling runtime.
-  compiler->GenerateStubCall(token_pos(), GetStub(),
-                             PcDescriptorsLayout::kOther, locs());
+  compiler->GenerateStubCall(source(), GetStub(), PcDescriptorsLayout::kOther,
+                             locs());
   __ Bind(&type_arguments_instantiated);
 }
 
@@ -3122,8 +3121,7 @@ class AllocateContextSlowPath
 
     __ LoadImmediate(
         R10, compiler::Immediate(instruction()->num_context_variables()));
-    compiler->GenerateStubCall(instruction()->token_pos(),
-                               allocate_context_stub,
+    compiler->GenerateStubCall(instruction()->source(), allocate_context_stub,
                                PcDescriptorsLayout::kOther, locs);
     ASSERT(instruction()->locs()->out(0).reg() == RAX);
     compiler->RestoreLiveRegisters(instruction()->locs());
@@ -3174,7 +3172,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
 
   __ LoadImmediate(R10, compiler::Immediate(num_context_variables()));
-  compiler->GenerateStubCall(token_pos(), allocate_context_stub,
+  compiler->GenerateStubCall(source(), allocate_context_stub,
                              PcDescriptorsLayout::kOther, locs());
 }
 
@@ -3196,7 +3194,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto object_store = compiler->isolate()->object_store();
   const auto& clone_context_stub =
       Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
-  compiler->GenerateStubCall(token_pos(), clone_context_stub,
+  compiler->GenerateStubCall(source(), clone_context_stub,
                              /*kind=*/PcDescriptorsLayout::kOther, locs());
 }
 
@@ -3219,7 +3217,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddDeoptIndexAtCall(deopt_id);
     } else {
       compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, deopt_id,
-                                     TokenPosition::kNoSource);
+                                     InstructionSource());
     }
   }
   if (HasParallelMove()) {
@@ -3302,11 +3300,11 @@ class CheckStackOverflowSlowPath
       compiler->RecordCatchEntryMoves();
       compiler->AddDescriptor(
           PcDescriptorsLayout::kOther, compiler->assembler()->CodeSize(),
-          instruction()->deopt_id(), instruction()->token_pos(),
+          instruction()->deopt_id(), instruction()->source(),
           compiler->CurrentTryIndex());
     } else {
       compiler->GenerateRuntimeCall(
-          instruction()->token_pos(), instruction()->deopt_id(),
+          instruction()->source(), instruction()->deopt_id(),
           kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
     }
 
@@ -3315,7 +3313,7 @@ class CheckStackOverflowSlowPath
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(PcDescriptorsLayout::kOsrEntry,
                                      instruction()->deopt_id(),
-                                     TokenPosition::kNoSource);
+                                     InstructionSource());
     }
     compiler->pending_deoptimization_env_ = NULL;
     if (!using_shared_stub) {
@@ -3506,7 +3504,7 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
             /*type_args_len=*/0, /*num_arguments=*/2));
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->token_pos(), locs, try_index_, kNumSlowPathArgs);
+        instruction()->source(), locs, try_index_, kNumSlowPathArgs);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
     __ jmp(exit_label());
@@ -3681,7 +3679,7 @@ class CheckedSmiComparisonSlowPath
 
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->token_pos(), locs, try_index_, kNumSlowPathArgs);
+        instruction()->source(), locs, try_index_, kNumSlowPathArgs);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
     compiler->pending_deoptimization_env_ = nullptr;
@@ -4566,7 +4564,7 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(!locs()->live_registers()->ContainsRegister(
         AllocateMintABI::kResultReg));
     auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
-    compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
+    compiler->GenerateStubCall(source(), stub, PcDescriptorsLayout::kOther,
                                locs(), DeoptId::kNone, extended_env);
   } else {
     BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
@@ -5337,7 +5335,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
                           kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
+  compiler->GenerateStaticCall(deopt_id(), instance_call()->source(), target,
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);
   __ Bind(&done);
@@ -6851,7 +6849,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Add a deoptimization descriptor for deoptimizing instructions that
     // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, GetDeoptId(),
-                                   TokenPosition::kNoSource);
+                                   InstructionSource());
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -6932,7 +6930,7 @@ Condition StrictCompareInstr::EmitComparisonCodeRegConstant(
     Register reg,
     const Object& obj) {
   return compiler->EmitEqualityRegConstCompare(reg, obj, needs_number_check(),
-                                               token_pos(), deopt_id());
+                                               source(), deopt_id());
 }
 
 LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,
@@ -6980,7 +6978,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ xorq(RBX, RBX);
   }
   __ call(RCX);
-  compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
+  compiler->EmitCallsiteMetadata(source(), deopt_id(),
                                  PcDescriptorsLayout::kOther, locs());
   __ Drop(argument_count);
 }
@@ -7037,7 +7035,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
-  compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
+  compiler->GenerateStubCall(source(), stub, PcDescriptorsLayout::kOther,
                              locs());
 }
 
@@ -7047,7 +7045,7 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #else
   ASSERT(!compiler->is_optimizing());
   __ CallPatchable(StubCode::DebugStepCheck());
-  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
+  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, source());
   compiler->RecordSafepoint(locs());
 #endif
 }
