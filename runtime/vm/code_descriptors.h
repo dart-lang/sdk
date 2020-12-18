@@ -186,6 +186,34 @@ struct InstructionSource {
   DISALLOW_ALLOCATION();
 };
 
+struct CodeSourceMapOps : AllStatic {
+  static const uint8_t kChangePosition = 0;
+  static const uint8_t kAdvancePC = 1;
+  static const uint8_t kPushFunction = 2;
+  static const uint8_t kPopFunction = 3;
+  static const uint8_t kNullCheck = 4;
+
+  static uint8_t Read(ReadStream* stream,
+                      int32_t* arg1,
+                      int32_t* arg2 = nullptr);
+
+  static void Write(BaseWriteStream* stream,
+                    uint8_t op,
+                    int32_t arg1 = 0,
+                    int32_t arg2 = 0);
+
+ private:
+  static constexpr intptr_t kOpBits = 3;
+
+  using OpField = BitField<int32_t, uint8_t, 0, kOpBits>;
+  using ArgField = BitField<int32_t, int32_t, OpField::kNextBit>;
+
+  static constexpr int32_t kMaxArgValue =
+      Utils::NBitMaskUnsafe(ArgField::bitsize() - 1);
+  static constexpr int32_t kMinArgValue = ~kMaxArgValue;
+  static constexpr int32_t kSignBits = static_cast<uint32_t>(kMinArgValue) << 1;
+};
+
 // A CodeSourceMap maps from pc offsets to a stack of inlined functions and
 // their positions. This is encoded as a little bytecode that pushes and pops
 // functions and changes the top function's position as the PC advances.
@@ -209,12 +237,6 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   // after a push bytecode. We use the classifying position kDartCodePrologue
   // since it is the most common.
   static const TokenPosition& kInitialPosition;
-
-  static const uint8_t kChangePosition = 0;
-  static const uint8_t kAdvancePC = 1;
-  static const uint8_t kPushFunction = 2;
-  static const uint8_t kPopFunction = 3;
-  static const uint8_t kNullCheck = 4;
 
   void BeginCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
   void EndCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
@@ -244,8 +266,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   void WriteChangePosition(TokenPosition pos);
   void BufferAdvancePC(int32_t distance) { buffered_pc_offset_ += distance; }
   void WriteAdvancePC(int32_t distance) {
-    stream_.Write<uint8_t>(kAdvancePC);
-    stream_.Write<int32_t>(distance);
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kAdvancePC, distance);
     written_pc_offset_ += distance;
   }
   void BufferPush(intptr_t inline_id) {
@@ -253,8 +274,8 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     buffered_token_pos_stack_.Add(kInitialPosition);
   }
   void WritePush(intptr_t inline_id) {
-    stream_.Write<uint8_t>(kPushFunction);
-    stream_.Write<int32_t>(GetFunctionId(inline_id));
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kPushFunction,
+                            GetFunctionId(inline_id));
     written_inline_id_stack_.Add(inline_id);
     written_token_pos_stack_.Add(kInitialPosition);
   }
@@ -263,13 +284,12 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     buffered_token_pos_stack_.RemoveLast();
   }
   void WritePop() {
-    stream_.Write<uint8_t>(kPopFunction);
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kPopFunction);
     written_inline_id_stack_.RemoveLast();
     written_token_pos_stack_.RemoveLast();
   }
   void WriteNullCheck(int32_t name_index) {
-    stream_.Write<uint8_t>(kNullCheck);
-    stream_.Write<int32_t>(name_index);
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kNullCheck, name_index);
   }
 
   void FlushBuffer();
