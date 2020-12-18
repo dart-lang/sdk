@@ -134,7 +134,7 @@ class ParallelMoveResolver : public ValueObject {
 
   // Perform the move at the moves_ index in question (possibly requiring
   // other moves to satisfy dependencies).
-  void PerformMove(int index);
+  void PerformMove(const InstructionSource& source, int index);
 
   // Emit a move and remove it from the move graph.
   void EmitMove(int index);
@@ -162,8 +162,6 @@ class ParallelMoveResolver : public ValueObject {
 
   // List of moves not yet resolved.
   GrowableArray<MoveOperands*> moves_;
-  // Inlining id for the current instruction.
-  intptr_t inlining_id_;
 };
 
 // Used for describing a deoptimization point after call (lazy deoptimization).
@@ -591,7 +589,7 @@ class FlowGraphCompiler : public ValueObject {
       const LocationSummary& locs);
 
   void GenerateAssertAssignable(CompileType* receiver_type,
-                                TokenPosition token_pos,
+                                const InstructionSource& source,
                                 intptr_t deopt_id,
                                 const String& dst_name,
                                 LocationSummary* locs);
@@ -601,7 +599,7 @@ class FlowGraphCompiler : public ValueObject {
                                                const AbstractType& dst_type,
                                                compiler::Label* done);
 
-  void GenerateTTSCall(TokenPosition token_pos,
+  void GenerateTTSCall(const InstructionSource& source,
                        intptr_t deopt_id,
                        Register reg_with_type,
                        const AbstractType& dst_type,
@@ -613,26 +611,26 @@ class FlowGraphCompiler : public ValueObject {
                                       intptr_t sub_type_cache_index);
 #endif
 
-  void GenerateRuntimeCall(TokenPosition token_pos,
+  void GenerateRuntimeCall(const InstructionSource& source,
                            intptr_t deopt_id,
                            const RuntimeEntry& entry,
                            intptr_t argument_count,
                            LocationSummary* locs);
 
-  void GenerateStubCall(TokenPosition token_pos,
+  void GenerateStubCall(const InstructionSource& source,
                         const Code& stub,
                         PcDescriptorsLayout::Kind kind,
                         LocationSummary* locs,
                         intptr_t deopt_id = DeoptId::kNone,
                         Environment* env = nullptr);
 
-  void GeneratePatchableCall(TokenPosition token_pos,
+  void GeneratePatchableCall(const InstructionSource& source,
                              const Code& stub,
                              PcDescriptorsLayout::Kind kind,
                              LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
-                        TokenPosition token_pos,
+                        const InstructionSource& source,
                         const Code& stub,
                         PcDescriptorsLayout::Kind kind,
                         LocationSummary* locs,
@@ -640,19 +638,19 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateStaticDartCall(
       intptr_t deopt_id,
-      TokenPosition token_pos,
+      const InstructionSource& source,
       PcDescriptorsLayout::Kind kind,
       LocationSummary* locs,
       const Function& target,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void GenerateInstanceOf(TokenPosition token_pos,
+  void GenerateInstanceOf(const InstructionSource& source,
                           intptr_t deopt_id,
                           const AbstractType& type,
                           LocationSummary* locs);
 
   void GenerateInstanceCall(intptr_t deopt_id,
-                            TokenPosition token_pos,
+                            const InstructionSource& source,
                             LocationSummary* locs,
                             const ICData& ic_data,
                             Code::EntryKind entry_kind,
@@ -660,7 +658,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateStaticCall(
       intptr_t deopt_id,
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const Function& function,
       ArgumentsInfo args_info,
       LocationSummary* locs,
@@ -704,14 +702,14 @@ class FlowGraphCompiler : public ValueObject {
       const Code& stub,
       const ICData& ic_data,
       intptr_t deopt_id,
-      TokenPosition token_pos,
+      const InstructionSource& source,
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitInstanceCallJIT(const Code& stub,
                            const ICData& ic_data,
                            intptr_t deopt_id,
-                           TokenPosition token_pos,
+                           const InstructionSource& source,
                            LocationSummary* locs,
                            Code::EntryKind entry_kind);
 
@@ -719,7 +717,7 @@ class FlowGraphCompiler : public ValueObject {
                                    const CallTargets& targets,
                                    ArgumentsInfo args_info,
                                    intptr_t deopt_id,
-                                   TokenPosition token_pos,
+                                   const InstructionSource& source,
                                    LocationSummary* locs,
                                    bool complete,
                                    intptr_t total_call_count,
@@ -727,14 +725,14 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitMegamorphicInstanceCall(const ICData& icdata,
                                    intptr_t deopt_id,
-                                   TokenPosition token_pos,
+                                   const InstructionSource& source,
                                    LocationSummary* locs,
                                    intptr_t try_index,
                                    intptr_t slow_path_argument_count = 0) {
     const String& name = String::Handle(icdata.target_name());
     const Array& arguments_descriptor =
         Array::Handle(icdata.arguments_descriptor());
-    EmitMegamorphicInstanceCall(name, arguments_descriptor, deopt_id, token_pos,
+    EmitMegamorphicInstanceCall(name, arguments_descriptor, deopt_id, source,
                                 locs, try_index);
   }
 
@@ -742,7 +740,7 @@ class FlowGraphCompiler : public ValueObject {
   void EmitMegamorphicInstanceCall(const String& function_name,
                                    const Array& arguments_descriptor,
                                    intptr_t deopt_id,
-                                   TokenPosition token_pos,
+                                   const InstructionSource& source,
                                    LocationSummary* locs,
                                    intptr_t try_index,
                                    intptr_t slow_path_argument_count = 0);
@@ -750,7 +748,7 @@ class FlowGraphCompiler : public ValueObject {
   void EmitInstanceCallAOT(
       const ICData& ic_data,
       intptr_t deopt_id,
-      TokenPosition token_pos,
+      const InstructionSource& source,
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal,
       bool receiver_can_be_smi = true);
@@ -761,7 +759,7 @@ class FlowGraphCompiler : public ValueObject {
                        compiler::Label* failed,
                        compiler::Label* match_found,
                        intptr_t deopt_id,
-                       TokenPosition token_index,
+                       const InstructionSource& source_index,
                        LocationSummary* locs,
                        bool complete,
                        intptr_t total_ic_calls,
@@ -774,12 +772,12 @@ class FlowGraphCompiler : public ValueObject {
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
                                         bool needs_number_check,
-                                        TokenPosition token_pos,
+                                        const InstructionSource& source,
                                         intptr_t deopt_id);
   Condition EmitEqualityRegRegCompare(Register left,
                                       Register right,
                                       bool needs_number_check,
-                                      TokenPosition token_pos,
+                                      const InstructionSource& source,
                                       intptr_t deopt_id);
   Condition EmitBoolTest(Register value, BranchLabels labels, bool invert);
 
@@ -802,13 +800,14 @@ class FlowGraphCompiler : public ValueObject {
   //
   // If [env] is not `nullptr` it will be used instead of the
   // `pending_deoptimization_env`.
-  void EmitCallsiteMetadata(TokenPosition token_pos,
+  void EmitCallsiteMetadata(const InstructionSource& source,
                             intptr_t deopt_id,
                             PcDescriptorsLayout::Kind kind,
                             LocationSummary* locs,
                             Environment* env = nullptr);
 
-  void EmitYieldPositionMetadata(TokenPosition token_pos, intptr_t yield_index);
+  void EmitYieldPositionMetadata(const InstructionSource& source,
+                                 intptr_t yield_index);
 
   void EmitComment(Instruction* instr);
 
@@ -844,17 +843,17 @@ class FlowGraphCompiler : public ValueObject {
   void SetNeedsStackTrace(intptr_t try_index);
   void AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
                             intptr_t deopt_id,
-                            TokenPosition token_pos);
+                            const InstructionSource& source);
   void AddDescriptor(
       PcDescriptorsLayout::Kind kind,
       intptr_t pc_offset,
       intptr_t deopt_id,
-      TokenPosition token_pos,
+      const InstructionSource& source,
       intptr_t try_index,
       intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
 
   // Add NullCheck information for the current PC.
-  void AddNullCheck(TokenPosition token_pos, const String& name);
+  void AddNullCheck(const InstructionSource& source, const String& name);
 
   void RecordSafepoint(LocationSummary* locs,
                        intptr_t slow_path_argument_count = 0);
@@ -956,8 +955,8 @@ class FlowGraphCompiler : public ValueObject {
 
   ArrayPtr InliningIdToFunction() const;
 
-  void BeginCodeSourceRange(intptr_t inline_id, const TokenPosition& token_pos);
-  void EndCodeSourceRange(const TokenPosition& token_pos);
+  void BeginCodeSourceRange(const InstructionSource& source);
+  void EndCodeSourceRange(const InstructionSource& source);
 
   static bool LookupMethodFor(int class_id,
                               const String& name,
@@ -1017,14 +1016,14 @@ class FlowGraphCompiler : public ValueObject {
       const Array& arguments_descriptor,
       intptr_t size_with_type_args,
       intptr_t deopt_id,
-      TokenPosition token_pos,
+      const InstructionSource& source,
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitUnoptimizedStaticCall(
       intptr_t size_with_type_args,
       intptr_t deopt_id,
-      TokenPosition token_pos,
+      const InstructionSource& source,
       LocationSummary* locs,
       const ICData& ic_data,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -1052,37 +1051,37 @@ class FlowGraphCompiler : public ValueObject {
                      compiler::Label* is_not_instance_lbl);
 
   SubtypeTestCachePtr GenerateInlineInstanceof(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const AbstractType& type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
   SubtypeTestCachePtr GenerateInstantiatedTypeWithArgumentsTest(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
   bool GenerateInstantiatedTypeNoArgumentsTest(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
   SubtypeTestCachePtr GenerateUninstantiatedTypeTest(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_label);
 
   SubtypeTestCachePtr GenerateFunctionTypeTest(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_label);
 
   SubtypeTestCachePtr GenerateSubtype1TestCacheLookup(
-      TokenPosition token_pos,
+      const InstructionSource& source,
       const Class& type_class,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);

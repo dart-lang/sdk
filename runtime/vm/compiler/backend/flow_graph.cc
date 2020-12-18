@@ -585,13 +585,13 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
 Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
                                          const Cids& cids,
                                          intptr_t deopt_id,
-                                         TokenPosition token_pos) {
+                                         const InstructionSource& source) {
   if (cids.IsMonomorphic() && cids.MonomorphicReceiverCid() == kSmiCid) {
     return new (zone())
-        CheckSmiInstr(new (zone()) Value(to_check), deopt_id, token_pos);
+        CheckSmiInstr(new (zone()) Value(to_check), deopt_id, source);
   }
   return new (zone())
-      CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
+      CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, source);
 }
 
 Definition* FlowGraph::CreateCheckBound(Definition* length,
@@ -612,7 +612,7 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
 
   Definition* load_type_args = new (zone()) LoadFieldInstr(
       call->Receiver()->CopyWithType(),
-      Slot::GetTypeArgumentsSlotFor(thread(), cls), call->token_pos());
+      Slot::GetTypeArgumentsSlotFor(thread(), cls), call->source());
   InsertBefore(call, load_type_args, call->env(), FlowGraph::kValue);
 
   const AbstractType& type =
@@ -620,7 +620,7 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
   ASSERT(!type.IsNull());
   const TypeArguments& args = TypeArguments::Handle(zone(), type.arguments());
   Instruction* guard = new (zone()) CheckConditionInstr(
-      new StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+      new StrictCompareInstr(call->source(), Token::kEQ_STRICT,
                              new (zone()) Value(load_type_args),
                              new (zone()) Value(GetConstant(args)),
                              /*needs_number_check=*/false, call->deopt_id()),
@@ -2742,7 +2742,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
   PhiInstr* phi =
       AddPhi(mid_point, condition.oper2, GetConstant(Bool::False()));
   StrictCompareInstr* circuit = new (zone()) StrictCompareInstr(
-      inherit->token_pos(), Token::kEQ_STRICT, new (zone()) Value(phi),
+      inherit->source(), Token::kEQ_STRICT, new (zone()) Value(phi),
       new (zone()) Value(GetConstant(Bool::True())), false,
       DeoptId::kNone);  // don't inherit
 

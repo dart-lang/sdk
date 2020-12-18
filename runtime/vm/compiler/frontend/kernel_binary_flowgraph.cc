@@ -1939,9 +1939,9 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
       Value* right_value = Pop();
       Value* left_value = Pop();
       StrictCompareInstr* compare = new (Z) StrictCompareInstr(
-          TokenPosition::kNoSource,
-          negate ? Token::kNE_STRICT : Token::kEQ_STRICT, left_value,
-          right_value, false, flow_graph_builder_->GetNextDeoptId());
+          InstructionSource(), negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
+          left_value, right_value, false,
+          flow_graph_builder_->GetNextDeoptId());
       branch =
           new (Z) BranchInstr(compare, flow_graph_builder_->GetNextDeoptId());
       negate = false;

@@ -20,6 +20,8 @@ class BlockBuilder : public ValueObject {
  public:
   BlockBuilder(FlowGraph* flow_graph, BlockEntryInstr* entry)
       : flow_graph_(flow_graph),
+        source_(InstructionSource(flow_graph_->function().token_pos(),
+                                  flow_graph->inlining_id())),
         entry_(entry),
         current_(entry),
         dummy_env_(
@@ -63,7 +65,7 @@ class BlockBuilder : public ValueObject {
     const auto& function = flow_graph_->function();
     const auto representation = FlowGraph::ReturnRepresentationOf(function);
     ReturnInstr* instr = new ReturnInstr(
-        TokenPos(), value, CompilerState::Current().GetNextDeoptId(),
+        Source(), value, CompilerState::Current().GetNextDeoptId(),
         PcDescriptorsLayout::kInvalidYieldIndex, representation);
     AddInstruction(instr);
     entry_->set_last_instruction(instr);
@@ -88,7 +90,8 @@ class BlockBuilder : public ValueObject {
                            with_frame ? FPREG : SPREG));
   }
 
-  TokenPosition TokenPos() { return flow_graph_->function().token_pos(); }
+  TokenPosition TokenPos() const { return source_.token_pos; }
+  const InstructionSource& Source() const { return source_; }
 
   Definition* AddNullDefinition() {
     return flow_graph_->GetConstant(Object::ZoneHandle());
@@ -158,7 +161,8 @@ class BlockBuilder : public ValueObject {
     }
   }
 
-  FlowGraph* flow_graph_;
+  FlowGraph* const flow_graph_;
+  const InstructionSource source_;
   BlockEntryInstr* entry_;
   Instruction* current_;
   Environment* dummy_env_;

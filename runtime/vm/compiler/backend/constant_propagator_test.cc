@@ -53,15 +53,14 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagation_PhiUnwrappingAndConvergence) {
     BlockBuilder builder(H.flow_graph(), b2);
     v1 = H.Phi(b2, {{b1, v0}, {b3, FlowGraphBuilderHelper::kPhiSelfReference}});
     builder.AddPhi(v1);
-    auto v2 = builder.AddDefinition(new EqualityCompareInstr(
-        TokenPosition::kNoSource, Token::kEQ, new Value(v1), new Value(v0),
-        kSmiCid, S.GetNextDeoptId()));
-    builder.AddBranch(
-        new StrictCompareInstr(
-            TokenPosition::kNoSource, Token::kEQ_STRICT, new Value(v2),
-            new Value(H.flow_graph()->GetConstant(Bool::True())),
-            /*needs_number_check=*/false, S.GetNextDeoptId()),
-        b4, b3);
+    auto v2 = builder.AddDefinition(
+        new EqualityCompareInstr(InstructionSource(), Token::kEQ, new Value(v1),
+                                 new Value(v0), kSmiCid, S.GetNextDeoptId()));
+    builder.AddBranch(new StrictCompareInstr(
+                          InstructionSource(), Token::kEQ_STRICT, new Value(v2),
+                          new Value(H.flow_graph()->GetConstant(Bool::True())),
+                          /*needs_number_check=*/false, S.GetNextDeoptId()),
+                      b4, b3);
   }
 
   {
@@ -158,12 +157,12 @@ static void ConstantPropagatorUnboxedOpTest(
     BlockBuilder builder(H.flow_graph(), b1);
     auto v0 = builder.AddParameter(/*index=*/0, /*param_offset=*/0,
                                    /*with_frame=*/true, kTagged);
-    builder.AddBranch(new StrictCompareInstr(
-                          TokenPosition::kNoSource, Token::kEQ_STRICT,
-                          new Value(H.IntConstant(1)),
-                          new Value(redundant_phi ? H.IntConstant(1) : v0),
-                          /*needs_number_check=*/false, S.GetNextDeoptId()),
-                      b2, b3);
+    builder.AddBranch(
+        new StrictCompareInstr(
+            InstructionSource(), Token::kEQ_STRICT, new Value(H.IntConstant(1)),
+            new Value(redundant_phi ? H.IntConstant(1) : v0),
+            /*needs_number_check=*/false, S.GetNextDeoptId()),
+        b2, b3);
   }
 
   {

@@ -9,8 +9,8 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/log.h"
-#include "vm/object.h"
 #include "vm/runtime_entry.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -164,6 +164,28 @@ class CatchEntryMovesMapBuilder : public ZoneAllocated {
 };
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+// Instructions have two pieces of information needed to get accurate source
+// locations: the token position and the inlining id. The inlining id tells us
+// which function, and thus which script, to use for this instruction and the
+// token position, when real, tells us the position in the source for the
+// script for the instruction.
+//
+// Thus, we bundle the two pieces of information in InstructionSource structs
+// when copying or retrieving to lower the likelihood that the token position
+// is used without the appropriate inlining id.
+struct InstructionSource {
+  // Treat an instruction source without inlining id information as unset.
+  InstructionSource() : InstructionSource(TokenPosition::kNoSource) {}
+  explicit InstructionSource(TokenPosition pos) : InstructionSource(pos, -1) {}
+  InstructionSource(TokenPosition pos, intptr_t id)
+      : token_pos(pos), inlining_id(id) {}
+
+  const TokenPosition token_pos;
+  const intptr_t inlining_id;
+
+  DISALLOW_ALLOCATION();
+};
+
 // A CodeSourceMap maps from pc offsets to a stack of inlined functions and
 // their positions. This is encoded as a little bytecode that pushes and pops
 // functions and changes the top function's position as the PC advances.
@@ -194,15 +216,18 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   static const uint8_t kPopFunction = 3;
   static const uint8_t kNullCheck = 4;
 
-  void BeginCodeSourceRange(int32_t pc_offset,
-                            intptr_t inline_id,
-                            const TokenPosition& token_pos);
-  void EndCodeSourceRange(int32_t pc_offset, const TokenPosition& token_pos);
+  void BeginCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
+  void EndCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
   void NoteDescriptor(PcDescriptorsLayout::Kind kind,
                       int32_t pc_offset,
-                      TokenPosition pos);
-  void NoteNullCheck(int32_t pc_offset, TokenPosition pos, intptr_t name_index);
+                      const InstructionSource& source);
+  void NoteNullCheck(int32_t pc_offset,
+                     const InstructionSource& source,
+                     intptr_t name_index);
 
+  // If source is from an inlined call, returns the token position of the
+  // original call in the root function, otherwise the source's token position.
+  TokenPosition RootPosition(const InstructionSource& source);
   ArrayPtr InliningIdToFunction();
   CodeSourceMapPtr Finalize();
 
@@ -212,7 +237,8 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
  private:
   intptr_t GetFunctionId(intptr_t inline_id);
-  void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
+  void StartInliningInterval(int32_t pc_offset,
+                             const InstructionSource& source);
 
   void BufferChangePosition(TokenPosition pos);
   void WriteChangePosition(TokenPosition pos);
@@ -247,9 +273,6 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   }
 
   void FlushBuffer();
-  void FlushBufferStack();
-  void FlushBufferPosition();
-  void FlushBufferPC();
 
   bool IsOnBufferedStack(intptr_t inline_id) {
     for (intptr_t i = 0; i < buffered_inline_id_stack_.length(); i++) {
@@ -258,6 +281,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     return false;
   }
 
+  Zone* const zone_;
   intptr_t buffered_pc_offset_;
   GrowableArray<intptr_t> buffered_inline_id_stack_;
   GrowableArray<TokenPosition> buffered_token_pos_stack_;

@@ -260,7 +260,7 @@ void InlineExitCollector::ReplaceCall(BlockEntryInstr* callee_entry) {
 
     ConstantInstr* true_const = caller_graph_->GetConstant(Bool::True());
     BranchInstr* branch = new (Z) BranchInstr(
-        new (Z) StrictCompareInstr(TokenPosition::kNoSource, Token::kEQ_STRICT,
+        new (Z) StrictCompareInstr(InstructionSource(), Token::kEQ_STRICT,
                                    new (Z) Value(true_const),
                                    new (Z) Value(true_const), false,
                                    CompilerState::Current().GetNextDeoptId()),

@@ -25,6 +25,7 @@ class GraphEntryInstr;
 class ICData;
 class InstanceCallInstr;
 class Instruction;
+struct InstructionSource;
 class Precompiler;
 class StaticCallInstr;
 class TargetEntryInstr;
@@ -125,8 +126,7 @@ class FlowGraphInliner : ValueObject {
 
   FlowGraph* flow_graph() const { return flow_graph_; }
   intptr_t NextInlineId(const Function& function,
-                        TokenPosition tp,
-                        intptr_t caller_id);
+                        const InstructionSource& source);
 
   bool trace_inlining() const { return trace_inlining_; }
 
@@ -156,7 +156,7 @@ class FlowGraphInliner : ValueObject {
                                         const Function& target,
                                         Definition* call,
                                         Definition* receiver,
-                                        TokenPosition token_pos,
+                                        const InstructionSource& source,
                                         const ICData* ic_data,
                                         GraphEntryInstr* graph_entry,
                                         FunctionEntryInstr** entry,

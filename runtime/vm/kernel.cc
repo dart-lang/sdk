@@ -35,6 +35,15 @@ KernelLineStartsReader::KernelLineStartsReader(
   }
 }
 
+int32_t KernelLineStartsReader::MaxPosition() const {
+  const intptr_t line_count = line_starts_data_.Length();
+  intptr_t current_start = 0;
+  for (intptr_t i = 0; i < line_count; i++) {
+    current_start += helper_->At(line_starts_data_, i);
+  }
+  return current_start;
+}
+
 bool KernelLineStartsReader::LocationForPosition(intptr_t position,
                                                  intptr_t* line,
                                                  intptr_t* col) const {

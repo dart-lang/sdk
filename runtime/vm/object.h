@@ -4504,6 +4504,9 @@ class Script : public Object {
 
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
+  // Returns the max real token position for this script, or kNoSource
+  // if there is no line starts information.
+  TokenPosition MaxPosition() const;
 
   // The load time in milliseconds since epoch.
   int64_t load_timestamp() const { return raw_ptr()->load_timestamp_; }
@@ -4546,6 +4549,11 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
+  // For real token positions when line starts are available, returns whether or
+  // not a GetTokenLocation call would succeed. Returns true for non-real token
+  // positions or if there is no line starts information.
+  bool IsValidTokenPosition(TokenPosition token_pos) const;
+
   // Returns whether a line and column could be computed for the given token
   // position and, if so, sets *line and *column (if not nullptr).
   bool GetTokenLocation(const TokenPosition& token_pos,
@@ -4576,15 +4584,20 @@ class Script : public Object {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   void LoadSourceFromKernel(const uint8_t* kernel_buffer,
                             intptr_t kernel_buffer_len) const;
+  bool IsLazyLookupSourceAndLineStarts() const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  void SetLazyLookupSourceAndLineStarts(bool value) const;
-  bool IsLazyLookupSourceAndLineStarts() const;
-
  private:
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  bool HasCachedMaxPosition() const;
+
+  void SetLazyLookupSourceAndLineStarts(bool value) const;
+  void SetHasCachedMaxPosition(bool value) const;
+  void SetCachedMaxPosition(intptr_t value) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
-  void set_flags(uint8_t value) const;
   void set_load_timestamp(int64_t value) const;
   ArrayPtr debug_positions() const;
 
