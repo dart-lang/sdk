@@ -433,7 +433,7 @@ class SocketDirection {
 
 /**
  * The [SocketOption] is used as a parameter to [Socket.setOption] and
- * [RawSocket.setOption] to set customize the behaviour of the underlying
+ * [RawSocket.setOption] to customize the behaviour of the underlying
  * socket.
  */
 class SocketOption {
@@ -470,7 +470,7 @@ enum _RawSocketOptions {
 }
 
 /// The [RawSocketOption] is used as a parameter to [Socket.setRawOption] and
-/// [RawSocket.setRawOption] to set customize the behaviour of the underlying
+/// [RawSocket.setRawOption] to customize the behaviour of the underlying
 /// socket.
 ///
 /// It allows for fine grained control of the socket options, and its values
