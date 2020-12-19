@@ -172,7 +172,7 @@ abstract class InternetAddress {
    * length 4.
    * If the [type] is [InternetAddressType.IPv6], the [rawAddress] must have
    * length 16.
-   * If the [type] is [InternetAddressType.IPv4], the [rawAddress] must be a
+   * If the [type] is [InternetAddressType.unix], the [rawAddress] must be a
    * valid UTF-8 encoded file path.
    *
    * If [type] is omitted, the [rawAddress] must have a length of either 4 or
