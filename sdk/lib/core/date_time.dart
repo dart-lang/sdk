@@ -273,9 +273,13 @@ class DateTime implements Comparable<DateTime> {
    * * `"2012-02-27T14+00:00"`
    * * `"-123450101 00:00:00 Z"`: in the year -12345.
    * * `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
+   *
+   * This method accepts out-of-range component values and interprets
+   * them as having overflows. For example, "2020-01-42" will be parsed
+   * as 11 February 2020. To detect and reject invalid component values, use
+   * [DateFormat.parseStrict](https://pub.dev/documentation/intl/latest/intl/DateFormat/parseStrict.html)
+   * from the [intl](https://pub.dev/packages/intl) package.
    */
-  // TODO(lrn): restrict incorrect values like  2003-02-29T50:70:80.
-  // Or not, that may be a breaking change.
   static DateTime parse(String formattedString) {
     var re = _parseFormat;
     Match? match = re.firstMatch(formattedString);
