@@ -40,6 +40,10 @@ abstract class Input<T> {
 
   /// The raw data read from [uri].
   T get data;
+
+  /// Release any resources held by the input. After releasing, a call to `get
+  /// data` will fail, and previously returned data may be invalid.
+  void release();
 }
 
 /// Interface for providing the compiler with input. That is, Dart source files,

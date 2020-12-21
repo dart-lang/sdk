@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'remove_lint_test.dart' as remove_lint;
 import 'remove_setting_test.dart' as remove_setting;
 
 void main() {
   defineReflectiveSuite(() {
+    remove_lint.main();
     remove_setting.main();
   });
 }

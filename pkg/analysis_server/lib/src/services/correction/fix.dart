@@ -109,6 +109,8 @@ bool hasFix(ErrorCode errorCode) =>
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
 class AnalysisOptionsFixKind {
+  static const REMOVE_LINT =
+      FixKind('analysisOptions.fix.removeLint', 50, "Remove '{0}'");
   static const REMOVE_SETTING =
       FixKind('analysisOptions.fix.removeSetting', 50, "Remove '{0}'");
 }
