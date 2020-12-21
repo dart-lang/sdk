@@ -3617,7 +3617,7 @@ bool Library::FindPragma(Thread* T,
   }
 
   // If there is a compile-time error while evaluating the metadata, we will
-  // simply claim there was no @pramga annotation.
+  // simply claim there was no @pragma annotation.
   if (metadata_obj.IsNull() || metadata_obj.IsLanguageError()) {
     return false;
   }
