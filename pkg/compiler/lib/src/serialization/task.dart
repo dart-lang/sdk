@@ -259,25 +259,38 @@ class SerializationTask extends CompilerTask {
         _reporter.log('Reading data from ${uri}');
         api.Input<List<int>> dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
-        DataSource source = new BinarySourceImpl(dataInput.data);
-        backendStrategy.prepareCodegenReader(source);
-        Map<MemberEntity, CodegenResult> codegenResults =
-            source.readMemberMap((MemberEntity member) {
-          List<ModularName> modularNames = [];
-          List<ModularExpression> modularExpressions = [];
-          CodegenReader reader = new CodegenReaderImpl(
-              closedWorld, modularNames, modularExpressions);
-          source.registerCodegenReader(reader);
-          CodegenResult result = CodegenResult.readFromDataSource(
-              source, modularNames, modularExpressions);
-          source.deregisterCodegenReader(reader);
-          return result;
-        });
-        _reporter.log('Read ${codegenResults.length} members from ${uri}');
-        results.addAll(codegenResults);
+        // TODO(36983): This code is extracted because there appeared to be a
+        // memory leak for large buffer held by `source`.
+        _deserializeCodegenInput(
+            backendStrategy, closedWorld, uri, dataInput, results);
+        dataInput.release();
       });
     }
     return new DeserializedCodegenResults(
         globalTypeInferenceResults, codegenInputs, results);
+  }
+
+  void _deserializeCodegenInput(
+      BackendStrategy backendStrategy,
+      JClosedWorld closedWorld,
+      Uri uri,
+      api.Input<List<int>> dataInput,
+      Map<MemberEntity, CodegenResult> results) {
+    DataSource source = new BinarySourceImpl(dataInput.data);
+    backendStrategy.prepareCodegenReader(source);
+    Map<MemberEntity, CodegenResult> codegenResults =
+        source.readMemberMap((MemberEntity member) {
+      List<ModularName> modularNames = [];
+      List<ModularExpression> modularExpressions = [];
+      CodegenReader reader =
+          new CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
+      source.registerCodegenReader(reader);
+      CodegenResult result = CodegenResult.readFromDataSource(
+          source, modularNames, modularExpressions);
+      source.deregisterCodegenReader(reader);
+      return result;
+    });
+    _reporter.log('Read ${codegenResults.length} members from ${uri}');
+    results.addAll(codegenResults);
   }
 }
