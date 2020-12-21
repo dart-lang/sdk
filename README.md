@@ -42,30 +42,29 @@ internally at Google, see [`package:pedantic`][package-pedantic].  For a set of 
 If a specific lint warning should be ignored, it can be flagged with a comment.  For example, 
 
 ```dart
-   // ignore: avoid_as
-   (pm as Person).firstName = 'Seth';
+   // ignore: camel_case_types
+   class whyOhWhy { }
 ```
 
-tells the Dart analyzer to ignore this instance of the `avoid_as` warning.
+tells the Dart analyzer to ignore this instance of the `camel_case_types` warning.
 
 End-of-line comments are supported as well.  The following communicates the same thing:
 
 ```dart
-   (pm as Person).firstName = 'Seth'; // ignore: avoid_as
+   class whyOhWhy { // ignore: camel_case_types
 ```
 
 To ignore a rule for an entire file, use the `ignore_for_file` comment flag.  For example,
 
 ```dart
-// ignore_for_file: avoid_as
+// ignore_for_file: camel_case_types
 
-void main() {
-  ...
-  (pm as Person).firstName = 'Seth';
-}
+...
+
+class whyOhWhy { }
 ```
 
-tells the Dart analyzer to ignore all occurrences of the `avoid_as` warning in this file.
+tells the Dart analyzer to ignore all occurrences of the `camel_case_types` warning in this file.
 
 As lints are treated the same as errors and warnings by the analyzer, their severity can similarly be configured in an options file.  For 
 example, an analysis options file that specifies
@@ -73,13 +72,13 @@ example, an analysis options file that specifies
 ```yaml
 linter:
   rules:
-    - avoid_as
+    - camel_case_types
 analyzer:
   errors:
-    avoid_as: error
+    camel_case_types: error
 ```  
 
-tells the analyzer to treat `avoid_as` lints as errors.  For more on configuring analysis see the analysis option file [docs][options_file].
+tells the analyzer to treat `camel_case_types` lints as errors.  For more on configuring analysis see the analysis option file [docs][options_file].
 
 ## Contributing
 
