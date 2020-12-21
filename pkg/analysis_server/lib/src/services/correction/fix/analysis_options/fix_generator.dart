@@ -14,6 +14,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
@@ -64,7 +65,11 @@ class AnalysisOptionsFixGenerator {
 //    } else if (errorCode ==
 //        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED) {
 //    } else
-    if (errorCode == AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED) {
+
+    if (errorCode == DEPRECATED_LINT_HINT) {
+      await _addFix_removeLint();
+    } else if (errorCode ==
+        AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED) {
       await _addFix_removeSetting();
 //    } else if (errorCode ==
 //        AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED) {
@@ -87,57 +92,17 @@ class AnalysisOptionsFixGenerator {
     return fixes;
   }
 
+  Future<void> _addFix_removeLint() async {
+    var builder = await _createScalarDeletionBuilder();
+    if (builder != null) {
+      _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_LINT,
+          args: [coveringNodePath[0].toString()]);
+    }
+  }
+
   Future<void> _addFix_removeSetting() async {
-    if (coveringNodePath[0] is YamlScalar) {
-      SourceRange deletionRange;
-      var index = 1;
-      while (index < coveringNodePath.length) {
-        var parent = coveringNodePath[index];
-        if (parent is YamlList) {
-          if (parent.nodes.length > 1) {
-            var nodeToDelete = coveringNodePath[index - 1];
-            deletionRange = _lines(
-                nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
-            break;
-          }
-        } else if (parent is YamlMap) {
-          var nodes = parent.nodes;
-          if (nodes.length > 1) {
-            YamlNode key;
-            YamlNode value;
-            var child = coveringNodePath[index - 1];
-            if (nodes.containsKey(child)) {
-              key = child;
-              value = nodes[child];
-            } else if (nodes.containsValue(child)) {
-              for (var entry in nodes.entries) {
-                if (child == entry.value) {
-                  key = entry.key;
-                  value = child;
-                  break;
-                }
-              }
-            }
-            if (key == null || value == null) {
-              throw StateError(
-                  'Child is neither a key nor a value in the parent');
-            }
-            deletionRange = _lines(key.span.start.offset,
-                _firstNonWhitespaceBefore(value.span.end.offset));
-            break;
-          }
-        } else if (parent is YamlDocument) {
-          break;
-        }
-        index++;
-      }
-      var nodeToDelete = coveringNodePath[index - 1];
-      deletionRange ??=
-          _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
-      var builder = ChangeBuilder();
-      await builder.addGenericFileEdit(file, (builder) {
-        builder.addDeletion(deletionRange);
-      });
+    var builder = await _createScalarDeletionBuilder();
+    if (builder != null) {
       _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_SETTING,
           args: [coveringNodePath[0].toString()]);
     }
@@ -153,6 +118,63 @@ class AnalysisOptionsFixGenerator {
     }
     change.message = formatList(kind.message, args);
     fixes.add(Fix(kind, change));
+  }
+
+  Future<ChangeBuilder> _createScalarDeletionBuilder() async {
+    if (coveringNodePath[0] is! YamlScalar) {
+      return null;
+    }
+
+    SourceRange deletionRange;
+    var index = 1;
+    while (index < coveringNodePath.length) {
+      var parent = coveringNodePath[index];
+      if (parent is YamlList) {
+        if (parent.nodes.length > 1) {
+          var nodeToDelete = coveringNodePath[index - 1];
+          deletionRange = _lines(
+              nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
+          break;
+        }
+      } else if (parent is YamlMap) {
+        var nodes = parent.nodes;
+        if (nodes.length > 1) {
+          YamlNode key;
+          YamlNode value;
+          var child = coveringNodePath[index - 1];
+          if (nodes.containsKey(child)) {
+            key = child;
+            value = nodes[child];
+          } else if (nodes.containsValue(child)) {
+            for (var entry in nodes.entries) {
+              if (child == entry.value) {
+                key = entry.key;
+                value = child;
+                break;
+              }
+            }
+          }
+          if (key == null || value == null) {
+            throw StateError(
+                'Child is neither a key nor a value in the parent');
+          }
+          deletionRange = _lines(key.span.start.offset,
+              _firstNonWhitespaceBefore(value.span.end.offset));
+          break;
+        }
+      } else if (parent is YamlDocument) {
+        break;
+      }
+      index++;
+    }
+    var nodeToDelete = coveringNodePath[index - 1];
+    deletionRange ??=
+        _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
+    var builder = ChangeBuilder();
+    await builder.addGenericFileEdit(file, (builder) {
+      builder.addDeletion(deletionRange);
+    });
+    return builder;
   }
 
   int _firstNonWhitespaceBefore(int offset) {
