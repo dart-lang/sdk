@@ -98,8 +98,8 @@ class _Visitor extends SimpleAstVisitor {
     DartTypeUtilities.traverseNodesInDFS(method.body)
         .whereType<SimpleIdentifier>()
         .forEach((p) {
-      var debugName;
-      var name;
+      String debugName;
+      String name;
       const debugPrefix = 'debug';
       if (p.name.startsWith(debugPrefix) &&
           p.name.length > debugPrefix.length) {

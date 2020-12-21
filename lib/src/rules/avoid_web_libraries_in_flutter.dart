@@ -61,7 +61,7 @@ class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   File pubspecFile;
 
-  final rule;
+  final LintRule rule;
   bool _shouldValidateUri;
 
   _Visitor(this.rule);
@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
 
-    var parsedPubspec;
+    YamlMap parsedPubspec;
     try {
       final content = pubspecFile.readAsStringSync();
       parsedPubspec = _parseYaml(content);

@@ -20,7 +20,7 @@ void main([List<String> args]) async {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
-  var options;
+  ArgResults options;
   try {
     options = parser.parse(args);
   } on FormatException catch (err) {

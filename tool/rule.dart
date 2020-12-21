@@ -14,7 +14,7 @@ void main([List<String> args]) {
     ..addOption('name',
         abbr: 'n', help: 'Specifies lower_underscore rule name.');
 
-  var options;
+  ArgResults options;
   try {
     options = parser.parse(args);
   } on FormatException catch (err) {

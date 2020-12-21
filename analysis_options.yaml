@@ -48,7 +48,7 @@ linter:
     - control_flow_in_finally
     - directives_ordering
     - empty_statements
-#    - file_names # under review (see #1068)
+    - file_names
     - hash_and_equals
     - implementation_imports
     - invariant_booleans
@@ -85,7 +85,7 @@ linter:
 #    - prefer_mixin
     - prefer_null_aware_operators
     - prefer_relative_imports
-#    - prefer_typing_uninitialized_variables # under review (see #1068)
+    - prefer_typing_uninitialized_variables
     - prefer_void_to_null
     - provide_deprecation_message
 #    - public_member_api_docs

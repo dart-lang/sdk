@@ -193,7 +193,7 @@ Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
   }
   if (doc is YamlMap) {
     doc.nodes.forEach((k, YamlNode v) {
-      var key;
+      Object key;
       if (k is YamlScalar) {
         key = k.value;
       }
