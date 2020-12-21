@@ -60,11 +60,11 @@ main() {
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
-String _META_LIB_NAME = 'meta';
+String _metaLibName = 'meta';
 
 /// The name of the top-level variable used to mark a Class as having optional
 /// type args.
-String _OPTIONAL_TYPE_ARGS_VAR_NAME = 'optionalTypeArgs';
+String _optionalTypeArgsVarName = 'optionalTypeArgs';
 
 bool _isOptionallyParameterized(InterfaceType type) {
   final metadata = type.element?.metadata;
@@ -77,8 +77,8 @@ bool _isOptionallyParameterized(InterfaceType type) {
 
 bool _isOptionalTypeArgs(Element element) =>
     element is PropertyAccessorElement &&
-    element.name == _OPTIONAL_TYPE_ARGS_VAR_NAME &&
-    element.library?.name == _META_LIB_NAME;
+    element.name == _optionalTypeArgsVarName &&
+    element.library?.name == _metaLibName;
 
 class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
   AlwaysSpecifyTypes()

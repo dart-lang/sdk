@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Unfortunately these are essentially API.
+// todo (pq): consider deprecating and renaming.
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/token.dart';

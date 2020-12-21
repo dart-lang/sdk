@@ -136,12 +136,12 @@ class IterableContainsUnrelatedType extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends UnrelatedTypesProcessors {
-  static final _DEFINITION = InterfaceTypeDefinition('Iterable', 'dart.core');
+  static final _definition = InterfaceTypeDefinition('Iterable', 'dart.core');
 
   _Visitor(LintRule rule, TypeSystem typeSystem) : super(rule, typeSystem);
 
   @override
-  InterfaceTypeDefinition get definition => _DEFINITION;
+  InterfaceTypeDefinition get definition => _definition;
 
   @override
   String get methodName => 'contains';

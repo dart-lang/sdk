@@ -38,15 +38,15 @@ class A {
 ''';
 
 /// The name of the top-level variable used to mark a immutable class.
-String _IMMUTABLE_VAR_NAME = 'immutable';
+String _immutableVarName = 'immutable';
 
 /// The name of `meta` library, used to define analysis annotations.
-String _META_LIB_NAME = 'meta';
+String _metaLibName = 'meta';
 
 bool _isImmutable(Element element) =>
     element is PropertyAccessorElement &&
-    element.name == _IMMUTABLE_VAR_NAME &&
-    element.library?.name == _META_LIB_NAME;
+    element.name == _immutableVarName &&
+    element.library?.name == _metaLibName;
 
 class PreferConstConstructorsInImmutables extends LintRule
     implements NodeLintRule {

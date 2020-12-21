@@ -128,7 +128,7 @@ class CascadeInvocations extends LintRule implements NodeLintRule {
 /// A CascadableExpression is an object that is built from an expression and
 /// knows if it is able to join to another CascadableExpression.
 class _CascadableExpression {
-  static final NULL_CASCADABLE_EXPRESSION = _CascadableExpression._internal(
+  static final nullCascadableExpression = _CascadableExpression._internal(
       null, [],
       canJoin: false, canReceive: false, canBeCascaded: false);
 
@@ -170,7 +170,7 @@ class _CascadableExpression {
     if (expression is PrefixedIdentifier) {
       return _CascadableExpression._fromPrefixedIdentifier(expression);
     }
-    return NULL_CASCADABLE_EXPRESSION;
+    return nullCascadableExpression;
   }
 
   factory _CascadableExpression.fromVariableDeclarationStatement(
@@ -221,7 +221,7 @@ class _CascadableExpression {
           canReceive: isSimpleIdentifier,
           canBeCascaded: true);
     }
-    return NULL_CASCADABLE_EXPRESSION;
+    return nullCascadableExpression;
   }
 
   factory _CascadableExpression._fromPrefixedIdentifier(
@@ -299,11 +299,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.statements.length < 2) {
       return;
     }
-    var previousExpressionBox =
-        _CascadableExpression.NULL_CASCADABLE_EXPRESSION;
+    var previousExpressionBox = _CascadableExpression.nullCascadableExpression;
     for (final statement in node.statements) {
-      var currentExpressionBox =
-          _CascadableExpression.NULL_CASCADABLE_EXPRESSION;
+      var currentExpressionBox = _CascadableExpression.nullCascadableExpression;
       if (statement is VariableDeclarationStatement) {
         currentExpressionBox =
             _CascadableExpression.fromVariableDeclarationStatement(statement);

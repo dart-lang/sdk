@@ -136,12 +136,12 @@ class ListRemoveUnrelatedType extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends UnrelatedTypesProcessors {
-  static final _DEFINITION = InterfaceTypeDefinition('List', 'dart.core');
+  static final _definition = InterfaceTypeDefinition('List', 'dart.core');
 
   _Visitor(LintRule rule, TypeSystem typeSystem) : super(rule, typeSystem);
 
   @override
-  InterfaceTypeDefinition get definition => _DEFINITION;
+  InterfaceTypeDefinition get definition => _definition;
 
   @override
   String get methodName => 'remove';
