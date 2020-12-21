@@ -131,7 +131,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.foldingRangeProvider, isNotNull);
     expect(initResult.capabilities.workspace.fileOperations.willRename,
         equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
-    expect(initResult.capabilities.semanticTokensProvider, isNotNull);
+    expect(initResult.capabilities.semanticTokensProvider,
+        enableSemanticTokens ? isNotNull : isNull);
 
     expect(didGetRegisterCapabilityRequest, isFalse);
   }
