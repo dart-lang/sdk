@@ -142,7 +142,7 @@ vars = {
   "shelf_packages_handler_tag": "2.0.0",
   "shelf_proxy_tag": "0.1.0+7",
   "shelf_rev": "fa5afaa38bd51dedeeaa25b7bfd8822cabbcc57f",
-  "shelf_web_socket_rev": "8050a55b16faa5052a3e5d7dcdc170c59b6644f2",
+  "shelf_web_socket_rev": "abae6956e2f7d863a416c99aa031d7fa1a7160a7",
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
