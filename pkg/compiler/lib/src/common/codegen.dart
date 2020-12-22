@@ -489,8 +489,13 @@ class CodegenResult {
   final Iterable<ModularName> modularNames;
   final Iterable<ModularExpression> modularExpressions;
 
-  CodegenResult(
-      this.code, this.impact, this.modularNames, this.modularExpressions);
+  CodegenResult(this.code, this.impact, List<ModularName> modularNames,
+      List<ModularExpression> modularExpressions)
+      : this.modularNames =
+            modularNames.isEmpty ? const [] : List.unmodifiable(modularNames),
+        this.modularExpressions = modularExpressions.isEmpty
+            ? const []
+            : List.unmodifiable(modularExpressions);
 
   /// Reads a [CodegenResult] object from [source].
   ///
@@ -505,7 +510,7 @@ class CodegenResult {
     js.Fun code = source.readJsNodeOrNull();
     CodegenImpact impact = CodegenImpact.readFromDataSource(source);
     source.end(tag);
-    return new CodegenResult(code, impact, modularNames, modularExpressions);
+    return CodegenResult(code, impact, modularNames, modularExpressions);
   }
 
   /// Writes the [CodegenResult] object to [sink].
