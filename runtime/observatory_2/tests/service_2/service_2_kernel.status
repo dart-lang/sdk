@@ -9,7 +9,7 @@ bad_reload_test: RuntimeError
 break_on_activation_test: SkipByDesign # No incremental compiler available.
 complex_reload_test: RuntimeError
 debugger_inspect_test: SkipByDesign # No incremental compiler available.
-debugger_location_second_test: RuntimeError
+debugger_location_second_test: SkipByDesign # No script sources available.
 eval_internal_class_test: SkipByDesign # No incremental compiler available.
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
 eval_test: SkipByDesign # No incremental compiler available.
