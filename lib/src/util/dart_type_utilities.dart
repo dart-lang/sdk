@@ -14,8 +14,6 @@ import '../ast.dart';
 typedef AstNodePredicate = bool Function(AstNode node);
 
 class DartTypeUtilities {
-  // todo (pq): remove when fixed: https://github.com/dart-lang/linter/issues/2330
-  // ignore: prefer_constructors_over_static_methods
   static EnumLikeClassDescription asEnumLikeClass(ClassElement classElement) {
     // See discussion: https://github.com/dart-lang/linter/issues/2083
     //
