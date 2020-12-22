@@ -95,6 +95,39 @@ class SemanticTokenEncoder {
     return SemanticTokens(data: encodedTokens);
   }
 
+  /// Sorted for highlight regions that ensures tokens are sorted in offset order
+  /// then longest first, then by priority, and finally by name. This ensures
+  /// the order is always stable.
+  int _regionOffsetLengthPrioritySorter(
+      HighlightRegion r1, HighlightRegion r2) {
+    const priorities = {
+      // Ensure boolean comes above keyword.
+      HighlightRegionType.LITERAL_BOOLEAN: 1,
+    };
+
+    // First sort by offset.
+    if (r1.offset != r2.offset) {
+      return r1.offset.compareTo(r2.offset);
+    }
+
+    // Then length (so longest are first).
+    if (r1.length != r2.length) {
+      return -r1.length.compareTo(r2.length);
+    }
+
+    // Next sort by priority (if different).
+    final priority1 = priorities[r1.type] ?? 0;
+    final priority2 = priorities[r2.type] ?? 0;
+    if (priority1 != priority2) {
+      return priority1.compareTo(priority2);
+    }
+
+    // If the tokens had the same offset and length, sort by name. This
+    // is completely arbitrary but it's only important that it is consistent
+    // between regions and the sort is stable.
+    return r1.type.name.compareTo(r2.type.name);
+  }
+
   /// Splits multiline regions into multiple regions for clients that do not support
   /// multiline tokens.
   Iterable<HighlightRegion> _splitMultilineRegions(
@@ -143,12 +176,10 @@ class SemanticTokenEncoder {
       return;
     }
 
-    // When tokens have the same offset, the longest should come first so
-    // the nested token "overwrites" it during the flattening.
+    // Sort tokens so by offset, shortest length, priority then name to ensure
+    // tne sort is always stable.
     final sortedRegions = regions.toList()
-      ..sort((r1, r2) => r1.offset != r2.offset
-          ? r1.offset.compareTo(r2.offset)
-          : -r1.length.compareTo(r2.length));
+      ..sort(_regionOffsetLengthPrioritySorter);
 
     final firstRegion = sortedRegions.first;
     final stack = ListQueue<HighlightRegion>()..add(firstRegion);
@@ -194,7 +225,8 @@ class SemanticTokenInfo {
   SemanticTokenInfo(
       this.line, this.column, this.length, this.type, this.modifiers);
 
-  static int offsetSort(t1, t2) => t1.line == t2.line
-      ? t1.column.compareTo(t2.column)
-      : t1.line.compareTo(t2.line);
+  static int offsetSort(SemanticTokenInfo t1, SemanticTokenInfo t2) =>
+      t1.line == t2.line
+          ? t1.column.compareTo(t2.column)
+          : t1.line.compareTo(t2.line);
 }
