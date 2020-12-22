@@ -6,15 +6,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analyzer/error/error.dart';
+import 'package:charcode/ascii.dart' show $pipe, $backslash;
 
 import 'analyzer.dart';
 import 'util/score_utils.dart';
 
-const benchmarkRuns = 10;
-final int _pipeCodeUnit = '|'.codeUnitAt(0);
-
 // Number of times to perform linting to get stable benchmarks.
-final int _slashCodeUnit = '\\'.codeUnitAt(0);
+const benchmarkRuns = 10;
 
 String getLineContents(int lineNumber, AnalysisError error) {
   final path = error.source.fullName;
@@ -70,7 +68,7 @@ Future writeBenchmarks(
 String _escapePipe(String input) {
   var result = StringBuffer();
   for (var c in input.codeUnits) {
-    if (c == _slashCodeUnit || c == _pipeCodeUnit) {
+    if (c == $backslash || c == $pipe) {
       result.write('\\');
     }
     result.writeCharCode(c);
