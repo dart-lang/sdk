@@ -632,6 +632,7 @@ class FixProcessor extends BaseProcessor {
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.newInstance,
+      AddLate.newInstance,
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
       MakeVariableNotFinal.newInstance,

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,9 +45,74 @@ class C {
 ''');
     await assertHasFix('''
 class C {
-  final late String s;
+  late final String s;
 }
 ''');
+  }
+
+  Future<void> test_withFinalAssignedInConstructor() async {
+    await resolveTestCode('''
+class C {
+  final String s;
+  C() {
+    s = '';
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  late final String s;
+  C() {
+    s = '';
+  }
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+  }
+
+  Future<void> test_withFinalAssignedInLibrary() async {
+    await resolveTestCode('''
+class C {
+  final String s;
+}
+
+void f(C c) {
+  c.s = '';
+}
+''');
+    await assertHasFix('''
+class C {
+  late final String s;
+}
+
+void f(C c) {
+  c.s = '';
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+  }
+
+  Future<void> test_withFinalStaticAssignedInConstructor() async {
+    await resolveTestCode('''
+class C {
+  static final String s;
+  C() {
+    s = '';
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  static late final String s;
+  C() {
+    s = '';
+  }
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
   }
 
   Future<void> test_withLate() async {
