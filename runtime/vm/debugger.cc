@@ -2173,20 +2173,12 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     return false;
   }
   ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exception);
-  if (handler_frame == nullptr) {
+  if (handler_frame == NULL) {
     // Did not find an exception handler that catches this exception.
     // Note that this check is not precise, since we can't check
     // uninstantiated types, i.e. types containing type parameters.
     // Thus, we may report an exception as unhandled when in fact
     // it will be caught once we unwind the stack.
-    return true;
-  }
-  // If handler_frame's function is annotated with
-  // @pragma('vm:notify-debugger-on-exception'), we specifically want to notify
-  // the debugger of this otherwise ignored exception.
-  if (Library::FindPragma(Thread::Current(), /*only_core=*/false,
-                          handler_frame->function(),
-                          Symbols::vm_notify_debugger_on_exception())) {
     return true;
   }
   return false;

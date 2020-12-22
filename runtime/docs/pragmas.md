@@ -7,12 +7,8 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | Pragma | Meaning |
 | --- | --- |
 | `vm:entry-point` | [Defining entry-points into Dart code for an embedder or native methods](compiler/aot/entry_point_pragma.md) |
-| `vm:never-inline` | [Never inline a function or method](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-never-be-inlined) |
-| `vm:prefer-inline` | [Inline a function or method when possible](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-be-inlined) |
-| `vm:notify-debugger-on-exception` | Marks a function that catches exceptions, 
-making the VM treat any caught exception as if they were uncaught.
-This can be used to notify an attached debugger during debugging, without
-pausing the app during regular execution. |
+| `vm:never-inline` | [Never inline a function or method](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-never-be-inlined)  |
+| `vm:prefer-inline` | [Inline a function or method when possible](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-be-inlined)  |
 
 ## Pragmas for internal use
 

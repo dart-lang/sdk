@@ -3638,9 +3638,7 @@ bool Library::FindPragma(Thread* T,
             pragma_name.raw()) {
       continue;
     }
-    if (options != nullptr) {
-      *options = Instance::Cast(pragma).GetField(pragma_options_field);
-    }
+    *options = Instance::Cast(pragma).GetField(pragma_options_field);
     return true;
   }
 
