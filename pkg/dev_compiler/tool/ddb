@@ -116,7 +116,7 @@ void main(List<String> args) async {
   var verbose = options['verbose'] as bool;
   var soundNullSafety = options['sound-null-safety'] as bool;
   var nonNullAsserts = options['null-assertions'] as bool;
-  var nativeNonNullAsserts = options['null-assertions'] as bool;
+  var nativeNonNullAsserts = options['native-null-assertions'] as bool;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var entry = p.canonicalize(options.rest.first);
   var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
@@ -323,15 +323,6 @@ try {
           ['--inspect=localhost:$port', nodeFile], {'NODE_PATH': nodePath});
       if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (d8) {
-      // Fix SDK import.  `d8` doesn't let us set paths, so we need a full path
-      // to the SDK.
-
-      var jsFile = File(out);
-      var jsContents = jsFile.readAsStringSync();
-      jsContents = jsContents.replaceFirst(
-          "from 'dart_sdk.js'", "from '$sdkJsPath/dart_sdk.js'");
-      jsFile.writeAsStringSync(jsContents);
-
       var runjs = '''
 load("$ddcPath/lib/js/legacy/dart_library.js");
 load("$sdkJsPath/dart_sdk.js");
@@ -350,7 +341,7 @@ dart_library.start('$basename', '$libname');
       var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
-      var process = await startProcess('D8', d8Binary, ['--module', d8File]);
+      var process = await startProcess('D8', d8Binary, [d8File]);
       if (await process.exitCode != 0) exit(await process.exitCode);
     }
   }
