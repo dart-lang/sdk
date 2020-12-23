@@ -137,6 +137,22 @@ class C {
 ''');
   }
 
+  Future<void> test_shortCircuit() async {
+    await resolveTestCode('''
+class C {
+  C a(C? c) => c?.b?.b ?? this;
+  C get b => this;
+}
+''');
+
+    await assertHasFix('''
+class C {
+  C a(C? c) => c?.b.b ?? this;
+  C get b => this;
+}
+''');
+  }
+
   Future<void> test_spread() async {
     await resolveTestCode('''
 void f(List<int> x) {

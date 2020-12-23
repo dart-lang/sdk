@@ -1085,6 +1085,9 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
       ReplaceWithNotNullAware.newInstance,
     ],
+    StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
+      ReplaceWithNotNullAware.newInstance,
+    ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.newInstance,
     ],
