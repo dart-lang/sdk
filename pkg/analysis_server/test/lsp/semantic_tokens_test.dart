@@ -429,6 +429,61 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_manyBools_bug() async {
+    // Similar to test_manyImports_sortBug, this code triggered inconsistent tokens
+    // for "false" because tokens were sorted incorrectly (because both boolean and
+    // keyword had the same offset and length, which is all that were sorted by).
+    final content = '''
+class MyTestClass {
+  /// test
+  /// test
+  bool test1 = false;
+
+  /// test
+  /// test
+  bool test2 = false;
+
+  /// test
+  /// test
+  bool test3 = false;
+
+  /// test
+  /// test
+  bool test4 = false;
+
+  /// test
+  /// test
+  bool test5 = false;
+
+  /// test
+  /// test
+  bool test6 = false;
+}
+    ''';
+
+    final expected = [
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyTestClass', SemanticTokenTypes.class_),
+      for (var i = 1; i <= 6; i++) ...[
+        _Token('/// test', SemanticTokenTypes.comment,
+            [SemanticTokenModifiers.documentation]),
+        _Token('/// test', SemanticTokenTypes.comment,
+            [SemanticTokenModifiers.documentation]),
+        _Token('bool', SemanticTokenTypes.class_),
+        _Token('test$i', SemanticTokenTypes.variable,
+            [SemanticTokenModifiers.declaration]),
+        _Token('false', CustomSemanticTokenTypes.boolean),
+      ],
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_manyImports_sortBug() async {
     // This test is for a bug where some "import" tokens would not be highlighted
     // correctly. Imports are made up of a DIRECTIVE token that spans a
