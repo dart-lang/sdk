@@ -741,7 +741,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
     for (Annotation annotation in annotations) {
       var elementAnnotation =
           annotation.elementAnnotation as ElementAnnotationImpl;
-      elementAnnotation.element = annotation.element;
+      if (elementAnnotation != null) {
+        elementAnnotation.element = annotation.element;
+      }
     }
   }
 }

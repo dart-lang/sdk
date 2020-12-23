@@ -37,7 +37,7 @@ class AnnotationResolver {
     ElementAnnotationImpl elementAnnotationImpl = node.elementAnnotation;
     if (elementAnnotationImpl == null) {
       // Analyzer ignores annotations on "part of" directives.
-      assert(parent is PartOfDirective);
+      assert(parent is PartDirective || parent is PartOfDirective);
     } else {
       elementAnnotationImpl.annotationAst = _createCloner().cloneNode(node);
     }
