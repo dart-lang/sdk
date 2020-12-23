@@ -33,25 +33,27 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   'web_sql'
 ];
 
-bool maybeEnableNative(Uri uri) {
-  bool allowedTestLibrary() {
-    String scriptName = uri.path;
-    return scriptName
-            .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
-        scriptName.contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
-        scriptName.contains('generated_tests/dart2js/native/native_test') ||
-        scriptName.contains(RegExp(r'(?<!generated_)tests/dart2js_2/native')) ||
-        scriptName
-            .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-        scriptName.contains('generated_tests/dart2js_2/native/native_test');
-  }
+List<Pattern> _allowedNativeTestPatterns = [
+  RegExp(r'(?<!generated_)tests/dart2js/native'),
+  RegExp(r'(?<!generated_)tests/dart2js/internal'),
+  'generated_tests/dart2js/native/native_test',
+  RegExp(r'(?<!generated_)tests/dart2js_2/native'),
+  RegExp(r'(?<!generated_)tests/dart2js_2/internal'),
+  'generated_tests/dart2js_2/native/native_test',
+];
 
+bool allowedNativeTest(Uri uri) {
+  String path = uri.path;
+  return _allowedNativeTestPatterns.any((pattern) => path.contains(pattern));
+}
+
+bool maybeEnableNative(Uri uri) {
   bool allowedDartLibrary() {
     if (uri.scheme != 'dart') return false;
     return _allowedDartSchemePaths.contains(uri.path);
   }
 
-  return allowedTestLibrary() || allowedDartLibrary();
+  return allowedNativeTest(uri) || allowedDartLibrary();
 }
 
 /// A kernel [Target] to configure the Dart Front End for dart2js.
@@ -123,8 +125,7 @@ class Dart2jsTarget extends Target {
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
-      JsInteropChecks(
-              coreTypes,
+      JsInteropChecks(coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }

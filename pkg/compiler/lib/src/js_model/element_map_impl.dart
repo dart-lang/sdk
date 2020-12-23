@@ -37,6 +37,7 @@ import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
+import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map_impl.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
@@ -1321,18 +1322,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
-    bool mayLookupInMain() {
-      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
-      // Tests permit lookup outside of dart: libraries.
-      return mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
-    }
 
     DartType lookup(String typeName, {bool required}) {
       DartType findInLibrary(LibraryEntity library) {
@@ -1355,8 +1344,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // TODO(johnniwinther): Narrow the set of lookups based on the depending
       // library.
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      cachedMayLookupInMain ??=
+          // Tests permit lookup outside of dart: libraries.
+          allowedNativeTest(elementEnvironment.mainLibrary.canonicalUri);
       DartType type;
-      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+      if (cachedMayLookupInMain) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
       type ??= findIn(Uris.dart_core);
