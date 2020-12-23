@@ -24,13 +24,19 @@ class ParseError {
 }
 
 class InvalidKernelVersionError {
+  final String filename;
   final int version;
 
-  InvalidKernelVersionError(this.version);
+  InvalidKernelVersionError(this.filename, this.version);
 
   String toString() {
-    return 'Unexpected Kernel Format Version ${version} '
-        '(expected ${Tag.BinaryFormatVersion}).';
+    StringBuffer sb = new StringBuffer();
+    sb.write('Unexpected Kernel Format Version ${version} '
+        '(expected ${Tag.BinaryFormatVersion})');
+    if (filename != null) {
+      sb.write(' when reading $filename.');
+    }
+    return '$sb';
   }
 }
 
@@ -529,7 +535,7 @@ class BinaryBuilder {
       }
       int version = readUint32();
       if (version != Tag.BinaryFormatVersion) {
-        throw InvalidKernelVersionError(version);
+        throw InvalidKernelVersionError(filename, version);
       }
 
       _readAndVerifySdkHash();
@@ -717,7 +723,7 @@ class BinaryBuilder {
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(formatVersion);
+      throw InvalidKernelVersionError(filename, formatVersion);
     }
 
     _readAndVerifySdkHash();
@@ -743,7 +749,7 @@ class BinaryBuilder {
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(formatVersion);
+      throw InvalidKernelVersionError(filename, formatVersion);
     }
 
     _readAndVerifySdkHash();
