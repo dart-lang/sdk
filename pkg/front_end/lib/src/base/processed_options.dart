@@ -400,7 +400,8 @@ class ProcessedOptions {
       if (sdkSummary == null) return null;
       List<int> bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
-        _sdkSummaryComponent = loadComponent(bytes, nameRoot);
+        _sdkSummaryComponent =
+            loadComponent(bytes, nameRoot, fileUri: sdkSummary);
       }
     }
     return _sdkSummaryComponent;
@@ -424,10 +425,13 @@ class ProcessedOptions {
       // TODO(sigmund): throttle # of concurrent operations.
       List<List<int>> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
-      _additionalDillComponents = allBytes
-          .where((bytes) => bytes != null)
-          .map((bytes) => loadComponent(bytes, nameRoot))
-          .toList();
+      List<Component> result = [];
+      for (int i = 0; i < uris.length; i++) {
+        if (allBytes[i] == null) continue;
+        List<int> bytes = allBytes[i];
+        result.add(loadComponent(bytes, nameRoot, fileUri: uris[i]));
+      }
+      _additionalDillComponents = result;
     }
     return _additionalDillComponents;
   }
@@ -442,13 +446,12 @@ class ProcessedOptions {
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Component loadComponent(List<int> bytes, CanonicalName nameRoot,
-      {bool alwaysCreateNewNamedNodes}) {
+      {bool alwaysCreateNewNamedNodes, Uri fileUri}) {
     Component component =
         target.configureComponent(new Component(nameRoot: nameRoot));
-    // TODO(ahe): Pass file name to BinaryBuilder.
     // TODO(ahe): Control lazy loading via an option.
     new BinaryBuilder(bytes,
-            filename: null,
+            filename: fileUri == null ? null : '$fileUri',
             disableLazyReading: false,
             alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
         .readComponent(component);
