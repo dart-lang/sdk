@@ -9,6 +9,8 @@ import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 
+import 'doc.dart';
+
 /// Generates a list of lint rules in machine format suitable for consumption by
 /// other tools.
 void main([List<String> args]) {
@@ -27,15 +29,20 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
     {bool pretty = true}) {
   var rules = List<LintRule>.from(ruleRegistry, growable: false)..sort();
   var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
+
   var json = encoder.convert([
     for (var rule in rules)
       {
         'name': rule.name,
         'description': rule.description,
         'group': rule.group.name,
+        'maturity': rule.maturity.name,
+        'sets': [
+          if (flutterRules.contains(rule.name)) 'flutter',
+          if (pedanticRules.contains(rule.name)) 'pedantic',
+        ],
         'details': rule.details,
       }
   ]);
-
   return json;
 }
