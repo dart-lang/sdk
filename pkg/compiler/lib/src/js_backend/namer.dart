@@ -4,8 +4,6 @@
 
 library js_backend.namer;
 
-import 'dart:collection' show HashMap;
-
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $g, $s, $z;
 
@@ -505,12 +503,12 @@ class Namer extends ModularNamer {
   /// [_disambiguateMember], [_disambiguateInternalMember],
   /// [_disambiguateOperator], and [reservePublicMemberName].
   final NamingScope instanceScope = NamingScope();
-  final Map<String, jsAst.Name> userInstanceMembers = HashMap();
-  final Map<String, String> userInstanceMembersOriginalName = HashMap();
-  final Map<MemberEntity, jsAst.Name> internalInstanceMembers = HashMap();
-  final Map<String, jsAst.Name> userInstanceOperators = HashMap();
-  final Map<jsAst.Name, jsAst.Name> userGetters = HashMap();
-  final Map<jsAst.Name, jsAst.Name> userSetters = HashMap();
+  final Map<String, jsAst.Name> userInstanceMembers = {};
+  final Map<String, String> userInstanceMembersOriginalName = {};
+  final Map<MemberEntity, jsAst.Name> internalInstanceMembers = {};
+  final Map<String, jsAst.Name> userInstanceOperators = {};
+  final Map<jsAst.Name, jsAst.Name> userGetters = {};
+  final Map<jsAst.Name, jsAst.Name> userSetters = {};
   final Map<TypeVariableEntity, jsAst.Name> _typeVariableNames = {};
 
   Map<String, String> createMinifiedInstanceNameMap() {
@@ -538,9 +536,9 @@ class Namer extends ModularNamer {
 
   final Map<String, int> popularNameCounters = {};
 
-  final Map<LibraryEntity, String> libraryLongNames = HashMap();
+  final Map<LibraryEntity, String> libraryLongNames = {};
 
-  final Map<ConstantValue, jsAst.Name> _constantNames = HashMap();
+  final Map<ConstantValue, jsAst.Name> _constantNames = {};
   final Map<ConstantValue, String> _constantLongNames = {};
   ConstantCanonicalHasher _constantHasher;
 
@@ -551,7 +549,7 @@ class Namer extends ModularNamer {
   /// Used to store unique keys for library names. Keys are not used as names,
   /// nor are they visible in the output. The only serve as an internal
   /// key into maps.
-  final Map<LibraryEntity, String> _libraryKeys = HashMap();
+  final Map<LibraryEntity, String> _libraryKeys = {};
 
   Namer(this._closedWorld, this.fixedNames) {
     _literalGetterPrefix = new StringBackedName(fixedNames.getterPrefix);
@@ -1495,7 +1493,7 @@ class Namer extends ModularNamer {
   // parts with the fast-startup emitter.
   String get typesOffsetName => r'typesOffset';
 
-  Map<FunctionType, jsAst.Name> functionTypeNameMap = HashMap();
+  Map<FunctionType, jsAst.Name> functionTypeNameMap = {};
 
   FunctionTypeNamer _functionTypeNamer;
 
