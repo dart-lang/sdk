@@ -628,7 +628,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var uriObj = Uri.parse(uri);
     var file = _fsState.getFileForUri(uriObj);
 
-    if (file.isUnresolved) {
+    if (file == null) {
       throw ArgumentError('$uri cannot be resolved to a file.');
     }
 
@@ -885,7 +885,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// without a package name. In these cases we cannot prove that the file is
   /// not a part, so it must be a library.
   bool isLibraryByUri(Uri uri) {
-    return !_fsState.getFileForUri(uri).isPart;
+    var file = _fsState.getFileForUri(uri);
+    return file == null || !file.isPart;
   }
 
   /// Return a [Future] that completes with a [ParsedUnitResult] for the file

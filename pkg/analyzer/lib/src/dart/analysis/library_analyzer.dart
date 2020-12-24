@@ -548,7 +548,8 @@ class LibraryAnalyzer {
     LibraryIdentifier libraryNameNode;
     var seenPartSources = <Source>{};
     var directivesToResolve = <Directive>[];
-    int partIndex = 0;
+    int partDirectiveIndex = 0;
+    int partElementIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {
       if (directive is LibraryDirective) {
         libraryNameNode = directive.name;
@@ -583,12 +584,15 @@ class LibraryAnalyzer {
       } else if (directive is PartDirective) {
         StringLiteral partUri = directive.uri;
 
-        FileState partFile = _library.partedFiles[partIndex];
-        CompilationUnit partUnit = units[partFile];
-        CompilationUnitElement partElement = _libraryElement.parts[partIndex];
+        FileState partFile = _library.partedFiles[partDirectiveIndex++];
+        if (partFile == null) {
+          continue;
+        }
+
+        var partUnit = units[partFile];
+        var partElement = _libraryElement.parts[partElementIndex++];
         partUnit.element = partElement;
         directive.element = partElement;
-        partIndex++;
 
         Source partSource = directive.uriSource;
         if (partSource == null) {

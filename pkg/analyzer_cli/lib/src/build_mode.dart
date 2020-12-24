@@ -313,10 +313,6 @@ class BuildMode with HasContextMixin {
 
             // Add empty synthetic units for unresolved `part` URIs.
             if (partSource == null) {
-              var unit = analysisDriver.fsState.unresolvedFile.parse();
-              inputUnits.add(
-                LinkInputUnit(partUri, null, true, unit),
-              );
               continue;
             }
 

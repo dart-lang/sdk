@@ -459,7 +459,7 @@ part '[invalid]';
       var bytes = File(aSum).readAsBytesSync();
       var bundle = PackageBundleReader(bytes);
       expect(_linkedLibraryUriList(bundle), [aUri]);
-      expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri, '']);
+      expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri]);
     });
   }
 

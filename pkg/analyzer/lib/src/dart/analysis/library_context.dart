@@ -119,10 +119,6 @@ class LibraryContext {
 
       librariesTotal += cycle.libraries.length;
 
-      if (cycle.isUnresolvedFile) {
-        return;
-      }
-
       cycle.directDependencies.forEach(
         (e) => loadBundle(e, '$debugPrefix  '),
       );
